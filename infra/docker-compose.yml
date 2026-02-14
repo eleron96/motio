@@ -245,7 +245,10 @@ services:
       OAUTH2_PROXY_COOKIE_SECURE: ${OAUTH2_PROXY_COOKIE_SECURE:-false}
       OAUTH2_PROXY_COOKIE_SAMESITE: ${OAUTH2_PROXY_COOKIE_SAMESITE:-lax}
       OAUTH2_PROXY_REVERSE_PROXY: "true"
-      OAUTH2_PROXY_PASS_ACCESS_TOKEN: "true"
+      # Keep cookie sessions small to avoid >4KB browser/proxy limits.
+      # We don't need to forward the provider access token to the upstream.
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: "false"
+      OAUTH2_PROXY_SESSION_COOKIE_MINIMAL: "true"
       OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
       OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"
