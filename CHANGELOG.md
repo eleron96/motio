@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.23] - 2026-02-14
 ### Fixed
 - Стабилизировали вход: уменьшен размер cookie-сессии oauth2-proxy, чтобы избежать переполнения и проблем логина в некоторых браузерах.
 
