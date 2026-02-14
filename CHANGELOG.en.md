@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.21] - 2026-02-14
 ### Security
 - Tightened API CORS rules: only trusted origins are allowed and `Access-Control-Allow-Credentials` was removed to prevent cross-site reads from untrusted domains.
 
