@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.20] - 2026-02-14
 ### Security
 - Deploy now automatically checks and, if needed, syncs the Keycloak OIDC client secret with production settings, preventing login breakage after Keycloak re-creation.
 

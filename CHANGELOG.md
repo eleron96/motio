@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.20] - 2026-02-14
 ### Security
 - При деплое теперь автоматически проверяется и при необходимости синхронизируется секрет OIDC-клиента в Keycloak с настройками production, чтобы вход не ломался после пересоздания Keycloak.
 
