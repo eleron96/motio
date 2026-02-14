@@ -1,7 +1,7 @@
 {
   "realm": "timeline",
   "enabled": true,
-  "sslRequired": "none",
+  "sslRequired": "external",
   "displayName": "Timeline Planner",
   "displayNameHtml": "<strong>Timeline Planner</strong>",
   "loginTheme": "timeline",

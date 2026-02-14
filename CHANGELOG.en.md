@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Hardened Keycloak security: external access now requires HTTPS.
+
 ## [0.1.24] - 2026-02-14
 ### Fixed
 - Reduced brief 502 errors during releases: the API gateway and edge proxy now reload gracefully without hard restarts.
