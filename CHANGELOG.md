@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.27] - 2026-02-14
 ### Fixed
 - Ускорили первую загрузку приложения: включили сжатие и загрузку разделов по мере открытия.
 
