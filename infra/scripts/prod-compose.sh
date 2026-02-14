@@ -35,6 +35,11 @@ fi
 
 infra/scripts/check-prod-secrets.sh "$env_file"
 
+if [[ ! -x "infra/scripts/keycloak-ensure-client-secret.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-client-secret.sh" >&2
+  exit 1
+fi
+
 get_env_value() {
   local key="$1"
   local line
@@ -221,6 +226,8 @@ until docker compose -f "$compose_file" --env-file "$env_file" exec -T \
 done
 
 docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup gateway
+
+infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
 
 if [[ "$AUTO_PRE_MIGRATION_BACKUP" == "true" ]]; then
   until docker compose -f "$compose_file" --env-file "$env_file" exec -T \

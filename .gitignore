@@ -7,6 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Keep deployment release history tracked (synced from the server after each deploy).
+!infra/releases.log
+
 bun.lockb
 date-fns-*.tgz
 vite.config.ts.timestamp-*.mjs
