@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Reduced brief 502 errors during releases: the API gateway and edge proxy now reload gracefully without hard restarts.
+
 ## [0.1.23] - 2026-02-14
 ### Fixed
 - Stabilized sign-in: reduced oauth2-proxy cookie session size to avoid overflow and login issues in some browsers.

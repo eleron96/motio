@@ -277,7 +277,15 @@ else
   echo "AUTO_PRE_MIGRATION_BACKUP=false, skipping pre-migration backup."
 fi
 
-docker compose -f "$compose_file" --env-file "$env_file" restart gateway >/dev/null 2>&1 || true
+# Reload gateway config gracefully to avoid brief 502s during deploy.
+# (A hard restart drops :8080 for a moment, and edge proxies will return 502.)
+if docker compose -f "$compose_file" --env-file "$env_file" ps -q gateway >/dev/null 2>&1; then
+  if docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -t >/dev/null 2>&1; then
+    docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -s reload >/dev/null 2>&1 || true
+  else
+    echo "Warning: gateway nginx config test failed; skipping reload." >&2
+  fi
+fi
 
 docker compose -f "$compose_file" --env-file "$env_file" run --rm migrate
 

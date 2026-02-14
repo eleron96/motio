@@ -16,7 +16,7 @@ rsync -az \
   "${root_dir}/" "${host}:${remote_dir}/"
 
 ssh "$host" "cd '${remote_dir}' && bash infra/scripts/prod-compose.sh"
-ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then docker restart motio-caddy >/dev/null && echo 'Caddy container restarted.'; fi"
+ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then docker exec motio-caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 && echo 'Caddy config reloaded.' || (docker restart motio-caddy >/dev/null && echo 'Caddy container restarted (reload failed).'); fi"
 
 scp "${host}:${remote_dir}/VERSION" "${root_dir}/VERSION"
 scp "${host}:${remote_dir}/infra/releases.log" "${root_dir}/infra/releases.log"
