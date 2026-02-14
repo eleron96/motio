@@ -122,6 +122,42 @@ type MilestoneRow = {
   title: string;
 };
 
+type SupabaseResult<T> = {
+  data: T;
+  error: { message: string } | null;
+};
+
+let reserveAdminUserIdCache: { email: string; id: string | null } | null = null;
+let reserveAdminUserIdInFlight: Promise<string | null> | null = null;
+
+const fetchReserveAdminUserId = async (): Promise<string | null> => {
+  if (!reserveAdminEmail) return null;
+  if (reserveAdminUserIdCache?.email === reserveAdminEmail) return reserveAdminUserIdCache.id;
+  if (reserveAdminUserIdInFlight) return reserveAdminUserIdInFlight;
+
+  reserveAdminUserIdInFlight = (async () => {
+    try {
+      const { data: adminProfile, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('email', reserveAdminEmail)
+        .maybeSingle();
+      if (error) {
+        console.error(error);
+        reserveAdminUserIdCache = { email: reserveAdminEmail, id: null };
+        return null;
+      }
+      const id = (adminProfile as { id?: string } | null)?.id ?? null;
+      reserveAdminUserIdCache = { email: reserveAdminEmail, id };
+      return id;
+    } finally {
+      reserveAdminUserIdInFlight = null;
+    }
+  })();
+
+  return reserveAdminUserIdInFlight;
+};
+
 type AssigneeUniqueTaskCountRow = {
   assignee_id: string | null;
   total: number | string | null;
@@ -426,6 +462,7 @@ export const usePlannerStore = create<PlannerStore>()(
         }
 
         const requestId = get().dataRequestId + 1;
+        const previousWorkspaceId = get().workspaceId;
         set({
           loading: true,
           error: null,
@@ -434,6 +471,9 @@ export const usePlannerStore = create<PlannerStore>()(
           highlightedTaskId: null,
           timelineAttentionDate: null,
           dataRequestId: requestId,
+          ...(previousWorkspaceId && previousWorkspaceId !== workspaceId
+            ? { trackedProjectIds: [] }
+            : null),
         });
 
         const { start, end } = buildTaskRange(currentDate, viewMode);
@@ -442,7 +482,7 @@ export const usePlannerStore = create<PlannerStore>()(
         const { assigneeCountsDate, assigneeCountsWorkspaceId } = get();
         const shouldFetchCounts = assigneeCountsDate !== today || assigneeCountsWorkspaceId !== workspaceId;
 
-        const countsPromise = shouldFetchCounts
+        const countsPromise: Promise<SupabaseResult<unknown>> = shouldFetchCounts
           ? supabase.rpc('assignee_unique_task_counts', {
             p_workspace_id: workspaceId,
             p_start_date: today,
@@ -450,15 +490,83 @@ export const usePlannerStore = create<PlannerStore>()(
           })
           : Promise.resolve({ data: null, error: null });
 
-        const { data: authData } = await supabase.auth.getUser();
-        const userId = authData?.user?.id ?? null;
-        const trackedPromise = userId
-          ? supabase
+        // Background queries should not delay first paint.
+        const trackedPromise: Promise<SupabaseResult<unknown[]>> = (async () => {
+          const { data: authData } = await supabase.auth.getUser();
+          const userId = authData?.user?.id ?? null;
+          if (!userId) return { data: [], error: null };
+          return supabase
             .from('project_tracking')
             .select('project_id')
             .eq('workspace_id', workspaceId)
-            .eq('user_id', userId)
-          : Promise.resolve({ data: [], error: null });
+            .eq('user_id', userId);
+        })();
+
+        const adminUserIdPromise = fetchReserveAdminUserId();
+
+        // Kick off the main workspace data queries immediately (do not block on auth/user calls).
+        const tasksQuery = supabase
+          .from('tasks')
+          .select(
+            [
+              'id',
+              'workspace_id',
+              'title',
+              'project_id',
+              'assignee_id',
+              'assignee_ids',
+              'start_date',
+              'end_date',
+              'status_id',
+              'type_id',
+              'priority',
+              'tag_ids',
+              'description',
+              'repeat_id',
+            ].join(','),
+          )
+          .eq('workspace_id', workspaceId)
+          .gte('end_date', start)
+          .lte('start_date', end);
+
+        const projectsQuery = supabase
+          .from('projects')
+          .select('id, workspace_id, name, code, color, archived, customer_id')
+          .eq('workspace_id', workspaceId);
+        const customersQuery = supabase
+          .from('customers')
+          .select('id, workspace_id, name')
+          .eq('workspace_id', workspaceId);
+        const assigneesQuery = supabase
+          .from('assignees')
+          .select('id, workspace_id, name, user_id, is_active')
+          .eq('workspace_id', workspaceId);
+        const memberGroupsQuery = supabase
+          .from('member_groups')
+          .select('id, name')
+          .eq('workspace_id', workspaceId);
+        const memberAssignmentsQuery = supabase
+          .from('workspace_members')
+          .select('user_id, group_id')
+          .eq('workspace_id', workspaceId);
+        const statusesQuery = supabase
+          .from('statuses')
+          .select('id, workspace_id, name, emoji, color, is_final, is_cancelled')
+          .eq('workspace_id', workspaceId);
+        const taskTypesQuery = supabase
+          .from('task_types')
+          .select('id, workspace_id, name, icon')
+          .eq('workspace_id', workspaceId);
+        const tagsQuery = supabase
+          .from('tags')
+          .select('id, workspace_id, name, color')
+          .eq('workspace_id', workspaceId);
+        const milestonesQuery = supabase
+          .from('milestones')
+          .select('id, workspace_id, title, project_id, date')
+          .eq('workspace_id', workspaceId)
+          .gte('date', start)
+          .lte('date', end);
 
         const [
           tasksRes,
@@ -471,31 +579,19 @@ export const usePlannerStore = create<PlannerStore>()(
           taskTypesRes,
           tagsRes,
           milestonesRes,
-          countsRes,
-          trackedRes,
+          adminUserId,
         ] = await Promise.all([
-          supabase
-            .from('tasks')
-            .select('*')
-            .eq('workspace_id', workspaceId)
-            .gte('end_date', start)
-            .lte('start_date', end),
-          supabase.from('projects').select('*').eq('workspace_id', workspaceId),
-          supabase.from('customers').select('*').eq('workspace_id', workspaceId),
-          supabase.from('assignees').select('*').eq('workspace_id', workspaceId),
-          supabase.from('member_groups').select('*').eq('workspace_id', workspaceId),
-          supabase.from('workspace_members').select('user_id, group_id').eq('workspace_id', workspaceId),
-          supabase.from('statuses').select('*').eq('workspace_id', workspaceId),
-          supabase.from('task_types').select('*').eq('workspace_id', workspaceId),
-          supabase.from('tags').select('*').eq('workspace_id', workspaceId),
-          supabase
-            .from('milestones')
-            .select('*')
-            .eq('workspace_id', workspaceId)
-            .gte('date', start)
-            .lte('date', end),
-          countsPromise,
-          trackedPromise,
+          tasksQuery,
+          projectsQuery,
+          customersQuery,
+          assigneesQuery,
+          memberGroupsQuery,
+          memberAssignmentsQuery,
+          statusesQuery,
+          taskTypesQuery,
+          tagsQuery,
+          milestonesQuery,
+          adminUserIdPromise,
         ]);
 
         if (get().dataRequestId !== requestId) return;
@@ -511,7 +607,6 @@ export const usePlannerStore = create<PlannerStore>()(
           || taskTypesRes.error
           || tagsRes.error
           || milestonesRes.error
-          || trackedRes.error
         ) {
           set({
             error: tasksRes.error?.message
@@ -524,7 +619,6 @@ export const usePlannerStore = create<PlannerStore>()(
               || taskTypesRes.error?.message
               || tagsRes.error?.message
               || milestonesRes.error?.message
-              || trackedRes.error?.message
               || 'Failed to load workspace data.',
             loading: false,
           });
@@ -538,19 +632,6 @@ export const usePlannerStore = create<PlannerStore>()(
         const taskAssigneeIds = new Set(
           taskRows.flatMap((row) => normalizeAssigneeIds(row.assignee_ids, row.assignee_id)),
         );
-
-        // Получаем user_id админа для фильтрации
-        let adminUserId: string | null = null;
-        if (reserveAdminEmail) {
-          const { data: adminProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .ilike('email', reserveAdminEmail)
-            .maybeSingle();
-          if (adminProfile) {
-            adminUserId = adminProfile.id;
-          }
-        }
 
         if (get().dataRequestId !== requestId) return;
 
@@ -579,29 +660,9 @@ export const usePlannerStore = create<PlannerStore>()(
         const nextCustomers = (customersRes.data ?? []).map(mapCustomerRow).sort((left, right) => (
           left.name.localeCompare(right.name)
         ));
-        const nextTrackedProjectIds = (trackedRes.data ?? []).map((row) => (row as ProjectTrackingRow).project_id);
+        const nextTrackedProjectIds = get().trackedProjectIds;
         const activeProjectIds = new Set(nextProjects.filter((project) => !project.archived).map((project) => project.id));
         const activeGroupIds = new Set(memberGroups.map((group) => group.id));
-
-        let nextAssigneeCounts = get().assigneeTaskCounts;
-        let nextAssigneeCountsDate = get().assigneeCountsDate;
-        let nextAssigneeCountsWorkspaceId = get().assigneeCountsWorkspaceId;
-
-        if (shouldFetchCounts) {
-          if (countsRes.error) {
-            console.error(countsRes.error);
-          } else {
-            const totals: Record<string, number> = {};
-            ((countsRes.data as AssigneeUniqueTaskCountRow[] | null | undefined) ?? []).forEach((row) => {
-              if (!row.assignee_id) return;
-              const value = typeof row.total === 'string' ? Number(row.total) : (row.total ?? 0);
-              totals[row.assignee_id] = value;
-            });
-            nextAssigneeCounts = totals;
-            nextAssigneeCountsDate = today;
-            nextAssigneeCountsWorkspaceId = workspaceId;
-          }
-        }
 
         if (get().dataRequestId !== requestId) return;
 
@@ -618,9 +679,6 @@ export const usePlannerStore = create<PlannerStore>()(
           taskTypes: (taskTypesRes.data ?? []).map(mapTaskTypeRow),
           tags: (tagsRes.data ?? []).map(mapTagRow),
           loadedRange: { start, end, viewMode, workspaceId },
-          assigneeTaskCounts: nextAssigneeCounts,
-          assigneeCountsDate: nextAssigneeCountsDate,
-          assigneeCountsWorkspaceId: nextAssigneeCountsWorkspaceId,
           filters: {
             ...state.filters,
             projectIds: state.filters.projectIds.filter((id) => activeProjectIds.has(id)),
@@ -628,6 +686,47 @@ export const usePlannerStore = create<PlannerStore>()(
           },
           loading: false,
         }));
+
+        // Background: counts (can be heavy). Update store when ready; UI can use fallback values meanwhile.
+        if (shouldFetchCounts) {
+          countsPromise
+            .then((countsRes) => {
+              if (get().dataRequestId !== requestId) return;
+              if (countsRes.error) {
+                console.error(countsRes.error);
+                return;
+              }
+              const totals: Record<string, number> = {};
+              ((countsRes.data as AssigneeUniqueTaskCountRow[] | null | undefined) ?? []).forEach((row) => {
+                if (!row.assignee_id) return;
+                const value = typeof row.total === 'string' ? Number(row.total) : (row.total ?? 0);
+                totals[row.assignee_id] = value;
+              });
+              set({
+                assigneeTaskCounts: totals,
+                assigneeCountsDate: today,
+                assigneeCountsWorkspaceId: workspaceId,
+              });
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        }
+
+        // Background: tracked projects for the current user (small, but not critical for first paint).
+        trackedPromise
+          .then((trackedRes) => {
+            if (get().dataRequestId !== requestId) return;
+            if (trackedRes.error) {
+              console.error(trackedRes.error);
+              return;
+            }
+            const trackedIds = (trackedRes.data ?? []).map((row) => (row as ProjectTrackingRow).project_id);
+            set({ trackedProjectIds: trackedIds });
+          })
+          .catch((error) => {
+            console.error(error);
+          });
       },
       refreshAssignees: async () => {
         const workspaceId = get().workspaceId;
@@ -635,7 +734,7 @@ export const usePlannerStore = create<PlannerStore>()(
 
         const { data, error } = await supabase
           .from('assignees')
-          .select('*')
+          .select('id, workspace_id, name, user_id, is_active')
           .eq('workspace_id', workspaceId);
 
         if (error) {
@@ -644,17 +743,7 @@ export const usePlannerStore = create<PlannerStore>()(
         }
 
         // Получаем user_id админа для фильтрации
-        let adminUserId: string | null = null;
-        if (reserveAdminEmail) {
-          const { data: adminProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .ilike('email', reserveAdminEmail)
-            .maybeSingle();
-          if (adminProfile) {
-            adminUserId = adminProfile.id;
-          }
-        }
+        const adminUserId = await fetchReserveAdminUserId();
 
         const taskAssigneeIds = new Set(
           get().tasks.flatMap((task) => task.assigneeIds),
