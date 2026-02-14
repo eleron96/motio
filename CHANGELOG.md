@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.22] - 2026-02-14
 ### Fixed
 - Ускорили загрузку страницы входа: статические ресурсы Keycloak теперь отдаются с корректными заголовками кэширования и кэшируются браузером.
 
