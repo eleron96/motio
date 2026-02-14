@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.25] - 2026-02-14
 ### Security
 - Hardened Keycloak security: external access now requires HTTPS.
 
