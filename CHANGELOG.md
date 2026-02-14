@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Ужесточены CORS правила для API: разрешены только доверенные источники (origin), убран заголовок `Access-Control-Allow-Credentials`, чтобы исключить чтение ответов с чужих доменов.
+
 ## [0.1.20] - 2026-02-14
 ### Security
 - При деплое теперь автоматически проверяется и при необходимости синхронизируется секрет OIDC-клиента в Keycloak с настройками production, чтобы вход не ломался после пересоздания Keycloak.
