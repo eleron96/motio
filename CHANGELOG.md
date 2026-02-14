@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.29] - 2026-02-14
 ### Fixed
 - Ускорили загрузку таймлайна: основные данные появляются быстрее, а счётчики задач и избранные проекты догружаются в фоне.
 
