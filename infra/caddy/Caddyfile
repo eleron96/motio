@@ -10,10 +10,6 @@ motio.nikog.net {
 
   handle /resources* {
     encode zstd gzip
-    header {
-      -Cache-Control
-      Cache-Control "public, max-age=86400"
-    }
     reverse_proxy host.docker.internal:8081
   }
 
