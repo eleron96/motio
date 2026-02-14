@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.28] - 2026-02-14
 ### Fixed
 - Fixed edge compression: app assets are now served compressed for faster loading.
 
