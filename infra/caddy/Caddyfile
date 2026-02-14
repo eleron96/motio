@@ -1,57 +1,59 @@
 motio.nikog.net {
-  encode zstd gzip
+  route {
+    encode zstd gzip
 
-  redir /realms /realms/timeline/account 302
-  redir /realms/ /realms/timeline/account 302
-  redir /realms/master /realms/master/account 302
-  redir /realms/master/ /realms/master/account 302
-  redir /realms/timeline /realms/timeline/account 302
-  redir /realms/timeline/ /realms/timeline/account 302
-  redir /admin /admin/master/console/ 302
-  redir /admin/master/console /admin/master/console/ 302
+    redir /realms /realms/timeline/account 302
+    redir /realms/ /realms/timeline/account 302
+    redir /realms/master /realms/master/account 302
+    redir /realms/master/ /realms/master/account 302
+    redir /realms/timeline /realms/timeline/account 302
+    redir /realms/timeline/ /realms/timeline/account 302
+    redir /admin /admin/master/console/ 302
+    redir /admin/master/console /admin/master/console/ 302
 
-  handle /resources* {
-    reverse_proxy host.docker.internal:8081
-  }
+    handle /resources* {
+      reverse_proxy host.docker.internal:8081
+    }
 
-  handle /realms* {
-    reverse_proxy host.docker.internal:8081
-  }
+    handle /realms* {
+      reverse_proxy host.docker.internal:8081
+    }
 
-  handle /admin* {
-    reverse_proxy host.docker.internal:8081
-  }
+    handle /admin* {
+      reverse_proxy host.docker.internal:8081
+    }
 
-  handle /js* {
-    reverse_proxy host.docker.internal:8081
-  }
+    handle /js* {
+      reverse_proxy host.docker.internal:8081
+    }
 
-  handle /.well-known* {
-    reverse_proxy host.docker.internal:8081
-  }
+    handle /.well-known* {
+      reverse_proxy host.docker.internal:8081
+    }
 
-  handle /health {
-    reverse_proxy host.docker.internal:8080
-  }
+    handle /health {
+      reverse_proxy host.docker.internal:8080
+    }
 
-  handle /auth/v1* {
-    reverse_proxy host.docker.internal:8080
-  }
+    handle /auth/v1* {
+      reverse_proxy host.docker.internal:8080
+    }
 
-  handle /rest/v1* {
-    reverse_proxy host.docker.internal:8080
-  }
+    handle /rest/v1* {
+      reverse_proxy host.docker.internal:8080
+    }
 
-  handle /functions/v1* {
-    reverse_proxy host.docker.internal:8080
-  }
+    handle /functions/v1* {
+      reverse_proxy host.docker.internal:8080
+    }
 
-  handle /backup* {
-    reverse_proxy host.docker.internal:8080
-  }
+    handle /backup* {
+      reverse_proxy host.docker.internal:8080
+    }
 
-  handle {
-    reverse_proxy host.docker.internal:5173
+    handle {
+      reverse_proxy host.docker.internal:5173
+    }
   }
 }
 
