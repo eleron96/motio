@@ -499,4 +499,19 @@
     <sqlFile path="../migrations/0036_assignee_unique_task_counts.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <!-- Uses CONCURRENTLY, must not be wrapped in a transaction. -->
+  <changeSet id="0037_add_task_date_range_indexes.sql" author="timeline" runInTransaction="false">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0037_add_task_date_range_indexes.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0037_add_task_date_range_indexes.sql" relativeToChangelogFile="true" splitStatements="true" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>

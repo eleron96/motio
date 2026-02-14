@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Ускорили загрузку таймлайна и подсчёт задач в больших рабочих пространствах.
+
 ## [0.1.25] - 2026-02-14
 ### Security
 - Усилили безопасность Keycloak: внешние подключения теперь требуют HTTPS.
