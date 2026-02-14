@@ -4,20 +4,22 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nProvider } from "@lingui/react";
-import PlannerPage from "@/features/planner/pages/PlannerPage";
+import { Suspense, lazy } from "react";
 import NotFoundPage from "@/app/NotFoundPage";
-import AuthPage from "@/features/auth/pages/AuthPage";
-import InvitePage from "@/features/auth/pages/InvitePage";
-import AdminUsersPage from "@/features/admin/pages/AdminUsersPage";
-import DashboardPage from "@/features/dashboard/pages/DashboardPage";
-import ProjectsPage from "@/features/projects/pages/ProjectsPage";
-import MembersPage from "@/features/members/pages/MembersPage";
 import { AuthProvider } from "@/features/auth/providers/AuthProvider";
 import { ProtectedRoute } from "@/app/ProtectedRoute";
 import { i18n } from "@/shared/lib/i18n";
 import { useLocaleStore } from "@/shared/store/localeStore";
 
 const queryClient = new QueryClient();
+
+const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
+const InvitePage = lazy(() => import("@/features/auth/pages/InvitePage"));
+const AdminUsersPage = lazy(() => import("@/features/admin/pages/AdminUsersPage"));
+const PlannerPage = lazy(() => import("@/features/planner/pages/PlannerPage"));
+const DashboardPage = lazy(() => import("@/features/dashboard/pages/DashboardPage"));
+const ProjectsPage = lazy(() => import("@/features/projects/pages/ProjectsPage"));
+const MembersPage = lazy(() => import("@/features/members/pages/MembersPage"));
 
 const App = () => {
   const locale = useLocaleStore((state) => state.locale);
@@ -35,52 +37,60 @@ const App = () => {
                 v7_relativeSplatPath: true,
               }}
             >
-              <Routes>
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/invite/:inviteToken" element={<InvitePage />} />
-                <Route
-                  path="/admin/users"
-                  element={(
-                    <ProtectedRoute>
-                      <AdminUsersPage />
-                    </ProtectedRoute>
-                  )}
-                />
-                <Route
-                  path="/"
-                  element={(
-                    <ProtectedRoute>
-                      <PlannerPage />
-                    </ProtectedRoute>
-                  )}
-                />
-                <Route
-                  path="/dashboard"
-                  element={(
-                    <ProtectedRoute>
-                      <DashboardPage />
-                    </ProtectedRoute>
-                  )}
-                />
-                <Route
-                  path="/projects"
-                  element={(
-                    <ProtectedRoute>
-                      <ProjectsPage />
-                    </ProtectedRoute>
-                  )}
-                />
-                <Route
-                  path="/members"
-                  element={(
-                    <ProtectedRoute>
-                      <MembersPage />
-                    </ProtectedRoute>
-                  )}
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
+              <Suspense
+                fallback={(
+                  <div className="flex h-screen items-center justify-center text-sm text-muted-foreground">
+                    Loading...
+                  </div>
+                )}
+              >
+                <Routes>
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/invite/:inviteToken" element={<InvitePage />} />
+                  <Route
+                    path="/admin/users"
+                    element={(
+                      <ProtectedRoute>
+                        <AdminUsersPage />
+                      </ProtectedRoute>
+                    )}
+                  />
+                  <Route
+                    path="/"
+                    element={(
+                      <ProtectedRoute>
+                        <PlannerPage />
+                      </ProtectedRoute>
+                    )}
+                  />
+                  <Route
+                    path="/dashboard"
+                    element={(
+                      <ProtectedRoute>
+                        <DashboardPage />
+                      </ProtectedRoute>
+                    )}
+                  />
+                  <Route
+                    path="/projects"
+                    element={(
+                      <ProtectedRoute>
+                        <ProjectsPage />
+                      </ProtectedRoute>
+                    )}
+                  />
+                  <Route
+                    path="/members"
+                    element={(
+                      <ProtectedRoute>
+                        <MembersPage />
+                      </ProtectedRoute>
+                    )}
+                  />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </Suspense>
             </BrowserRouter>
           </AuthProvider>
         </TooltipProvider>
