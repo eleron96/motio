@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.26] - 2026-02-14
 ### Fixed
 - Improved timeline loading and task counts performance for large workspaces.
 
