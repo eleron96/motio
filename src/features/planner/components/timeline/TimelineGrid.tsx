@@ -111,6 +111,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
     visible: boolean;
   } | null>(null);
   const milestoneRowHeight = 24;
+  const sidebarWidth = `clamp(${SIDEBAR_WIDTH}px, 26vw, 360px)`;
   
   const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode, tasks), [currentDate, viewMode, tasks]);
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
@@ -715,7 +716,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
     >
       {/* Сайдбар и сетка — два скролла с синхронизацией по вертикали */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <div className="flex flex-col flex-shrink-0 bg-timeline-header border-r border-border" style={{ width: SIDEBAR_WIDTH }}>
+        <div className="flex flex-col flex-shrink-0 bg-timeline-header border-r border-border" style={{ width: sidebarWidth }}>
           <div className="flex-shrink-0 border-b border-border" style={{ height: HEADER_HEIGHT }} />
           <div className="flex-shrink-0 border-b border-border" style={{ height: milestoneRowHeight }} />
           <div
@@ -726,19 +727,24 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
             {displayRows.map((row) => (
               <div
                 key={row.id}
-                className="flex items-center px-4 border-b border-border hover:bg-timeline-row-hover transition-colors box-border"
+                className="flex items-center gap-2 px-4 border-b border-border hover:bg-timeline-row-hover transition-colors box-border"
                 style={{ height: row.height }}
               >
-                {row.color && (
-                  <div
-                    className="w-3 h-3 rounded-full mr-3 flex-shrink-0"
-                    style={{ backgroundColor: row.color }}
-                  />
-                )}
-                <span className="text-sm font-medium text-foreground truncate">
-                  {row.name}
-                </span>
-                <span className="ml-auto text-xs text-muted-foreground">
+                <div className="min-w-0 flex flex-1 items-center gap-3">
+                  {row.color && (
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: row.color }}
+                    />
+                  )}
+                  <span
+                    className="min-w-0 text-sm font-medium text-foreground leading-snug whitespace-normal break-words [overflow-wrap:anywhere] line-clamp-2"
+                    title={row.name}
+                  >
+                    {row.name}
+                  </span>
+                </div>
+                <span className="shrink-0 pl-2 text-xs text-muted-foreground">
                   {groupMode === 'assignee' && row.id !== 'unassigned'
                     ? (assigneeTaskCounts[row.id] ?? countUniqueTaskUnits(row.tasks))
                     : row.tasks.length}

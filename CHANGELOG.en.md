@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Made timeline sidebar width adaptive and improved rendering for long user names
+
 ## [0.1.35] - 2026-02-16
 ### Changed
 - Stabilized adaptive chart legend layout, added a show/hide legend toggle in widget settings, and improved project list scrolling in task project pickers.
