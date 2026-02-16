@@ -473,6 +473,11 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   <SelectValue placeholder={t`Select project`} />
                 </SelectTrigger>
                 <SelectContent onKeyDown={handleProjectSelectKeyDown}>
+                  {projectQuery && (
+                    <div className="px-2 py-1 text-xs text-muted-foreground">
+                      {t`Filter: ${projectQuery}`}
+                    </div>
+                  )}
                   <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
                   {filteredProjects.map(p => (
                     <SelectItem key={p.id} value={p.id}>

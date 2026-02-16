@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Fixed project search behavior in task creation: the typed filter is now visible and the localized no-results message is displayed correctly.
+
 ## [0.1.33] - 2026-02-16
 ### Changed
 - Added keyboard quick search for projects in the project picker when creating a task.
