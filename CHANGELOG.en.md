@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.34] - 2026-02-16
 ### Fixed
 - Fixed project search behavior in task creation: the typed filter is now visible and the localized no-results message is displayed correctly.
 
