@@ -41,7 +41,8 @@ Timeline Planner — приложение для командного плани
   - `liquibase/changelog-master.xml` — мастер-чанжлог,
   - `functions/` — Edge Functions (`admin`, `invite`, `task-media`, `main`),
   - `nginx.conf` — gateway для `/auth/v1`, `/rest/v1`, `/functions/v1`, `/backup`.
-- `infra/keycloak/realm/timeline-realm.json` — импорт realm.
+- `infra/keycloak/realm/timeline-realm.json` — dev realm.
+- `infra/keycloak/realm/timeline-realm.prod.json` — production baseline realm (создаётся из текущего прода через export-скрипт).
 - `infra/backup-service/` — сервис backup/restore.
 - `infra/scripts/dev-compose.sh` — локальный запуск полного контура.
 - `infra/scripts/prod-compose.sh` — production запуск с pre-migration backup.
@@ -93,6 +94,8 @@ make up-prod
 Особенности `up-prod`:
 - требует заполненный `.env`,
 - проверяет обязательные переменные invite-only режима,
+- делает backup `keycloak-db` перед realm-аудитом (если `AUTO_KEYCLOAK_PRE_SYNC_BACKUP=true`),
+- запускает Keycloak realm drift audit (по умолчанию в режиме проверки, без применения изменений),
 - запускает pre-migration backup (если `AUTO_PRE_MIGRATION_BACKUP=true`),
 - применяет Liquibase миграции,
 - собирает frontend образ (`infra/web/Dockerfile`) и запускает `web + oauth2-proxy`,
@@ -105,6 +108,9 @@ make up-prod
 ```bash
 make down-prod
 make logs-prod
+make keycloak-backup-db
+make keycloak-audit-realm
+make keycloak-export-realm
 ```
 
 Удалённый деплой (синхронизация release-артефактов локально/на сервере):
@@ -117,6 +123,27 @@ make deploy-remote
 - синхронизирует код на удалённый сервер,
 - запускает `infra/scripts/prod-compose.sh` на сервере,
 - подтягивает обратно `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md` и `infra/releases.log` в локальный репозиторий.
+
+## Keycloak Realm-as-Code (безопасный старт)
+
+Рекомендуемый порядок без влияния на пользователей:
+- снять baseline из текущего production realm,
+- зафиксировать baseline в git,
+- запускать drift audit на каждом `up-prod`.
+
+Экспорт baseline realm:
+
+```bash
+infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeline-realm.prod.json
+```
+
+Проверка drift вручную:
+
+```bash
+infra/scripts/keycloak-realm-drift-audit.sh .env
+```
+
+Режим по умолчанию в `up-prod`: audit-only (ничего не меняет в Keycloak).
 
 ## Обязательные переменные для production
 
@@ -154,6 +181,11 @@ make check-prod-secrets-remote
 - `GOTRUE_EXTERNAL_KEYCLOAK_*` — OIDC провайдер для Supabase Auth.
 - `KEYCLOAK_INTERNAL_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ADMIN_REALM`, `KEYCLOAK_ADMIN_CLIENT_ID` — доступ Edge Functions к Keycloak Admin API.
 - `KEYCLOAK_ADMIN`, `KEYCLOAK_ADMIN_PASSWORD` — admin credentials для bootstrap/sync.
+- `KEYCLOAK_ADMIN_BASE_URL` — base URL для infra-скриптов, которые ходят в Admin API (`http://127.0.0.1:8081` по умолчанию).
+- `KEYCLOAK_MANAGED_CLIENT_IDS` — список clientId (через запятую) для baseline/export-а realm.
+- `KEYCLOAK_REALM_AUDIT_FILE` — путь к managed realm JSON для drift audit (обычно `infra/keycloak/realm/timeline-realm.prod.json`).
+- `KEYCLOAK_REALM_AUDIT_ENABLED` — включить/выключить drift audit в `up-prod`.
+- `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT` — падать ли деплою при найденном drift.
 - `OAUTH2_PROXY_*` — проксирование входа на фронт (`localhost:5173`).
 - `VITE_KEYCLOAK_PUBLIC_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID` — клиентская часть logout/redirect логики.
 
@@ -175,6 +207,7 @@ make check-prod-secrets-remote
 ### Liquibase
 
 - `AUTO_PRE_MIGRATION_BACKUP`
+- `AUTO_KEYCLOAK_PRE_SYNC_BACKUP`
 - `LIQUIBASE_LOG_LEVEL`
 - `MIGRATION_MAX_WAIT_SECONDS`
 
@@ -369,7 +402,7 @@ docker compose -f infra/docker-compose.prod.yml --env-file .env ps
 Проверь согласованность:
 - `OAUTH2_PROXY_CLIENT_ID`
 - `OAUTH2_PROXY_REDIRECT_URL`
-- redirect URIs клиента в `infra/keycloak/realm/timeline-realm.json`
+- redirect URIs клиента в managed realm файле (обычно `infra/keycloak/realm/timeline-realm.prod.json`)
 
 ### 7) `volume supabase_db_data declared as external, but could not be found`
 
@@ -377,6 +410,24 @@ docker compose -f infra/docker-compose.prod.yml --env-file .env ps
 
 ```bash
 docker volume create supabase_db_data
+```
+
+### 8) `Warning: Keycloak realm drift detected`
+
+Смысл предупреждения:
+- текущий realm на сервере не совпадает с managed JSON,
+- деплой продолжен в audit-only режиме (если `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT=false`).
+
+Проверить руками:
+
+```bash
+infra/scripts/keycloak-realm-drift-audit.sh .env
+```
+
+Обновить baseline JSON из текущего состояния:
+
+```bash
+infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeline-realm.prod.json
 ```
 
 ## Безопасность

@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.32] - 2026-02-16
+### Changed
+- No documented changes.
+
 ## [0.1.31] - 2026-02-16
 ### Changed
 - On the timeline, the current day is now shifted left: 2 previous days are shown and more space is reserved for upcoming dates.

@@ -1,0 +1,49 @@
+{
+  "realm": "timeline",
+  "enabled": true,
+  "sslRequired": "external",
+  "displayName": "Timeline Planner",
+  "displayNameHtml": "<strong>Timeline Planner</strong>",
+  "loginTheme": "timeline",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "editUsernameAllowed": false,
+  "verifyEmail": true,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "en",
+    "ru"
+  ],
+  "defaultLocale": "en",
+  "clients": [
+    {
+      "clientId": "timeline-supabase",
+      "name": "Timeline Supabase",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "attributes": {
+        "post.logout.redirect.uris": "https://motio.nikog.net/*"
+      },
+      "rootUrl": "https://motio.nikog.net",
+      "baseUrl": "https://motio.nikog.net",
+      "redirectUris": [
+        "https://motio.nikog.net/*",
+        "https://motio.nikog.net/auth",
+        "https://motio.nikog.net/auth/v1/callback",
+        "https://motio.nikog.net/oauth2/callback"
+      ],
+      "webOrigins": [
+        "https://motio.nikog.net"
+      ]
+    }
+  ]
+}

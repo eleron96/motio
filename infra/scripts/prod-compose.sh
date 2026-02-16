@@ -45,6 +45,16 @@ if [[ ! -x "infra/scripts/keycloak-ensure-realm-ssl-required.sh" ]]; then
   exit 1
 fi
 
+if [[ ! -x "infra/scripts/keycloak-backup-db.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-backup-db.sh" >&2
+  exit 1
+fi
+
+if [[ ! -x "infra/scripts/keycloak-realm-drift-audit.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-realm-drift-audit.sh" >&2
+  exit 1
+fi
+
 get_env_value() {
   local key="$1"
   local line
@@ -193,12 +203,19 @@ RESERVE_ADMIN_PASSWORD="$(get_env_value RESERVE_ADMIN_PASSWORD)"
 OAUTH2_PROXY_COOKIE_SECRET="$(get_env_value OAUTH2_PROXY_COOKIE_SECRET)"
 AUTO_PRE_MIGRATION_BACKUP="$(get_env_value AUTO_PRE_MIGRATION_BACKUP)"
 BACKUP_SCHEMAS="$(get_env_value BACKUP_SCHEMAS)"
+AUTO_KEYCLOAK_PRE_SYNC_BACKUP="$(get_env_value AUTO_KEYCLOAK_PRE_SYNC_BACKUP)"
+KEYCLOAK_REALM_AUDIT_ENABLED="$(get_env_value KEYCLOAK_REALM_AUDIT_ENABLED)"
+KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT="$(get_env_value KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT)"
+KEYCLOAK_REALM_AUDIT_FILE="$(get_env_value KEYCLOAK_REALM_AUDIT_FILE)"
 
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
 POSTGRES_DB="${POSTGRES_DB:-postgres}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-postgres}"
 AUTO_PRE_MIGRATION_BACKUP="$(normalize_bool "${AUTO_PRE_MIGRATION_BACKUP:-true}")"
 BACKUP_SCHEMAS="${BACKUP_SCHEMAS:-public,auth,storage}"
+AUTO_KEYCLOAK_PRE_SYNC_BACKUP="$(normalize_bool "${AUTO_KEYCLOAK_PRE_SYNC_BACKUP:-true}")"
+KEYCLOAK_REALM_AUDIT_ENABLED="$(normalize_bool "${KEYCLOAK_REALM_AUDIT_ENABLED:-true}")"
+KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT="$(normalize_bool "${KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT:-false}")"
 backup_path="n/a"
 
 if [[ -z "$RESERVE_ADMIN_EMAIL" || -z "$RESERVE_ADMIN_PASSWORD" ]]; then
@@ -234,6 +251,40 @@ docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycl
 
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-ssl-required.sh "$env_file"
+
+if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" == "true" ]]; then
+  infra/scripts/keycloak-backup-db.sh "$env_file" "$compose_file"
+else
+  echo "AUTO_KEYCLOAK_PRE_SYNC_BACKUP=false, skipping Keycloak DB backup."
+fi
+
+if [[ "$KEYCLOAK_REALM_AUDIT_ENABLED" == "true" ]]; then
+  set +e
+  if [[ -n "$KEYCLOAK_REALM_AUDIT_FILE" ]]; then
+    infra/scripts/keycloak-realm-drift-audit.sh "$env_file" "$KEYCLOAK_REALM_AUDIT_FILE"
+  else
+    infra/scripts/keycloak-realm-drift-audit.sh "$env_file"
+  fi
+  keycloak_audit_exit_code=$?
+  set -e
+
+  case "$keycloak_audit_exit_code" in
+    0)
+      ;;
+    10)
+      if [[ "$KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT" == "true" ]]; then
+        echo "Keycloak realm drift detected and KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT=true. Aborting deployment." >&2
+        exit 1
+      fi
+      echo "Warning: Keycloak realm drift detected. Deployment continues in audit-only mode." >&2
+      ;;
+    *)
+      echo "Warning: Keycloak realm drift audit failed (exit ${keycloak_audit_exit_code}). Deployment continues." >&2
+      ;;
+  esac
+else
+  echo "KEYCLOAK_REALM_AUDIT_ENABLED=false, skipping Keycloak realm drift audit."
+fi
 
 if [[ "$AUTO_PRE_MIGRATION_BACKUP" == "true" ]]; then
   until docker compose -f "$compose_file" --env-file "$env_file" exec -T \
