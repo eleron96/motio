@@ -492,21 +492,26 @@ export const TaskDetailPanel: React.FC = () => {
                     <SelectValue placeholder={t`Select project`} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
-                    {projectOptions.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{ backgroundColor: project.color }}
-                          />
-                          {formatProjectLabel(project.name, project.code)}
-                          {project.archived && (
-                            <span className="ml-1 text-[10px] text-muted-foreground">({t`Archived`})</span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
+                    <div
+                      className="max-h-48 overflow-y-auto overscroll-contain pr-2"
+                      onWheelCapture={(event) => event.stopPropagation()}
+                    >
+                      <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
+                      {projectOptions.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: project.color }}
+                            />
+                            {formatProjectLabel(project.name, project.code)}
+                            {project.archived && (
+                              <span className="ml-1 text-[10px] text-muted-foreground">({t`Archived`})</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </div>
                   </SelectContent>
                 </Select>
                 {currentProject && (

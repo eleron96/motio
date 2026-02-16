@@ -121,6 +121,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const isChart = widget.type === 'bar' || widget.type === 'line' || widget.type === 'area' || widget.type === 'pie';
   const chartViewportRef = React.useRef<HTMLDivElement | null>(null);
   const [chartViewport, setChartViewport] = React.useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const legendViewportRef = React.useRef<HTMLDivElement | null>(null);
+  const [legendViewport, setLegendViewport] = React.useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   React.useLayoutEffect(() => {
     if (!isChart) return;
@@ -176,7 +178,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const legendItems = isChart
     ? (widget.type === 'pie' ? pieSeries : (data?.series ?? []))
     : [];
-  const showLegend = isChart && legendItems.length > 0;
+  const isLegendEnabled = widget.showLegend ?? true;
+  const showLegend = isLegendEnabled && isChart && legendItems.length > 0;
   const chartAspectRatio = chartViewport.height > 0
     ? chartViewport.width / chartViewport.height
     : 0;
@@ -218,30 +221,6 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     ? taskPeriodLabel
     : null;
   const isPieLegend = widget.type === 'pie';
-  const legendMaxColumns = preferSideLegend
-    ? 1
-    : isPieLegend
-      ? (isUltraWideChart ? 3 : chartViewport.width >= 560 ? 2 : 1)
-      : (isUltraWideChart ? 3 : chartViewport.width >= 740 ? 2 : 1);
-  const legendColumns = Math.max(1, Math.min(legendItems.length || 1, legendMaxColumns));
-  const legendRowsBudget = (() => {
-    if (!showLegend) return 0;
-    if (preferSideLegend) {
-      if (!chartViewport.height) return 7;
-      return Math.max(2, Math.floor((chartViewport.height - 8) / (isPieLegend ? 20 : 22)));
-    }
-    if (!chartViewport.height) return isSmall ? 2 : 4;
-    if (chartViewport.height < 180) return 1;
-    if (chartViewport.height < 260) return 2;
-    if (chartViewport.height < 340) return 3;
-    return isUltraWideChart ? 4 : 3;
-  })();
-  const legendLimit = showLegend ? Math.max(1, legendRowsBudget * legendColumns) : 0;
-  const visibleLegendItems = showLegend ? legendItems.slice(0, legendLimit) : [];
-  const hiddenLegendItems = showLegend ? legendItems.slice(legendLimit) : [];
-  const hiddenLegendLabel = locale === 'ru'
-    ? `+${hiddenLegendItems.length} ещё`
-    : `+${hiddenLegendItems.length} more`;
   const legendTextClass = isPieLegend
     ? (isCompactChartHeight ? 'text-[8px] leading-tight' : 'text-[9px] leading-tight')
     : isCompactChartHeight
@@ -250,6 +229,44 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
         ? 'text-[10px] leading-snug'
         : 'text-[11px] leading-snug';
   const showLegendValue = !isCompactChartWidth || preferSideLegend;
+
+  React.useLayoutEffect(() => {
+    if (!showLegend) return;
+    const node = legendViewportRef.current;
+    if (!node) return;
+
+    const syncViewport = () => {
+      const next = {
+        width: node.clientWidth,
+        height: node.clientHeight,
+      };
+      setLegendViewport((prev) => (
+        prev.width === next.width && prev.height === next.height ? prev : next
+      ));
+    };
+
+    syncViewport();
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(syncViewport);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [showLegend, preferSideLegend, widget.type, size, editing]);
+
+  const legendWidthFallback = preferSideLegend
+    ? (isUltraWideChart ? 320 : 270)
+    : (chartViewport.width > 0 ? chartViewport.width : (isSmall ? 220 : 360));
+  const legendWidth = legendViewport.width > 0 ? legendViewport.width : legendWidthFallback;
+  const legendItemMinWidth = preferSideLegend
+    ? legendWidth
+    : isPieLegend
+      ? (showLegendValue ? 132 : 108)
+      : (showLegendValue ? 156 : 128);
+  const legendGapPx = isPieLegend ? 8 : 10;
+  const legendCalculatedColumns = preferSideLegend
+    ? 1
+    : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
+  const legendColumns = Math.max(1, Math.min(legendItems.length || 1, legendCalculatedColumns));
   const legendPanelClass = isUltraWideChart
     ? 'w-[min(36%,320px)]'
     : 'w-[min(40%,270px)]';
@@ -277,94 +294,43 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       <div
         className={cn(
           'grid w-full max-w-full text-muted-foreground',
-          isPieLegend ? 'gap-x-2 gap-y-0.5' : 'gap-x-3 gap-y-1',
+          isPieLegend ? 'gap-x-2 gap-y-1' : 'gap-x-2.5 gap-y-1',
           legendTextClass,
         )}
         style={{
           gridTemplateColumns: `repeat(${legendColumns}, minmax(0, 1fr))`,
-          gridAutoFlow: 'row',
-          justifyContent: 'start',
-          justifyItems: 'start',
         }}
       >
-        {visibleLegendItems.map((item, index) => {
+        {legendItems.map((item, index) => {
           const legendName = formatLegendName(item.name);
           const isPieOther = isPieLegend && item.name === PIE_OTHER_KEY;
           return (
-          <div
-            key={`${item.name}-${index}`}
-            className={cn(
-              'grid min-w-0 items-center',
-              showLegendValue
-                ? (isPieLegend
-                  ? 'grid-cols-[8px_minmax(0,1fr)_minmax(20px,auto)] gap-1'
-                  : 'grid-cols-[12px_minmax(0,1fr)_minmax(24px,auto)] gap-2')
-                : 'grid-cols-[8px_minmax(0,1fr)] gap-1',
-            )}
-          >
-            <span
-              className={cn('rounded-full', isPieLegend ? 'h-1.5 w-1.5' : 'mt-1 h-2 w-2')}
-              style={{
-                backgroundColor: (
-                  isPieOther
-                    ? '#94A3B8'
-                    : paletteColors[index % paletteColors.length]
-                ),
-              }}
-            />
-            <span className={cn('min-w-0 text-muted-foreground', isPieLegend ? 'truncate' : 'break-words')}>
-              {legendName}
-            </span>
-            {showLegendValue && (
-              <span className="text-right font-medium text-foreground">
-                {item.value.toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US')}
+            <div
+              key={`${item.name}-${index}`}
+              className={cn('flex min-w-0 items-center', showLegendValue ? 'gap-1.5' : 'gap-1')}
+            >
+              <span
+                className={cn('rounded-full', isPieLegend ? 'h-1.5 w-1.5' : 'h-2 w-2')}
+                style={{
+                  backgroundColor: (
+                    isPieOther
+                      ? '#94A3B8'
+                      : paletteColors[index % paletteColors.length]
+                  ),
+                }}
+              />
+              <span className="min-w-0 truncate text-muted-foreground">
+                {legendName}
               </span>
-            )}
-          </div>
-        );
+              {showLegendValue && (
+                <span className="shrink-0 font-medium tabular-nums text-foreground">
+                  {item.value.toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US')}
+                </span>
+              )}
+            </div>
+          );
         })}
       </div>
-      {hiddenLegendItems.length > 0 && (
-        <TooltipProvider delayDuration={180}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="mt-1 text-[10px] text-muted-foreground underline-offset-4 hover:underline"
-              >
-                {hiddenLegendLabel}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs p-2 text-xs">
-              <div className="grid gap-1">
-                {hiddenLegendItems.map((item, index) => {
-                  const colorIndex = visibleLegendItems.length + index;
-                  const legendName = formatLegendName(item.name);
-                  const isPieOther = isPieLegend && item.name === PIE_OTHER_KEY;
-                  return (
-                    <div key={`${item.name}-hidden-${index}`} className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2">
-                      <span
-                        className="h-2 w-2 rounded-full"
-                        style={{
-                          backgroundColor: (
-                            isPieOther
-                              ? '#94A3B8'
-                              : paletteColors[colorIndex % paletteColors.length]
-                          ),
-                        }}
-                      />
-                      <span className="truncate">{legendName}</span>
-                      <span className="text-muted-foreground">
-                        {item.value.toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US')}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
     </div>
   ) : null;
 
@@ -563,8 +529,11 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'bar' && (
-          <div ref={chartViewportRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
-            <div className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}>
+          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+            <div
+              ref={chartViewportRef}
+              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+            >
               {data?.series.length ? (
                 <ChartContainer
                   config={{ value: { label: t`Tasks` } }}
@@ -596,13 +565,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                 </div>
               )}
               {legendList && preferSideLegend && (
-                <div className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
+                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
                   {legendList}
                 </div>
               )}
             </div>
             {legendList && !preferSideLegend && (
-              <div className="min-w-0">{legendList}</div>
+              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
             )}
             {showFilter && (
               <div className="text-xs text-muted-foreground">
@@ -612,8 +581,11 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'line' && (
-          <div ref={chartViewportRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
-            <div className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}>
+          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+            <div
+              ref={chartViewportRef}
+              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+            >
               {hasTimeSeries ? (
                 <ChartContainer
                   config={{}}
@@ -645,13 +617,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                 </div>
               )}
               {legendList && preferSideLegend && (
-                <div className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
+                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
                   {legendList}
                 </div>
               )}
             </div>
             {legendList && !preferSideLegend && (
-              <div className="min-w-0">{legendList}</div>
+              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
             )}
             {showFilter && (
               <div className="text-xs text-muted-foreground">
@@ -661,8 +633,11 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'area' && (
-          <div ref={chartViewportRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
-            <div className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}>
+          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+            <div
+              ref={chartViewportRef}
+              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+            >
               {hasTimeSeries ? (
                 <ChartContainer
                   config={{}}
@@ -694,13 +669,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                 </div>
               )}
               {legendList && preferSideLegend && (
-                <div className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
+                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
                   {legendList}
                 </div>
               )}
             </div>
             {legendList && !preferSideLegend && (
-              <div className="min-w-0">{legendList}</div>
+              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
             )}
             {showFilter && (
               <div className="text-xs text-muted-foreground">
@@ -710,8 +685,11 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'pie' && (
-          <div ref={chartViewportRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
-            <div className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}>
+          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+            <div
+              ref={chartViewportRef}
+              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+            >
               {pieChartSeries.length ? (
                 <ChartContainer
                   config={{ value: { label: t`Tasks` } }}
@@ -753,13 +731,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                 </div>
               )}
               {legendList && preferSideLegend && (
-                <div className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
+                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
                   {legendList}
                 </div>
               )}
             </div>
             {legendList && !preferSideLegend && (
-              <div className="min-w-0">{legendList}</div>
+              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
             )}
             {showPeriod && <div className="text-xs text-muted-foreground">{periodLabel}</div>}
             {showFilter && (

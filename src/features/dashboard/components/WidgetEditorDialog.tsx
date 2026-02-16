@@ -113,6 +113,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   const [includeUnassigned, setIncludeUnassigned] = useState(true);
   const [size, setSize] = useState<'small' | 'medium' | 'large'>('small');
   const [barPalette, setBarPalette] = useState<DashboardBarPalette>(DEFAULT_BAR_PALETTE);
+  const [showLegend, setShowLegend] = useState(true);
   const [milestoneView, setMilestoneView] = useState<DashboardMilestoneView>('list');
   const [milestoneCalendarMode, setMilestoneCalendarMode] = useState<DashboardMilestoneCalendarMode>('month');
   const [filterGroups, setFilterGroups] = useState<DashboardFilterGroup[]>([]);
@@ -190,6 +191,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       setIncludeUnassigned(Boolean(initialWidget.includeUnassigned));
       setSize(initialWidget.size ?? 'small');
       setBarPalette(initialWidget.barPalette ?? DEFAULT_BAR_PALETTE);
+      setShowLegend(initialWidget.showLegend ?? true);
       setMilestoneView(normalizedMilestoneView);
       setMilestoneCalendarMode(normalizedCalendarMode);
       setFilterGroups(initialWidget.filterGroups ?? []);
@@ -206,6 +208,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
     setIncludeUnassigned(true);
     setSize('small');
     setBarPalette(DEFAULT_BAR_PALETTE);
+    setShowLegend(true);
     setMilestoneView('list');
     setMilestoneCalendarMode('month');
     setFilterGroups([]);
@@ -347,6 +350,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       period: normalizedPeriod,
       size,
       barPalette: nextIsChartType ? barPalette : undefined,
+      showLegend: nextIsChartType ? showLegend : undefined,
       milestoneView: nextIsMilestone ? milestoneView : undefined,
       milestoneCalendarMode: nextIsMilestone ? milestoneCalendarMode : undefined,
       statusFilter: initialWidget?.statusFilter ?? 'all',
@@ -528,6 +532,13 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {showGroupBy && (
+            <div className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div className="text-sm font-medium">{t`Show legend`}</div>
+              <Switch checked={showLegend} onCheckedChange={setShowLegend} />
             </div>
           )}
 

@@ -473,28 +473,33 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   <SelectValue placeholder={t`Select project`} />
                 </SelectTrigger>
                 <SelectContent onKeyDown={handleProjectSelectKeyDown}>
-                  {projectQuery && (
-                    <div className="px-2 py-1 text-xs text-muted-foreground">
-                      {t`Filter: ${projectQuery}`}
-                    </div>
-                  )}
-                  <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
-                  {filteredProjects.map(p => (
-                    <SelectItem key={p.id} value={p.id}>
-                      <span className="inline-flex min-w-0 items-center gap-2">
-                        <span
-                          className="h-2.5 w-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: p.color }}
-                        />
-                        <span className="truncate">{formatProjectLabel(p.name, p.code)}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                  {filteredProjects.length === 0 && (
-                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                      {t`No projects found`}
-                    </div>
-                  )}
+                  <div
+                    className="max-h-48 overflow-y-auto overscroll-contain pr-2"
+                    onWheelCapture={(event) => event.stopPropagation()}
+                  >
+                    {projectQuery && (
+                      <div className="px-2 py-1 text-xs text-muted-foreground">
+                        {t`Filter: ${projectQuery}`}
+                      </div>
+                    )}
+                    <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
+                    {filteredProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: project.color }}
+                          />
+                          <span className="truncate">{formatProjectLabel(project.name, project.code)}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                    {filteredProjects.length === 0 && (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        {t`No projects found`}
+                      </div>
+                    )}
+                  </div>
                 </SelectContent>
               </Select>
             </div>

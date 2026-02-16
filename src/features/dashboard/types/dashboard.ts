@@ -51,6 +51,7 @@ export type DashboardWidget = {
   groupBy?: DashboardGroupBy;
   size?: DashboardWidgetSize;
   barPalette?: DashboardBarPalette;
+  showLegend?: boolean;
   milestoneView?: DashboardMilestoneView;
   milestoneCalendarMode?: DashboardMilestoneCalendarMode;
   statusFilter: DashboardStatusFilter;

@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Stabilized adaptive chart legend layout, added a show/hide legend toggle in widget settings, and improved project list scrolling in task project pickers.
+
 ## [0.1.34] - 2026-02-16
 ### Fixed
 - Fixed project search behavior in task creation: the typed filter is now visible and the localized no-results message is displayed correctly.

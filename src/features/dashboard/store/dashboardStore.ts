@@ -294,6 +294,7 @@ const normalizeWidget = (widget: Partial<DashboardWidget>): DashboardWidget => {
     groupBy: widget.groupBy ?? 'none',
     size: normalizeWidgetSize(type, widget.size),
     barPalette: hasPalette ? (widget.barPalette ?? DEFAULT_BAR_PALETTE) : undefined,
+    showLegend: hasPalette ? (widget.showLegend ?? true) : undefined,
     milestoneView,
     milestoneCalendarMode,
     statusFilter: widget.statusFilter ?? 'all',
