@@ -23,7 +23,6 @@ import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ScrollArea } from '@/shared/ui/scroll-area';
 import { ChevronDown, Plus } from 'lucide-react';
 import { format, addDays } from '@/features/planner/lib/dateUtils';
 import { cn } from '@/shared/lib/classNames';
@@ -132,13 +131,18 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
-  const normalizeAssigneeSelection = useCallback((ids: string[] | undefined) => {
-    if (!ids || ids.length === 0) return [];
+  const sortAssigneeIds = useCallback((ids: string[]) => {
+    if (ids.length === 0) return [];
     const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
     return Array.from(new Set(ids)).sort((left, right) => (
       (order.get(left) ?? 0) - (order.get(right) ?? 0)
     ));
   }, [assignees]);
+
+  const normalizeAssigneeSelection = useCallback((ids: string[] | undefined) => {
+    if (!ids || ids.length === 0) return [];
+    return sortAssigneeIds(ids);
+  }, [sortAssigneeIds]);
 
   const markChanged = useCallback(() => {
     setHasChanges(true);
@@ -153,18 +157,15 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     ));
   };
 
-  const handleAssigneeToggle = (assigneeId: string) => {
+  const setAssigneeChecked = useCallback((assigneeId: string, checked: boolean) => {
     markChanged();
     setAssigneeIds((prev) => {
-      const next = prev.includes(assigneeId)
-        ? prev.filter((id) => id !== assigneeId)
-        : [...prev, assigneeId];
-      const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
-      return [...new Set(next)].sort((left, right) => (
-        (order.get(left) ?? 0) - (order.get(right) ?? 0)
-      ));
+      const next = checked
+        ? [...prev, assigneeId]
+        : prev.filter((id) => id !== assigneeId);
+      return sortAssigneeIds(next);
     });
-  };
+  }, [markChanged, sortAssigneeIds]);
 
   const handleRepeatFrequencyChange = (value: typeof repeatFrequency) => {
     markChanged();
@@ -434,19 +435,47 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   {selectableAssignees.length === 0 ? (
                     <div className="text-xs text-muted-foreground">{t`No assignees yet.`}</div>
                   ) : (
-                    <ScrollArea className="max-h-48 pr-2">
+                    <div
+                      className="max-h-48 overflow-y-auto overscroll-contain pr-2"
+                      onWheelCapture={(e) => e.stopPropagation()}
+                    >
                       <div className="space-y-1">
+                        <button
+                          type="button"
+                          className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
+                          onClick={() => {
+                            markChanged();
+                            setAssigneeIds([]);
+                          }}
+                        >
+                          <Checkbox
+                            checked={assigneeIds.length === 0}
+                            onClick={(event) => event.stopPropagation()}
+                            onCheckedChange={(checked) => {
+                              if (checked !== true) return;
+                              markChanged();
+                              setAssigneeIds([]);
+                            }}
+                          />
+                          <span className="text-sm truncate">{t`Unassigned`}</span>
+                        </button>
                         {selectableAssignees.map((assignee) => (
-                          <label key={assignee.id} className="flex items-center gap-2 py-1 cursor-pointer">
+                          <button
+                            key={assignee.id}
+                            type="button"
+                            className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
+                            onClick={() => setAssigneeChecked(assignee.id, !assigneeIds.includes(assignee.id))}
+                          >
                             <Checkbox
                               checked={assigneeIds.includes(assignee.id)}
-                              onCheckedChange={() => handleAssigneeToggle(assignee.id)}
+                              onClick={(event) => event.stopPropagation()}
+                              onCheckedChange={(checked) => setAssigneeChecked(assignee.id, checked === true)}
                             />
                             <span className="text-sm truncate">{assignee.name}</span>
-                          </label>
+                          </button>
                         ))}
                       </div>
-                    </ScrollArea>
+                    </div>
                   )}
                 </PopoverContent>
               </Popover>

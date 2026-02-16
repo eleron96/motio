@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Improved assignee selection when creating timeline tasks: you can now unassign any assignee, keep a task unassigned, and select multiple co-assignees.
+
 ## [0.1.29] - 2026-02-14
 ### Fixed
 - Improved timeline load speed: primary data appears faster, while task counters and tracked projects load in the background.
