@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.33] - 2026-02-16
 ### Changed
 - Добавлен быстрый поиск проектов с клавиатуры в списке выбора проекта при создании задачи.
 
