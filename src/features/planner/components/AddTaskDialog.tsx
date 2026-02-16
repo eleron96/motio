@@ -69,6 +69,8 @@ const resolveDefaultStatusId = (statuses: Status[]) => {
   return firstOpen?.id ?? statuses[0]?.id ?? '';
 };
 
+const normalizeProjectQuery = (value: string) => value.trim().toLowerCase();
+
 export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   open,
   onOpenChange,
@@ -130,6 +132,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [repeatOpen, setRepeatOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const [projectQuery, setProjectQuery] = useState('');
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -143,10 +146,53 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!ids || ids.length === 0) return [];
     return sortAssigneeIds(ids);
   }, [sortAssigneeIds]);
+  const filteredProjects = useMemo(() => {
+    const query = normalizeProjectQuery(projectQuery);
+    if (!query) return activeProjects;
+    return activeProjects.filter((project) => (
+      project.name.toLowerCase().includes(query)
+      || (project.code ?? '').toLowerCase().includes(query)
+    ));
+  }, [activeProjects, projectQuery]);
 
   const markChanged = useCallback(() => {
     setHasChanges(true);
   }, []);
+
+  const handleProjectSelectOpenChange = useCallback((nextOpen: boolean) => {
+    if (!nextOpen) {
+      setProjectQuery('');
+    }
+  }, []);
+
+  const handleProjectSelectKeyDown = useCallback((event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.isComposing) return;
+
+    if (event.key === 'Backspace') {
+      if (!projectQuery) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setProjectQuery((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    if (event.key === 'Escape' && projectQuery) {
+      event.preventDefault();
+      event.stopPropagation();
+      setProjectQuery('');
+      return;
+    }
+
+    const isPrintableKey = event.key.length === 1
+      && !event.altKey
+      && !event.ctrlKey
+      && !event.metaKey;
+    if (!isPrintableKey) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    setProjectQuery((prev) => prev + event.key);
+  }, [projectQuery]);
 
   const handleTagToggle = (tagId: string) => {
     markChanged();
@@ -276,6 +322,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setTitle('');
     setProjectId(activeProjects[0]?.id || 'none');
     setProjectInitialized(false);
+    setProjectQuery('');
     setAssigneeIds([]);
     setStatusId(defaultStatusId);
     setTypeId(taskTypes[0]?.id || '');
@@ -306,6 +353,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   useEffect(() => {
     if (!open) {
       setProjectInitialized(false);
+      setProjectQuery('');
       setHasChanges(false);
       setRepeatOpen(false);
       setConfirmCloseOpen(false);
@@ -417,14 +465,16 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 onValueChange={(value) => {
                   markChanged();
                   setProjectId(value);
+                  setProjectQuery('');
                 }}
+                onOpenChange={handleProjectSelectOpenChange}
               >
                 <SelectTrigger className="min-w-0 overflow-hidden">
                   <SelectValue placeholder={t`Select project`} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent onKeyDown={handleProjectSelectKeyDown}>
                   <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
-                  {activeProjects.map(p => (
+                  {filteredProjects.map(p => (
                     <SelectItem key={p.id} value={p.id}>
                       <span className="inline-flex min-w-0 items-center gap-2">
                         <span
@@ -435,6 +485,11 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                       </span>
                     </SelectItem>
                   ))}
+                  {filteredProjects.length === 0 && (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      {t`No projects found`}
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>

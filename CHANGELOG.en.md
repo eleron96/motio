@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Added keyboard quick search for projects in the project picker when creating a task.
+
 ## [0.1.32] - 2026-02-16
 ### Changed
 - No documented changes.
