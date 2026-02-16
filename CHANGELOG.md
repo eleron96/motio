@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Добавлена персональная настройка ширины бокового списка пользователей на timeline с сохранением
+
 ## [0.1.36] - 2026-02-16
 ### Changed
 - Сделана адаптивная ширина бокового меню в timeline и улучшено отображение длинных имен пользователей

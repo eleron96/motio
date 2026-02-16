@@ -14,6 +14,9 @@ import { Milestone, Task } from '@/features/planner/types/planner';
 const ASSIGNEE_ROW_GAP = 20;
 /** Показываем 2 полных дня слева от фокусной даты, остальное пространство оставляем под будущие дни. */
 const LEFT_CONTEXT_DAYS = 2;
+const TIMELINE_SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
+const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
+const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
 import { calculateTaskLanes, getMaxLanes, TaskWithLane } from '@/features/planner/lib/taskLanes';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
@@ -32,6 +35,9 @@ interface TimelineGridProps {
     projectId?: string | null;
     assigneeIds?: string[];
   }) => void;
+  sidebarWidth?: number | null;
+  onSidebarWidthChange?: (width: number) => void;
+  onSidebarWidthReset?: () => void;
 }
 
 const countUniqueTaskUnits = (tasks: Task[]) => {
@@ -42,7 +48,16 @@ const countUniqueTaskUnits = (tasks: Task[]) => {
   return units.size;
 };
 
-export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
+const clampTimelineSidebarWidth = (value: number) => (
+  Math.max(TIMELINE_SIDEBAR_MIN_WIDTH, Math.min(TIMELINE_SIDEBAR_MAX_WIDTH, value))
+);
+
+export const TimelineGrid: React.FC<TimelineGridProps> = ({
+  onCreateTask,
+  sidebarWidth = null,
+  onSidebarWidthChange,
+  onSidebarWidthReset,
+}) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const { 
@@ -88,7 +103,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
   }, [assignees, user?.id]);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sidebarContainerRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const sidebarResizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const syncingRef = useRef<HTMLDivElement | null>(null);
   const syncingVerticalRef = useRef(false);
   const dragScrollRef = useRef<{
@@ -100,6 +117,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
   const lastDragTimeRef = useRef(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [isDragScrolling, setIsDragScrolling] = useState(false);
+  const [isSidebarResizing, setIsSidebarResizing] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(0);
   const [sidebarPad, setSidebarPad] = useState(0);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
@@ -111,7 +129,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
     visible: boolean;
   } | null>(null);
   const milestoneRowHeight = 24;
-  const sidebarWidth = `clamp(${SIDEBAR_WIDTH}px, 26vw, 360px)`;
+  const resolvedSidebarWidth = typeof sidebarWidth === 'number' && Number.isFinite(sidebarWidth)
+    ? `${clampTimelineSidebarWidth(sidebarWidth)}px`
+    : `clamp(${TIMELINE_SIDEBAR_MIN_WIDTH}px, 26vw, ${TIMELINE_SIDEBAR_AUTO_MAX_WIDTH}px)`;
   
   const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode, tasks), [currentDate, viewMode, tasks]);
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
@@ -423,6 +443,53 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
     };
   }, [isDragScrolling]);
 
+  useEffect(() => {
+    if (!isSidebarResizing) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const resizeState = sidebarResizeRef.current;
+      if (!resizeState || !onSidebarWidthChange) return;
+      const deltaX = event.clientX - resizeState.startX;
+      onSidebarWidthChange(clampTimelineSidebarWidth(resizeState.startWidth + deltaX));
+    };
+
+    const handleMouseUp = () => {
+      sidebarResizeRef.current = null;
+      setIsSidebarResizing(false);
+      if (typeof document !== 'undefined') {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (typeof document !== 'undefined') {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+  }, [isSidebarResizing, onSidebarWidthChange]);
+
+  const handleSidebarResizeStart = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!onSidebarWidthChange) return;
+    const currentWidth = sidebarContainerRef.current?.getBoundingClientRect().width ?? TIMELINE_SIDEBAR_MIN_WIDTH;
+    sidebarResizeRef.current = { startX: event.clientX, startWidth: currentWidth };
+    setIsSidebarResizing(true);
+    if (typeof document !== 'undefined') {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+    event.preventDefault();
+  }, [onSidebarWidthChange]);
+
+  const handleSidebarResizeReset = useCallback(() => {
+    onSidebarWidthReset?.();
+  }, [onSidebarWidthReset]);
+
   useEffect(() => () => {
     if (scrollEndTimerRef.current) {
       window.clearTimeout(scrollEndTimerRef.current);
@@ -716,7 +783,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
     >
       {/* Сайдбар и сетка — два скролла с синхронизацией по вертикали */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <div className="flex flex-col flex-shrink-0 bg-timeline-header border-r border-border" style={{ width: sidebarWidth }}>
+        <div
+          ref={sidebarContainerRef}
+          className="flex flex-col flex-shrink-0 bg-timeline-header border-r border-border"
+          style={{ width: resolvedSidebarWidth }}
+        >
           <div className="flex-shrink-0 border-b border-border" style={{ height: HEADER_HEIGHT }} />
           <div className="flex-shrink-0 border-b border-border" style={{ height: milestoneRowHeight }} />
           <div
@@ -756,6 +827,14 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
             )}
           </div>
         </div>
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize timeline sidebar"
+          className={`h-full w-1 flex-shrink-0 cursor-col-resize bg-transparent transition-colors ${isSidebarResizing ? 'bg-border/80' : 'hover:bg-border/70'}`}
+          onMouseDown={handleSidebarResizeStart}
+          onDoubleClick={handleSidebarResizeReset}
+        />
         <div
           ref={scrollContainerRef}
           className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}`}

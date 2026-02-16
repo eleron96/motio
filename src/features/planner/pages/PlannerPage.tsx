@@ -38,9 +38,21 @@ const normalizeFilters = (value: unknown): Filters => {
   };
 };
 
+const TIMELINE_SIDEBAR_MIN_WIDTH = 200;
+const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
+
+const clampTimelineSidebarWidth = (value: number) => (
+  Math.max(TIMELINE_SIDEBAR_MIN_WIDTH, Math.min(TIMELINE_SIDEBAR_MAX_WIDTH, value))
+);
+
+const getTimelineSidebarWidthStorageKey = (userId: string, workspaceId: string) => (
+  `planner-timeline-sidebar-width-${userId}-${workspaceId}`
+);
+
 const PlannerPage = () => {
   const [filterCollapsed, setFilterCollapsed] = useState(true);
   const [filterWidth, setFilterWidth] = useState(320);
+  const [timelineSidebarWidth, setTimelineSidebarWidth] = useState<number | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
@@ -78,6 +90,7 @@ const PlannerPage = () => {
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const filtersHydratedRef = useRef(false);
+  const timelineSidebarWidthHydratedRef = useRef(false);
   const centeredOnLoadRef = useRef(false);
   const filterResizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const hasActiveFilters = filters.projectIds.length > 0
@@ -162,6 +175,43 @@ const PlannerPage = () => {
   }, [filterWidth]);
 
   useEffect(() => {
+    timelineSidebarWidthHydratedRef.current = false;
+    if (typeof window === 'undefined') return;
+    if (!user?.id || !currentWorkspaceId) {
+      setTimelineSidebarWidth(null);
+      timelineSidebarWidthHydratedRef.current = true;
+      return;
+    }
+    const storageKey = getTimelineSidebarWidthStorageKey(user.id, currentWorkspaceId);
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) {
+      setTimelineSidebarWidth(null);
+      timelineSidebarWidthHydratedRef.current = true;
+      return;
+    }
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+      setTimelineSidebarWidth(null);
+      timelineSidebarWidthHydratedRef.current = true;
+      return;
+    }
+    setTimelineSidebarWidth(clampTimelineSidebarWidth(parsed));
+    timelineSidebarWidthHydratedRef.current = true;
+  }, [currentWorkspaceId, user?.id]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!user?.id || !currentWorkspaceId) return;
+    if (!timelineSidebarWidthHydratedRef.current) return;
+    const storageKey = getTimelineSidebarWidthStorageKey(user.id, currentWorkspaceId);
+    if (timelineSidebarWidth === null) {
+      window.localStorage.removeItem(storageKey);
+      return;
+    }
+    window.localStorage.setItem(storageKey, String(clampTimelineSidebarWidth(timelineSidebarWidth)));
+  }, [currentWorkspaceId, timelineSidebarWidth, user?.id]);
+
+  useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       const resizeState = filterResizeRef.current;
       if (!resizeState || filterCollapsed) return;
@@ -212,6 +262,14 @@ const PlannerPage = () => {
     }
     event.preventDefault();
   }, [filterCollapsed, filterWidth]);
+
+  const handleTimelineSidebarWidthChange = useCallback((width: number) => {
+    setTimelineSidebarWidth(clampTimelineSidebarWidth(width));
+  }, []);
+
+  const handleTimelineSidebarWidthReset = useCallback(() => {
+    setTimelineSidebarWidth(null);
+  }, []);
 
   if (isSuperAdmin) {
     return <Navigate to="/admin/users" replace />;
@@ -302,7 +360,14 @@ const PlannerPage = () => {
           <div className="relative flex-1 overflow-hidden min-h-0">
             {viewMode === 'calendar'
               ? <CalendarTimeline />
-              : <TimelineGrid onCreateTask={handleCreateTaskRequest} />
+              : (
+                <TimelineGrid
+                  onCreateTask={handleCreateTaskRequest}
+                  sidebarWidth={timelineSidebarWidth}
+                  onSidebarWidthChange={handleTimelineSidebarWidthChange}
+                  onSidebarWidthReset={handleTimelineSidebarWidthReset}
+                />
+              )
             }
             {showLoadingOverlay && (
               <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-background/60">
