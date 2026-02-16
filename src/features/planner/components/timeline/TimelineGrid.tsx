@@ -12,6 +12,8 @@ import { Milestone, Task } from '@/features/planner/types/planner';
 
 /** Дополнительный отступ снизу у строки пользователя в режиме группировки по исполнителям (визуально больше расстояние между пользователями) */
 const ASSIGNEE_ROW_GAP = 20;
+/** Показываем 2 полных дня слева от фокусной даты, остальное пространство оставляем под будущие дни. */
+const LEFT_CONTEXT_DAYS = 2;
 import { calculateTaskLanes, getMaxLanes, TaskWithLane } from '@/features/planner/lib/taskLanes';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
@@ -114,19 +116,19 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
   const currentDateObj = useMemo(() => parseISO(currentDate), [currentDate]);
-  const centerIndex = useMemo(() => {
+  const focusIndex = useMemo(() => {
     if (!viewportWidth || dayWidth === 0) return -1;
-    const centerPx = scrollLeft + viewportWidth / 2;
-    return Math.min(visibleDays.length - 1, Math.max(0, Math.floor(centerPx / dayWidth)));
+    const focusPx = scrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
+    return Math.min(visibleDays.length - 1, Math.max(0, Math.floor(focusPx / dayWidth)));
   }, [scrollLeft, viewportWidth, dayWidth, visibleDays.length]);
-  const centerDate = useMemo(() => {
-    if (centerIndex < 0 || centerIndex >= visibleDays.length) return null;
-    return visibleDays[centerIndex];
-  }, [centerIndex, visibleDays]);
+  const focusDate = useMemo(() => {
+    if (focusIndex < 0 || focusIndex >= visibleDays.length) return null;
+    return visibleDays[focusIndex];
+  }, [focusIndex, visibleDays]);
   const showTodayButton = useMemo(() => {
-    if (!centerDate) return false;
-    return Math.abs(differenceInDays(centerDate, new Date())) > 7;
-  }, [centerDate]);
+    if (!focusDate) return false;
+    return Math.abs(differenceInDays(focusDate, new Date())) > 7;
+  }, [focusDate]);
   const scrollEndTimerRef = useRef<number | null>(null);
   const pendingScrollDateRef = useRef<string | null>(null);
   const visibleDaysRef = useRef<Date[]>([]);
@@ -354,11 +356,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
     }
 
     if (visibleDays.length > 0 && dayWidth > 0) {
-      const viewWidth = viewportWidth || e.currentTarget.clientWidth;
-      const centerPx = newScrollLeft + viewWidth / 2;
+      const focusPx = newScrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
       const index = Math.min(
         visibleDays.length - 1,
-        Math.max(0, Math.floor(centerPx / dayWidth)),
+        Math.max(0, Math.floor(focusPx / dayWidth)),
       );
       const date = format(visibleDays[index], 'yyyy-MM-dd');
       pendingScrollDateRef.current = date;
@@ -373,7 +374,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
         }
       }, 450);
     }
-  }, [currentDate, dayWidth, setCurrentDate, viewportWidth, visibleDays]);
+  }, [currentDate, dayWidth, setCurrentDate, visibleDays]);
 
   const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -430,7 +431,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({ onCreateTask }) => {
   const scrollToIndex = useCallback((index: number) => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const targetScroll = Math.max(0, index * dayWidth - container.clientWidth / 2 + dayWidth / 2);
+    const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
+    const targetScroll = Math.min(
+      maxScroll,
+      Math.max(0, (index - LEFT_CONTEXT_DAYS) * dayWidth),
+    );
     container.scrollLeft = targetScroll;
     setScrollLeft(targetScroll);
   }, [dayWidth]);

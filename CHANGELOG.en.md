@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- On the timeline, the current day is now shifted left: 2 previous days are shown and more space is reserved for upcoming dates.
+
+
+### Fixed
+- In task creation, assignees already selected are now shown at the top of the assignee list.
 ## [0.1.30] - 2026-02-16
 ### Fixed
 - Improved assignee selection when creating timeline tasks: you can now unassign any assignee, keep a task unassigned, and select multiple co-assignees.

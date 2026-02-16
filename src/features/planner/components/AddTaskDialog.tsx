@@ -366,6 +366,23 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (selected.length === 1 && assigneeIds.length === 1) return selected[0];
     return t`${assigneeIds.length} assignees`;
   }, [assigneeIds, selectableAssignees]);
+
+  const orderedSelectableAssignees = useMemo(() => {
+    if (assigneeIds.length === 0) return selectableAssignees;
+    const selectedIds = new Set(assigneeIds);
+    const selected: typeof selectableAssignees = [];
+    const unselected: typeof selectableAssignees = [];
+
+    for (const assignee of selectableAssignees) {
+      if (selectedIds.has(assignee.id)) {
+        selected.push(assignee);
+      } else {
+        unselected.push(assignee);
+      }
+    }
+
+    return [...selected, ...unselected];
+  }, [assigneeIds, selectableAssignees]);
   
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -459,7 +476,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                           />
                           <span className="text-sm truncate">{t`Unassigned`}</span>
                         </button>
-                        {selectableAssignees.map((assignee) => (
+                        {orderedSelectableAssignees.map((assignee) => (
                           <button
                             key={assignee.id}
                             type="button"
