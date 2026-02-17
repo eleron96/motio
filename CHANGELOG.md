@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.38] - 2026-02-17
 ### Changed
 - Добавлена подвкладка Вехи в Projects с поиском, группировкой и управлением вехами
 
