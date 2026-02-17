@@ -515,8 +515,8 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
                   {Object.entries(BAR_PALETTES).map(([value, palette]) => (
                     <SelectItem key={value} value={value}>
                       <span className="flex min-w-0 items-center gap-2">
-                        <span className="flex h-3 w-12 overflow-hidden rounded-sm border border-border">
-                          {palette.colors.slice(0, 4).map((color) => (
+                        <span className="flex h-3 w-16 overflow-hidden rounded-sm border border-border">
+                          {palette.colors.slice(0, 8).map((color) => (
                             <span
                               key={color}
                               className="flex-1"

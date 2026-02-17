@@ -298,6 +298,7 @@ const ProjectsPage = () => {
   const [groupByCustomer, setGroupByCustomer] = useState(false);
   const [mode, setMode] = useState<'projects' | 'milestones' | 'customers'>('projects');
   const [milestoneSearch, setMilestoneSearch] = useState('');
+  const [milestoneTab, setMilestoneTab] = useState<'active' | 'past'>('active');
   const [milestoneGroupBy, setMilestoneGroupBy] = useState<MilestoneGroupBy>('project');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -388,6 +389,7 @@ const ProjectsPage = () => {
         const parsed = JSON.parse(saved) as Partial<{
           nameSort: 'asc' | 'desc';
           groupByCustomer: boolean;
+          milestoneTab: 'active' | 'past';
           milestoneGroupBy: MilestoneGroupBy;
         }>;
         if (parsed.nameSort === 'asc' || parsed.nameSort === 'desc') {
@@ -395,6 +397,9 @@ const ProjectsPage = () => {
         }
         if (typeof parsed.groupByCustomer === 'boolean') {
           setGroupByCustomer(parsed.groupByCustomer);
+        }
+        if (parsed.milestoneTab === 'active' || parsed.milestoneTab === 'past') {
+          setMilestoneTab(parsed.milestoneTab);
         }
         if (parsed.milestoneGroupBy === 'project' || parsed.milestoneGroupBy === 'customer' || parsed.milestoneGroupBy === 'month') {
           setMilestoneGroupBy(parsed.milestoneGroupBy);
@@ -412,9 +417,10 @@ const ProjectsPage = () => {
     window.localStorage.setItem(projectsViewPrefsStorageKey, JSON.stringify({
       nameSort,
       groupByCustomer,
+      milestoneTab,
       milestoneGroupBy,
     }));
-  }, [groupByCustomer, milestoneGroupBy, nameSort, projectsViewPrefsStorageKey]);
+  }, [groupByCustomer, milestoneGroupBy, milestoneTab, nameSort, projectsViewPrefsStorageKey]);
 
   const activeProjects = useMemo(
     () => sortProjectsByTracking(
@@ -516,6 +522,7 @@ const ProjectsPage = () => {
   );
   const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
   const normalizedMilestoneSearch = milestoneSearch.trim().toLowerCase();
+  const todayMilestoneKey = format(new Date(), 'yyyy-MM-dd');
   const filteredMilestones = useMemo(() => {
     const matchesSearch = (milestone: Milestone) => {
       if (!normalizedMilestoneSearch) return true;
@@ -544,9 +551,16 @@ const ProjectsPage = () => {
         return compareNames(leftProjectName, rightProjectName, nameSort);
       });
   }, [customerById, milestones, nameSort, normalizedMilestoneSearch, projectById, trackedProjectIdSet]);
+  const filteredActiveMilestones = useMemo(() => {
+    return filteredMilestones.filter((milestone) => milestone.date >= todayMilestoneKey);
+  }, [filteredMilestones, todayMilestoneKey]);
+  const filteredPastMilestones = useMemo(() => {
+    return filteredMilestones.filter((milestone) => milestone.date < todayMilestoneKey);
+  }, [filteredMilestones, todayMilestoneKey]);
+  const visibleMilestones = milestoneTab === 'active' ? filteredActiveMilestones : filteredPastMilestones;
   const groupedMilestones = useMemo(() => {
     const buckets = new Map<string, Milestone[]>();
-    filteredMilestones.forEach((milestone) => {
+    visibleMilestones.forEach((milestone) => {
       if (milestoneGroupBy === 'project') {
         const key = projectById.has(milestone.projectId) ? milestone.projectId : 'missing-project';
         const list = buckets.get(key) ?? [];
@@ -620,7 +634,7 @@ const ProjectsPage = () => {
         name: format(parseISO(`${monthKey}-01`), 'LLLL yyyy', { locale: dateLocale }),
         milestones: list,
       }));
-  }, [dateLocale, filteredMilestones, milestoneGroupBy, nameSort, projectById, projects, sortedCustomers, trackedProjectIds]);
+  }, [dateLocale, milestoneGroupBy, nameSort, projectById, projects, sortedCustomers, trackedProjectIds, visibleMilestones]);
   const selectedMilestone = useMemo(
     () => milestones.find((milestone) => milestone.id === selectedMilestoneId) ?? null,
     [milestones, selectedMilestoneId],
@@ -1175,14 +1189,14 @@ const ProjectsPage = () => {
 
   useEffect(() => {
     if (mode !== 'milestones') return;
-    if (filteredMilestones.length === 0) {
+    if (visibleMilestones.length === 0) {
       setSelectedMilestoneId(null);
       return;
     }
-    if (!selectedMilestoneId || !filteredMilestones.some((milestone) => milestone.id === selectedMilestoneId)) {
-      setSelectedMilestoneId(filteredMilestones[0].id);
+    if (!selectedMilestoneId || !visibleMilestones.some((milestone) => milestone.id === selectedMilestoneId)) {
+      setSelectedMilestoneId(visibleMilestones[0].id);
     }
-  }, [filteredMilestones, mode, selectedMilestoneId]);
+  }, [mode, selectedMilestoneId, visibleMilestones]);
 
   const groupedProjects = useCallback((list: Project[]) => {
     if (!groupByCustomer) {
@@ -1595,7 +1609,11 @@ const ProjectsPage = () => {
           )}
 
           {mode === 'milestones' && (
-            <>
+            <Tabs
+              value={milestoneTab}
+              onValueChange={(value) => setMilestoneTab(value as 'active' | 'past')}
+              className="flex min-h-0 flex-1 flex-col"
+            >
               <div className="px-4 py-3 border-b border-border">
                 <div className="grid grid-cols-[1fr_auto] items-center gap-2">
                   <Input
@@ -1631,13 +1649,22 @@ const ProjectsPage = () => {
                   </div>
                 </div>
               </div>
+              <TabsList className="mx-4 mt-2 grid grid-cols-2">
+                <TabsTrigger value="active">{t`Current`}</TabsTrigger>
+                <TabsTrigger value="past">{t`Past`}</TabsTrigger>
+              </TabsList>
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3">
                 {milestones.length === 0 && (
                   <div className="text-sm text-muted-foreground">{t`No milestones yet.`}</div>
                 )}
-                {milestones.length > 0 && renderMilestoneGroups()}
+                {milestones.length > 0 && visibleMilestones.length === 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    {milestoneTab === 'active' ? t`No current milestones.` : t`No past milestones.`}
+                  </div>
+                )}
+                {milestones.length > 0 && visibleMilestones.length > 0 && renderMilestoneGroups()}
               </div>
-            </>
+            </Tabs>
           )}
 
           {mode === 'projects' && (
@@ -2427,6 +2454,7 @@ const ProjectsPage = () => {
         date={milestoneDialogDate}
         milestone={editingMilestone}
         canEdit={canEdit}
+        allowDateEdit
       />
       <Dialog open={Boolean(selectedTaskId)} onOpenChange={(open) => !open && setSelectedTaskId(null)}>
         <DialogContent className="w-[95vw] max-w-2xl">

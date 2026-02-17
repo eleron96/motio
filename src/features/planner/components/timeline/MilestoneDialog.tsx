@@ -29,6 +29,7 @@ interface MilestoneDialogProps {
   date: string | null;
   milestone: Milestone | null;
   canEdit: boolean;
+  allowDateEdit?: boolean;
 }
 
 export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
@@ -37,12 +38,14 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   date,
   milestone,
   canEdit,
+  allowDateEdit = false,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const { projects, trackedProjectIds, addMilestone, updateMilestone, deleteMilestone } = usePlannerStore();
   const [title, setTitle] = useState('');
   const [projectId, setProjectId] = useState('');
+  const [milestoneDate, setMilestoneDate] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
@@ -64,24 +67,25 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     return [archivedProject, ...activeProjects.filter((project) => project.id !== archivedProject.id)];
   }, [activeProjects, archivedProject]);
   const hasProjects = activeProjects.length > 0 || Boolean(archivedProject);
-  const selectedDate = milestone?.date ?? date;
   const formattedDate = useMemo(() => {
-    if (!selectedDate) return '';
-    return format(parseISO(selectedDate), 'd MMM yyyy', { locale: dateLocale });
-  }, [selectedDate, dateLocale]);
+    if (!milestoneDate) return '';
+    return format(parseISO(milestoneDate), 'd MMM yyyy', { locale: dateLocale });
+  }, [milestoneDate, dateLocale]);
 
   useEffect(() => {
     if (!open) return;
     if (milestone) {
       setTitle(milestone.title);
       setProjectId(milestone.projectId);
+      setMilestoneDate(milestone.date);
       setHasChanges(false);
       return;
     }
     setTitle('');
     setProjectId(activeProjects[0]?.id ?? '');
+    setMilestoneDate(date ?? format(new Date(), 'yyyy-MM-dd'));
     setHasChanges(false);
-  }, [milestone, open, activeProjects]);
+  }, [milestone, open, activeProjects, date]);
 
   const requestClose = () => {
     if (!hasChanges) {
@@ -100,11 +104,11 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   };
 
   const handleSave = async () => {
-    if (!canEdit || !selectedDate || !projectId || !title.trim()) return;
+    if (!canEdit || !milestoneDate || !projectId || !title.trim()) return;
     const payload = {
       title: title.trim(),
       projectId,
-      date: selectedDate,
+      date: milestoneDate,
     };
     if (milestone) {
       await updateMilestone(milestone.id, payload);
@@ -135,10 +139,26 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {selectedDate && (
+          {allowDateEdit ? (
+            <div className="space-y-2">
+              <Label htmlFor="milestone-date">{t`Date`}</Label>
+              <Input
+                id="milestone-date"
+                type="date"
+                value={milestoneDate}
+                onChange={(event) => {
+                  setMilestoneDate(event.target.value);
+                  setHasChanges(true);
+                }}
+                disabled={!canEdit}
+              />
+            </div>
+          ) : (
+            milestoneDate ? (
             <div className="text-sm text-muted-foreground">
               {t`Date`}: <span className="text-foreground font-medium">{formattedDate}</span>
             </div>
+            ) : null
           )}
           <div className="space-y-2">
             <Label htmlFor="milestone-title">{t`Name`}</Label>
@@ -203,7 +223,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={!canEdit || !title.trim() || !projectId}
+            disabled={!canEdit || !title.trim() || !projectId || !milestoneDate}
           >
             {mode === 'edit' ? t`Save` : t`Create`}
           </Button>
