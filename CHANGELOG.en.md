@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.39] - 2026-02-17
 ### Changed
 - Expanded dashboard chart palettes with more distinct neighboring colors and updated palette preview in widget settings.
 - Enabled milestone date editing in the create/edit dialog inside Projects → Milestones.
