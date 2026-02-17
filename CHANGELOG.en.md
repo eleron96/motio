@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.40] - 2026-02-17
 ### Changed
 - Reworked color ordering in the “Pastel sky” and “Pastel dawn” palettes so colors differ more clearly within each palette for faster series recognition on charts.
 
