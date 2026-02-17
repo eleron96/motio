@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Reworked color ordering in the “Pastel sky” and “Pastel dawn” palettes so colors differ more clearly within each palette for faster series recognition on charts.
+
 ## [0.1.39] - 2026-02-17
 ### Changed
 - Reworked pastel dashboard palettes to use multi-hue pastel colors (instead of many close shades of one hue) for clearer series distinction.
