@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { MilestoneDialog } from '@/features/planner/components/timeline/MilestoneDialog';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
 import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
@@ -37,6 +38,7 @@ import { differenceInCalendarDays, format, parseISO } from 'date-fns';
 import {
   ArrowDownAZ,
   ArrowDownZA,
+  CalendarDays,
   ChevronDown,
   Filter,
   Layers,
@@ -46,8 +48,10 @@ import {
   RefreshCcw,
   Star,
 } from 'lucide-react';
-import { Customer, Project, Task } from '@/features/planner/types/planner';
+import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
 import DOMPurify from 'dompurify';
+import { useLocaleStore } from '@/shared/store/localeStore';
+import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,6 +94,8 @@ type DisplayTaskRow = {
     total: number;
   } | null;
 };
+
+type MilestoneGroupBy = 'project' | 'customer' | 'month';
 
 const normalizeAssigneeIds = (assigneeIds: string[] | null | undefined, legacyId: string | null | undefined) => {
   const combined = [
@@ -290,10 +296,16 @@ const ProjectsPage = () => {
   const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
   const [nameSort, setNameSort] = useState<'asc' | 'desc'>('asc');
   const [groupByCustomer, setGroupByCustomer] = useState(false);
-  const [mode, setMode] = useState<'projects' | 'customers'>('projects');
+  const [mode, setMode] = useState<'projects' | 'milestones' | 'customers'>('projects');
+  const [milestoneSearch, setMilestoneSearch] = useState('');
+  const [milestoneGroupBy, setMilestoneGroupBy] = useState<MilestoneGroupBy>('project');
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
   const [createProjectConfirmOpen, setCreateProjectConfirmOpen] = useState(false);
+  const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
+  const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
+  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
   const [projectSettingsTarget, setProjectSettingsTarget] = useState<Project | null>(null);
   const [newProjectName, setNewProjectName] = useState('');
@@ -314,11 +326,14 @@ const ProjectsPage = () => {
   const [renameCustomerConfirmOpen, setRenameCustomerConfirmOpen] = useState(false);
   const [deleteProjectTarget, setDeleteProjectTarget] = useState<Project | null>(null);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
+  const [deleteMilestoneTarget, setDeleteMilestoneTarget] = useState<Milestone | null>(null);
+  const [deleteMilestoneOpen, setDeleteMilestoneOpen] = useState(false);
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState<Customer | null>(null);
   const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
 
   const {
     projects,
+    milestones,
     trackedProjectIds,
     customers,
     statuses,
@@ -332,6 +347,7 @@ const ProjectsPage = () => {
     updateCustomer,
     deleteCustomer,
     deleteProject,
+    deleteMilestone,
     toggleTrackedProject,
     setHighlightedTaskId,
     setViewMode,
@@ -347,6 +363,8 @@ const ProjectsPage = () => {
     isSuperAdmin,
   } = useAuthStore();
 
+  const locale = useLocaleStore((state) => state.locale);
+  const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const projectsViewPrefsStorageKey = currentWorkspaceId
     ? `projects-view-prefs-${currentWorkspaceId}`
@@ -370,12 +388,16 @@ const ProjectsPage = () => {
         const parsed = JSON.parse(saved) as Partial<{
           nameSort: 'asc' | 'desc';
           groupByCustomer: boolean;
+          milestoneGroupBy: MilestoneGroupBy;
         }>;
         if (parsed.nameSort === 'asc' || parsed.nameSort === 'desc') {
           setNameSort(parsed.nameSort);
         }
         if (typeof parsed.groupByCustomer === 'boolean') {
           setGroupByCustomer(parsed.groupByCustomer);
+        }
+        if (parsed.milestoneGroupBy === 'project' || parsed.milestoneGroupBy === 'customer' || parsed.milestoneGroupBy === 'month') {
+          setMilestoneGroupBy(parsed.milestoneGroupBy);
         }
       } catch {
         // Ignore invalid localStorage payload and keep defaults.
@@ -390,8 +412,9 @@ const ProjectsPage = () => {
     window.localStorage.setItem(projectsViewPrefsStorageKey, JSON.stringify({
       nameSort,
       groupByCustomer,
+      milestoneGroupBy,
     }));
-  }, [groupByCustomer, nameSort, projectsViewPrefsStorageKey]);
+  }, [groupByCustomer, milestoneGroupBy, nameSort, projectsViewPrefsStorageKey]);
 
   const activeProjects = useMemo(
     () => sortProjectsByTracking(
@@ -412,6 +435,10 @@ const ProjectsPage = () => {
   const customerById = useMemo(
     () => new Map(customers.map((customer) => [customer.id, customer])),
     [customers],
+  );
+  const projectById = useMemo(
+    () => new Map(projects.map((project) => [project.id, project])),
+    [projects],
   );
   const sortedCustomers = useMemo(() => {
     return [...customers].sort((a, b) => compareNames(a.name, b.name, nameSort));
@@ -487,6 +514,129 @@ const ProjectsPage = () => {
     () => archivedProjects.filter((project) => matchesCustomerFilter(project) && matchesProjectSearch(project)),
     [archivedProjects, matchesCustomerFilter, matchesProjectSearch],
   );
+  const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
+  const normalizedMilestoneSearch = milestoneSearch.trim().toLowerCase();
+  const filteredMilestones = useMemo(() => {
+    const matchesSearch = (milestone: Milestone) => {
+      if (!normalizedMilestoneSearch) return true;
+      const project = projectById.get(milestone.projectId);
+      const customer = project?.customerId ? customerById.get(project.customerId) : null;
+      return [
+        milestone.title,
+        project?.name ?? '',
+        project?.code ?? '',
+        customer?.name ?? '',
+      ].join(' ').toLowerCase().includes(normalizedMilestoneSearch);
+    };
+
+    return milestones
+      .filter(matchesSearch)
+      .sort((left, right) => {
+        const leftTracked = trackedProjectIdSet.has(left.projectId);
+        const rightTracked = trackedProjectIdSet.has(right.projectId);
+        if (leftTracked !== rightTracked) return leftTracked ? -1 : 1;
+        const byDate = left.date.localeCompare(right.date);
+        if (byDate !== 0) return byDate;
+        const byTitle = compareNames(left.title, right.title, nameSort);
+        if (byTitle !== 0) return byTitle;
+        const leftProjectName = projectById.get(left.projectId)?.name ?? '';
+        const rightProjectName = projectById.get(right.projectId)?.name ?? '';
+        return compareNames(leftProjectName, rightProjectName, nameSort);
+      });
+  }, [customerById, milestones, nameSort, normalizedMilestoneSearch, projectById, trackedProjectIdSet]);
+  const groupedMilestones = useMemo(() => {
+    const buckets = new Map<string, Milestone[]>();
+    filteredMilestones.forEach((milestone) => {
+      if (milestoneGroupBy === 'project') {
+        const key = projectById.has(milestone.projectId) ? milestone.projectId : 'missing-project';
+        const list = buckets.get(key) ?? [];
+        list.push(milestone);
+        buckets.set(key, list);
+        return;
+      }
+
+      if (milestoneGroupBy === 'customer') {
+        const project = projectById.get(milestone.projectId);
+        const key = project ? (project.customerId ?? 'none') : 'missing-project';
+        const list = buckets.get(key) ?? [];
+        list.push(milestone);
+        buckets.set(key, list);
+        return;
+      }
+
+      const monthKey = format(parseISO(milestone.date), 'yyyy-MM');
+      const list = buckets.get(monthKey) ?? [];
+      list.push(milestone);
+      buckets.set(monthKey, list);
+    });
+
+    if (milestoneGroupBy === 'project') {
+      const orderedProjects = sortProjectsByTracking(projects, trackedProjectIds, nameSort);
+      const result = orderedProjects
+        .map((project) => {
+          const list = buckets.get(project.id) ?? [];
+          if (list.length === 0) return null;
+          return {
+            id: project.id,
+            name: formatProjectLabel(project.name, project.code),
+            milestones: list,
+          };
+        })
+        .filter((item): item is { id: string; name: string; milestones: Milestone[] } => Boolean(item));
+      const missing = buckets.get('missing-project');
+      if (missing && missing.length > 0) {
+        result.push({ id: 'missing-project', name: t`Unknown project`, milestones: missing });
+      }
+      return result;
+    }
+
+    if (milestoneGroupBy === 'customer') {
+      const result = sortedCustomers
+        .map((customer) => {
+          const list = buckets.get(customer.id) ?? [];
+          if (list.length === 0) return null;
+          return {
+            id: customer.id,
+            name: customer.name,
+            milestones: list,
+          };
+        })
+        .filter((item): item is { id: string; name: string; milestones: Milestone[] } => Boolean(item));
+      const noCustomer = buckets.get('none');
+      if (noCustomer && noCustomer.length > 0) {
+        result.push({ id: 'none', name: t`No customer`, milestones: noCustomer });
+      }
+      const missing = buckets.get('missing-project');
+      if (missing && missing.length > 0) {
+        result.push({ id: 'missing-project', name: t`Unknown project`, milestones: missing });
+      }
+      return result;
+    }
+
+    return Array.from(buckets.entries())
+      .sort((left, right) => right[0].localeCompare(left[0]))
+      .map(([monthKey, list]) => ({
+        id: monthKey,
+        name: format(parseISO(`${monthKey}-01`), 'LLLL yyyy', { locale: dateLocale }),
+        milestones: list,
+      }));
+  }, [dateLocale, filteredMilestones, milestoneGroupBy, nameSort, projectById, projects, sortedCustomers, trackedProjectIds]);
+  const selectedMilestone = useMemo(
+    () => milestones.find((milestone) => milestone.id === selectedMilestoneId) ?? null,
+    [milestones, selectedMilestoneId],
+  );
+  const selectedMilestoneProject = useMemo(
+    () => (selectedMilestone ? projectById.get(selectedMilestone.projectId) ?? null : null),
+    [projectById, selectedMilestone],
+  );
+  const selectedMilestoneCustomer = useMemo(() => (
+    selectedMilestoneProject?.customerId ? customerById.get(selectedMilestoneProject.customerId) ?? null : null
+  ), [customerById, selectedMilestoneProject?.customerId]);
+  const milestoneGroupLabel = useMemo(() => {
+    if (milestoneGroupBy === 'project') return t`Project`;
+    if (milestoneGroupBy === 'customer') return t`Customer`;
+    return t`Month`;
+  }, [milestoneGroupBy]);
 
   useEffect(() => {
     const list = tab === 'active' ? filteredActiveProjects : filteredArchivedProjects;
@@ -675,6 +825,14 @@ const ProjectsPage = () => {
         className={`h-7 px-3 text-xs rounded-md ${mode === 'projects' ? 'bg-foreground text-background shadow-sm' : ''}`}
       >
         {t`Projects`}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setMode('milestones')}
+        className={`h-7 px-3 text-xs rounded-md ${mode === 'milestones' ? 'bg-foreground text-background shadow-sm' : ''}`}
+      >
+        {t`Milestones`}
       </Button>
       <Button
         variant="ghost"
@@ -912,6 +1070,62 @@ const ProjectsPage = () => {
     setDeleteProjectTarget(null);
   }, [deleteProject, deleteProjectTarget]);
 
+  const formatMilestoneDate = useCallback((date: string) => (
+    format(parseISO(date), 'dd MMM yyyy', { locale: dateLocale })
+  ), [dateLocale]);
+
+  const handleCycleMilestoneGroup = useCallback(() => {
+    setMilestoneGroupBy((current) => {
+      if (current === 'project') return 'customer';
+      if (current === 'customer') return 'month';
+      return 'project';
+    });
+  }, []);
+
+  const handleOpenProjectFromMilestone = useCallback((milestone: Milestone) => {
+    const project = projectById.get(milestone.projectId);
+    if (!project) return;
+    setMode('projects');
+    setTab(project.archived ? 'archived' : 'active');
+    setSelectedProjectId(project.id);
+  }, [projectById]);
+
+  const handleOpenCreateMilestone = useCallback(() => {
+    setEditingMilestone(null);
+    setMilestoneDialogDate(selectedMilestone?.date ?? format(new Date(), 'yyyy-MM-dd'));
+    setMilestoneDialogOpen(true);
+  }, [selectedMilestone?.date]);
+
+  const handleOpenMilestoneSettings = useCallback((milestone: Milestone) => {
+    setEditingMilestone(milestone);
+    setMilestoneDialogDate(null);
+    setMilestoneDialogOpen(true);
+  }, []);
+
+  const handleMilestoneDialogOpenChange = useCallback((open: boolean) => {
+    setMilestoneDialogOpen(open);
+    if (!open) {
+      setEditingMilestone(null);
+      setMilestoneDialogDate(null);
+    }
+  }, []);
+
+  const requestDeleteMilestone = useCallback((milestone: Milestone) => {
+    if (!canEdit) return;
+    setDeleteMilestoneTarget(milestone);
+    setDeleteMilestoneOpen(true);
+  }, [canEdit]);
+
+  const handleConfirmDeleteMilestone = useCallback(async () => {
+    if (!deleteMilestoneTarget) return;
+    await deleteMilestone(deleteMilestoneTarget.id);
+    if (selectedMilestoneId === deleteMilestoneTarget.id) {
+      setSelectedMilestoneId(null);
+    }
+    setDeleteMilestoneOpen(false);
+    setDeleteMilestoneTarget(null);
+  }, [deleteMilestone, deleteMilestoneTarget, selectedMilestoneId]);
+
   const requestDeleteCustomer = useCallback((customer: Customer) => {
     if (!canEdit) return;
     setDeleteCustomerTarget(customer);
@@ -945,6 +1159,7 @@ const ProjectsPage = () => {
   const deleteProjectLabel = deleteProjectTarget
     ? formatProjectLabel(deleteProjectTarget.name, deleteProjectTarget.code)
     : t`this project`;
+  const deleteMilestoneLabel = deleteMilestoneTarget?.title ?? t`this milestone`;
   const deleteCustomerLabel = deleteCustomerTarget?.name ?? t`this customer`;
 
   useEffect(() => {
@@ -957,6 +1172,17 @@ const ProjectsPage = () => {
       setSelectedCustomerId(filteredCustomers[0].id);
     }
   }, [filteredCustomers, mode, selectedCustomerId]);
+
+  useEffect(() => {
+    if (mode !== 'milestones') return;
+    if (filteredMilestones.length === 0) {
+      setSelectedMilestoneId(null);
+      return;
+    }
+    if (!selectedMilestoneId || !filteredMilestones.some((milestone) => milestone.id === selectedMilestoneId)) {
+      setSelectedMilestoneId(filteredMilestones[0].id);
+    }
+  }, [filteredMilestones, mode, selectedMilestoneId]);
 
   const groupedProjects = useCallback((list: Project[]) => {
     if (!groupByCustomer) {
@@ -1103,6 +1329,109 @@ const ProjectsPage = () => {
     );
   };
 
+  const renderMilestoneItem = (milestone: Milestone) => {
+    const project = projectById.get(milestone.projectId);
+    const customer = project?.customerId ? customerById.get(project.customerId) : null;
+    const projectLabel = project
+      ? formatProjectLabel(project.name, project.code)
+      : t`Unknown project`;
+    const isTracked = trackedProjectIdSet.has(milestone.projectId);
+
+    return (
+      <ContextMenu key={milestone.id}>
+        <ContextMenuTrigger asChild>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelectedMilestoneId(milestone.id)}
+            onDoubleClick={() => {
+              if (!canEdit) return;
+              handleOpenMilestoneSettings(milestone);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setSelectedMilestoneId(milestone.id);
+              }
+            }}
+            className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
+              selectedMilestoneId === milestone.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
+            }`}
+          >
+            <div className="flex items-start gap-2 min-w-0">
+              <CalendarDays className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium leading-snug whitespace-normal break-words [overflow-wrap:anywhere] line-clamp-2">
+                  {milestone.title}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {formatMilestoneDate(milestone.date)}
+                </div>
+                <div className="text-xs text-muted-foreground leading-snug whitespace-normal break-words [overflow-wrap:anywhere] line-clamp-2">
+                  {projectLabel}
+                </div>
+                <div className="text-[11px] text-muted-foreground leading-snug whitespace-normal break-words [overflow-wrap:anywhere] line-clamp-2">
+                  {customer?.name ?? t`No customer`}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {isTracked && (
+                  <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                )}
+                {project?.archived && (
+                  <Badge variant="secondary" className="text-[10px]">{t`Archived`}</Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem disabled={!canEdit} onSelect={() => handleOpenMilestoneSettings(milestone)}>
+            {t`Edit`}
+          </ContextMenuItem>
+          <ContextMenuItem
+            disabled={!project}
+            onSelect={() => handleOpenProjectFromMilestone(milestone)}
+          >
+            {t`Open project`}
+          </ContextMenuItem>
+          <ContextMenuItem
+            disabled={!canEdit}
+            onSelect={() => requestDeleteMilestone(milestone)}
+            className="text-destructive focus:text-destructive"
+          >
+            {t`Delete`}
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    );
+  };
+
+  const renderMilestoneGroups = () => {
+    if (groupedMilestones.length === 0) {
+      return (
+        <div className="text-sm text-muted-foreground">
+          {t`No milestones match the current filters.`}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {groupedMilestones.map((group) => (
+          <div key={group.id} className="space-y-2">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              {group.name}
+            </div>
+            <div className="space-y-2">
+              {group.milestones.map((milestone) => renderMilestoneItem(milestone))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
@@ -1120,6 +1449,16 @@ const ProjectsPage = () => {
             >
               <Plus className="h-4 w-4" />
               {t`New customer`}
+            </Button>
+          ) : mode === 'milestones' ? (
+            <Button
+              onClick={handleOpenCreateMilestone}
+              size="sm"
+              className="gap-2"
+              disabled={!canEdit}
+            >
+              <Plus className="h-4 w-4" />
+              {t`New milestone`}
             </Button>
           ) : (
             <Button
@@ -1251,6 +1590,52 @@ const ProjectsPage = () => {
                       })}
                     </div>
                   )}
+              </div>
+            </>
+          )}
+
+          {mode === 'milestones' && (
+            <>
+              <div className="px-4 py-3 border-b border-border">
+                <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                  <Input
+                    className="h-8"
+                    placeholder={t`Search milestones...`}
+                    value={milestoneSearch}
+                    onChange={(event) => setMilestoneSearch(event.target.value)}
+                  />
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-2 px-2"
+                      onClick={() => setNameSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+                    >
+                      {nameSort === 'asc' ? (
+                        <ArrowDownAZ className="h-4 w-4" />
+                      ) : (
+                        <ArrowDownZA className="h-4 w-4" />
+                      )}
+                      <span className="text-xs text-muted-foreground">{nameSortLabel}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-2 px-2"
+                      onClick={handleCycleMilestoneGroup}
+                      title={t`Group milestones`}
+                    >
+                      <Layers className="h-4 w-4" />
+                      <span className="text-xs text-muted-foreground">{milestoneGroupLabel}</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3">
+                {milestones.length === 0 && (
+                  <div className="text-sm text-muted-foreground">{t`No milestones yet.`}</div>
+                )}
+                {milestones.length > 0 && renderMilestoneGroups()}
               </div>
             </>
           )}
@@ -1583,6 +1968,92 @@ const ProjectsPage = () => {
                 </div>
               )}
             </>
+          ) : mode === 'milestones' ? (
+            <div className="flex flex-1 flex-col overflow-hidden">
+              {!selectedMilestone && (
+                <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+                  {t`Select a milestone to view details.`}
+                </div>
+              )}
+              {selectedMilestone && (
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  <div className="border-b border-border px-6 py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <CalendarDays className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                        <div className="min-w-0">
+                          <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">
+                            {selectedMilestone.title}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatMilestoneDate(selectedMilestone.date)}
+                          </div>
+                          <div className="text-xs text-muted-foreground leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">
+                            {selectedMilestoneProject
+                              ? formatProjectLabel(selectedMilestoneProject.name, selectedMilestoneProject.code)
+                              : t`Unknown project`}
+                          </div>
+                        </div>
+                        {selectedMilestoneProject?.archived && (
+                          <Badge variant="secondary">{t`Archived`}</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenProjectFromMilestone(selectedMilestone)}
+                          disabled={!selectedMilestoneProject}
+                        >
+                          {t`Open project`}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenMilestoneSettings(selectedMilestone)}
+                          disabled={!canEdit}
+                        >
+                          {t`Edit`}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => requestDeleteMilestone(selectedMilestone)}
+                          disabled={!canEdit}
+                        >
+                          {t`Delete`}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-auto px-6 py-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <div className="text-xs text-muted-foreground">{t`Date`}</div>
+                        <div className="text-sm">{formatMilestoneDate(selectedMilestone.date)}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">{t`Project`}</div>
+                        <div className="text-sm break-words [overflow-wrap:anywhere]">
+                          {selectedMilestoneProject
+                            ? formatProjectLabel(selectedMilestoneProject.name, selectedMilestoneProject.code)
+                            : t`Unknown project`}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">{t`Customer`}</div>
+                        <div className="text-sm break-words [overflow-wrap:anywhere]">
+                          {selectedMilestoneCustomer?.name ?? t`No customer`}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">{t`Tracking`}</div>
+                        <div className="text-sm">
+                          {trackedProjectIdSet.has(selectedMilestone.projectId) ? t`Tracked project` : t`Not tracked`}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex flex-1 flex-col overflow-hidden">
               <div className="border-b border-border px-6 py-4">
@@ -1950,6 +2421,13 @@ const ProjectsPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <MilestoneDialog
+        open={milestoneDialogOpen}
+        onOpenChange={handleMilestoneDialogOpenChange}
+        date={milestoneDialogDate}
+        milestone={editingMilestone}
+        canEdit={canEdit}
+      />
       <Dialog open={Boolean(selectedTaskId)} onOpenChange={(open) => !open && setSelectedTaskId(null)}>
         <DialogContent className="w-[95vw] max-w-2xl">
           <DialogHeader>
@@ -2093,6 +2571,28 @@ const ProjectsPage = () => {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteProjectTarget(null)}>{t`Cancel`}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDeleteProject}>{t`Delete`}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog
+        open={deleteMilestoneOpen}
+        onOpenChange={(open) => {
+          setDeleteMilestoneOpen(open);
+          if (!open) {
+            setDeleteMilestoneTarget(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Delete milestone?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`This will remove "${deleteMilestoneLabel}" from the project timeline.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteMilestoneTarget(null)}>{t`Cancel`}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleConfirmDeleteMilestone()}>{t`Delete`}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

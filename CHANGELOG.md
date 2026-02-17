@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Добавлена подвкладка Вехи в Projects с поиском, группировкой и управлением вехами
+
 ## [0.1.37] - 2026-02-16
 ### Changed
 - Добавлена персональная настройка ширины бокового списка пользователей на timeline с сохранением
