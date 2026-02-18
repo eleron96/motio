@@ -38,7 +38,7 @@ msgid "{0} customers"
 msgstr "{0} клиентов"
 
 #. placeholder {0}: milestonesInCalendar.length
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:919
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:922
 msgid "{0} milestones"
 msgstr "{0} этапов"
 
@@ -63,11 +63,11 @@ msgid "{projectCount} projects"
 msgstr "{projectCount} проектов"
 
 #. placeholder {0}: hiddenMilestones.length
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:860
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:863
 msgid "+{0} more milestones"
 msgstr "+{0} ещё этапов"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:406
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:408
 msgid "+{hiddenLegendCount} more"
 msgstr "+{hiddenLegendCount} еще"
 
@@ -77,11 +77,11 @@ msgstr "+{hiddenLegendCount} еще"
 msgid "A-Z"
 msgstr "А-Я"
 
-#: src/features/auth/components/InviteNotifications.tsx:326
+#: src/features/auth/components/InviteNotifications.tsx:596
 msgid "Accept"
 msgstr "Принять"
 
-#: src/features/auth/components/InviteNotifications.tsx:171
+#: src/features/auth/components/InviteNotifications.tsx:243
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:344
 msgid "Accepted"
 msgstr "Принято"
@@ -125,7 +125,7 @@ msgstr "Активен"
 msgid "Add a description..."
 msgstr "Добавьте описание..."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:563
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:571
 msgid "Add group"
 msgstr "Добавить группу"
 
@@ -133,7 +133,7 @@ msgstr "Добавить группу"
 msgid "Add member"
 msgstr "Добавить участника"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:677
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:685
 msgid "Add rule"
 msgstr "Добавить правило"
 
@@ -141,7 +141,7 @@ msgstr "Добавить правило"
 msgid "Add task"
 msgstr "Добавить задачу"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:815
+#: src/features/dashboard/pages/DashboardPage.tsx:858
 msgid "Add widget"
 msgstr "Добавить виджет"
 
@@ -149,14 +149,14 @@ msgstr "Добавить виджет"
 msgid "Add your name"
 msgstr "Добавьте имя"
 
-#: src/features/auth/components/InviteNotifications.tsx:83
+#: src/features/auth/components/InviteNotifications.tsx:121
 #: src/features/members/pages/MembersPage.tsx:227
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:443
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:642
 msgid "Admin"
 msgstr "Администратор"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:560
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:568
 msgid "Advanced filters"
 msgstr "Расширенные фильтры"
 
@@ -175,7 +175,7 @@ msgstr "Все"
 msgid "All assignees"
 msgstr "Все исполнители"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:663
+#: src/features/dashboard/pages/DashboardPage.tsx:844
 msgid "All changes saved"
 msgstr "Все изменения сохранены"
 
@@ -235,13 +235,17 @@ msgstr "Архивирован"
 msgid "Archived projects are hidden from filters."
 msgstr "Архивные проекты скрыты в фильтрах."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:68
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:70
 msgid "Area chart"
 msgstr "Площадная диаграмма"
 
 #: src/features/planner/components/timeline/TaskBar.tsx:467
 msgid "Assign project"
 msgstr "Назначить проект"
+
+#: src/features/auth/components/InviteNotifications.tsx:514
+msgid "assigned you to task"
+msgstr "назначил(а) вас на задачу"
 
 #: src/features/members/pages/MembersPage.tsx:1805
 #: src/features/planner/components/AddTaskDialog.tsx:508
@@ -270,7 +274,7 @@ msgstr ""
 msgid "Back to today"
 msgstr "Вернуться к сегодняшней дате"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:66
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:68
 msgid "Bar chart"
 msgstr "Столбчатая диаграмма"
 
@@ -279,15 +283,15 @@ msgstr "Столбчатая диаграмма"
 msgid "Biweekly (every 2 weeks)"
 msgstr "Двухнедельная (раз в две недели)"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:81
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:83
 msgid "By project"
 msgstr "По проекту"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:80
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:82
 msgid "By status"
 msgstr "По статусу"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:79
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:81
 msgid "By user"
 msgstr "По пользователю"
 
@@ -295,19 +299,19 @@ msgstr "По пользователю"
 msgid "Calendar"
 msgstr "Календарь"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:99
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:101
 msgid "Calendar (month)"
 msgstr "Календарь (месяц)"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:467
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:475
 msgid "Calendar range"
 msgstr "Диапазон календаря"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx:177
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:687
-#: src/features/dashboard/pages/DashboardPage.tsx:852
-#: src/features/dashboard/pages/DashboardPage.tsx:883
-#: src/features/dashboard/pages/DashboardPage.tsx:917
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:700
+#: src/features/dashboard/pages/DashboardPage.tsx:897
+#: src/features/dashboard/pages/DashboardPage.tsx:928
+#: src/features/dashboard/pages/DashboardPage.tsx:962
 #: src/features/members/pages/MembersPage.tsx:1337
 #: src/features/members/pages/MembersPage.tsx:1753
 #: src/features/planner/components/AddTaskDialog.tsx:800
@@ -344,15 +348,15 @@ msgstr "Отменен"
 msgid "Cancelled status"
 msgstr "Отмененный статус"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:62
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:64
 msgid "Chart"
 msgstr "График"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:506
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:514
 msgid "Chart palette"
 msgstr "Палитра графика"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:425
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:433
 msgid "Chart style"
 msgstr "Стиль графика"
 
@@ -364,7 +368,7 @@ msgstr "Стиль графика"
 msgid "Check your inbox"
 msgstr "Проверьте почту"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:76
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:78
 msgid "Checkerboard"
 msgstr "Шахматная"
 
@@ -412,7 +416,7 @@ msgstr "Код"
 msgid "Color"
 msgstr "Цвет"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:371
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:379
 msgid "Configure widget type, display style, and filters."
 msgstr ""
 
@@ -449,7 +453,7 @@ msgstr "Код страны"
 msgid "Country code must contain 2 letters."
 msgstr "Код страны должен состоять из 2 букв."
 
-#: src/features/dashboard/pages/DashboardPage.tsx:855
+#: src/features/dashboard/pages/DashboardPage.tsx:900
 #: src/features/members/pages/MembersPage.tsx:1759
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:228
 #: src/features/projects/pages/ProjectsPage.tsx:2180
@@ -465,7 +469,7 @@ msgstr "Создать \"{normalizedQuery}\""
 msgid "Create a new customer for grouping projects."
 msgstr ""
 
-#: src/features/dashboard/pages/DashboardPage.tsx:835
+#: src/features/dashboard/pages/DashboardPage.tsx:880
 msgid "Create a new dashboard."
 msgstr ""
 
@@ -493,7 +497,7 @@ msgstr "Создать веху"
 msgid "Create new task"
 msgstr "Создать новую задачу"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:772
+#: src/features/dashboard/pages/DashboardPage.tsx:763
 msgid "Create or select a dashboard to get started."
 msgstr "Создайте или выберите дашборд, чтобы начать."
 
@@ -530,7 +534,7 @@ msgstr "Создает указанное количество повторов.
 msgid "Current"
 msgstr "Текущие"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:102
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:104
 msgid "Current month"
 msgstr "Текущий месяц"
 
@@ -572,21 +576,21 @@ msgstr "Опасная зона"
 msgid "Dashboard"
 msgstr "Дашборд"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:511
+#: src/features/dashboard/pages/DashboardPage.tsx:535
 msgid "Dashboard limit reached (10)."
 msgstr "Достигнут лимит дашбордов (10)."
 
-#: src/features/dashboard/pages/DashboardPage.tsx:840
-#: src/features/dashboard/pages/DashboardPage.tsx:871
+#: src/features/dashboard/pages/DashboardPage.tsx:885
+#: src/features/dashboard/pages/DashboardPage.tsx:916
 msgid "Dashboard name"
 msgstr "Название дашборда"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:726
-#: src/features/dashboard/pages/DashboardPage.tsx:727
+#: src/features/dashboard/pages/DashboardPage.tsx:715
+#: src/features/dashboard/pages/DashboardPage.tsx:716
 msgid "Dashboard settings"
 msgstr "Настройки дашборда"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:692
+#: src/features/dashboard/pages/DashboardPage.tsx:681
 msgid "Dashboards"
 msgstr "Дашборды"
 
@@ -603,21 +607,23 @@ msgstr "Дата"
 msgid "Dates"
 msgstr "Даты"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:56
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:58
 #: src/features/planner/components/timeline/TimelineControls.tsx:112
 msgid "Day"
 msgstr "День"
 
-#: src/features/auth/components/InviteNotifications.tsx:335
+#: src/features/auth/components/InviteNotifications.tsx:605
 msgid "Decline"
 msgstr "Отклонить"
 
-#: src/features/auth/components/InviteNotifications.tsx:171
+#: src/features/auth/components/InviteNotifications.tsx:243
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:345
 msgid "Declined"
 msgstr "Отклонено"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:919
+#: src/features/auth/components/InviteNotifications.tsx:550
+#: src/features/auth/components/InviteNotifications.tsx:553
+#: src/features/dashboard/pages/DashboardPage.tsx:964
 #: src/features/members/pages/MembersPage.tsx:1283
 #: src/features/planner/components/TaskDetailPanel.tsx:896
 #: src/features/planner/components/TaskDetailPanel.tsx:1047
@@ -638,11 +644,11 @@ msgstr "Удалить"
 msgid "Delete customer?"
 msgstr "Удалить клиента?"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:752
+#: src/features/dashboard/pages/DashboardPage.tsx:741
 msgid "Delete dashboard"
 msgstr "Удалить дашборд"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:911
+#: src/features/dashboard/pages/DashboardPage.tsx:956
 msgid "Delete dashboard?"
 msgstr "Удалить дашборд?"
 
@@ -677,10 +683,6 @@ msgstr "Удалить выбранные ({selectedCount})"
 msgid "Delete task"
 msgstr "Удалить задачу"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:696
-msgid "Delete widget"
-msgstr "Удалить виджет"
-
 #: src/features/planner/components/TaskDetailPanel.tsx:1004
 #: src/features/planner/components/timeline/TaskBar.tsx:532
 msgid "Delete task?"
@@ -695,6 +697,10 @@ msgstr "Удалить текущую"
 #: src/features/planner/components/timeline/TaskBar.tsx:584
 msgid "Delete this & following"
 msgstr "Удалить текущую и следующие"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:696
+msgid "Delete widget"
+msgstr "Удалить виджет"
 
 #: src/features/workspace/components/SettingsPanel.tsx:624
 msgid "Delete workspace"
@@ -746,7 +752,7 @@ msgstr "Сбросить"
 msgid "Discard task?"
 msgstr "Отменить задачу?"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:446
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:454
 msgid "Display style"
 msgstr "Стиль отображения"
 
@@ -792,11 +798,11 @@ msgstr "Редактировать проект"
 msgid "Edit project details such as name, code, customer, and color."
 msgstr ""
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:121
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:123
 msgid "Edit widget"
 msgstr "Редактировать виджет"
 
-#: src/features/auth/components/InviteNotifications.tsx:84
+#: src/features/auth/components/InviteNotifications.tsx:122
 #: src/features/members/pages/MembersPage.tsx:228
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:442
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:641
@@ -851,8 +857,8 @@ msgstr "Окончание"
 msgid "Enter customer name..."
 msgstr "Введите название клиента..."
 
-#: src/features/dashboard/pages/DashboardPage.tsx:842
-#: src/features/dashboard/pages/DashboardPage.tsx:873
+#: src/features/dashboard/pages/DashboardPage.tsx:887
+#: src/features/dashboard/pages/DashboardPage.tsx:918
 msgid "Enter dashboard name..."
 msgstr "Введите название дашборда..."
 
@@ -874,7 +880,7 @@ msgstr "Введите название задачи..."
 msgid "Enter workspace name and optionally configure a template."
 msgstr "Введите название рабочего пространства и при необходимости выберите шаблон."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:90
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:92
 msgid "Equals"
 msgstr "Равно"
 
@@ -922,16 +928,16 @@ msgstr "Применён фильтр"
 msgid "Filter customers"
 msgstr "Фильтр клиентов"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:609
+#: src/features/dashboard/pages/DashboardPage.tsx:642
 msgid "Filter settings"
 msgstr "Настройки фильтра"
 
 #. placeholder {0}: filterLabels[widget.statusFilter]
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:629
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:675
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:721
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:767
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:824
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:632
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:678
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:724
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:770
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:827
 msgid "Filter: {0}"
 msgstr "Фильтр: {0}"
 
@@ -973,23 +979,24 @@ msgstr "Общие"
 #~ msgid "Generate"
 #~ msgstr "Сгенерировать"
 
+#: src/features/auth/components/InviteNotifications.tsx:566
 #: src/features/members/pages/MembersPage.tsx:1875
 #: src/features/projects/pages/ProjectsPage.tsx:2573
 msgid "Go to task"
 msgstr "Перейти к задаче"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:85
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:87
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:448
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:593
 msgid "Group"
 msgstr "Группа"
 
 #. placeholder {0}: index + 1
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:574
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:582
 msgid "Group {0}"
 msgstr "Группа {0}"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:488
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:496
 msgid "Group by"
 msgstr "Группировать по"
 
@@ -1029,7 +1036,7 @@ msgstr "Высокий"
 msgid "High priority"
 msgstr "Высокий приоритет"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:761
+#: src/features/dashboard/pages/DashboardPage.tsx:752
 msgid "Hold the widget header to enable moving."
 msgstr "Удерживайте заголовок виджета, чтобы включить перемещение."
 
@@ -1045,7 +1052,7 @@ msgstr "Календарь праздников"
 msgid "Holiday:"
 msgstr "Праздник:"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:548
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:556
 msgid "Include unassigned"
 msgstr "Включить без исполнителя"
 
@@ -1062,16 +1069,15 @@ msgstr "Ссылка-приглашение создана"
 msgid "Invite people and share access."
 msgstr "Приглашайте людей и делитесь доступом."
 
-#: src/features/auth/components/InviteNotifications.tsx:172
+#: src/features/auth/components/InviteNotifications.tsx:244
 msgid "Invite update"
 msgstr "Обновление приглашения"
 
-#: src/features/auth/components/InviteNotifications.tsx:318
+#: src/features/auth/components/InviteNotifications.tsx:588
 msgid "Invited by"
 msgstr "Пригласил"
 
-#: src/features/auth/components/InviteNotifications.tsx:293
-#: src/features/auth/components/InviteNotifications.tsx:303
+#: src/features/auth/components/InviteNotifications.tsx:580
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:412
 msgid "Invites"
 msgstr "Приглашения"
@@ -1084,6 +1090,10 @@ msgstr "Приглашения"
 msgid "Keep editing"
 msgstr "Продолжить редактирование"
 
+#: src/features/dashboard/pages/DashboardPage.tsx:751
+msgid "Keep holding the widget header..."
+msgstr "Продолжайте удерживать заголовок виджета..."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:49
 #~ msgid "KPI"
 #~ msgstr "KPI"
@@ -1093,11 +1103,11 @@ msgstr "Продолжить редактирование"
 msgid "Language"
 msgstr "Язык"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:67
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:69
 msgid "Line chart"
 msgstr "Линейный график"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:98
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:100
 msgid "List"
 msgstr "Список"
 
@@ -1110,12 +1120,12 @@ msgstr "Загрузка списка стран..."
 msgid "Loading backups..."
 msgstr "Загрузка бэкапов..."
 
-#: src/features/dashboard/pages/DashboardPage.tsx:766
+#: src/features/dashboard/pages/DashboardPage.tsx:757
 msgid "Loading dashboard..."
 msgstr "Загрузка дашборда..."
 
-#: src/features/auth/components/InviteNotifications.tsx:306
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:608
+#: src/features/auth/components/InviteNotifications.tsx:489
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:611
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:524
 msgid "Loading data..."
 msgstr "Загрузка данных..."
@@ -1181,11 +1191,21 @@ msgstr "Управляйте ролями, группами и статусом.
 msgid "Manage workspace settings, statuses, task types, and tags."
 msgstr ""
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:94
+#: src/features/auth/components/InviteNotifications.tsx:530
+#: src/features/auth/components/InviteNotifications.tsx:534
+msgid "Mark as read"
+msgstr "Отметить как прочитанное"
+
+#: src/features/auth/components/InviteNotifications.tsx:530
+#: src/features/auth/components/InviteNotifications.tsx:534
+msgid "Mark as unread"
+msgstr "Отметить как непрочитанное"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:96
 msgid "Match all rules (AND)"
 msgstr "Совпадают все правила (И)"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:95
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:97
 msgid "Match any rule (OR)"
 msgstr "Совпадает любое правило (ИЛИ)"
 
@@ -1222,7 +1242,7 @@ msgstr "Название вехи..."
 #~ msgid "Milestone view"
 #~ msgstr "Вид этапов"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:63
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:65
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:593
 #: src/features/projects/pages/ProjectsPage.tsx:849
 msgid "Milestones"
@@ -1236,16 +1256,16 @@ msgstr "Мои"
 #~ msgid "Mon"
 #~ msgstr "Пн"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:75
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:77
 msgid "Monochrome"
 msgstr "Монохромная"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:58
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:60
 #: src/features/projects/pages/ProjectsPage.tsx:652
 msgid "Month"
 msgstr "Месяц"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:103
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:105
 msgid "Month from current week"
 msgstr "Месяц от текущей недели"
 
@@ -1254,17 +1274,9 @@ msgstr "Месяц от текущей недели"
 msgid "Monthly"
 msgstr "Ежемесячно"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:760
+#: src/features/dashboard/pages/DashboardPage.tsx:749
 msgid "Move mode is enabled. Drag the widget header."
 msgstr "Режим перемещения включен. Перетащите заголовок виджета."
-
-#: src/features/dashboard/pages/DashboardPage.tsx:750
-msgid "Keep holding the widget header..."
-msgstr "Продолжайте удерживать заголовок виджета..."
-
-#: src/features/dashboard/pages/DashboardPage.tsx:767
-msgid "Use the Widget button to add your first widget."
-msgstr "Используйте кнопку «Виджет», чтобы добавить первый виджет."
 
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:265
 msgid "My team workspace"
@@ -1292,8 +1304,8 @@ msgstr "Новый клиент"
 #~ msgid "New customer name..."
 #~ msgstr "Название нового клиента..."
 
-#: src/features/dashboard/pages/DashboardPage.tsx:716
-#: src/features/dashboard/pages/DashboardPage.tsx:833
+#: src/features/dashboard/pages/DashboardPage.tsx:705
+#: src/features/dashboard/pages/DashboardPage.tsx:878
 msgid "New dashboard"
 msgstr "Новый дашборд"
 
@@ -1335,8 +1347,8 @@ msgstr "Название нового тега..."
 msgid "New type name..."
 msgstr "Название нового типа..."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:121
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:202
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:123
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:204
 msgid "New widget"
 msgstr "Новый виджет"
 
@@ -1357,7 +1369,7 @@ msgstr "Нет активных участников."
 msgid "No active projects."
 msgstr "Нет активных проектов."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:568
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:576
 msgid "No advanced filters. Add a group to build custom rules."
 msgstr "Нет расширенных фильтров. Добавьте группу, чтобы создать правила."
 
@@ -1413,10 +1425,10 @@ msgstr "Клиенты не найдены."
 msgid "No customers yet."
 msgstr "Клиентов пока нет."
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:667
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:713
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:759
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:815
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:670
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:716
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:762
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:818
 msgid "No data"
 msgstr "Нет данных"
 
@@ -1469,7 +1481,7 @@ msgstr "Участники не найдены."
 msgid "No members in this group."
 msgstr "В этой группе нет участников."
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:908
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:911
 msgid "No milestones"
 msgstr "Нет этапов"
 
@@ -1485,7 +1497,11 @@ msgstr "Вех пока нет."
 msgid "No new repeats were needed."
 msgstr "Новые повторы не требуются."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:652
+#: src/features/auth/components/InviteNotifications.tsx:491
+msgid "No notifications."
+msgstr "Нет уведомлений."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:660
 msgid "No options"
 msgstr "Нет вариантов"
 
@@ -1494,17 +1510,17 @@ msgid "No past milestones."
 msgstr "Нет прошедших вех."
 
 #: src/features/auth/components/InviteNotifications.tsx:308
-msgid "No pending invites."
-msgstr "Нет ожидающих приглашений."
+#~ msgid "No pending invites."
+#~ msgstr "Нет ожидающих приглашений."
 
 #: src/features/planner/components/AddTaskDialog.tsx:630
 #: src/features/planner/components/TaskDetailPanel.tsx:736
 msgid "No priority"
 msgstr "Без приоритета"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:843
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:894
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:986
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:846
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:897
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:989
 #: src/features/members/pages/MembersPage.tsx:1660
 #: src/features/members/pages/MembersPage.tsx:1785
 #: src/features/planner/components/AddTaskDialog.tsx:485
@@ -1533,7 +1549,7 @@ msgstr "Проекты не найдены."
 msgid "No projects match the current filters."
 msgstr "Нет проектов, соответствующих фильтрам."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:602
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:610
 msgid "No rules yet."
 msgstr "Правил пока нет."
 
@@ -1559,7 +1575,7 @@ msgstr "Нет задач, соответствующих фильтрам."
 msgid "No template saved yet."
 msgstr "Шаблон еще не сохранен."
 
-#: src/features/dashboard/pages/DashboardPage.tsx:775
+#: src/features/dashboard/pages/DashboardPage.tsx:766
 msgid "No widgets yet."
 msgstr "Пока нет виджетов."
 
@@ -1576,13 +1592,18 @@ msgstr "Нерабочий день"
 msgid "None"
 msgstr "Нет"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:91
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:93
 msgid "Not equals"
 msgstr "Не равно"
 
 #: src/features/projects/pages/ProjectsPage.tsx:2076
 msgid "Not tracked"
 msgstr "Не отслеживается"
+
+#: src/features/auth/components/InviteNotifications.tsx:476
+#: src/features/auth/components/InviteNotifications.tsx:486
+msgid "Notifications"
+msgstr "Уведомления"
 
 #: src/features/planner/components/AddTaskDialog.tsx:730
 #: src/features/planner/components/TaskDetailPanel.tsx:831
@@ -1675,15 +1696,15 @@ msgstr ""
 msgid "Past"
 msgstr "Прошлые"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:73
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:75
 msgid "Pastel dawn"
 msgstr "Пастельный рассвет"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:74
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:76
 msgid "Pastel mint"
 msgstr "Пастельная мята"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:72
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:74
 msgid "Pastel sky"
 msgstr "Пастельное небо"
 
@@ -1696,11 +1717,11 @@ msgstr "Ожидает"
 msgid "People"
 msgstr "Люди"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:403
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:411
 msgid "Period"
 msgstr "Период"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:69
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:71
 msgid "Pie chart (Donut)"
 msgstr "Круговая диаграмма (пончик)"
 
@@ -1716,7 +1737,7 @@ msgstr "Назад"
 msgid "Priority"
 msgstr "Приоритет"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:87
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:89
 #: src/features/members/pages/MembersPage.tsx:1591
 #: src/features/members/pages/MembersPage.tsx:1781
 #: src/features/planner/components/AddTaskDialog.tsx:462
@@ -1776,7 +1797,7 @@ msgstr "Убрать \"{scopedAssigneeName}\" из этой задачи или 
 msgid "Remove image"
 msgstr "Удалить изображение"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:617
+#: src/features/dashboard/pages/DashboardPage.tsx:650
 msgid "Remove widget"
 msgstr "Удалить виджет"
 
@@ -1788,8 +1809,8 @@ msgstr "Переименовать"
 msgid "Rename customer"
 msgstr "Переименовать клиента"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:742
-#: src/features/dashboard/pages/DashboardPage.tsx:864
+#: src/features/dashboard/pages/DashboardPage.tsx:731
+#: src/features/dashboard/pages/DashboardPage.tsx:909
 msgid "Rename dashboard"
 msgstr "Переименовать дашборд"
 
@@ -1843,11 +1864,11 @@ msgstr "Вернуться на главную"
 msgid "Revoke"
 msgstr ""
 
-#: src/features/dashboard/pages/DashboardPage.tsx:774
+#: src/features/dashboard/pages/DashboardPage.tsx:765
 msgid "Right-click to add your first widget."
 msgstr "Щелкните правой кнопкой, чтобы добавить первый виджет."
 
-#: src/features/auth/components/InviteNotifications.tsx:317
+#: src/features/auth/components/InviteNotifications.tsx:587
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:435
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:585
 msgid "Role"
@@ -1858,8 +1879,8 @@ msgstr "Роль"
 #~ msgstr "Сб"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx:162
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:690
-#: src/features/dashboard/pages/DashboardPage.tsx:894
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:703
+#: src/features/dashboard/pages/DashboardPage.tsx:939
 #: src/features/members/pages/MembersPage.tsx:1326
 #: src/features/planner/components/TaskDetailPanel.tsx:944
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:228
@@ -1878,7 +1899,7 @@ msgstr "Сохранить шаблон"
 msgid "Saved."
 msgstr "Сохранено."
 
-#: src/features/dashboard/pages/DashboardPage.tsx:661
+#: src/features/dashboard/pages/DashboardPage.tsx:842
 msgid "Saving..."
 msgstr "Сохранение..."
 
@@ -1966,7 +1987,7 @@ msgstr "Выберите дату окончания."
 msgid "Select country"
 msgstr "Выберите страну"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:686
+#: src/features/dashboard/pages/DashboardPage.tsx:675
 msgid "Select dashboard"
 msgstr "Выберите дашборд"
 
@@ -2001,7 +2022,7 @@ msgstr "Выбрать задачу {0}"
 msgid "Select type"
 msgstr "Выберите тип"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:652
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:660
 msgid "Select value"
 msgstr "Выберите значение"
 
@@ -2025,11 +2046,11 @@ msgstr "Отправить приглашение"
 msgid "Sent invites"
 msgstr "Отправленные приглашения"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:540
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:548
 msgid "Show legend"
 msgstr "Показывать легенду"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:550
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:558
 msgid "Show tasks without an assignee."
 msgstr "Показывать задачи без исполнителя."
 
@@ -2071,7 +2092,7 @@ msgstr "Дата начала ↑"
 msgid "Start date ↓"
 msgstr "Дата начала ↓"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:86
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:88
 #: src/features/members/pages/MembersPage.tsx:1590
 #: src/features/members/pages/MembersPage.tsx:1789
 #: src/features/planner/components/AddTaskDialog.tsx:569
@@ -2125,6 +2146,8 @@ msgstr "Задача"
 msgid "Task details"
 msgstr "Детали задачи"
 
+#: src/features/auth/components/InviteNotifications.tsx:433
+#: src/features/auth/components/InviteNotifications.tsx:566
 #: src/features/members/pages/MembersPage.tsx:1775
 #: src/features/planner/components/TaskDetailPanel.tsx:401
 #: src/features/projects/pages/ProjectsPage.tsx:2468
@@ -2135,8 +2158,12 @@ msgstr "Задача не найдена."
 msgid "Task types"
 msgstr "Типы задач"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:642
-#: src/features/dashboard/components/DashboardWidgetCard.tsx:780
+#: src/features/auth/components/InviteNotifications.tsx:496
+msgid "Task updates"
+msgstr "Обновления задач"
+
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:645
+#: src/features/dashboard/components/DashboardWidgetCard.tsx:783
 #: src/features/members/pages/MembersPage.tsx:245
 msgid "Tasks"
 msgstr "Задачи"
@@ -2165,7 +2192,7 @@ msgstr "Шаблон используется для всех новых раб�
 msgid "Template saved."
 msgstr "Шаблон сохранен."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:61
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:63
 msgid "Text value"
 msgstr "Текстовое значение"
 
@@ -2197,7 +2224,7 @@ msgstr "Эта и последующие"
 msgid "this customer"
 msgstr "этот клиент"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:913
+#: src/features/dashboard/pages/DashboardPage.tsx:958
 msgid "this dashboard"
 msgstr "этот дашборд"
 
@@ -2221,7 +2248,7 @@ msgid "This will permanently delete \"{0}\"."
 msgstr "Это навсегда удалит «{0}»."
 
 #. placeholder {0}: currentDashboard?.name ?? t`this dashboard`
-#: src/features/dashboard/pages/DashboardPage.tsx:913
+#: src/features/dashboard/pages/DashboardPage.tsx:958
 msgid "This will remove \"{0}\". Widgets and layouts will be lost."
 msgstr "Это удалит «{0}». Виджеты и раскладки будут потеряны."
 
@@ -2249,7 +2276,7 @@ msgstr "это рабочее пространство"
 msgid "Timeline"
 msgstr "Таймлайн"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:377
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:385
 #: src/features/planner/components/AddTaskDialog.tsx:447
 #: src/features/planner/components/TaskDetailPanel.tsx:507
 msgid "Title"
@@ -2292,7 +2319,7 @@ msgstr "Отслеживание"
 #~ msgid "Tue"
 #~ msgstr "Вт"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:387
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:395
 #: src/features/members/pages/MembersPage.tsx:1829
 #: src/features/planner/components/AddTaskDialog.tsx:597
 #: src/features/planner/components/FilterPanel.tsx:409
@@ -2306,7 +2333,7 @@ msgstr "Тип"
 msgid "Types"
 msgstr "Типы"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:322
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:324
 #: src/features/members/pages/MembersPage.tsx:1808
 #: src/features/planner/components/AddTaskDialog.tsx:410
 #: src/features/planner/components/AddTaskDialog.tsx:542
@@ -2343,12 +2370,13 @@ msgid "Unknown project"
 msgstr "Неизвестный проект"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx:82
-#: src/features/auth/components/InviteNotifications.tsx:312
+#: src/features/auth/components/InviteNotifications.tsx:498
+#: src/features/auth/components/InviteNotifications.tsx:582
 #: src/features/planner/components/timeline/TaskBar.tsx:166
 msgid "Unknown user"
 msgstr "Неизвестный пользователь"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:662
+#: src/features/dashboard/pages/DashboardPage.tsx:843
 #: src/features/planner/components/TaskDetailPanel.tsx:931
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:234
 #: src/features/projects/pages/ProjectsPage.tsx:2237
@@ -2374,7 +2402,7 @@ msgstr "Обновите данные вехи."
 #~ msgid "Update password"
 #~ msgstr "Обновить пароль"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:866
+#: src/features/dashboard/pages/DashboardPage.tsx:911
 msgid "Update the current dashboard name."
 msgstr ""
 
@@ -2386,7 +2414,11 @@ msgstr "Использовать текущее пространство"
 msgid "Use ISO code (for example RU, US, DE)."
 msgstr "Используйте ISO-код (например RU, US, DE)."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:84
+#: src/features/dashboard/pages/DashboardPage.tsx:765
+msgid "Use the Widget button to add your first widget."
+msgstr "Используйте кнопку «Виджет», чтобы добавить первый виджет."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:86
 msgid "User"
 msgstr "Пользователь"
 
@@ -2414,7 +2446,7 @@ msgstr ""
 msgid "View tasks"
 msgstr "Просмотреть задачи"
 
-#: src/features/auth/components/InviteNotifications.tsx:85
+#: src/features/auth/components/InviteNotifications.tsx:123
 #: src/features/members/pages/MembersPage.tsx:229
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:441
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:640
@@ -2429,7 +2461,7 @@ msgstr "Просмотр"
 #~ msgid "Wed"
 #~ msgstr "Ср"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx:57
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:59
 #: src/features/planner/components/timeline/TimelineControls.tsx:123
 msgid "Week"
 msgstr "Неделя"
@@ -2443,7 +2475,7 @@ msgstr "Еженедельно"
 #~ msgid "Welcome"
 #~ msgstr "Добро пожаловать"
 
-#: src/features/dashboard/pages/DashboardPage.tsx:636
+#: src/features/dashboard/pages/DashboardPage.tsx:817
 msgid "Widget"
 msgstr "Виджет"
 
@@ -2451,7 +2483,7 @@ msgstr "Виджет"
 msgid "Workflow"
 msgstr "Процесс"
 
-#: src/features/auth/components/InviteNotifications.tsx:258
+#: src/features/auth/components/InviteNotifications.tsx:356
 #: src/features/auth/pages/InvitePage.tsx:43
 msgid "Workspace joined"
 msgstr "Вы добавлены в рабочее пространство"
@@ -2532,7 +2564,7 @@ msgstr "У вас доступ только для просмотра, и вы �
 msgid "You have view access and cannot manage members."
 msgstr "У вас доступ только для просмотра, и вы не можете управлять участниками."
 
-#: src/features/auth/components/InviteNotifications.tsx:261
+#: src/features/auth/components/InviteNotifications.tsx:359
 #: src/features/auth/pages/InvitePage.tsx:44
 msgid "You were added to a new workspace."
 msgstr "Вы добавлены в новое рабочее пространство."

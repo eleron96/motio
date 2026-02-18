@@ -88,7 +88,7 @@ if [[ -f "$infra_dir/.supabase-functions.env" ]]; then
 fi
 
 pushd "$infra_dir" >/dev/null
-supabase functions serve invite > .supabase-functions.log 2>&1 &
+supabase functions serve main > .supabase-functions.log 2>&1 &
 functions_pid=$!
 popd >/dev/null
 
