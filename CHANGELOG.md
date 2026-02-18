@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.41] - 2026-02-18
 ### Changed
 - Реализована адаптация дашборда Motion под разные форматы экранов: добавлены детерминированные responsive-брейкпоинты/сетка, стабильная нормализация layout между брейкпоинтами и профильная адаптация отображения виджетов/легенды для phone/tablet/laptop/desktop/wall.
 

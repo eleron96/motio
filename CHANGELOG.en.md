@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.41] - 2026-02-18
 ### Changed
 - Implemented Motion dashboard adaptation for different screen formats: added deterministic responsive breakpoints/grid, stable layout normalization across breakpoints, and profile-aware widget/legend rendering for phone/tablet/laptop/desktop/wall.
 
