@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Dashboard: widget drag on touch now requires long-press; fixed legend overlapping charts on iPhone/iPad; restored assignee list scrolling in timeline task edit.
+
 ## [0.1.42] - 2026-02-18
 ### Fixed
 - Fixed chart legend rendering on mobile devices: legend is now forced below the chart, constrained in height with scrolling, and no longer overlaps the chart area.

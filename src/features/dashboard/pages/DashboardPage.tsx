@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ResponsiveGridLayout, cloneLayout, useContainerWidth } from 'react-grid-layout';
 import type { Layout, Layouts } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -60,6 +60,10 @@ import { Navigate } from 'react-router-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { t } from '@lingui/macro';
 
+const MOBILE_DRAG_HOLD_MS = 420;
+const MOBILE_DRAG_MOVE_TOLERANCE_PX = 10;
+const MOBILE_DRAG_ARM_TTL_MS = 4500;
+
 const DashboardPage = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
@@ -75,8 +79,18 @@ const DashboardPage = () => {
   const [renameDashboardSaving, setRenameDashboardSaving] = useState(false);
   const [deleteDashboardOpen, setDeleteDashboardOpen] = useState(false);
   const [dashboardDeleting, setDashboardDeleting] = useState(false);
+  const [isTouchPointer, setIsTouchPointer] = useState(false);
+  const [mobileDragArmedWidgetId, setMobileDragArmedWidgetId] = useState<string | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevWorkspaceIdRef = useRef<string | null>(null);
+  const mobileDragHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mobileDragArmResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mobileTouchSessionRef = useRef<{
+    widgetId: string;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
   const { width, containerRef } = useContainerWidth({ measureBeforeMount: true });
   const gridCompactor = useMemo(() => ({
     type: 'vertical' as const,
@@ -141,6 +155,45 @@ const DashboardPage = () => {
   );
   const currentGridSettings = DASHBOARD_GRID_SETTINGS[currentBreakpoint] ?? DASHBOARD_GRID_SETTINGS.lg;
   const currentViewportProfile = getViewportProfileForBreakpoint(currentBreakpoint);
+  const isTouchReorderMode = isTouchPointer;
+  const dragHandleSelector = isTouchReorderMode
+    ? '.dashboard-widget-handle-mobile-armed'
+    : '.dashboard-widget-handle';
+  const dragEnabled = canEdit && (!isTouchReorderMode || mobileDragArmedWidgetId !== null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const coarseQuery = window.matchMedia('(pointer: coarse)');
+    const anyCoarseQuery = window.matchMedia('(any-pointer: coarse)');
+
+    const updateTouchPointer = () => {
+      setIsTouchPointer(coarseQuery.matches || anyCoarseQuery.matches);
+    };
+
+    updateTouchPointer();
+
+    const handleTouchMediaChange = () => {
+      updateTouchPointer();
+    };
+
+    if (typeof coarseQuery.addEventListener === 'function') {
+      coarseQuery.addEventListener('change', handleTouchMediaChange);
+      anyCoarseQuery.addEventListener('change', handleTouchMediaChange);
+    } else {
+      coarseQuery.addListener(handleTouchMediaChange);
+      anyCoarseQuery.addListener(handleTouchMediaChange);
+    }
+
+    return () => {
+      if (typeof coarseQuery.removeEventListener === 'function') {
+        coarseQuery.removeEventListener('change', handleTouchMediaChange);
+        anyCoarseQuery.removeEventListener('change', handleTouchMediaChange);
+      } else {
+        coarseQuery.removeListener(handleTouchMediaChange);
+        anyCoarseQuery.removeListener(handleTouchMediaChange);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!currentWorkspaceId) return;
@@ -271,6 +324,115 @@ const DashboardPage = () => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, [canEdit, currentDashboardId, dirty, isWorkspaceSwitching, widgets, layouts, currentWorkspaceId, saveDashboard]);
+
+  const clearMobileDragHoldTimer = useCallback(() => {
+    if (!mobileDragHoldTimerRef.current) return;
+    clearTimeout(mobileDragHoldTimerRef.current);
+    mobileDragHoldTimerRef.current = null;
+  }, []);
+
+  const clearMobileDragArmResetTimer = useCallback(() => {
+    if (!mobileDragArmResetTimerRef.current) return;
+    clearTimeout(mobileDragArmResetTimerRef.current);
+    mobileDragArmResetTimerRef.current = null;
+  }, []);
+
+  const scheduleMobileDragArmReset = useCallback(() => {
+    if (!isTouchReorderMode) return;
+    clearMobileDragArmResetTimer();
+    mobileDragArmResetTimerRef.current = setTimeout(() => {
+      setMobileDragArmedWidgetId(null);
+    }, MOBILE_DRAG_ARM_TTL_MS);
+  }, [clearMobileDragArmResetTimer, isTouchReorderMode]);
+
+  const handleWidgetDragHoldStart = useCallback((
+    widgetId: string,
+    event: React.TouchEvent<HTMLDivElement>,
+  ) => {
+    if (!canEdit || !isTouchReorderMode) return;
+    if (mobileDragArmedWidgetId === widgetId) {
+      scheduleMobileDragArmReset();
+      return;
+    }
+    const touch = event.touches[0];
+    if (!touch) return;
+    mobileTouchSessionRef.current = {
+      widgetId,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      moved: false,
+    };
+    clearMobileDragHoldTimer();
+    mobileDragHoldTimerRef.current = setTimeout(() => {
+      const session = mobileTouchSessionRef.current;
+      if (!session || session.widgetId !== widgetId || session.moved) return;
+      setMobileDragArmedWidgetId(widgetId);
+      scheduleMobileDragArmReset();
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        navigator.vibrate(10);
+      }
+    }, MOBILE_DRAG_HOLD_MS);
+  }, [
+    canEdit,
+    clearMobileDragHoldTimer,
+    isTouchReorderMode,
+    mobileDragArmedWidgetId,
+    scheduleMobileDragArmReset,
+  ]);
+
+  const handleWidgetDragHoldMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    const session = mobileTouchSessionRef.current;
+    if (!session || session.moved) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+    const deltaX = touch.clientX - session.startX;
+    const deltaY = touch.clientY - session.startY;
+    if (Math.hypot(deltaX, deltaY) >= MOBILE_DRAG_MOVE_TOLERANCE_PX) {
+      session.moved = true;
+      clearMobileDragHoldTimer();
+    }
+  }, [clearMobileDragHoldTimer]);
+
+  const handleWidgetDragHoldEnd = useCallback(() => {
+    clearMobileDragHoldTimer();
+    mobileTouchSessionRef.current = null;
+  }, [clearMobileDragHoldTimer]);
+
+  const handleGridDragStart = useCallback(() => {
+    if (!isTouchReorderMode) return;
+    clearMobileDragHoldTimer();
+    clearMobileDragArmResetTimer();
+    mobileTouchSessionRef.current = null;
+    setMobileDragArmedWidgetId(null);
+  }, [clearMobileDragArmResetTimer, clearMobileDragHoldTimer, isTouchReorderMode]);
+
+  const handleGridDragStop = useCallback(() => {
+    if (!isTouchReorderMode) return;
+    clearMobileDragHoldTimer();
+    clearMobileDragArmResetTimer();
+    mobileTouchSessionRef.current = null;
+    setMobileDragArmedWidgetId(null);
+  }, [clearMobileDragArmResetTimer, clearMobileDragHoldTimer, isTouchReorderMode]);
+
+  useEffect(() => {
+    return () => {
+      clearMobileDragHoldTimer();
+      clearMobileDragArmResetTimer();
+    };
+  }, [clearMobileDragArmResetTimer, clearMobileDragHoldTimer]);
+
+  useEffect(() => {
+    if (isTouchReorderMode && canEdit) return;
+    clearMobileDragHoldTimer();
+    clearMobileDragArmResetTimer();
+    mobileTouchSessionRef.current = null;
+    setMobileDragArmedWidgetId(null);
+  }, [
+    canEdit,
+    clearMobileDragArmResetTimer,
+    clearMobileDragHoldTimer,
+    isTouchReorderMode,
+  ]);
 
   if (isSuperAdmin) {
     return <Navigate to="/admin/users" replace />;
@@ -433,6 +595,11 @@ const DashboardPage = () => {
               projects={projects}
               breakpoint={currentBreakpoint}
               viewportProfile={currentViewportProfile}
+              touchInteractionMode={isTouchReorderMode}
+              dragHandleArmed={isTouchReorderMode && mobileDragArmedWidgetId === widget.id}
+              onDragHandleTouchStart={(event) => handleWidgetDragHoldStart(widget.id, event)}
+              onDragHandleTouchMove={handleWidgetDragHoldMove}
+              onDragHandleTouchEnd={handleWidgetDragHoldEnd}
               onEdit={() => handleEditWidget(widget)}
             />
           </div>
@@ -587,6 +754,13 @@ const DashboardPage = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {canEdit && isTouchReorderMode && (
+              <div className="mb-2 text-[11px] text-muted-foreground">
+                {mobileDragArmedWidgetId
+                  ? t`Move mode is enabled. Drag the widget header.`
+                  : t`Hold the widget header to enable moving.`}
+              </div>
+            )}
             {loading && (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 {t`Loading dashboard...`}
@@ -610,15 +784,22 @@ const DashboardPage = () => {
                 rowHeight={currentGridSettings.rowHeight}
                 margin={currentGridSettings.margin}
                 containerPadding={currentGridSettings.containerPadding}
-                isResizable={canEdit}
-                isDraggable={canEdit}
+                dragConfig={{
+                  enabled: dragEnabled,
+                  handle: dragHandleSelector,
+                  threshold: 3,
+                }}
+                resizeConfig={{
+                  enabled: canEdit,
+                  handles: ['se'],
+                }}
                 onLayoutChange={handleLayoutChange}
+                onDragStart={handleGridDragStart}
+                onDragStop={handleGridDragStop}
                 onResizeStop={handleResizeStop}
                 onBreakpointChange={handleBreakpointChange}
-                draggableHandle=".dashboard-widget-handle"
                 measureBeforeMount={false}
                 compactor={gridCompactor}
-                resizeHandles={['se']}
               >
                 {widgets.map((widget) => (
                   <div key={widget.id} className="dashboard-grid-item h-full w-full">

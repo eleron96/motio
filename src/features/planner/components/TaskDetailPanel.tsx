@@ -12,7 +12,6 @@ import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import {
@@ -566,7 +565,10 @@ export const TaskDetailPanel: React.FC = () => {
                         {selectableAssignees.length === 0 ? (
                           <div className="text-xs text-muted-foreground">{t`No assignees available.`}</div>
                         ) : (
-                          <ScrollArea className="max-h-48 pr-2">
+                          <div
+                            className="max-h-48 overflow-y-auto overscroll-contain pr-2"
+                            onWheelCapture={(event) => event.stopPropagation()}
+                          >
                             <div className="space-y-1">
                               {selectableAssignees.map((assignee) => {
                                 const isAssigned = task.assigneeIds.includes(assignee.id);
@@ -588,7 +590,7 @@ export const TaskDetailPanel: React.FC = () => {
                               );
                               })}
                             </div>
-                          </ScrollArea>
+                          </div>
                         )}
                       </PopoverContent>
                     </Popover>

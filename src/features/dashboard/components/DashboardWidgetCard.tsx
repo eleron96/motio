@@ -79,6 +79,11 @@ interface DashboardWidgetCardProps {
   projects?: DashboardOption[];
   breakpoint?: DashboardBreakpoint;
   viewportProfile?: DashboardViewportProfile;
+  touchInteractionMode?: boolean;
+  dragHandleArmed?: boolean;
+  onDragHandleTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
+  onDragHandleTouchMove?: (event: React.TouchEvent<HTMLDivElement>) => void;
+  onDragHandleTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
   onEdit?: () => void;
 }
 
@@ -92,6 +97,11 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   projects = [],
   breakpoint = 'lg',
   viewportProfile = 'desktop',
+  touchInteractionMode = false,
+  dragHandleArmed = false,
+  onDragHandleTouchStart,
+  onDragHandleTouchMove,
+  onDragHandleTouchEnd,
   onEdit,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
@@ -123,6 +133,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const isDesktopViewport = viewportProfile === 'desktop';
   const isWallViewport = viewportProfile === 'wall';
   const isMobileViewport = isPhoneViewport || isTabletViewport;
+  const isTouchViewport = isMobileViewport || touchInteractionMode;
   const compactByBreakpoint = breakpoint === 'xs' || (breakpoint === 'sm' && size === 'small');
   const compactByViewport = compactByBreakpoint || isPhoneViewport || (isTabletViewport && size === 'small');
   const isKpiSmall = widget.type === 'kpi' && size === 'small';
@@ -207,7 +218,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     : 0;
   const isUltraWideChart = chartViewport.width >= CHART_ULTRAWIDE_MIN_WIDTH_PX
     || chartAspectRatio >= CHART_ULTRAWIDE_MIN_ASPECT;
-  const forceBottomLegend = isMobileViewport;
+  const forceBottomLegend = isTouchViewport;
   const sideLegendWidthThreshold = isWallViewport
     ? 860
     : isDesktopViewport
@@ -263,7 +274,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
         ? 'text-[10px] leading-snug'
         : 'text-[11px] leading-snug';
   const showLegendValue = preferSideLegend || (
-    !isCompactChartWidth
+    !isTouchViewport
+    && !isCompactChartWidth
     && !isPhoneViewport
     && !(isTabletViewport && legendIsDense)
   );
@@ -304,24 +316,33 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const legendCalculatedColumns = preferSideLegend
     ? 1
     : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
-  const legendMaxColumns = isPhoneViewport ? 1 : isTabletViewport ? 2 : 4;
+  const legendMaxColumns = isPhoneViewport ? 1 : (isTabletViewport || isTouchViewport) ? 2 : 4;
   const legendColumns = Math.max(1, Math.min(legendItems.length || 1, legendCalculatedColumns, legendMaxColumns));
-  const bottomLegendMaxHeight = isPhoneViewport ? 84 : isTabletViewport ? 108 : 148;
+  const bottomLegendMaxHeight = isPhoneViewport ? 84 : (isTabletViewport || isTouchViewport) ? 108 : 148;
   const legendPanelClass = isWallViewport
     ? 'w-[min(34%,360px)]'
     : isUltraWideChart
       ? 'w-[min(36%,320px)]'
       : 'w-[min(40%,270px)]';
+  const chartViewportClassName = cn(
+    'flex min-h-0 flex-1 overflow-hidden',
+    preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2',
+  );
+  const chartContainerClassName = cn(
+    'relative z-0 flex-1 min-h-0 overflow-hidden',
+    '[&_.recharts-wrapper]:overflow-hidden',
+    '[&_.recharts-surface]:overflow-hidden',
+  );
   const chartCanvasMinHeight = isSmall
-    ? (isPhoneViewport ? 52 : 56)
+    ? (isPhoneViewport ? 70 : isTouchViewport ? 72 : 76)
     : preferSideLegend
       ? (isCompactChartHeight ? 92 : (isWallViewport ? 132 : 124))
-      : (isCompactChartHeight ? (isPhoneViewport ? 76 : 84) : (isPhoneViewport ? 96 : 112));
+      : (isCompactChartHeight ? (isPhoneViewport ? 96 : isTouchViewport ? 100 : 104) : (isPhoneViewport ? 112 : isTouchViewport ? 120 : 128));
   const pieCanvasMinHeight = isSmall
-    ? (isPhoneViewport ? 60 : 64)
+    ? (isPhoneViewport ? 76 : isTouchViewport ? 78 : 82)
     : preferSideLegend
       ? (isCompactChartHeight ? 112 : (isWallViewport ? 168 : 156))
-      : (isCompactChartHeight ? (isPhoneViewport ? 88 : 96) : (isPhoneViewport ? 112 : 132));
+      : (isCompactChartHeight ? (isPhoneViewport ? 104 : isTouchViewport ? 108 : 112) : (isPhoneViewport ? 128 : isTouchViewport ? 136 : 144));
   const fallbackBarMaxSize = size === 'small' ? 16 : size === 'medium' ? 24 : 32;
   const dynamicBarMaxSize = (() => {
     const points = data?.series.length ?? 0;
@@ -376,7 +397,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     </div>
   ) : null;
   const sideLegendNode = legendList && preferSideLegend ? (
-    <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
+    <div ref={legendViewportRef} className={cn(legendPanelClass, 'relative z-20 min-h-0 overflow-y-auto bg-card pr-1')}>
       {legendList}
     </div>
   ) : null;
@@ -384,10 +405,10 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     <div
       ref={legendViewportRef}
       className={cn(
-        'min-w-0 overflow-y-auto pr-1',
-        isMobileViewport && 'shrink-0 border-t border-border/50 pt-1',
+        'relative z-20 min-w-0 overflow-y-auto bg-card pr-1',
+        isTouchViewport && 'shrink-0 border-t border-border/50 pt-1',
       )}
-      style={isMobileViewport ? { maxHeight: bottomLegendMaxHeight } : undefined}
+      style={isTouchViewport ? { maxHeight: bottomLegendMaxHeight } : undefined}
     >
       {legendList}
     </div>
@@ -538,7 +559,17 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     >
       {(!isKpiSmall || editing) && (
         <div className="flex items-start justify-between gap-2">
-          <div className={cn('flex items-start gap-2', editing && 'dashboard-widget-handle cursor-move')}>
+          <div
+            className={cn(
+              'flex items-start gap-2',
+              editing && 'dashboard-widget-handle cursor-move touch-manipulation select-none',
+              editing && dragHandleArmed && 'dashboard-widget-handle-mobile-armed rounded-sm bg-muted/60',
+            )}
+            onTouchStart={editing ? onDragHandleTouchStart : undefined}
+            onTouchMove={editing ? onDragHandleTouchMove : undefined}
+            onTouchEnd={editing ? onDragHandleTouchEnd : undefined}
+            onTouchCancel={editing ? onDragHandleTouchEnd : undefined}
+          >
             {editing && <GripVertical className="h-4 w-4 text-muted-foreground" />}
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-foreground">{widget.title}</span>
@@ -591,12 +622,12 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
-              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+              className={chartViewportClassName}
             >
               {data?.series.length ? (
                 <ChartContainer
                   config={{ value: { label: t`Tasks` } }}
-                  className="flex-1 min-h-0"
+                  className={chartContainerClassName}
                   style={{ aspectRatio: 'auto', minHeight: chartCanvasMinHeight }}
                 >
                   <BarChart
@@ -637,12 +668,12 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
-              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+              className={chartViewportClassName}
             >
               {hasTimeSeries ? (
                 <ChartContainer
                   config={{}}
-                  className="flex-1 min-h-0"
+                  className={chartContainerClassName}
                   style={{ aspectRatio: 'auto', minHeight: chartCanvasMinHeight }}
                 >
                   <LineChart data={timeSeries}>
@@ -654,7 +685,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                     {seriesKeys.map((seriesKey, index) => (
                       <Line
                         key={seriesKey.key}
-                        type="monotone"
+                        type={isTouchViewport ? 'linear' : 'monotone'}
                         dataKey={seriesKey.key}
                         name={seriesKey.label}
                         stroke={paletteColors[index % paletteColors.length]}
@@ -683,12 +714,12 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
-              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+              className={chartViewportClassName}
             >
               {hasTimeSeries ? (
                 <ChartContainer
                   config={{}}
-                  className="flex-1 min-h-0"
+                  className={chartContainerClassName}
                   style={{ aspectRatio: 'auto', minHeight: chartCanvasMinHeight }}
                 >
                   <AreaChart data={timeSeries}>
@@ -700,7 +731,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                     {seriesKeys.map((seriesKey, index) => (
                       <Area
                         key={seriesKey.key}
-                        type="monotone"
+                        type={isTouchViewport ? 'linear' : 'monotone'}
                         dataKey={seriesKey.key}
                         name={seriesKey.label}
                         stroke={paletteColors[index % paletteColors.length]}
@@ -729,12 +760,12 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
-              className={cn('flex min-h-0 flex-1', preferSideLegend ? 'flex-row gap-3' : 'flex-col gap-2')}
+              className={chartViewportClassName}
             >
               {pieChartSeries.length ? (
                 <ChartContainer
                   config={{ value: { label: t`Tasks` } }}
-                  className="flex-1 min-h-0"
+                  className={chartContainerClassName}
                   style={{ aspectRatio: 'auto', minHeight: pieCanvasMinHeight }}
                 >
                   <PieChart
