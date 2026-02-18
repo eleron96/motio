@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.44] - 2026-02-18
 ### Changed
 - Dashboard mobile: increased minimum chart widget height on xs/sm and constrained legend with top-N + ‘more’ to keep charts visible; task repeats UI labels were updated (‘Until date’, ‘Count’), helper hints were added, and repeat generation in task edit is now triggered on save (OK/Save) with full RU/EN localization.
 
