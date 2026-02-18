@@ -317,8 +317,16 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     ? 1
     : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
   const legendMaxColumns = isPhoneViewport ? 1 : (isTabletViewport || isTouchViewport) ? 2 : 4;
-  const legendColumns = Math.max(1, Math.min(legendItems.length || 1, legendCalculatedColumns, legendMaxColumns));
-  const bottomLegendMaxHeight = isPhoneViewport ? 84 : (isTabletViewport || isTouchViewport) ? 108 : 148;
+  const legendPreviewLimit = (!preferSideLegend && isTouchViewport)
+    ? (isPhoneViewport ? 4 : 6)
+    : legendItems.length;
+  const visibleLegendItems = legendItems.slice(0, legendPreviewLimit);
+  const hiddenLegendCount = Math.max(0, legendItems.length - visibleLegendItems.length);
+  const legendColumns = Math.max(
+    1,
+    Math.min(visibleLegendItems.length || 1, legendCalculatedColumns, legendMaxColumns),
+  );
+  const bottomLegendMaxHeight = isPhoneViewport ? 64 : (isTabletViewport || isTouchViewport) ? 84 : 148;
   const legendPanelClass = isWallViewport
     ? 'w-[min(34%,360px)]'
     : isUltraWideChart
@@ -364,7 +372,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           gridTemplateColumns: `repeat(${legendColumns}, minmax(0, 1fr))`,
         }}
       >
-        {legendItems.map((item, index) => {
+        {visibleLegendItems.map((item, index) => {
           const legendName = formatLegendName(item.name);
           const isPieOther = isPieLegend && item.name === PIE_OTHER_KEY;
           return (
@@ -393,6 +401,11 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
             </div>
           );
         })}
+        {hiddenLegendCount > 0 && (
+          <div className="col-span-full text-[10px] leading-snug text-muted-foreground">
+            {t`+${hiddenLegendCount} more`}
+          </div>
+        )}
       </div>
     </div>
   ) : null;

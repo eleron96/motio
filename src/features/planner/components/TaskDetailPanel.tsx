@@ -61,6 +61,16 @@ type PendingRepeatUpdate = {
 };
 
 type RepeatFrequency = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+type RepeatEnds = 'never' | 'on' | 'after';
+
+const buildRepeatConfigSignature = (params: {
+  frequency: RepeatFrequency;
+  ends: RepeatEnds;
+  until: string;
+  count: number;
+}) => (
+  `${params.frequency}|${params.ends}|${params.ends === 'on' ? params.until : ''}|${params.ends === 'after' ? params.count : ''}`
+);
 
 const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
   Object.entries(updates).some(([key, value]) => {
@@ -125,11 +135,12 @@ export const TaskDetailPanel: React.FC = () => {
   const originalTaskRef = useRef<Task | null>(null);
   const repeatInFlightRef = useRef(false);
   const repeatUntilAutoRef = useRef(true);
+  const repeatConfigSnapshotRef = useRef('');
   const titleDraftRef = useRef('');
   const descriptionDraftRef = useRef('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [repeatFrequency, setRepeatFrequency] = useState<RepeatFrequency>('none');
-  const [repeatEnds, setRepeatEnds] = useState<'never' | 'on' | 'after'>('never');
+  const [repeatEnds, setRepeatEnds] = useState<RepeatEnds>('never');
   const [repeatUntil, setRepeatUntil] = useState('');
   const [repeatCount, setRepeatCount] = useState(4);
   const [repeatError, setRepeatError] = useState('');
@@ -212,22 +223,33 @@ export const TaskDetailPanel: React.FC = () => {
       ? [...series].sort((left, right) => left.startDate.localeCompare(right.startDate))[series.length - 1].startDate
       : null;
 
+    let nextFrequency: RepeatFrequency = 'none';
+    let nextEnds: RepeatEnds = 'never';
+    let nextCount = 4;
+    let nextUntil = defaultRepeatUntil;
+
     if (task.repeatId && inferredFrequency !== 'none') {
-      setRepeatFrequency(inferredFrequency);
+      nextFrequency = inferredFrequency;
       if (series.length > 1) {
-        setRepeatEnds('after');
-        setRepeatCount(series.length);
+        nextEnds = 'after';
+        nextCount = series.length;
       } else {
-        setRepeatEnds('never');
-        setRepeatCount(4);
+        nextEnds = 'never';
+        nextCount = 4;
       }
-      setRepeatUntil(lastSeriesDate ?? defaultRepeatUntil);
-    } else {
-      setRepeatFrequency('none');
-      setRepeatEnds('never');
-      setRepeatUntil(defaultRepeatUntil);
-      setRepeatCount(4);
+      nextUntil = lastSeriesDate ?? defaultRepeatUntil;
     }
+
+    setRepeatFrequency(nextFrequency);
+    setRepeatEnds(nextEnds);
+    setRepeatCount(nextCount);
+    setRepeatUntil(nextUntil);
+    repeatConfigSnapshotRef.current = buildRepeatConfigSignature({
+      frequency: nextFrequency,
+      ends: nextEnds,
+      until: nextUntil,
+      count: nextCount,
+    });
 
     repeatUntilAutoRef.current = true;
     setRepeatError('');
@@ -268,6 +290,14 @@ export const TaskDetailPanel: React.FC = () => {
     if (!task || !originalTaskRef.current) return false;
     return !areTasksEqual(originalTaskRef.current, task);
   }, [task]);
+  const repeatConfigDirty = useMemo(() => (
+    buildRepeatConfigSignature({
+      frequency: repeatFrequency,
+      ends: repeatEnds,
+      until: repeatUntil,
+      count: repeatCount,
+    }) !== repeatConfigSnapshotRef.current
+  ), [repeatCount, repeatEnds, repeatFrequency, repeatUntil]);
 
   const assigneeLabel = useMemo(() => {
     if (!task || task.assigneeIds.length === 0) return t`Unassigned`;
@@ -279,15 +309,76 @@ export const TaskDetailPanel: React.FC = () => {
   }, [filteredAssignees, task]);
 
   const requestClose = () => {
-    if (!isDirty) {
+    if (!isDirty && !repeatConfigDirty) {
       setSelectedTaskId(null);
       return;
     }
     setConfirmOpen(true);
   };
 
-  const handleSaveAndClose = () => {
+  const syncRepeatsOnSave = async () => {
+    if (!canEdit) return true;
+    if (!task) return true;
+    const nextSignature = buildRepeatConfigSignature({
+      frequency: repeatFrequency,
+      ends: repeatEnds,
+      until: repeatUntil,
+      count: repeatCount,
+    });
+    if (nextSignature === repeatConfigSnapshotRef.current) return true;
+
+    if (repeatFrequency !== 'none') {
+      if (repeatEnds === 'after' && (!repeatCount || repeatCount < 1)) {
+        setRepeatError(t`Enter how many repeats to create.`);
+        return false;
+      }
+      if (repeatEnds === 'on' && !repeatUntil) {
+        setRepeatError(t`Select an end date.`);
+        return false;
+      }
+    }
+
+    setRepeatError('');
+    if (repeatFrequency === 'none') {
+      repeatConfigSnapshotRef.current = nextSignature;
+      return true;
+    }
+
+    if (repeatInFlightRef.current) return false;
+    repeatInFlightRef.current = true;
+    setRepeatCreating(true);
+    setRepeatNotice('');
+
+    const result = await createRepeats(task.id, {
+      frequency: repeatFrequency,
+      ends: repeatEnds,
+      untilDate: repeatEnds === 'on' ? repeatUntil : undefined,
+      count: repeatEnds === 'after' ? repeatCount : undefined,
+    });
+
+    repeatInFlightRef.current = false;
+    setRepeatCreating(false);
+
+    if (result.error) {
+      if (result.error === 'No repeats created for the selected range.') {
+        setRepeatError('');
+        setRepeatNotice(t`No new repeats were needed.`);
+        repeatConfigSnapshotRef.current = nextSignature;
+        return true;
+      }
+      setRepeatError(result.error);
+      return false;
+    }
+
+    setRepeatNotice(t`Created ${result.created ?? 0} tasks.`);
+    repeatConfigSnapshotRef.current = nextSignature;
+    return true;
+  };
+
+  const handleSaveAndClose = async () => {
     if (repeatScopeOpen || pendingRepeatUpdate) return;
+    const repeatsSynced = await syncRepeatsOnSave();
+    if (!repeatsSynced) return;
     setConfirmOpen(false);
     setSelectedTaskId(null);
   };
@@ -390,45 +481,6 @@ export const TaskDetailPanel: React.FC = () => {
     setDeleteOpen(true);
   };
 
-  const handleCreateRepeats = async () => {
-    if (!canEdit) return;
-    if (repeatInFlightRef.current) return;
-    repeatInFlightRef.current = true;
-    setRepeatError('');
-    setRepeatNotice('');
-    if (repeatFrequency === 'none') {
-      setRepeatError(t`Select a repeat schedule.`);
-      repeatInFlightRef.current = false;
-      return;
-    }
-    if (repeatEnds === 'after' && (!repeatCount || repeatCount < 1)) {
-      setRepeatError(t`Enter how many repeats to create.`);
-      repeatInFlightRef.current = false;
-      return;
-    }
-    if (repeatEnds === 'on' && !repeatUntil) {
-      setRepeatError(t`Select an end date.`);
-      repeatInFlightRef.current = false;
-      return;
-    }
-
-    setRepeatCreating(true);
-    const result = await createRepeats(task.id, {
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      untilDate: repeatEnds === 'on' ? repeatUntil : undefined,
-      count: repeatEnds === 'after' ? repeatCount : undefined,
-    });
-    repeatInFlightRef.current = false;
-    if (result.error) {
-      setRepeatError(result.error);
-      setRepeatCreating(false);
-      return;
-    }
-    setRepeatNotice(`Created ${result.created ?? 0} tasks.`);
-    setRepeatCreating(false);
-  };
-  
   return (
     <>
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
@@ -719,37 +771,43 @@ export const TaskDetailPanel: React.FC = () => {
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">{t`Repeat`}</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  <Select
-                    value={repeatFrequency}
-                    onValueChange={(value) => handleRepeatFrequencyChange(value as typeof repeatFrequency)}
-                    disabled={isReadOnly}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder={t`Repeat`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t`Does not repeat`}</SelectItem>
-                      <SelectItem value="daily">{t`Daily`}</SelectItem>
-                      <SelectItem value="weekly">{t`Weekly`}</SelectItem>
-                      <SelectItem value="biweekly">{t`Biweekly (every 2 weeks)`}</SelectItem>
-                      <SelectItem value="monthly">{t`Monthly`}</SelectItem>
-                      <SelectItem value="yearly">{t`Yearly`}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={repeatEnds}
-                    onValueChange={(value) => handleRepeatEndsChange(value as typeof repeatEnds)}
-                    disabled={isReadOnly || repeatFrequency === 'none'}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder={t`Ends`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="never">{t`Never`}</SelectItem>
-                      <SelectItem value="on">{t`On date`}</SelectItem>
-                      <SelectItem value="after">{t`After count`}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-1">
+                    <Select
+                      value={repeatFrequency}
+                      onValueChange={(value) => handleRepeatFrequencyChange(value as typeof repeatFrequency)}
+                      disabled={isReadOnly}
+                    >
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder={t`Repeat`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t`Does not repeat`}</SelectItem>
+                        <SelectItem value="daily">{t`Daily`}</SelectItem>
+                        <SelectItem value="weekly">{t`Weekly`}</SelectItem>
+                        <SelectItem value="biweekly">{t`Biweekly (every 2 weeks)`}</SelectItem>
+                        <SelectItem value="monthly">{t`Monthly`}</SelectItem>
+                        <SelectItem value="yearly">{t`Yearly`}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-muted-foreground">{t`Repeat type`}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Select
+                      value={repeatEnds}
+                      onValueChange={(value) => handleRepeatEndsChange(value as typeof repeatEnds)}
+                      disabled={isReadOnly || repeatFrequency === 'none'}
+                    >
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue placeholder={t`Ends`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">{t`Never`}</SelectItem>
+                        <SelectItem value="on">{t`Until date`}</SelectItem>
+                        <SelectItem value="after">{t`Count`}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-muted-foreground">{t`Repeat limit`}</p>
+                  </div>
                 </div>
                 {repeatFrequency !== 'none' && repeatEnds === 'on' && (
                   <div className="space-y-1">
@@ -765,6 +823,7 @@ export const TaskDetailPanel: React.FC = () => {
                       disabled={isReadOnly}
                       className="h-8 text-sm"
                     />
+                    <p className="text-[11px] text-muted-foreground">{t`Repeats until the selected date.`}</p>
                   </div>
                 )}
                 {repeatFrequency !== 'none' && repeatEnds === 'after' && (
@@ -779,11 +838,12 @@ export const TaskDetailPanel: React.FC = () => {
                       disabled={isReadOnly}
                       className="h-8 text-sm"
                     />
+                    <p className="text-[11px] text-muted-foreground">{t`Creates the specified number of repeats.`}</p>
                   </div>
                 )}
                 {repeatFrequency !== 'none' && repeatEnds === 'never' && (
                   <p className="text-[11px] text-muted-foreground">
-                    Creates repeats for the next 12 months.
+                    {t`Creates repeats for the next 12 months.`}
                   </p>
                 )}
                 {repeatError && (
@@ -792,16 +852,6 @@ export const TaskDetailPanel: React.FC = () => {
                 {repeatNotice && (
                   <div className="text-xs text-emerald-600">{repeatNotice}</div>
                 )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8"
-                  onClick={handleCreateRepeats}
-                  disabled={isReadOnly || repeatFrequency === 'none' || repeatCreating}
-                >
-                  {t`Generate`}
-                </Button>
               </div>
 
               <div className="space-y-1">
@@ -862,7 +912,10 @@ export const TaskDetailPanel: React.FC = () => {
                     variant="default"
                     size="sm"
                     className="h-8"
-                    onClick={handleSaveAndClose}
+                    onClick={() => {
+                      void handleSaveAndClose();
+                    }}
+                    disabled={repeatCreating}
                   >
                     OK
                   </Button>
@@ -882,7 +935,14 @@ export const TaskDetailPanel: React.FC = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleDiscardAndClose}>{t`Discard`}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSaveAndClose}>{t`Save`}</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                void handleSaveAndClose();
+              }}
+              disabled={repeatCreating}
+            >
+              {t`Save`}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

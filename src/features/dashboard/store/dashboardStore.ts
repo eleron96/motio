@@ -98,6 +98,24 @@ const getSizeForCols = (size: { w: number; h: number }, cols: number) => ({
   h: size.h,
 });
 
+const isChartWidgetType = (type: DashboardWidget['type']) => (
+  type === 'bar' || type === 'line' || type === 'area' || type === 'pie'
+);
+
+const getResponsivePresetForWidget = (
+  type: DashboardWidget['type'],
+  size: DashboardWidgetSize,
+  cols: number,
+) => {
+  const preset = getSizeForCols(getPresetForWidget(type, size), cols);
+  if (!isChartWidgetType(type) || cols > DASHBOARD_COLS.sm) return preset;
+  if (size !== 'small') return preset;
+  return {
+    ...preset,
+    h: Math.max(preset.h, 3),
+  };
+};
+
 const getLayoutBoundsForSize = (cols: number, minSize: DashboardWidgetSize) => {
   const min = getSizeForCols(SIZE_PRESETS[minSize], cols);
   const max = getSizeForCols(SIZE_PRESETS.large, cols);
@@ -111,8 +129,8 @@ const getLayoutBoundsForSize = (cols: number, minSize: DashboardWidgetSize) => {
 
 const getLayoutBoundsForWidget = (widget: DashboardWidget | null, cols: number) => {
   const type = widget?.type ?? 'kpi';
-  const min = getSizeForCols(getPresetForWidget(type, 'small'), cols);
-  const max = getSizeForCols(getPresetForWidget(type, 'large'), cols);
+  const min = getResponsivePresetForWidget(type, 'small', cols);
+  const max = getResponsivePresetForWidget(type, 'large', cols);
   return {
     minW: min.w,
     minH: min.h,
@@ -130,7 +148,7 @@ const clampNumber = (value: number, min: number, max: number) => Math.min(Math.m
 
 const getWidgetLayoutSize = (widget: DashboardWidget, cols: number) => {
   const size = normalizeWidgetSize(widget.type, widget.size ?? getDefaultSize(widget));
-  const base = getSizeForCols(getPresetForWidget(widget.type, size), cols);
+  const base = getResponsivePresetForWidget(widget.type, size, cols);
   const bounds = getLayoutBoundsForWidget(widget, cols);
   return { ...base, ...bounds };
 };

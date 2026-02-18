@@ -672,36 +672,42 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             {repeatOpen && (
               <>
                 <div className="grid grid-cols-2 gap-3">
-                  <Select
-                    value={repeatFrequency}
-                    onValueChange={(value) => handleRepeatFrequencyChange(value as typeof repeatFrequency)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t`Repeat`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t`Does not repeat`}</SelectItem>
-                      <SelectItem value="daily">{t`Daily`}</SelectItem>
-                      <SelectItem value="weekly">{t`Weekly`}</SelectItem>
-                      <SelectItem value="biweekly">{t`Biweekly (every 2 weeks)`}</SelectItem>
-                      <SelectItem value="monthly">{t`Monthly`}</SelectItem>
-                      <SelectItem value="yearly">{t`Yearly`}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select
-                    value={repeatEnds}
-                    onValueChange={(value) => handleRepeatEndsChange(value as typeof repeatEnds)}
-                    disabled={repeatFrequency === 'none'}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t`Ends`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="never">{t`Never`}</SelectItem>
-                      <SelectItem value="on">{t`On date`}</SelectItem>
-                      <SelectItem value="after">{t`After count`}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-1">
+                    <Select
+                      value={repeatFrequency}
+                      onValueChange={(value) => handleRepeatFrequencyChange(value as typeof repeatFrequency)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t`Repeat`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t`Does not repeat`}</SelectItem>
+                        <SelectItem value="daily">{t`Daily`}</SelectItem>
+                        <SelectItem value="weekly">{t`Weekly`}</SelectItem>
+                        <SelectItem value="biweekly">{t`Biweekly (every 2 weeks)`}</SelectItem>
+                        <SelectItem value="monthly">{t`Monthly`}</SelectItem>
+                        <SelectItem value="yearly">{t`Yearly`}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-muted-foreground">{t`Repeat type`}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Select
+                      value={repeatEnds}
+                      onValueChange={(value) => handleRepeatEndsChange(value as typeof repeatEnds)}
+                      disabled={repeatFrequency === 'none'}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t`Ends`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="never">{t`Never`}</SelectItem>
+                        <SelectItem value="on">{t`Until date`}</SelectItem>
+                        <SelectItem value="after">{t`Count`}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-muted-foreground">{t`Repeat limit`}</p>
+                  </div>
                 </div>
                 {repeatFrequency !== 'none' && repeatEnds === 'on' && (
                   <div className="space-y-1.5">
@@ -716,6 +722,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                         setRepeatUntil(e.target.value);
                       }}
                     />
+                    <p className="text-[11px] text-muted-foreground">{t`Repeats until the selected date.`}</p>
                   </div>
                 )}
                 {repeatFrequency !== 'none' && repeatEnds === 'after' && (
@@ -731,6 +738,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                         setRepeatCount(Number(e.target.value));
                       }}
                     />
+                    <p className="text-[11px] text-muted-foreground">{t`Creates the specified number of repeats.`}</p>
                   </div>
                 )}
                 {repeatError && (
