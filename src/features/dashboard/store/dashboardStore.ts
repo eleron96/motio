@@ -16,9 +16,12 @@ import {
   DashboardWidgetSize,
 } from '@/features/dashboard/types/dashboard';
 import { createWidgetId, getPeriodRange, DEFAULT_BAR_PALETTE } from '@/features/dashboard/lib/dashboardUtils';
-
-const DASHBOARD_BREAKPOINTS = { lg: 1200, md: 992, sm: 768, xs: 480 };
-const DASHBOARD_COLS = { lg: 12, md: 10, sm: 6, xs: 2 };
+import {
+  DASHBOARD_BREAKPOINT_ORDER,
+  DASHBOARD_BREAKPOINTS,
+  DASHBOARD_COLS,
+  type DashboardBreakpoint,
+} from '@/features/dashboard/lib/dashboardResponsive';
 
 type DashboardStatsState = {
   rows: DashboardStatsRow[];
@@ -233,45 +236,35 @@ const buildStackedLayout = (widgets: DashboardWidget[], cols: number) => {
   });
 };
 
-const buildDefaultLayouts = (widgets: DashboardWidget[]): DashboardLayouts => {
-  const lgLayout: DashboardLayoutItem[] = [];
-  let x = 0;
+const buildPackedLayout = (widgets: DashboardWidget[], cols: number) => {
+  const layout: DashboardLayoutItem[] = [];
   widgets.forEach((widget) => {
-    const size = getWidgetLayoutSize(widget, DASHBOARD_COLS.lg);
-    if (widget.type === 'kpi') {
-      lgLayout.push({
-        i: widget.id,
-        x,
-        y: 0,
-        w: size.w,
-        h: size.h,
-        minW: size.minW,
-        minH: size.minH,
-        maxW: size.maxW,
-        maxH: size.maxH,
-      });
-      x += size.w;
-    } else {
-      lgLayout.push({
-        i: widget.id,
-        x: 0,
-        y: 2,
-        w: size.w,
-        h: size.h,
-        minW: size.minW,
-        minH: size.minH,
-        maxW: size.maxW,
-        maxH: size.maxH,
-      });
-    }
+    const size = getWidgetLayoutSize(widget, cols);
+    const position = findAvailablePosition(layout, size, cols);
+    layout.push({
+      i: widget.id,
+      x: position.x,
+      y: position.y,
+      w: size.w,
+      h: size.h,
+      minW: size.minW,
+      minH: size.minH,
+      maxW: size.maxW,
+      maxH: size.maxH,
+    });
   });
+  return layout;
+};
 
-  return {
-    lg: lgLayout,
-    md: buildStackedLayout(widgets, DASHBOARD_COLS.md),
-    sm: buildStackedLayout(widgets, DASHBOARD_COLS.sm),
-    xs: buildStackedLayout(widgets, DASHBOARD_COLS.xs),
-  };
+const buildDefaultLayouts = (widgets: DashboardWidget[]): DashboardLayouts => {
+  return DASHBOARD_BREAKPOINT_ORDER.reduce<DashboardLayouts>((acc, breakpoint) => {
+    const cols = DASHBOARD_COLS[breakpoint];
+    const layout = cols <= 2
+      ? buildStackedLayout(widgets, cols)
+      : buildPackedLayout(widgets, cols);
+    acc[breakpoint] = layout;
+    return acc;
+  }, {});
 };
 
 const createDefaultWidgets = (): DashboardWidget[] => [];
@@ -352,13 +345,52 @@ const addWidgetToLayouts = (layouts: DashboardLayouts, widget: DashboardWidget) 
   return nextLayouts;
 };
 
+const resolveRawLayoutForBreakpoint = (
+  layouts: DashboardLayouts,
+  breakpoint: DashboardBreakpoint,
+  widgetIds: Set<string>,
+) => {
+  const direct = (layouts[breakpoint] ?? []).filter((item) => widgetIds.has(item.i));
+  if (direct.length > 0) return direct;
+
+  const targetIndex = DASHBOARD_BREAKPOINT_ORDER.indexOf(breakpoint);
+  if (targetIndex < 0) return [];
+
+  for (let distance = 1; distance < DASHBOARD_BREAKPOINT_ORDER.length; distance += 1) {
+    const candidates = [targetIndex - distance, targetIndex + distance]
+      .filter((index) => index >= 0 && index < DASHBOARD_BREAKPOINT_ORDER.length);
+
+    for (const index of candidates) {
+      const sourceBreakpoint = DASHBOARD_BREAKPOINT_ORDER[index];
+      const sourceLayout = (layouts[sourceBreakpoint] ?? []).filter((item) => widgetIds.has(item.i));
+      if (sourceLayout.length === 0) continue;
+
+      const sourceCols = DASHBOARD_COLS[sourceBreakpoint];
+      const targetCols = DASHBOARD_COLS[breakpoint];
+      if (sourceCols === targetCols) return sourceLayout;
+
+      const ratio = targetCols / sourceCols;
+      return sourceLayout.map((item) => {
+        const rawW = Math.max(1, Math.round(toFiniteNumber(item.w, 1) * ratio));
+        const w = clampNumber(rawW, 1, targetCols);
+        const rawX = Math.round(toFiniteNumber(item.x, 0) * ratio);
+        const x = clampNumber(rawX, 0, Math.max(targetCols - w, 0));
+        return { ...item, x, w };
+      });
+    }
+  }
+
+  return [];
+};
+
 const normalizeLayouts = (layouts: DashboardLayouts, widgets: DashboardWidget[]) => {
   const widgetIds = new Set(widgets.map((widget) => widget.id));
   const widgetMap = new Map(widgets.map((widget) => [widget.id, widget]));
   const normalized: DashboardLayouts = {};
 
-  Object.entries(DASHBOARD_COLS).forEach(([breakpoint, cols]) => {
-    const rawLayout = (layouts[breakpoint] ?? []).filter((item) => widgetIds.has(item.i));
+  DASHBOARD_BREAKPOINT_ORDER.forEach((breakpoint) => {
+    const cols = DASHBOARD_COLS[breakpoint];
+    const rawLayout = resolveRawLayoutForBreakpoint(layouts, breakpoint, widgetIds);
     const currentLayout: DashboardLayoutItem[] = [];
     rawLayout.forEach((item) => {
       const widget = widgetMap.get(item.i) ?? null;

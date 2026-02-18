@@ -43,10 +43,15 @@ import { AccountSettingsDialog } from '@/features/auth/components/AccountSetting
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import {
   useDashboardStore,
-  DASHBOARD_BREAKPOINTS,
-  DASHBOARD_COLS,
   getClosestWidgetSize,
 } from '@/features/dashboard/store/dashboardStore';
+import {
+  DASHBOARD_BREAKPOINTS,
+  DASHBOARD_COLS,
+  DASHBOARD_GRID_SETTINGS,
+  getViewportProfileForBreakpoint,
+  type DashboardBreakpoint,
+} from '@/features/dashboard/lib/dashboardResponsive';
 import { buildTimeSeriesData, buildWidgetData, shouldUseAssigneeRows } from '@/features/dashboard/lib/dashboardUtils';
 import { DashboardWidgetCard } from '@/features/dashboard/components/DashboardWidgetCard';
 import { WidgetEditorDialog } from '@/features/dashboard/components/WidgetEditorDialog';
@@ -60,7 +65,7 @@ const DashboardPage = () => {
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingWidget, setEditingWidget] = useState<DashboardWidget | null>(null);
-  const [currentBreakpoint, setCurrentBreakpoint] = useState<keyof typeof DASHBOARD_COLS>('lg');
+  const [currentBreakpoint, setCurrentBreakpoint] = useState<DashboardBreakpoint>('lg');
   const [createDashboardOpen, setCreateDashboardOpen] = useState(false);
   const [newDashboardName, setNewDashboardName] = useState('');
   const [createDashboardError, setCreateDashboardError] = useState('');
@@ -134,6 +139,8 @@ const DashboardPage = () => {
     && currentWorkspaceId
     && prevWorkspaceIdRef.current !== currentWorkspaceId,
   );
+  const currentGridSettings = DASHBOARD_GRID_SETTINGS[currentBreakpoint] ?? DASHBOARD_GRID_SETTINGS.lg;
+  const currentViewportProfile = getViewportProfileForBreakpoint(currentBreakpoint);
 
   useEffect(() => {
     if (!currentWorkspaceId) return;
@@ -290,7 +297,7 @@ const DashboardPage = () => {
 
   const handleBreakpointChange = (breakpoint: string) => {
     if (breakpoint in DASHBOARD_COLS) {
-      setCurrentBreakpoint(breakpoint as keyof typeof DASHBOARD_COLS);
+      setCurrentBreakpoint(breakpoint as DashboardBreakpoint);
     }
   };
 
@@ -424,6 +431,8 @@ const DashboardPage = () => {
               editing={canEdit}
               milestones={milestones}
               projects={projects}
+              breakpoint={currentBreakpoint}
+              viewportProfile={currentViewportProfile}
               onEdit={() => handleEditWidget(widget)}
             />
           </div>
@@ -493,10 +502,16 @@ const DashboardPage = () => {
         <ContextMenuTrigger asChild>
           <div
             ref={containerRef}
-            className="flex-1 overflow-auto p-4"
+            className="flex-1 overflow-auto"
+            style={{
+              padding: `${currentGridSettings.containerPadding[1]}px ${currentGridSettings.containerPadding[0]}px`,
+            }}
             onDoubleClick={handleCanvasDoubleClick}
           >
-            <div className="dashboard-toolbar mb-4 flex flex-wrap items-center gap-2">
+            <div
+              className="dashboard-toolbar flex flex-wrap items-center gap-2"
+              style={{ marginBottom: Math.max(8, currentGridSettings.margin[1]) }}
+            >
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="gap-2">
@@ -592,8 +607,9 @@ const DashboardPage = () => {
                 breakpoints={DASHBOARD_BREAKPOINTS}
                 cols={DASHBOARD_COLS}
                 width={width}
-                rowHeight={80}
-                margin={[16, 16]}
+                rowHeight={currentGridSettings.rowHeight}
+                margin={currentGridSettings.margin}
+                containerPadding={currentGridSettings.containerPadding}
                 isResizable={canEdit}
                 isDraggable={canEdit}
                 onLayoutChange={handleLayoutChange}

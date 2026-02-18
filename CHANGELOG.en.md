@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Implemented Motion dashboard adaptation for different screen formats: added deterministic responsive breakpoints/grid, stable layout normalization across breakpoints, and profile-aware widget/legend rendering for phone/tablet/laptop/desktop/wall.
+
 ## [0.1.40] - 2026-02-17
 ### Changed
 - Reworked color ordering in the “Pastel sky” and “Pastel dawn” palettes so colors differ more clearly within each palette for faster series recognition on charts.

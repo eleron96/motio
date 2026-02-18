@@ -44,6 +44,10 @@ import {
   DashboardWidget,
   DashboardWidgetData,
 } from '@/features/dashboard/types/dashboard';
+import {
+  type DashboardBreakpoint,
+  type DashboardViewportProfile,
+} from '@/features/dashboard/lib/dashboardResponsive';
 import { getBarPalette, getPeriodRange } from '@/features/dashboard/lib/dashboardUtils';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -73,6 +77,8 @@ interface DashboardWidgetCardProps {
   editing: boolean;
   milestones?: DashboardMilestone[];
   projects?: DashboardOption[];
+  breakpoint?: DashboardBreakpoint;
+  viewportProfile?: DashboardViewportProfile;
   onEdit?: () => void;
 }
 
@@ -84,6 +90,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   editing,
   milestones = [],
   projects = [],
+  breakpoint = 'lg',
+  viewportProfile = 'desktop',
   onEdit,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
@@ -109,11 +117,18 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   };
   const taskPeriodLabel = formatShortRange(taskStartDate, taskEndDate);
   const size = widget.size ?? (widget.type === 'kpi' ? 'small' : 'medium');
+  const isPhoneViewport = viewportProfile === 'phone';
+  const isTabletViewport = viewportProfile === 'tablet';
+  const isLaptopViewport = viewportProfile === 'laptop';
+  const isDesktopViewport = viewportProfile === 'desktop';
+  const isWallViewport = viewportProfile === 'wall';
+  const compactByBreakpoint = breakpoint === 'xs' || (breakpoint === 'sm' && size === 'small');
+  const compactByViewport = compactByBreakpoint || isPhoneViewport || (isTabletViewport && size === 'small');
   const isKpiSmall = widget.type === 'kpi' && size === 'small';
   const isSmall = size === 'small';
-  const showPeriod = size !== 'small';
-  const showFilter = size === 'large';
-  const canShowAxesBySize = size !== 'small';
+  const showPeriod = size !== 'small' && !compactByViewport;
+  const showFilter = size === 'large' && !isPhoneViewport;
+  const canShowAxesBySize = size !== 'small' && !isPhoneViewport;
   const palette = widget.type !== 'kpi'
     ? getBarPalette(widget.barPalette)
     : ['#94A3B8'];
@@ -153,12 +168,18 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const isMilestoneWidget = widget.type === 'milestone' || widget.type === 'milestone_calendar';
   const isMilestoneList = isMilestoneWidget && milestoneView === 'list';
   const isMilestoneCalendar = isMilestoneWidget && milestoneView === 'calendar';
-  const contentGapClass = isSmall ? 'gap-1.5' : 'gap-2';
+  const contentGapClass = compactByViewport ? 'gap-1' : isSmall ? 'gap-1.5' : 'gap-2';
   const calendarGapClass = isMilestoneCalendar && isSmall ? 'gap-1' : contentGapClass;
-  const cardPaddingClass = isKpiSmall ? 'p-2' : isSmall ? 'p-3' : 'p-4';
+  const cardPaddingClass = isKpiSmall
+    ? 'p-2'
+    : compactByViewport
+      ? (isSmall ? 'p-2.5' : 'p-3')
+      : isSmall
+        ? 'p-3'
+        : 'p-4';
   const contentPaddingClass = isKpiSmall
     ? 'pt-0'
-    : isMilestoneCalendar && isSmall
+    : (isMilestoneCalendar && isSmall) || compactByViewport
       ? 'pt-2'
       : 'pt-3';
   const [pieTooltipPosition, setPieTooltipPosition] = React.useState<{ x: number; y: number } | undefined>(undefined);
@@ -185,14 +206,23 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     : 0;
   const isUltraWideChart = chartViewport.width >= CHART_ULTRAWIDE_MIN_WIDTH_PX
     || chartAspectRatio >= CHART_ULTRAWIDE_MIN_ASPECT;
+  const sideLegendWidthThreshold = isWallViewport
+    ? 860
+    : isDesktopViewport
+      ? 720
+      : Number.POSITIVE_INFINITY;
+  const sideLegendAspectThreshold = isWallViewport ? 1.85 : 1.65;
+  const canUseSideLegend = isDesktopViewport || isWallViewport;
   const preferSideLegend = showLegend
+    && canUseSideLegend
     && !isSmall
-    && chartViewport.width >= CHART_SIDE_LEGEND_MIN_WIDTH_PX
-    && chartAspectRatio >= CHART_SIDE_LEGEND_MIN_ASPECT;
+    && chartViewport.width >= Math.max(CHART_SIDE_LEGEND_MIN_WIDTH_PX, sideLegendWidthThreshold)
+    && chartAspectRatio >= Math.max(CHART_SIDE_LEGEND_MIN_ASPECT, sideLegendAspectThreshold);
   const isCompactChartHeight = chartViewport.height > 0 && chartViewport.height < 210;
   const isCompactChartWidth = chartViewport.width > 0 && chartViewport.width < 380;
+  const axisMinWidth = isLaptopViewport ? 300 : 280;
   const showAxes = canShowAxesBySize
-    && (chartViewport.width === 0 || chartViewport.width >= 280)
+    && (chartViewport.width === 0 || chartViewport.width >= axisMinWidth)
     && (chartViewport.height === 0 || chartViewport.height >= 150);
   const kpiValueClass = isKpiSmall ? 'text-2xl' : isSmall ? 'text-3xl' : 'text-4xl';
   const kpiValueStyle = isKpiSmall
@@ -221,6 +251,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     ? taskPeriodLabel
     : null;
   const isPieLegend = widget.type === 'pie';
+  const legendIsDense = legendItems.length > (isTabletViewport ? 6 : 8);
   const legendTextClass = isPieLegend
     ? (isCompactChartHeight ? 'text-[8px] leading-tight' : 'text-[9px] leading-tight')
     : isCompactChartHeight
@@ -228,7 +259,11 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       : legendItems.length > 6
         ? 'text-[10px] leading-snug'
         : 'text-[11px] leading-snug';
-  const showLegendValue = !isCompactChartWidth || preferSideLegend;
+  const showLegendValue = preferSideLegend || (
+    !isCompactChartWidth
+    && !isPhoneViewport
+    && !(isTabletViewport && legendIsDense)
+  );
 
   React.useLayoutEffect(() => {
     if (!showLegend) return;
@@ -260,26 +295,28 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const legendItemMinWidth = preferSideLegend
     ? legendWidth
     : isPieLegend
-      ? (showLegendValue ? 132 : 108)
-      : (showLegendValue ? 156 : 128);
-  const legendGapPx = isPieLegend ? 8 : 10;
+      ? (showLegendValue ? 132 : 104)
+      : (showLegendValue ? (isTabletViewport ? 146 : 156) : 124);
+  const legendGapPx = isPieLegend ? 8 : (isTabletViewport ? 8 : 10);
   const legendCalculatedColumns = preferSideLegend
     ? 1
     : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
   const legendColumns = Math.max(1, Math.min(legendItems.length || 1, legendCalculatedColumns));
-  const legendPanelClass = isUltraWideChart
-    ? 'w-[min(36%,320px)]'
-    : 'w-[min(40%,270px)]';
+  const legendPanelClass = isWallViewport
+    ? 'w-[min(34%,360px)]'
+    : isUltraWideChart
+      ? 'w-[min(36%,320px)]'
+      : 'w-[min(40%,270px)]';
   const chartCanvasMinHeight = isSmall
-    ? 56
+    ? (isPhoneViewport ? 52 : 56)
     : preferSideLegend
-      ? (isCompactChartHeight ? 92 : 124)
-      : (isCompactChartHeight ? 84 : 112);
+      ? (isCompactChartHeight ? 92 : (isWallViewport ? 132 : 124))
+      : (isCompactChartHeight ? (isPhoneViewport ? 76 : 84) : (isPhoneViewport ? 96 : 112));
   const pieCanvasMinHeight = isSmall
-    ? 64
+    ? (isPhoneViewport ? 60 : 64)
     : preferSideLegend
-      ? (isCompactChartHeight ? 112 : 156)
-      : (isCompactChartHeight ? 96 : 132);
+      ? (isCompactChartHeight ? 112 : (isWallViewport ? 168 : 156))
+      : (isCompactChartHeight ? (isPhoneViewport ? 88 : 96) : (isPhoneViewport ? 112 : 132));
   const fallbackBarMaxSize = size === 'small' ? 16 : size === 'medium' ? 24 : 32;
   const dynamicBarMaxSize = (() => {
     const points = data?.series.length ?? 0;
