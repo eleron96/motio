@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.45] - 2026-02-18
 ### Changed
 - Dashboard mobile: отключено выделение текста/графика и контекстное меню по long-press/right-click; создание виджета доступно только через кнопку Widget; добавлена визуальная индикация удержания для включения перетаскивания и кнопка удаления виджета в диалоге редактирования.
 
