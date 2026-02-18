@@ -81,6 +81,7 @@ interface DashboardWidgetCardProps {
   viewportProfile?: DashboardViewportProfile;
   touchInteractionMode?: boolean;
   dragHandleArmed?: boolean;
+  dragHandlePressing?: boolean;
   onDragHandleTouchStart?: (event: React.TouchEvent<HTMLDivElement>) => void;
   onDragHandleTouchMove?: (event: React.TouchEvent<HTMLDivElement>) => void;
   onDragHandleTouchEnd?: (event: React.TouchEvent<HTMLDivElement>) => void;
@@ -99,6 +100,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   viewportProfile = 'desktop',
   touchInteractionMode = false,
   dragHandleArmed = false,
+  dragHandlePressing = false,
   onDragHandleTouchStart,
   onDragHandleTouchMove,
   onDragHandleTouchEnd,
@@ -574,8 +576,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
         <div className="flex items-start justify-between gap-2">
           <div
             className={cn(
-              'flex items-start gap-2',
+              'flex items-start gap-2 transition-colors duration-200',
               editing && 'dashboard-widget-handle cursor-move touch-manipulation select-none',
+              editing && dragHandlePressing && 'dashboard-widget-handle-mobile-pressing rounded-sm bg-muted/40 ring-1 ring-primary/20 animate-pulse',
               editing && dragHandleArmed && 'dashboard-widget-handle-mobile-armed rounded-sm bg-muted/60',
             )}
             onTouchStart={editing ? onDragHandleTouchStart : undefined}

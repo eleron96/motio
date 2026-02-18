@@ -197,6 +197,28 @@
     opacity: 1;
   }
 
+  .dashboard-mobile-interactions,
+  .dashboard-mobile-interactions * {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .dashboard-widget-handle-mobile-armed {
+    animation: dashboard-widget-handle-arm 220ms ease-out;
+  }
+
+  @keyframes dashboard-widget-handle-arm {
+    0% {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
   .rich-text-editor {
     @apply min-h-[96px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
     @apply whitespace-pre-wrap break-words;

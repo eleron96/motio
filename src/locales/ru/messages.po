@@ -677,6 +677,10 @@ msgstr "Удалить выбранные ({selectedCount})"
 msgid "Delete task"
 msgstr "Удалить задачу"
 
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:696
+msgid "Delete widget"
+msgstr "Удалить виджет"
+
 #: src/features/planner/components/TaskDetailPanel.tsx:1004
 #: src/features/planner/components/timeline/TaskBar.tsx:532
 msgid "Delete task?"
@@ -1027,7 +1031,7 @@ msgstr "Высокий приоритет"
 
 #: src/features/dashboard/pages/DashboardPage.tsx:761
 msgid "Hold the widget header to enable moving."
-msgstr ""
+msgstr "Удерживайте заголовок виджета, чтобы включить перемещение."
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:265
 msgid "Holiday"
@@ -1252,7 +1256,15 @@ msgstr "Ежемесячно"
 
 #: src/features/dashboard/pages/DashboardPage.tsx:760
 msgid "Move mode is enabled. Drag the widget header."
-msgstr ""
+msgstr "Режим перемещения включен. Перетащите заголовок виджета."
+
+#: src/features/dashboard/pages/DashboardPage.tsx:750
+msgid "Keep holding the widget header..."
+msgstr "Продолжайте удерживать заголовок виджета..."
+
+#: src/features/dashboard/pages/DashboardPage.tsx:767
+msgid "Use the Widget button to add your first widget."
+msgstr "Используйте кнопку «Виджет», чтобы добавить первый виджет."
 
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:265
 msgid "My team workspace"

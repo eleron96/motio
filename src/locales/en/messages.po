@@ -677,6 +677,10 @@ msgstr "Delete selected ({selectedCount})"
 msgid "Delete task"
 msgstr "Delete task"
 
+#: src/features/dashboard/components/WidgetEditorDialog.tsx:696
+msgid "Delete widget"
+msgstr "Delete widget"
+
 #: src/features/planner/components/TaskDetailPanel.tsx:1004
 #: src/features/planner/components/timeline/TaskBar.tsx:532
 msgid "Delete task?"
@@ -1253,6 +1257,14 @@ msgstr "Monthly"
 #: src/features/dashboard/pages/DashboardPage.tsx:760
 msgid "Move mode is enabled. Drag the widget header."
 msgstr "Move mode is enabled. Drag the widget header."
+
+#: src/features/dashboard/pages/DashboardPage.tsx:750
+msgid "Keep holding the widget header..."
+msgstr "Keep holding the widget header..."
+
+#: src/features/dashboard/pages/DashboardPage.tsx:767
+msgid "Use the Widget button to add your first widget."
+msgstr "Use the Widget button to add your first widget."
 
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:265
 msgid "My team workspace"

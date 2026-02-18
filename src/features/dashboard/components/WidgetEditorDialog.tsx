@@ -35,6 +35,7 @@ interface WidgetEditorDialogProps {
   groups: DashboardOption[];
   initialWidget?: DashboardWidget | null;
   onSave: (widget: DashboardWidget) => void;
+  onDelete?: (widgetId: string) => void;
 }
 
 type PrimaryWidgetType = 'kpi' | 'chart' | 'milestone';
@@ -51,6 +52,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   groups,
   initialWidget,
   onSave,
+  onDelete,
 }) => {
   const periodOptions: Array<{ value: DashboardPeriod; label: string }> = [
     { value: 'day', label: t`Day` },
@@ -359,6 +361,12 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       filterGroups: normalizedGroups,
     };
     onSave(nextWidget);
+    onOpenChange(false);
+  };
+
+  const handleDelete = () => {
+    if (!initialWidget || !onDelete) return;
+    onDelete(initialWidget.id);
     onOpenChange(false);
   };
 
@@ -683,6 +691,11 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
         </div>
 
         <DialogFooter>
+          {initialWidget && onDelete && (
+            <Button variant="destructive" onClick={handleDelete}>
+              {t`Delete widget`}
+            </Button>
+          )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t`Cancel`}
           </Button>

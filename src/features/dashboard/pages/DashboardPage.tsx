@@ -41,6 +41,7 @@ import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
 import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
 import { AccountSettingsDialog } from '@/features/auth/components/AccountSettingsDialog';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
+import { cn } from '@/shared/lib/classNames';
 import {
   useDashboardStore,
   getClosestWidgetSize,
@@ -81,6 +82,7 @@ const DashboardPage = () => {
   const [dashboardDeleting, setDashboardDeleting] = useState(false);
   const [isTouchPointer, setIsTouchPointer] = useState(false);
   const [mobileDragArmedWidgetId, setMobileDragArmedWidgetId] = useState<string | null>(null);
+  const [mobileDragPressingWidgetId, setMobileDragPressingWidgetId] = useState<string | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevWorkspaceIdRef = useRef<string | null>(null);
   const mobileDragHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -155,7 +157,10 @@ const DashboardPage = () => {
   );
   const currentGridSettings = DASHBOARD_GRID_SETTINGS[currentBreakpoint] ?? DASHBOARD_GRID_SETTINGS.lg;
   const currentViewportProfile = getViewportProfileForBreakpoint(currentBreakpoint);
-  const isTouchReorderMode = isTouchPointer;
+  const isTouchDashboardViewport = currentViewportProfile === 'phone'
+    || currentViewportProfile === 'tablet'
+    || currentViewportProfile === 'laptop';
+  const isTouchReorderMode = isTouchPointer && isTouchDashboardViewport;
   const dragHandleSelector = isTouchReorderMode
     ? '.dashboard-widget-handle-mobile-armed'
     : '.dashboard-widget-handle';
@@ -167,7 +172,8 @@ const DashboardPage = () => {
     const anyCoarseQuery = window.matchMedia('(any-pointer: coarse)');
 
     const updateTouchPointer = () => {
-      setIsTouchPointer(coarseQuery.matches || anyCoarseQuery.matches);
+      const hasTouchPoints = typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0;
+      setIsTouchPointer(coarseQuery.matches || anyCoarseQuery.matches || hasTouchPoints);
     };
 
     updateTouchPointer();
@@ -351,21 +357,27 @@ const DashboardPage = () => {
   ) => {
     if (!canEdit || !isTouchReorderMode) return;
     if (mobileDragArmedWidgetId === widgetId) {
+      setMobileDragPressingWidgetId(null);
       scheduleMobileDragArmReset();
       return;
     }
     const touch = event.touches[0];
-    if (!touch) return;
+    if (!touch) {
+      setMobileDragPressingWidgetId(null);
+      return;
+    }
     mobileTouchSessionRef.current = {
       widgetId,
       startX: touch.clientX,
       startY: touch.clientY,
       moved: false,
     };
+    setMobileDragPressingWidgetId(widgetId);
     clearMobileDragHoldTimer();
     mobileDragHoldTimerRef.current = setTimeout(() => {
       const session = mobileTouchSessionRef.current;
       if (!session || session.widgetId !== widgetId || session.moved) return;
+      setMobileDragPressingWidgetId(null);
       setMobileDragArmedWidgetId(widgetId);
       scheduleMobileDragArmReset();
       if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -390,12 +402,14 @@ const DashboardPage = () => {
     if (Math.hypot(deltaX, deltaY) >= MOBILE_DRAG_MOVE_TOLERANCE_PX) {
       session.moved = true;
       clearMobileDragHoldTimer();
+      setMobileDragPressingWidgetId(null);
     }
   }, [clearMobileDragHoldTimer]);
 
   const handleWidgetDragHoldEnd = useCallback(() => {
     clearMobileDragHoldTimer();
     mobileTouchSessionRef.current = null;
+    setMobileDragPressingWidgetId(null);
   }, [clearMobileDragHoldTimer]);
 
   const handleGridDragStart = useCallback(() => {
@@ -403,6 +417,7 @@ const DashboardPage = () => {
     clearMobileDragHoldTimer();
     clearMobileDragArmResetTimer();
     mobileTouchSessionRef.current = null;
+    setMobileDragPressingWidgetId(null);
     setMobileDragArmedWidgetId(null);
   }, [clearMobileDragArmResetTimer, clearMobileDragHoldTimer, isTouchReorderMode]);
 
@@ -411,6 +426,7 @@ const DashboardPage = () => {
     clearMobileDragHoldTimer();
     clearMobileDragArmResetTimer();
     mobileTouchSessionRef.current = null;
+    setMobileDragPressingWidgetId(null);
     setMobileDragArmedWidgetId(null);
   }, [clearMobileDragArmResetTimer, clearMobileDragHoldTimer, isTouchReorderMode]);
 
@@ -426,6 +442,7 @@ const DashboardPage = () => {
     clearMobileDragHoldTimer();
     clearMobileDragArmResetTimer();
     mobileTouchSessionRef.current = null;
+    setMobileDragPressingWidgetId(null);
     setMobileDragArmedWidgetId(null);
   }, [
     canEdit,
@@ -494,6 +511,7 @@ const DashboardPage = () => {
   };
 
   const handleCanvasDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isTouchReorderMode) return;
     if (!canAddWidget) return;
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -501,6 +519,12 @@ const DashboardPage = () => {
     if (target.closest('.dashboard-grid-item')) return;
     if (target.closest('button, a, input, textarea, select, [role="button"]')) return;
     handleAddWidget();
+  };
+
+  const handleDashboardContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!isTouchReorderMode) return;
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   const handleCreateDashboard = async (event: React.FormEvent) => {
@@ -581,28 +605,37 @@ const DashboardPage = () => {
     const loading = isTaskWidget ? (statsState?.loading ?? false) : false;
     const widgetError = isTaskWidget ? (statsState?.error ?? null) : null;
     const widgetWithSize = { ...widget, size: effectiveSize };
+    const widgetNode = (
+      <div className="h-full w-full" onContextMenu={handleDashboardContextMenu}>
+        <DashboardWidgetCard
+          widget={widgetWithSize}
+          data={data}
+          loading={loading}
+          error={widgetError}
+          editing={canEdit}
+          milestones={milestones}
+          projects={projects}
+          breakpoint={currentBreakpoint}
+          viewportProfile={currentViewportProfile}
+          touchInteractionMode={isTouchReorderMode}
+          dragHandleArmed={isTouchReorderMode && mobileDragArmedWidgetId === widget.id}
+          dragHandlePressing={isTouchReorderMode && mobileDragPressingWidgetId === widget.id}
+          onDragHandleTouchStart={(event) => handleWidgetDragHoldStart(widget.id, event)}
+          onDragHandleTouchMove={handleWidgetDragHoldMove}
+          onDragHandleTouchEnd={handleWidgetDragHoldEnd}
+          onEdit={() => handleEditWidget(widget)}
+        />
+      </div>
+    );
+
+    if (isTouchReorderMode) {
+      return widgetNode;
+    }
+
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div className="h-full w-full" onContextMenu={(event) => event.stopPropagation()}>
-            <DashboardWidgetCard
-              widget={widgetWithSize}
-              data={data}
-              loading={loading}
-              error={widgetError}
-              editing={canEdit}
-              milestones={milestones}
-              projects={projects}
-              breakpoint={currentBreakpoint}
-              viewportProfile={currentViewportProfile}
-              touchInteractionMode={isTouchReorderMode}
-              dragHandleArmed={isTouchReorderMode && mobileDragArmedWidgetId === widget.id}
-              onDragHandleTouchStart={(event) => handleWidgetDragHoldStart(widget.id, event)}
-              onDragHandleTouchMove={handleWidgetDragHoldMove}
-              onDragHandleTouchEnd={handleWidgetDragHoldEnd}
-              onEdit={() => handleEditWidget(widget)}
-            />
-          </div>
+          {widgetNode}
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onSelect={() => handleEditWidget(widget)} disabled={!canEdit}>
@@ -620,6 +653,154 @@ const DashboardPage = () => {
       </ContextMenu>
     );
   };
+
+  const dashboardCanvas = (
+    <div
+      ref={containerRef}
+      className={cn('flex-1 overflow-auto', isTouchReorderMode && 'dashboard-mobile-interactions')}
+      style={{
+        padding: `${currentGridSettings.containerPadding[1]}px ${currentGridSettings.containerPadding[0]}px`,
+      }}
+      onDoubleClick={handleCanvasDoubleClick}
+      onContextMenu={handleDashboardContextMenu}
+    >
+      <div
+        className="dashboard-toolbar flex flex-wrap items-center gap-2"
+        style={{ marginBottom: Math.max(8, currentGridSettings.margin[1]) }}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <span className="max-w-[220px] truncate">
+                {currentDashboard?.name ?? t`Select dashboard`}
+              </span>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuLabel>{t`Dashboards`}</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={currentDashboardId ?? ''}
+              onValueChange={(value) => setCurrentDashboardId(value)}
+            >
+              {dashboards.map((dashboard) => (
+                <DropdownMenuRadioItem
+                  key={dashboard.id}
+                  value={dashboard.id}
+                  className="data-[state=checked]:bg-zinc-800 data-[state=checked]:text-white"
+                >
+                  <span className="truncate">{dashboard.name}</span>
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                setCreateDashboardOpen(true);
+              }}
+              disabled={!canEdit || !canCreateDashboard}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {t`New dashboard`}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              title={t`Dashboard settings`}
+              aria-label={t`Dashboard settings`}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                setRenameDashboardName(currentDashboard?.name ?? '');
+                setRenameDashboardError('');
+                setRenameDashboardOpen(true);
+              }}
+              disabled={!canEdit || !currentDashboardId}
+            >
+              {t`Rename dashboard`}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                setDeleteDashboardOpen(true);
+              }}
+              disabled={!canEdit || !canDeleteDashboard}
+              className="text-destructive focus:text-destructive"
+            >
+              {t`Delete dashboard`}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      {canEdit && isTouchReorderMode && (
+        <div className="mb-2 text-[11px] text-muted-foreground">
+          {mobileDragArmedWidgetId
+            ? t`Move mode is enabled. Drag the widget header.`
+            : mobileDragPressingWidgetId
+              ? t`Keep holding the widget header...`
+              : t`Hold the widget header to enable moving.`}
+        </div>
+      )}
+      {loading && (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          {t`Loading dashboard...`}
+        </div>
+      )}
+      {!loading && widgets.length === 0 && (
+        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          {!currentDashboardId
+            ? t`Create or select a dashboard to get started.`
+            : canEdit
+              ? (isTouchReorderMode ? t`Use the Widget button to add your first widget.` : t`Right-click to add your first widget.`)
+              : t`No widgets yet.`}
+        </div>
+      )}
+      {!loading && widgets.length > 0 && (
+        <ResponsiveGridLayout
+          layouts={layouts}
+          breakpoints={DASHBOARD_BREAKPOINTS}
+          cols={DASHBOARD_COLS}
+          width={width}
+          rowHeight={currentGridSettings.rowHeight}
+          margin={currentGridSettings.margin}
+          containerPadding={currentGridSettings.containerPadding}
+          dragConfig={{
+            enabled: dragEnabled,
+            handle: dragHandleSelector,
+            threshold: 3,
+          }}
+          resizeConfig={{
+            enabled: canEdit,
+            handles: ['se'],
+          }}
+          onLayoutChange={handleLayoutChange}
+          onDragStart={handleGridDragStart}
+          onDragStop={handleGridDragStop}
+          onResizeStop={handleResizeStop}
+          onBreakpointChange={handleBreakpointChange}
+          measureBeforeMount={false}
+          compactor={gridCompactor}
+        >
+          {widgets.map((widget) => (
+            <div key={widget.id} className="dashboard-grid-item h-full w-full">
+              {renderWidget(widget)}
+            </div>
+          ))}
+        </ResponsiveGridLayout>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
@@ -665,157 +846,20 @@ const DashboardPage = () => {
         {error && <div className="text-destructive">{error}</div>}
       </div>
 
-      <ContextMenu>
-        <ContextMenuTrigger asChild>
-          <div
-            ref={containerRef}
-            className="flex-1 overflow-auto"
-            style={{
-              padding: `${currentGridSettings.containerPadding[1]}px ${currentGridSettings.containerPadding[0]}px`,
-            }}
-            onDoubleClick={handleCanvasDoubleClick}
-          >
-            <div
-              className="dashboard-toolbar flex flex-wrap items-center gap-2"
-              style={{ marginBottom: Math.max(8, currentGridSettings.margin[1]) }}
-            >
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <span className="max-w-[220px] truncate">
-                      {currentDashboard?.name ?? t`Select dashboard`}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  <DropdownMenuLabel>{t`Dashboards`}</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={currentDashboardId ?? ''}
-                    onValueChange={(value) => setCurrentDashboardId(value)}
-                  >
-                    {dashboards.map((dashboard) => (
-                      <DropdownMenuRadioItem
-                        key={dashboard.id}
-                        value={dashboard.id}
-                        className="data-[state=checked]:bg-zinc-800 data-[state=checked]:text-white"
-                      >
-                        <span className="truncate">{dashboard.name}</span>
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={(event) => {
-                      event.preventDefault();
-                      setCreateDashboardOpen(true);
-                    }}
-                    disabled={!canEdit || !canCreateDashboard}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    {t`New dashboard`}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9"
-                    title={t`Dashboard settings`}
-                    aria-label={t`Dashboard settings`}
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem
-                  onSelect={(event) => {
-                    event.preventDefault();
-                    setRenameDashboardName(currentDashboard?.name ?? '');
-                    setRenameDashboardError('');
-                    setRenameDashboardOpen(true);
-                  }}
-                  disabled={!canEdit || !currentDashboardId}
-                >
-                  {t`Rename dashboard`}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={(event) => {
-                    event.preventDefault();
-                    setDeleteDashboardOpen(true);
-                  }}
-                    disabled={!canEdit || !canDeleteDashboard}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    {t`Delete dashboard`}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            {canEdit && isTouchReorderMode && (
-              <div className="mb-2 text-[11px] text-muted-foreground">
-                {mobileDragArmedWidgetId
-                  ? t`Move mode is enabled. Drag the widget header.`
-                  : t`Hold the widget header to enable moving.`}
-              </div>
-            )}
-            {loading && (
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                {t`Loading dashboard...`}
-              </div>
-            )}
-            {!loading && widgets.length === 0 && (
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                {!currentDashboardId
-                  ? t`Create or select a dashboard to get started.`
-                  : canEdit
-                    ? t`Right-click to add your first widget.`
-                    : t`No widgets yet.`}
-              </div>
-            )}
-            {!loading && widgets.length > 0 && (
-              <ResponsiveGridLayout
-                layouts={layouts}
-                breakpoints={DASHBOARD_BREAKPOINTS}
-                cols={DASHBOARD_COLS}
-                width={width}
-                rowHeight={currentGridSettings.rowHeight}
-                margin={currentGridSettings.margin}
-                containerPadding={currentGridSettings.containerPadding}
-                dragConfig={{
-                  enabled: dragEnabled,
-                  handle: dragHandleSelector,
-                  threshold: 3,
-                }}
-                resizeConfig={{
-                  enabled: canEdit,
-                  handles: ['se'],
-                }}
-                onLayoutChange={handleLayoutChange}
-                onDragStart={handleGridDragStart}
-                onDragStop={handleGridDragStop}
-                onResizeStop={handleResizeStop}
-                onBreakpointChange={handleBreakpointChange}
-                measureBeforeMount={false}
-                compactor={gridCompactor}
-              >
-                {widgets.map((widget) => (
-                  <div key={widget.id} className="dashboard-grid-item h-full w-full">
-                    {renderWidget(widget)}
-                  </div>
-                ))}
-              </ResponsiveGridLayout>
-            )}
-          </div>
-        </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onSelect={handleAddWidget} disabled={!canAddWidget}>
-            {t`Add widget`}
-          </ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+      {isTouchReorderMode ? (
+        dashboardCanvas
+      ) : (
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            {dashboardCanvas}
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem onSelect={handleAddWidget} disabled={!canAddWidget}>
+              {t`Add widget`}
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      )}
 
       <WidgetEditorDialog
         open={editorOpen}
@@ -826,6 +870,7 @@ const DashboardPage = () => {
         groups={groups}
         initialWidget={editingWidget}
         onSave={handleSaveWidget}
+        onDelete={handleRemoveWidget}
       />
       <Dialog open={createDashboardOpen} onOpenChange={setCreateDashboardOpen}>
         <DialogContent className="w-[95vw] max-w-md">
