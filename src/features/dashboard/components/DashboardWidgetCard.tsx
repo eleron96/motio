@@ -122,6 +122,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const isLaptopViewport = viewportProfile === 'laptop';
   const isDesktopViewport = viewportProfile === 'desktop';
   const isWallViewport = viewportProfile === 'wall';
+  const isMobileViewport = isPhoneViewport || isTabletViewport;
   const compactByBreakpoint = breakpoint === 'xs' || (breakpoint === 'sm' && size === 'small');
   const compactByViewport = compactByBreakpoint || isPhoneViewport || (isTabletViewport && size === 'small');
   const isKpiSmall = widget.type === 'kpi' && size === 'small';
@@ -206,6 +207,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     : 0;
   const isUltraWideChart = chartViewport.width >= CHART_ULTRAWIDE_MIN_WIDTH_PX
     || chartAspectRatio >= CHART_ULTRAWIDE_MIN_ASPECT;
+  const forceBottomLegend = isMobileViewport;
   const sideLegendWidthThreshold = isWallViewport
     ? 860
     : isDesktopViewport
@@ -214,6 +216,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const sideLegendAspectThreshold = isWallViewport ? 1.85 : 1.65;
   const canUseSideLegend = isDesktopViewport || isWallViewport;
   const preferSideLegend = showLegend
+    && !forceBottomLegend
     && canUseSideLegend
     && !isSmall
     && chartViewport.width >= Math.max(CHART_SIDE_LEGEND_MIN_WIDTH_PX, sideLegendWidthThreshold)
@@ -301,7 +304,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const legendCalculatedColumns = preferSideLegend
     ? 1
     : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
-  const legendColumns = Math.max(1, Math.min(legendItems.length || 1, legendCalculatedColumns));
+  const legendMaxColumns = isPhoneViewport ? 1 : isTabletViewport ? 2 : 4;
+  const legendColumns = Math.max(1, Math.min(legendItems.length || 1, legendCalculatedColumns, legendMaxColumns));
+  const bottomLegendMaxHeight = isPhoneViewport ? 84 : isTabletViewport ? 108 : 148;
   const legendPanelClass = isWallViewport
     ? 'w-[min(34%,360px)]'
     : isUltraWideChart
@@ -368,6 +373,23 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           );
         })}
       </div>
+    </div>
+  ) : null;
+  const sideLegendNode = legendList && preferSideLegend ? (
+    <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
+      {legendList}
+    </div>
+  ) : null;
+  const bottomLegendNode = legendList && !preferSideLegend ? (
+    <div
+      ref={legendViewportRef}
+      className={cn(
+        'min-w-0 overflow-y-auto pr-1',
+        isMobileViewport && 'shrink-0 border-t border-border/50 pt-1',
+      )}
+      style={isMobileViewport ? { maxHeight: bottomLegendMaxHeight } : undefined}
+    >
+      {legendList}
     </div>
   ) : null;
 
@@ -601,15 +623,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                   {t`No data`}
                 </div>
               )}
-              {legendList && preferSideLegend && (
-                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
-                  {legendList}
-                </div>
-              )}
+              {sideLegendNode}
             </div>
-            {legendList && !preferSideLegend && (
-              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
-            )}
+            {bottomLegendNode}
             {showFilter && (
               <div className="text-xs text-muted-foreground">
                 {t`Filter: ${filterLabels[widget.statusFilter]}`}
@@ -653,15 +669,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                   {t`No data`}
                 </div>
               )}
-              {legendList && preferSideLegend && (
-                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
-                  {legendList}
-                </div>
-              )}
+              {sideLegendNode}
             </div>
-            {legendList && !preferSideLegend && (
-              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
-            )}
+            {bottomLegendNode}
             {showFilter && (
               <div className="text-xs text-muted-foreground">
                 {t`Filter: ${filterLabels[widget.statusFilter]}`}
@@ -705,15 +715,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                   {t`No data`}
                 </div>
               )}
-              {legendList && preferSideLegend && (
-                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
-                  {legendList}
-                </div>
-              )}
+              {sideLegendNode}
             </div>
-            {legendList && !preferSideLegend && (
-              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
-            )}
+            {bottomLegendNode}
             {showFilter && (
               <div className="text-xs text-muted-foreground">
                 {t`Filter: ${filterLabels[widget.statusFilter]}`}
@@ -767,15 +771,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                   {t`No data`}
                 </div>
               )}
-              {legendList && preferSideLegend && (
-                <div ref={legendViewportRef} className={cn(legendPanelClass, 'min-h-0 overflow-y-auto pr-1')}>
-                  {legendList}
-                </div>
-              )}
+              {sideLegendNode}
             </div>
-            {legendList && !preferSideLegend && (
-              <div ref={legendViewportRef} className="min-w-0 overflow-y-auto pr-1">{legendList}</div>
-            )}
+            {bottomLegendNode}
             {showPeriod && <div className="text-xs text-muted-foreground">{periodLabel}</div>}
             {showFilter && (
               <div className="text-xs text-muted-foreground">
