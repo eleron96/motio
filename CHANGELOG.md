@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.43] - 2026-02-18
 ### Fixed
 - Dashboard: drag виджетов на touch теперь включается только после long-press; исправлено наложение legend на графики на iPhone/iPad; в редактировании задачи timeline восстановлен скролл списка исполнителей.
 
