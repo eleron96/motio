@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.46] - 2026-02-18
+### Changed
+- No documented changes.
+
 ## [0.1.45] - 2026-02-18
 ### Changed
 - Dashboard mobile: disabled text/chart selection and long-press/right-click context menus; widget creation is now available only via the Widget button; added visual long-press feedback for drag enablement and a widget delete button in the edit dialog.
