@@ -93,8 +93,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('viewer');
   const [error, setError] = useState('');
-  const [warning, setWarning] = useState('');
-  const [actionLink, setActionLink] = useState('');
   const [inviteResult, setInviteResult] = useState<{ email: string; status: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [cancelingToken, setCancelingToken] = useState<string | null>(null);
@@ -284,8 +282,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const handleInvite = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
-    setWarning('');
-    setActionLink('');
     setInviteResult(null);
     if (!email.trim()) return;
 
@@ -298,12 +294,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     );
     if (result.error) {
       setError(result.error);
-    }
-    if (result.warning) {
-      setWarning(result.warning);
-    }
-    if (result.actionLink) {
-      setActionLink(result.actionLink);
     }
     if (!result.error) {
       setInviteResult({
@@ -478,7 +468,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
           </Popover>
         </div>
 
-        {(error || warning || actionLink || inviteResult) && (
+        {(error || inviteResult) && (
           <div className="space-y-2">
             {inviteResult && (
               <Alert>
@@ -496,22 +486,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
               <Alert variant="destructive">
                 <AlertTitle>{t`Action failed`}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {warning && (
-              <Alert>
-                <AlertTitle>{t`Invite created`}</AlertTitle>
-                <AlertDescription>{warning}</AlertDescription>
-              </Alert>
-            )}
-
-            {actionLink && (
-              <Alert>
-                <AlertTitle>{t`Invite link created`}</AlertTitle>
-                <AlertDescription>
-                  {t`Copy this link if the email did not send:`} {actionLink}
-                </AlertDescription>
               </Alert>
             )}
           </div>

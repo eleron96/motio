@@ -25,6 +25,9 @@ const inviteTtlMs = Number.isFinite(inviteTtlDays) && inviteTtlDays > 0
 
 const resendApiKey = Deno.env.get("RESEND_API_KEY") ?? "";
 const resendFrom = Deno.env.get("RESEND_FROM") ?? "Workspace <no-reply@example.com>";
+const inviteRequireEmailDelivery = (Deno.env.get("INVITE_REQUIRE_EMAIL_DELIVERY") ?? "true")
+  .trim()
+  .toLowerCase() !== "false";
 
 const keycloakConfig = getKeycloakConfig();
 const keycloakIssuer = `${keycloakConfig.baseUrl}/realms/${keycloakConfig.realm}`;
@@ -304,6 +307,7 @@ const handleCreateInvite = async (
   }
 
   let inviteToken = "";
+  let inviteCreatedInThisRequest = false;
   if (existingInvite?.id) {
     const { error: inviteUpdateError } = await supabaseAdmin
       .from("workspace_invites")
@@ -368,6 +372,7 @@ const handleCreateInvite = async (
       inviteToken = racedInvite.token;
     } else {
       inviteToken = insertedInvite?.token ?? "";
+      inviteCreatedInThisRequest = true;
     }
   }
 
@@ -378,8 +383,23 @@ const handleCreateInvite = async (
   const inviteLink = `${appUrl}/invite/${inviteToken}`;
   const workspaceName = workspace?.name ?? "workspace";
   const emailResult = await sendInviteEmail(email, workspaceName, inviteLink);
-  if (!emailResult.sent && emailResult.warning) {
-    warnings.push(emailResult.warning);
+  if (!emailResult.sent) {
+    if (inviteRequireEmailDelivery) {
+      if (inviteCreatedInThisRequest) {
+        await supabaseAdmin
+          .from("workspace_invites")
+          .update({ revoked_at: new Date().toISOString(), revoked_reason: "canceled" })
+          .eq("token", inviteToken)
+          .is("accepted_at", null)
+          .is("revoked_at", null);
+      }
+      return jsonResponse({
+        error: emailResult.warning ?? "Failed to send invite email.",
+      }, 503);
+    }
+    if (emailResult.warning) {
+      warnings.push(emailResult.warning);
+    }
   }
 
   return jsonResponse({
