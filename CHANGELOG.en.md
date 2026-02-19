@@ -7,6 +7,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- The timeline Today button is now more readable (contrast/shadow/position) and appears immediately once the current day leaves the visible range.
+- In calendar mode, clicking a milestone now opens the weekly timeline and animates the selected date highlight.
+- Milestone modal on the timeline now allows date editing when updating an existing milestone.
+
 ## [0.1.56] - 2026-02-19
 ### Changed
 - When approaching timeline edges, the date window now expands again, allowing continuous scrolling to past/future beyond the two-month viewport.

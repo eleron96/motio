@@ -157,17 +157,21 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     const focusPx = scrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
     return Math.min(visibleDays.length - 1, Math.max(0, Math.floor(focusPx / dayWidth)));
   }, [scrollLeft, viewportWidth, dayWidth, visibleDays.length]);
-  const focusDate = useMemo(() => {
-    if (focusIndex < 0 || focusIndex >= visibleDays.length) return null;
-    return visibleDays[focusIndex];
-  }, [focusIndex, visibleDays]);
   useEffect(() => {
     lastRenderedFocusIndexRef.current = focusIndex;
   }, [focusIndex]);
   const showTodayButton = useMemo(() => {
-    if (!focusDate) return false;
-    return Math.abs(differenceInDays(focusDate, new Date())) > 7;
-  }, [focusDate]);
+    if (!viewportWidth || dayWidth === 0 || visibleDays.length === 0) return false;
+    const today = new Date();
+    const todayIndex = visibleDays.findIndex((day) => isSameDay(day, today));
+    if (todayIndex < 0) return true;
+
+    const todayStart = todayIndex * dayWidth;
+    const todayEnd = todayStart + dayWidth;
+    const viewportStart = scrollLeft;
+    const viewportEnd = scrollLeft + viewportWidth;
+    return todayEnd <= viewportStart || todayStart >= viewportEnd;
+  }, [dayWidth, scrollLeft, viewportWidth, visibleDays]);
   const scrollEndTimerRef = useRef<number | null>(null);
   const pendingScrollDateRef = useRef<string | null>(null);
   const lastEdgeReanchorAtRef = useRef(0);
@@ -1079,7 +1083,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         <Button
           type="button"
           variant="secondary"
-          className="absolute bottom-4 right-4 z-30 shadow-md"
+          className="absolute bottom-6 right-6 z-30 border border-border/80 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.35)] backdrop-blur transition-shadow hover:shadow-[0_18px_40px_rgba(15,23,42,0.45)]"
           onClick={handleJumpToToday}
         >
           {t`Today`}
@@ -1092,6 +1096,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         date={milestoneDialogDate}
         milestone={editingMilestone}
         canEdit={canEdit}
+        allowDateEdit={Boolean(editingMilestone)}
       />
     </div>
   );

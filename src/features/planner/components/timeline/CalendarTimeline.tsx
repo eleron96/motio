@@ -441,13 +441,13 @@ export const CalendarTimeline: React.FC = () => {
     }
   }, [currentDate, months.length]);
 
-  const handleDateClick = (day: Date) => {
+  const handleDateClick = useCallback((day: Date) => {
     const nextDate = format(day, 'yyyy-MM-dd');
     setTimelineAttentionDate(nextDate);
     setCurrentDate(nextDate);
     setViewMode('week');
     requestScrollToDate(nextDate);
-  };
+  }, [requestScrollToDate, setCurrentDate, setTimelineAttentionDate, setViewMode]);
 
   const handleMilestoneDialogChange = useCallback((open: boolean) => {
     setMilestoneDialogOpen(open);
@@ -564,11 +564,15 @@ export const CalendarTimeline: React.FC = () => {
                                               const dotColor = hexToRgba(color, 0.8) ?? color;
 
                                               return (
-                                                <span
+                                                <button
                                                   key={milestone.id}
+                                                  type="button"
                                                   className="h-2 w-2 rounded-full"
                                                   style={{ backgroundColor: dotColor }}
-                                                  onClick={(event) => event.stopPropagation()}
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleDateClick(parseISO(milestone.date));
+                                                  }}
                                                   onContextMenu={(event) => {
                                                     event.preventDefault();
                                                     event.stopPropagation();
@@ -684,6 +688,7 @@ export const CalendarTimeline: React.FC = () => {
           date={milestoneDialogDate}
           milestone={editingMilestone}
           canEdit={canEdit}
+          allowDateEdit={Boolean(editingMilestone)}
         />
       </TooltipProvider>
     </div>
