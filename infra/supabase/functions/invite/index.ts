@@ -5,6 +5,7 @@ import {
   ensureKeycloakReady,
   findKeycloakUserByEmail,
   getKeycloakConfig,
+  sendKeycloakExecuteActionsEmail,
   syncUserRealmRoles,
 } from "../_shared/keycloak.ts";
 import {
@@ -22,12 +23,6 @@ const inviteTtlDays = Number(Deno.env.get("INVITE_TTL_DAYS") ?? "14");
 const inviteTtlMs = Number.isFinite(inviteTtlDays) && inviteTtlDays > 0
   ? Math.floor(inviteTtlDays * 24 * 60 * 60 * 1000)
   : 14 * 24 * 60 * 60 * 1000;
-
-const resendApiKey = Deno.env.get("RESEND_API_KEY") ?? "";
-const resendFrom = Deno.env.get("RESEND_FROM") ?? "Workspace <no-reply@example.com>";
-const inviteRequireEmailDelivery = (Deno.env.get("INVITE_REQUIRE_EMAIL_DELIVERY") ?? "true")
-  .trim()
-  .toLowerCase() !== "false";
 
 const keycloakConfig = getKeycloakConfig();
 const keycloakIssuer = `${keycloakConfig.baseUrl}/realms/${keycloakConfig.realm}`;
@@ -87,37 +82,6 @@ const getAuthUser = async (req: Request) => {
     return { error: "Unauthorized", status: 401 };
   }
   return { user: authData.user };
-};
-
-const sendInviteEmail = async (email: string, workspaceName: string, link: string) => {
-  if (!resendApiKey) {
-    return { sent: false, warning: "RESEND_API_KEY is not configured." };
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: resendFrom,
-      to: [email],
-      subject: `You were invited to ${workspaceName}`,
-      html: `
-        <p>You were invited to join <strong>${workspaceName}</strong>.</p>
-        <p>Open application: <a href="${link}">${link}</a></p>
-        <p>Authentication is handled by Keycloak. Use your Keycloak account to sign in.</p>
-      `,
-    }),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    return { sent: false, warning: text || "Invite email failed." };
-  }
-
-  return { sent: true };
 };
 
 const buildDesiredRealmRoles = async (userId: string) => {
@@ -221,12 +185,6 @@ const handleCreateInvite = async (
     return jsonResponse({ error: adminCheck.error }, 403);
   }
 
-  const { data: workspace } = await supabaseAdmin
-    .from("workspaces")
-    .select("name")
-    .eq("id", workspaceId)
-    .maybeSingle();
-
   if (groupId) {
     const { data: group, error: groupError } = await supabaseAdmin
       .from("member_groups")
@@ -271,8 +229,6 @@ const handleCreateInvite = async (
       warning: "User already has access to this workspace.",
     });
   }
-
-  const warnings: string[] = [];
 
   const nowIso = new Date().toISOString();
   const expiresAt = createInviteExpiryIso();
@@ -381,33 +337,30 @@ const handleCreateInvite = async (
   }
 
   const inviteLink = `${appUrl}/invite/${inviteToken}`;
-  const workspaceName = workspace?.name ?? "workspace";
-  const emailResult = await sendInviteEmail(email, workspaceName, inviteLink);
-  if (!emailResult.sent) {
-    if (inviteRequireEmailDelivery) {
-      if (inviteCreatedInThisRequest) {
-        await supabaseAdmin
-          .from("workspace_invites")
-          .update({ revoked_at: new Date().toISOString(), revoked_reason: "canceled" })
-          .eq("token", inviteToken)
-          .is("accepted_at", null)
-          .is("revoked_at", null);
-      }
-      return jsonResponse({
-        error: emailResult.warning ?? "Failed to send invite email.",
-      }, 503);
+  const keycloakEmailResult = await sendKeycloakExecuteActionsEmail(
+    keycloakConfig,
+    linked.keycloakUserId,
+    [],
+    { redirectUri: inviteLink },
+  );
+  if ("error" in keycloakEmailResult) {
+    if (inviteCreatedInThisRequest) {
+      await supabaseAdmin
+        .from("workspace_invites")
+        .update({ revoked_at: new Date().toISOString(), revoked_reason: "canceled" })
+        .eq("token", inviteToken)
+        .is("accepted_at", null)
+        .is("revoked_at", null);
     }
-    if (emailResult.warning) {
-      warnings.push(emailResult.warning);
-    }
+    return jsonResponse({
+      error: `Invite email delivery failed: ${keycloakEmailResult.error}`,
+    }, 503);
   }
 
   return jsonResponse({
     success: true,
-    actionLink: inviteLink,
     inviteEmail: email,
     inviteStatus: "pending",
-    warning: warnings.length > 0 ? warnings.join(" ") : undefined,
   });
 };
 

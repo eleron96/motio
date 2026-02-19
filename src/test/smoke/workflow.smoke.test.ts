@@ -183,8 +183,8 @@ describe('Smoke: key user workflows', () => {
     supabaseMocks.invoke.mockResolvedValue({
       data: {
         success: true,
-        actionLink: 'https://example.com/invite',
-        warning: 'Email provider disabled',
+        inviteEmail: 'member@example.com',
+        inviteStatus: 'pending',
       },
       error: null,
       response: undefined,
@@ -195,8 +195,8 @@ describe('Smoke: key user workflows', () => {
       .inviteMember('member@example.com', 'editor', 'group-1');
 
     expect(result).toEqual({
-      actionLink: 'https://example.com/invite',
-      warning: 'Email provider disabled',
+      inviteEmail: 'member@example.com',
+      inviteStatus: 'pending',
     });
     expect(supabaseMocks.invoke).toHaveBeenCalledWith('invite', {
       body: {

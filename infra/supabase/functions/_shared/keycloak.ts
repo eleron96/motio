@@ -457,11 +457,19 @@ export const sendKeycloakExecuteActionsEmail = async (
   config: KeycloakConfig,
   userId: string,
   actions: string[] = ["UPDATE_PASSWORD"],
+  options?: {
+    clientId?: string;
+    redirectUri?: string;
+    lifespanSeconds?: number;
+  },
 ) => {
   const query = new URLSearchParams({
-    client_id: config.appClientId,
-    redirect_uri: config.appRedirectUri,
+    client_id: options?.clientId ?? config.appClientId,
+    redirect_uri: options?.redirectUri ?? config.appRedirectUri,
   });
+  if (typeof options?.lifespanSeconds === "number" && Number.isFinite(options.lifespanSeconds) && options.lifespanSeconds > 0) {
+    query.set("lifespan", String(Math.floor(options.lifespanSeconds)));
+  }
 
   const response = await keycloakRequest(
     config,
