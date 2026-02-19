@@ -50,14 +50,6 @@ interface TimelineGridProps {
   onSidebarWidthReset?: () => void;
 }
 
-const countUniqueTaskUnits = (tasks: Task[]) => {
-  const units = new Set<string>();
-  tasks.forEach((task) => {
-    units.add(task.repeatId ? `r:${task.repeatId}` : `t:${task.id}`);
-  });
-  return units.size;
-};
-
 const clampTimelineSidebarWidth = (value: number) => (
   Math.max(TIMELINE_SIDEBAR_MIN_WIDTH, Math.min(TIMELINE_SIDEBAR_MAX_WIDTH, value))
 );
@@ -84,7 +76,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     scrollTargetDate,
     scrollRequestId,
     filters,
-    assigneeTaskCounts,
     highlightedTaskId,
     timelineAttentionDate,
     setTimelineAttentionDate,
@@ -953,11 +944,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     {row.name}
                   </span>
                 </div>
-                <span className="shrink-0 pl-2 text-xs text-muted-foreground">
-                  {groupMode === 'assignee' && row.id !== 'unassigned'
-                    ? (assigneeTaskCounts[row.id] ?? countUniqueTaskUnits(row.tasks))
-                    : row.tasks.length}
-                </span>
+                {groupMode === 'project' && (
+                  <span className="shrink-0 pl-2 text-xs text-muted-foreground">
+                    {row.tasks.length}
+                  </span>
+                )}
               </div>
             ))}
             {sidebarPad > 0 && (
