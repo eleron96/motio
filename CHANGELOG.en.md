@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.56] - 2026-02-19
 ### Changed
 - When approaching timeline edges, the date window now expands again, allowing continuous scrolling to past/future beyond the two-month viewport.
 - deploy-remote no longer runs firewall hardening by default; run it explicitly with RUN_FIREWALL_HARDEN=1.

@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.56] - 2026-02-19
 ### Changed
 - Таймлайн при приближении к краям снова расширяет окно дат, поэтому можно непрерывно скроллить в прошлое и будущее за пределы двух месяцев.
 - В deploy-remote отключили обязательный firewall hardening по умолчанию; запуск доступен по флагу RUN_FIREWALL_HARDEN=1.
