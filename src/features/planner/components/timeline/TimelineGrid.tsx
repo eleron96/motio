@@ -115,6 +115,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   } | null>(null);
   const lastDragTimeRef = useRef(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const lastRenderedFocusIndexRef = useRef(-1);
   const scrollSyncFrameRef = useRef<number | null>(null);
   const pendingScrollLeftRef = useRef<number | null>(null);
   const [isDragScrolling, setIsDragScrolling] = useState(false);
@@ -147,6 +148,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     if (focusIndex < 0 || focusIndex >= visibleDays.length) return null;
     return visibleDays[focusIndex];
   }, [focusIndex, visibleDays]);
+  useEffect(() => {
+    lastRenderedFocusIndexRef.current = focusIndex;
+  }, [focusIndex]);
   const showTodayButton = useMemo(() => {
     if (!focusDate) return false;
     return Math.abs(differenceInDays(focusDate, new Date())) > 7;
@@ -355,12 +359,24 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     syncingRef.current = e.currentTarget;
     const newScrollLeft = e.currentTarget.scrollLeft;
     pendingScrollLeftRef.current = newScrollLeft;
-    if (scrollSyncFrameRef.current === null) {
+    let nextFocusIndex = -1;
+    if (visibleDays.length > 0 && dayWidth > 0) {
+      const focusPx = newScrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
+      nextFocusIndex = Math.min(
+        visibleDays.length - 1,
+        Math.max(0, Math.floor(focusPx / dayWidth)),
+      );
+    }
+    const shouldUpdateScrollState = nextFocusIndex < 0 || nextFocusIndex !== lastRenderedFocusIndexRef.current;
+    if (nextFocusIndex >= 0) {
+      lastRenderedFocusIndexRef.current = nextFocusIndex;
+    }
+    if (shouldUpdateScrollState && scrollSyncFrameRef.current === null) {
       scrollSyncFrameRef.current = window.requestAnimationFrame(() => {
         scrollSyncFrameRef.current = null;
         const pending = pendingScrollLeftRef.current;
         if (pending !== null) {
-          setScrollLeft(pending);
+          setScrollLeft((prev) => (prev === pending ? prev : pending));
         }
       });
     }
@@ -386,18 +402,17 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       return;
     }
 
-    if (visibleDays.length > 0 && dayWidth > 0) {
-      const focusPx = newScrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
-      const index = Math.min(
-        visibleDays.length - 1,
-        Math.max(0, Math.floor(focusPx / dayWidth)),
-      );
-      const date = format(visibleDays[index], 'yyyy-MM-dd');
+    if (nextFocusIndex >= 0) {
+      const date = format(visibleDays[nextFocusIndex], 'yyyy-MM-dd');
       pendingScrollDateRef.current = date;
       if (scrollEndTimerRef.current) {
         window.clearTimeout(scrollEndTimerRef.current);
       }
       scrollEndTimerRef.current = window.setTimeout(() => {
+        const latestScrollLeft = pendingScrollLeftRef.current;
+        if (typeof latestScrollLeft === 'number') {
+          setScrollLeft((prev) => (prev === latestScrollLeft ? prev : latestScrollLeft));
+        }
         const nextDate = pendingScrollDateRef.current;
         if (nextDate && nextDate !== currentDate) {
           skipAutoCenterRef.current = true;
@@ -518,6 +533,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       Math.max(0, (index - LEFT_CONTEXT_DAYS) * dayWidth),
     );
     container.scrollLeft = targetScroll;
+    pendingScrollLeftRef.current = targetScroll;
+    lastRenderedFocusIndexRef.current = index;
     setScrollLeft(targetScroll);
   }, [dayWidth]);
 
@@ -633,6 +650,37 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     
     return rows;
   }, [filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, rowHeights, tasksByRow]);
+
+  const rowTaskElementsById = useMemo(() => {
+    const elementsByRowId = new Map<string, React.ReactNode[]>();
+    displayRows.forEach((row) => {
+      const rowAssigneeId = groupMode === 'assignee' && row.id !== 'unassigned' ? row.id : null;
+      const taskElements: React.ReactNode[] = [];
+      row.tasks.forEach((task) => {
+        const position = getTaskPosition(
+          task.startDate,
+          task.endDate,
+          visibleDays,
+          dayWidth,
+        );
+        if (!position) return;
+        taskElements.push(
+          <TaskBar
+            key={task.id}
+            task={task}
+            position={position}
+            dayWidth={dayWidth}
+            visibleDays={visibleDays}
+            lane={task.lane}
+            canEdit={canEdit}
+            rowAssigneeId={rowAssigneeId}
+          />,
+        );
+      });
+      elementsByRowId.set(row.id, taskElements);
+    });
+    return elementsByRowId;
+  }, [canEdit, dayWidth, displayRows, groupMode, visibleDays]);
 
   useLayoutEffect(() => {
     const sidebar = sidebarRef.current;
@@ -986,27 +1034,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 canEdit={canEdit}
                 onCreateTask={handleCreateTaskAt}
               >
-                {row.tasks.map(task => {
-                  const position = getTaskPosition(
-                    task.startDate,
-                    task.endDate,
-                    visibleDays,
-                    dayWidth
-                  );
-                  if (!position) return null;
-                  return (
-                    <TaskBar
-                      key={task.id}
-                      task={task}
-                      position={position}
-                      dayWidth={dayWidth}
-                      visibleDays={visibleDays}
-                      lane={task.lane}
-                      canEdit={canEdit}
-                      rowAssigneeId={groupMode === 'assignee' && row.id !== 'unassigned' ? row.id : null}
-                    />
-                  );
-                })}
+                {rowTaskElementsById.get(row.id)}
               </TimelineRow>
             ))}
           </div>

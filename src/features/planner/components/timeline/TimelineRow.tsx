@@ -23,7 +23,7 @@ interface TimelineRowProps {
   onCreateTask?: (date: string, rowId: string) => void;
 }
 
-export const TimelineRow: React.FC<TimelineRowProps> = ({
+const TimelineRowBase: React.FC<TimelineRowProps> = ({
   rowId,
   rowIndex,
   visibleDays,
@@ -107,3 +107,18 @@ export const TimelineRow: React.FC<TimelineRowProps> = ({
     </div>
   );
 };
+
+const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps) => (
+  prev.rowId === next.rowId
+  && prev.rowIndex === next.rowIndex
+  && prev.visibleDays === next.visibleDays
+  && prev.dayWidth === next.dayWidth
+  && prev.viewMode === next.viewMode
+  && prev.height === next.height
+  && prev.children === next.children
+  && prev.canEdit === next.canEdit
+  && prev.onCreateTask === next.onCreateTask
+);
+
+export const TimelineRow = React.memo(TimelineRowBase, areTimelineRowPropsEqual);
+TimelineRow.displayName = 'TimelineRow';

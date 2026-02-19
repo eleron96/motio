@@ -134,6 +134,9 @@ const VISIBLE_POLL_BASE_MS = 75_000;
 const VISIBLE_POLL_MAX_MS = 8 * 60_000;
 const SENT_UPDATES_REFRESH_MS = 10 * 60_000;
 const POLL_JITTER_RATIO = 0.2;
+const REALTIME_REFRESH_DEBOUNCE_MS = 900;
+
+type PollingSource = 'initial' | 'timer' | 'focus' | 'open' | 'realtime';
 
 export const InviteNotifications: React.FC = () => {
   const navigate = useNavigate();
@@ -161,10 +164,11 @@ export const InviteNotifications: React.FC = () => {
   const inviteReactionSeenRef = useRef<Set<string>>(new Set());
   const inviteReactionSessionStartedAtRef = useRef<number>(Date.now());
   const pollingTimerRef = useRef<number | null>(null);
+  const realtimeRefreshTimerRef = useRef<number | null>(null);
   const pollingFailureCountRef = useRef(0);
   const pollingInFlightRef = useRef(false);
   const lastSentUpdatesSyncAtRef = useRef(0);
-  const runPollingCycleRef = useRef<(source: 'initial' | 'timer' | 'focus' | 'open') => void>(() => {});
+  const runPollingCycleRef = useRef<(source: PollingSource) => void>(() => {});
 
   const inviteReactionStorageKey = user?.id ? `invite-reactions-seen-${user.id}` : null;
   const inviteReactionSessionStorageKey = user?.id ? `invite-reactions-session-started-${user.id}` : null;
@@ -274,6 +278,13 @@ export const InviteNotifications: React.FC = () => {
     pollingTimerRef.current = null;
   }, []);
 
+  const clearRealtimeRefreshTimer = useCallback(() => {
+    if (realtimeRefreshTimerRef.current !== null && typeof window !== 'undefined') {
+      window.clearTimeout(realtimeRefreshTimerRef.current);
+    }
+    realtimeRefreshTimerRef.current = null;
+  }, []);
+
   const scheduleNextPollingCycle = useCallback(() => {
     if (!user || typeof window === 'undefined') return;
     if (typeof document !== 'undefined' && document.hidden) return;
@@ -290,18 +301,18 @@ export const InviteNotifications: React.FC = () => {
     }, delayMs);
   }, [clearPollingTimer, user]);
 
-  const runPollingCycle = useCallback(async (
-    source: 'initial' | 'timer' | 'focus' | 'open',
-  ) => {
+  const runPollingCycle = useCallback(async (source: PollingSource) => {
     if (!user || pollingInFlightRef.current) return;
     if (source === 'timer' && typeof document !== 'undefined' && document.hidden) return;
 
     pollingInFlightRef.current = true;
     const now = Date.now();
-    const includeSentUpdates = source !== 'timer'
-      || now - lastSentUpdatesSyncAtRef.current >= SENT_UPDATES_REFRESH_MS;
+    const includeSentUpdates = source === 'realtime'
+      ? false
+      : source !== 'timer'
+        || now - lastSentUpdatesSyncAtRef.current >= SENT_UPDATES_REFRESH_MS;
     const success = await loadInbox({
-      showLoading: source !== 'timer',
+      showLoading: source !== 'timer' && source !== 'realtime',
       includeSentUpdates,
     });
     pollingInFlightRef.current = false;
@@ -325,6 +336,15 @@ export const InviteNotifications: React.FC = () => {
       void runPollingCycle(source);
     };
   }, [runPollingCycle]);
+
+  const scheduleRealtimeRefresh = useCallback(() => {
+    if (!user || typeof window === 'undefined') return;
+    clearRealtimeRefreshTimer();
+    realtimeRefreshTimerRef.current = window.setTimeout(() => {
+      realtimeRefreshTimerRef.current = null;
+      runPollingCycleRef.current('realtime');
+    }, REALTIME_REFRESH_DEBOUNCE_MS);
+  }, [clearRealtimeRefreshTimer, user]);
 
   useEffect(() => {
     if (!inviteReactionSessionStorageKey || typeof window === 'undefined') {
@@ -395,11 +415,44 @@ export const InviteNotifications: React.FC = () => {
 
   useEffect(() => {
     if (!user) {
+      clearRealtimeRefreshTimer();
+      return;
+    }
+
+    const notificationsChannel = supabase
+      .channel(`notifications-inbox-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_notifications',
+          filter: `recipient_user_id=eq.${user.id}`,
+        },
+        () => {
+          scheduleRealtimeRefresh();
+        },
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          scheduleRealtimeRefresh();
+        }
+      });
+
+    return () => {
+      clearRealtimeRefreshTimer();
+      void supabase.removeChannel(notificationsChannel);
+    };
+  }, [clearRealtimeRefreshTimer, scheduleRealtimeRefresh, user]);
+
+  useEffect(() => {
+    if (!user) {
       pollingFailureCountRef.current = 0;
       pollingInFlightRef.current = false;
       lastSentUpdatesSyncAtRef.current = 0;
+      clearRealtimeRefreshTimer();
     }
-  }, [user]);
+  }, [clearRealtimeRefreshTimer, user]);
 
   const handleAccept = useCallback(async (token: string) => {
     const acceptedInvite = pendingInvites.find((invite) => invite.token === token) ?? null;
@@ -426,12 +479,8 @@ export const InviteNotifications: React.FC = () => {
     });
     setOpen(false);
     setBusyToken(null);
-    if (typeof window !== 'undefined') {
-      window.setTimeout(() => {
-        window.location.reload();
-      }, 650);
-    }
-  }, [acceptInvite, currentWorkspaceId, fetchWorkspaces, pendingInvites, setCurrentWorkspaceId]);
+    void runPollingCycle('realtime');
+  }, [acceptInvite, currentWorkspaceId, fetchWorkspaces, pendingInvites, runPollingCycle, setCurrentWorkspaceId]);
 
   const handleDecline = useCallback(async (token: string) => {
     setBusyToken(token);

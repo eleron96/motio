@@ -96,7 +96,7 @@ const priorityStyles: Record<TaskPriority, { className: string; color: string }>
   high: { className: 'text-red-600', color: '#dc2626' },
 };
 
-export const TaskBar: React.FC<TaskBarProps> = ({
+const TaskBarBase: React.FC<TaskBarProps> = ({
   task,
   position,
   dayWidth,
@@ -603,3 +603,17 @@ export const TaskBar: React.FC<TaskBarProps> = ({
     </ContextMenu>
   );
 };
+
+const areTaskBarPropsEqual = (prev: TaskBarProps, next: TaskBarProps) => (
+  prev.task === next.task
+  && prev.position.left === next.position.left
+  && prev.position.width === next.position.width
+  && prev.dayWidth === next.dayWidth
+  && prev.visibleDays === next.visibleDays
+  && prev.lane === next.lane
+  && prev.canEdit === next.canEdit
+  && prev.rowAssigneeId === next.rowAssigneeId
+);
+
+export const TaskBar = React.memo(TaskBarBase, areTaskBarPropsEqual);
+TaskBar.displayName = 'TaskBar';
