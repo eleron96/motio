@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { Button } from '@/shared/ui/button';
@@ -18,7 +18,6 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
@@ -70,6 +69,11 @@ const resolveDefaultStatusId = (statuses: Status[]) => {
 };
 
 const normalizeProjectQuery = (value: string) => value.trim().toLowerCase();
+
+const LazyRichTextEditor = lazy(async () => {
+  const module = await import('@/features/planner/components/RichTextEditor');
+  return { default: module.RichTextEditor };
+});
 
 export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   open,
@@ -750,16 +754,26 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
           
           <div className="space-y-2">
             <Label htmlFor="new-description">{t`Description`}</Label>
-            <RichTextEditor
-              id="new-description"
-              value={description}
-              workspaceId={currentWorkspaceId}
-              onChange={(value) => {
-                markChanged();
-                setDescription(value);
-              }}
-              placeholder={t`Add a description...`}
-            />
+            {open && (
+              <Suspense
+                fallback={(
+                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                    {t`Loading editor...`}
+                  </div>
+                )}
+              >
+                <LazyRichTextEditor
+                  id="new-description"
+                  value={description}
+                  workspaceId={currentWorkspaceId}
+                  onChange={(value) => {
+                    markChanged();
+                    setDescription(value);
+                  }}
+                  placeholder={t`Add a description...`}
+                />
+              </Suspense>
+            )}
           </div>
 
           <div className="space-y-2">

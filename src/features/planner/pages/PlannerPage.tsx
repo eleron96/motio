@@ -14,10 +14,17 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { Filters } from '@/features/planner/types/planner';
+import { Filters, ViewMode } from '@/features/planner/types/planner';
 import { format } from 'date-fns';
 import { Navigate } from 'react-router-dom';
 import { t } from '@lingui/macro';
+
+type AddTaskDefaults = {
+  startDate: string;
+  endDate: string;
+  projectId?: string | null;
+  assigneeIds?: string[];
+};
 
 const normalizeFilterIds = (value: unknown) => (
   Array.isArray(value)
@@ -49,6 +56,57 @@ const getTimelineSidebarWidthStorageKey = (userId: string, workspaceId: string) 
   `planner-timeline-sidebar-width-${userId}-${workspaceId}`
 );
 
+interface PlannerTimelineAreaProps {
+  viewMode: ViewMode;
+  onCreateTaskRequest: (defaults: AddTaskDefaults) => void;
+  timelineSidebarWidth: number | null;
+  onTimelineSidebarWidthChange: (width: number) => void;
+  onTimelineSidebarWidthReset: () => void;
+  showLoadingOverlay: boolean;
+  plannerLoading: boolean;
+  plannerError: string | null;
+}
+
+const PlannerTimelineArea = React.memo(({
+  viewMode,
+  onCreateTaskRequest,
+  timelineSidebarWidth,
+  onTimelineSidebarWidthChange,
+  onTimelineSidebarWidthReset,
+  showLoadingOverlay,
+  plannerLoading,
+  plannerError,
+}: PlannerTimelineAreaProps) => (
+  <div className="flex-1 flex flex-col overflow-hidden min-h-0 timeline-surface">
+    <TimelineControls />
+    <div className="relative flex-1 overflow-hidden min-h-0">
+      {viewMode === 'calendar'
+        ? <CalendarTimeline />
+        : (
+          <TimelineGrid
+            onCreateTask={onCreateTaskRequest}
+            sidebarWidth={timelineSidebarWidth}
+            onSidebarWidthChange={onTimelineSidebarWidthChange}
+            onSidebarWidthReset={onTimelineSidebarWidthReset}
+          />
+        )
+      }
+      {showLoadingOverlay && (
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-background/60">
+          {t`Loading workspace...`}
+        </div>
+      )}
+      {!plannerLoading && plannerError && (
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-destructive bg-background/70">
+          {plannerError}
+        </div>
+      )}
+    </div>
+  </div>
+));
+
+PlannerTimelineArea.displayName = 'PlannerTimelineArea';
+
 const PlannerPage = () => {
   const [filterCollapsed, setFilterCollapsed] = useState(true);
   const [filterWidth, setFilterWidth] = useState(320);
@@ -56,12 +114,7 @@ const PlannerPage = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
-  const [addTaskDefaults, setAddTaskDefaults] = useState<{
-    startDate: string;
-    endDate: string;
-    projectId?: string | null;
-    assigneeIds?: string[];
-  } | null>(null);
+  const [addTaskDefaults, setAddTaskDefaults] = useState<AddTaskDefaults | null>(null);
   const loadWorkspaceData = usePlannerStore((state) => state.loadWorkspaceData);
   const plannerLoading = usePlannerStore((state) => state.loading);
   const plannerError = usePlannerStore((state) => state.error);
@@ -236,12 +289,7 @@ const PlannerPage = () => {
     };
   }, [filterCollapsed]);
 
-  const handleCreateTaskRequest = useCallback((defaults: {
-    startDate: string;
-    endDate: string;
-    projectId?: string | null;
-    assigneeIds?: string[];
-  }) => {
+  const handleCreateTaskRequest = useCallback((defaults: AddTaskDefaults) => {
     setAddTaskDefaults(defaults);
     setShowAddTask(true);
   }, []);
@@ -355,32 +403,16 @@ const PlannerPage = () => {
         </div>
         
         {/* Timeline area */}
-        <div className="flex-1 flex flex-col overflow-hidden min-h-0 timeline-surface">
-          <TimelineControls />
-          <div className="relative flex-1 overflow-hidden min-h-0">
-            {viewMode === 'calendar'
-              ? <CalendarTimeline />
-              : (
-                <TimelineGrid
-                  onCreateTask={handleCreateTaskRequest}
-                  sidebarWidth={timelineSidebarWidth}
-                  onSidebarWidthChange={handleTimelineSidebarWidthChange}
-                  onSidebarWidthReset={handleTimelineSidebarWidthReset}
-                />
-              )
-            }
-            {showLoadingOverlay && (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-background/60">
-                {t`Loading workspace...`}
-              </div>
-            )}
-            {!plannerLoading && plannerError && (
-              <div className="absolute inset-0 flex items-center justify-center text-sm text-destructive bg-background/70">
-                {plannerError}
-              </div>
-            )}
-          </div>
-        </div>
+        <PlannerTimelineArea
+          viewMode={viewMode}
+          onCreateTaskRequest={handleCreateTaskRequest}
+          timelineSidebarWidth={timelineSidebarWidth}
+          onTimelineSidebarWidthChange={handleTimelineSidebarWidthChange}
+          onTimelineSidebarWidthReset={handleTimelineSidebarWidthReset}
+          showLoadingOverlay={showLoadingOverlay}
+          plannerLoading={plannerLoading}
+          plannerError={plannerError}
+        />
       </div>
       
       {/* Panels */}
