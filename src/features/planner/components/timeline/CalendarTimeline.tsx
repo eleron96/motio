@@ -443,10 +443,18 @@ export const CalendarTimeline: React.FC = () => {
 
   const handleDateClick = useCallback((day: Date) => {
     const nextDate = format(day, 'yyyy-MM-dd');
-    setTimelineAttentionDate(nextDate);
+    // Force retrigger of the same attention animation when opening week timeline from calendar.
+    setTimelineAttentionDate(null);
     setCurrentDate(nextDate);
     setViewMode('week');
     requestScrollToDate(nextDate);
+    if (typeof window === 'undefined') {
+      setTimelineAttentionDate(nextDate);
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      setTimelineAttentionDate(nextDate);
+    });
   }, [requestScrollToDate, setCurrentDate, setTimelineAttentionDate, setViewMode]);
 
   const handleMilestoneDialogChange = useCallback((open: boolean) => {

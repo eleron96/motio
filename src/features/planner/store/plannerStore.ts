@@ -432,16 +432,16 @@ export const usePlannerStore = create<PlannerStore>()(
 
         const requestId = get().dataRequestId + 1;
         const previousWorkspaceId = get().workspaceId;
+        const workspaceChanged = Boolean(previousWorkspaceId && previousWorkspaceId !== workspaceId);
         set({
           loading: true,
           error: null,
           workspaceId,
           selectedTaskId: null,
           highlightedTaskId: null,
-          timelineAttentionDate: null,
           dataRequestId: requestId,
-          ...(previousWorkspaceId && previousWorkspaceId !== workspaceId
-            ? { trackedProjectIds: [] }
+          ...(workspaceChanged
+            ? { trackedProjectIds: [], timelineAttentionDate: null }
             : null),
         });
 

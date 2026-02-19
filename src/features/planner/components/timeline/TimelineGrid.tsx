@@ -173,6 +173,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     return todayEnd <= viewportStart || todayStart >= viewportEnd;
   }, [dayWidth, scrollLeft, viewportWidth, visibleDays]);
   const scrollEndTimerRef = useRef<number | null>(null);
+  const highlightedTaskScrollTimerRef = useRef<number | null>(null);
   const pendingScrollDateRef = useRef<string | null>(null);
   const lastEdgeReanchorAtRef = useRef(0);
   const visibleDaysRef = useRef<Date[]>([]);
@@ -558,6 +559,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     if (scrollEndTimerRef.current) {
       window.clearTimeout(scrollEndTimerRef.current);
     }
+    if (highlightedTaskScrollTimerRef.current) {
+      window.clearTimeout(highlightedTaskScrollTimerRef.current);
+    }
     if (scrollSyncFrameRef.current !== null) {
       window.cancelAnimationFrame(scrollSyncFrameRef.current);
     }
@@ -658,6 +662,41 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       scrollToIndex(targetIndex);
     }
   }, [scrollRequestId, scrollTargetDate, scrollToIndex]);
+
+  useEffect(() => {
+    if (!highlightedTaskId || viewMode === 'calendar') return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let cancelled = false;
+    let attempts = 0;
+
+    const scrollToHighlightedTask = () => {
+      if (cancelled) return;
+      const taskElement = container.querySelector<HTMLElement>(`[data-task-id="${highlightedTaskId}"]`);
+      if (taskElement) {
+        const containerRect = container.getBoundingClientRect();
+        const taskRect = taskElement.getBoundingClientRect();
+        const taskCenter = taskRect.left - containerRect.left + container.scrollLeft + taskRect.width / 2;
+        const targetLeft = Math.max(0, taskCenter - container.clientWidth / 2);
+        container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+        return;
+      }
+      if (attempts >= 30) return;
+      attempts += 1;
+      highlightedTaskScrollTimerRef.current = window.setTimeout(scrollToHighlightedTask, 100);
+    };
+
+    scrollToHighlightedTask();
+
+    return () => {
+      cancelled = true;
+      if (highlightedTaskScrollTimerRef.current) {
+        window.clearTimeout(highlightedTaskScrollTimerRef.current);
+        highlightedTaskScrollTimerRef.current = null;
+      }
+    };
+  }, [highlightedTaskId, tasks.length, viewMode]);
   
   // Rows to display (including unassigned if there are unassigned tasks). В режиме по исполнителям — чуть больше отступ между строками пользователей.
   const displayRows = useMemo(() => {

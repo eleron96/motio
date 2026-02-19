@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- In calendar mode, clicking a date now reliably triggers the same top timeline date highlight animation when switching to week view.
+- “Go to task” now performs an extra horizontal timeline scroll to the exact task so it consistently lands in view.
 
 ## [0.1.57] - 2026-02-19
 ### Changed

@@ -349,6 +349,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
       <ContextMenuTrigger asChild>
         <div
           ref={barRef}
+          data-task-id={task.id}
           onMouseDown={(e) => handleMouseDown(e)}
           onMouseEnter={(e) => {
             setIsHovering(true);
