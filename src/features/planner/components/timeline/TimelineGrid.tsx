@@ -18,11 +18,12 @@ const SCROLL_REANCHOR_MIN_SHIFT_DAYS: Record<ViewMode, number> = {
   week: 10,
   calendar: 21,
 };
-const SCROLL_REANCHOR_EDGE_BUFFER_DAYS: Record<ViewMode, number> = {
-  day: 18,
-  week: 24,
-  calendar: 24,
+const SCROLL_REANCHOR_EDGE_TRIGGER_DAYS: Record<ViewMode, number> = {
+  day: 10,
+  week: 14,
+  calendar: 21,
 };
+const EDGE_REANCHOR_COOLDOWN_MS = 450;
 const TIMELINE_SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
 const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
 const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
@@ -149,7 +150,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
   const scrollReanchorMinShiftDays = SCROLL_REANCHOR_MIN_SHIFT_DAYS[viewMode];
-  const scrollReanchorEdgeBufferDays = SCROLL_REANCHOR_EDGE_BUFFER_DAYS[viewMode];
+  const scrollReanchorEdgeTriggerDays = SCROLL_REANCHOR_EDGE_TRIGGER_DAYS[viewMode];
   const currentDateObj = useMemo(() => parseISO(currentDate), [currentDate]);
   const focusIndex = useMemo(() => {
     if (!viewportWidth || dayWidth === 0) return -1;
@@ -169,6 +170,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   }, [focusDate]);
   const scrollEndTimerRef = useRef<number | null>(null);
   const pendingScrollDateRef = useRef<string | null>(null);
+  const lastEdgeReanchorAtRef = useRef(0);
   const visibleDaysRef = useRef<Date[]>([]);
   const ignoreScrollDateUpdateRef = useRef(false);
   const skipAutoCenterRef = useRef(false);
@@ -426,28 +428,34 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           setScrollLeft((prev) => (prev === latestScrollLeft ? prev : latestScrollLeft));
         }
         const nextDate = pendingScrollDateRef.current;
-        const focusIndex = lastRenderedFocusIndexRef.current;
-        if (nextDate && nextDate !== currentDate && focusIndex >= 0) {
-          const days = visibleDaysRef.current;
-          if (days.length > 0) {
-            const rightEdgeStart = Math.max(0, days.length - 1 - scrollReanchorEdgeBufferDays);
-            const nearEdge = focusIndex <= scrollReanchorEdgeBufferDays || focusIndex >= rightEdgeStart;
-            // Re-anchor only near range edges to keep infinite scroll,
-            // but avoid costly date-window rebuild on every stop.
-            if (nearEdge) {
-              const daysDelta = Math.abs(differenceInDays(parseISO(nextDate), parseISO(currentDate)));
-              if (daysDelta >= scrollReanchorMinShiftDays) {
-                skipAutoCenterRef.current = true;
-                startTransition(() => {
-                  setCurrentDate(nextDate);
-                });
-              }
+        const container = scrollContainerRef.current;
+        if (nextDate && nextDate !== currentDate && container) {
+          const now = Date.now();
+          if (now - lastEdgeReanchorAtRef.current < EDGE_REANCHOR_COOLDOWN_MS) {
+            return;
+          }
+          const resolvedScrollLeft = typeof latestScrollLeft === 'number'
+            ? latestScrollLeft
+            : container.scrollLeft;
+          const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
+          const edgeThresholdPx = Math.max(dayWidth * scrollReanchorEdgeTriggerDays, dayWidth * LEFT_CONTEXT_DAYS);
+          const nearLeftEdge = resolvedScrollLeft <= edgeThresholdPx;
+          const nearRightEdge = (maxScroll - resolvedScrollLeft) <= edgeThresholdPx;
+          // Re-anchor only when user approaches either edge of the visible window.
+          if (nearLeftEdge || nearRightEdge) {
+            const daysDelta = Math.abs(differenceInDays(parseISO(nextDate), parseISO(currentDate)));
+            if (daysDelta >= scrollReanchorMinShiftDays) {
+              lastEdgeReanchorAtRef.current = now;
+              skipAutoCenterRef.current = true;
+              startTransition(() => {
+                setCurrentDate(nextDate);
+              });
             }
           }
         }
       }, 450);
     }
-  }, [currentDate, dayWidth, scrollReanchorEdgeBufferDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
+  }, [currentDate, dayWidth, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
 
   const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;

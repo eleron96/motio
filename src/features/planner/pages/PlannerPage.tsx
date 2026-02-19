@@ -162,10 +162,9 @@ const PlannerPage = () => {
   const showLoadingOverlay = plannerLoading && (!loadedRange || loadedRange.workspaceId !== currentWorkspaceId) && !hasInitialData;
 
   useEffect(() => {
-    if (currentWorkspaceId) {
-      loadWorkspaceData(currentWorkspaceId);
-    }
-  }, [currentWorkspaceId, loadWorkspaceData]);
+    if (!currentWorkspaceId) return;
+    void loadWorkspaceData(currentWorkspaceId);
+  }, [currentWorkspaceId, currentDate, viewMode, loadWorkspaceData]);
 
   useEffect(() => {
     if (centeredOnLoadRef.current) return;

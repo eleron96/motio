@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- When approaching timeline edges, the date window now expands again, allowing continuous scrolling to past/future beyond the two-month viewport.
+- deploy-remote no longer runs firewall hardening by default; run it explicitly with RUN_FIREWALL_HARDEN=1.
+
 ## [0.1.55] - 2026-02-19
 ### Fixed
 - Removed timeline jitter on scroll stop: date re-anchoring now runs only near range edges and with a minimum shift threshold.

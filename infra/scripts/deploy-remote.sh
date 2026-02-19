@@ -40,10 +40,10 @@ ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then \
   docker exec motio-caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 && echo 'Caddy config reloaded.' || (docker restart motio-caddy >/dev/null && echo 'Caddy container restarted (reload failed).'); \
 fi"
 
-if [[ "${SKIP_FIREWALL_HARDEN:-0}" != "1" ]]; then
+if [[ "${RUN_FIREWALL_HARDEN:-0}" == "1" && "${SKIP_FIREWALL_HARDEN:-0}" != "1" ]]; then
   bash "${root_dir}/infra/scripts/harden-firewall.sh" "$host"
 else
-  echo "SKIP_FIREWALL_HARDEN=1, skipping firewall hardening."
+  echo "Skipping firewall hardening (set RUN_FIREWALL_HARDEN=1 to enforce)."
 fi
 
 scp "${host}:${remote_dir}/VERSION" "${root_dir}/VERSION"
