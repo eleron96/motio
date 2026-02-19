@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Fixed realtime WebSocket console errors: added proper /realtime/v1 reverse-proxy routing in Caddy so notifications work without repeated reconnect failures.
+- Removed task jitter when horizontal timeline scrolling stops: stabilized date-range shift compensation when updating the focused date.
+
 ## [0.1.51] - 2026-02-19
 ### Changed
 - Task assignment notifications now arrive without page reload: added realtime subscription with a safe polling fallback during network issues.

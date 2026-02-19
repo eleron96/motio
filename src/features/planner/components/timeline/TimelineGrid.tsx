@@ -160,7 +160,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const visibleDaysRef = useRef<Date[]>([]);
   const ignoreScrollDateUpdateRef = useRef(false);
   const skipAutoCenterRef = useRef(false);
-  const prevRangeRef = useRef<{ start: Date | null; currentDate: string; viewMode: string } | null>(null);
+  const prevRangeRef = useRef<{ start: Date | null; viewMode: string } | null>(null);
 
   const projectById = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
@@ -560,7 +560,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   useEffect(() => {
     if (visibleDays.length === 0 || dayWidth === 0) {
-      prevRangeRef.current = { start: visibleDays[0] ?? null, currentDate, viewMode };
+      prevRangeRef.current = { start: visibleDays[0] ?? null, viewMode };
       return;
     }
 
@@ -569,7 +569,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
     if (
       previous?.start
-      && previous.currentDate === currentDate
       && previous.viewMode === viewMode
     ) {
       const deltaDays = differenceInDays(nextStart, previous.start);
@@ -588,8 +587,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       }
     }
 
-    prevRangeRef.current = { start: nextStart, currentDate, viewMode };
-  }, [currentDate, dayWidth, viewMode, visibleDays]);
+    prevRangeRef.current = { start: nextStart, viewMode };
+  }, [dayWidth, viewMode, visibleDays]);
 
   // Center scroll when the active date or view changes (not when tasks change)
   useEffect(() => {

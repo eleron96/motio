@@ -43,6 +43,14 @@ motio.nikog.net {
       reverse_proxy host.docker.internal:8080
     }
 
+    handle /realtime/v1* {
+      reverse_proxy host.docker.internal:8080
+    }
+
+    handle /storage/v1* {
+      reverse_proxy host.docker.internal:8080
+    }
+
     handle /functions/v1* {
       reverse_proxy host.docker.internal:8080
     }
