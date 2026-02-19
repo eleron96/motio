@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.60] - 2026-02-19
 ### Changed
 - Invite delivery was switched from Resend to Keycloak email (`execute-actions-email`) with redirect to the invite link.
 - Removed invite-function dependency on `RESEND_API_KEY`/`RESEND_FROM` and `INVITE_REQUIRE_EMAIL_DELIVERY` environment variables.
