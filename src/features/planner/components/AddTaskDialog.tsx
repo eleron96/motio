@@ -22,7 +22,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { format, addDays } from '@/features/planner/lib/dateUtils';
 import { cn } from '@/shared/lib/classNames';
 import { TaskPriority } from '@/features/planner/types/planner';
@@ -31,6 +31,8 @@ import { endOfMonth, isSameMonth, isSameYear, parseISO } from 'date-fns';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { t } from '@lingui/macro';
 import { Status } from '@/features/planner/types/planner';
+import { supabase } from '@/shared/lib/supabaseClient';
+import { toast } from 'sonner';
 
 interface AddTaskDialogProps {
   open: boolean;
@@ -74,6 +76,15 @@ const LazyRichTextEditor = lazy(async () => {
   const module = await import('@/features/planner/components/RichTextEditor');
   return { default: module.RichTextEditor };
 });
+
+type DraftSubtask = {
+  id: string;
+  title: string;
+};
+
+const createDraftSubtaskId = () => (
+  `draft-subtask-${Date.now()}-${Math.random().toString(16).slice(2)}`
+);
 
 export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   open,
@@ -137,6 +148,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [projectQuery, setProjectQuery] = useState('');
+  const [subtasksOpen, setSubtasksOpen] = useState(false);
+  const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const subtaskInputRef = useRef<HTMLInputElement | null>(null);
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -269,6 +284,29 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!repeatUntilAutoRef.current) return;
     setRepeatUntil(getDefaultRepeatUntil(value));
   };
+
+  const handleOpenSubtasks = () => {
+    setSubtasksOpen(true);
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        subtaskInputRef.current?.focus();
+      });
+    }
+  };
+
+  const handleAddSubtask = () => {
+    const title = newSubtaskTitle.trim();
+    if (!title) return;
+    markChanged();
+    setSubtasks((current) => [...current, { id: createDraftSubtaskId(), title }]);
+    setNewSubtaskTitle('');
+    subtaskInputRef.current?.focus();
+  };
+
+  const handleRemoveSubtask = (subtaskId: string) => {
+    markChanged();
+    setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,6 +346,26 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       return;
     }
 
+    if (subtasks.length > 0 && currentWorkspaceId) {
+      const { error: subtaskInsertError } = await supabase
+        .from('task_subtasks')
+        .insert(
+          subtasks.map((subtask, index) => ({
+            workspace_id: currentWorkspaceId,
+            task_id: createdTask.id,
+            title: subtask.title,
+            is_done: false,
+            done_at: null,
+            position: index,
+          })),
+        );
+
+      if (subtaskInsertError) {
+        console.error(subtaskInsertError);
+        toast(t`Task was created, but subtasks were not saved.`);
+      }
+    }
+
     if (repeatFrequency !== 'none') {
       const result = await createRepeats(createdTask.id, {
         frequency: repeatFrequency,
@@ -344,6 +402,9 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatCreating(false);
     setRepeatOpen(false);
     setHasChanges(false);
+    setSubtasksOpen(false);
+    setSubtasks([]);
+    setNewSubtaskTitle('');
     
     onOpenChange(false);
   };
@@ -361,6 +422,9 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       setHasChanges(false);
       setRepeatOpen(false);
       setConfirmCloseOpen(false);
+      setSubtasksOpen(false);
+      setSubtasks([]);
+      setNewSubtaskTitle('');
       return;
     }
     if (projectInitialized) return;
@@ -388,6 +452,9 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatError('');
     setRepeatOpen(false);
     setHasChanges(false);
+    setSubtasksOpen(false);
+    setSubtasks([]);
+    setNewSubtaskTitle('');
     setProjectInitialized(true);
   }, [
     activeProjects,
@@ -775,6 +842,71 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
               </Suspense>
             )}
           </div>
+
+          {!subtasksOpen ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 w-fit gap-1.5 text-xs"
+              onClick={handleOpenSubtasks}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t`Add subtask`}
+            </Button>
+          ) : (
+            <div className="space-y-3 rounded-md border p-3">
+              <div className="flex items-center gap-2">
+                <Input
+                  ref={subtaskInputRef}
+                  value={newSubtaskTitle}
+                  onChange={(event) => {
+                    markChanged();
+                    setNewSubtaskTitle(event.target.value);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter') return;
+                    event.preventDefault();
+                    handleAddSubtask();
+                  }}
+                  placeholder={t`Subtask title`}
+                  className="h-8 text-sm"
+                />
+                <Button
+                  type="button"
+                  className="h-8 px-3 text-xs"
+                  onClick={handleAddSubtask}
+                  disabled={!newSubtaskTitle.trim()}
+                >
+                  {t`Add`}
+                </Button>
+              </div>
+
+              {subtasks.length === 0 ? (
+                <div className="text-xs text-muted-foreground">{t`No subtasks yet.`}</div>
+              ) : (
+                <div className="space-y-1.5">
+                  {subtasks.map((subtask) => (
+                    <div
+                      key={subtask.id}
+                      className="flex items-center justify-between gap-2 rounded-md border px-2.5 py-2"
+                    >
+                      <span className="truncate text-sm text-foreground">{subtask.title}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => handleRemoveSubtask(subtask.id)}
+                        aria-label={t`Remove subtask`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>{t`Tags`}</Label>

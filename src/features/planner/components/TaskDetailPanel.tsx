@@ -634,6 +634,28 @@ export const TaskDetailPanel: React.FC = () => {
     }
   };
 
+  const handleDeleteSubtask = async (subtaskId: string) => {
+    if (!task || !canEdit) return;
+    const previous = subtasks.find((item) => item.id === subtaskId);
+    if (!previous) return;
+
+    setSubtasksError('');
+    setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
+
+    const { error } = await supabase
+      .from('task_subtasks')
+      .delete()
+      .eq('id', subtaskId)
+      .eq('task_id', task.id);
+
+    if (error) {
+      setSubtasks((current) => (
+        [...current, previous].sort((left, right) => left.position - right.position)
+      ));
+      setSubtasksError(error.message || t`Failed to delete subtask.`);
+    }
+  };
+
   return (
     <>
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
@@ -796,7 +818,7 @@ export const TaskDetailPanel: React.FC = () => {
                   ) : (
                     <div className="space-y-1.5">
                       {subtasks.map((subtask) => (
-                        <label
+                        <div
                           key={subtask.id}
                           className="flex items-start gap-2 rounded-md border px-2.5 py-2"
                         >
@@ -810,13 +832,24 @@ export const TaskDetailPanel: React.FC = () => {
                           />
                           <span
                             className={cn(
-                              'text-sm leading-snug text-foreground',
+                              'flex-1 text-sm leading-snug text-foreground',
                               subtask.isDone && 'line-through text-muted-foreground',
                             )}
                           >
                             {subtask.title}
                           </span>
-                        </label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 shrink-0"
+                            onClick={() => void handleDeleteSubtask(subtask.id)}
+                            disabled={isReadOnly}
+                            aria-label={t`Remove subtask`}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       ))}
                     </div>
                   )}
