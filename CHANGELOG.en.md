@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Added task subtasks in task details: collapsed-by-default block, ‘Add subtask’ action, and checkbox completion with strikethrough that does not affect parent task status.
+
 ## [0.1.65] - 2026-02-19
 ### Changed
 - No documented changes.
