@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { Task, TaskPriority } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
@@ -128,8 +127,6 @@ export const TaskBar: React.FC<TaskBarProps> = ({
     groupMode,
   } = usePlannerStore();
   
-  const filteredAssignees = useFilteredAssignees(assignees);
-  
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, startX: 0 });
@@ -156,12 +153,12 @@ export const TaskBar: React.FC<TaskBarProps> = ({
   }, [activeProjects, archivedProject]);
   const status = statuses.find(s => s.id === task.statusId);
   const taskType = taskTypes.find(t => t.id === task.typeId);
-  const assignedAssignees = filteredAssignees.filter((assignee) => task.assigneeIds.includes(assignee.id));
+  const assignedAssignees = assignees.filter((assignee) => task.assigneeIds.includes(assignee.id));
   const scopedAssignee = useMemo(() => {
     if (!rowAssigneeId) return null;
     if (!task.assigneeIds.includes(rowAssigneeId)) return null;
-    return filteredAssignees.find((assignee) => assignee.id === rowAssigneeId) ?? null;
-  }, [filteredAssignees, rowAssigneeId, task.assigneeIds]);
+    return assignees.find((assignee) => assignee.id === rowAssigneeId) ?? null;
+  }, [assignees, rowAssigneeId, task.assigneeIds]);
   const scopedDeleteAvailable = Boolean(scopedAssignee);
   const scopedAssigneeName = scopedAssignee?.name ?? t`Unknown user`;
   const assigneeLabel = assignedAssignees.length === 0

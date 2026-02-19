@@ -4,10 +4,10 @@ import {
   startOfDay, 
   endOfDay,
   addDays, 
-  addYears,
   addWeeks, 
+  addMonths,
   subDays, 
-  subYears,
+  subMonths,
   subWeeks,
   differenceInDays,
   format,
@@ -15,8 +15,6 @@ import {
   isSameDay,
   isWeekend,
   eachDayOfInterval,
-  max,
-  min,
 } from 'date-fns';
 import type { Locale as DateFnsLocale } from 'date-fns';
 import { ViewMode } from '@/features/planner/types/planner';
@@ -30,26 +28,15 @@ export const TASK_HEIGHT = 40; // height of task bar
 export const TASK_GAP = 4; // gap between stacked tasks
 export const HEADER_HEIGHT = 96; // pixels for timeline header
 export const SIDEBAR_WIDTH = 200; // pixels for left sidebar
+const TIMELINE_VISIBLE_MONTHS = 2;
 
 export const getVisibleDays = (
   currentDate: string,
   viewMode: ViewMode,
-  tasks: Array<{ startDate: string; endDate: string }> = []
 ): Date[] => {
   const date = parseISO(currentDate);
-
-  let rangeStart = subYears(date, 1);
-  let rangeEnd = addYears(date, 1);
-
-  if (tasks.length > 0) {
-    const startDates = tasks.map((task) => parseISO(task.startDate));
-    const endDates = tasks.map((task) => parseISO(task.endDate));
-    const minDate = min([date, ...startDates]);
-    const maxDate = max([date, ...endDates]);
-
-    rangeStart = subYears(minDate, 1);
-    rangeEnd = addYears(maxDate, 1);
-  }
+  let rangeStart = subMonths(date, TIMELINE_VISIBLE_MONTHS);
+  let rangeEnd = addMonths(date, TIMELINE_VISIBLE_MONTHS);
 
   if (viewMode === 'week') {
     rangeStart = startOfWeek(rangeStart, { weekStartsOn: 1 });

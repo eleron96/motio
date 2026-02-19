@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { flushSync } from 'react-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -116,6 +115,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   } | null>(null);
   const lastDragTimeRef = useRef(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const scrollSyncFrameRef = useRef<number | null>(null);
+  const pendingScrollLeftRef = useRef<number | null>(null);
   const [isDragScrolling, setIsDragScrolling] = useState(false);
   const [isSidebarResizing, setIsSidebarResizing] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(0);
@@ -133,7 +134,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     ? `${clampTimelineSidebarWidth(sidebarWidth)}px`
     : `clamp(${TIMELINE_SIDEBAR_MIN_WIDTH}px, 26vw, ${TIMELINE_SIDEBAR_AUTO_MAX_WIDTH}px)`;
   
-  const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode, tasks), [currentDate, viewMode, tasks]);
+  const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode), [currentDate, viewMode]);
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
   const currentDateObj = useMemo(() => parseISO(currentDate), [currentDate]);
@@ -353,7 +354,16 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     }
     syncingRef.current = e.currentTarget;
     const newScrollLeft = e.currentTarget.scrollLeft;
-    flushSync(() => setScrollLeft(newScrollLeft));
+    pendingScrollLeftRef.current = newScrollLeft;
+    if (scrollSyncFrameRef.current === null) {
+      scrollSyncFrameRef.current = window.requestAnimationFrame(() => {
+        scrollSyncFrameRef.current = null;
+        const pending = pendingScrollLeftRef.current;
+        if (pending !== null) {
+          setScrollLeft(pending);
+        }
+      });
+    }
     requestAnimationFrame(() => {
       syncingRef.current = null;
     });
@@ -493,6 +503,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   useEffect(() => () => {
     if (scrollEndTimerRef.current) {
       window.clearTimeout(scrollEndTimerRef.current);
+    }
+    if (scrollSyncFrameRef.current !== null) {
+      window.cancelAnimationFrame(scrollSyncFrameRef.current);
     }
   }, []);
 
