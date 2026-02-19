@@ -25,10 +25,20 @@ probe_tcp_open() {
   local target="$1"
   local port="$2"
   if command -v nc >/dev/null 2>&1; then
-    nc -z -w 2 "$target" "$port" >/dev/null 2>&1
+    if nc -h 2>&1 | grep -q ' -G '; then
+      # BSD netcat (macOS): -G controls connect timeout.
+      nc -z -G 2 "$target" "$port" >/dev/null 2>&1
+    else
+      # GNU/OpenBSD netcat: -w controls timeout.
+      nc -z -w 2 "$target" "$port" >/dev/null 2>&1
+    fi
     return $?
   fi
-  timeout 3 bash -lc "cat </dev/null >/dev/tcp/${target}/${port}" >/dev/null 2>&1
+  if command -v timeout >/dev/null 2>&1; then
+    timeout 3 bash -lc "cat </dev/null >/dev/tcp/${target}/${port}" >/dev/null 2>&1
+    return $?
+  fi
+  perl -MIO::Socket::INET -e 'exit(IO::Socket::INET->new(PeerAddr=>$ARGV[0],PeerPort=>$ARGV[1],Proto=>"tcp",Timeout=>2)?0:1)' "$target" "$port" >/dev/null 2>&1
 }
 
 apply_ufw_remote() {
