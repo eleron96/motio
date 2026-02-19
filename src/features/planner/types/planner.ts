@@ -16,6 +16,15 @@ export interface Task {
   repeatId: string | null;
 }
 
+export interface TaskSubtask {
+  id: string;
+  taskId: string;
+  title: string;
+  isDone: boolean;
+  doneAt: string | null;
+  position: number;
+}
+
 export interface Project {
   id: string;
   name: string;

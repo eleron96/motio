@@ -14,6 +14,7 @@ import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
+import { supabase } from '@/shared/lib/supabaseClient';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +25,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
-import { AlertTriangle, ChevronDown, CircleDot, Layers, RotateCw, Trash2, User, X } from 'lucide-react';
+import { AlertTriangle, ChevronDown, CircleDot, Layers, Plus, RotateCw, Trash2, User, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
-import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
+import { RepeatTaskUpdateScope, Task, TaskPriority, TaskSubtask } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { addDays, endOfMonth, format, isSameMonth, isSameYear, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
@@ -60,6 +61,16 @@ type PendingRepeatUpdate = {
   resetDraftOnCancel: boolean;
 };
 
+type TaskSubtaskRow = {
+  id: string;
+  task_id: string;
+  title: string;
+  is_done: boolean;
+  done_at: string | null;
+  position: number;
+  created_at: string;
+};
+
 type RepeatFrequency = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 type RepeatEnds = 'never' | 'on' | 'after';
 
@@ -81,6 +92,15 @@ const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
     return currentValue !== value;
   })
 );
+
+const mapSubtaskRow = (row: TaskSubtaskRow): TaskSubtask => ({
+  id: row.id,
+  taskId: row.task_id,
+  title: row.title,
+  isDone: row.is_done,
+  doneAt: row.done_at,
+  position: row.position,
+});
 
 const inferRepeatFrequency = (series: Task[]): RepeatFrequency => {
   if (series.length < 2) return 'none';
@@ -151,6 +171,13 @@ export const TaskDetailPanel: React.FC = () => {
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [subtasksOpen, setSubtasksOpen] = useState(false);
+  const [subtasksLoading, setSubtasksLoading] = useState(false);
+  const [subtasksSaving, setSubtasksSaving] = useState(false);
+  const [subtasksError, setSubtasksError] = useState('');
+  const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const subtaskInputRef = useRef<HTMLInputElement | null>(null);
   
   const task = tasks.find(t => t.id === selectedTaskId);
   const currentProject = useMemo(
@@ -202,6 +229,49 @@ export const TaskDetailPanel: React.FC = () => {
     descriptionDraftRef.current = nextDescription;
     setDraftDescription(nextDescription);
   }, [task]);
+
+  useEffect(() => {
+    setSubtasksOpen(false);
+    setSubtasks([]);
+    setNewSubtaskTitle('');
+    setSubtasksError('');
+    setSubtasksLoading(false);
+    setSubtasksSaving(false);
+  }, [task?.id]);
+
+  useEffect(() => {
+    if (!subtasksOpen || !task || !currentWorkspaceId) return;
+    let active = true;
+
+    const loadSubtasks = async () => {
+      setSubtasksLoading(true);
+      setSubtasksError('');
+      const { data, error } = await supabase
+        .from('task_subtasks')
+        .select('id, task_id, title, is_done, done_at, position, created_at')
+        .eq('workspace_id', currentWorkspaceId)
+        .eq('task_id', task.id)
+        .order('position', { ascending: true })
+        .order('created_at', { ascending: true });
+
+      if (!active) return;
+      if (error) {
+        setSubtasksError(error.message);
+        setSubtasks([]);
+        setSubtasksLoading(false);
+        return;
+      }
+
+      const parsed = ((data ?? []) as TaskSubtaskRow[]).map(mapSubtaskRow);
+      setSubtasks(parsed);
+      setSubtasksLoading(false);
+    };
+
+    void loadSubtasks();
+    return () => {
+      active = false;
+    };
+  }, [currentWorkspaceId, subtasksOpen, task?.id]);
 
   const getDefaultRepeatUntil = (baseDate: string) => {
     const start = parseISO(baseDate);
@@ -307,6 +377,10 @@ export const TaskDetailPanel: React.FC = () => {
     if (selected.length === 1 && task.assigneeIds.length === 1) return selected[0];
     return t`${task.assigneeIds.length} assignees`;
   }, [filteredAssignees, task]);
+  const completedSubtasksCount = useMemo(
+    () => subtasks.reduce((total, subtask) => total + (subtask.isDone ? 1 : 0), 0),
+    [subtasks],
+  );
 
   const requestClose = () => {
     if (!isDirty && !repeatConfigDirty) {
@@ -481,6 +555,85 @@ export const TaskDetailPanel: React.FC = () => {
     setDeleteOpen(true);
   };
 
+  const handleOpenSubtasks = () => {
+    setSubtasksOpen(true);
+    setSubtasksError('');
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        subtaskInputRef.current?.focus();
+      });
+    }
+  };
+
+  const handleAddSubtask = async () => {
+    if (!task || !currentWorkspaceId || !canEdit) return;
+    const title = newSubtaskTitle.trim();
+    if (!title) return;
+
+    const nextPosition = subtasks.length > 0
+      ? Math.max(...subtasks.map((item) => item.position)) + 1
+      : 0;
+
+    setSubtasksSaving(true);
+    setSubtasksError('');
+
+    const { data, error } = await supabase
+      .from('task_subtasks')
+      .insert({
+        workspace_id: currentWorkspaceId,
+        task_id: task.id,
+        title,
+        is_done: false,
+        done_at: null,
+        position: nextPosition,
+      })
+      .select('id, task_id, title, is_done, done_at, position, created_at')
+      .single();
+
+    if (error || !data) {
+      setSubtasksError(error?.message ?? t`Failed to add subtask.`);
+      setSubtasksSaving(false);
+      return;
+    }
+
+    setSubtasks((current) => [...current, mapSubtaskRow(data as TaskSubtaskRow)]);
+    setNewSubtaskTitle('');
+    setSubtasksSaving(false);
+    subtaskInputRef.current?.focus();
+  };
+
+  const handleToggleSubtask = async (subtaskId: string, isDone: boolean) => {
+    if (!task || !canEdit) return;
+    const previous = subtasks.find((item) => item.id === subtaskId);
+    if (!previous) return;
+
+    const nextDoneAt = isDone ? new Date().toISOString() : null;
+    setSubtasksError('');
+    setSubtasks((current) => current.map((item) => (
+      item.id === subtaskId
+        ? { ...item, isDone, doneAt: nextDoneAt }
+        : item
+    )));
+
+    const { error } = await supabase
+      .from('task_subtasks')
+      .update({
+        is_done: isDone,
+        done_at: nextDoneAt,
+      })
+      .eq('id', subtaskId)
+      .eq('task_id', task.id);
+
+    if (error) {
+      setSubtasks((current) => current.map((item) => (
+        item.id === subtaskId
+          ? { ...item, isDone: previous.isDone, doneAt: previous.doneAt }
+          : item
+      )));
+      setSubtasksError(error.message);
+    }
+  };
+
   return (
     <>
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
@@ -591,6 +744,84 @@ export const TaskDetailPanel: React.FC = () => {
                   className="max-h-[45vh] overflow-y-auto pr-2"
                 />
               </div>
+
+              {!subtasksOpen ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-8 w-fit gap-1.5 text-xs"
+                  onClick={handleOpenSubtasks}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {t`Add subtask`}
+                </Button>
+              ) : (
+                <div className="space-y-3 rounded-md border p-3">
+                  <div className="text-xs text-muted-foreground">
+                    {t`Completed`}: <span className="font-medium text-foreground">{completedSubtasksCount}</span>/{subtasks.length}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Input
+                      ref={subtaskInputRef}
+                      value={newSubtaskTitle}
+                      onChange={(event) => setNewSubtaskTitle(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key !== 'Enter') return;
+                        event.preventDefault();
+                        void handleAddSubtask();
+                      }}
+                      placeholder={t`Subtask title`}
+                      disabled={isReadOnly || subtasksSaving}
+                      className="h-8 text-sm"
+                    />
+                    <Button
+                      type="button"
+                      className="h-8 px-3 text-xs"
+                      onClick={() => void handleAddSubtask()}
+                      disabled={isReadOnly || subtasksSaving || !newSubtaskTitle.trim()}
+                    >
+                      {t`Add`}
+                    </Button>
+                  </div>
+
+                  {subtasksError && (
+                    <div className="text-xs text-destructive">{subtasksError}</div>
+                  )}
+
+                  {subtasksLoading ? (
+                    <div className="text-xs text-muted-foreground">{t`Loading...`}</div>
+                  ) : subtasks.length === 0 ? (
+                    <div className="text-xs text-muted-foreground">{t`No subtasks yet.`}</div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {subtasks.map((subtask) => (
+                        <label
+                          key={subtask.id}
+                          className="flex items-start gap-2 rounded-md border px-2.5 py-2"
+                        >
+                          <Checkbox
+                            checked={subtask.isDone}
+                            onCheckedChange={(value) => {
+                              if (value === 'indeterminate') return;
+                              void handleToggleSubtask(subtask.id, value === true);
+                            }}
+                            disabled={isReadOnly}
+                          />
+                          <span
+                            className={cn(
+                              'text-sm leading-snug text-foreground',
+                              subtask.isDone && 'line-through text-muted-foreground',
+                            )}
+                          >
+                            {subtask.title}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-3 lg:border-l lg:pl-6">
