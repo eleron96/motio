@@ -233,17 +233,26 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
               {t`Sign out`}
             </Button>
 
+          </div>
+          <div className="mt-auto space-y-2 pt-4 text-center text-[11px] text-muted-foreground">
             <button
               type="button"
               onClick={() => setReleaseNotesOpen(true)}
-              className="text-[11px] leading-none text-muted-foreground transition-colors hover:text-foreground"
+              className="block w-full leading-none text-muted-foreground transition-colors hover:text-foreground"
             >
               {`v${APP_VERSION}`}
             </button>
-
-          </div>
-          <div className="mt-auto pt-4 text-center text-[11px] text-muted-foreground">
-            © Motio — Timeline Planner, Niko G.
+            <div>
+              © Motio — Timeline Planner,{` `}
+              <a
+                href="https://nikog.net"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                NIKO G.
+              </a>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
