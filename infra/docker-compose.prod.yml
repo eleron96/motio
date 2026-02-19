@@ -113,6 +113,30 @@ services:
       PGRST_JWT_SECRET: ${JWT_SECRET}
       PGRST_DB_USE_LEGACY_GUCS: "false"
 
+  realtime:
+    image: ghcr.io/supabase/realtime:v2.30.34
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${REALTIME_DB_USER:-supabase_admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DB_SSL: "false"
+      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
+      DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:-supabaserealtime}
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${JWT_SECRET}
+      APP_NAME: realtime
+      SEED_SELF_HOST: "true"
+      RUN_JANITOR: "true"
+      ERL_AFLAGS: -proto_dist inet_tcp
+      RLIMIT_NOFILE: "10000"
+
   functions:
     image: supabase/edge-runtime:v1.41.2
     restart: unless-stopped
@@ -175,6 +199,7 @@ services:
     depends_on:
       - auth
       - rest
+      - realtime
       - functions
       - backup
     ports:

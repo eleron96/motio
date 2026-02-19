@@ -13,6 +13,12 @@ import { Milestone, Task } from '@/features/planner/types/planner';
 const ASSIGNEE_ROW_GAP = 20;
 /** Показываем 2 полных дня слева от фокусной даты, остальное пространство оставляем под будущие дни. */
 const LEFT_CONTEXT_DAYS = 2;
+const SCROLL_ANCHOR_SYNC_THRESHOLD_DAYS: Record<'day' | 'week' | 'month' | 'calendar', number> = {
+  day: 2,
+  week: 7,
+  month: 14,
+  calendar: 14,
+};
 const TIMELINE_SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
 const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
 const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
@@ -138,6 +144,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode), [currentDate, viewMode]);
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
+  const scrollAnchorSyncThresholdDays = SCROLL_ANCHOR_SYNC_THRESHOLD_DAYS[viewMode];
   const currentDateObj = useMemo(() => parseISO(currentDate), [currentDate]);
   const focusIndex = useMemo(() => {
     if (!viewportWidth || dayWidth === 0) return -1;
@@ -415,12 +422,17 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         }
         const nextDate = pendingScrollDateRef.current;
         if (nextDate && nextDate !== currentDate) {
-          skipAutoCenterRef.current = true;
-          setCurrentDate(nextDate);
+          const daysDelta = Math.abs(differenceInDays(parseISO(nextDate), parseISO(currentDate)));
+          // Re-anchor visible range only for meaningful shifts to avoid
+          // expensive task relayout on every tiny stop while panning.
+          if (daysDelta >= scrollAnchorSyncThresholdDays) {
+            skipAutoCenterRef.current = true;
+            setCurrentDate(nextDate);
+          }
         }
       }, 450);
     }
-  }, [currentDate, dayWidth, setCurrentDate, visibleDays]);
+  }, [currentDate, dayWidth, scrollAnchorSyncThresholdDays, setCurrentDate, visibleDays]);
 
   const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;

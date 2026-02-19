@@ -247,7 +247,7 @@ until docker compose -f "$compose_file" --env-file "$env_file" exec -T \
   sleep 2
 done
 
-docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup gateway
+docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup realtime gateway
 
 # Edge runtime loads function modules on startup and may not pick up new files from bind mounts
 # without an explicit restart. Force a refresh so newly added function routes are available.

@@ -7,6 +7,18 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Reduced task jitter when timeline scrolling stops: anchor date sync is now threshold-based instead of recalculating on every tiny pan shift.
+
+### Fixed
+- Fixed production realtime WebSocket setup: Realtime now uses the supabase_admin DB role, and the standard production deploy now starts/updates realtime together with the gateway.
+- Removed websocket `431` failures for signed-in users: the gateway no longer forwards browser cookies to Realtime on `/realtime/v1`.
+
+## [0.1.53] - 2026-02-19
+### Fixed
+- Fixed realtime backend routing: added Supabase Realtime service and /realtime/v1 proxying through the gateway so notification WebSocket connections work reliably.
+
+## [0.1.52] - 2026-02-19
 ### Fixed
 - Fixed realtime WebSocket console errors: added proper /realtime/v1 reverse-proxy routing in Caddy so notifications work without repeated reconnect failures.
 - Removed task jitter when horizontal timeline scrolling stops: stabilized date-range shift compensation when updating the focused date.

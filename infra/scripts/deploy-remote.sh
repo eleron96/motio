@@ -23,6 +23,13 @@ rsync -az --inplace \
   "${root_dir}/infra/caddy/Caddyfile" \
   "${host}:${remote_dir}/infra/caddy/Caddyfile"
 
+# Supabase gateway also binds a single file
+# (/opt/new_toggl/infra/supabase/nginx.conf -> /etc/nginx/nginx.conf).
+# Keep inode stable so `nginx -s reload` inside prod-compose picks up updates.
+rsync -az --inplace \
+  "${root_dir}/infra/supabase/nginx.conf" \
+  "${host}:${remote_dir}/infra/supabase/nginx.conf"
+
 ssh "$host" "cd '${remote_dir}' && bash infra/scripts/prod-compose.sh"
 ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then \
   host_hash=\$(sha1sum '${remote_dir}/infra/caddy/Caddyfile' | awk '{print \$1}'); \
