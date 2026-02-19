@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Invites now create/link an account for emails that have never signed in: once setup is completed from email, the user can immediately accept the invite and access the workspace.
+- Auth flow now includes a durable `redirect` mechanism for invite links so users return to `/invite/:token` after Keycloak sign-in instead of losing context.
+- Removed remaining `RESEND` dependencies from dev `.env` generation; SMTP defaults are now neutral and branded as `Motio - Timeline Planner`.
+- Updated product branding (`Motio - Timeline Planner`) in app metadata, realm configs, and SMTP sender naming.
+- Added an ownership notice with a `nikog.net` link at the bottom of Account settings.
+- Added automatic Keycloak realm branding/email-theme enforcement and customized `execute-actions` invite email copy.
+
 ## [0.1.60] - 2026-02-19
 ### Changed
 - Invite delivery was switched from Resend to Keycloak email (`execute-actions-email`) with redirect to the invite link.

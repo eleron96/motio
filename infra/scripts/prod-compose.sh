@@ -45,6 +45,11 @@ if [[ ! -x "infra/scripts/keycloak-ensure-realm-ssl-required.sh" ]]; then
   exit 1
 fi
 
+if [[ ! -x "infra/scripts/keycloak-ensure-realm-branding.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-realm-branding.sh" >&2
+  exit 1
+fi
+
 if [[ ! -x "infra/scripts/keycloak-backup-db.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-backup-db.sh" >&2
   exit 1
@@ -255,6 +260,7 @@ docker compose -f "$compose_file" --env-file "$env_file" restart functions >/dev
 
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-ssl-required.sh "$env_file"
+infra/scripts/keycloak-ensure-realm-branding.sh "$env_file"
 
 if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" == "true" ]]; then
   infra/scripts/keycloak-backup-db.sh "$env_file" "$compose_file"

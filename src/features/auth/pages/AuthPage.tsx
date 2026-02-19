@@ -36,6 +36,15 @@ const AuthPage: React.FC = () => {
     return rawCode ? `${rawCode}: ${description}` : description;
   }, [location.search]);
 
+  const redirectTarget = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const redirect = searchParams.get('redirect');
+    if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) {
+      return null;
+    }
+    return redirect;
+  }, [location.search]);
+
   useEffect(() => {
     if (!oauthError) return;
     setError(oauthError);
@@ -45,9 +54,11 @@ const AuthPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    const redirectTo = (location.state as { redirectTo?: string } | null)?.redirectTo ?? '/';
+    const redirectTo = redirectTarget
+      ?? (location.state as { redirectTo?: string } | null)?.redirectTo
+      ?? '/';
     navigate(redirectTo, { replace: true });
-  }, [location.state, navigate, user]);
+  }, [location.state, navigate, redirectTarget, user]);
 
   useEffect(() => {
     if (loading || user || oauthAttempted) return;
@@ -55,7 +66,10 @@ const AuthPage: React.FC = () => {
     setOauthAttempted(true);
     setSubmitting(true);
 
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
+    const redirectPath = redirectTarget ? `/auth?redirect=${encodeURIComponent(redirectTarget)}` : '/auth';
+    const redirectTo = typeof window !== 'undefined'
+      ? `${window.location.origin}${redirectPath}`
+      : undefined;
     signInWithKeycloak(redirectTo)
       .then(({ error: keycloakError }) => {
         if (keycloakError) {
@@ -67,13 +81,16 @@ const AuthPage: React.FC = () => {
         setError(authError instanceof Error ? authError.message : t`Authentication failed.`);
         setSubmitting(false);
       });
-  }, [loading, oauthAttempted, signInWithKeycloak, user]);
+  }, [loading, oauthAttempted, redirectTarget, signInWithKeycloak, user]);
 
   const handleKeycloakSignIn = async () => {
     setError('');
     setSubmitting(true);
 
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined;
+    const redirectPath = redirectTarget ? `/auth?redirect=${encodeURIComponent(redirectTarget)}` : '/auth';
+    const redirectTo = typeof window !== 'undefined'
+      ? `${window.location.origin}${redirectPath}`
+      : undefined;
     const { error: keycloakError } = await signInWithKeycloak(redirectTo);
     if (keycloakError) {
       setError(keycloakError);

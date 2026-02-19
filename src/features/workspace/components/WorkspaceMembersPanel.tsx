@@ -93,7 +93,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('viewer');
   const [error, setError] = useState('');
-  const [inviteResult, setInviteResult] = useState<{ email: string; status: string } | null>(null);
+  const [inviteResult, setInviteResult] = useState<{ email: string; status: string; warning?: string | null } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [cancelingToken, setCancelingToken] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -299,6 +299,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       setInviteResult({
         email: result.inviteEmail ?? invitedEmail,
         status: result.inviteStatus ?? 'pending',
+        warning: result.warning ?? null,
       });
     }
     setSubmitting(false);
@@ -478,6 +479,11 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
                   <div className="mt-1 text-xs">
                     {inviteResult.email} - {inviteResult.status}
                   </div>
+                  {inviteResult.warning && (
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {inviteResult.warning}
+                    </div>
+                  )}
                 </AlertDescription>
               </Alert>
             )}

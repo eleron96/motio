@@ -53,7 +53,8 @@ const InvitePage: React.FC = () => {
   }, [acceptInvite, fetchWorkspaces, inviteToken, loading, navigate, setCurrentWorkspaceId, user]);
 
   if (!user && !loading) {
-    return <Navigate to="/auth" state={{ redirectTo: location.pathname + location.search }} replace />;
+    const redirectTarget = `${location.pathname}${location.search}`;
+    return <Navigate to={`/auth?redirect=${encodeURIComponent(redirectTarget)}`} replace />;
   }
 
   if (!inviteToken) {

@@ -100,6 +100,9 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     { value: 'ru', label: localeLabels.ru },
   ];
   const releaseNotes = useMemo(() => getLatestReleaseNotes(locale), [locale]);
+  const ownershipNotice = isRussianLocale
+    ? 'Права на Motio - Timeline Planner принадлежат '
+    : 'Rights to Motio - Timeline Planner belong to ';
 
   const handleSave = async () => {
     if (!user) return;
@@ -240,6 +243,18 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
             >
               {`v${APP_VERSION}`}
             </button>
+
+            <div className="pt-2 text-[11px] text-muted-foreground">
+              {ownershipNotice}
+              <a
+                href="https://nikog.net"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                Niko G.
+              </a>
+            </div>
           </div>
         </SheetContent>
       </Sheet>

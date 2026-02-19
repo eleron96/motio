@@ -30,14 +30,12 @@ const envPath = path.join(process.cwd(), '.env');
     URI_ALLOW_LIST: 'http://localhost:5173/*',
     API_EXTERNAL_URL: 'http://localhost:8080/auth/v1',
     APP_URL: 'http://localhost:5173',
-    RESEND_API_KEY: '',
-    RESEND_FROM: 'Workspace <no-reply@example.com>',
-    GOTRUE_SMTP_HOST: 'smtp.resend.com',
+    GOTRUE_SMTP_HOST: 'smtp.example.com',
     GOTRUE_SMTP_PORT: '587',
-    GOTRUE_SMTP_USER: 'resend',
+    GOTRUE_SMTP_USER: 'no-reply@example.com',
     GOTRUE_SMTP_PASS: '',
-    GOTRUE_SMTP_ADMIN_EMAIL: '',
-    GOTRUE_SMTP_SENDER_NAME: 'Timeline Planner',
+    GOTRUE_SMTP_ADMIN_EMAIL: 'no-reply@example.com',
+    GOTRUE_SMTP_SENDER_NAME: 'Motio - Timeline Planner',
     GOTRUE_EXTERNAL_KEYCLOAK_ENABLED: 'true',
     GOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID: 'timeline-supabase',
     GOTRUE_EXTERNAL_KEYCLOAK_SECRET: 'timeline-supabase-local-dev-secret',
@@ -114,7 +112,7 @@ const ensureCompose = () => {
   const anonKey = createJwt({ role: 'anon', iss: 'supabase', iat: now, exp }, jwtSecret);
   const serviceRoleKey = createJwt({ role: 'service_role', iss: 'supabase', iat: now, exp }, jwtSecret);
 
-  const env = `POSTGRES_PASSWORD=${defaultValues.POSTGRES_PASSWORD}\nPOSTGRES_USER=${defaultValues.POSTGRES_USER}\nPOSTGRES_DB=${defaultValues.POSTGRES_DB}\n\nJWT_SECRET=${jwtSecret}\nANON_KEY=${anonKey}\nSERVICE_ROLE_KEY=${serviceRoleKey}\n\nSITE_URL=${defaultValues.SITE_URL}\nURI_ALLOW_LIST=${defaultValues.URI_ALLOW_LIST}\nAPI_EXTERNAL_URL=${defaultValues.API_EXTERNAL_URL}\nAPP_URL=${defaultValues.APP_URL}\nRESEND_API_KEY=${defaultValues.RESEND_API_KEY}\nRESEND_FROM=${defaultValues.RESEND_FROM}\nGOTRUE_SMTP_HOST=${defaultValues.GOTRUE_SMTP_HOST}\nGOTRUE_SMTP_PORT=${defaultValues.GOTRUE_SMTP_PORT}\nGOTRUE_SMTP_USER=${defaultValues.GOTRUE_SMTP_USER}\nGOTRUE_SMTP_PASS=${defaultValues.GOTRUE_SMTP_PASS}\nGOTRUE_SMTP_ADMIN_EMAIL=${defaultValues.GOTRUE_SMTP_ADMIN_EMAIL}\nGOTRUE_SMTP_SENDER_NAME=${defaultValues.GOTRUE_SMTP_SENDER_NAME}\nGOTRUE_EXTERNAL_KEYCLOAK_ENABLED=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_ENABLED}\nGOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID}\nGOTRUE_EXTERNAL_KEYCLOAK_SECRET=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_SECRET}\nGOTRUE_EXTERNAL_KEYCLOAK_URL=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_URL}\nGOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI}\nKEYCLOAK_ADMIN=${defaultValues.KEYCLOAK_ADMIN}\nKEYCLOAK_ADMIN_PASSWORD=${defaultValues.KEYCLOAK_ADMIN_PASSWORD}\nKEYCLOAK_DB_NAME=${defaultValues.KEYCLOAK_DB_NAME}\nKEYCLOAK_DB_USER=${defaultValues.KEYCLOAK_DB_USER}\nKEYCLOAK_DB_PASSWORD=${defaultValues.KEYCLOAK_DB_PASSWORD}\nRESERVE_ADMIN_EMAIL=${defaultValues.RESERVE_ADMIN_EMAIL}\nRESERVE_ADMIN_PASSWORD=${defaultValues.RESERVE_ADMIN_PASSWORD}\nVITE_RESERVE_ADMIN_EMAIL=${defaultValues.VITE_RESERVE_ADMIN_EMAIL}\nVITE_AUTH_MODE=${defaultValues.VITE_AUTH_MODE}\n\nPGRST_DB_URI=${defaultValues.PGRST_DB_URI}\nGOTRUE_DB_DATABASE_URL=${defaultValues.GOTRUE_DB_DATABASE_URL}\nSUPABASE_DB_URL=${defaultValues.SUPABASE_DB_URL}\nSUPABASE_INTERNAL_URL=${defaultValues.SUPABASE_INTERNAL_URL}\nTASK_MEDIA_MAX_FILE_BYTES=${defaultValues.TASK_MEDIA_MAX_FILE_BYTES}\nTASK_MEDIA_USER_QUOTA_BYTES=${defaultValues.TASK_MEDIA_USER_QUOTA_BYTES}\nTASK_MEDIA_WORKSPACE_QUOTA_BYTES=${defaultValues.TASK_MEDIA_WORKSPACE_QUOTA_BYTES}\nVITE_SUPABASE_URL=${defaultValues.VITE_SUPABASE_URL}\nVITE_SUPABASE_ANON_KEY=${anonKey}\n`;
+  const env = `POSTGRES_PASSWORD=${defaultValues.POSTGRES_PASSWORD}\nPOSTGRES_USER=${defaultValues.POSTGRES_USER}\nPOSTGRES_DB=${defaultValues.POSTGRES_DB}\n\nJWT_SECRET=${jwtSecret}\nANON_KEY=${anonKey}\nSERVICE_ROLE_KEY=${serviceRoleKey}\n\nSITE_URL=${defaultValues.SITE_URL}\nURI_ALLOW_LIST=${defaultValues.URI_ALLOW_LIST}\nAPI_EXTERNAL_URL=${defaultValues.API_EXTERNAL_URL}\nAPP_URL=${defaultValues.APP_URL}\nGOTRUE_SMTP_HOST=${defaultValues.GOTRUE_SMTP_HOST}\nGOTRUE_SMTP_PORT=${defaultValues.GOTRUE_SMTP_PORT}\nGOTRUE_SMTP_USER=${defaultValues.GOTRUE_SMTP_USER}\nGOTRUE_SMTP_PASS=${defaultValues.GOTRUE_SMTP_PASS}\nGOTRUE_SMTP_ADMIN_EMAIL=${defaultValues.GOTRUE_SMTP_ADMIN_EMAIL}\nGOTRUE_SMTP_SENDER_NAME=${defaultValues.GOTRUE_SMTP_SENDER_NAME}\nGOTRUE_EXTERNAL_KEYCLOAK_ENABLED=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_ENABLED}\nGOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID}\nGOTRUE_EXTERNAL_KEYCLOAK_SECRET=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_SECRET}\nGOTRUE_EXTERNAL_KEYCLOAK_URL=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_URL}\nGOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI=${defaultValues.GOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI}\nKEYCLOAK_ADMIN=${defaultValues.KEYCLOAK_ADMIN}\nKEYCLOAK_ADMIN_PASSWORD=${defaultValues.KEYCLOAK_ADMIN_PASSWORD}\nKEYCLOAK_DB_NAME=${defaultValues.KEYCLOAK_DB_NAME}\nKEYCLOAK_DB_USER=${defaultValues.KEYCLOAK_DB_USER}\nKEYCLOAK_DB_PASSWORD=${defaultValues.KEYCLOAK_DB_PASSWORD}\nRESERVE_ADMIN_EMAIL=${defaultValues.RESERVE_ADMIN_EMAIL}\nRESERVE_ADMIN_PASSWORD=${defaultValues.RESERVE_ADMIN_PASSWORD}\nVITE_RESERVE_ADMIN_EMAIL=${defaultValues.VITE_RESERVE_ADMIN_EMAIL}\nVITE_AUTH_MODE=${defaultValues.VITE_AUTH_MODE}\n\nPGRST_DB_URI=${defaultValues.PGRST_DB_URI}\nGOTRUE_DB_DATABASE_URL=${defaultValues.GOTRUE_DB_DATABASE_URL}\nSUPABASE_DB_URL=${defaultValues.SUPABASE_DB_URL}\nSUPABASE_INTERNAL_URL=${defaultValues.SUPABASE_INTERNAL_URL}\nTASK_MEDIA_MAX_FILE_BYTES=${defaultValues.TASK_MEDIA_MAX_FILE_BYTES}\nTASK_MEDIA_USER_QUOTA_BYTES=${defaultValues.TASK_MEDIA_USER_QUOTA_BYTES}\nTASK_MEDIA_WORKSPACE_QUOTA_BYTES=${defaultValues.TASK_MEDIA_WORKSPACE_QUOTA_BYTES}\nVITE_SUPABASE_URL=${defaultValues.VITE_SUPABASE_URL}\nVITE_SUPABASE_ANON_KEY=${anonKey}\n`;
 
   fs.writeFileSync(envPath, env);
   return true;
@@ -281,7 +279,7 @@ const ensureCompose = () => {
   const anonKey = createJwt({ role: 'anon', iss: 'supabase', iat: now, exp }, jwtSecret);
   const serviceRoleKey = createJwt({ role: 'service_role', iss: 'supabase', iat: now, exp }, jwtSecret);
 
-  const env = `POSTGRES_PASSWORD=postgres\nPOSTGRES_USER=postgres\nPOSTGRES_DB=postgres\n\nJWT_SECRET=${jwtSecret}\nANON_KEY=${anonKey}\nSERVICE_ROLE_KEY=${serviceRoleKey}\n\nSITE_URL=http://localhost:5173\nURI_ALLOW_LIST=http://localhost:5173/*\nAPI_EXTERNAL_URL=http://localhost:8080/auth/v1\nAPP_URL=http://localhost:5173\nRESEND_API_KEY=\nRESEND_FROM=Workspace <no-reply@example.com>\nGOTRUE_SMTP_HOST=smtp.resend.com\nGOTRUE_SMTP_PORT=587\nGOTRUE_SMTP_USER=resend\nGOTRUE_SMTP_PASS=\nGOTRUE_SMTP_ADMIN_EMAIL=\nGOTRUE_SMTP_SENDER_NAME=Timeline Planner\nGOTRUE_EXTERNAL_KEYCLOAK_ENABLED=true\nGOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID=timeline-supabase\nGOTRUE_EXTERNAL_KEYCLOAK_SECRET=timeline-supabase-local-dev-secret\nGOTRUE_EXTERNAL_KEYCLOAK_URL=http://keycloak:8080/realms/timeline\nGOTRUE_EXTERNAL_KEYCLOAK_SCOPE=openid profile email\nGOTRUE_EXTERNAL_KEYCLOAK_SCOPES=openid profile email\nGOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI=http://localhost:8080/auth/v1/callback\nKEYCLOAK_ADMIN=admin\nKEYCLOAK_ADMIN_PASSWORD=admin\nKEYCLOAK_DB_NAME=keycloak\nKEYCLOAK_DB_USER=keycloak\nKEYCLOAK_DB_PASSWORD=keycloak\nRESERVE_ADMIN_EMAIL=\nRESERVE_ADMIN_PASSWORD=\nVITE_RESERVE_ADMIN_EMAIL=\nVITE_AUTH_MODE=keycloak\n\nPGRST_DB_URI=postgresql://postgres:postgres@db:5432/postgres\nGOTRUE_DB_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?search_path=auth\nSUPABASE_DB_URL=postgresql://postgres:postgres@db:5432/postgres\nSUPABASE_INTERNAL_URL=http://gateway:8080\nTASK_MEDIA_MAX_FILE_BYTES=5242880\nTASK_MEDIA_USER_QUOTA_BYTES=209715200\nTASK_MEDIA_WORKSPACE_QUOTA_BYTES=2147483648\nVITE_SUPABASE_URL=http://localhost:8080\nVITE_SUPABASE_ANON_KEY=${anonKey}\n`;
+  const env = `POSTGRES_PASSWORD=postgres\nPOSTGRES_USER=postgres\nPOSTGRES_DB=postgres\n\nJWT_SECRET=${jwtSecret}\nANON_KEY=${anonKey}\nSERVICE_ROLE_KEY=${serviceRoleKey}\n\nSITE_URL=http://localhost:5173\nURI_ALLOW_LIST=http://localhost:5173/*\nAPI_EXTERNAL_URL=http://localhost:8080/auth/v1\nAPP_URL=http://localhost:5173\nGOTRUE_SMTP_HOST=smtp.example.com\nGOTRUE_SMTP_PORT=587\nGOTRUE_SMTP_USER=no-reply@example.com\nGOTRUE_SMTP_PASS=\nGOTRUE_SMTP_ADMIN_EMAIL=no-reply@example.com\nGOTRUE_SMTP_SENDER_NAME=Motio - Timeline Planner\nGOTRUE_EXTERNAL_KEYCLOAK_ENABLED=true\nGOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID=timeline-supabase\nGOTRUE_EXTERNAL_KEYCLOAK_SECRET=timeline-supabase-local-dev-secret\nGOTRUE_EXTERNAL_KEYCLOAK_URL=http://keycloak:8080/realms/timeline\nGOTRUE_EXTERNAL_KEYCLOAK_SCOPE=openid profile email\nGOTRUE_EXTERNAL_KEYCLOAK_SCOPES=openid profile email\nGOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI=http://localhost:8080/auth/v1/callback\nKEYCLOAK_ADMIN=admin\nKEYCLOAK_ADMIN_PASSWORD=admin\nKEYCLOAK_DB_NAME=keycloak\nKEYCLOAK_DB_USER=keycloak\nKEYCLOAK_DB_PASSWORD=keycloak\nRESERVE_ADMIN_EMAIL=\nRESERVE_ADMIN_PASSWORD=\nVITE_RESERVE_ADMIN_EMAIL=\nVITE_AUTH_MODE=keycloak\n\nPGRST_DB_URI=postgresql://postgres:postgres@db:5432/postgres\nGOTRUE_DB_DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres?search_path=auth\nSUPABASE_DB_URL=postgresql://postgres:postgres@db:5432/postgres\nSUPABASE_INTERNAL_URL=http://gateway:8080\nTASK_MEDIA_MAX_FILE_BYTES=5242880\nTASK_MEDIA_USER_QUOTA_BYTES=209715200\nTASK_MEDIA_WORKSPACE_QUOTA_BYTES=2147483648\nVITE_SUPABASE_URL=http://localhost:8080\nVITE_SUPABASE_ANON_KEY=${anonKey}\n`;
 
   fs.writeFileSync(envPath, env);
   return true;
@@ -308,14 +306,12 @@ const entries = Object.fromEntries(env.split('\n')
     URI_ALLOW_LIST: 'http://localhost:5173/*',
     API_EXTERNAL_URL: 'http://localhost:8080/auth/v1',
     APP_URL: 'http://localhost:5173',
-    RESEND_API_KEY: '',
-    RESEND_FROM: 'Workspace <no-reply@example.com>',
-    GOTRUE_SMTP_HOST: 'smtp.resend.com',
+    GOTRUE_SMTP_HOST: 'smtp.example.com',
     GOTRUE_SMTP_PORT: '587',
-    GOTRUE_SMTP_USER: 'resend',
+    GOTRUE_SMTP_USER: 'no-reply@example.com',
     GOTRUE_SMTP_PASS: '',
-    GOTRUE_SMTP_ADMIN_EMAIL: '',
-    GOTRUE_SMTP_SENDER_NAME: 'Timeline Planner',
+    GOTRUE_SMTP_ADMIN_EMAIL: 'no-reply@example.com',
+    GOTRUE_SMTP_SENDER_NAME: 'Motio - Timeline Planner',
     GOTRUE_EXTERNAL_KEYCLOAK_ENABLED: 'true',
     GOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID: 'timeline-supabase',
     GOTRUE_EXTERNAL_KEYCLOAK_SECRET: 'timeline-supabase-local-dev-secret',

@@ -3,6 +3,7 @@ import {
   APP_REALM_ROLES,
   type AppRealmRole,
   ensureKeycloakReady,
+  ensureKeycloakUser,
   findKeycloakUserByEmail,
   getKeycloakConfig,
   sendKeycloakExecuteActionsEmail,
@@ -11,6 +12,7 @@ import {
 import {
   createSupabaseClients,
   ensureKeycloakIdentityLink,
+  ensureSupabaseUserByEmail,
   findAuthUserByEmail,
   getRoleSnapshotMap,
   type WorkspaceRole,
@@ -148,6 +150,62 @@ const findExistingLinkedUserByEmail = async (email: string) => {
   };
 };
 
+const ensureInvitableLinkedUserByEmail = async (email: string) => {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) {
+    return { error: "Email is required." };
+  }
+
+  const keycloakReady = ensureKeycloakReady(keycloakConfig);
+  if ("error" in keycloakReady) {
+    return { error: keycloakReady.error };
+  }
+
+  const keycloakResult = await ensureKeycloakUser(keycloakConfig, {
+    email: normalizedEmail,
+    enabled: true,
+    emailVerified: true,
+    requiredActions: ["VERIFY_EMAIL", "UPDATE_PASSWORD"],
+  });
+  if ("error" in keycloakResult || !keycloakResult.user) {
+    return { error: "error" in keycloakResult ? keycloakResult.error : "Failed to resolve Keycloak user." };
+  }
+
+  const authResult = await ensureSupabaseUserByEmail(supabaseAdmin, normalizedEmail);
+  if ("error" in authResult || !authResult.user) {
+    return { error: "error" in authResult ? authResult.error : "Failed to resolve Supabase user." };
+  }
+
+  const linkResult = await ensureKeycloakIdentityLink(
+    supabaseAdmin,
+    {
+      supabaseUserId: authResult.user.id,
+      email: normalizedEmail,
+      keycloakUserId: keycloakResult.user.id,
+      issuer: keycloakIssuer,
+    },
+  );
+
+  if ("error" in linkResult) {
+    return linkResult;
+  }
+
+  const requiredActions = Array.isArray(keycloakResult.user.requiredActions)
+    ? keycloakResult.user.requiredActions
+      .filter((value): value is string => typeof value === "string")
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0)
+    : [];
+
+  return {
+    userId: authResult.user.id,
+    email: normalizedEmail,
+    keycloakUserId: keycloakResult.user.id,
+    keycloakCreated: keycloakResult.created,
+    requiredActions,
+  };
+};
+
 const ensureWorkspaceAdmin = async (workspaceId: string, userId: string) => {
   const { data: adminMembership, error: membershipError } = await supabaseAdmin
     .from("workspace_members")
@@ -198,22 +256,9 @@ const handleCreateInvite = async (
     }
   }
 
-  const linked = await findExistingLinkedUserByEmail(email);
+  const linked = await ensureInvitableLinkedUserByEmail(email);
   if ("error" in linked) {
     return jsonResponse({ error: linked.error }, 400);
-  }
-  if ("missing" in linked && linked.missing) {
-    await supabaseAdmin
-      .from("workspace_invites")
-      .update({ revoked_at: new Date().toISOString(), revoked_reason: "canceled" })
-      .eq("workspace_id", workspaceId)
-      .eq("email_normalized", email)
-      .is("accepted_at", null)
-      .is("revoked_at", null);
-
-    return jsonResponse({
-      error: "User with this email is not registered yet. Ask them to sign in first, then send invite again.",
-    }, 404);
   }
 
   const { data: existingMembership } = await supabaseAdmin
@@ -337,11 +382,17 @@ const handleCreateInvite = async (
   }
 
   const inviteLink = `${appUrl}/invite/${inviteToken}`;
+  const inviteActions = linked.keycloakCreated
+    ? Array.from(new Set(["VERIFY_EMAIL", "UPDATE_PASSWORD", ...linked.requiredActions]))
+    : linked.requiredActions;
   const keycloakEmailResult = await sendKeycloakExecuteActionsEmail(
     keycloakConfig,
     linked.keycloakUserId,
-    [],
-    { redirectUri: inviteLink },
+    inviteActions,
+    {
+      redirectUri: inviteLink,
+      lifespanSeconds: Math.floor(inviteTtlMs / 1000),
+    },
   );
   if ("error" in keycloakEmailResult) {
     if (inviteCreatedInThisRequest) {
@@ -361,6 +412,9 @@ const handleCreateInvite = async (
     success: true,
     inviteEmail: email,
     inviteStatus: "pending",
+    warning: linked.keycloakCreated
+      ? "User account will be finalized after they complete setup from the invitation email."
+      : undefined,
   });
 };
 
