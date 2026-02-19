@@ -7,6 +7,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.51] - 2026-02-19
+### Changed
+- Task assignment notifications now arrive without page reload: added realtime subscription with a safe polling fallback during network issues.
+- Improved timeline performance: reduced unnecessary rerenders during scrolling and double-click task creation, noticeably lowering UI latency while working with tasks.
+
 ## [0.1.50] - 2026-02-19
 ### Changed
 - No documented changes.
