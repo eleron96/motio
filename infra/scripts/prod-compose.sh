@@ -249,6 +249,10 @@ done
 
 docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup gateway
 
+# Edge runtime loads function modules on startup and may not pick up new files from bind mounts
+# without an explicit restart. Force a refresh so newly added function routes are available.
+docker compose -f "$compose_file" --env-file "$env_file" restart functions >/dev/null 2>&1 || true
+
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-ssl-required.sh "$env_file"
 
