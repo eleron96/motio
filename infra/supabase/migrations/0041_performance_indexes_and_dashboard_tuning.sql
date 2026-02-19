@@ -15,9 +15,3 @@ create index concurrently if not exists workspace_invites_email_active_idx
 -- Case-insensitive profile email lookup helper for admin id resolution.
 create index concurrently if not exists profiles_email_lower_idx
   on public.profiles (lower(email));
-
--- Dashboard RPCs execute short analytical queries; disable JIT to avoid compilation spikes.
-alter function if exists public.dashboard_task_counts(uuid, date, date) set jit = off;
-alter function if exists public.dashboard_task_counts_base(uuid, date, date) set jit = off;
-alter function if exists public.dashboard_task_time_series(uuid, date, date) set jit = off;
-alter function if exists public.dashboard_task_time_series_base(uuid, date, date) set jit = off;
