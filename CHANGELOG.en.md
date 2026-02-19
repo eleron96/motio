@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.62] - 2026-02-19
+### Changed
+- No documented changes.
+
 ## [0.1.61] - 2026-02-19
 ### Changed
 - Invites now create/link an account for emails that have never signed in: once setup is completed from email, the user can immediately accept the invite and access the workspace.
