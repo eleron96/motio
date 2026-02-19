@@ -94,15 +94,11 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const showSave = Boolean(user && isEditingName && isDisplayNameDirty);
   const canCancelEditing = Boolean(initialDisplayName.trim());
   const canEditName = Boolean(user && !loading);
-  const isRussianLocale = locale === 'ru';
   const languageOptions: Array<{ value: Locale; label: string }> = [
     { value: 'en', label: localeLabels.en },
     { value: 'ru', label: localeLabels.ru },
   ];
   const releaseNotes = useMemo(() => getLatestReleaseNotes(locale), [locale]);
-  const ownershipNotice = isRussianLocale
-    ? 'Права на Motio - Timeline Planner принадлежат '
-    : 'Rights to Motio - Timeline Planner belong to ';
 
   const handleSave = async () => {
     if (!user) return;
@@ -137,12 +133,12 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="w-[420px] sm:w-[480px]">
+        <SheetContent className="flex h-full w-[420px] flex-col sm:w-[480px]">
           <SheetHeader>
             <SheetTitle>{t`Account settings`}</SheetTitle>
           </SheetHeader>
 
-          <div className="mt-6 flex flex-col items-center space-y-4 text-center">
+          <div className="mt-6 flex flex-1 flex-col items-center space-y-4 text-center">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted text-lg font-semibold text-foreground">
               {initials}
             </div>
@@ -244,17 +240,17 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
               {`v${APP_VERSION}`}
             </button>
 
-            <div className="pt-2 text-[11px] text-muted-foreground">
-              {ownershipNotice}
-              <a
-                href="https://nikog.net"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-foreground underline-offset-4 hover:underline"
-              >
-                Niko G.
-              </a>
-            </div>
+          </div>
+          <div className="mt-auto pt-4 text-center text-[11px] text-muted-foreground">
+            © Motio — Timeline Planner,{` `}
+            <a
+              href="https://nikog.net"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Niko G.
+            </a>
           </div>
         </SheetContent>
       </Sheet>
