@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.59] - 2026-02-19
 ### Fixed
 - In Members -> Access, duplicate invite status cards were removed and the fallback invite-link block is no longer shown; the UI now displays a single final result message.
 - Invite function now enforces email delivery checks (enabled by default in production): if email delivery fails, the operation returns an error instead of reporting a false success.
