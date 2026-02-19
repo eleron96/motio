@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Fixed subtask visibility in task details modal: existing subtasks now load and display automatically on open.
+
 ## [0.1.67] - 2026-02-19
 ### Fixed
 - Subtasks fixed: added RU translations for new labels, added subtask deletion in task details and in create-task dialog, and persisted subtasks on task creation.

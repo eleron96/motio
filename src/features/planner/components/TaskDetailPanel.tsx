@@ -237,10 +237,7 @@ export const TaskDetailPanel: React.FC = () => {
     setSubtasksError('');
     setSubtasksLoading(false);
     setSubtasksSaving(false);
-  }, [task?.id]);
-
-  useEffect(() => {
-    if (!subtasksOpen || !task || !currentWorkspaceId) return;
+    if (!task || !currentWorkspaceId) return;
     let active = true;
 
     const loadSubtasks = async () => {
@@ -264,6 +261,7 @@ export const TaskDetailPanel: React.FC = () => {
 
       const parsed = ((data ?? []) as TaskSubtaskRow[]).map(mapSubtaskRow);
       setSubtasks(parsed);
+      setSubtasksOpen(parsed.length > 0);
       setSubtasksLoading(false);
     };
 
@@ -271,7 +269,7 @@ export const TaskDetailPanel: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [currentWorkspaceId, subtasksOpen, task?.id]);
+  }, [currentWorkspaceId, task?.id]);
 
   const getDefaultRepeatUntil = (baseDate: string) => {
     const start = parseISO(baseDate);
