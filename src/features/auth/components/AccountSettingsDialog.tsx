@@ -94,6 +94,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const showSave = Boolean(user && isEditingName && isDisplayNameDirty);
   const canCancelEditing = Boolean(initialDisplayName.trim());
   const canEditName = Boolean(user && !loading);
+  const isRussianLocale = locale === 'ru';
   const languageOptions: Array<{ value: Locale; label: string }> = [
     { value: 'en', label: localeLabels.en },
     { value: 'ru', label: localeLabels.ru },
@@ -242,15 +243,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
           </div>
           <div className="mt-auto pt-4 text-center text-[11px] text-muted-foreground">
-            © Motio — Timeline Planner,{` `}
-            <a
-              href="https://nikog.net"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              Niko G.
-            </a>
+            © Motio — Timeline Planner, Niko G.
           </div>
         </SheetContent>
       </Sheet>
