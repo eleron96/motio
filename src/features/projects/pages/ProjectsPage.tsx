@@ -669,7 +669,21 @@ const ProjectsPage = () => {
     setTasksError('');
     const { data, error } = await supabase
       .from('tasks')
-      .select('*')
+      .select([
+        'id',
+        'title',
+        'project_id',
+        'assignee_id',
+        'assignee_ids',
+        'start_date',
+        'end_date',
+        'status_id',
+        'type_id',
+        'priority',
+        'tag_ids',
+        'description',
+        'repeat_id',
+      ].join(','))
       .eq('workspace_id', currentWorkspaceId)
       .eq('project_id', projectId)
       .order('start_date', { ascending: true });

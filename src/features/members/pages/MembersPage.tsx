@@ -638,7 +638,21 @@ const MembersPage = () => {
     const offset = (pageIndex - 1) * pageSize;
     let query = supabase
       .from('tasks')
-      .select('*', { count: 'exact' })
+      .select([
+        'id',
+        'title',
+        'project_id',
+        'assignee_id',
+        'assignee_ids',
+        'start_date',
+        'end_date',
+        'status_id',
+        'type_id',
+        'priority',
+        'tag_ids',
+        'description',
+        'repeat_id',
+      ].join(','), { count: 'exact' })
       .eq('workspace_id', currentWorkspaceId)
       .or(`assignee_id.eq.${assigneeId},assignee_ids.cs.{${assigneeId}}`);
 

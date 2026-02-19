@@ -162,7 +162,7 @@ describe('Smoke: key user workflows', () => {
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
       workspace_id: 'ws-1',
       title: 'Smoke task',
-      assignee_ids: ['assignee-1'],
+      assignee_ids: [],
     }));
     expect(created?.id).toBe('task-1');
     expect(usePlannerStore.getState().tasks).toHaveLength(1);

@@ -14,7 +14,8 @@
     "lingui:extract": "lingui extract",
     "lingui:compile": "lingui compile --namespace es",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "perf:k6": "k6 run infra/load/k6/main.js"
   },
   "dependencies": {
     "@lingui/core": "^5.9.0",

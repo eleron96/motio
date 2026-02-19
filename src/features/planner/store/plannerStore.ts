@@ -12,7 +12,7 @@ import {
   subYears,
 } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
-import { reserveAdminEmail } from '@/shared/lib/adminConfig';
+import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { getStatusEmoji, splitStatusLabel } from '@/shared/lib/statusLabels';
 import {
   Task,
@@ -125,37 +125,6 @@ type MilestoneRow = {
 type SupabaseResult<T> = {
   data: T;
   error: { message: string } | null;
-};
-
-let reserveAdminUserIdCache: { email: string; id: string | null } | null = null;
-let reserveAdminUserIdInFlight: Promise<string | null> | null = null;
-
-const fetchReserveAdminUserId = async (): Promise<string | null> => {
-  if (!reserveAdminEmail) return null;
-  if (reserveAdminUserIdCache?.email === reserveAdminEmail) return reserveAdminUserIdCache.id;
-  if (reserveAdminUserIdInFlight) return reserveAdminUserIdInFlight;
-
-  reserveAdminUserIdInFlight = (async () => {
-    try {
-      const { data: adminProfile, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .ilike('email', reserveAdminEmail)
-        .maybeSingle();
-      if (error) {
-        console.error(error);
-        reserveAdminUserIdCache = { email: reserveAdminEmail, id: null };
-        return null;
-      }
-      const id = (adminProfile as { id?: string } | null)?.id ?? null;
-      reserveAdminUserIdCache = { email: reserveAdminEmail, id };
-      return id;
-    } finally {
-      reserveAdminUserIdInFlight = null;
-    }
-  })();
-
-  return reserveAdminUserIdInFlight;
 };
 
 type AssigneeUniqueTaskCountRow = {
@@ -502,7 +471,7 @@ export const usePlannerStore = create<PlannerStore>()(
             .eq('user_id', userId);
         })();
 
-        const adminUserIdPromise = fetchReserveAdminUserId();
+        const adminUserIdPromise = getAdminUserId();
 
         // Kick off the main workspace data queries immediately (do not block on auth/user calls).
         const tasksQuery = supabase
@@ -743,7 +712,7 @@ export const usePlannerStore = create<PlannerStore>()(
         }
 
         // Получаем user_id админа для фильтрации
-        const adminUserId = await fetchReserveAdminUserId();
+        const adminUserId = await getAdminUserId();
 
         const taskAssigneeIds = new Set(
           get().tasks.flatMap((task) => task.assigneeIds),

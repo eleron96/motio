@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { handler as adminHandler } from "../admin/index.ts";
+import { handler as inboxHandler } from "../inbox/index.ts";
 import { handler as inviteHandler } from "../invite/index.ts";
 import { handler as notificationsHandler } from "../notifications/index.ts";
 import { handler as taskMediaHandler } from "../task-media/index.ts";
@@ -12,6 +13,7 @@ const jsonNotFound = () =>
 
 const handlers: Record<string, (req: Request) => Promise<Response>> = {
   admin: adminHandler,
+  inbox: inboxHandler,
   invite: inviteHandler,
   notifications: notificationsHandler,
   "task-media": taskMediaHandler,

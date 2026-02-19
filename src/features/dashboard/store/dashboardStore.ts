@@ -79,6 +79,7 @@ const MILESTONE_PRESETS: Record<DashboardWidgetSize, { w: number; h: number }> =
   medium: { w: 6, h: 4 },
   large: { w: 12, h: 6 },
 };
+const STATS_CACHE_TTL_MS = 60_000;
 
 const getDefaultSize = (widget: DashboardWidget) => (widget.type === 'kpi' ? 'small' : 'medium');
 
@@ -861,7 +862,11 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
   loadStats: async (workspaceId, period, includeSeries = false) => {
     const current = get().statsByPeriod[period];
+    const now = Date.now();
+    const hasFreshData = Boolean(current.lastLoaded) && now - (current.lastLoaded ?? 0) < STATS_CACHE_TTL_MS;
+    const hasSeriesData = current.seriesRows.length > 0 || current.seriesRowsBase.length > 0;
     if (current.loading) return;
+    if (hasFreshData && (!includeSeries || hasSeriesData)) return;
     set((state) => ({
       statsByPeriod: {
         ...state.statsByPeriod,

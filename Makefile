@@ -1,7 +1,7 @@
-.PHONY: help up down logs up-prod down-prod logs-prod audit-migrations deploy-remote harden-firewall check-prod-secrets check-prod-secrets-remote keycloak-backup-db keycloak-audit-realm keycloak-export-realm logchange commit push deploy release release-sync
+.PHONY: help up down logs up-prod down-prod logs-prod audit-migrations deploy-remote harden-firewall check-prod-secrets check-prod-secrets-remote keycloak-backup-db keycloak-audit-realm keycloak-export-realm perf-k6 logchange commit push deploy release release-sync
 
 help:
-	@printf "Targets:\n  up\n  down\n  logs\n  up-prod\n  down-prod\n  logs-prod\n  audit-migrations\n  deploy-remote\n  harden-firewall\n  check-prod-secrets\n  check-prod-secrets-remote\n  keycloak-backup-db\n  keycloak-audit-realm\n  keycloak-export-realm\n  logchange RU=\"...\" EN=\"...\" [TYPE=changed]\n  commit MSG=\"...\"\n  push\n  deploy\n  release-sync\n  release MSG=\"...\" RU=\"...\" EN=\"...\" [TYPE=changed]\n"
+	@printf "Targets:\n  up\n  down\n  logs\n  up-prod\n  down-prod\n  logs-prod\n  audit-migrations\n  deploy-remote\n  harden-firewall\n  check-prod-secrets\n  check-prod-secrets-remote\n  keycloak-backup-db\n  keycloak-audit-realm\n  keycloak-export-realm\n  perf-k6\n  logchange RU=\"...\" EN=\"...\" [TYPE=changed]\n  commit MSG=\"...\"\n  push\n  deploy\n  release-sync\n  release MSG=\"...\" RU=\"...\" EN=\"...\" [TYPE=changed]\n"
 
 up:
 	./infra/scripts/dev-compose.sh
@@ -46,6 +46,9 @@ keycloak-audit-realm:
 
 keycloak-export-realm:
 	./infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeline-realm.prod.json
+
+perf-k6:
+	k6 run infra/load/k6/main.js
 
 logchange:
 	@if [ -z "$(RU)" ] || [ -z "$(EN)" ]; then \

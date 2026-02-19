@@ -130,6 +130,10 @@ const formatNotificationDate = (isoDate: string) => {
 };
 
 const getTodayIso = () => new Date().toISOString().slice(0, 10);
+const VISIBLE_POLL_BASE_MS = 75_000;
+const VISIBLE_POLL_MAX_MS = 8 * 60_000;
+const SENT_UPDATES_REFRESH_MS = 10 * 60_000;
+const POLL_JITTER_RATIO = 0.2;
 
 export const InviteNotifications: React.FC = () => {
   const navigate = useNavigate();
@@ -156,6 +160,11 @@ export const InviteNotifications: React.FC = () => {
 
   const inviteReactionSeenRef = useRef<Set<string>>(new Set());
   const inviteReactionSessionStartedAtRef = useRef<number>(Date.now());
+  const pollingTimerRef = useRef<number | null>(null);
+  const pollingFailureCountRef = useRef(0);
+  const pollingInFlightRef = useRef(false);
+  const lastSentUpdatesSyncAtRef = useRef(0);
+  const runPollingCycleRef = useRef<(source: 'initial' | 'timer' | 'focus' | 'open') => void>(() => {});
 
   const inviteReactionStorageKey = user?.id ? `invite-reactions-seen-${user.id}` : null;
   const inviteReactionSessionStorageKey = user?.id ? `invite-reactions-session-started-${user.id}` : null;
@@ -169,63 +178,10 @@ export const InviteNotifications: React.FC = () => {
   const hasBadge = totalBadgeCount > 0;
   const badgeLabel = useMemo(() => (totalBadgeCount > 9 ? '9+' : String(totalBadgeCount)), [totalBadgeCount]);
 
-  const loadPendingInvites = useCallback(async () => {
-    if (!user) {
-      setPendingInvites([]);
-      return true;
-    }
-
-    const { data, error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'list' },
-    });
-
-    if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
-      return false;
-    }
-
-    const payloadInvites = parsePendingInvites((data as { invites?: unknown } | null)?.invites);
-    setPendingInvites(payloadInvites);
-    return true;
-  }, [user]);
-
-  const loadTaskNotifications = useCallback(async () => {
-    if (!user) {
-      setTaskNotifications([]);
-      return true;
-    }
-
-    const { data, error, response } = await supabase.functions.invoke('notifications', {
-      body: { action: 'list' },
-    });
-
-    if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
-      return false;
-    }
-
-    const parsed = parseTaskNotifications((data as { notifications?: unknown } | null)?.notifications);
-    setTaskNotifications(parsed);
-    return true;
-  }, [user]);
-
-  const loadSentInvites = useCallback(async (notifyOnUpdates = true) => {
-    if (!user) return;
-
-    const { data, error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'listSent' },
-    });
-
-    if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
-      return;
-    }
-
-    const sentInvites = parseSentInvites((data as { invites?: unknown } | null)?.invites);
-    if (!notifyOnUpdates) return;
-
+  const applyInviteUpdateToasts = useCallback((sentInvites: SentInviteSummary[]) => {
     const now = Date.now();
     let seenChanged = false;
+
     sentInvites.forEach((invite) => {
       if (invite.status !== 'accepted' && invite.status !== 'declined') return;
       if (!invite.respondedAt) return;
@@ -250,18 +206,21 @@ export const InviteNotifications: React.FC = () => {
       const values = Array.from(inviteReactionSeenRef.current).slice(-400);
       window.localStorage.setItem(inviteReactionStorageKey, JSON.stringify(values));
     }
-  }, [inviteReactionStorageKey, user]);
+  }, [inviteReactionStorageKey]);
 
-  const loadNotifications = useCallback(async (
-    showLoading = true,
-    notifyOnInviteUpdates = true,
-  ) => {
+  const loadInbox = useCallback(async (options?: {
+    showLoading?: boolean;
+    includeSentUpdates?: boolean;
+  }) => {
+    const showLoading = options?.showLoading ?? true;
+    const includeSentUpdates = options?.includeSentUpdates ?? true;
+
     if (!user) {
       setPendingInvites([]);
       setTaskNotifications([]);
       setErrorMessage('');
       setLoading(false);
-      return;
+      return false;
     }
 
     if (showLoading) {
@@ -269,16 +228,103 @@ export const InviteNotifications: React.FC = () => {
     }
 
     setErrorMessage('');
-    await Promise.all([
-      loadPendingInvites(),
-      loadTaskNotifications(),
-      loadSentInvites(notifyOnInviteUpdates),
-    ]);
+
+    const { data, error, response } = await supabase.functions.invoke('inbox', {
+      body: {
+        action: 'list',
+        limit: 60,
+        pendingInviteLimit: 80,
+        sentLimit: 140,
+        includeSentUpdates,
+      },
+    });
+
+    if (error) {
+      setErrorMessage(await parseFunctionError(error, response));
+      if (showLoading) {
+        setLoading(false);
+      }
+      return false;
+    }
+
+    const payload = (data as {
+      invites?: unknown;
+      notifications?: unknown;
+      sentInvites?: unknown;
+    } | null) ?? null;
+
+    setPendingInvites(parsePendingInvites(payload?.invites));
+    setTaskNotifications(parseTaskNotifications(payload?.notifications));
+
+    if (includeSentUpdates) {
+      applyInviteUpdateToasts(parseSentInvites(payload?.sentInvites));
+    }
 
     if (showLoading) {
       setLoading(false);
     }
-  }, [loadPendingInvites, loadSentInvites, loadTaskNotifications, user]);
+
+    return true;
+  }, [applyInviteUpdateToasts, user]);
+
+  const clearPollingTimer = useCallback(() => {
+    if (pollingTimerRef.current !== null && typeof window !== 'undefined') {
+      window.clearTimeout(pollingTimerRef.current);
+    }
+    pollingTimerRef.current = null;
+  }, []);
+
+  const scheduleNextPollingCycle = useCallback(() => {
+    if (!user || typeof window === 'undefined') return;
+    if (typeof document !== 'undefined' && document.hidden) return;
+
+    const failureCount = pollingFailureCountRef.current;
+    const baseDelay = Math.min(VISIBLE_POLL_BASE_MS * (2 ** failureCount), VISIBLE_POLL_MAX_MS);
+    const jitterWindow = Math.round(baseDelay * POLL_JITTER_RATIO);
+    const jitter = Math.round((Math.random() * 2 - 1) * jitterWindow);
+    const delayMs = Math.max(15_000, baseDelay + jitter);
+
+    clearPollingTimer();
+    pollingTimerRef.current = window.setTimeout(() => {
+      runPollingCycleRef.current('timer');
+    }, delayMs);
+  }, [clearPollingTimer, user]);
+
+  const runPollingCycle = useCallback(async (
+    source: 'initial' | 'timer' | 'focus' | 'open',
+  ) => {
+    if (!user || pollingInFlightRef.current) return;
+    if (source === 'timer' && typeof document !== 'undefined' && document.hidden) return;
+
+    pollingInFlightRef.current = true;
+    const now = Date.now();
+    const includeSentUpdates = source !== 'timer'
+      || now - lastSentUpdatesSyncAtRef.current >= SENT_UPDATES_REFRESH_MS;
+    const success = await loadInbox({
+      showLoading: source !== 'timer',
+      includeSentUpdates,
+    });
+    pollingInFlightRef.current = false;
+
+    if (success) {
+      pollingFailureCountRef.current = 0;
+      if (includeSentUpdates) {
+        lastSentUpdatesSyncAtRef.current = now;
+      }
+    } else {
+      pollingFailureCountRef.current += 1;
+    }
+
+    if (source !== 'open') {
+      scheduleNextPollingCycle();
+    }
+  }, [loadInbox, scheduleNextPollingCycle, user]);
+
+  useEffect(() => {
+    runPollingCycleRef.current = (source) => {
+      void runPollingCycle(source);
+    };
+  }, [runPollingCycle]);
 
   useEffect(() => {
     if (!inviteReactionSessionStorageKey || typeof window === 'undefined') {
@@ -315,6 +361,7 @@ export const InviteNotifications: React.FC = () => {
 
   useEffect(() => {
     if (!user) {
+      clearPollingTimer();
       setPendingInvites([]);
       setTaskNotifications([]);
       setErrorMessage('');
@@ -322,18 +369,37 @@ export const InviteNotifications: React.FC = () => {
       return;
     }
 
-    void loadNotifications(true, false);
-    const refreshTimer = window.setInterval(() => {
-      void loadNotifications(false, true);
-    }, 45000);
+    const handleVisibilityOrFocus = () => {
+      if (typeof document !== 'undefined' && document.hidden) {
+        clearPollingTimer();
+        return;
+      }
+      void runPollingCycle('focus');
+    };
 
-    return () => window.clearInterval(refreshTimer);
-  }, [loadNotifications, user]);
+    void runPollingCycle('initial');
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    return () => {
+      clearPollingTimer();
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
+  }, [clearPollingTimer, runPollingCycle, user]);
 
   useEffect(() => {
     if (!open || !user) return;
-    void loadNotifications(true, true);
-  }, [loadNotifications, open, user]);
+    void runPollingCycle('open');
+  }, [open, runPollingCycle, user]);
+
+  useEffect(() => {
+    if (!user) {
+      pollingFailureCountRef.current = 0;
+      pollingInFlightRef.current = false;
+      lastSentUpdatesSyncAtRef.current = 0;
+    }
+  }, [user]);
 
   const handleAccept = useCallback(async (token: string) => {
     const acceptedInvite = pendingInvites.find((invite) => invite.token === token) ?? null;
