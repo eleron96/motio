@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Removed timeline jitter on scroll stop: date re-anchoring now runs only near range edges and with a minimum shift threshold.
+
 ## [0.1.54] - 2026-02-19
 ### Changed
 - Reduced task jitter when timeline scrolling stops: anchor date sync is now threshold-based instead of recalculating on every tiny pan shift.
