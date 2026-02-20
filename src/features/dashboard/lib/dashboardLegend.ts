@@ -20,6 +20,7 @@ export interface CompactLegendItemsInput {
   items: LegendItem[];
   effectiveLegendCapacity: number;
   canAggregateOverflow: boolean;
+  minVisibleItems?: number;
 }
 
 export interface CompactLegendItemsResult {
@@ -49,15 +50,23 @@ export const compactLegendItems = ({
   items,
   effectiveLegendCapacity,
   canAggregateOverflow,
+  minVisibleItems = 1,
 }: CompactLegendItemsInput): CompactLegendItemsResult => {
-  if (!canAggregateOverflow || items.length <= effectiveLegendCapacity) {
+  const normalizedCapacity = Number.isFinite(effectiveLegendCapacity)
+    ? Math.max(1, Math.floor(effectiveLegendCapacity))
+    : 1;
+  const normalizedMinVisible = Number.isFinite(minVisibleItems)
+    ? Math.max(1, Math.floor(minVisibleItems))
+    : 1;
+  const visibleCount = Math.max(normalizedCapacity, normalizedMinVisible);
+
+  if (!canAggregateOverflow || items.length <= visibleCount) {
     return {
       legendItems: items,
       hiddenCount: 0,
     };
   }
 
-  const visibleCount = Math.max(1, effectiveLegendCapacity);
   return {
     legendItems: items.slice(0, visibleCount),
     hiddenCount: Math.max(0, items.length - visibleCount),

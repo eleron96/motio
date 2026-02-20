@@ -279,12 +279,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       : (chartShellViewport.height - plotFloorMinHeight - legendMetaReservePx - 8),
   ));
   const legendIsDense = rawLegendItemCount > (isTabletViewport ? 6 : 8);
-  const showLegendValue = preferSideLegend || (
+  const legendValueThreshold = isTabletViewport ? 10 : 12;
+  const showLegendValue = (preferSideLegend || (
     !isTouchViewport
     && !isCompactChartWidth
     && !isPhoneViewport
     && !(isTabletViewport && legendIsDense)
-  );
+  )) && rawLegendItemCount <= legendValueThreshold;
   const legendWidthFallback = preferSideLegend
     ? (isUltraWideChart ? 320 : 270)
     : (chartViewport.width > 0 ? chartViewport.width : (isSmall ? 220 : 360));
@@ -292,15 +293,15 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const legendItemMinWidth = preferSideLegend
     ? legendWidth
     : isPieLegend
-      ? (showLegendValue ? 132 : 104)
-      : (showLegendValue ? (isTabletViewport ? 146 : 156) : 124);
-  const legendGapPx = isPieLegend ? 8 : (isTabletViewport ? 8 : 10);
+      ? (showLegendValue ? 116 : 92)
+      : (showLegendValue ? (isTabletViewport ? 126 : 134) : 104);
+  const legendGapPx = isPieLegend ? 6 : (isTabletViewport ? 6 : 8);
   const legendCalculatedColumns = preferSideLegend
     ? 1
     : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
-  const legendMaxColumns = isPhoneViewport ? 1 : (isTabletViewport || isTouchViewport) ? 2 : 4;
+  const legendMaxColumns = isPhoneViewport ? 2 : (isTabletViewport || isTouchViewport) ? 3 : 6;
   const legendColumnsBase = Math.max(1, Math.min(legendCalculatedColumns, legendMaxColumns));
-  const legendRowHeightPx = isPieLegend ? (isCompactChartHeight ? 14 : 16) : (isCompactChartHeight ? 16 : 18);
+  const legendRowHeightPx = isPieLegend ? (isCompactChartHeight ? 13 : 15) : (isCompactChartHeight ? 14 : 16);
   const legendMaxRows = Math.max(1, Math.floor((legendBudgetHeight + legendGapPx) / (legendRowHeightPx + legendGapPx)));
   const legendCapacity = legendColumnsBase * legendMaxRows;
   const legendRenderState = resolveLegendRenderState({
@@ -311,6 +312,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   });
   const showLegendResolved = legendRenderState.shouldRenderLegend;
   const effectiveLegendCapacity = legendRenderState.effectiveLegendCapacity;
+  const legendMinVisibleItems = preferSideLegend
+    ? 10
+    : isPhoneViewport
+      ? 4
+      : (isTabletViewport || isTouchViewport)
+        ? 6
+        : 8;
   const chartSeries = sourceSeries;
   const timeSeries = sourceTimeSeries as Array<{ date: string; [key: string]: number | string }>;
   const seriesKeys = sourceSeriesKeys;
@@ -343,11 +351,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       items: baseLegendItems,
       effectiveLegendCapacity,
       canAggregateOverflow: legendRenderState.canAggregateOverflow,
+      minVisibleItems: legendMinVisibleItems,
     });
   }, [
     baseLegendItems,
     effectiveLegendCapacity,
     legendRenderState.canAggregateOverflow,
+    legendMinVisibleItems,
     showLegendResolved,
   ]);
   const legendItems = resolvedLegendData.legendItems;
@@ -401,10 +411,19 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     1,
     Math.min(legendItems.length || 1, legendColumnsBase),
   );
-  const bottomLegendMaxHeightBase = isPhoneViewport ? 64 : (isTabletViewport || isTouchViewport) ? 84 : 148;
+  const bottomLegendMaxHeightBase = isPhoneViewport ? 84 : (isTabletViewport || isTouchViewport) ? 128 : 176;
+  const legendRowsNeeded = Math.max(1, Math.ceil((legendItems.length || 1) / legendColumns));
+  const legendRowsNeededHeight = (
+    (legendRowsNeeded * legendRowHeightPx)
+    + (Math.max(0, legendRowsNeeded - 1) * legendGapPx)
+    + 8
+  );
   const bottomLegendMaxHeight = Math.max(
-    isPhoneViewport ? 30 : 36,
-    Math.min(bottomLegendMaxHeightBase, legendBudgetHeight),
+    isPhoneViewport ? 36 : 44,
+    Math.min(
+      isPhoneViewport ? 132 : (isTabletViewport || isTouchViewport) ? 188 : 244,
+      Math.max(bottomLegendMaxHeightBase, legendBudgetHeight, legendRowsNeededHeight),
+    ),
   );
   const legendPanelClass = isWallViewport
     ? 'w-[min(34%,360px)]'

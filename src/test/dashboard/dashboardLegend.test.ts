@@ -84,6 +84,22 @@ describe('compactLegendItems', () => {
     expect(result.hiddenCount).toBe(2);
   });
 
+  it('respects minimum visible items override', () => {
+    const result = compactLegendItems({
+      items: sampleItems,
+      effectiveLegendCapacity: 2,
+      canAggregateOverflow: true,
+      minVisibleItems: 3,
+    });
+
+    expect(result.legendItems).toEqual([
+      { name: 'A', value: 10 },
+      { name: 'B', value: 9 },
+      { name: 'C', value: 8 },
+    ]);
+    expect(result.hiddenCount).toBe(1);
+  });
+
   it('keeps at least one legend item even for invalid capacity', () => {
     const result = compactLegendItems({
       items: sampleItems,
