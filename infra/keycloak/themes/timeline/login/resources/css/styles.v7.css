@@ -94,7 +94,7 @@ html.login-pf {
   width: 100% !important;
   margin: 6px 0 10px !important;
   padding: 0 !important;
-  text-align: left !important;
+  text-align: right !important;
 }
 
 .login-pf-page #kc-register-form .timeline-required-hint .subtitle {
