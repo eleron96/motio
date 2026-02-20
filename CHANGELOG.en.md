@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.82] - 2026-02-20
 ### Fixed
 - Dashboard: charts are no longer simplified on page reload by legend adaptation. Only legend items are compacted now (with a hidden-items indicator), while chart data is always rendered in full.
 
