@@ -74,6 +74,21 @@ html.login-pf {
   text-align: center !important;
 }
 
+.login-pf-page .login-pf-header > div:last-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-pf-page .login-pf-header > div:last-child > .col-md-10 {
+  order: 1;
+}
+
+.login-pf-page .login-pf-header > div:last-child > .subtitle {
+  order: 2;
+  margin-top: 8px !important;
+}
+
 .login-pf-page .login-pf-header::before {
   content: "Motio";
   display: block;
