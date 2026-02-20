@@ -16,6 +16,8 @@ services:
       - maintenance_work_mem=${POSTGRES_MAINTENANCE_WORK_MEM:-128MB}
       - -c
       - max_wal_size=${POSTGRES_MAX_WAL_SIZE:-2GB}
+      - -c
+      - listen_addresses=*
     ports:
       - "54322:5432"
     environment:
