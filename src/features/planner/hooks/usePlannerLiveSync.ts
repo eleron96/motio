@@ -136,9 +136,7 @@ export const usePlannerLiveSync = (
 
     let active = true;
     const pendingTaskUpserts = new Set<string>();
-    const pendingTaskDeletes = new Set<string>();
     const pendingMilestoneUpserts = new Set<string>();
-    const pendingMilestoneDeletes = new Set<string>();
     let flushTimer: number | null = null;
     let flushInFlight = false;
     let reconcileInFlight = false;
@@ -295,20 +293,15 @@ export const usePlannerLiveSync = (
     const flushQueue = async () => {
       if (!active || flushInFlight) return;
       const interactionUntil = usePlannerStore.getState().timelineInteractingUntil;
-      if (Date.now() < interactionUntil) {
-        scheduleFlush(INTERACTION_RETRY_MS);
-        return;
-      }
+      const shouldDeferUpserts = (
+        Date.now() < interactionUntil
+        && (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0)
+      );
 
       flushInFlight = true;
       try {
-        const taskDeleteIds = takeFromSet(pendingTaskDeletes, EVENT_BATCH_SIZE);
-        const milestoneDeleteIds = takeFromSet(pendingMilestoneDeletes, EVENT_BATCH_SIZE);
-        if (taskDeleteIds.length > 0) {
-          removeTasksByIds(taskDeleteIds);
-        }
-        if (milestoneDeleteIds.length > 0) {
-          removeMilestonesByIds(milestoneDeleteIds);
+        if (shouldDeferUpserts) {
+          return;
         }
 
         const taskUpsertIds = takeFromSet(pendingTaskUpserts, EVENT_BATCH_SIZE);
@@ -374,38 +367,34 @@ export const usePlannerLiveSync = (
         flushInFlight = false;
       }
 
-      if (
-        pendingTaskUpserts.size > 0
-        || pendingTaskDeletes.size > 0
-        || pendingMilestoneUpserts.size > 0
-        || pendingMilestoneDeletes.size > 0
-      ) {
+      if (shouldDeferUpserts) {
+        scheduleFlush(INTERACTION_RETRY_MS);
+        return;
+      }
+
+      if (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0) {
         scheduleFlush(80);
       }
     };
 
     const queueTaskUpsert = (id: string) => {
-      pendingTaskDeletes.delete(id);
       pendingTaskUpserts.add(id);
       scheduleFlush();
     };
 
     const queueTaskDelete = (id: string) => {
       pendingTaskUpserts.delete(id);
-      pendingTaskDeletes.add(id);
-      scheduleFlush();
+      removeTasksByIds([id]);
     };
 
     const queueMilestoneUpsert = (id: string) => {
-      pendingMilestoneDeletes.delete(id);
       pendingMilestoneUpserts.add(id);
       scheduleFlush();
     };
 
     const queueMilestoneDelete = (id: string) => {
       pendingMilestoneUpserts.delete(id);
-      pendingMilestoneDeletes.add(id);
-      scheduleFlush();
+      removeMilestonesByIds([id]);
     };
 
     const channel = supabase

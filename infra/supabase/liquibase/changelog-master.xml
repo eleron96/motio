@@ -627,4 +627,19 @@
     <sqlFile path="../migrations/0046_enable_realtime_planner_entities.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <!-- Uses CONCURRENTLY, must not be wrapped in a transaction. -->
+  <changeSet id="0047_add_user_notifications_task_id_index.sql" author="timeline" runInTransaction="false">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0047_add_user_notifications_task_id_index.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0047_add_user_notifications_task_id_index.sql" relativeToChangelogFile="true" splitStatements="true" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>

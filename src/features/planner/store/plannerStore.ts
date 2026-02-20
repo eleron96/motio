@@ -959,6 +959,11 @@ export const usePlannerStore = create<PlannerStore>()(
         const workspaceId = get().workspaceId;
         if (!workspaceId) return;
 
+        const previousTasks = get().tasks;
+        const previousSelectedTaskId = get().selectedTaskId;
+        const previousHighlightedTaskId = get().highlightedTaskId;
+        get().removeTasksByIds([id]);
+
         const { error } = await supabase
           .from('tasks')
           .delete()
@@ -967,36 +972,40 @@ export const usePlannerStore = create<PlannerStore>()(
 
         if (error) {
           console.error(error);
+          set({
+            tasks: previousTasks,
+            selectedTaskId: previousSelectedTaskId,
+            highlightedTaskId: previousHighlightedTaskId,
+          });
           return;
         }
-
-        set((state) => ({
-          tasks: state.tasks.filter((task) => task.id !== id),
-          selectedTaskId: state.selectedTaskId === id ? null : state.selectedTaskId,
-        }));
       },
 
       deleteTasks: async (ids) => {
         const workspaceId = get().workspaceId;
         if (!workspaceId || ids.length === 0) return {};
+        const uniqueIds = Array.from(new Set(ids));
+
+        const previousTasks = get().tasks;
+        const previousSelectedTaskId = get().selectedTaskId;
+        const previousHighlightedTaskId = get().highlightedTaskId;
+        get().removeTasksByIds(uniqueIds);
 
         const { error } = await supabase
           .from('tasks')
           .delete()
           .eq('workspace_id', workspaceId)
-          .in('id', ids);
+          .in('id', uniqueIds);
 
         if (error) {
           console.error(error);
+          set({
+            tasks: previousTasks,
+            selectedTaskId: previousSelectedTaskId,
+            highlightedTaskId: previousHighlightedTaskId,
+          });
           return { error: error.message };
         }
-
-        set((state) => ({
-          tasks: state.tasks.filter((task) => !ids.includes(task.id)),
-          selectedTaskId: state.selectedTaskId && ids.includes(state.selectedTaskId)
-            ? null
-            : state.selectedTaskId,
-        }));
 
         return {};
       },
@@ -1198,6 +1207,16 @@ export const usePlannerStore = create<PlannerStore>()(
         const workspaceId = get().workspaceId;
         if (!workspaceId) return;
 
+        const previousTasks = get().tasks;
+        const previousSelectedTaskId = get().selectedTaskId;
+        const previousHighlightedTaskId = get().highlightedTaskId;
+        const localSeriesIds = previousTasks
+          .filter((item) => item.repeatId === repeatId && item.startDate >= fromDate)
+          .map((item) => item.id);
+        if (localSeriesIds.length > 0) {
+          get().removeTasksByIds(localSeriesIds);
+        }
+
         const { error } = await supabase
           .from('tasks')
           .delete()
@@ -1207,20 +1226,13 @@ export const usePlannerStore = create<PlannerStore>()(
 
         if (error) {
           console.error(error);
+          set({
+            tasks: previousTasks,
+            selectedTaskId: previousSelectedTaskId,
+            highlightedTaskId: previousHighlightedTaskId,
+          });
           return;
         }
-
-        set((state) => {
-          const deletedIds = new Set(
-            state.tasks
-              .filter((item) => item.repeatId === repeatId && item.startDate >= fromDate)
-              .map((item) => item.id)
-          );
-          return {
-            tasks: state.tasks.filter((item) => !(item.repeatId === repeatId && item.startDate >= fromDate)),
-            selectedTaskId: state.selectedTaskId && deletedIds.has(state.selectedTaskId) ? null : state.selectedTaskId,
-          };
-        });
       },
 
       removeAssigneeFromTask: async (id, assigneeId, mode) => {
