@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.71] - 2026-02-20
 ### Fixed
 - Удаление задач ускорено: на клиенте включено optimistic удаление с rollback при ошибке, а realtime delete-события применяются сразу даже во время скролла таймлайна.
 

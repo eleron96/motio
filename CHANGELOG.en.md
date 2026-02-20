@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.71] - 2026-02-20
 ### Fixed
 - Task deletion latency reduced: client-side optimistic delete with rollback on failure was added, and realtime delete events now apply immediately even during timeline scrolling.
 
