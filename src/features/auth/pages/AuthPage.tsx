@@ -105,23 +105,29 @@ const AuthPage: React.FC = () => {
   };
 
   const authError = error || oauthError;
-
-  if (!user && !authError) {
-    return <div className="min-h-screen bg-background" />;
-  }
+  const isRedirecting = !user && !authError;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{t`Sign in required`}</CardTitle>
-          <CardDescription>{t`Continue with Keycloak to access the workspace.`}</CardDescription>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-10">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.2),_transparent_46%),linear-gradient(to_bottom,_#f8fafc,_#eef3f8)]" />
+
+      <Card className="relative z-10 w-full max-w-md border-slate-200/85 bg-white/95 shadow-[0_28px_70px_-34px_rgba(15,23,42,0.4)]">
+        <CardHeader className="space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="text-lg font-semibold tracking-tight text-slate-900">Motio</div>
+            <div className="text-xs uppercase tracking-[0.14em] text-slate-500">Timeline Planner</div>
+          </div>
+          <div className="space-y-1">
+            <CardTitle>{t`Sign in required`}</CardTitle>
+            <CardDescription>{t`Continue with Keycloak to access the workspace.`}</CardDescription>
+          </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <div className="text-xs text-muted-foreground">{t`Language`}</div>
+            <div className="text-xs font-medium tracking-wide text-muted-foreground">{t`Language`}</div>
             <Select value={locale} onValueChange={handleLocaleChange}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full border-slate-200 bg-white">
                 <SelectValue placeholder={t`Select language`} />
               </SelectTrigger>
               <SelectContent>
@@ -138,15 +144,28 @@ const AuthPage: React.FC = () => {
             </Alert>
           )}
 
-          <Button type="button" className="w-full" onClick={handleKeycloakSignIn} disabled={loading || submitting}>
-            {t`Continue with Keycloak`}
-          </Button>
+          {!isRedirecting && (
+            <Button type="button" className="h-11 w-full" onClick={handleKeycloakSignIn} disabled={loading || submitting}>
+              {t`Continue with Keycloak`}
+            </Button>
+          )}
+
+          {isRedirecting && (
+            <div className="space-y-2">
+              <div className="h-11 w-full rounded-lg border border-slate-200 bg-slate-100/80" />
+              <div className="text-center text-xs text-muted-foreground">Redirecting to secure sign in...</div>
+            </div>
+          )}
 
           <div className="text-xs text-muted-foreground">
             {t`Passwords and account recovery are managed in Keycloak.`}
           </div>
         </CardContent>
       </Card>
+
+      <div className="absolute bottom-6 z-10 text-center text-[11px] text-slate-500">
+        © Motio — Timeline Planner, NIKO G.
+      </div>
     </div>
   );
 };
