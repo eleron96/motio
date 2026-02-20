@@ -30,36 +30,6 @@
     );
   }
 
-  function ensureBranding() {
-    var card = doc.querySelector('.login-pf-page .card-pf');
-    if (!card) return;
-
-    if (!card.querySelector('.timeline-brand')) {
-      var brand = doc.createElement('div');
-      brand.className = 'timeline-brand';
-      brand.innerHTML = ''
-        + '<span class="timeline-brand-mark" aria-hidden="true"></span>'
-        + '<div class="timeline-brand-copy">'
-        + '  <div class="timeline-brand-title">Motio</div>'
-        + '  <div class="timeline-brand-subtitle">Timeline Planner</div>'
-        + '</div>';
-
-      var header = card.querySelector('.login-pf-header');
-      if (header && header.parentNode === card) {
-        card.insertBefore(brand, header);
-      } else {
-        card.insertBefore(brand, card.firstChild);
-      }
-    }
-
-    if (!card.querySelector('.timeline-auth-footer')) {
-      var footer = doc.createElement('div');
-      footer.className = 'timeline-auth-footer';
-      footer.textContent = '© Motio — Timeline Planner, NIKO G.';
-      card.appendChild(footer);
-    }
-  }
-
   function isReAuthScreen() {
     var passwordInput = doc.getElementById('password');
     var usernameInput = doc.getElementById('username');
@@ -76,8 +46,6 @@
   }
 
   function run() {
-    ensureBranding();
-
     if (!isReAuthScreen()) {
       setPageHidden(false);
       return;
