@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Planner: added live task/milestone sync via Supabase Realtime with buffered batched updates, interaction-aware apply deferral during timeline scroll, and focus reconcile for reload-free updates without jitter.
+
 ## [0.1.69] - 2026-02-20
 ### Fixed
 - Timeline: fixed current-day indicator refresh after long idle tab sessions. The 'today' highlight now updates automatically on tab return and after midnight without page reload.

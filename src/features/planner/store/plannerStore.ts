@@ -148,11 +148,17 @@ interface PlannerStore extends PlannerState {
   assigneeCountsWorkspaceId: string | null;
   scrollRequestId: number;
   scrollTargetDate: string | null;
+  timelineInteractingUntil: number;
   setWorkspaceId: (id: string | null) => void;
   loadWorkspaceData: (workspaceId: string) => Promise<void>;
   refreshAssignees: () => Promise<void>;
   refreshMemberGroups: () => Promise<void>;
   reset: () => void;
+  markTimelineInteraction: (durationMs?: number) => void;
+  upsertTasks: (tasks: Task[]) => void;
+  removeTasksByIds: (ids: string[]) => void;
+  upsertMilestones: (milestones: Milestone[]) => void;
+  removeMilestonesByIds: (ids: string[]) => void;
 
   addTask: (task: Omit<Task, 'id'>) => Promise<Task | null>;
   updateTask: (id: string, updates: Partial<Task>, scope?: RepeatTaskUpdateScope) => Promise<void>;
@@ -390,6 +396,7 @@ export const usePlannerStore = create<PlannerStore>()(
       assigneeCountsWorkspaceId: null,
       scrollRequestId: 0,
       scrollTargetDate: null,
+      timelineInteractingUntil: 0,
 
       setWorkspaceId: (id) => set({ workspaceId: id }),
       reset: () => set({
@@ -417,6 +424,71 @@ export const usePlannerStore = create<PlannerStore>()(
         assigneeCountsWorkspaceId: null,
         scrollRequestId: 0,
         scrollTargetDate: null,
+        timelineInteractingUntil: 0,
+      }),
+      markTimelineInteraction: (durationMs = 650) => set((state) => {
+        const now = Date.now();
+        const nextUntil = now + Math.max(250, durationMs);
+        if (nextUntil <= state.timelineInteractingUntil) return state;
+        // Avoid high-frequency state churn during scroll: only extend significantly.
+        if (nextUntil - state.timelineInteractingUntil < 120) return state;
+        return { timelineInteractingUntil: nextUntil };
+      }),
+      upsertTasks: (tasks) => set((state) => {
+        if (tasks.length === 0) return state;
+        const incoming = new Map(tasks.map((task) => [task.id, task]));
+        const existingIds = new Set(state.tasks.map((task) => task.id));
+        const nextTasks = state.tasks.map((task) => incoming.get(task.id) ?? task);
+        tasks.forEach((task) => {
+          if (!existingIds.has(task.id)) {
+            nextTasks.push(task);
+          }
+        });
+        const selectedTaskId = state.selectedTaskId && nextTasks.some((task) => task.id === state.selectedTaskId)
+          ? state.selectedTaskId
+          : null;
+        const highlightedTaskId = state.highlightedTaskId && nextTasks.some((task) => task.id === state.highlightedTaskId)
+          ? state.highlightedTaskId
+          : null;
+        return {
+          tasks: nextTasks,
+          selectedTaskId,
+          highlightedTaskId,
+        };
+      }),
+      removeTasksByIds: (ids) => set((state) => {
+        if (ids.length === 0) return state;
+        const removed = new Set(ids);
+        const nextTasks = state.tasks.filter((task) => !removed.has(task.id));
+        if (nextTasks.length === state.tasks.length) return state;
+        return {
+          tasks: nextTasks,
+          selectedTaskId: state.selectedTaskId && removed.has(state.selectedTaskId)
+            ? null
+            : state.selectedTaskId,
+          highlightedTaskId: state.highlightedTaskId && removed.has(state.highlightedTaskId)
+            ? null
+            : state.highlightedTaskId,
+        };
+      }),
+      upsertMilestones: (milestones) => set((state) => {
+        if (milestones.length === 0) return state;
+        const incoming = new Map(milestones.map((milestone) => [milestone.id, milestone]));
+        const existingIds = new Set(state.milestones.map((milestone) => milestone.id));
+        const nextMilestones = state.milestones.map((milestone) => incoming.get(milestone.id) ?? milestone);
+        milestones.forEach((milestone) => {
+          if (!existingIds.has(milestone.id)) {
+            nextMilestones.push(milestone);
+          }
+        });
+        return { milestones: nextMilestones };
+      }),
+      removeMilestonesByIds: (ids) => set((state) => {
+        if (ids.length === 0) return state;
+        const removed = new Set(ids);
+        const nextMilestones = state.milestones.filter((milestone) => !removed.has(milestone.id));
+        if (nextMilestones.length === state.milestones.length) return state;
+        return { milestones: nextMilestones };
       }),
 
       loadWorkspaceData: async (workspaceId) => {

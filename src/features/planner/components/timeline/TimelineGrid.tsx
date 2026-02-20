@@ -81,6 +81,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     highlightedTaskId,
     timelineAttentionDate,
     setTimelineAttentionDate,
+    markTimelineInteraction,
   } = usePlannerStore();
   const user = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
@@ -364,6 +365,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   // Горизонтальный скролл: scrollLeft для линий вех и подписи месяца; вертикальная синхронизация с сайдбаром
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    markTimelineInteraction(700);
     if (syncingRef.current && syncingRef.current !== e.currentTarget) {
       return;
     }
@@ -452,7 +454,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         }
       }, 450);
     }
-  }, [currentDate, dayWidth, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
+  }, [currentDate, dayWidth, markTimelineInteraction, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
 
   const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -466,9 +468,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       target: e.currentTarget,
       didMove: false,
     };
+    markTimelineInteraction(900);
     setIsDragScrolling(true);
     e.preventDefault();
-  }, []);
+  }, [markTimelineInteraction]);
 
   useEffect(() => {
     if (!isDragScrolling) return;
@@ -476,6 +479,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       const state = dragScrollRef.current;
       if (!state?.target) return;
+      markTimelineInteraction(900);
       const deltaX = e.clientX - state.startX;
       if (!state.didMove && Math.abs(deltaX) > 4) {
         state.didMove = true;
@@ -498,7 +502,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragScrolling]);
+  }, [isDragScrolling, markTimelineInteraction]);
 
   useEffect(() => {
     if (!isSidebarResizing) return;

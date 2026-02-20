@@ -8,6 +8,7 @@ import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
 import { AccountSettingsDialog } from '@/features/auth/components/AccountSettingsDialog';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
+import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { Button } from '@/shared/ui/button';
 import { Plus, Settings, User } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
@@ -160,6 +161,8 @@ const PlannerPage = () => {
     || tags.length > 0
     || milestones.length > 0;
   const showLoadingOverlay = plannerLoading && (!loadedRange || loadedRange.workspaceId !== currentWorkspaceId) && !hasInitialData;
+
+  usePlannerLiveSync(currentWorkspaceId, loadedRange);
 
   useEffect(() => {
     if (!currentWorkspaceId) return;
