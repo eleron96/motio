@@ -10,6 +10,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 - Dashboard: added widget grouping by task type (Task types); updated RPC aggregations so charts and KPI metrics are correctly computed by type without regressions for existing groupings.
 
+
+### Fixed
+- Timeline: added project info to task hover tooltip. Dashboard: fixed legend overlapping charts when widget height is small (adaptive legend compaction/limits and chart min-height tuning).
 ## [0.1.79] - 2026-02-20
 ### Changed
 - No documented changes.

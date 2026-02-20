@@ -508,6 +508,11 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             <div className="text-xs text-muted-foreground">
               {t`Assignees`}: <span className="text-foreground font-medium">{assigneeLabel}</span>
             </div>
+            <div className="text-xs text-muted-foreground">
+              {t`Project`}: <span className="text-foreground font-medium">
+                {project ? formatProjectLabel(project.name, project.code) : t`No project`}
+              </span>
+            </div>
             <div className="flex flex-wrap gap-1">
               {status && (
                 <Badge className="text-[10px]" style={getBadgeStyle(status.color)}>

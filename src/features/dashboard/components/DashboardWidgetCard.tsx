@@ -235,6 +235,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     && chartViewport.width >= Math.max(CHART_SIDE_LEGEND_MIN_WIDTH_PX, sideLegendWidthThreshold)
     && chartAspectRatio >= Math.max(CHART_SIDE_LEGEND_MIN_ASPECT, sideLegendAspectThreshold);
   const isCompactChartHeight = chartViewport.height > 0 && chartViewport.height < 210;
+  const isVeryCompactChartHeight = chartViewport.height > 0 && chartViewport.height < (isSmall ? 120 : 132);
   const isCompactChartWidth = chartViewport.width > 0 && chartViewport.width < 380;
   const axisMinWidth = isLaptopViewport ? 300 : 280;
   const showAxes = canShowAxesBySize
@@ -268,6 +269,10 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     : null;
   const isPieLegend = widget.type === 'pie';
   const legendIsDense = legendItems.length > (isTabletViewport ? 6 : 8);
+  const collapseBottomLegendByHeight = showLegend
+    && !preferSideLegend
+    && isVeryCompactChartHeight;
+  const showLegendResolved = showLegend && !collapseBottomLegendByHeight;
   const legendTextClass = isPieLegend
     ? (isCompactChartHeight ? 'text-[8px] leading-tight' : 'text-[9px] leading-tight')
     : isCompactChartHeight
@@ -275,15 +280,15 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       : legendItems.length > 6
         ? 'text-[10px] leading-snug'
         : 'text-[11px] leading-snug';
-  const showLegendValue = preferSideLegend || (
+  const showLegendValue = showLegendResolved && (preferSideLegend || (
     !isTouchViewport
     && !isCompactChartWidth
     && !isPhoneViewport
     && !(isTabletViewport && legendIsDense)
-  );
+  ));
 
   React.useLayoutEffect(() => {
-    if (!showLegend) return;
+    if (!showLegendResolved) return;
     const node = legendViewportRef.current;
     if (!node) return;
 
@@ -303,7 +308,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [showLegend, preferSideLegend, widget.type, size, editing]);
+  }, [showLegendResolved, preferSideLegend, widget.type, size, editing]);
 
   const legendWidthFallback = preferSideLegend
     ? (isUltraWideChart ? 320 : 270)
@@ -319,16 +324,23 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     ? 1
     : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
   const legendMaxColumns = isPhoneViewport ? 1 : (isTabletViewport || isTouchViewport) ? 2 : 4;
-  const legendPreviewLimit = (!preferSideLegend && isTouchViewport)
+  const compactLegendLimit = isCompactChartHeight
+    ? (isPhoneViewport ? 2 : isPieLegend ? 3 : 4)
+    : legendItems.length;
+  const touchLegendLimit = (!preferSideLegend && isTouchViewport)
     ? (isPhoneViewport ? 4 : 6)
     : legendItems.length;
+  const legendPreviewLimit = Math.max(1, Math.min(legendItems.length, compactLegendLimit, touchLegendLimit));
   const visibleLegendItems = legendItems.slice(0, legendPreviewLimit);
   const hiddenLegendCount = Math.max(0, legendItems.length - visibleLegendItems.length);
   const legendColumns = Math.max(
     1,
     Math.min(visibleLegendItems.length || 1, legendCalculatedColumns, legendMaxColumns),
   );
-  const bottomLegendMaxHeight = isPhoneViewport ? 64 : (isTabletViewport || isTouchViewport) ? 84 : 148;
+  const bottomLegendMaxHeightBase = isPhoneViewport ? 64 : (isTabletViewport || isTouchViewport) ? 84 : 148;
+  const bottomLegendMaxHeight = isCompactChartHeight
+    ? Math.min(bottomLegendMaxHeightBase, isPhoneViewport ? 48 : 56)
+    : bottomLegendMaxHeightBase;
   const legendPanelClass = isWallViewport
     ? 'w-[min(34%,360px)]'
     : isUltraWideChart
@@ -344,15 +356,15 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     '[&_.recharts-surface]:overflow-hidden',
   );
   const chartCanvasMinHeight = isSmall
-    ? (isPhoneViewport ? 70 : isTouchViewport ? 72 : 76)
+    ? (isPhoneViewport ? 64 : isTouchViewport ? 66 : 70)
     : preferSideLegend
-      ? (isCompactChartHeight ? 92 : (isWallViewport ? 132 : 124))
-      : (isCompactChartHeight ? (isPhoneViewport ? 96 : isTouchViewport ? 100 : 104) : (isPhoneViewport ? 112 : isTouchViewport ? 120 : 128));
+      ? (isCompactChartHeight ? 78 : (isWallViewport ? 132 : 124))
+      : (isCompactChartHeight ? (isPhoneViewport ? 72 : isTouchViewport ? 76 : 82) : (isPhoneViewport ? 104 : isTouchViewport ? 110 : 116));
   const pieCanvasMinHeight = isSmall
-    ? (isPhoneViewport ? 76 : isTouchViewport ? 78 : 82)
+    ? (isPhoneViewport ? 68 : isTouchViewport ? 72 : 76)
     : preferSideLegend
-      ? (isCompactChartHeight ? 112 : (isWallViewport ? 168 : 156))
-      : (isCompactChartHeight ? (isPhoneViewport ? 104 : isTouchViewport ? 108 : 112) : (isPhoneViewport ? 128 : isTouchViewport ? 136 : 144));
+      ? (isCompactChartHeight ? 88 : (isWallViewport ? 168 : 156))
+      : (isCompactChartHeight ? (isPhoneViewport ? 80 : isTouchViewport ? 86 : 92) : (isPhoneViewport ? 124 : isTouchViewport ? 132 : 140));
   const fallbackBarMaxSize = size === 'small' ? 16 : size === 'medium' ? 24 : 32;
   const dynamicBarMaxSize = (() => {
     const points = data?.series.length ?? 0;
@@ -362,7 +374,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     const cap = isUltraWideChart ? 44 : 36;
     return Math.max(10, Math.min(cap, widthBased));
   })();
-  const legendList = showLegend ? (
+  const legendList = showLegendResolved ? (
     <div className="min-w-0">
       <div
         className={cn(
@@ -420,10 +432,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     <div
       ref={legendViewportRef}
       className={cn(
-        'relative z-20 min-w-0 overflow-y-auto bg-card pr-1',
-        isTouchViewport && 'shrink-0 border-t border-border/50 pt-1',
+        'relative z-20 shrink-0 min-w-0 overflow-y-auto bg-card pr-1 border-t border-border/50 pt-1',
       )}
-      style={isTouchViewport ? { maxHeight: bottomLegendMaxHeight } : undefined}
+      style={{ maxHeight: bottomLegendMaxHeight }}
     >
       {legendList}
     </div>
