@@ -9,7 +9,7 @@ export type DashboardWidgetType =
   | 'milestone'
   | 'milestone_calendar';
 
-export type DashboardGroupBy = 'none' | 'assignee' | 'status' | 'project';
+export type DashboardGroupBy = 'none' | 'assignee' | 'status' | 'project' | 'task_type';
 
 export type DashboardStatusFilter = 'all' | 'active' | 'final' | 'cancelled' | 'custom';
 
@@ -109,6 +109,8 @@ export type DashboardStatsRow = {
   group_id?: string | null;
   project_id: string | null;
   project_name: string | null;
+  task_type_id: string | null;
+  task_type_name: string | null;
   status_id: string;
   status_name: string;
   status_is_final: boolean;
@@ -127,6 +129,8 @@ export type DashboardSeriesRow = {
   group_id?: string | null;
   project_id: string | null;
   project_name: string | null;
+  task_type_id: string | null;
+  task_type_name: string | null;
   status_id: string;
   status_name: string;
   status_is_final: boolean;

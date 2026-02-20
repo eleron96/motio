@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Dashboard: в виджетах добавлена группировка "по типу задачи" (Task types); обновлены RPC-агрегации, чтобы графики и KPI корректно считались по типам без регрессий текущих группировок.
+
 ## [0.1.79] - 2026-02-20
 ### Changed
 - Нет зафиксированных изменений.

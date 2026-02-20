@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Dashboard: added widget grouping by task type (Task types); updated RPC aggregations so charts and KPI metrics are correctly computed by type without regressions for existing groupings.
+
 ## [0.1.79] - 2026-02-20
 ### Changed
 - No documented changes.

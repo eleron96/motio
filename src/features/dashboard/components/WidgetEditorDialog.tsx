@@ -81,6 +81,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
     { value: 'assignee', label: t`By user` },
     { value: 'status', label: t`By status` },
     { value: 'project', label: t`By project` },
+    { value: 'task_type', label: t`Task types` },
   ];
   const filterFieldOptions: Array<{ value: DashboardFilterField; label: string }> = [
     { value: 'assignee', label: t`User` },

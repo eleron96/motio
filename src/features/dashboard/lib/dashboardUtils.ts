@@ -180,6 +180,7 @@ const getFieldValue = (
 };
 
 const UNASSIGNED_FILTER_VALUE = '__unassigned__';
+const NO_TYPE_LABEL = 'No type';
 
 const matchesOperator = (value: string | null, operator: DashboardFilterOperator, target: string) => {
   const isMatch = target === UNASSIGNED_FILTER_VALUE ? value === null : value === target;
@@ -277,6 +278,14 @@ export const buildWidgetData = (
       existing.value += row.total;
       seriesMap.set(key, existing);
     });
+  } else if (groupBy === 'task_type') {
+    filtered.forEach((row) => {
+      const key = row.task_type_id ?? 'no-type';
+      const name = row.task_type_name ?? NO_TYPE_LABEL;
+      const existing = seriesMap.get(key) ?? { name, value: 0 };
+      existing.value += row.total;
+      seriesMap.set(key, existing);
+    });
   }
 
   const series = Array.from(seriesMap.values()).sort((a, b) => b.value - a.value);
@@ -334,6 +343,9 @@ export const buildTimeSeriesData = (
       label = row.project_id
         ? projectNameById.get(row.project_id) ?? row.project_name ?? 'No project'
         : 'No project';
+    } else if (groupBy === 'task_type') {
+      rawKey = row.task_type_id ?? 'no-type';
+      label = row.task_type_name ?? NO_TYPE_LABEL;
     }
     const seriesKey = toSeriesKey(rawKey);
     if (!seriesKeysMap.has(seriesKey)) {
