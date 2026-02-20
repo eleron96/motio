@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
@@ -137,6 +137,9 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
         <SheetContent className="flex h-full w-[420px] flex-col sm:w-[480px]">
           <SheetHeader>
             <SheetTitle>{t`Account settings`}</SheetTitle>
+            <SheetDescription className="sr-only">
+              {t`Manage your profile and account preferences.`}
+            </SheetDescription>
           </SheetHeader>
 
           <div className="mt-6 flex flex-1 flex-col items-center space-y-4 text-center">
