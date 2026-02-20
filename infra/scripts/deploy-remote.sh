@@ -7,14 +7,25 @@ remote_dir="${DEPLOY_PATH:-/opt/new_toggl}"
 
 echo "Deploy target: ${host}:${remote_dir}"
 
-rsync -az \
-  --exclude '.git' \
-  --exclude 'node_modules' \
-  --exclude 'dist' \
-  --exclude '.env' \
-  --exclude 'infra/backups' \
-  --exclude 'infra/caddy/Caddyfile' \
-  "${root_dir}/" "${host}:${remote_dir}/"
+rsync_output="$(
+  rsync -az --itemize-changes \
+    --exclude '.git' \
+    --exclude 'node_modules' \
+    --exclude 'dist' \
+    --exclude '.env' \
+    --exclude 'infra/backups' \
+    --exclude 'infra/caddy/Caddyfile' \
+    "${root_dir}/" "${host}:${remote_dir}/"
+)"
+
+if [[ -n "${rsync_output}" ]]; then
+  printf "%s\n" "${rsync_output}"
+fi
+
+keycloak_theme_changed="false"
+if printf "%s\n" "${rsync_output}" | grep -q 'infra/keycloak/themes/'; then
+  keycloak_theme_changed="true"
+fi
 
 # motio-caddy binds a single file (/opt/new_toggl/infra/caddy/Caddyfile -> /etc/caddy/Caddyfile).
 # Plain rsync replaces the file via rename, which breaks that bind mount until the container restarts.
@@ -31,6 +42,12 @@ rsync -az --inplace \
   "${host}:${remote_dir}/infra/supabase/nginx.conf"
 
 ssh "$host" "cd '${remote_dir}' && bash infra/scripts/prod-compose.sh"
+
+if [[ "${keycloak_theme_changed}" == "true" ]]; then
+  echo "Keycloak theme changes detected. Recreating keycloak to flush theme cache."
+  ssh "$host" "cd '${remote_dir}' && docker compose -f infra/docker-compose.prod.yml --env-file .env up -d --force-recreate --no-deps keycloak"
+fi
+
 ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then \
   host_hash=\$(sha1sum '${remote_dir}/infra/caddy/Caddyfile' | awk '{print \$1}'); \
   container_hash=\$(docker exec motio-caddy sha1sum /etc/caddy/Caddyfile 2>/dev/null | awk '{print \$1}' || true); \
