@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Dashboard: исправлен регресс, из-за которого легенда могла полностью исчезать в графиках при определённых размерах виджета; теперь легенда всегда отображается при наличии данных, а агрегация в "Остальное" включается только когда реально есть место.
 
 ## [0.1.80] - 2026-02-20
 ### Changed

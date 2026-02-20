@@ -48,6 +48,7 @@ import {
   type DashboardBreakpoint,
   type DashboardViewportProfile,
 } from '@/features/dashboard/lib/dashboardResponsive';
+import { resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
 import { getBarPalette, getPeriodRange } from '@/features/dashboard/lib/dashboardUtils';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -303,7 +304,14 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const legendRowHeightPx = isPieLegend ? (isCompactChartHeight ? 14 : 16) : (isCompactChartHeight ? 16 : 18);
   const legendMaxRows = Math.max(1, Math.floor((legendBudgetHeight + legendGapPx) / (legendRowHeightPx + legendGapPx)));
   const legendCapacity = legendColumnsBase * legendMaxRows;
-  const showLegendResolved = showLegend && (legendCapacity >= 2 || rawLegendItemCount <= 1);
+  const legendRenderState = resolveLegendRenderState({
+    isChart,
+    legendEnabled: isLegendEnabled,
+    rawLegendItemCount,
+    legendCapacity,
+  });
+  const showLegendResolved = legendRenderState.shouldRenderLegend;
+  const effectiveLegendCapacity = legendRenderState.effectiveLegendCapacity;
   const resolvedChartData = React.useMemo<{
     simpleSeries: Array<{ name: string; value: number }>;
     legendItems: Array<{ name: string; value: number }>;
@@ -319,7 +327,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       groupedLegendCount: 0,
     };
 
-    if (!showLegendResolved || legendCapacity < 2) {
+    if (!showLegendResolved || !legendRenderState.canAggregateOverflow) {
       return baseResult;
     }
 
@@ -341,14 +349,14 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
         }))
         .sort((left, right) => right.total - left.total);
 
-      if (keyStats.length <= legendCapacity) {
+      if (keyStats.length <= effectiveLegendCapacity) {
         return {
           ...baseResult,
           legendItems: keyStats.map((entry) => ({ name: entry.label, value: entry.total })),
         };
       }
 
-      const keepCount = Math.max(1, legendCapacity - 1);
+      const keepCount = Math.max(1, effectiveLegendCapacity - 1);
       const kept = keyStats.slice(0, keepCount);
       const hidden = keyStats.slice(keepCount);
       const hiddenKeys = new Set(hidden.map((entry) => entry.key));
@@ -387,7 +395,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     }
 
     const sortedSeries = [...sourceSeries].sort((left, right) => right.value - left.value);
-    if (sortedSeries.length <= legendCapacity) {
+    if (sortedSeries.length <= effectiveLegendCapacity) {
       return {
         ...baseResult,
         simpleSeries: sortedSeries,
@@ -395,7 +403,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       };
     }
 
-    const keepCount = Math.max(1, legendCapacity - 1);
+    const keepCount = Math.max(1, effectiveLegendCapacity - 1);
     const kept = sortedSeries.slice(0, keepCount);
     const hidden = sortedSeries.slice(keepCount);
     const hiddenTotal = hidden.reduce((sum, entry) => sum + entry.value, 0);
@@ -413,7 +421,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   }, [
     hasSourceTimeSeries,
     isTimeSeriesChart,
-    legendCapacity,
+    effectiveLegendCapacity,
+    legendRenderState.canAggregateOverflow,
     otherLegendLabel,
     showLegendResolved,
     sourceSeries,
