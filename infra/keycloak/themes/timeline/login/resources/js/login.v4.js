@@ -80,6 +80,24 @@
     });
   }
 
+  function moveRegisterRequiredHint() {
+    var registerForm = doc.getElementById('kc-register-form');
+    if (!registerForm) return;
+
+    var formOptions = registerForm.querySelector('#kc-form-options');
+    if (!formOptions || !formOptions.parentNode) return;
+
+    var headerHint = doc.querySelector('.login-pf-header > div:last-child > .subtitle');
+    if (!headerHint) return;
+
+    if (headerHint.parentNode === formOptions.parentNode && headerHint.nextElementSibling === formOptions) {
+      return;
+    }
+
+    headerHint.classList.add('timeline-required-hint');
+    formOptions.parentNode.insertBefore(headerHint, formOptions);
+  }
+
   function isReAuthScreen() {
     var passwordInput = doc.getElementById('password');
     var usernameInput = doc.getElementById('username');
@@ -98,6 +116,7 @@
   function run() {
     disableAutofocus();
     fixPasswordToggleControls();
+    moveRegisterRequiredHint();
 
     if (!isReAuthScreen()) {
       setPageHidden(false);

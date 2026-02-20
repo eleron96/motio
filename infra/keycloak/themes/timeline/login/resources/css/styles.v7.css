@@ -89,6 +89,26 @@ html.login-pf {
   margin-top: 8px !important;
 }
 
+.login-pf-page #kc-register-form .timeline-required-hint {
+  float: none !important;
+  width: 100% !important;
+  margin: 6px 0 10px !important;
+  padding: 0 !important;
+  text-align: left !important;
+}
+
+.login-pf-page #kc-register-form .timeline-required-hint .subtitle {
+  display: inline-block;
+  color: var(--timeline-muted);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.login-pf-page #kc-register-form .timeline-required-hint .required {
+  color: var(--timeline-text);
+  font-weight: 600;
+}
+
 .login-pf-page .login-pf-header::before {
   content: "Motio";
   display: block;
@@ -252,7 +272,7 @@ html.login-pf {
 }
 
 #language-switch1 {
-  display: none;
+  display: none !important;
   position: absolute;
   left: 0 !important;
   right: auto !important;
@@ -267,12 +287,7 @@ html.login-pf {
 }
 
 #kc-current-locale-link[aria-expanded="true"] + #language-switch1 {
-  display: block;
-}
-
-#kc-locale-dropdown:hover #language-switch1,
-#kc-locale-dropdown:focus-within #language-switch1 {
-  display: block;
+  display: block !important;
 }
 
 #language-1,
