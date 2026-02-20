@@ -58,19 +58,19 @@ html.login-pf {
 
 .login-pf-page .login-pf-header {
   margin-bottom: 14px;
+  text-align: center;
 }
 
 .login-pf-page .login-pf-header::before {
   content: "Motio";
   display: block;
-  margin-bottom: 4px;
-  padding: 11px 56px 10px 14px;
-  border: 1px solid var(--timeline-border);
-  border-radius: var(--timeline-radius);
-  background: var(--timeline-surface-soft);
-  font-size: 18px;
+  margin: 0 44px 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 40px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1;
   letter-spacing: -0.01em;
   color: var(--timeline-text);
 }
@@ -81,6 +81,7 @@ html.login-pf {
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--timeline-text);
+  text-align: center;
 }
 
 #kc-page-title::before {
@@ -93,6 +94,7 @@ html.login-pf {
   text-transform: uppercase;
   color: var(--timeline-muted);
   line-height: 1;
+  text-align: center;
 }
 
 .pf-c-form__label-text {
@@ -175,7 +177,7 @@ html.login-pf {
   text-decoration: underline;
 }
 
-/* Language chooser icon in the bottom-right corner of the login block. */
+/* Language chooser icon in the top-right corner of the login block. */
 #kc-locale {
   position: absolute;
   right: 16px;
@@ -236,6 +238,11 @@ html.login-pf {
 }
 
 #kc-current-locale-link[aria-expanded="true"] + #language-switch1 {
+  display: block;
+}
+
+#kc-locale-dropdown:hover #language-switch1,
+#kc-locale-dropdown:focus-within #language-switch1 {
   display: block;
 }
 
@@ -324,8 +331,8 @@ html.login-pf {
   }
 
   .login-pf-page .login-pf-header::before {
-    font-size: 17px;
-    padding: 10px 54px 9px 12px;
+    margin: 0 34px 2px;
+    font-size: 34px;
   }
 
   #kc-page-title::before {

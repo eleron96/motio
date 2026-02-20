@@ -223,7 +223,7 @@ const getOauth2ProxySignOutPath = () => {
   const signOutPath = (import.meta.env.VITE_OAUTH2_PROXY_SIGN_OUT_PATH ?? '/oauth2/sign_out').trim();
   if (!signOutPath) return '/oauth2/sign_out';
   const separator = signOutPath.includes('?') ? '&' : '?';
-  return `${signOutPath}${separator}rd=${encodeURIComponent('/auth')}`;
+  return `${signOutPath}${separator}rd=${encodeURIComponent('/auth?silent=1')}`;
 };
 
 const getKeycloakLogoutUrl = (postLogoutRedirectUri: string) => {
@@ -672,7 +672,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         window.location.replace(proxySignOutPath);
         return;
       }
-      window.location.replace('/auth');
+      window.location.replace('/auth?silent=1');
     }
   },
   fetchWorkspaces: async () => {

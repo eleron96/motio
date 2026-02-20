@@ -105,7 +105,10 @@ const AuthPage: React.FC = () => {
   };
 
   const authError = error || oauthError;
-  const isRedirecting = !user && !authError;
+
+  if (!user && !authError) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-10">
@@ -113,9 +116,9 @@ const AuthPage: React.FC = () => {
 
       <Card className="relative z-10 w-full max-w-md border-slate-200/85 bg-white/95 shadow-[0_28px_70px_-34px_rgba(15,23,42,0.4)]">
         <CardHeader className="space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <div className="text-lg font-semibold tracking-tight text-slate-900">Motio</div>
-            <div className="text-xs uppercase tracking-[0.14em] text-slate-500">Timeline Planner</div>
+          <div className="space-y-1 text-center">
+            <div className="text-2xl font-semibold tracking-tight text-slate-900">Motio</div>
+            <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Timeline Planner</div>
           </div>
           <div className="space-y-1">
             <CardTitle>{t`Sign in required`}</CardTitle>
@@ -144,18 +147,9 @@ const AuthPage: React.FC = () => {
             </Alert>
           )}
 
-          {!isRedirecting && (
-            <Button type="button" className="h-11 w-full" onClick={handleKeycloakSignIn} disabled={loading || submitting}>
-              {t`Continue with Keycloak`}
-            </Button>
-          )}
-
-          {isRedirecting && (
-            <div className="space-y-2">
-              <div className="h-11 w-full rounded-lg border border-slate-200 bg-slate-100/80" />
-              <div className="text-center text-xs text-muted-foreground">Redirecting to secure sign in...</div>
-            </div>
-          )}
+          <Button type="button" className="h-11 w-full" onClick={handleKeycloakSignIn} disabled={loading || submitting}>
+            {t`Continue with Keycloak`}
+          </Button>
 
           <div className="text-xs text-muted-foreground">
             {t`Passwords and account recovery are managed in Keycloak.`}
