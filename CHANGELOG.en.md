@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.81] - 2026-02-20
 ### Fixed
 - Dashboard: fixed a regression where chart legends could disappear entirely for certain widget sizes; legend now always renders when data exists, and "Other" aggregation is applied only when there is enough room.
 
