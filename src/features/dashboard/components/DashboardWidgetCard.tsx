@@ -48,7 +48,7 @@ import {
   type DashboardBreakpoint,
   type DashboardViewportProfile,
 } from '@/features/dashboard/lib/dashboardResponsive';
-import { resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
+import { compactLegendItems, resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
 import { getBarPalette, getPeriodRange } from '@/features/dashboard/lib/dashboardUtils';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -62,7 +62,6 @@ const filterLabels: Record<DashboardStatusFilter, string> = {
   custom: t`Custom`,
 };
 const PIE_OTHER_KEY = '__pie_other__';
-const CHART_OTHER_KEY = '__chart_other__';
 const LEGACY_OTHER_LABEL_IDS = new Set(['/IX/7x', 'RuXuwk']);
 const MILESTONE_LIST_ROW_GAP_PX = 8;
 const MILESTONE_MORE_ROW_RESERVE_PX = 24;
@@ -117,7 +116,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     || LEGACY_OTHER_LABEL_IDS.has(name.trim())
   ), []);
   const formatLegendName = React.useCallback((name: string) => {
-    if (name === PIE_OTHER_KEY || name === CHART_OTHER_KEY || isTechnicalLegendName(name)) return otherLegendLabel;
+    if (name === PIE_OTHER_KEY || isTechnicalLegendName(name)) return otherLegendLabel;
     return name;
   }, [isTechnicalLegendName, otherLegendLabel]);
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
@@ -312,129 +311,47 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   });
   const showLegendResolved = legendRenderState.shouldRenderLegend;
   const effectiveLegendCapacity = legendRenderState.effectiveLegendCapacity;
-  const resolvedChartData = React.useMemo<{
-    simpleSeries: Array<{ name: string; value: number }>;
+  const chartSeries = sourceSeries;
+  const timeSeries = sourceTimeSeries as Array<{ date: string; [key: string]: number | string }>;
+  const seriesKeys = sourceSeriesKeys;
+  const hasTimeSeries = timeSeries.length > 0 && seriesKeys.length > 0;
+  const baseLegendItems = React.useMemo<Array<{ name: string; value: number }>>(() => {
+    if (!isTimeSeriesChart || !hasSourceTimeSeries) {
+      return sourceSeries;
+    }
+
+    if (sourceSeries.length > 0) {
+      return sourceSeries;
+    }
+
+    return sourceSeriesKeys
+      .map((seriesKey) => ({
+        name: seriesKey.label,
+        value: timeSeries.reduce((sum, point) => sum + Number(point[seriesKey.key] ?? 0), 0),
+      }))
+      .sort((left, right) => right.value - left.value);
+  }, [hasSourceTimeSeries, isTimeSeriesChart, sourceSeries, sourceSeriesKeys, timeSeries]);
+  const resolvedLegendData = React.useMemo<{
     legendItems: Array<{ name: string; value: number }>;
-    timeSeriesKeys: Array<{ key: string; label: string }>;
-    timeSeriesPoints: Array<{ date: string; [key: string]: number | string }>;
-    groupedLegendCount: number;
+    hiddenCount: number;
   }>(() => {
-    const baseResult = {
-      simpleSeries: sourceSeries,
-      legendItems: sourceSeries,
-      timeSeriesKeys: sourceSeriesKeys,
-      timeSeriesPoints: sourceTimeSeries as Array<{ date: string; [key: string]: number | string }>,
-      groupedLegendCount: 0,
-    };
-
-    if (!showLegendResolved || !legendRenderState.canAggregateOverflow) {
-      return baseResult;
+    if (!showLegendResolved) {
+      return { legendItems: [], hiddenCount: 0 };
     }
 
-    if (isTimeSeriesChart && hasSourceTimeSeries) {
-      const totalsByKey = new Map<string, number>();
-      sourceSeriesKeys.forEach((seriesKey) => {
-        totalsByKey.set(seriesKey.key, 0);
-      });
-      sourceTimeSeries.forEach((point) => {
-        sourceSeriesKeys.forEach((seriesKey) => {
-          totalsByKey.set(seriesKey.key, (totalsByKey.get(seriesKey.key) ?? 0) + Number(point[seriesKey.key] ?? 0));
-        });
-      });
-      const keyStats = sourceSeriesKeys
-        .map((seriesKey) => ({
-          key: seriesKey.key,
-          label: seriesKey.label,
-          total: totalsByKey.get(seriesKey.key) ?? 0,
-        }))
-        .sort((left, right) => right.total - left.total);
-
-      if (keyStats.length <= effectiveLegendCapacity) {
-        return {
-          ...baseResult,
-          legendItems: keyStats.map((entry) => ({ name: entry.label, value: entry.total })),
-        };
-      }
-
-      const keepCount = Math.max(1, effectiveLegendCapacity - 1);
-      const kept = keyStats.slice(0, keepCount);
-      const hidden = keyStats.slice(keepCount);
-      const hiddenKeys = new Set(hidden.map((entry) => entry.key));
-      const hiddenTotal = hidden.reduce((sum, entry) => sum + entry.total, 0);
-
-      const aggregatedPoints = sourceTimeSeries.map((point) => {
-        const next: { date: string; [key: string]: number | string } = {
-          date: typeof point.date === 'string' ? point.date : String(point.date),
-        };
-        kept.forEach((entry) => {
-          next[entry.key] = Number(point[entry.key] ?? 0);
-        });
-        next[CHART_OTHER_KEY] = sourceSeriesKeys
-          .filter((seriesKey) => hiddenKeys.has(seriesKey.key))
-          .reduce((sum, seriesKey) => sum + Number(point[seriesKey.key] ?? 0), 0);
-        return next;
-      });
-
-      const aggregatedLegendItems = [
-        ...kept.map((entry) => ({ name: entry.label, value: entry.total })),
-        { name: CHART_OTHER_KEY, value: hiddenTotal },
-      ];
-      const aggregatedSeriesKeys = [
-        ...kept.map((entry) => ({ key: entry.key, label: entry.label })),
-        { key: CHART_OTHER_KEY, label: otherLegendLabel },
-      ];
-
-      return {
-        ...baseResult,
-        simpleSeries: aggregatedLegendItems,
-        legendItems: aggregatedLegendItems,
-        timeSeriesKeys: aggregatedSeriesKeys,
-        timeSeriesPoints: aggregatedPoints,
-        groupedLegendCount: hidden.length,
-      };
-    }
-
-    const sortedSeries = [...sourceSeries].sort((left, right) => right.value - left.value);
-    if (sortedSeries.length <= effectiveLegendCapacity) {
-      return {
-        ...baseResult,
-        simpleSeries: sortedSeries,
-        legendItems: sortedSeries,
-      };
-    }
-
-    const keepCount = Math.max(1, effectiveLegendCapacity - 1);
-    const kept = sortedSeries.slice(0, keepCount);
-    const hidden = sortedSeries.slice(keepCount);
-    const hiddenTotal = hidden.reduce((sum, entry) => sum + entry.value, 0);
-    const aggregatedSeries = [
-      ...kept,
-      { name: CHART_OTHER_KEY, value: hiddenTotal },
-    ];
-
-    return {
-      ...baseResult,
-      simpleSeries: aggregatedSeries,
-      legendItems: aggregatedSeries,
-      groupedLegendCount: hidden.length,
-    };
+    return compactLegendItems({
+      items: baseLegendItems,
+      effectiveLegendCapacity,
+      canAggregateOverflow: legendRenderState.canAggregateOverflow,
+    });
   }, [
-    hasSourceTimeSeries,
-    isTimeSeriesChart,
+    baseLegendItems,
     effectiveLegendCapacity,
     legendRenderState.canAggregateOverflow,
-    otherLegendLabel,
     showLegendResolved,
-    sourceSeries,
-    sourceSeriesKeys,
-    sourceTimeSeries,
   ]);
-  const chartSeries = resolvedChartData.simpleSeries;
-  const legendItems = resolvedChartData.legendItems;
-  const groupedLegendCount = resolvedChartData.groupedLegendCount;
-  const timeSeries = resolvedChartData.timeSeriesPoints;
-  const seriesKeys = resolvedChartData.timeSeriesKeys;
-  const hasTimeSeries = timeSeries.length > 0 && seriesKeys.length > 0;
+  const legendItems = resolvedLegendData.legendItems;
+  const groupedLegendCount = resolvedLegendData.hiddenCount;
   const pieInnerRadius = isCompactChartHeight
     ? '42%'
     : size === 'small'
@@ -524,15 +441,31 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   })();
   const groupedLegendHint = groupedLegendCount > 0
     ? (locale === 'ru'
-      ? `+${groupedLegendCount} объединено в "Остальное"`
-      : `+${groupedLegendCount} grouped into "Other"`)
+      ? `+${groupedLegendCount} скрыто`
+      : `+${groupedLegendCount} hidden`)
     : null;
-  const getSeriesColor = React.useCallback((seriesNameOrKey: string, index: number) => (
-    seriesNameOrKey === CHART_OTHER_KEY || seriesNameOrKey === PIE_OTHER_KEY
-      ? '#94A3B8'
-      : paletteColors[index % paletteColors.length]
-  ), [paletteColors]);
-  const legendList = showLegendResolved ? (
+  const colorIndexBySeries = React.useMemo(() => {
+    const map = new Map<string, number>();
+    if (isTimeSeriesChart && hasSourceTimeSeries) {
+      sourceSeriesKeys.forEach((seriesKey, index) => {
+        map.set(seriesKey.key, index);
+        map.set(seriesKey.label, index);
+      });
+      return map;
+    }
+
+    sourceSeries.forEach((item, index) => {
+      if (!map.has(item.name)) {
+        map.set(item.name, index);
+      }
+    });
+    return map;
+  }, [hasSourceTimeSeries, isTimeSeriesChart, sourceSeries, sourceSeriesKeys]);
+  const getSeriesColor = React.useCallback((seriesNameOrKey: string, index: number) => {
+    const resolvedIndex = colorIndexBySeries.get(seriesNameOrKey) ?? index;
+    return paletteColors[resolvedIndex % paletteColors.length];
+  }, [colorIndexBySeries, paletteColors]);
+  const legendList = showLegendResolved && legendItems.length > 0 ? (
     <div className="min-w-0 overflow-hidden">
       <div
         className={cn(
@@ -546,7 +479,6 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       >
         {legendItems.map((item, index) => {
           const legendName = formatLegendName(item.name);
-          const isAggregatedOther = item.name === PIE_OTHER_KEY || item.name === CHART_OTHER_KEY;
           return (
             <div
               key={`${item.name}-${index}`}
@@ -555,9 +487,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
               <span
                 className={cn('rounded-full', isPieLegend ? 'h-1.5 w-1.5' : 'h-2 w-2')}
                 style={{
-                  backgroundColor: isAggregatedOther
-                    ? '#94A3B8'
-                    : getSeriesColor(item.name, index),
+                  backgroundColor: getSeriesColor(item.name, index),
                 }}
               />
               <span className="min-w-0 truncate text-muted-foreground">

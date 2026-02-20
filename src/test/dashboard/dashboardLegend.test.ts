@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
+import { compactLegendItems, resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
 
 describe('resolveLegendRenderState', () => {
   it('keeps legend visible when enabled and items exist even with very small capacity', () => {
@@ -51,3 +51,47 @@ describe('resolveLegendRenderState', () => {
   });
 });
 
+describe('compactLegendItems', () => {
+  const sampleItems = [
+    { name: 'A', value: 10 },
+    { name: 'B', value: 9 },
+    { name: 'C', value: 8 },
+    { name: 'D', value: 7 },
+  ];
+
+  it('does not compact when compacting is disabled', () => {
+    const result = compactLegendItems({
+      items: sampleItems,
+      effectiveLegendCapacity: 2,
+      canAggregateOverflow: false,
+    });
+
+    expect(result.legendItems).toEqual(sampleItems);
+    expect(result.hiddenCount).toBe(0);
+  });
+
+  it('compacts by truncating legend items only and reports hidden count', () => {
+    const result = compactLegendItems({
+      items: sampleItems,
+      effectiveLegendCapacity: 2,
+      canAggregateOverflow: true,
+    });
+
+    expect(result.legendItems).toEqual([
+      { name: 'A', value: 10 },
+      { name: 'B', value: 9 },
+    ]);
+    expect(result.hiddenCount).toBe(2);
+  });
+
+  it('keeps at least one legend item even for invalid capacity', () => {
+    const result = compactLegendItems({
+      items: sampleItems,
+      effectiveLegendCapacity: 0,
+      canAggregateOverflow: true,
+    });
+
+    expect(result.legendItems).toEqual([{ name: 'A', value: 10 }]);
+    expect(result.hiddenCount).toBe(3);
+  });
+});
