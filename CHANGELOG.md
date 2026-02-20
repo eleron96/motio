@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Infra: добавлен мягкий тюнинг PostgreSQL в compose (max_connections/shared_buffers/effective_cache_size/work_mem/maintenance_work_mem/max_wal_size) с настройкой через переменные окружения.
+
 ## [0.1.71] - 2026-02-20
 ### Fixed
 - Удаление задач ускорено: на клиенте включено optimistic удаление с rollback при ошибке, а realtime delete-события применяются сразу даже во время скролла таймлайна.
