@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.73] - 2026-02-20
+### Changed
+- No documented changes.
+
 ## [0.1.72] - 2026-02-20
 ### Changed
 - Infra: added moderate PostgreSQL tuning in compose (max_connections/shared_buffers/effective_cache_size/work_mem/maintenance_work_mem/max_wal_size) configurable via environment variables.
