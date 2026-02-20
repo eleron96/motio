@@ -61,6 +61,7 @@ const filterLabels: Record<DashboardStatusFilter, string> = {
   custom: t`Custom`,
 };
 const PIE_OTHER_KEY = '__pie_other__';
+const CHART_OTHER_KEY = '__chart_other__';
 const LEGACY_OTHER_LABEL_IDS = new Set(['/IX/7x', 'RuXuwk']);
 const MILESTONE_LIST_ROW_GAP_PX = 8;
 const MILESTONE_MORE_ROW_RESERVE_PX = 24;
@@ -115,7 +116,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     || LEGACY_OTHER_LABEL_IDS.has(name.trim())
   ), []);
   const formatLegendName = React.useCallback((name: string) => {
-    if (name === PIE_OTHER_KEY || isTechnicalLegendName(name)) return otherLegendLabel;
+    if (name === PIE_OTHER_KEY || name === CHART_OTHER_KEY || isTechnicalLegendName(name)) return otherLegendLabel;
     return name;
   }, [isTechnicalLegendName, otherLegendLabel]);
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
@@ -148,10 +149,35 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     : ['#94A3B8'];
   const paletteColors = palette.length ? palette : ['#94A3B8'];
   const isChart = widget.type === 'bar' || widget.type === 'line' || widget.type === 'area' || widget.type === 'pie';
+  const chartShellRef = React.useRef<HTMLDivElement | null>(null);
+  const [chartShellViewport, setChartShellViewport] = React.useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const chartViewportRef = React.useRef<HTMLDivElement | null>(null);
   const [chartViewport, setChartViewport] = React.useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const legendViewportRef = React.useRef<HTMLDivElement | null>(null);
   const [legendViewport, setLegendViewport] = React.useState<{ width: number; height: number }>({ width: 0, height: 0 });
+
+  React.useLayoutEffect(() => {
+    if (!isChart) return;
+    const node = chartShellRef.current;
+    if (!node) return;
+
+    const syncViewport = () => {
+      const next = {
+        width: node.clientWidth,
+        height: node.clientHeight,
+      };
+      setChartShellViewport((prev) => (
+        prev.width === next.width && prev.height === next.height ? prev : next
+      ));
+    };
+
+    syncViewport();
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(syncViewport);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isChart, widget.type, size, editing]);
 
   React.useLayoutEffect(() => {
     if (!isChart) return;
@@ -197,24 +223,16 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       ? 'pt-2'
       : 'pt-3';
   const [pieTooltipPosition, setPieTooltipPosition] = React.useState<{ x: number; y: number } | undefined>(undefined);
-  const pieChartSeries = widget.type === 'pie' ? (data?.series ?? []) : [];
-  const pieLegendLimit = size === 'small' ? 2 : size === 'medium' ? 5 : 7;
-  const pieSeries = widget.type === 'pie' ? (() => {
-    const source = pieChartSeries;
-    if (!isSmall) return source;
-    if (source.length <= pieLegendLimit) return source;
-    const visibleCount = Math.max(1, pieLegendLimit);
-    const visible = source.slice(0, visibleCount);
-    const hidden = source.slice(visibleCount);
-    const otherValue = hidden.reduce((sum, item) => sum + item.value, 0);
-    if (!otherValue) return visible;
-    return [...visible, { name: PIE_OTHER_KEY, value: otherValue }];
-  })() : [];
-  const legendItems = isChart
-    ? (widget.type === 'pie' ? pieSeries : (data?.series ?? []))
-    : [];
+  const sourceSeries = data?.series ?? [];
+  const sourceTimeSeries = data?.timeSeries ?? [];
+  const sourceSeriesKeys = data?.seriesKeys ?? [];
+  const isTimeSeriesChart = widget.type === 'line' || widget.type === 'area';
+  const hasSourceTimeSeries = sourceTimeSeries.length > 0 && sourceSeriesKeys.length > 0;
+  const rawLegendItemCount = isTimeSeriesChart
+    ? (hasSourceTimeSeries ? sourceSeriesKeys.length : sourceSeries.length)
+    : sourceSeries.length;
   const isLegendEnabled = widget.showLegend ?? true;
-  const showLegend = isLegendEnabled && isChart && legendItems.length > 0;
+  const showLegend = isLegendEnabled && isChart && rawLegendItemCount > 0;
   const chartAspectRatio = chartViewport.height > 0
     ? chartViewport.width / chartViewport.height
     : 0;
@@ -235,7 +253,6 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     && chartViewport.width >= Math.max(CHART_SIDE_LEGEND_MIN_WIDTH_PX, sideLegendWidthThreshold)
     && chartAspectRatio >= Math.max(CHART_SIDE_LEGEND_MIN_ASPECT, sideLegendAspectThreshold);
   const isCompactChartHeight = chartViewport.height > 0 && chartViewport.height < 210;
-  const isVeryCompactChartHeight = chartViewport.height > 0 && chartViewport.height < (isSmall ? 120 : 132);
   const isCompactChartWidth = chartViewport.width > 0 && chartViewport.width < 380;
   const axisMinWidth = isLaptopViewport ? 300 : 280;
   const showAxes = canShowAxesBySize
@@ -247,6 +264,168 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     : isSmall
       ? { fontSize: 'clamp(1.5rem, 4vw, 2.75rem)' }
       : { fontSize: 'clamp(2rem, 3vw, 3.25rem)' };
+  const chartPeriodLabel = (widget.type === 'bar' || widget.type === 'area' || widget.type === 'line')
+    ? taskPeriodLabel
+    : null;
+  const isPieLegend = widget.type === 'pie';
+  const legendMetaLines = (showFilter ? 1 : 0) + ((widget.type === 'pie' && showPeriod) ? 1 : 0);
+  const legendMetaReservePx = legendMetaLines > 0 ? (legendMetaLines * 18) + ((legendMetaLines - 1) * 4) : 0;
+  const plotFloorMinHeight = widget.type === 'pie'
+    ? (isSmall ? (isPhoneViewport ? 60 : 68) : (isPhoneViewport ? 82 : 94))
+    : (isSmall ? (isPhoneViewport ? 52 : 58) : (isPhoneViewport ? 68 : 82));
+  const legendBudgetHeight = Math.max(0, Math.floor(
+    preferSideLegend
+      ? ((chartViewport.height > 0 ? chartViewport.height : chartShellViewport.height) - 6)
+      : (chartShellViewport.height - plotFloorMinHeight - legendMetaReservePx - 8),
+  ));
+  const legendIsDense = rawLegendItemCount > (isTabletViewport ? 6 : 8);
+  const showLegendValue = preferSideLegend || (
+    !isTouchViewport
+    && !isCompactChartWidth
+    && !isPhoneViewport
+    && !(isTabletViewport && legendIsDense)
+  );
+  const legendWidthFallback = preferSideLegend
+    ? (isUltraWideChart ? 320 : 270)
+    : (chartViewport.width > 0 ? chartViewport.width : (isSmall ? 220 : 360));
+  const legendWidth = legendViewport.width > 0 ? legendViewport.width : legendWidthFallback;
+  const legendItemMinWidth = preferSideLegend
+    ? legendWidth
+    : isPieLegend
+      ? (showLegendValue ? 132 : 104)
+      : (showLegendValue ? (isTabletViewport ? 146 : 156) : 124);
+  const legendGapPx = isPieLegend ? 8 : (isTabletViewport ? 8 : 10);
+  const legendCalculatedColumns = preferSideLegend
+    ? 1
+    : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
+  const legendMaxColumns = isPhoneViewport ? 1 : (isTabletViewport || isTouchViewport) ? 2 : 4;
+  const legendColumnsBase = Math.max(1, Math.min(legendCalculatedColumns, legendMaxColumns));
+  const legendRowHeightPx = isPieLegend ? (isCompactChartHeight ? 14 : 16) : (isCompactChartHeight ? 16 : 18);
+  const legendMaxRows = Math.max(1, Math.floor((legendBudgetHeight + legendGapPx) / (legendRowHeightPx + legendGapPx)));
+  const legendCapacity = legendColumnsBase * legendMaxRows;
+  const showLegendResolved = showLegend && (legendCapacity >= 2 || rawLegendItemCount <= 1);
+  const resolvedChartData = React.useMemo<{
+    simpleSeries: Array<{ name: string; value: number }>;
+    legendItems: Array<{ name: string; value: number }>;
+    timeSeriesKeys: Array<{ key: string; label: string }>;
+    timeSeriesPoints: Array<{ date: string; [key: string]: number | string }>;
+    groupedLegendCount: number;
+  }>(() => {
+    const baseResult = {
+      simpleSeries: sourceSeries,
+      legendItems: sourceSeries,
+      timeSeriesKeys: sourceSeriesKeys,
+      timeSeriesPoints: sourceTimeSeries as Array<{ date: string; [key: string]: number | string }>,
+      groupedLegendCount: 0,
+    };
+
+    if (!showLegendResolved || legendCapacity < 2) {
+      return baseResult;
+    }
+
+    if (isTimeSeriesChart && hasSourceTimeSeries) {
+      const totalsByKey = new Map<string, number>();
+      sourceSeriesKeys.forEach((seriesKey) => {
+        totalsByKey.set(seriesKey.key, 0);
+      });
+      sourceTimeSeries.forEach((point) => {
+        sourceSeriesKeys.forEach((seriesKey) => {
+          totalsByKey.set(seriesKey.key, (totalsByKey.get(seriesKey.key) ?? 0) + Number(point[seriesKey.key] ?? 0));
+        });
+      });
+      const keyStats = sourceSeriesKeys
+        .map((seriesKey) => ({
+          key: seriesKey.key,
+          label: seriesKey.label,
+          total: totalsByKey.get(seriesKey.key) ?? 0,
+        }))
+        .sort((left, right) => right.total - left.total);
+
+      if (keyStats.length <= legendCapacity) {
+        return {
+          ...baseResult,
+          legendItems: keyStats.map((entry) => ({ name: entry.label, value: entry.total })),
+        };
+      }
+
+      const keepCount = Math.max(1, legendCapacity - 1);
+      const kept = keyStats.slice(0, keepCount);
+      const hidden = keyStats.slice(keepCount);
+      const hiddenKeys = new Set(hidden.map((entry) => entry.key));
+      const hiddenTotal = hidden.reduce((sum, entry) => sum + entry.total, 0);
+
+      const aggregatedPoints = sourceTimeSeries.map((point) => {
+        const next: { date: string; [key: string]: number | string } = {
+          date: typeof point.date === 'string' ? point.date : String(point.date),
+        };
+        kept.forEach((entry) => {
+          next[entry.key] = Number(point[entry.key] ?? 0);
+        });
+        next[CHART_OTHER_KEY] = sourceSeriesKeys
+          .filter((seriesKey) => hiddenKeys.has(seriesKey.key))
+          .reduce((sum, seriesKey) => sum + Number(point[seriesKey.key] ?? 0), 0);
+        return next;
+      });
+
+      const aggregatedLegendItems = [
+        ...kept.map((entry) => ({ name: entry.label, value: entry.total })),
+        { name: CHART_OTHER_KEY, value: hiddenTotal },
+      ];
+      const aggregatedSeriesKeys = [
+        ...kept.map((entry) => ({ key: entry.key, label: entry.label })),
+        { key: CHART_OTHER_KEY, label: otherLegendLabel },
+      ];
+
+      return {
+        ...baseResult,
+        simpleSeries: aggregatedLegendItems,
+        legendItems: aggregatedLegendItems,
+        timeSeriesKeys: aggregatedSeriesKeys,
+        timeSeriesPoints: aggregatedPoints,
+        groupedLegendCount: hidden.length,
+      };
+    }
+
+    const sortedSeries = [...sourceSeries].sort((left, right) => right.value - left.value);
+    if (sortedSeries.length <= legendCapacity) {
+      return {
+        ...baseResult,
+        simpleSeries: sortedSeries,
+        legendItems: sortedSeries,
+      };
+    }
+
+    const keepCount = Math.max(1, legendCapacity - 1);
+    const kept = sortedSeries.slice(0, keepCount);
+    const hidden = sortedSeries.slice(keepCount);
+    const hiddenTotal = hidden.reduce((sum, entry) => sum + entry.value, 0);
+    const aggregatedSeries = [
+      ...kept,
+      { name: CHART_OTHER_KEY, value: hiddenTotal },
+    ];
+
+    return {
+      ...baseResult,
+      simpleSeries: aggregatedSeries,
+      legendItems: aggregatedSeries,
+      groupedLegendCount: hidden.length,
+    };
+  }, [
+    hasSourceTimeSeries,
+    isTimeSeriesChart,
+    legendCapacity,
+    otherLegendLabel,
+    showLegendResolved,
+    sourceSeries,
+    sourceSeriesKeys,
+    sourceTimeSeries,
+  ]);
+  const chartSeries = resolvedChartData.simpleSeries;
+  const legendItems = resolvedChartData.legendItems;
+  const groupedLegendCount = resolvedChartData.groupedLegendCount;
+  const timeSeries = resolvedChartData.timeSeriesPoints;
+  const seriesKeys = resolvedChartData.timeSeriesKeys;
+  const hasTimeSeries = timeSeries.length > 0 && seriesKeys.length > 0;
   const pieInnerRadius = isCompactChartHeight
     ? '42%'
     : size === 'small'
@@ -261,18 +440,6 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       : isUltraWideChart
         ? '92%'
         : '90%';
-  const timeSeries = data?.timeSeries ?? [];
-  const seriesKeys = data?.seriesKeys ?? [];
-  const hasTimeSeries = timeSeries.length > 0 && seriesKeys.length > 0;
-  const chartPeriodLabel = (widget.type === 'bar' || widget.type === 'area' || widget.type === 'line')
-    ? taskPeriodLabel
-    : null;
-  const isPieLegend = widget.type === 'pie';
-  const legendIsDense = legendItems.length > (isTabletViewport ? 6 : 8);
-  const collapseBottomLegendByHeight = showLegend
-    && !preferSideLegend
-    && isVeryCompactChartHeight;
-  const showLegendResolved = showLegend && !collapseBottomLegendByHeight;
   const legendTextClass = isPieLegend
     ? (isCompactChartHeight ? 'text-[8px] leading-tight' : 'text-[9px] leading-tight')
     : isCompactChartHeight
@@ -280,12 +447,6 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       : legendItems.length > 6
         ? 'text-[10px] leading-snug'
         : 'text-[11px] leading-snug';
-  const showLegendValue = showLegendResolved && (preferSideLegend || (
-    !isTouchViewport
-    && !isCompactChartWidth
-    && !isPhoneViewport
-    && !(isTabletViewport && legendIsDense)
-  ));
 
   React.useLayoutEffect(() => {
     if (!showLegendResolved) return;
@@ -310,37 +471,15 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     return () => observer.disconnect();
   }, [showLegendResolved, preferSideLegend, widget.type, size, editing]);
 
-  const legendWidthFallback = preferSideLegend
-    ? (isUltraWideChart ? 320 : 270)
-    : (chartViewport.width > 0 ? chartViewport.width : (isSmall ? 220 : 360));
-  const legendWidth = legendViewport.width > 0 ? legendViewport.width : legendWidthFallback;
-  const legendItemMinWidth = preferSideLegend
-    ? legendWidth
-    : isPieLegend
-      ? (showLegendValue ? 132 : 104)
-      : (showLegendValue ? (isTabletViewport ? 146 : 156) : 124);
-  const legendGapPx = isPieLegend ? 8 : (isTabletViewport ? 8 : 10);
-  const legendCalculatedColumns = preferSideLegend
-    ? 1
-    : Math.max(1, Math.floor((legendWidth + legendGapPx) / (legendItemMinWidth + legendGapPx)));
-  const legendMaxColumns = isPhoneViewport ? 1 : (isTabletViewport || isTouchViewport) ? 2 : 4;
-  const compactLegendLimit = isCompactChartHeight
-    ? (isPhoneViewport ? 2 : isPieLegend ? 3 : 4)
-    : legendItems.length;
-  const touchLegendLimit = (!preferSideLegend && isTouchViewport)
-    ? (isPhoneViewport ? 4 : 6)
-    : legendItems.length;
-  const legendPreviewLimit = Math.max(1, Math.min(legendItems.length, compactLegendLimit, touchLegendLimit));
-  const visibleLegendItems = legendItems.slice(0, legendPreviewLimit);
-  const hiddenLegendCount = Math.max(0, legendItems.length - visibleLegendItems.length);
   const legendColumns = Math.max(
     1,
-    Math.min(visibleLegendItems.length || 1, legendCalculatedColumns, legendMaxColumns),
+    Math.min(legendItems.length || 1, legendColumnsBase),
   );
   const bottomLegendMaxHeightBase = isPhoneViewport ? 64 : (isTabletViewport || isTouchViewport) ? 84 : 148;
-  const bottomLegendMaxHeight = isCompactChartHeight
-    ? Math.min(bottomLegendMaxHeightBase, isPhoneViewport ? 48 : 56)
-    : bottomLegendMaxHeightBase;
+  const bottomLegendMaxHeight = Math.max(
+    isPhoneViewport ? 30 : 36,
+    Math.min(bottomLegendMaxHeightBase, legendBudgetHeight),
+  );
   const legendPanelClass = isWallViewport
     ? 'w-[min(34%,360px)]'
     : isUltraWideChart
@@ -356,26 +495,36 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     '[&_.recharts-surface]:overflow-hidden',
   );
   const chartCanvasMinHeight = isSmall
-    ? (isPhoneViewport ? 64 : isTouchViewport ? 66 : 70)
+    ? (isPhoneViewport ? 60 : isTouchViewport ? 62 : 66)
     : preferSideLegend
       ? (isCompactChartHeight ? 78 : (isWallViewport ? 132 : 124))
       : (isCompactChartHeight ? (isPhoneViewport ? 72 : isTouchViewport ? 76 : 82) : (isPhoneViewport ? 104 : isTouchViewport ? 110 : 116));
   const pieCanvasMinHeight = isSmall
-    ? (isPhoneViewport ? 68 : isTouchViewport ? 72 : 76)
+    ? (isPhoneViewport ? 64 : isTouchViewport ? 68 : 72)
     : preferSideLegend
       ? (isCompactChartHeight ? 88 : (isWallViewport ? 168 : 156))
       : (isCompactChartHeight ? (isPhoneViewport ? 80 : isTouchViewport ? 86 : 92) : (isPhoneViewport ? 124 : isTouchViewport ? 132 : 140));
   const fallbackBarMaxSize = size === 'small' ? 16 : size === 'medium' ? 24 : 32;
   const dynamicBarMaxSize = (() => {
-    const points = data?.series.length ?? 0;
+    const points = chartSeries.length;
     if (points === 0 || chartViewport.width <= 0) return fallbackBarMaxSize;
     const widthPerPoint = chartViewport.width / points;
     const widthBased = Math.floor(widthPerPoint * (preferSideLegend ? 0.55 : 0.65));
     const cap = isUltraWideChart ? 44 : 36;
     return Math.max(10, Math.min(cap, widthBased));
   })();
+  const groupedLegendHint = groupedLegendCount > 0
+    ? (locale === 'ru'
+      ? `+${groupedLegendCount} объединено в "Остальное"`
+      : `+${groupedLegendCount} grouped into "Other"`)
+    : null;
+  const getSeriesColor = React.useCallback((seriesNameOrKey: string, index: number) => (
+    seriesNameOrKey === CHART_OTHER_KEY || seriesNameOrKey === PIE_OTHER_KEY
+      ? '#94A3B8'
+      : paletteColors[index % paletteColors.length]
+  ), [paletteColors]);
   const legendList = showLegendResolved ? (
-    <div className="min-w-0">
+    <div className="min-w-0 overflow-hidden">
       <div
         className={cn(
           'grid w-full max-w-full text-muted-foreground',
@@ -386,9 +535,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           gridTemplateColumns: `repeat(${legendColumns}, minmax(0, 1fr))`,
         }}
       >
-        {visibleLegendItems.map((item, index) => {
+        {legendItems.map((item, index) => {
           const legendName = formatLegendName(item.name);
-          const isPieOther = isPieLegend && item.name === PIE_OTHER_KEY;
+          const isAggregatedOther = item.name === PIE_OTHER_KEY || item.name === CHART_OTHER_KEY;
           return (
             <div
               key={`${item.name}-${index}`}
@@ -397,11 +546,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
               <span
                 className={cn('rounded-full', isPieLegend ? 'h-1.5 w-1.5' : 'h-2 w-2')}
                 style={{
-                  backgroundColor: (
-                    isPieOther
-                      ? '#94A3B8'
-                      : paletteColors[index % paletteColors.length]
-                  ),
+                  backgroundColor: isAggregatedOther
+                    ? '#94A3B8'
+                    : getSeriesColor(item.name, index),
                 }}
               />
               <span className="min-w-0 truncate text-muted-foreground">
@@ -415,25 +562,23 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
             </div>
           );
         })}
-        {hiddenLegendCount > 0 && (
+        {groupedLegendHint && (
           <div className="col-span-full text-[10px] leading-snug text-muted-foreground">
-            {t`+${hiddenLegendCount} more`}
+            {groupedLegendHint}
           </div>
         )}
       </div>
     </div>
   ) : null;
   const sideLegendNode = legendList && preferSideLegend ? (
-    <div ref={legendViewportRef} className={cn(legendPanelClass, 'relative z-20 min-h-0 overflow-y-auto bg-card pr-1')}>
+    <div ref={legendViewportRef} className={cn(legendPanelClass, 'relative z-20 min-h-0 overflow-hidden bg-card pr-1')}>
       {legendList}
     </div>
   ) : null;
   const bottomLegendNode = legendList && !preferSideLegend ? (
     <div
       ref={legendViewportRef}
-      className={cn(
-        'relative z-20 shrink-0 min-w-0 overflow-y-auto bg-card pr-1 border-t border-border/50 pt-1',
-      )}
+      className="relative z-20 shrink-0 min-w-0 overflow-hidden bg-card pr-1 border-t border-border/50 pt-1"
       style={{ maxHeight: bottomLegendMaxHeight }}
     >
       {legendList}
@@ -646,19 +791,19 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'bar' && (
-          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+          <div ref={chartShellRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
               className={chartViewportClassName}
             >
-              {data?.series.length ? (
+              {chartSeries.length ? (
                 <ChartContainer
                   config={{ value: { label: t`Tasks` } }}
                   className={chartContainerClassName}
                   style={{ aspectRatio: 'auto', minHeight: chartCanvasMinHeight }}
                 >
                   <BarChart
-                    data={data.series}
+                    data={chartSeries}
                     barGap={4}
                     barCategoryGap={isUltraWideChart ? '28%' : '22%'}
                     maxBarSize={dynamicBarMaxSize}
@@ -670,8 +815,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                     )}
                     <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
                     <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                      {data.series.map((entry, index) => (
-                        <Cell key={`${entry.name}-${index}`} fill={paletteColors[index % paletteColors.length]} />
+                      {chartSeries.map((entry, index) => (
+                        <Cell key={`${entry.name}-${index}`} fill={getSeriesColor(entry.name, index)} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -692,7 +837,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'line' && (
-          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+          <div ref={chartShellRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
               className={chartViewportClassName}
@@ -715,7 +860,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                         type={isTouchViewport ? 'linear' : 'monotone'}
                         dataKey={seriesKey.key}
                         name={seriesKey.label}
-                        stroke={paletteColors[index % paletteColors.length]}
+                        stroke={getSeriesColor(seriesKey.key, index)}
                         strokeWidth={2}
                         dot={false}
                       />
@@ -738,7 +883,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'area' && (
-          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+          <div ref={chartShellRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
               className={chartViewportClassName}
@@ -761,8 +906,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                         type={isTouchViewport ? 'linear' : 'monotone'}
                         dataKey={seriesKey.key}
                         name={seriesKey.label}
-                        stroke={paletteColors[index % paletteColors.length]}
-                        fill={paletteColors[index % paletteColors.length]}
+                        stroke={getSeriesColor(seriesKey.key, index)}
+                        fill={getSeriesColor(seriesKey.key, index)}
                         fillOpacity={0.2}
                       />
                     ))}
@@ -784,12 +929,12 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
           </div>
         )}
         {!loading && !error && widget.type === 'pie' && (
-          <div className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
+          <div ref={chartShellRef} className={cn('flex h-full min-h-0 flex-col', contentGapClass)}>
             <div
               ref={chartViewportRef}
               className={chartViewportClassName}
             >
-              {pieChartSeries.length ? (
+              {chartSeries.length ? (
                 <ChartContainer
                   config={{ value: { label: t`Tasks` } }}
                   className={chartContainerClassName}
@@ -808,17 +953,17 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                       allowEscapeViewBox={{ x: true, y: true }}
                     />
                     <Pie
-                      data={pieChartSeries}
+                      data={chartSeries}
                       dataKey="value"
                       nameKey="name"
                       innerRadius={pieInnerRadius}
                       outerRadius={pieOuterRadius}
                       paddingAngle={2}
                     >
-                      {pieChartSeries.map((entry, index) => (
+                      {chartSeries.map((entry, index) => (
                         <Cell
                           key={`${entry.name}-${index}`}
-                          fill={paletteColors[index % paletteColors.length]}
+                          fill={getSeriesColor(entry.name, index)}
                         />
                       ))}
                     </Pie>

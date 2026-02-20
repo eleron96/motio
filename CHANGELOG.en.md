@@ -13,6 +13,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 - Timeline: added project info to task hover tooltip. Dashboard: fixed legend overlapping charts when widget height is small (adaptive legend compaction/limits and chart min-height tuning).
+- Dashboard: legend is now dynamically bounded by available widget space; overflow categories are automatically grouped into "Other" so the legend never covers the chart even in very narrow/short widgets.
 ## [0.1.79] - 2026-02-20
 ### Changed
 - No documented changes.
