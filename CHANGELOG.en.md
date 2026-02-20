@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Timeline: fixed current-day indicator refresh after long idle tab sessions. The 'today' highlight now updates automatically on tab return and after midnight without page reload.
+
 ## [0.1.68] - 2026-02-19
 ### Fixed
 - Fixed subtask visibility in task details modal: existing subtasks now load and display automatically on open.

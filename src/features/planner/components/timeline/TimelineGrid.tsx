@@ -37,6 +37,7 @@ import { differenceInDays, format, isSameDay, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import { useTodayKey } from '@/shared/hooks/useTodayKey';
 
 interface TimelineGridProps {
   onCreateTask?: (payload: {
@@ -60,6 +61,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   onSidebarWidthChange,
   onSidebarWidthReset,
 }) => {
+  const todayKey = useTodayKey();
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const { 
@@ -153,8 +155,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   }, [focusIndex]);
   const showTodayButton = useMemo(() => {
     if (!viewportWidth || dayWidth === 0 || visibleDays.length === 0) return false;
-    const today = new Date();
-    const todayIndex = visibleDays.findIndex((day) => isSameDay(day, today));
+    const todayIndex = visibleDays.findIndex((day) => format(day, 'yyyy-MM-dd') === todayKey);
     if (todayIndex < 0) return true;
 
     const todayStart = todayIndex * dayWidth;
@@ -162,7 +163,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     const viewportStart = scrollLeft;
     const viewportEnd = scrollLeft + viewportWidth;
     return todayEnd <= viewportStart || todayStart >= viewportEnd;
-  }, [dayWidth, scrollLeft, viewportWidth, visibleDays]);
+  }, [dayWidth, scrollLeft, todayKey, viewportWidth, visibleDays]);
   const scrollEndTimerRef = useRef<number | null>(null);
   const highlightedTaskScrollTimerRef = useRef<number | null>(null);
   const pendingScrollDateRef = useRef<string | null>(null);
@@ -1005,6 +1006,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   scrollLeft={scrollLeft}
                   viewportWidth={viewportWidth}
                   attentionDate={timelineAttentionDate}
+                  todayKey={todayKey}
                   onDateDoubleClick={canEdit ? handleMilestoneDateDoubleClick : undefined}
                 />
               </div>
@@ -1098,6 +1100,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 visibleDays={visibleDays}
                 dayWidth={dayWidth}
                 viewMode={viewMode}
+                todayKey={todayKey}
                 height={row.height}
                 canEdit={canEdit}
                 onCreateTask={handleCreateTaskAt}

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { format } from 'date-fns';
-import { isToday, isWeekend } from '@/features/planner/lib/dateUtils';
+import { isWeekend } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
 import {
@@ -17,6 +17,7 @@ interface TimelineRowProps {
   visibleDays: Date[];
   dayWidth: number;
   viewMode: ViewMode;
+  todayKey: string;
   height: number;
   children: React.ReactNode;
   canEdit?: boolean;
@@ -29,6 +30,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   visibleDays,
   dayWidth,
   viewMode,
+  todayKey,
   height,
   children,
   canEdit = false,
@@ -70,7 +72,8 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
             onContextMenu={handleContextMenu}
           >
             {visibleDays.map((day, index) => {
-              const today = isToday(day);
+              const dayKey = format(day, 'yyyy-MM-dd');
+              const today = dayKey === todayKey;
               const weekend = isWeekend(day);
               
               return (
@@ -114,6 +117,7 @@ const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps
   && prev.visibleDays === next.visibleDays
   && prev.dayWidth === next.dayWidth
   && prev.viewMode === next.viewMode
+  && prev.todayKey === next.todayKey
   && prev.height === next.height
   && prev.children === next.children
   && prev.canEdit === next.canEdit

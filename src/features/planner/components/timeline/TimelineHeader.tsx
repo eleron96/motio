@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { isToday, isWeekend, formatDayHeader } from '@/features/planner/lib/dateUtils';
+import { isWeekend, formatDayHeader } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -13,6 +13,7 @@ interface TimelineHeaderProps {
   scrollLeft: number;
   viewportWidth: number;
   attentionDate: string | null;
+  todayKey: string;
   onDateDoubleClick?: (date: string) => void;
 }
 
@@ -23,6 +24,7 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   scrollLeft,
   viewportWidth,
   attentionDate,
+  todayKey,
   onDateDoubleClick,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
@@ -105,9 +107,9 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
       <div className="flex h-14">
         {visibleDays.map((day, index) => {
           const { day: dayName, date } = formatDayHeader(day, viewMode, dateLocale, locale);
-          const today = isToday(day);
-          const weekend = isWeekend(day);
           const dayKey = format(day, 'yyyy-MM-dd');
+          const today = dayKey === todayKey;
+          const weekend = isWeekend(day);
           const isAttentionDay = attentionDate === dayKey;
           
           return (

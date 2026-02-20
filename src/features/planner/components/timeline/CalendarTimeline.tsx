@@ -12,6 +12,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import {
   addDays,
   addMonths,
@@ -21,7 +22,6 @@ import {
   endOfWeek,
   eachDayOfInterval,
   format,
-  isToday,
   isWeekend,
   max,
   min,
@@ -41,6 +41,7 @@ const normalizeHolidayCountryCode = (value: string | null | undefined) => {
 };
 
 export const CalendarTimeline: React.FC = () => {
+  const todayKey = useTodayKey();
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const {
@@ -514,7 +515,7 @@ export const CalendarTimeline: React.FC = () => {
                             const counts = taskCounts.get(key) ?? { total: 0, mine: 0 };
                             const inMonth = isSameMonth(day, month);
                             const weekend = isWeekend(day);
-                            const today = isToday(day);
+                            const today = key === todayKey;
                             const prevDay = index > 0 ? days[index - 1] : null;
                             const nextDay = index < days.length - 1 ? days[index + 1] : null;
                             const prevKey = prevDay ? format(prevDay, 'yyyy-MM-dd') : '';
