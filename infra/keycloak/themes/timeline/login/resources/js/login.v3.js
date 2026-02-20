@@ -30,6 +30,56 @@
     );
   }
 
+  function disableAutofocus() {
+    var autoFocusNodes = doc.querySelectorAll('[autofocus]');
+    autoFocusNodes.forEach(function (node) {
+      node.removeAttribute('autofocus');
+    });
+
+    window.setTimeout(function () {
+      var active = doc.activeElement;
+      if (!active) return;
+      var activeId = (active.id || '').toLowerCase();
+      if (activeId === 'username' || activeId === 'email') {
+        active.blur();
+      }
+    }, 0);
+  }
+
+  function fixPasswordToggleControls() {
+    var controls = Array.prototype.slice.call(doc.querySelectorAll('[data-password-toggle]'));
+    controls.forEach(function (button) {
+      var targetId = button.getAttribute('aria-controls');
+      if (!targetId) return;
+      var input = doc.getElementById(targetId);
+      if (!input) return;
+
+      button.setAttribute('tabindex', '-1');
+      button.tabIndex = -1;
+
+      // Visible password => open eye, hidden password => crossed eye.
+      button.dataset.iconShow = 'fa fa-eye-slash';
+      button.dataset.iconHide = 'fa fa-eye';
+
+      function syncIcon() {
+        var icon = button.querySelector('i');
+        if (!icon) return;
+        if (input.type === 'password') {
+          icon.className = button.dataset.iconShow || 'fa fa-eye-slash';
+          button.setAttribute('aria-label', button.dataset.labelShow || 'Show password');
+        } else {
+          icon.className = button.dataset.iconHide || 'fa fa-eye';
+          button.setAttribute('aria-label', button.dataset.labelHide || 'Hide password');
+        }
+      }
+
+      syncIcon();
+      button.addEventListener('click', function () {
+        window.setTimeout(syncIcon, 0);
+      });
+    });
+  }
+
   function isReAuthScreen() {
     var passwordInput = doc.getElementById('password');
     var usernameInput = doc.getElementById('username');
@@ -46,6 +96,9 @@
   }
 
   function run() {
+    disableAutofocus();
+    fixPasswordToggleControls();
+
     if (!isReAuthScreen()) {
       setPageHidden(false);
       return;

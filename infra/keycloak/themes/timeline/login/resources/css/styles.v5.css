@@ -61,6 +61,19 @@ html.login-pf {
   text-align: center;
 }
 
+.login-pf-page .login-pf-header .col-xs-12,
+.login-pf-page .login-pf-header .col-sm-12,
+.login-pf-page .login-pf-header .col-md-10,
+.login-pf-page .login-pf-header .col-md-12,
+.login-pf-page .login-pf-header .col-lg-12,
+.login-pf-page .login-pf-header .subtitle {
+  float: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+
 .login-pf-page .login-pf-header::before {
   content: "Motio";
   display: block;
@@ -82,6 +95,7 @@ html.login-pf {
   letter-spacing: -0.01em;
   color: var(--timeline-text);
   text-align: center;
+  width: 100%;
 }
 
 #kc-page-title::before {
@@ -225,8 +239,8 @@ html.login-pf {
 #language-switch1 {
   display: none;
   position: absolute;
-  right: 0;
-  left: auto;
+  left: 0 !important;
+  right: auto !important;
   top: calc(100% + 8px);
   bottom: auto;
   min-width: 96px;
