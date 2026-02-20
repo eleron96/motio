@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.70] - 2026-02-20
 ### Changed
 - Планировщик: добавлена live-синхронизация задач и вех через Supabase Realtime с буферизацией/батчингом, отложенным применением во время скролла и reconcile по фокусу вкладки для обновления данных без перезагрузки и без дерганий.
 

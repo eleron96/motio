@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.70] - 2026-02-20
 ### Changed
 - Planner: added live task/milestone sync via Supabase Realtime with buffered batched updates, interaction-aware apply deferral during timeline scroll, and focus reconcile for reload-free updates without jitter.
 
