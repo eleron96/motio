@@ -715,6 +715,22 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setMilestoneDialogOpen(true);
   }, []);
 
+  const handleMilestoneRowDoubleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!canEdit) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest('.milestone-dot')) {
+      return;
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const dayIndex = Math.floor(offsetX / dayWidth);
+    if (dayIndex < 0 || dayIndex >= visibleDays.length) return;
+    const date = format(visibleDays[dayIndex], 'yyyy-MM-dd');
+    handleCreateMilestone(date);
+    event.preventDefault();
+    event.stopPropagation();
+  }, [canEdit, dayWidth, handleCreateMilestone, visibleDays]);
+
   const handleEditMilestone = useCallback((milestone: Milestone) => {
     setEditingMilestone(milestone);
     setMilestoneDialogDate(null);
@@ -1071,6 +1087,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
               <div
                 className="relative border-b border-border bg-timeline-header"
                 style={{ width: totalWidth, height: milestoneRowHeight }}
+                onDoubleClick={handleMilestoneRowDoubleClick}
               >
                 <TooltipProvider delayDuration={180}>
                   {milestoneTooltipCells.map((cell) => {
