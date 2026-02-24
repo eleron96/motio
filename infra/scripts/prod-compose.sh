@@ -200,6 +200,36 @@ finalize_changelog_release() {
   rm -f "$tmp_unreleased" "$tmp_trimmed" "$tmp_rest"
 }
 
+extract_release_summary() {
+  local file="$1"
+  local release_version="$2"
+
+  if [[ ! -f "$file" ]]; then
+    echo ""
+    return
+  fi
+
+  awk -v version="$release_version" '
+    $0 ~ "^## \\[" version "\\]" {
+      in_release = 1
+      next
+    }
+    in_release && /^## \[/ {
+      exit
+    }
+    in_release {
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+      sub(/[[:space:]]+$/, "", line)
+      if (line ~ /^- /) {
+        sub(/^- /, "", line)
+        print line
+        exit
+      }
+    }
+  ' "$file"
+}
+
 POSTGRES_USER="$(get_env_value POSTGRES_USER)"
 POSTGRES_DB="$(get_env_value POSTGRES_DB)"
 POSTGRES_PASSWORD="$(get_env_value POSTGRES_PASSWORD)"
@@ -434,15 +464,26 @@ if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/n
   release_commit="$(git rev-parse --short HEAD 2>/dev/null || echo n/a)"
 fi
 
+release_summary="$(extract_release_summary "$changelog_en_file" "$release_version")"
+if [[ -z "$release_summary" ]]; then
+  release_summary="$(extract_release_summary "$changelog_ru_file" "$release_version")"
+fi
+if [[ -z "$release_summary" ]]; then
+  release_summary="n/a"
+fi
+release_summary="${release_summary//$'\n'/ }"
+release_summary="${release_summary//|/-}"
+
 mkdir -p "$(dirname "$release_log_file")"
 touch "$release_log_file"
-printf "%s | %s | %s | %s | %s | %s\n" \
+printf "%s | %s | %s | %s | %s | %s | %s\n" \
   "$release_timestamp" \
   "$release_version" \
   "$release_commit" \
   "$(whoami)" \
   "$(hostname -s 2>/dev/null || hostname)" \
-  "$backup_path" >> "$release_log_file"
+  "$backup_path" \
+  "$release_summary" >> "$release_log_file"
 
 echo "Production stack is running."
 echo "Frontend: http://localhost:5173"
@@ -450,4 +491,5 @@ echo "Supabase Gateway health: http://localhost:8080/health"
 echo "Supabase Auth health: http://localhost:8080/auth/v1/health"
 echo "Keycloak: http://localhost:8081"
 echo "Login as reserve super admin: $RESERVE_ADMIN_EMAIL"
+echo "Release summary: $release_summary"
 echo "Release log updated: $release_log_file"

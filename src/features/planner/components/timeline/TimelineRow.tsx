@@ -22,6 +22,7 @@ interface TimelineRowProps {
   children: React.ReactNode;
   canEdit?: boolean;
   onCreateTask?: (date: string, rowId: string) => void;
+  onDateClick?: (date: string, rowId: string) => boolean | void;
 }
 
 const TimelineRowBase: React.FC<TimelineRowProps> = ({
@@ -35,6 +36,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   children,
   canEdit = false,
   onCreateTask,
+  onDateClick,
 }) => {
   const [contextDate, setContextDate] = useState<string | null>(null);
 
@@ -50,8 +52,16 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
     if (!canEdit || !onCreateTask) return;
     const date = getDateFromEvent(event);
     if (!date) return;
+    const handled = onDateClick?.(date, rowId);
+    if (handled) return;
     onCreateTask(date, rowId);
-  }, [canEdit, getDateFromEvent, onCreateTask, rowId]);
+  }, [canEdit, getDateFromEvent, onCreateTask, onDateClick, rowId]);
+
+  const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const date = getDateFromEvent(event);
+    if (!date) return;
+    onDateClick?.(date, rowId);
+  }, [getDateFromEvent, onDateClick, rowId]);
 
   const handleContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const date = getDateFromEvent(event);
@@ -68,6 +78,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
         <ContextMenuTrigger asChild>
           <div
             className="absolute inset-0 flex"
+            onClick={handleClick}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
           >
@@ -122,6 +133,7 @@ const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps
   && prev.children === next.children
   && prev.canEdit === next.canEdit
   && prev.onCreateTask === next.onCreateTask
+  && prev.onDateClick === next.onDateClick
 );
 
 export const TimelineRow = React.memo(TimelineRowBase, areTimelineRowPropsEqual);
