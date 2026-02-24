@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.13] - 2026-02-24
 ### Fixed
 - Timeline: user row cells now show task-only context actions; milestone creation was removed from row cells, and row clicks no longer trigger milestone selection/edit.
 
