@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Timeline day/week: on dates with multiple milestones, right-click no longer routes to task creation; it now opens a context menu with Create milestone action.
+
 ## [0.2.8] - 2026-02-24
 ### Changed
 - Timeline day/week: milestone creation moved from double-click to right-click on date (Create milestone context action), including dates that already have milestones.

@@ -39,6 +39,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/shared/ui/context-menu';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { differenceInDays, format, isSameDay, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
@@ -969,6 +975,20 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     </>
   ), [handleEditMilestone, projectById]);
 
+  const renderMilestoneContextMenu = useCallback((date: string) => (
+    <ContextMenuContent>
+      <ContextMenuItem
+        disabled={!canEdit}
+        onSelect={() => {
+          if (!canEdit) return;
+          handleCreateMilestone(date);
+        }}
+      >
+        {t`Create milestone`}
+      </ContextMenuItem>
+    </ContextMenuContent>
+  ), [canEdit, handleCreateMilestone]);
+
   // Линия начинается от нижней точки круга вехи (h-2.5 = 10px, радиус 5px)
   const milestoneDotRadius = 5;
   const milestoneLineTop = HEADER_HEIGHT + milestoneRowHeight / 2 + milestoneDotRadius;
@@ -1096,47 +1116,46 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     const hasMultipleMilestones = cell.milestones.length > 1;
                     if (hasMultipleMilestones) {
                       return (
-                        <DropdownMenu key={`header-milestone-cell-${cell.date}`}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <DropdownMenuTrigger asChild>
-                                <button
-                                  ref={(node) => {
-                                    if (node) {
-                                      milestoneHeaderMenuTriggerRefs.current.set(cell.date, node);
-                                    } else {
-                                      milestoneHeaderMenuTriggerRefs.current.delete(cell.date);
-                                    }
-                                  }}
-                                  type="button"
-                                  className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
-                                  style={triggerStyle}
-                                  onClick={(event) => event.stopPropagation()}
-                                  onDoubleClick={(event) => event.stopPropagation()}
-                                  onContextMenu={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (!canEdit) return;
-                                    handleCreateMilestone(cell.date);
-                                  }}
-                                  onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                                  onMouseLeave={handleMilestoneHoverEnd}
-                                  aria-label={t`Select milestone`}
-                                />
-                              </DropdownMenuTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="bottom"
-                              sideOffset={6}
-                              className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
-                            >
-                              {renderMilestoneTooltipBody(cell.date, cell.milestones)}
-                            </TooltipContent>
-                          </Tooltip>
-                          <DropdownMenuContent align="center" className="w-72">
-                            {renderMilestoneMenuItems(cell.milestones)}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <ContextMenu key={`header-milestone-cell-${cell.date}`}>
+                          <DropdownMenu>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <ContextMenuTrigger asChild>
+                                  <DropdownMenuTrigger asChild>
+                                    <button
+                                      ref={(node) => {
+                                        if (node) {
+                                          milestoneHeaderMenuTriggerRefs.current.set(cell.date, node);
+                                        } else {
+                                          milestoneHeaderMenuTriggerRefs.current.delete(cell.date);
+                                        }
+                                      }}
+                                      type="button"
+                                      className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                                      style={triggerStyle}
+                                      onClick={(event) => event.stopPropagation()}
+                                      onDoubleClick={(event) => event.stopPropagation()}
+                                      onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                      onMouseLeave={handleMilestoneHoverEnd}
+                                      aria-label={t`Select milestone`}
+                                    />
+                                  </DropdownMenuTrigger>
+                                </ContextMenuTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="bottom"
+                                sideOffset={6}
+                                className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                              >
+                                {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                              </TooltipContent>
+                            </Tooltip>
+                            <DropdownMenuContent align="center" className="w-72">
+                              {renderMilestoneMenuItems(cell.milestones)}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          {renderMilestoneContextMenu(cell.date)}
+                        </ContextMenu>
                       );
                     }
 
@@ -1144,36 +1163,35 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     if (!singleMilestone) return null;
 
                     return (
-                      <Tooltip key={`header-milestone-cell-${cell.date}`}>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
-                            style={triggerStyle}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleEditMilestone(singleMilestone);
-                            }}
-                            onDoubleClick={(event) => event.stopPropagation()}
-                            onContextMenu={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              if (!canEdit) return;
-                              handleCreateMilestone(cell.date);
-                            }}
-                            onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                            onMouseLeave={handleMilestoneHoverEnd}
-                            aria-label={t`Edit milestone`}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="bottom"
-                          sideOffset={6}
-                          className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
-                        >
-                          {renderMilestoneTooltipBody(cell.date, cell.milestones)}
-                        </TooltipContent>
-                      </Tooltip>
+                      <ContextMenu key={`header-milestone-cell-${cell.date}`}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <ContextMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                                style={triggerStyle}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleEditMilestone(singleMilestone);
+                                }}
+                                onDoubleClick={(event) => event.stopPropagation()}
+                                onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                onMouseLeave={handleMilestoneHoverEnd}
+                                aria-label={t`Edit milestone`}
+                              />
+                            </ContextMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="bottom"
+                            sideOffset={6}
+                            className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                          >
+                            {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                          </TooltipContent>
+                        </Tooltip>
+                        {renderMilestoneContextMenu(cell.date)}
+                      </ContextMenu>
                     );
                   })}
                 </TooltipProvider>
@@ -1191,40 +1209,39 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     const hasMultipleMilestones = cell.milestones.length > 1;
                     if (hasMultipleMilestones) {
                       return (
-                        <DropdownMenu key={`milestone-cell-${cell.date}`}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <DropdownMenuTrigger asChild>
-                                <button
-                                  type="button"
-                                  className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
-                                  style={triggerStyle}
-                                  onClick={(event) => event.stopPropagation()}
-                                  onDoubleClick={(event) => event.stopPropagation()}
-                                  onContextMenu={(event) => {
-                                    event.preventDefault();
-                                    event.stopPropagation();
-                                    if (!canEdit) return;
-                                    handleCreateMilestone(cell.date);
-                                  }}
-                                  onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                                  onMouseLeave={handleMilestoneHoverEnd}
-                                  aria-label={t`Select milestone`}
-                                />
-                              </DropdownMenuTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              side="bottom"
-                              sideOffset={6}
-                              className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
-                            >
-                              {renderMilestoneTooltipBody(cell.date, cell.milestones)}
-                            </TooltipContent>
-                          </Tooltip>
-                          <DropdownMenuContent align="center" className="w-72">
-                            {renderMilestoneMenuItems(cell.milestones)}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <ContextMenu key={`milestone-cell-${cell.date}`}>
+                          <DropdownMenu>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <ContextMenuTrigger asChild>
+                                  <DropdownMenuTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                                      style={triggerStyle}
+                                      onClick={(event) => event.stopPropagation()}
+                                      onDoubleClick={(event) => event.stopPropagation()}
+                                      onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                      onMouseLeave={handleMilestoneHoverEnd}
+                                      aria-label={t`Select milestone`}
+                                    />
+                                  </DropdownMenuTrigger>
+                                </ContextMenuTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="bottom"
+                                sideOffset={6}
+                                className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                              >
+                                {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                              </TooltipContent>
+                            </Tooltip>
+                            <DropdownMenuContent align="center" className="w-72">
+                              {renderMilestoneMenuItems(cell.milestones)}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          {renderMilestoneContextMenu(cell.date)}
+                        </ContextMenu>
                       );
                     }
 
@@ -1232,36 +1249,35 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     if (!singleMilestone) return null;
 
                     return (
-                      <Tooltip key={`milestone-cell-${cell.date}`}>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
-                            style={triggerStyle}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleEditMilestone(singleMilestone);
-                            }}
-                            onDoubleClick={(event) => event.stopPropagation()}
-                            onContextMenu={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              if (!canEdit) return;
-                              handleCreateMilestone(cell.date);
-                            }}
-                            onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                            onMouseLeave={handleMilestoneHoverEnd}
-                            aria-label={t`Edit milestone`}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="bottom"
-                          sideOffset={6}
-                          className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
-                        >
-                          {renderMilestoneTooltipBody(cell.date, cell.milestones)}
-                        </TooltipContent>
-                      </Tooltip>
+                      <ContextMenu key={`milestone-cell-${cell.date}`}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <ContextMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                                style={triggerStyle}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleEditMilestone(singleMilestone);
+                                }}
+                                onDoubleClick={(event) => event.stopPropagation()}
+                                onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                onMouseLeave={handleMilestoneHoverEnd}
+                                aria-label={t`Edit milestone`}
+                              />
+                            </ContextMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="bottom"
+                            sideOffset={6}
+                            className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                          >
+                            {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                          </TooltipContent>
+                        </Tooltip>
+                        {renderMilestoneContextMenu(cell.date)}
+                      </ContextMenu>
                     );
                   })}
 
@@ -1288,24 +1304,22 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     }
 
                     return (
-                      <button
-                        key={milestone.id}
-                        type="button"
-                        className="milestone-dot absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-transform hover:scale-110"
-                        style={{ left, backgroundColor: dotColor, borderColor: dotBorder }}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleEditMilestone(milestone);
-                        }}
-                        onContextMenu={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          if (!canEdit) return;
-                          handleCreateMilestone(milestone.date);
-                        }}
-                        onMouseEnter={() => handleMilestoneHover(milestone.date, color)}
-                        onMouseLeave={handleMilestoneHoverEnd}
-                      />
+                      <ContextMenu key={milestone.id}>
+                        <ContextMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="milestone-dot absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-transform hover:scale-110"
+                            style={{ left, backgroundColor: dotColor, borderColor: dotBorder }}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleEditMilestone(milestone);
+                            }}
+                            onMouseEnter={() => handleMilestoneHover(milestone.date, color)}
+                            onMouseLeave={handleMilestoneHoverEnd}
+                          />
+                        </ContextMenuTrigger>
+                        {renderMilestoneContextMenu(milestone.date)}
+                      </ContextMenu>
                     );
                   })}
                 </TooltipProvider>
@@ -1324,6 +1338,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 canEdit={canEdit}
                 onCreateTask={handleCreateTaskAt}
                 onDateClick={handleTimelineDateClick}
+                onCreateMilestone={canEdit ? handleCreateMilestone : undefined}
               >
                 {rowTaskElementsById.get(row.id)}
               </TimelineRow>
