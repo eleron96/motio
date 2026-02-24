@@ -548,11 +548,13 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                     className="max-h-48 overflow-y-auto overscroll-contain pr-2"
                     onWheelCapture={(event) => event.stopPropagation()}
                   >
-                    {projectQuery && (
-                      <div className="px-2 py-1 text-xs text-muted-foreground">
-                        {t`Filter: ${projectQuery}`}
-                      </div>
-                    )}
+                    <div className="px-2 py-1 text-[11px] text-muted-foreground">
+                      <span
+                        className="mr-1.5 inline-block h-3 w-px animate-pulse align-middle bg-foreground/60"
+                        aria-hidden="true"
+                      />
+                      {projectQuery ? t`Filter: ${projectQuery}` : t`Type to filter projects...`}
+                    </div>
                     <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
                     {filteredProjects.map((project) => (
                       <SelectItem key={project.id} value={project.id}>
@@ -650,15 +652,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {statuses.map(s => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: s.color }}
-                        />
-                        {formatStatusLabel(s.name, s.emoji)}
-                      </div>
-                    </SelectItem>
+                    <SelectItem key={s.id} value={s.id}>{formatStatusLabel(s.name, s.emoji)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -4,6 +4,13 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { MilestoneDialog } from '@/features/planner/components/timeline/MilestoneDialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { Button } from '@/shared/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
@@ -534,6 +541,13 @@ export const CalendarTimeline: React.FC = () => {
                               : 'rounded-none';
                             const holidayNames = holidayMap[key] ?? [];
                             const milestonesForDay = milestonesByDate.get(key) ?? [];
+                            const singleMilestone = milestonesForDay.length === 1 ? milestonesForDay[0] : null;
+                            const singleMilestoneColor = singleMilestone
+                              ? (hexToRgba(
+                                projectById.get(singleMilestone.projectId)?.color ?? '#94a3b8',
+                                0.8,
+                              ) ?? (projectById.get(singleMilestone.projectId)?.color ?? '#94a3b8'))
+                              : '#94a3b8';
 
                             return (
                               <div
@@ -565,31 +579,86 @@ export const CalendarTimeline: React.FC = () => {
                                         >
                                           {format(day, 'd')}
                                         </button>
-                                        {milestonesByDate.has(key) && (
+                                        {milestonesForDay.length > 0 && (
                                           <div className="absolute bottom-0.5 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-0.5">
-                                            {(milestonesByDate.get(key) ?? []).map((milestone) => {
-                                              const project = projectById.get(milestone.projectId);
-                                              const color = project?.color ?? '#94a3b8';
-                                              const dotColor = hexToRgba(color, 0.8) ?? color;
-
-                                              return (
-                                                <button
-                                                  key={milestone.id}
-                                                  type="button"
+                                            {singleMilestone ? (
+                                              <button
+                                                type="button"
+                                                className="inline-flex h-3 w-3 items-center justify-center rounded-full hover:scale-110 transition-transform"
+                                                onClick={(event) => {
+                                                  event.preventDefault();
+                                                  event.stopPropagation();
+                                                  handleEditMilestone(singleMilestone);
+                                                }}
+                                                onContextMenu={(event) => {
+                                                  event.preventDefault();
+                                                  event.stopPropagation();
+                                                  handleEditMilestone(singleMilestone);
+                                                }}
+                                                aria-label={t`Edit milestone`}
+                                              >
+                                                <span
                                                   className="h-2 w-2 rounded-full"
-                                                  style={{ backgroundColor: dotColor }}
-                                                  onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    handleDateClick(parseISO(milestone.date));
-                                                  }}
-                                                  onContextMenu={(event) => {
-                                                    event.preventDefault();
-                                                    event.stopPropagation();
-                                                    handleEditMilestone(milestone);
-                                                  }}
+                                                  style={{ backgroundColor: singleMilestoneColor }}
                                                 />
-                                              );
-                                            })}
+                                              </button>
+                                            ) : (
+                                              <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                  <button
+                                                    type="button"
+                                                    className="inline-flex min-h-3 min-w-3 flex-wrap items-center justify-center gap-0.5 rounded-full px-0.5 hover:bg-muted/40"
+                                                    onClick={(event) => event.stopPropagation()}
+                                                    aria-label={t`Select milestone`}
+                                                  >
+                                                    {milestonesForDay.map((milestone) => {
+                                                      const project = projectById.get(milestone.projectId);
+                                                      const color = project?.color ?? '#94a3b8';
+                                                      const dotColor = hexToRgba(color, 0.8) ?? color;
+
+                                                      return (
+                                                        <span
+                                                          key={milestone.id}
+                                                          className="h-2 w-2 rounded-full"
+                                                          style={{ backgroundColor: dotColor }}
+                                                        />
+                                                      );
+                                                    })}
+                                                  </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="center" className="w-72">
+                                                  <DropdownMenuLabel>{t`Milestones`}</DropdownMenuLabel>
+                                                  {milestonesForDay.map((milestone) => {
+                                                    const project = projectById.get(milestone.projectId);
+                                                    const color = project?.color ?? '#94a3b8';
+                                                    const dotColor = hexToRgba(color, 0.8) ?? color;
+
+                                                    return (
+                                                      <DropdownMenuItem
+                                                        key={milestone.id}
+                                                        onSelect={() => handleEditMilestone(milestone)}
+                                                        className="items-start gap-2"
+                                                      >
+                                                        <span
+                                                          className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                                                          style={{ backgroundColor: dotColor }}
+                                                        />
+                                                        <span className="min-w-0">
+                                                          <span className="block truncate text-[11px] text-muted-foreground">
+                                                            {project
+                                                              ? formatProjectLabel(project.name, project.code)
+                                                              : t`Project`}
+                                                          </span>
+                                                          <span className="block truncate text-sm">
+                                                            {milestone.title}
+                                                          </span>
+                                                        </span>
+                                                      </DropdownMenuItem>
+                                                    );
+                                                  })}
+                                                </DropdownMenuContent>
+                                              </DropdownMenu>
+                                            )}
                                           </div>
                                         )}
                                       </div>
