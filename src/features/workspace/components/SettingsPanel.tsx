@@ -53,6 +53,8 @@ const autoResize = (element: HTMLTextAreaElement | null) => {
   element.style.height = `${element.scrollHeight}px`;
 };
 
+const DEFAULT_STATUS_COLOR = '#94a3b8';
+
 const StatusNameInput: React.FC<{
   value: string;
   onChange: (next: string) => void;
@@ -96,7 +98,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const [newStatusEmoji, setNewStatusEmoji] = useState('');
   const [newStatusName, setNewStatusName] = useState('');
-  const [newStatusColor, setNewStatusColor] = useState('#3b82f6');
 
   const [newTypeName, setNewTypeName] = useState('');
 
@@ -224,7 +225,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     addStatus({
       name: newStatusName.trim(),
       emoji: newStatusEmoji.trim() || null,
-      color: newStatusColor,
+      color: DEFAULT_STATUS_COLOR,
       isFinal: false,
       isCancelled: false,
     });
@@ -653,7 +654,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
                               onChange={(e) => setNewStatusName(e.target.value)}
                               onKeyDown={(e) => e.key === 'Enter' && handleAddStatus()}
                             />
-                            <ColorPicker value={newStatusColor} onChange={setNewStatusColor} />
                             <Button onClick={handleAddStatus} size="icon">
                               <Plus className="w-4 h-4" />
                             </Button>
@@ -662,7 +662,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
                           <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
                             <span className="w-16">{t`Emoji`}</span>
                             <span className="flex-1">{t`Status`}</span>
-                            <span className="w-10 text-right">{t`Color`}</span>
                             <div className="flex w-10 justify-end">
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -697,10 +696,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
                                 <StatusNameInput
                                   value={status.name}
                                   onChange={(next) => updateStatus(status.id, { name: next })}
-                                />
-                                <ColorPicker
-                                  value={status.color}
-                                  onChange={(color) => updateStatus(status.id, { color })}
                                 />
                                 <label className="flex w-10 items-center justify-end">
                                   <Tooltip>

@@ -541,6 +541,7 @@ export const CalendarTimeline: React.FC = () => {
                               : 'rounded-none';
                             const holidayNames = holidayMap[key] ?? [];
                             const milestonesForDay = milestonesByDate.get(key) ?? [];
+                            const hasMultipleMilestones = milestonesForDay.length > 1;
                             const singleMilestone = milestonesForDay.length === 1 ? milestonesForDay[0] : null;
                             const singleMilestoneColor = singleMilestone
                               ? (hexToRgba(
@@ -566,100 +567,112 @@ export const CalendarTimeline: React.FC = () => {
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <div className="relative z-10 flex h-full w-full items-center justify-center">
-                                        <button
-                                          type="button"
-                                          onClick={() => handleDateClick(day)}
-                                          className={cn(
-                                            'flex h-7 w-7 items-center justify-center text-xs focus-visible:outline-none',
-                                            weekend && inMonth && 'text-amber-600',
-                                            counts.total > 0 && 'font-semibold',
-                                            today ? 'rounded-full border border-sky-500/70 bg-sky-100/70 text-sky-700' : 'rounded-md',
-                                            'hover:bg-muted/40'
-                                          )}
-                                        >
-                                          {format(day, 'd')}
-                                        </button>
-                                        {milestonesForDay.length > 0 && (
-                                          <div className="absolute bottom-0.5 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-0.5">
-                                            {singleMilestone ? (
+                                        {hasMultipleMilestones ? (
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
                                               <button
                                                 type="button"
-                                                className="inline-flex h-3 w-3 items-center justify-center rounded-full hover:scale-110 transition-transform"
-                                                onClick={(event) => {
-                                                  event.preventDefault();
-                                                  event.stopPropagation();
-                                                  handleEditMilestone(singleMilestone);
-                                                }}
-                                                onContextMenu={(event) => {
-                                                  event.preventDefault();
-                                                  event.stopPropagation();
-                                                  handleEditMilestone(singleMilestone);
-                                                }}
-                                                aria-label={t`Edit milestone`}
+                                                className="relative flex h-full w-full items-center justify-center rounded-md focus-visible:outline-none hover:bg-muted/40"
+                                                onClick={(event) => event.stopPropagation()}
+                                                aria-label={t`Select milestone`}
                                               >
                                                 <span
-                                                  className="h-2 w-2 rounded-full"
-                                                  style={{ backgroundColor: singleMilestoneColor }}
-                                                />
-                                              </button>
-                                            ) : (
-                                              <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                  <button
-                                                    type="button"
-                                                    className="inline-flex min-h-3 min-w-3 flex-wrap items-center justify-center gap-0.5 rounded-full px-0.5 hover:bg-muted/40"
-                                                    onClick={(event) => event.stopPropagation()}
-                                                    aria-label={t`Select milestone`}
-                                                  >
-                                                    {milestonesForDay.map((milestone) => {
-                                                      const project = projectById.get(milestone.projectId);
-                                                      const color = project?.color ?? '#94a3b8';
-                                                      const dotColor = hexToRgba(color, 0.8) ?? color;
-
-                                                      return (
-                                                        <span
-                                                          key={milestone.id}
-                                                          className="h-2 w-2 rounded-full"
-                                                          style={{ backgroundColor: dotColor }}
-                                                        />
-                                                      );
-                                                    })}
-                                                  </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="center" className="w-72">
-                                                  <DropdownMenuLabel>{t`Milestones`}</DropdownMenuLabel>
+                                                  className={cn(
+                                                    'flex h-7 w-7 items-center justify-center text-xs',
+                                                    weekend && inMonth && 'text-amber-600',
+                                                    counts.total > 0 && 'font-semibold',
+                                                    today ? 'rounded-full border border-sky-500/70 bg-sky-100/70 text-sky-700' : 'rounded-md',
+                                                  )}
+                                                >
+                                                  {format(day, 'd')}
+                                                </span>
+                                                <span className="pointer-events-none absolute bottom-0.5 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-0.5">
                                                   {milestonesForDay.map((milestone) => {
                                                     const project = projectById.get(milestone.projectId);
                                                     const color = project?.color ?? '#94a3b8';
                                                     const dotColor = hexToRgba(color, 0.8) ?? color;
-
                                                     return (
-                                                      <DropdownMenuItem
+                                                      <span
                                                         key={milestone.id}
-                                                        onSelect={() => handleEditMilestone(milestone)}
-                                                        className="items-start gap-2"
-                                                      >
-                                                        <span
-                                                          className="mt-1 h-2 w-2 shrink-0 rounded-full"
-                                                          style={{ backgroundColor: dotColor }}
-                                                        />
-                                                        <span className="min-w-0">
-                                                          <span className="block truncate text-[11px] text-muted-foreground">
-                                                            {project
-                                                              ? formatProjectLabel(project.name, project.code)
-                                                              : t`Project`}
-                                                          </span>
-                                                          <span className="block truncate text-sm">
-                                                            {milestone.title}
-                                                          </span>
-                                                        </span>
-                                                      </DropdownMenuItem>
+                                                        className="h-2 w-2 rounded-full"
+                                                        style={{ backgroundColor: dotColor }}
+                                                      />
                                                     );
                                                   })}
-                                                </DropdownMenuContent>
-                                              </DropdownMenu>
+                                                </span>
+                                              </button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="center" className="w-72">
+                                              <DropdownMenuLabel>{t`Milestones`}</DropdownMenuLabel>
+                                              {milestonesForDay.map((milestone) => {
+                                                const project = projectById.get(milestone.projectId);
+                                                const color = project?.color ?? '#94a3b8';
+                                                const dotColor = hexToRgba(color, 0.8) ?? color;
+                                                return (
+                                                  <DropdownMenuItem
+                                                    key={milestone.id}
+                                                    onSelect={() => handleEditMilestone(milestone)}
+                                                    className="items-start gap-2"
+                                                  >
+                                                    <span
+                                                      className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                                                      style={{ backgroundColor: dotColor }}
+                                                    />
+                                                    <span className="min-w-0">
+                                                      <span className="block truncate text-[11px] text-muted-foreground">
+                                                        {project
+                                                          ? formatProjectLabel(project.name, project.code)
+                                                          : t`Project`}
+                                                      </span>
+                                                      <span className="block truncate text-sm">
+                                                        {milestone.title}
+                                                      </span>
+                                                    </span>
+                                                  </DropdownMenuItem>
+                                                );
+                                              })}
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        ) : (
+                                          <>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleDateClick(day)}
+                                              className={cn(
+                                                'flex h-7 w-7 items-center justify-center text-xs focus-visible:outline-none',
+                                                weekend && inMonth && 'text-amber-600',
+                                                counts.total > 0 && 'font-semibold',
+                                                today ? 'rounded-full border border-sky-500/70 bg-sky-100/70 text-sky-700' : 'rounded-md',
+                                                'hover:bg-muted/40'
+                                              )}
+                                            >
+                                              {format(day, 'd')}
+                                            </button>
+                                            {singleMilestone && (
+                                              <div className="absolute bottom-0.5 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-0.5">
+                                                <button
+                                                  type="button"
+                                                  className="inline-flex h-3 w-3 items-center justify-center rounded-full hover:scale-110 transition-transform"
+                                                  onClick={(event) => {
+                                                    event.preventDefault();
+                                                    event.stopPropagation();
+                                                    handleEditMilestone(singleMilestone);
+                                                  }}
+                                                  onContextMenu={(event) => {
+                                                    event.preventDefault();
+                                                    event.stopPropagation();
+                                                    handleEditMilestone(singleMilestone);
+                                                  }}
+                                                  aria-label={t`Edit milestone`}
+                                                >
+                                                  <span
+                                                    className="h-2 w-2 rounded-full"
+                                                    style={{ backgroundColor: singleMilestoneColor }}
+                                                  />
+                                                </button>
+                                              </div>
                                             )}
-                                          </div>
+                                          </>
                                         )}
                                       </div>
                                     </TooltipTrigger>
