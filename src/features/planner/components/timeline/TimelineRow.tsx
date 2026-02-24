@@ -23,6 +23,7 @@ interface TimelineRowProps {
   canEdit?: boolean;
   onCreateTask?: (date: string, rowId: string) => void;
   onDateClick?: (date: string, rowId: string) => boolean | void;
+  onCreateMilestone?: (date: string) => void;
 }
 
 const TimelineRowBase: React.FC<TimelineRowProps> = ({
@@ -37,6 +38,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   canEdit = false,
   onCreateTask,
   onDateClick,
+  onCreateMilestone,
 }) => {
   const [contextDate, setContextDate] = useState<string | null>(null);
 
@@ -103,6 +105,15 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem
+            disabled={!canEdit || !contextDate || !onCreateMilestone}
+            onSelect={() => {
+              if (!contextDate || !onCreateMilestone) return;
+              onCreateMilestone(contextDate);
+            }}
+          >
+            {t`Create milestone`}
+          </ContextMenuItem>
+          <ContextMenuItem
             disabled={!canEdit || !contextDate}
             onSelect={() => {
               if (!contextDate || !onCreateTask) return;
@@ -134,6 +145,7 @@ const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps
   && prev.canEdit === next.canEdit
   && prev.onCreateTask === next.onCreateTask
   && prev.onDateClick === next.onDateClick
+  && prev.onCreateMilestone === next.onCreateMilestone
 );
 
 export const TimelineRow = React.memo(TimelineRowBase, areTimelineRowPropsEqual);
