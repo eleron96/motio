@@ -209,6 +209,16 @@ const ProjectsPage = () => {
     [projects, selectedProjectId],
   );
 
+  const {
+    projectTasks,
+    tasksLoading,
+    tasksError,
+    refetchTasks,
+  } = useProjectTasksQuery({
+    workspaceId: currentWorkspaceId,
+    projectId: selectedProjectId,
+  });
+
   const statusById = useMemo(
     () => new Map(statuses.map((status) => [status.id, status])),
     [statuses],
@@ -400,16 +410,6 @@ const ProjectsPage = () => {
     if (milestoneGroupBy === 'customer') return t`Customer`;
     return t`Month`;
   }, [milestoneGroupBy]);
-
-  const {
-    projectTasks,
-    tasksLoading,
-    tasksError,
-    refetchTasks,
-  } = useProjectTasksQuery({
-    workspaceId: currentWorkspaceId,
-    projectId: selectedProjectId,
-  });
 
   const selectedTask = useMemo(
     () => projectTasks.find((task) => task.id === selectedTaskId) ?? null,
