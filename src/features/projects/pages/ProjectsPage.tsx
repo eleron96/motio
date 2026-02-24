@@ -29,13 +29,13 @@ import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescri
 import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import { formatRepeatCadenceLabel } from '@/shared/lib/repeatLabels';
+import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 
 type DisplayTaskRow = {
   key: string;
   task: Task;
   repeatMeta: {
-    label: string;
+    cadence: RepeatCadence;
     remaining: number;
     total: number;
   } | null;
@@ -493,7 +493,7 @@ const ProjectsPage = () => {
       task: row.task,
       repeatMeta: row.repeatMeta
         ? {
-          label: formatRepeatCadenceLabel(row.repeatMeta.cadence),
+          cadence: row.repeatMeta.cadence,
           remaining: row.repeatMeta.remaining,
           total: row.repeatMeta.total,
         }
