@@ -1,51 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
-import { AccountSettingsDialog } from '@/features/auth/components/AccountSettingsDialog';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Badge } from '@/shared/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { Checkbox } from '@/shared/ui/checkbox';
-import { ScrollArea } from '@/shared/ui/scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/shared/ui/context-menu';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { t } from '@lingui/macro';
-import { formatStatusLabel } from '@/shared/lib/statusLabels';
-import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { cn } from '@/shared/lib/classNames';
-import { addYears, differenceInCalendarDays, format, parseISO } from 'date-fns';
-import { Settings, User, RefreshCcw, ArrowDownAZ, ArrowDownZA, Layers, Plus } from 'lucide-react';
+import { createLatestAsyncRequest } from '@/shared/lib/latestAsyncRequest';
+import { addYears, format, parseISO } from 'date-fns';
+import { Settings, User, Plus } from 'lucide-react';
 import { Task } from '@/features/planner/types/planner';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
-import DOMPurify from 'dompurify';
+import { MembersSidebar } from '@/features/members/components/MembersSidebar';
+import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
+import { MembersDialogs } from '@/features/members/components/MembersDialogs';
+import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
+import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
 import { compareNames } from '@/shared/lib/nameSorting';
-import { Label } from '@/shared/ui/label';
-
-type TaskRow = {
-  id: string;
-  title: string;
-  project_id: string | null;
-  assignee_id: string | null;
-  assignee_ids: string[] | null;
-  start_date: string;
-  end_date: string;
-  status_id: string;
-  type_id: string;
-  priority: string | null;
-  tag_ids: string[] | null;
-  description: string | null;
-  repeat_id: string | null;
-};
+import { formatRepeatCadenceLabel } from '@/shared/lib/repeatLabels';
+import { fetchAssigneeTasks as fetchAssigneeTasksFromApi } from '@/infrastructure/members/memberTasksRepository';
 
 type AssigneeUniqueTaskCountRow = {
   assignee_id: string | null;
@@ -81,71 +60,6 @@ type DisplayTaskRow = {
     remaining: number;
     total: number;
   } | null;
-};
-
-const normalizeAssigneeIds = (assigneeIds: string[] | null | undefined, legacyId: string | null | undefined) => {
-  const combined = [
-    ...(assigneeIds ?? []),
-    ...(legacyId ? [legacyId] : []),
-  ];
-  return Array.from(new Set(combined.filter(Boolean)));
-};
-
-const mapTaskRow = (row: TaskRow): Task => ({
-  id: row.id,
-  title: row.title,
-  projectId: row.project_id,
-  assigneeIds: normalizeAssigneeIds(row.assignee_ids, row.assignee_id),
-  startDate: row.start_date,
-  endDate: row.end_date,
-  statusId: row.status_id,
-  typeId: row.type_id,
-  priority: row.priority as Task['priority'],
-  tagIds: row.tag_ids ?? [],
-  description: row.description,
-  repeatId: row.repeat_id ?? null,
-});
-
-const hasRichTags = (value: string) => (
-  /<\/?(b|strong|i|em|u|s|strike|ul|ol|li|blockquote|br|div|p|span|img)\b/i.test(value)
-);
-
-const sanitizeDescription = (value: string) => (
-  DOMPurify.sanitize(value, {
-    ALLOWED_TAGS: [
-      'b',
-      'strong',
-      'i',
-      'em',
-      'u',
-      's',
-      'strike',
-      'ul',
-      'ol',
-      'li',
-      'blockquote',
-      'br',
-      'div',
-      'p',
-      'span',
-      'img',
-    ],
-    ALLOWED_ATTR: ['src', 'alt', 'style', 'width', 'height'],
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|data:image\/)|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
-  })
-);
-
-const inferRepeatLabel = (tasks: Task[]) => {
-  if (tasks.length < 2) return 'Повторяющаяся';
-  const sorted = [...tasks].sort((left, right) => left.startDate.localeCompare(right.startDate));
-  const first = parseISO(sorted[0].startDate);
-  const second = parseISO(sorted[1].startDate);
-  const diffDays = Math.abs(differenceInCalendarDays(second, first));
-  if (diffDays === 1) return 'Ежедневная';
-  if (diffDays === 7) return 'Еженедельная';
-  if (diffDays >= 28 && diffDays <= 31) return 'Ежемесячная';
-  if (diffDays >= 364 && diffDays <= 366) return 'Ежегодная';
-  return 'Повторяющаяся';
 };
 
 const countTaskUnits = (tasks: Task[]) => {
@@ -212,14 +126,34 @@ const MembersPage = () => {
     setCurrentDate,
     requestScrollToDate,
     clearFilters,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    assignees: state.assignees,
+    memberGroupAssignments: state.memberGroupAssignments,
+    projects: state.projects,
+    statuses: state.statuses,
+    taskTypes: state.taskTypes,
+    tags: state.tags,
+    loadWorkspaceData: state.loadWorkspaceData,
+    refreshMemberGroups: state.refreshMemberGroups,
+    deleteTasks: state.deleteTasks,
+    setHighlightedTaskId: state.setHighlightedTaskId,
+    setViewMode: state.setViewMode,
+    setCurrentDate: state.setCurrentDate,
+    requestScrollToDate: state.requestScrollToDate,
+    clearFilters: state.clearFilters,
+  })));
 
   const {
     user,
     currentWorkspaceId,
     currentWorkspaceRole,
     isSuperAdmin,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    user: state.user,
+    currentWorkspaceId: state.currentWorkspaceId,
+    currentWorkspaceRole: state.currentWorkspaceRole,
+    isSuperAdmin: state.isSuperAdmin,
+  })));
 
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const isAdmin = currentWorkspaceRole === 'admin';
@@ -231,77 +165,6 @@ const MembersPage = () => {
   const memberSortLabel = memberSort === 'asc' ? t`A-Z` : t`Z-A`;
   const groupSortLabel = groupSort === 'asc' ? t`A-Z` : t`Z-A`;
   const navigate = useNavigate();
-  const modeToggle = (
-    <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setMode('tasks')}
-        className={cn(
-          'h-7 px-3 text-xs rounded-md',
-          mode === 'tasks' && 'bg-foreground text-background shadow-sm'
-        )}
-      >
-        {t`Tasks`}
-      </Button>
-      {isAdmin && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setMode('access')}
-          className={cn(
-            'h-7 px-3 text-xs rounded-md',
-            mode === 'access' && 'bg-foreground text-background shadow-sm'
-          )}
-        >
-          {t`Access`}
-        </Button>
-      )}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setMode('groups')}
-        className={cn(
-          'h-7 px-3 text-xs rounded-md',
-          mode === 'groups' && 'bg-foreground text-background shadow-sm'
-        )}
-      >
-        {t`Groups`}
-      </Button>
-    </div>
-  );
-  const scopeToggle = (
-    <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => {
-          setTaskScope('current');
-          setPageIndex(1);
-        }}
-        className={cn(
-          'h-7 px-3 text-xs rounded-md',
-          taskScope === 'current' && 'bg-foreground text-background shadow-sm'
-        )}
-      >
-        {t`Current`}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => {
-          setTaskScope('past');
-          setPageIndex(1);
-        }}
-        className={cn(
-          'h-7 px-3 text-xs rounded-md',
-          taskScope === 'past' && 'bg-foreground text-background shadow-sm'
-        )}
-      >
-        {t`Past`}
-      </Button>
-    </div>
-  );
   const modeStorageKey = currentWorkspaceId
     ? `members-mode-${currentWorkspaceId}`
     : user?.id
@@ -314,12 +177,20 @@ const MembersPage = () => {
     : 'members-tasks-view-prefs';
   const modeHydratedRef = useRef(false);
   const tasksViewPrefsHydratedRef = useRef(false);
+  const assigneeTasksRequestRef = useRef(createLatestAsyncRequest());
 
   useEffect(() => {
     if (currentWorkspaceId) {
       loadWorkspaceData(currentWorkspaceId);
     }
   }, [currentWorkspaceId, loadWorkspaceData]);
+
+  useEffect(() => {
+    const taskRequest = assigneeTasksRequestRef.current;
+    return () => {
+      taskRequest.cancel();
+    };
+  }, []);
 
   useEffect(() => {
     if (currentWorkspaceId) return;
@@ -633,117 +504,71 @@ const MembersPage = () => {
 
   const fetchAssigneeTasks = useCallback(async (assigneeId: string) => {
     if (!currentWorkspaceId) return;
+    const request = assigneeTasksRequestRef.current.next();
     setTasksLoading(true);
     setTasksError('');
-    const offset = (pageIndex - 1) * pageSize;
-    let query = supabase
-      .from('tasks')
-      .select([
-        'id',
-        'title',
-        'project_id',
-        'assignee_id',
-        'assignee_ids',
-        'start_date',
-        'end_date',
-        'status_id',
-        'type_id',
-        'priority',
-        'tag_ids',
-        'description',
-        'repeat_id',
-      ].join(','), { count: 'exact' })
-      .eq('workspace_id', currentWorkspaceId)
-      .or(`assignee_id.eq.${assigneeId},assignee_ids.cs.{${assigneeId}}`);
+    try {
+      const result = await fetchAssigneeTasksFromApi({
+        workspaceId: currentWorkspaceId,
+        assigneeId,
+        taskScope,
+        pastFromDate,
+        pastToDate,
+        pastSort,
+        statusFilterIds,
+        projectFilterIds,
+        search,
+        pageIndex,
+        pageSize,
+        signal: request.signal,
+      });
 
-    const today = format(new Date(), 'yyyy-MM-dd');
-    if (taskScope === 'current') {
-      query = query.gte('end_date', today);
-    } else {
-      query = query.lt('end_date', today);
-      if (pastFromDate) {
-        query = query.gte('end_date', pastFromDate);
+      if (!assigneeTasksRequestRef.current.isCurrent(request.requestId)) {
+        return;
       }
-      if (pastToDate) {
-        query = query.lte('start_date', pastToDate);
+      if (!result) {
+        setTasksLoading(false);
+        return;
       }
-    }
 
-    if (statusFilterIds.length > 0) {
-      query = query.in('status_id', statusFilterIds);
-    }
-    if (projectFilterIds.length > 0) {
-      query = query.in('project_id', projectFilterIds);
-    }
-    if (search.trim()) {
-      query = query.ilike('title', `%${search.trim()}%`);
-    }
-
-    let sortedQuery = query;
-    if (taskScope === 'past') {
-      switch (pastSort) {
-        case 'start_asc':
-          sortedQuery = sortedQuery.order('start_date', { ascending: true });
-          break;
-        case 'start_desc':
-          sortedQuery = sortedQuery.order('start_date', { ascending: false });
-          break;
-        case 'end_asc':
-          sortedQuery = sortedQuery.order('end_date', { ascending: true });
-          break;
-        case 'end_desc':
-          sortedQuery = sortedQuery.order('end_date', { ascending: false });
-          break;
-        case 'title_asc':
-          sortedQuery = sortedQuery.order('title', { ascending: true });
-          break;
-        case 'title_desc':
-          sortedQuery = sortedQuery.order('title', { ascending: false });
-          break;
-        default:
-          sortedQuery = sortedQuery.order('end_date', { ascending: false });
+      const mapped = result.tasks;
+      setAssigneeTasks(mapped);
+      setTotalCount(result.totalCount);
+      if (
+        taskScope === 'current'
+        && statusFilterIds.length === 0
+        && projectFilterIds.length === 0
+        && !search.trim()
+      ) {
+        setMemberTaskCounts((current) => ({
+          ...current,
+          [assigneeId]: countTaskUnits(mapped),
+        }));
+        if (!memberTaskCountsDate) {
+          setMemberTaskCountsDate(format(new Date(), 'yyyy-MM-dd'));
+        }
       }
-    } else {
-      sortedQuery = sortedQuery.order('start_date', { ascending: true });
-    }
-
-    const { data, error, count } = taskScope === 'current'
-      ? await sortedQuery
-      : await sortedQuery.range(offset, offset + pageSize - 1);
-    if (error) {
-      setTasksError(error.message);
       setTasksLoading(false);
-      return;
-    }
-    const mapped = (data ?? []).map((row) => mapTaskRow(row as TaskRow));
-    setAssigneeTasks(mapped);
-    setTotalCount(taskScope === 'current'
-      ? mapped.length
-      : (typeof count === 'number' ? count : 0));
-    if (
-      taskScope === 'current'
-      && statusFilterIds.length === 0
-      && projectFilterIds.length === 0
-      && !search.trim()
-    ) {
-      setMemberTaskCounts((current) => ({
-        ...current,
-        [assigneeId]: countTaskUnits(mapped),
-      }));
-      if (!memberTaskCountsDate) {
-        setMemberTaskCountsDate(format(new Date(), 'yyyy-MM-dd'));
+    } catch (error) {
+      if (!assigneeTasksRequestRef.current.isCurrent(request.requestId)) {
+        return;
       }
+      const message = error instanceof Error ? error.message : t`Failed to load tasks.`;
+      setTasksError(message);
+      setTasksLoading(false);
     }
-    setTasksLoading(false);
   }, [currentWorkspaceId, memberTaskCountsDate, pageIndex, pageSize, projectFilterIds, search, statusFilterIds, taskScope, pastFromDate, pastToDate, pastSort]);
 
   useEffect(() => {
     if (!selectedAssigneeId) {
+      assigneeTasksRequestRef.current.cancel();
+      setTasksLoading(false);
+      setTasksError('');
       setAssigneeTasks([]);
       setTotalCount(0);
       return;
     }
-    fetchAssigneeTasks(selectedAssigneeId);
+    void fetchAssigneeTasks(selectedAssigneeId);
   }, [fetchAssigneeTasks, selectedAssigneeId]);
 
   useEffect(() => {
@@ -767,48 +592,18 @@ const MembersPage = () => {
       }));
     }
 
-    const repeatBuckets = new Map<string, Task[]>();
-    const rows: DisplayTaskRow[] = [];
-
-    assigneeTasks.forEach((task) => {
-      if (!task.repeatId) {
-        rows.push({
-          key: task.id,
-          task,
-          taskIds: [task.id],
-          repeatMeta: null,
-        });
-        return;
-      }
-      const bucket = repeatBuckets.get(task.repeatId) ?? [];
-      bucket.push(task);
-      repeatBuckets.set(task.repeatId, bucket);
-    });
-
-    repeatBuckets.forEach((tasks, repeatId) => {
-      const sorted = [...tasks].sort((left, right) => left.startDate.localeCompare(right.startDate));
-      const representative = sorted[0];
-      rows.push({
-        key: `repeat:${repeatId}`,
-        task: representative,
-        taskIds: sorted.map((item) => item.id),
-        repeatMeta: {
-          label: inferRepeatLabel(sorted),
-          remaining: Math.max(0, sorted.length - 1),
-          total: sorted.length,
-        },
-      });
-    });
-
-    rows.sort((left, right) => {
-      const byStart = left.task.startDate.localeCompare(right.task.startDate);
-      if (byStart !== 0) return byStart;
-      const byEnd = left.task.endDate.localeCompare(right.task.endDate);
-      if (byEnd !== 0) return byEnd;
-      return left.task.title.localeCompare(right.task.title);
-    });
-
-    return rows;
+    return buildRepeatSeriesRows(assigneeTasks).map((row) => ({
+      key: row.key,
+      task: row.task,
+      taskIds: row.taskIds,
+      repeatMeta: row.repeatMeta
+        ? {
+          label: formatRepeatCadenceLabel(row.repeatMeta.cadence),
+          remaining: row.repeatMeta.remaining,
+          total: row.repeatMeta.total,
+        }
+        : null,
+    }));
   }, [assigneeTasks, taskScope]);
 
   const visibleTaskIds = useMemo(
@@ -830,7 +625,7 @@ const MembersPage = () => {
   const selectedTaskDescription = useMemo(() => {
     if (!selectedTask?.description) return '';
     if (!hasRichTags(selectedTask.description)) return selectedTask.description;
-    return sanitizeDescription(selectedTask.description);
+    return sanitizeTaskDescription(selectedTask.description);
   }, [selectedTask?.description]);
 
   const allVisibleSelected = visibleTaskIds.length > 0 && visibleTaskIds.every((id) => selectedTaskIds.has(id));
@@ -1080,231 +875,43 @@ const MembersPage = () => {
       </header>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <aside className="w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col">
-          <div className="px-4 py-3 border-b border-border">
-            {modeToggle}
-          </div>
-
-          {mode === 'tasks' && (
-            <Tabs
-              value={tab}
-              onValueChange={(value) => setTab(value as 'active' | 'disabled')}
-              className="flex min-h-0 flex-1 flex-col"
-            >
-              <div className="px-4 py-3 border-b border-border">
-                <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                  <Input
-                    className="h-8"
-                    placeholder={t`Search members...`}
-                    value={memberSearch}
-                    onChange={(event) => setMemberSearch(event.target.value)}
-                  />
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 gap-2 px-2"
-                      onClick={() => setMemberSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
-                    >
-                      {memberSort === 'asc' ? (
-                        <ArrowDownAZ className="h-4 w-4" />
-                      ) : (
-                        <ArrowDownZA className="h-4 w-4" />
-                      )}
-                      <span className="text-xs text-muted-foreground">{memberSortLabel}</span>
-                    </Button>
-                    <Button
-                      variant={memberGroupBy === 'group' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className="h-8 px-2"
-                      onClick={() => setMemberGroupBy((current) => (current === 'group' ? 'none' : 'group'))}
-                      aria-pressed={memberGroupBy === 'group'}
-                      title={t`Group by group`}
-                    >
-                      <Layers className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <TabsList className="mx-4 mt-2 grid grid-cols-2">
-                <TabsTrigger value="active">{t`Active`}</TabsTrigger>
-                <TabsTrigger value="disabled">{t`Disabled`}</TabsTrigger>
-              </TabsList>
-              <TabsContent value="active" className="flex-1 min-h-0 overflow-hidden">
-                <ScrollArea className="h-full px-4 py-3">
-                  {activeVisibleAssignees.length === 0 && (
-                    <div className="text-sm text-muted-foreground">{t`No active members.`}</div>
-                  )}
-                  {activeVisibleAssignees.length > 0 && (
-                    <div className="space-y-3">
-                      {activeMemberGroups.map((group) => (
-                        <div key={group.id} className="space-y-2">
-                          {memberGroupBy === 'group' && (
-                            <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                              {group.name}
-                            </div>
-                          )}
-                          {group.members.map((assignee) => {
-                            const count = memberTaskCountsDate
-                              ? (memberTaskCounts[assignee.id] ?? 0)
-                              : null;
-                            return (
-                              <button
-                                key={assignee.id}
-                                type="button"
-                                onClick={() => setSelectedAssigneeId(assignee.id)}
-                                className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                                  selectedAssigneeId === assignee.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium leading-snug break-words line-clamp-2">
-                                    {assignee.name}
-                                  </span>
-                                  {count !== null && (
-                                    <Badge variant="secondary" className="ml-auto text-[10px]">
-                                      {count}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
-              <TabsContent value="disabled" className="flex-1 min-h-0 overflow-hidden">
-                <ScrollArea className="h-full px-4 py-3">
-                  {disabledVisibleAssignees.length === 0 && (
-                    <div className="text-sm text-muted-foreground">{t`No disabled members.`}</div>
-                  )}
-                  {disabledVisibleAssignees.length > 0 && (
-                    <div className="space-y-3">
-                      {disabledMemberGroups.map((group) => (
-                        <div key={group.id} className="space-y-2">
-                          {memberGroupBy === 'group' && (
-                            <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                              {group.name}
-                            </div>
-                          )}
-                          {group.members.map((assignee) => {
-                            const count = memberTaskCountsDate
-                              ? (memberTaskCounts[assignee.id] ?? 0)
-                              : null;
-                            return (
-                              <button
-                                key={assignee.id}
-                                type="button"
-                                onClick={() => setSelectedAssigneeId(assignee.id)}
-                                className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                                  selectedAssigneeId === assignee.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium leading-snug break-words line-clamp-2">
-                                    {assignee.name}
-                                  </span>
-                                  <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
-                                  {count !== null && (
-                                    <Badge variant="secondary" className="ml-auto text-[10px]">
-                                      {count}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {mode === 'groups' && (
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="px-4 py-3 border-b border-border space-y-2">
-                <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                  <Input
-                    className="h-8"
-                    placeholder={t`Search groups...`}
-                    value={groupSearch}
-                    onChange={(event) => setGroupSearch(event.target.value)}
-                  />
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 gap-2 px-2"
-                      onClick={() => setGroupSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
-                    >
-                      {groupSort === 'asc' ? (
-                        <ArrowDownAZ className="h-4 w-4" />
-                      ) : (
-                        <ArrowDownZA className="h-4 w-4" />
-                      )}
-                      <span className="text-xs text-muted-foreground">{groupSortLabel}</span>
-                    </Button>
-                  </div>
-                </div>
-                {groupsError && !creatingGroup && (
-                  <div className="text-xs text-destructive">{groupsError}</div>
-                )}
-              </div>
-              <ScrollArea className="h-full px-4 py-3">
-                {groupsLoading && (
-                  <div className="text-sm text-muted-foreground">{t`Loading groups...`}</div>
-                )}
-                {!groupsLoading && sortedGroups.length === 0 && (
-                  <div className="text-sm text-muted-foreground">{t`No groups yet.`}</div>
-                )}
-                {!groupsLoading && sortedGroups.length > 0 && (
-                  <div className="space-y-2">
-                    {sortedGroups.map((group) => (
-                      <ContextMenu key={group.id}>
-                        <ContextMenuTrigger asChild>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedGroupId(group.id)}
-                            onContextMenu={() => setSelectedGroupId(group.id)}
-                            className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                              selectedGroupId === group.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-                            }`}
-                          >
-                            <div className="text-sm font-medium leading-snug break-words line-clamp-2">{group.name}</div>
-                          </button>
-                        </ContextMenuTrigger>
-                        <ContextMenuContent>
-                          <ContextMenuItem
-                            disabled={!isAdmin}
-                            onSelect={() => {
-                              setSelectedGroupId(group.id);
-                              handleStartEditGroup(group);
-                            }}
-                          >
-                            {t`Rename`}
-                          </ContextMenuItem>
-                          <ContextMenuItem
-                            disabled={!isAdmin}
-                            onSelect={() => void handleDeleteGroup(group)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            {t`Delete`}
-                          </ContextMenuItem>
-                        </ContextMenuContent>
-                      </ContextMenu>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
-          )}
-        </aside>
+        <MembersSidebar
+          mode={mode}
+          onModeChange={setMode}
+          isAdmin={isAdmin}
+          tab={tab}
+          onTabChange={setTab}
+          memberSearch={memberSearch}
+          onMemberSearchChange={setMemberSearch}
+          memberSort={memberSort}
+          memberSortLabel={memberSortLabel}
+          onToggleMemberSort={() => setMemberSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+          memberGroupBy={memberGroupBy}
+          onToggleMemberGroupBy={() => setMemberGroupBy((current) => (current === 'group' ? 'none' : 'group'))}
+          activeVisibleAssignees={activeVisibleAssignees}
+          disabledVisibleAssignees={disabledVisibleAssignees}
+          activeMemberGroups={activeMemberGroups}
+          disabledMemberGroups={disabledMemberGroups}
+          selectedAssigneeId={selectedAssigneeId}
+          onSelectAssignee={setSelectedAssigneeId}
+          memberTaskCountsDate={memberTaskCountsDate}
+          memberTaskCounts={memberTaskCounts}
+          groupSearch={groupSearch}
+          onGroupSearchChange={setGroupSearch}
+          groupSort={groupSort}
+          groupSortLabel={groupSortLabel}
+          onToggleGroupSort={() => setGroupSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+          groupsError={groupsError}
+          creatingGroup={creatingGroup}
+          groupsLoading={groupsLoading}
+          sortedGroups={sortedGroups}
+          selectedGroupId={selectedGroupId}
+          onSelectGroup={setSelectedGroupId}
+          onStartEditGroup={handleStartEditGroup}
+          onDeleteGroup={(group) => {
+            void handleDeleteGroup(group);
+          }}
+        />
 
         <section className="flex-1 overflow-hidden flex flex-col">
           {mode === 'access' && (
@@ -1405,499 +1012,108 @@ const MembersPage = () => {
           )}
 
           {mode === 'tasks' && (
-            <>
-              {!selectedAssignee && (
-                <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-                  {t`Select a member to view details.`}
-                </div>
-              )}
-
-              {selectedAssignee && (
-                <div className="flex flex-1 flex-col overflow-hidden">
-              <div className="border-b border-border px-6 py-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div className="text-lg font-semibold">{selectedAssignee.name}</div>
-                      {!selectedAssignee.isActive && (
-                        <Badge variant="secondary">{t`Disabled`}</Badge>
-                      )}
-                    </div>
-                    <div>{scopeToggle}</div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {memberTaskCountsDate ? t`Tasks from today` : t`Tasks count loading...`}
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-6 py-4 border-b border-border">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Input
-                    className="w-[220px]"
-                    placeholder={t`Search tasks...`}
-                    value={search}
-                    onChange={(event) => {
-                      setSearch(event.target.value);
-                      setPageIndex(1);
-                    }}
-                  />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline">{statusFilterLabel}</Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="start">
-                      <div className="flex gap-2 pb-2">
-                        <Button size="sm" variant="ghost" onClick={() => setStatusPreset('all')}>{t`All`}</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setStatusPreset('open')}>{t`Open`}</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setStatusPreset('done')}>{t`Done`}</Button>
-                      </div>
-                      <ScrollArea className="max-h-48 pr-2">
-                        <div className="space-y-1">
-                          {statuses.map((status) => (
-                            <label key={status.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                              <Checkbox
-                                checked={statusFilterIds.includes(status.id)}
-                                onCheckedChange={() => handleToggleStatus(status.id)}
-                              />
-                              <span className="inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: status.color }} />
-                              <span className="text-sm truncate">{formatStatusLabel(status.name, status.emoji)}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline">{projectFilterLabel}</Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="start">
-                      <ScrollArea className="max-h-48 pr-2">
-                        <div className="space-y-1">
-                          {projectOptions.length === 0 && (
-                            <div className="text-xs text-muted-foreground">{t`No projects for this member.`}</div>
-                          )}
-                          {projectOptions.map((project) => (
-                            <label key={project.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                              <Checkbox
-                                checked={projectFilterIds.includes(project.id)}
-                                onCheckedChange={() => handleToggleProject(project.id)}
-                              />
-                              <span className="inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: project.color }} />
-                              <span className="text-sm truncate">
-                                {formatProjectLabel(project.name, project.code)}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-
-                  {taskScope === 'past' && (
-                    <>
-                      <Input
-                        type="date"
-                        className="w-[160px]"
-                        value={pastFromDate}
-                        onChange={(event) => {
-                          setPastFromDate(event.target.value);
-                          setPageIndex(1);
-                        }}
-                      />
-                      <Input
-                        type="date"
-                        className="w-[160px]"
-                        value={pastToDate}
-                        onChange={(event) => {
-                          setPastToDate(event.target.value);
-                          setPageIndex(1);
-                        }}
-                      />
-                      <Select
-                        value={pastSort}
-                        onValueChange={(value) => {
-                          setPastSort(value as typeof pastSort);
-                          setPageIndex(1);
-                        }}
-                      >
-                        <SelectTrigger className="w-[170px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="end_desc">{t`End date ↓`}</SelectItem>
-                          <SelectItem value="end_asc">{t`End date ↑`}</SelectItem>
-                          <SelectItem value="start_desc">{t`Start date ↓`}</SelectItem>
-                          <SelectItem value="start_asc">{t`Start date ↑`}</SelectItem>
-                          <SelectItem value="title_asc">{t`Title A–Z`}</SelectItem>
-                          <SelectItem value="title_desc">{t`Title Z–A`}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </>
-                  )}
-
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setSearch('');
-      setStatusFilterIds([]);
-      setProjectFilterIds([]);
-      setPastFromDate('');
-      setPastToDate('');
-      setPageIndex(1);
-    }}
-  >
-    {t`Clear filters`}
-  </Button>
-
-                  <Button
-                    variant="ghost"
-                    className="ml-auto"
-                    onClick={() => {
-                      if (selectedAssigneeId) {
-                        void fetchAssigneeTasks(selectedAssigneeId);
-                      }
-                      void refreshMemberTaskCounts();
-                    }}
-                    disabled={!selectedAssigneeId || tasksLoading}
-                  >
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    {t`Refresh`}
-                  </Button>
-                  {selectedCount > 0 && (
-                    <Button
-                      variant="destructive"
-                      onClick={handleDeleteSelected}
-                      disabled={tasksLoading}
-                    >
-                      {t`Delete selected (${selectedCount})`}
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-auto px-6 py-4">
-                {tasksLoading && (
-                  <div className="text-sm text-muted-foreground">{t`Loading tasks...`}</div>
-                )}
-                {!tasksLoading && tasksError && (
-                  <div className="text-sm text-destructive">{tasksError}</div>
-                )}
-                {!tasksLoading && !tasksError && (
-                  <>
-                    {displayTaskRows.length === 0 ? (
-                      <div className="text-sm text-muted-foreground">{t`No tasks match the current filters.`}</div>
-                    ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-10">
-                              <Checkbox
-                                checked={allVisibleSelected ? true : someVisibleSelected ? 'indeterminate' : false}
-                                onCheckedChange={handleToggleAll}
-                                aria-label={t`Select all tasks`}
-                              />
-                            </TableHead>
-                            <TableHead>{t`Task`}</TableHead>
-                            <TableHead>{t`Status`}</TableHead>
-                            <TableHead>{t`Project`}</TableHead>
-                            <TableHead>{t`Dates`}</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {displayTaskRows.map((row) => {
-                            const { task } = row;
-                            const status = statusById.get(task.statusId);
-                            const project = task.projectId ? projectById.get(task.projectId) : null;
-                            const selectedInRow = row.taskIds.filter((taskId) => selectedTaskIds.has(taskId)).length;
-                            const rowChecked: boolean | 'indeterminate' = (
-                              selectedInRow === row.taskIds.length
-                                ? true
-                                : selectedInRow > 0
-                                  ? 'indeterminate'
-                                  : false
-                            );
-                            return (
-                              <TableRow
-                                key={row.key}
-                                className="cursor-pointer"
-                                onClick={() => setSelectedTaskId(task.id)}
-                              >
-                                <TableCell onClick={(event) => event.stopPropagation()}>
-                                  <Checkbox
-                                    checked={rowChecked}
-                                    onCheckedChange={(value) => handleToggleTask(row.taskIds, value)}
-                                    aria-label={t`Select task ${task.title}`}
-                                  />
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                  <div className="space-y-1">
-                                    <div>{task.title}</div>
-                                    {row.repeatMeta && (
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <Badge variant="outline" className="text-[10px]">
-                                          {row.repeatMeta.label}
-                                        </Badge>
-                                        <span className="text-xs text-muted-foreground">
-                                          {row.repeatMeta.remaining > 0
-                                            ? `Еще ${row.repeatMeta.remaining}`
-                                            : 'Последняя в серии'}
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <span
-                                      className="inline-flex h-2 w-2 rounded-full"
-                                      style={{ backgroundColor: status?.color ?? '#94a3b8' }}
-                                    />
-                                    <span>{status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`}</span>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  {project ? (
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <span
-                                        className="inline-flex h-2 w-2 rounded-full"
-                                        style={{ backgroundColor: project.color }}
-                                      />
-                                      <span>{formatProjectLabel(project.name, project.code)}</span>
-                                      {project.archived && (
-                                        <Badge variant="secondary" className="text-[10px]">{t`Archived`}</Badge>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">{t`No project`}</span>
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-sm text-muted-foreground">
-                                  {format(parseISO(task.startDate), 'dd MMM yyyy')} – {format(parseISO(task.endDate), 'dd MMM yyyy')}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    )}
-                    {taskScope === 'past' && displayTotalCount > pageSize && (
-                      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                        <span>
-                          {Math.min(displayTotalCount, (pageIndex - 1) * pageSize + 1)}–
-                          {Math.min(displayTotalCount, pageIndex * pageSize)} {t`of`} {displayTotalCount}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPageIndex((current) => Math.max(1, current - 1))}
-                            disabled={pageIndex === 1}
-                          >
-                            {t`Prev`}
-                          </Button>
-                          <span>
-                            {t`Page ${pageIndex} / ${totalPages}`}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setPageIndex((current) => Math.min(totalPages, current + 1))}
-                            disabled={pageIndex >= totalPages}
-                          >
-                            {t`Next`}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-                </div>
-              )}
-            </>
+            <MemberTasksPanel
+              selectedAssignee={selectedAssignee}
+              taskScope={taskScope}
+              onChangeTaskScope={(scope) => {
+                setTaskScope(scope);
+                setPageIndex(1);
+              }}
+              memberTaskCountsDate={memberTaskCountsDate}
+              search={search}
+              onSearchChange={(value) => {
+                setSearch(value);
+                setPageIndex(1);
+              }}
+              statusFilterLabel={statusFilterLabel}
+              setStatusPreset={setStatusPreset}
+              statuses={statuses}
+              statusFilterIds={statusFilterIds}
+              onToggleStatus={handleToggleStatus}
+              projectFilterLabel={projectFilterLabel}
+              projectOptions={projectOptions}
+              projectFilterIds={projectFilterIds}
+              onToggleProject={handleToggleProject}
+              pastFromDate={pastFromDate}
+              onPastFromDateChange={(value) => {
+                setPastFromDate(value);
+                setPageIndex(1);
+              }}
+              pastToDate={pastToDate}
+              onPastToDateChange={(value) => {
+                setPastToDate(value);
+                setPageIndex(1);
+              }}
+              pastSort={pastSort}
+              onPastSortChange={(value) => {
+                setPastSort(value);
+                setPageIndex(1);
+              }}
+              onClearFilters={() => {
+                setSearch('');
+                setStatusFilterIds([]);
+                setProjectFilterIds([]);
+                setPastFromDate('');
+                setPastToDate('');
+                setPageIndex(1);
+              }}
+              onRefresh={() => {
+                if (selectedAssigneeId) {
+                  void fetchAssigneeTasks(selectedAssigneeId);
+                }
+                void refreshMemberTaskCounts();
+              }}
+              selectedAssigneeId={selectedAssigneeId}
+              tasksLoading={tasksLoading}
+              selectedCount={selectedCount}
+              onDeleteSelected={() => {
+                void handleDeleteSelected();
+              }}
+              tasksError={tasksError}
+              displayTaskRows={displayTaskRows}
+              allVisibleSelected={allVisibleSelected}
+              someVisibleSelected={someVisibleSelected}
+              onToggleAll={handleToggleAll}
+              statusById={statusById}
+              projectById={projectById}
+              selectedTaskIds={selectedTaskIds}
+              onSelectTask={setSelectedTaskId}
+              onToggleTask={handleToggleTask}
+              taskScopePageSize={pageSize}
+              displayTotalCount={displayTotalCount}
+              pageIndex={pageIndex}
+              totalPages={totalPages}
+              onPrevPage={() => setPageIndex((current) => Math.max(1, current - 1))}
+              onNextPage={() => setPageIndex((current) => Math.min(totalPages, current + 1))}
+            />
           )}
         </section>
       </div>
 
-      <Dialog
-        open={creatingGroup}
-        onOpenChange={(open) => {
-          setCreatingGroup(open);
-          if (!open) {
-            setNewGroupName('');
-          }
-        }}
-      >
-        <DialogContent className="w-[95vw] max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t`New group`}</DialogTitle>
-            <DialogDescription className="sr-only">
-              {t`Create a new group for workspace members.`}
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handleCreateGroup();
-            }}
-            className="space-y-4"
-          >
-            <div className="space-y-1">
-              <Label>{t`Group name`}</Label>
-              <Input
-                placeholder={t`Group name`}
-                value={newGroupName}
-                onChange={(event) => setNewGroupName(event.target.value)}
-                disabled={!isAdmin || groupActionLoading}
-              />
-            </div>
-            {groupsError && (
-              <div className="text-sm text-destructive">{groupsError}</div>
-            )}
-            <DialogFooter>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => setCreatingGroup(false)}
-                disabled={groupActionLoading}
-              >
-                {t`Cancel`}
-              </Button>
-              <Button
-                type="submit"
-                disabled={!isAdmin || groupActionLoading || !newGroupName.trim()}
-              >
-                {t`Create`}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={Boolean(selectedTaskId)} onOpenChange={(open) => !open && setSelectedTaskId(null)}>
-        <DialogContent className="w-[95vw] max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{selectedTask?.title ?? t`Task details`}</DialogTitle>
-            <DialogDescription className="sr-only">
-              {t`View task details without leaving the members page.`}
-            </DialogDescription>
-          </DialogHeader>
-          {!selectedTask && (
-            <div className="text-sm text-muted-foreground">{t`Task not found.`}</div>
-          )}
-          {selectedTask && (
-            <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <div className="text-xs text-muted-foreground">{t`Project`}</div>
-                  <div className="text-sm">
-                    {selectedTaskProject
-                      ? formatProjectLabel(selectedTaskProject.name, selectedTaskProject.code)
-                      : t`No project`}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">{t`Status`}</div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span
-                      className="inline-flex h-2 w-2 rounded-full"
-                      style={{ backgroundColor: statusById.get(selectedTask.statusId)?.color ?? '#94a3b8' }}
-                    />
-                    <span>{statusById.get(selectedTask.statusId)
-                      ? formatStatusLabel(
-                        statusById.get(selectedTask.statusId)!.name,
-                        statusById.get(selectedTask.statusId)!.emoji,
-                      )
-                      : t`Unknown`}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">{t`Assignees`}</div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedTask.assigneeIds.length === 0 && (
-                      <span className="text-xs text-muted-foreground">{t`Unassigned`}</span>
-                    )}
-                    {selectedTask.assigneeIds.map((id) => {
-                      const assignee = assigneeById.get(id);
-                      if (!assignee) return null;
-                      return (
-                        <Badge key={assignee.id} variant="secondary" className="text-[10px]">
-                          {assignee.name}
-                          {!assignee.isActive && ` ${t`(disabled)`}`}
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">{t`Dates`}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {format(parseISO(selectedTask.startDate), 'dd MMM yyyy')} – {format(parseISO(selectedTask.endDate), 'dd MMM yyyy')}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">{t`Type`}</div>
-                  <div className="text-sm">
-                    {taskTypeById.get(selectedTask.typeId)?.name ?? t`Unknown`}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">{t`Priority`}</div>
-                  <div className="text-sm">{selectedTask.priority ?? t`None`}</div>
-                </div>
-                <div className="sm:col-span-2">
-                  <div className="text-xs text-muted-foreground">{t`Tags`}</div>
-                  {selectedTaskTags.length === 0 ? (
-                    <div className="text-xs text-muted-foreground">{t`No tags`}</div>
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedTaskTags.map((tag) => (
-                        <Badge
-                          key={tag.id}
-                          variant="outline"
-                          className="text-[10px]"
-                          style={{ borderColor: tag.color, color: tag.color }}
-                        >
-                          {tag.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Description`}</div>
-                {!selectedTask.description && (
-                  <div className="text-sm text-muted-foreground">{t`No description.`}</div>
-                )}
-                {selectedTask.description && hasRichTags(selectedTask.description) && (
-                  <div
-                    className="text-sm leading-6"
-                    dangerouslySetInnerHTML={{ __html: selectedTaskDescription }}
-                  />
-                )}
-                {selectedTask.description && !hasRichTags(selectedTask.description) && (
-                  <div className="text-sm whitespace-pre-wrap">{selectedTaskDescription}</div>
-                )}
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button onClick={handleOpenTaskInTimeline}>
-                  {t`Go to task`}
-                </Button>
-                <Button variant="outline" onClick={() => setSelectedTaskId(null)}>
-                  {t`Close`}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-      <SettingsPanel open={showSettings} onOpenChange={setShowSettings} />
-      <AccountSettingsDialog open={showAccountSettings} onOpenChange={setShowAccountSettings} />
+      <MembersDialogs
+        creatingGroup={creatingGroup}
+        setCreatingGroup={setCreatingGroup}
+        newGroupName={newGroupName}
+        setNewGroupName={setNewGroupName}
+        isAdmin={isAdmin}
+        groupActionLoading={groupActionLoading}
+        groupsError={groupsError}
+        handleCreateGroup={handleCreateGroup}
+        selectedTaskId={selectedTaskId}
+        setSelectedTaskId={setSelectedTaskId}
+        selectedTask={selectedTask}
+        selectedTaskProject={selectedTaskProject}
+        statusById={statusById}
+        assigneeById={assigneeById}
+        taskTypeById={taskTypeById}
+        selectedTaskTags={selectedTaskTags}
+        selectedTaskDescription={selectedTaskDescription}
+        handleOpenTaskInTimeline={handleOpenTaskInTimeline}
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        showAccountSettings={showAccountSettings}
+        setShowAccountSettings={setShowAccountSettings}
+      />
     </div>
   );
 };

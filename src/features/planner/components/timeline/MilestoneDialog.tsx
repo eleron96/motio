@@ -48,6 +48,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   const [milestoneDate, setMilestoneDate] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const mode = milestone ? 'edit' : 'create';
   const activeProjects = useMemo(
@@ -74,6 +75,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
 
   useEffect(() => {
     if (!open) return;
+    setSubmitError('');
     if (milestone) {
       setTitle(milestone.title);
       setProjectId(milestone.projectId);
@@ -105,15 +107,24 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
 
   const handleSave = async () => {
     if (!canEdit || !milestoneDate || !projectId || !title.trim()) return;
+    setSubmitError('');
     const payload = {
       title: title.trim(),
       projectId,
       date: milestoneDate,
     };
     if (milestone) {
-      await updateMilestone(milestone.id, payload);
+      const result = await updateMilestone(milestone.id, payload);
+      if (result?.error) {
+        setSubmitError(result.error);
+        return;
+      }
     } else {
-      await addMilestone(payload);
+      const result = await addMilestone(payload);
+      if (result?.error) {
+        setSubmitError(result.error);
+        return;
+      }
     }
     setHasChanges(false);
     onOpenChange(false);
@@ -121,7 +132,12 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
 
   const handleDelete = async () => {
     if (!canEdit || !milestone) return;
-    await deleteMilestone(milestone.id);
+    setSubmitError('');
+    const result = await deleteMilestone(milestone.id);
+    if (result?.error) {
+      setSubmitError(result.error);
+      return;
+    }
     setHasChanges(false);
     onOpenChange(false);
   };
@@ -205,6 +221,10 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
             </Select>
           </div>
         </div>
+
+        {submitError && (
+          <div className="text-sm text-destructive">{submitError}</div>
+        )}
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={requestClose}>

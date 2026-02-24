@@ -80,6 +80,36 @@ const mockTaskInsert = (row: {
   return { insert, select, single };
 };
 
+const mockProjectDelete = (result: { error: { message: string } | null }) => {
+  const eqWorkspace = vi.fn().mockResolvedValue(result);
+  const eqId = vi.fn().mockReturnValue({ eq: eqWorkspace });
+  const remove = vi.fn().mockReturnValue({ eq: eqId });
+
+  supabaseMocks.from.mockImplementation((table: string) => {
+    if (table === 'projects') {
+      return { delete: remove };
+    }
+    throw new Error(`Unexpected table: ${table}`);
+  });
+
+  return { remove, eqId, eqWorkspace };
+};
+
+const mockMilestoneDelete = (result: { error: { message: string } | null }) => {
+  const eqWorkspace = vi.fn().mockResolvedValue(result);
+  const eqId = vi.fn().mockReturnValue({ eq: eqWorkspace });
+  const remove = vi.fn().mockReturnValue({ eq: eqId });
+
+  supabaseMocks.from.mockImplementation((table: string) => {
+    if (table === 'milestones') {
+      return { delete: remove };
+    }
+    throw new Error(`Unexpected table: ${table}`);
+  });
+
+  return { remove, eqId, eqWorkspace };
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.clear === 'function') {
@@ -207,5 +237,73 @@ describe('Smoke: key user workflows', () => {
         groupId: 'group-1',
       },
     });
+  });
+
+  it('planner: surfaces deleteProject error and keeps local state intact', async () => {
+    usePlannerStore.setState((state) => ({
+      ...state,
+      workspaceId: 'ws-1',
+      projects: [
+        {
+          id: 'project-1',
+          name: 'Project 1',
+          code: null,
+          color: '#111111',
+          archived: false,
+          customerId: null,
+        },
+      ],
+      tasks: [
+        {
+          id: 'task-1',
+          title: 'Task 1',
+          projectId: 'project-1',
+          assigneeIds: [],
+          startDate: '2026-02-01',
+          endDate: '2026-02-01',
+          statusId: 'status-1',
+          typeId: 'type-1',
+          priority: null,
+          tagIds: [],
+          description: null,
+          repeatId: null,
+        },
+      ],
+      trackedProjectIds: ['project-1'],
+      filters: {
+        ...state.filters,
+        projectIds: ['project-1'],
+      },
+    }));
+
+    mockProjectDelete({ error: { message: 'permission denied' } });
+    const result = await usePlannerStore.getState().deleteProject('project-1');
+
+    expect(result).toEqual({ error: 'permission denied' });
+    expect(usePlannerStore.getState().projects).toHaveLength(1);
+    expect(usePlannerStore.getState().tasks[0]?.projectId).toBe('project-1');
+    expect(usePlannerStore.getState().trackedProjectIds).toContain('project-1');
+    expect(usePlannerStore.getState().filters.projectIds).toContain('project-1');
+  });
+
+  it('planner: surfaces deleteMilestone error and keeps milestone', async () => {
+    usePlannerStore.setState((state) => ({
+      ...state,
+      workspaceId: 'ws-1',
+      milestones: [
+        {
+          id: 'milestone-1',
+          title: 'Milestone 1',
+          projectId: 'project-1',
+          date: '2026-02-10',
+        },
+      ],
+    }));
+
+    mockMilestoneDelete({ error: { message: 'delete failed' } });
+    const result = await usePlannerStore.getState().deleteMilestone('milestone-1');
+
+    expect(result).toEqual({ error: 'delete failed' });
+    expect(usePlannerStore.getState().milestones).toHaveLength(1);
   });
 });

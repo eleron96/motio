@@ -47,6 +47,11 @@ Motio - Timeline Planner — приложение для командного п
 - `infra/scripts/dev-compose.sh` — локальный запуск полного контура.
 - `infra/scripts/prod-compose.sh` — production запуск с pre-migration backup.
 
+## Engineering docs
+
+- Архитектурные границы frontend: `docs/architecture/frontend-boundaries.md`
+- Спецификации поведения (Specification by Example): `docs/specifications/planner-behavior-by-example.md`
+
 ## Требования
 
 - `Node.js 20+`

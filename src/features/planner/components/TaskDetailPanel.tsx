@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
@@ -15,16 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import { supabase } from '@/shared/lib/supabaseClient';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/ui/alert-dialog';
 import { AlertTriangle, ChevronDown, CircleDot, Layers, Plus, RotateCw, Trash2, User, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { RepeatTaskUpdateScope, Task, TaskPriority, TaskSubtask } from '@/features/planner/types/planner';
@@ -180,6 +171,7 @@ export const TaskDetailPanel: React.FC = () => {
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
   
   const task = tasks.find(t => t.id === selectedTaskId);
+  const taskId = task?.id ?? null;
   const currentProject = useMemo(
     () => projects.find((project) => project.id === task?.projectId),
     [projects, task?.projectId],
@@ -237,7 +229,7 @@ export const TaskDetailPanel: React.FC = () => {
     setSubtasksError('');
     setSubtasksLoading(false);
     setSubtasksSaving(false);
-    if (!task || !currentWorkspaceId) return;
+    if (!taskId || !currentWorkspaceId) return;
     let active = true;
 
     const loadSubtasks = async () => {
@@ -247,7 +239,7 @@ export const TaskDetailPanel: React.FC = () => {
         .from('task_subtasks')
         .select('id, task_id, title, is_done, done_at, position, created_at')
         .eq('workspace_id', currentWorkspaceId)
-        .eq('task_id', task.id)
+        .eq('task_id', taskId)
         .order('position', { ascending: true })
         .order('created_at', { ascending: true });
 
@@ -269,7 +261,7 @@ export const TaskDetailPanel: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [currentWorkspaceId, task?.id]);
+  }, [currentWorkspaceId, taskId]);
 
   const getDefaultRepeatUntil = (baseDate: string) => {
     const start = parseISO(baseDate);
@@ -323,7 +315,7 @@ export const TaskDetailPanel: React.FC = () => {
     setRepeatError('');
     setRepeatNotice('');
     setRepeatCreating(false);
-  }, [selectedTaskId, task?.repeatId, task?.startDate]);
+  }, [task, tasks]);
 
   useEffect(() => {
     if (selectedTaskId) return;
@@ -464,22 +456,9 @@ export const TaskDetailPanel: React.FC = () => {
     setConfirmOpen(false);
     setSelectedTaskId(null);
   };
-  
   if (!task) {
-    return (
-      <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
-        <DialogContent className="w-[90vw] max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle>{t`Task not found.`}</DialogTitle>
-            <DialogDescription>
-              {t`The selected task does not exist or was deleted.`}
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
+    return <TaskNotFoundDialog open={Boolean(selectedTaskId)} onOpenChange={(open) => !open && requestClose()} />;
   }
-  
   const isRepeating = Boolean(task.repeatId);
   const hasFutureRepeats = isRepeating
     ? tasks.some((item) => item.repeatId === task.repeatId && item.startDate > task.startDate)
@@ -520,9 +499,7 @@ export const TaskDetailPanel: React.FC = () => {
     setDraftDescription(nextDescription);
   };
 
-  const handleUpdate = (field: keyof Task, value: Task[keyof Task]) => {
-    requestTaskUpdate({ [field]: value } as Partial<Task>);
-  };
+  const handleUpdate = (field: keyof Task, value: Task[keyof Task]) => requestTaskUpdate({ [field]: value } as Partial<Task>);
 
   const handleAssigneeToggle = (assigneeId: string) => {
     if (!canEdit) return;
@@ -549,8 +526,19 @@ export const TaskDetailPanel: React.FC = () => {
   };
   
   const handleDelete = () => {
+    if (canEdit) setDeleteOpen(true);
+  };
+
+  const handleDeleteTask = async () => {
     if (!canEdit) return;
-    setDeleteOpen(true);
+    await deleteTask(task.id);
+    setDeleteOpen(false);
+  };
+
+  const handleDeleteTaskAndFollowing = async () => {
+    if (!canEdit || !task.repeatId) return;
+    await deleteTaskSeries(task.repeatId, task.startDate);
+    setDeleteOpen(false);
   };
 
   const handleOpenSubtasks = () => {
@@ -1187,131 +1175,25 @@ export const TaskDetailPanel: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t`Unsaved changes`}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t`You have unsaved changes. Close without saving?`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDiscardAndClose}>{t`Discard`}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                void handleSaveAndClose();
-              }}
-              disabled={repeatCreating}
-            >
-              {t`Save`}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
-        open={repeatScopeOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            cancelPendingRepeatUpdate();
-            return;
-          }
-          setRepeatScopeOpen(true);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t`Apply changes to repeating tasks?`}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t`Choose where to apply this change.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row flex-wrap items-center justify-between gap-2 sm:justify-between sm:space-x-0">
-            <AlertDialogCancel className="mt-0 h-8 px-2.5 text-xs" onClick={cancelPendingRepeatUpdate}>
-              {t`Cancel`}
-            </AlertDialogCancel>
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-              <AlertDialogAction
-                className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
-                onClick={() => {
-                  void applyPendingRepeatUpdate('all');
-                }}
-              >
-                {t`All tasks`}
-              </AlertDialogAction>
-              <AlertDialogAction
-                className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
-                onClick={() => {
-                  void applyPendingRepeatUpdate('following');
-                }}
-              >
-                {t`This and following`}
-              </AlertDialogAction>
-              <AlertDialogAction
-                className="h-8 whitespace-nowrap px-2.5 text-xs"
-                onClick={() => {
-                  void applyPendingRepeatUpdate('single');
-                }}
-              >
-                {t`Only this task`}
-              </AlertDialogAction>
-            </div>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{isRepeating ? t`Delete repeated task?` : t`Delete task?`}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {isRepeating
-                ? (hasFutureRepeats
-                  ? t`Delete only this task or this and future repeats? Previous repeats stay.`
-                  : t`Delete only this task or this and subsequent repeats? Previous repeats stay.`)
-                : t`This will permanently delete "${task.title}".`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row flex-wrap items-center justify-end gap-2 sm:space-x-0">
-            <AlertDialogCancel className="mt-0 h-8 px-2.5 text-xs">{t`Cancel`}</AlertDialogCancel>
-            {isRepeating ? (
-              <>
-                <AlertDialogAction
-                  className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
-                  onClick={async () => {
-                    if (!canEdit) return;
-                    await deleteTask(task.id);
-                    setDeleteOpen(false);
-                  }}
-                >
-                  {t`Delete this`}
-                </AlertDialogAction>
-                <AlertDialogAction
-                  className="h-8 whitespace-nowrap bg-destructive px-2.5 text-xs text-destructive-foreground hover:bg-destructive/90"
-                  onClick={async () => {
-                    if (!canEdit || !task.repeatId) return;
-                    await deleteTaskSeries(task.repeatId, task.startDate);
-                    setDeleteOpen(false);
-                  }}
-                >
-                  {t`Delete this & following`}
-                </AlertDialogAction>
-              </>
-            ) : (
-              <AlertDialogAction
-                className="h-8 whitespace-nowrap px-2.5 text-xs"
-                onClick={async () => {
-                  if (!canEdit) return;
-                  await deleteTask(task.id);
-                  setDeleteOpen(false);
-                }}
-              >
-                {t`Delete`}
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <TaskDetailAlerts
+        confirmOpen={confirmOpen}
+        setConfirmOpen={setConfirmOpen}
+        onDiscardAndClose={handleDiscardAndClose}
+        onSaveAndClose={handleSaveAndClose}
+        repeatCreating={repeatCreating}
+        repeatScopeOpen={repeatScopeOpen}
+        setRepeatScopeOpen={setRepeatScopeOpen}
+        onCancelPendingRepeatUpdate={cancelPendingRepeatUpdate}
+        onApplyPendingRepeatUpdate={applyPendingRepeatUpdate}
+        deleteOpen={deleteOpen}
+        setDeleteOpen={setDeleteOpen}
+        isRepeating={isRepeating}
+        hasFutureRepeats={hasFutureRepeats}
+        taskTitle={task.title}
+        canEdit={canEdit}
+        onDeleteTask={handleDeleteTask}
+        onDeleteTaskAndFollowing={handleDeleteTaskAndFollowing}
+      />
     </>
   );
 };
