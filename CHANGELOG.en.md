@@ -7,12 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-02-24
 ### Fixed
 - Timeline day/week: date hover and click now show milestone info and a milestone chooser; when multiple milestones exist on a date, clicking the day/dot opens a picker instead of a random milestone.
 
 
 ### Changed
 - Deploy: infra/releases.log now stores a short release summary so logs clearly show what changed in each release.
+
 ## [0.2.6] - 2026-02-24
 ### Changed
 - No documented changes.
