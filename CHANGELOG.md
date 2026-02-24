@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Timeline day/week: клик и hover по дате с вехами теперь показывают информацию и меню выбора вех; при нескольких вехах клик по дню/точке не открывает случайную веху.
+
+
+### Changed
+- Deploy: в infra/releases.log теперь пишется краткое описание изменений релиза (summary), чтобы в логе было видно, что именно поменялось.
 ## [0.2.6] - 2026-02-24
 ### Changed
 - Нет зафиксированных изменений.

@@ -32,6 +32,13 @@ import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { differenceInDays, format, isSameDay, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
@@ -173,6 +180,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const ignoreScrollDateUpdateRef = useRef(false);
   const skipAutoCenterRef = useRef(false);
   const prevRangeRef = useRef<{ start: Date | null; viewMode: string } | null>(null);
+  const milestoneHeaderMenuTriggerRefs = useRef(new Map<string, HTMLButtonElement>());
 
   const projectById = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
@@ -810,6 +818,21 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setMilestoneDialogOpen(true);
   }, []);
 
+  const handleTimelineDateClick = useCallback((date: string) => {
+    const dayMilestones = milestonesByDate.get(date) ?? [];
+    if (dayMilestones.length === 0) return false;
+    if (dayMilestones.length === 1) {
+      handleEditMilestone(dayMilestones[0]);
+      return true;
+    }
+
+    const trigger = milestoneHeaderMenuTriggerRefs.current.get(date);
+    if (trigger) {
+      trigger.click();
+    }
+    return true;
+  }, [handleEditMilestone, milestonesByDate]);
+
   const handleMilestoneRowDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!canEdit) return;
     if (Date.now() - lastDragTimeRef.current < 200) return;
@@ -899,12 +922,79 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     return cells;
   }, [milestonesByDate, projectById, visibleDayIndex]);
 
+  const renderMilestoneTooltipBody = useCallback((date: string, dayMilestones: Milestone[]) => (
+    <div className="space-y-1.5">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+        {format(parseISO(date), 'dd MMM yyyy', { locale: dateLocale })}
+      </div>
+      <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
+        {dayMilestones.map((milestone) => {
+          const project = projectById.get(milestone.projectId);
+          const color = project?.color ?? '#94a3b8';
+          const dotColor = hexToRgba(color, 0.8) ?? color;
+          return (
+            <div key={milestone.id} className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dotColor }} />
+              <div className="min-w-0">
+                <div className="truncate">{milestone.title}</div>
+                <div className="truncate text-[10px] text-muted-foreground">
+                  {project
+                    ? formatProjectLabel(project.name, project.code)
+                    : t`Project`}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center justify-between border-t border-border/60 pt-1">
+        <span className="text-muted-foreground">{t`Total milestones`}</span>
+        <span className="font-semibold">{dayMilestones.length}</span>
+      </div>
+    </div>
+  ), [dateLocale, projectById]);
+
+  const renderMilestoneMenuItems = useCallback((dayMilestones: Milestone[]) => (
+    <>
+      <DropdownMenuLabel>{t`Milestones`}</DropdownMenuLabel>
+      {dayMilestones.map((milestone) => {
+        const project = projectById.get(milestone.projectId);
+        const color = project?.color ?? '#94a3b8';
+        const dotColor = hexToRgba(color, 0.8) ?? color;
+        return (
+          <DropdownMenuItem
+            key={milestone.id}
+            onSelect={() => handleEditMilestone(milestone)}
+            className="items-start gap-2"
+          >
+            <span
+              className="mt-1 h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: dotColor }}
+            />
+            <span className="min-w-0">
+              <span className="block truncate text-[11px] text-muted-foreground">
+                {project
+                  ? formatProjectLabel(project.name, project.code)
+                  : t`Project`}
+              </span>
+              <span className="block truncate text-sm">
+                {milestone.title}
+              </span>
+            </span>
+          </DropdownMenuItem>
+        );
+      })}
+    </>
+  ), [handleEditMilestone, projectById]);
+
   // Линия начинается от нижней точки круга вехи (h-2.5 = 10px, радиус 5px)
   const milestoneDotRadius = 5;
   const milestoneLineTop = HEADER_HEIGHT + milestoneRowHeight / 2 + milestoneDotRadius;
   const milestoneLineHeight = `calc(100% - ${milestoneLineTop}px)`;
   const milestoneLineWidth = 3;
   const milestoneLineHoverWidth = 4;
+  const milestoneHeaderRowTop = 40;
+  const milestoneHeaderRowHeight = HEADER_HEIGHT - milestoneHeaderRowTop;
 
   return (
     <div className={cn(
@@ -1002,7 +1092,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
               })}
             </div>
             <div className="sticky top-0 z-20 bg-background">
-              <div className="border-b border-border" style={{ width: totalWidth }}>
+              <div className="relative border-b border-border" style={{ width: totalWidth }}>
                 <TimelineHeader
                   visibleDays={visibleDays}
                   dayWidth={dayWidth}
@@ -1013,6 +1103,86 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   todayKey={todayKey}
                   onDateDoubleClick={canEdit ? handleMilestoneDateDoubleClick : undefined}
                 />
+                <TooltipProvider delayDuration={180}>
+                  {milestoneTooltipCells.map((cell) => {
+                    const triggerStyle = {
+                      left: cell.dayIndex * dayWidth,
+                      width: dayWidth,
+                      top: milestoneHeaderRowTop,
+                      height: milestoneHeaderRowHeight,
+                    };
+                    const hasMultipleMilestones = cell.milestones.length > 1;
+                    if (hasMultipleMilestones) {
+                      return (
+                        <DropdownMenu key={`header-milestone-cell-${cell.date}`}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  ref={(node) => {
+                                    if (node) {
+                                      milestoneHeaderMenuTriggerRefs.current.set(cell.date, node);
+                                    } else {
+                                      milestoneHeaderMenuTriggerRefs.current.delete(cell.date);
+                                    }
+                                  }}
+                                  type="button"
+                                  className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                                  style={triggerStyle}
+                                  onClick={(event) => event.stopPropagation()}
+                                  onDoubleClick={(event) => event.stopPropagation()}
+                                  onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                  onMouseLeave={handleMilestoneHoverEnd}
+                                  aria-label={t`Select milestone`}
+                                />
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="bottom"
+                              sideOffset={6}
+                              className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                            >
+                              {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                            </TooltipContent>
+                          </Tooltip>
+                          <DropdownMenuContent align="center" className="w-72">
+                            {renderMilestoneMenuItems(cell.milestones)}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      );
+                    }
+
+                    const singleMilestone = cell.milestones[0];
+                    if (!singleMilestone) return null;
+
+                    return (
+                      <Tooltip key={`header-milestone-cell-${cell.date}`}>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                            style={triggerStyle}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleEditMilestone(singleMilestone);
+                            }}
+                            onDoubleClick={(event) => event.stopPropagation()}
+                            onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                            onMouseLeave={handleMilestoneHoverEnd}
+                            aria-label={t`Edit milestone`}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="bottom"
+                          sideOffset={6}
+                          className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                        >
+                          {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </TooltipProvider>
               </div>
               <div
                 className="relative border-b border-border bg-timeline-header"
@@ -1020,53 +1190,75 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 onDoubleClick={handleMilestoneRowDoubleClick}
               >
                 <TooltipProvider delayDuration={180}>
-                  {milestoneTooltipCells.map((cell) => (
-                    <Tooltip key={`milestone-cell-${cell.date}`}>
-                      <TooltipTrigger asChild>
-                        <div
-                          className="milestone-cell absolute inset-y-0 cursor-pointer"
-                          style={{ left: cell.dayIndex * dayWidth, width: dayWidth }}
-                          onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                          onMouseLeave={handleMilestoneHoverEnd}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent
-                        side="bottom"
-                        sideOffset={6}
-                        className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
-                      >
-                        <div className="space-y-1.5">
-                          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {format(parseISO(cell.date), 'dd MMM yyyy', { locale: dateLocale })}
-                          </div>
-                          <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
-                            {cell.milestones.map((milestone) => {
-                              const project = projectById.get(milestone.projectId);
-                              const color = project?.color ?? '#94a3b8';
-                              const dotColor = hexToRgba(color, 0.8) ?? color;
-                              return (
-                                <div key={milestone.id} className="flex items-center gap-2">
-                                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dotColor }} />
-                                  <div className="min-w-0">
-                                    <div className="truncate">{milestone.title}</div>
-                                    <div className="truncate text-[10px] text-muted-foreground">
-                                      {project
-                                        ? formatProjectLabel(project.name, project.code)
-                                        : t`Project`}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <div className="flex items-center justify-between border-t border-border/60 pt-1">
-                            <span className="text-muted-foreground">{t`Total milestones`}</span>
-                            <span className="font-semibold">{cell.milestones.length}</span>
-                          </div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
+                  {milestoneTooltipCells.map((cell) => {
+                    const triggerStyle = {
+                      left: cell.dayIndex * dayWidth,
+                      width: dayWidth,
+                    };
+                    const hasMultipleMilestones = cell.milestones.length > 1;
+                    if (hasMultipleMilestones) {
+                      return (
+                        <DropdownMenu key={`milestone-cell-${cell.date}`}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                                  style={triggerStyle}
+                                  onClick={(event) => event.stopPropagation()}
+                                  onDoubleClick={(event) => event.stopPropagation()}
+                                  onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                  onMouseLeave={handleMilestoneHoverEnd}
+                                  aria-label={t`Select milestone`}
+                                />
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="bottom"
+                              sideOffset={6}
+                              className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                            >
+                              {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                            </TooltipContent>
+                          </Tooltip>
+                          <DropdownMenuContent align="center" className="w-72">
+                            {renderMilestoneMenuItems(cell.milestones)}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      );
+                    }
+
+                    const singleMilestone = cell.milestones[0];
+                    if (!singleMilestone) return null;
+
+                    return (
+                      <Tooltip key={`milestone-cell-${cell.date}`}>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                            style={triggerStyle}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleEditMilestone(singleMilestone);
+                            }}
+                            onDoubleClick={(event) => event.stopPropagation()}
+                            onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                            onMouseLeave={handleMilestoneHoverEnd}
+                            aria-label={t`Edit milestone`}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="bottom"
+                          sideOffset={6}
+                          className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                        >
+                          {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
 
                   {sortedMilestones.map((milestone) => {
                     const dayIndex = visibleDayIndex.get(milestone.date);
@@ -1077,6 +1269,18 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     const dotBorder = hexToRgba(color, 0.8) ?? color;
                     const offset = milestoneOffsets.get(milestone.id) ?? 0;
                     const left = dayIndex * dayWidth + dayWidth / 2 + offset;
+                    const dayMilestones = milestonesByDate.get(milestone.date) ?? [];
+                    const hasMultipleMilestones = dayMilestones.length > 1;
+
+                    if (hasMultipleMilestones) {
+                      return (
+                        <span
+                          key={milestone.id}
+                          className="milestone-dot pointer-events-none absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border"
+                          style={{ left, backgroundColor: dotColor, borderColor: dotBorder }}
+                        />
+                      );
+                    }
 
                     return (
                       <button
@@ -1108,6 +1312,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 height={row.height}
                 canEdit={canEdit}
                 onCreateTask={handleCreateTaskAt}
+                onDateClick={handleTimelineDateClick}
               >
                 {rowTaskElementsById.get(row.id)}
               </TimelineRow>
