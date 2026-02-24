@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-02-24
 ### Changed
 - Timeline day/week: создание вехи перенесено с двойного клика на правый клик по дате (контекстное действие Create milestone), включая даты с существующими вехами.
 
