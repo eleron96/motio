@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.10] - 2026-02-24
 ### Changed
 - UI: removed status color indicators across the app (filters, tables, task detail cards, task tooltip/context menu). Statuses are now shown as text/emoji only.
 

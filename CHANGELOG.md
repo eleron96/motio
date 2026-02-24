@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.10] - 2026-02-24
 ### Changed
 - UI: полностью убраны цветовые индикаторы статусов (фильтры, таблицы, карточки деталей, tooltip/контекстное меню задач). Статусы отображаются только текстом/эмодзи.
 
