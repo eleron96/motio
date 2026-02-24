@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.14] - 2026-02-24
 ### Fixed
 - Timeline: в полосе вех (между датами и строками пользователей) добавлено создание вехи по двойному клику на нужной дате.
 
