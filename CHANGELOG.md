@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.12] - 2026-02-24
 ### Changed
 - Timeline: двойной клик по ячейке пользователя снова всегда создает задачу (вехи на дате больше не перехватывают действие). Deploy: edge functions теперь пересоздаются при релизе, чтобы сбрасывать stale deno cache и ошибки импорта.
 
