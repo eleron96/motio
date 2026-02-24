@@ -833,24 +833,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     return true;
   }, [handleEditMilestone, milestonesByDate]);
 
-  const handleMilestoneRowDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!canEdit) return;
-    if (Date.now() - lastDragTimeRef.current < 200) return;
-    const target = e.target;
-    if (target instanceof Element && target.closest('.milestone-dot')) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const index = Math.floor(offsetX / dayWidth);
-    if (index < 0 || index >= visibleDays.length) return;
-    handleCreateMilestone(format(visibleDays[index], 'yyyy-MM-dd'));
-  }, [canEdit, dayWidth, handleCreateMilestone, visibleDays]);
-
-  const handleMilestoneDateDoubleClick = useCallback((date: string) => {
-    if (!canEdit) return;
-    if (Date.now() - lastDragTimeRef.current < 200) return;
-    handleCreateMilestone(date);
-  }, [canEdit, handleCreateMilestone]);
-
   const handleMilestoneHover = useCallback((date: string, color: string) => {
     setMilestoneLine({ date, color, visible: true });
   }, []);
@@ -1101,7 +1083,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   viewportWidth={viewportWidth}
                   attentionDate={timelineAttentionDate}
                   todayKey={todayKey}
-                  onDateDoubleClick={canEdit ? handleMilestoneDateDoubleClick : undefined}
+                  onDateContextAction={canEdit ? handleCreateMilestone : undefined}
                 />
                 <TooltipProvider delayDuration={180}>
                   {milestoneTooltipCells.map((cell) => {
@@ -1131,6 +1113,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                                   style={triggerStyle}
                                   onClick={(event) => event.stopPropagation()}
                                   onDoubleClick={(event) => event.stopPropagation()}
+                                  onContextMenu={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    if (!canEdit) return;
+                                    handleCreateMilestone(cell.date);
+                                  }}
                                   onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
                                   onMouseLeave={handleMilestoneHoverEnd}
                                   aria-label={t`Select milestone`}
@@ -1167,6 +1155,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                               handleEditMilestone(singleMilestone);
                             }}
                             onDoubleClick={(event) => event.stopPropagation()}
+                            onContextMenu={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              if (!canEdit) return;
+                              handleCreateMilestone(cell.date);
+                            }}
                             onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
                             onMouseLeave={handleMilestoneHoverEnd}
                             aria-label={t`Edit milestone`}
@@ -1187,7 +1181,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
               <div
                 className="relative border-b border-border bg-timeline-header"
                 style={{ width: totalWidth, height: milestoneRowHeight }}
-                onDoubleClick={handleMilestoneRowDoubleClick}
               >
                 <TooltipProvider delayDuration={180}>
                   {milestoneTooltipCells.map((cell) => {
@@ -1208,6 +1201,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                                   style={triggerStyle}
                                   onClick={(event) => event.stopPropagation()}
                                   onDoubleClick={(event) => event.stopPropagation()}
+                                  onContextMenu={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    if (!canEdit) return;
+                                    handleCreateMilestone(cell.date);
+                                  }}
                                   onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
                                   onMouseLeave={handleMilestoneHoverEnd}
                                   aria-label={t`Select milestone`}
@@ -1244,6 +1243,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                               handleEditMilestone(singleMilestone);
                             }}
                             onDoubleClick={(event) => event.stopPropagation()}
+                            onContextMenu={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              if (!canEdit) return;
+                              handleCreateMilestone(cell.date);
+                            }}
                             onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
                             onMouseLeave={handleMilestoneHoverEnd}
                             aria-label={t`Edit milestone`}
@@ -1291,6 +1296,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                         onClick={(event) => {
                           event.stopPropagation();
                           handleEditMilestone(milestone);
+                        }}
+                        onContextMenu={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          if (!canEdit) return;
+                          handleCreateMilestone(milestone.date);
                         }}
                         onMouseEnter={() => handleMilestoneHover(milestone.date, color)}
                         onMouseLeave={handleMilestoneHoverEnd}

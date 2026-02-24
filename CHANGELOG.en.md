@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Timeline day/week: milestone creation moved from double-click to right-click on date (Create milestone context action), including dates that already have milestones.
+
 ## [0.2.7] - 2026-02-24
 ### Fixed
 - Timeline day/week: date hover and click now show milestone info and a milestone chooser; when multiple milestones exist on a date, clicking the day/dot opens a picker instead of a random milestone.

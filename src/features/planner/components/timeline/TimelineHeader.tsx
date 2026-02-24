@@ -5,6 +5,13 @@ import { ViewMode } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/shared/ui/context-menu';
+import { t } from '@lingui/macro';
 
 interface TimelineHeaderProps {
   visibleDays: Date[];
@@ -14,7 +21,7 @@ interface TimelineHeaderProps {
   viewportWidth: number;
   attentionDate: string | null;
   todayKey: string;
-  onDateDoubleClick?: (date: string) => void;
+  onDateContextAction?: (date: string) => void;
 }
 
 export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
@@ -25,7 +32,7 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   viewportWidth,
   attentionDate,
   todayKey,
-  onDateDoubleClick,
+  onDateContextAction,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
@@ -113,36 +120,46 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
           const isAttentionDay = attentionDate === dayKey;
           
           return (
-            <div
-              key={index}
-              className={cn(
-                'flex flex-col items-center justify-center border-r border-border transition-colors py-2 gap-1',
-                weekend && 'bg-timeline-weekend',
-                today && 'today-hatch',
-                onDateDoubleClick && 'cursor-pointer'
-              )}
-              style={{ width: dayWidth }}
-              onDoubleClick={() => onDateDoubleClick?.(dayKey)}
-            >
-              <span className={cn(
-                'text-xs uppercase tracking-wide leading-none',
-                today ? 'text-rose-700 font-semibold' : 'text-muted-foreground'
-              )}>
-                {dayName}
-              </span>
-              <span className={cn(
-                'inline-flex items-center justify-center text-lg font-medium leading-none',
-                today ? 'text-rose-700' : 'text-foreground'
-              )}>
-                <span className={cn(
-                  'inline-flex items-center justify-center',
-                  today && 'rounded-full bg-rose-100/80 px-2.5 py-0.5',
-                  isAttentionDay && 'timeline-date-attention rounded-full px-2.5 py-0.5'
-                )}>
-                  {date}
-                </span>
-              </span>
-            </div>
+            <ContextMenu key={index}>
+              <ContextMenuTrigger asChild>
+                <div
+                  className={cn(
+                    'flex flex-col items-center justify-center border-r border-border transition-colors py-2 gap-1',
+                    weekend && 'bg-timeline-weekend',
+                    today && 'today-hatch',
+                    onDateContextAction && 'cursor-context-menu',
+                  )}
+                  style={{ width: dayWidth }}
+                >
+                  <span className={cn(
+                    'text-xs uppercase tracking-wide leading-none',
+                    today ? 'text-rose-700 font-semibold' : 'text-muted-foreground'
+                  )}>
+                    {dayName}
+                  </span>
+                  <span className={cn(
+                    'inline-flex items-center justify-center text-lg font-medium leading-none',
+                    today ? 'text-rose-700' : 'text-foreground'
+                  )}>
+                    <span className={cn(
+                      'inline-flex items-center justify-center',
+                      today && 'rounded-full bg-rose-100/80 px-2.5 py-0.5',
+                      isAttentionDay && 'timeline-date-attention rounded-full px-2.5 py-0.5'
+                    )}>
+                      {date}
+                    </span>
+                  </span>
+                </div>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem
+                  disabled={!onDateContextAction}
+                  onSelect={() => onDateContextAction?.(dayKey)}
+                >
+                  {t`Create milestone`}
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
           );
         })}
       </div>

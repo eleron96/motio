@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Timeline day/week: создание вехи перенесено с двойного клика на правый клик по дате (контекстное действие Create milestone), включая даты с существующими вехами.
+
 ## [0.2.7] - 2026-02-24
 ### Fixed
 - Timeline day/week: клик и hover по дате с вехами теперь показывают информацию и меню выбора вех; при нескольких вехах клик по дню/точке не открывает случайную веху.
