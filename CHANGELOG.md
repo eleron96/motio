@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-02-24
 ### Fixed
 - Timeline day/week: на датах с несколькими вехами правый клик больше не уводит в создание задач; теперь открывается контекстное меню с действием Create milestone.
 
