@@ -158,7 +158,6 @@ export const ProjectsMainPanel = ({
                                 checked={statusFilterIds.includes(status.id)}
                                 onCheckedChange={() => onToggleStatus(status.id)}
                               />
-                              <span className="inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: status.color }} />
                               <span className="text-sm truncate">{formatStatusLabel(status.name, status.emoji)}</span>
                             </label>
                           ))}
@@ -270,12 +269,8 @@ export const ProjectsMainPanel = ({
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <span
-                                      className="inline-flex h-2 w-2 rounded-full"
-                                      style={{ backgroundColor: status?.color ?? '#94a3b8' }}
-                                    />
-                                    <span>{status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`}</span>
+                                  <div className="text-sm">
+                                    {status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`}
                                   </div>
                                 </TableCell>
                                 <TableCell>

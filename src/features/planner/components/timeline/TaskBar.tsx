@@ -81,15 +81,6 @@ const hexToRgba = (color: string, alpha: number) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-const getBadgeStyle = (color?: string) => {
-  if (!color) return undefined;
-  const background = hexToRgba(color, 0.18);
-  const border = hexToRgba(color, 0.45);
-  const text = isDarkColor(color) ? color : '#0f172a';
-  if (!background || !border) return undefined;
-  return { backgroundColor: background, borderColor: border, color: text };
-};
-
 const priorityStyles: Record<TaskPriority, { className: string; color: string }> = {
   low: { className: 'text-emerald-600', color: '#16a34a' },
   medium: { className: 'text-amber-500', color: '#f59e0b' },
@@ -451,7 +442,6 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             <ContextMenuRadioGroup value={task.statusId} onValueChange={handleStatusChange}>
               {statuses.map((item) => (
                 <ContextMenuRadioItem key={item.id} value={item.id} disabled={!canEdit}>
-                  <span className="mr-2 inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
                   {formatStatusLabel(item.name, item.emoji)}
                 </ContextMenuRadioItem>
               ))}
@@ -515,7 +505,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             </div>
             <div className="flex flex-wrap gap-1">
               {status && (
-                <Badge className="text-[10px]" style={getBadgeStyle(status.color)}>
+                <Badge className="text-[10px]" variant="outline">
                   {formatStatusLabel(status.name, status.emoji)}
                 </Badge>
               )}
