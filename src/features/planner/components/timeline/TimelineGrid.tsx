@@ -721,21 +721,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setMilestoneDialogOpen(true);
   }, []);
 
-  const handleTimelineDateClick = useCallback((date: string) => {
-    const dayMilestones = milestonesByDate.get(date) ?? [];
-    if (dayMilestones.length === 0) return false;
-    if (dayMilestones.length === 1) {
-      handleEditMilestone(dayMilestones[0]);
-      return true;
-    }
-
-    const trigger = milestoneHeaderMenuTriggerRefs.current.get(date);
-    if (trigger) {
-      trigger.click();
-    }
-    return true;
-  }, [handleEditMilestone, milestonesByDate]);
-
   const handleMilestoneHover = useCallback((date: string, color: string) => {
     setMilestoneLine({ date, color, visible: true });
   }, []);
@@ -1224,8 +1209,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 height={row.height}
                 canEdit={canEdit}
                 onCreateTask={handleCreateTaskAt}
-                onDateClick={handleTimelineDateClick}
-                onCreateMilestone={canEdit ? handleCreateMilestone : undefined}
               >
                 {rowTaskElementsById.get(row.id)}
               </TimelineRow>
