@@ -23,8 +23,8 @@ import { MembersDialogs } from '@/features/members/components/MembersDialogs';
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
 import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
 import { compareNames } from '@/shared/lib/nameSorting';
-import { formatRepeatCadenceLabel } from '@/shared/lib/repeatLabels';
 import { fetchAssigneeTasks as fetchAssigneeTasksFromApi } from '@/infrastructure/members/memberTasksRepository';
+import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 
 type AssigneeUniqueTaskCountRow = {
   assignee_id: string | null;
@@ -56,7 +56,7 @@ type DisplayTaskRow = {
   task: Task;
   taskIds: string[];
   repeatMeta: {
-    label: string;
+    cadence: RepeatCadence;
     remaining: number;
     total: number;
   } | null;
@@ -91,6 +91,7 @@ const pickNearestRepeatTaskFromToday = (task: Task, tasks: Task[]) => {
     if (candidateIsFutureOrToday && !bestIsFutureOrToday) return candidate;
     if (!candidateIsFutureOrToday && bestIsFutureOrToday) return best;
 
+    // If distance is equal, move toward the earlier timeline item for deterministic navigation.
     return parseISO(candidate.startDate) < parseISO(best.startDate) ? candidate : best;
   });
 };
@@ -623,7 +624,7 @@ const MembersPage = () => {
       taskIds: row.taskIds,
       repeatMeta: row.repeatMeta
         ? {
-          label: formatRepeatCadenceLabel(row.repeatMeta.cadence),
+          cadence: row.repeatMeta.cadence,
           remaining: row.repeatMeta.remaining,
           total: row.repeatMeta.total,
         }

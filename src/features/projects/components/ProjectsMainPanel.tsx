@@ -3,7 +3,7 @@ import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
 import { CalendarDays, RefreshCcw } from 'lucide-react';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
+import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -13,12 +13,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { Assignee, Customer, Milestone, Project, Status, Task } from '@/features/planner/types/planner';
+import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 
 type DisplayTaskRow = {
   key: string;
   task: Task;
   repeatMeta: {
-    label: string;
+    cadence: RepeatCadence;
     remaining: number;
     total: number;
   } | null;
@@ -259,7 +260,7 @@ export const ProjectsMainPanel = ({
                                     {row.repeatMeta && (
                                       <div className="flex flex-wrap items-center gap-2">
                                         <Badge variant="outline" className="text-[10px]">
-                                          {row.repeatMeta.label}
+                                          {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
                                         </Badge>
                                         <span className="text-xs text-muted-foreground">
                                           {formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
