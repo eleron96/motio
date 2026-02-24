@@ -284,9 +284,9 @@ done
 
 docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup realtime gateway
 
-# Edge runtime loads function modules on startup and may not pick up new files from bind mounts
-# without an explicit restart. Force a refresh so newly added function routes are available.
-docker compose -f "$compose_file" --env-file "$env_file" restart functions >/dev/null 2>&1 || true
+# Recreate edge runtime container to drop stale deno module cache between releases.
+# Plain restart keeps the writable layer and can preserve outdated import graphs.
+docker compose -f "$compose_file" --env-file "$env_file" up -d --force-recreate --no-deps functions
 
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-ssl-required.sh "$env_file"
