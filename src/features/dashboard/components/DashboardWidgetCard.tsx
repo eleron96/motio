@@ -144,10 +144,12 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const showPeriod = size !== 'small' && !compactByViewport;
   const showFilter = size === 'large' && !isPhoneViewport;
   const canShowAxesBySize = size !== 'small' && !isPhoneViewport;
-  const palette = widget.type !== 'kpi'
-    ? getBarPalette(widget.barPalette)
-    : ['#94A3B8'];
-  const paletteColors = palette.length ? palette : ['#94A3B8'];
+  const paletteColors = React.useMemo(() => {
+    const nextPalette = widget.type !== 'kpi'
+      ? getBarPalette(widget.barPalette)
+      : ['#94A3B8'];
+    return nextPalette.length > 0 ? nextPalette : ['#94A3B8'];
+  }, [widget.barPalette, widget.type]);
   const isChart = widget.type === 'bar' || widget.type === 'line' || widget.type === 'area' || widget.type === 'pie';
   const chartShellRef = React.useRef<HTMLDivElement | null>(null);
   const [chartShellViewport, setChartShellViewport] = React.useState<{ width: number; height: number }>({ width: 0, height: 0 });
@@ -223,9 +225,9 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       ? 'pt-2'
       : 'pt-3';
   const [pieTooltipPosition, setPieTooltipPosition] = React.useState<{ x: number; y: number } | undefined>(undefined);
-  const sourceSeries = data?.series ?? [];
-  const sourceTimeSeries = data?.timeSeries ?? [];
-  const sourceSeriesKeys = data?.seriesKeys ?? [];
+  const sourceSeries = React.useMemo(() => data?.series ?? [], [data?.series]);
+  const sourceTimeSeries = React.useMemo(() => data?.timeSeries ?? [], [data?.timeSeries]);
+  const sourceSeriesKeys = React.useMemo(() => data?.seriesKeys ?? [], [data?.seriesKeys]);
   const isTimeSeriesChart = widget.type === 'line' || widget.type === 'area';
   const hasSourceTimeSeries = sourceTimeSeries.length > 0 && sourceSeriesKeys.length > 0;
   const rawLegendItemCount = isTimeSeriesChart

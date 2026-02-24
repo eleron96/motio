@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
+import { z } from "npm:zod@3.25.76";
+import { ADMIN_ACTIONS } from "../../../../src/shared/contracts/actions.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -49,6 +51,66 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const adminRequestSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BOOTSTRAP_SYNC),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.USERS_LIST),
+    search: z.string().optional(),
+    page: z.number().int().positive().optional(),
+    perPage: z.number().int().positive().optional(),
+    loadAll: z.boolean().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.USERS_CREATE),
+    email: z.string().email().optional(),
+    displayName: z.string().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.USERS_UPDATE),
+    userId: z.string().optional(),
+    email: z.string().email().optional(),
+    displayName: z.string().optional(),
+    superAdmin: z.boolean().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.USERS_RESET_PASSWORD),
+    userId: z.string().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.USERS_DELETE),
+    userId: z.string().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_UPDATE),
+    workspaceId: z.string().min(1),
+    name: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_DELETE),
+    workspaceId: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_CREATE),
+    email: z.string().email(),
+    displayName: z.string().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_DELETE),
+    userId: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.KEYCLOAK_SYNC),
+  }).strict(),
+]);
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -836,14 +898,20 @@ export const handler = async (req: Request) => {
     return jsonResponse({ error: "Missing Supabase env vars" }, 500);
   }
 
-  const { data: payload, error } = await readJson<{ action?: string } & Record<string, unknown>>(req);
+  const { data: rawPayload, error } = await readJson<Record<string, unknown>>(req);
   if (error) {
     return jsonResponse({ error }, 400);
   }
 
-  const action = payload.action ?? "";
+  const parsedPayload = adminRequestSchema.safeParse(rawPayload);
+  if (!parsedPayload.success) {
+    return jsonResponse({ error: "Invalid admin payload." }, 400);
+  }
 
-  if (action === "bootstrap.sync") {
+  const payload = parsedPayload.data;
+  const action = payload.action;
+
+  if (action === ADMIN_ACTIONS.BOOTSTRAP_SYNC) {
     const reserveResult = await ensureReserveAdminOnce();
     if ("error" in reserveResult) {
       return jsonResponse({ error: reserveResult.error }, 503);
@@ -874,29 +942,29 @@ export const handler = async (req: Request) => {
   }
 
   switch (action) {
-    case "users.list":
+    case ADMIN_ACTIONS.USERS_LIST:
       return handleUsersList(payload as { search?: string });
-    case "users.create":
+    case ADMIN_ACTIONS.USERS_CREATE:
       return handleUsersCreate(payload as { email?: string; displayName?: string });
-    case "users.update":
+    case ADMIN_ACTIONS.USERS_UPDATE:
       return handleUsersUpdate(payload as { userId?: string; email?: string; displayName?: string; superAdmin?: boolean });
-    case "users.resetPassword":
+    case ADMIN_ACTIONS.USERS_RESET_PASSWORD:
       return handleUsersResetPassword();
-    case "users.delete":
+    case ADMIN_ACTIONS.USERS_DELETE:
       return handleUsersDelete(payload as { userId?: string }, authResult.user.id);
-    case "workspaces.list":
+    case ADMIN_ACTIONS.WORKSPACES_LIST:
       return handleWorkspacesList();
-    case "workspaces.update":
+    case ADMIN_ACTIONS.WORKSPACES_UPDATE:
       return handleWorkspacesUpdate(payload as { workspaceId?: string; name?: string });
-    case "workspaces.delete":
+    case ADMIN_ACTIONS.WORKSPACES_DELETE:
       return handleWorkspacesDelete(payload as { workspaceId?: string });
-    case "superAdmins.list":
+    case ADMIN_ACTIONS.SUPER_ADMINS_LIST:
       return handleSuperAdminsList();
-    case "superAdmins.create":
+    case ADMIN_ACTIONS.SUPER_ADMINS_CREATE:
       return handleSuperAdminsCreate();
-    case "superAdmins.delete":
+    case ADMIN_ACTIONS.SUPER_ADMINS_DELETE:
       return handleSuperAdminsDelete();
-    case "keycloak.sync":
+    case ADMIN_ACTIONS.KEYCLOAK_SYNC:
       return handleKeycloakSync();
     default:
       return jsonResponse({ error: "Unknown action" }, 400);

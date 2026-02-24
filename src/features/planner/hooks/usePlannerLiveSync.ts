@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/shared/lib/supabaseClient';
-import { Milestone, Task, TaskPriority, ViewMode } from '@/features/planner/types/planner';
+import { Milestone, TaskPriority, ViewMode } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
 
 type LoadedRange = {
   start: string;
@@ -10,21 +11,9 @@ type LoadedRange = {
   workspaceId: string;
 };
 
-type TaskSyncRow = {
-  id: string;
+type TaskSyncRow = TaskMappedRow & {
   workspace_id: string;
-  title: string;
-  project_id: string | null;
-  assignee_id: string | null;
-  assignee_ids: string[] | null;
-  start_date: string;
-  end_date: string;
-  status_id: string;
-  type_id: string;
   priority: TaskPriority | null;
-  tag_ids: string[] | null;
-  description: string | null;
-  repeat_id: string | null;
   updated_at: string;
 };
 
@@ -70,25 +59,6 @@ const INTERACTION_RETRY_MS = 220;
 const FALLBACK_POLL_BASE_MS = 45_000;
 const FALLBACK_POLL_MAX_MS = 180_000;
 const POLL_JITTER_RATIO = 0.18;
-
-const normalizeAssigneeIds = (assigneeIds: string[] | null | undefined, legacyId: string | null | undefined) => (
-  Array.from(new Set([...(assigneeIds ?? []), ...(legacyId ? [legacyId] : [])].filter(Boolean)))
-);
-
-const mapTaskRow = (row: TaskSyncRow): Task => ({
-  id: row.id,
-  title: row.title,
-  projectId: row.project_id,
-  assigneeIds: normalizeAssigneeIds(row.assignee_ids, row.assignee_id),
-  startDate: row.start_date,
-  endDate: row.end_date,
-  statusId: row.status_id,
-  typeId: row.type_id,
-  priority: row.priority ?? null,
-  tagIds: row.tag_ids ?? [],
-  description: row.description,
-  repeatId: row.repeat_id ?? null,
-});
 
 const mapMilestoneRow = (row: MilestoneSyncRow): Milestone => ({
   id: row.id,

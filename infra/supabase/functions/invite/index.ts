@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
+import { z } from "npm:zod@3.25.76";
+import { INVITE_ACTIONS, INVITE_ROLE_VALUES } from "../../../../src/shared/contracts/actions.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -42,15 +44,38 @@ const workspaceRoleToRealmRole: Record<WorkspaceRole, AppRealmRole> = {
   admin: "app_workspace_admin",
 };
 
-interface InvitePayload {
-  action?: "create" | "accept" | "list" | "decline" | "listSent" | "cancel";
-  workspaceId?: string;
-  email?: string;
-  role?: WorkspaceRole;
-  groupId?: string | null;
-  token?: string;
-  pendingOnly?: boolean;
-}
+const inviteRoleSchema = z.enum(INVITE_ROLE_VALUES);
+
+const inviteRequestSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal(INVITE_ACTIONS.CREATE),
+    workspaceId: z.string().min(1),
+    email: z.string().email(),
+    role: inviteRoleSchema.optional(),
+    groupId: z.string().nullable().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(INVITE_ACTIONS.ACCEPT),
+    token: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(INVITE_ACTIONS.LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(INVITE_ACTIONS.DECLINE),
+    token: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(INVITE_ACTIONS.LIST_SENT),
+    pendingOnly: z.boolean().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(INVITE_ACTIONS.CANCEL),
+    token: z.string().min(1),
+  }).strict(),
+]);
+
+type InvitePayload = z.infer<typeof inviteRequestSchema>;
 
 interface AuthInviteUser {
   id: string;
@@ -850,24 +875,34 @@ const handleInvite = async (req: Request) => {
     return jsonResponse({ error }, 400);
   }
 
-  const action = payload.action ?? "create";
-  if (action === "accept") {
-    return handleAcceptInvite(authResult.user, payload);
-  }
-  if (action === "list") {
-    return handleListInvites(authResult.user);
-  }
-  if (action === "listSent") {
-    return handleListSentInvites(authResult.user, payload);
-  }
-  if (action === "decline") {
-    return handleDeclineInvite(authResult.user, payload);
-  }
-  if (action === "cancel") {
-    return handleCancelInvite(authResult.user, payload);
+  const payloadWithAction = {
+    ...(payload ?? {}),
+    action: payload?.action ?? INVITE_ACTIONS.CREATE,
+  };
+  const parsedPayload = inviteRequestSchema.safeParse(payloadWithAction);
+  if (!parsedPayload.success) {
+    return jsonResponse({ error: "Invalid invite payload." }, 400);
   }
 
-  return handleCreateInvite(authResult.user, payload);
+  const validatedPayload = parsedPayload.data;
+  const action = validatedPayload.action;
+  if (action === INVITE_ACTIONS.ACCEPT) {
+    return handleAcceptInvite(authResult.user, validatedPayload);
+  }
+  if (action === INVITE_ACTIONS.LIST) {
+    return handleListInvites(authResult.user);
+  }
+  if (action === INVITE_ACTIONS.LIST_SENT) {
+    return handleListSentInvites(authResult.user, validatedPayload);
+  }
+  if (action === INVITE_ACTIONS.DECLINE) {
+    return handleDeclineInvite(authResult.user, validatedPayload);
+  }
+  if (action === INVITE_ACTIONS.CANCEL) {
+    return handleCancelInvite(authResult.user, validatedPayload);
+  }
+
+  return handleCreateInvite(authResult.user, validatedPayload);
 };
 
 export const handler = async (req: Request) => {

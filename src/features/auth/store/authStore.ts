@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/shared/lib/supabaseClient';
-import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { isSupportedLocale, type Locale } from '@/shared/lib/locale';
 import { clearPendingLocale, getPendingLocale } from '@/features/auth/lib/pendingLocale';
+import { workspaceSyncService } from '@/application/workspace/workspaceSyncService';
+import { ADMIN_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
+import { invokeAdminFunction, invokeInviteFunction } from '@/infrastructure/auth/functionsGateway';
 
 export type WorkspaceRole = 'viewer' | 'editor' | 'admin';
 
@@ -164,26 +166,6 @@ interface AuthState {
 
 const getWorkspaceStorageKey = (userId: string) => `current-workspace-${userId}`;
 
-const parseInvokeError = async (error: { message: string }, response?: Response) => {
-  let message = error.message;
-  if (response) {
-    try {
-      const body = await response.clone().json();
-      if (body && typeof body === 'object' && typeof (body as { error?: string }).error === 'string') {
-        message = (body as { error: string }).error;
-      }
-    } catch (_error) {
-      try {
-        const text = await response.clone().text();
-        if (text) message = text;
-      } catch (_innerError) {
-        // Ignore response parsing errors and keep the original message.
-      }
-    }
-  }
-  return message;
-};
-
 const isTransientSchemaAuthError = (message: string) => (
   message.toLowerCase().includes('database error querying schema')
 );
@@ -283,18 +265,6 @@ const callBackupApi = async <T>(token: string | null | undefined, path: string, 
   }
 
   const data = await response.json().catch(() => ({}));
-  return { data: data as T };
-};
-
-const invokeAdmin = async <T>(payload: Record<string, unknown>) => {
-  const { data, error, response } = await supabase.functions.invoke('admin', { body: payload });
-  if (error) {
-    const message = await parseInvokeError(error, response);
-    return { error: message };
-  }
-  if (data && typeof data === 'object' && typeof (data as { error?: string }).error === 'string') {
-    return { error: (data as { error: string }).error };
-  }
   return { data: data as T };
 };
 
@@ -405,8 +375,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   fetchAdminUsers: async (search) => {
     set({ adminUsersLoading: true, adminUsersError: null });
-    const { data, error } = await invokeAdmin<{ users: AdminUser[] }>({
-      action: 'users.list',
+    const { data, error } = await invokeAdminFunction<{ users: AdminUser[] }>({
+      action: ADMIN_ACTIONS.USERS_LIST,
       search: search?.trim(),
       page: 1,
       perPage: 1000,
@@ -425,8 +395,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   fetchAdminWorkspaces: async () => {
     set({ adminWorkspacesLoading: true, adminWorkspacesError: null });
-    const { data, error } = await invokeAdmin<{ workspaces: AdminWorkspace[] }>({
-      action: 'workspaces.list',
+    const { data, error } = await invokeAdminFunction<{ workspaces: AdminWorkspace[] }>({
+      action: ADMIN_ACTIONS.WORKSPACES_LIST,
     });
     if (error) {
       set({ adminWorkspacesLoading: false, adminWorkspacesError: error });
@@ -440,8 +410,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return {};
   },
   updateAdminWorkspace: async (workspaceId, name) => {
-    const { error } = await invokeAdmin({
-      action: 'workspaces.update',
+    const { error } = await invokeAdminFunction({
+      action: ADMIN_ACTIONS.WORKSPACES_UPDATE,
       workspaceId,
       name,
     });
@@ -449,8 +419,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return {};
   },
   deleteAdminWorkspace: async (workspaceId) => {
-    const { error } = await invokeAdmin({
-      action: 'workspaces.delete',
+    const { error } = await invokeAdminFunction({
+      action: ADMIN_ACTIONS.WORKSPACES_DELETE,
       workspaceId,
     });
     if (error) return { error };
@@ -458,8 +428,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   fetchSuperAdmins: async () => {
     set({ superAdminsLoading: true, superAdminsError: null });
-    const { data, error } = await invokeAdmin<{ superAdmins: SuperAdminUser[] }>({
-      action: 'superAdmins.list',
+    const { data, error } = await invokeAdminFunction<{ superAdmins: SuperAdminUser[] }>({
+      action: ADMIN_ACTIONS.SUPER_ADMINS_LIST,
     });
     if (error) {
       set({ superAdminsLoading: false, superAdminsError: error });
@@ -473,8 +443,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return {};
   },
   createSuperAdmin: async (payload) => {
-    const { data, error } = await invokeAdmin<{ warning?: string }>({
-      action: 'superAdmins.create',
+    const { data, error } = await invokeAdminFunction<{ warning?: string }>({
+      action: ADMIN_ACTIONS.SUPER_ADMINS_CREATE,
       email: payload.email,
       displayName: payload.displayName,
     });
@@ -482,8 +452,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return { warning: data?.warning };
   },
   deleteSuperAdmin: async (userId) => {
-    const { error } = await invokeAdmin({
-      action: 'superAdmins.delete',
+    const { error } = await invokeAdminFunction({
+      action: ADMIN_ACTIONS.SUPER_ADMINS_DELETE,
       userId,
     });
     if (error) return { error };
@@ -811,9 +781,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         currentWorkspaceRole: null,
         members: [],
       });
-      const plannerStore = usePlannerStore.getState();
-      plannerStore.reset();
-      plannerStore.clearFilters();
+      workspaceSyncService.resetWorkspaceState();
 
       if (user && typeof window !== 'undefined') {
         const storageKey = getWorkspaceStorageKey(user.id);
@@ -894,55 +862,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const workspaceId = get().currentWorkspaceId;
     if (!workspaceId) return { error: 'Workspace not selected.' };
 
-    const { data, error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'create', workspaceId, email, role, groupId },
+    const { data, error } = await invokeInviteFunction<{
+      actionLink?: string;
+      warning?: string;
+      inviteEmail?: string;
+      inviteStatus?: string;
+    }>({
+      action: INVITE_ACTIONS.CREATE,
+      workspaceId,
+      email,
+      role,
+      groupId,
     });
-
     if (error) {
-      let message = error.message;
-      let actionLink: string | undefined;
-      let warning: string | undefined;
-      let inviteEmail: string | undefined;
-      let inviteStatus: string | undefined;
-      if (response) {
-        try {
-          const body = await response.clone().json();
-          if (body && typeof body === 'object') {
-            if (typeof (body as { error?: string }).error === 'string') {
-              message = (body as { error: string }).error;
-            }
-            if (typeof (body as { actionLink?: string }).actionLink === 'string') {
-              actionLink = (body as { actionLink: string }).actionLink;
-            }
-            if (typeof (body as { warning?: string }).warning === 'string') {
-              warning = (body as { warning: string }).warning;
-            }
-            if (typeof (body as { inviteEmail?: string }).inviteEmail === 'string') {
-              inviteEmail = (body as { inviteEmail: string }).inviteEmail;
-            }
-            if (typeof (body as { inviteStatus?: string }).inviteStatus === 'string') {
-              inviteStatus = (body as { inviteStatus: string }).inviteStatus;
-            }
-          }
-        } catch (_error) {
-          try {
-            const text = await response.clone().text();
-            if (text) message = text;
-          } catch (_innerError) {
-            // Ignore response parsing errors and keep the original message.
-          }
-        }
-      }
-      return { error: message, actionLink, warning, inviteEmail, inviteStatus };
-    }
-
-    if (data?.error) {
       return {
-        error: data.error,
-        actionLink: data.actionLink,
-        warning: data.warning,
-        inviteEmail: data.inviteEmail,
-        inviteStatus: data.inviteStatus,
+        error,
+        actionLink: data?.actionLink,
+        warning: data?.warning,
+        inviteEmail: data?.inviteEmail,
+        inviteStatus: data?.inviteStatus,
       };
     }
     return {
@@ -956,37 +894,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const inviteToken = token.trim();
     if (!inviteToken) return { error: 'Invite token is required.' };
 
-    const { data, error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'accept', token: inviteToken },
+    const { data, error } = await invokeInviteFunction<{
+      workspaceId?: string;
+      warning?: string;
+    }>({
+      action: INVITE_ACTIONS.ACCEPT,
+      token: inviteToken,
     });
-
-    if (error) {
-      let message = error.message;
-      if (response) {
-        try {
-          const body = await response.clone().json();
-          if (body && typeof body === 'object' && typeof (body as { error?: string }).error === 'string') {
-            message = (body as { error: string }).error;
-          }
-        } catch (_parseError) {
-          try {
-            const text = await response.clone().text();
-            if (text) message = text;
-          } catch (_innerError) {
-            // Ignore parsing errors and keep the original message.
-          }
-        }
-      }
-      return { error: message };
-    }
-
-    if (data?.error) {
-      return { error: data.error };
-    }
+    if (error) return { error };
 
     return {
-      workspaceId: typeof data?.workspaceId === 'string' ? data.workspaceId : undefined,
-      warning: typeof data?.warning === 'string' ? data.warning : undefined,
+      workspaceId: data?.workspaceId,
+      warning: data?.warning,
     };
   },
   updateMemberRole: async (userId, role) => {
@@ -1004,7 +923,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     await get().fetchMembers(workspaceId);
-    await usePlannerStore.getState().refreshAssignees();
+    await workspaceSyncService.refreshAssignees();
     return {};
   },
   updateMemberGroup: async (userId, groupId) => {
@@ -1022,7 +941,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     await get().fetchMembers(workspaceId);
-    await usePlannerStore.getState().refreshMemberGroups();
+    await workspaceSyncService.refreshMemberGroups();
     return {};
   },
   removeMember: async (userId) => {
@@ -1062,7 +981,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     await get().fetchMembers(workspaceId);
-    await usePlannerStore.getState().refreshMemberGroups();
+    await workspaceSyncService.refreshMemberGroups();
     return {};
   },
   updateDisplayName: async (displayName) => {
@@ -1086,7 +1005,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (workspaceId) {
       await get().fetchMembers(workspaceId);
     }
-    await usePlannerStore.getState().refreshAssignees();
+    await workspaceSyncService.refreshAssignees();
     return {};
   },
   updateLocale: async (locale) => {
