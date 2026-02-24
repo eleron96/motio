@@ -54,10 +54,10 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
     if (!canEdit || !onCreateTask) return;
     const date = getDateFromEvent(event);
     if (!date) return;
-    const handled = onDateClick?.(date, rowId);
-    if (handled) return;
+    // Double click on a row cell is reserved for task creation only.
+    // Milestone open/pick flow is handled by single-click/header milestone overlays.
     onCreateTask(date, rowId);
-  }, [canEdit, getDateFromEvent, onCreateTask, onDateClick, rowId]);
+  }, [canEdit, getDateFromEvent, onCreateTask, rowId]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const date = getDateFromEvent(event);
