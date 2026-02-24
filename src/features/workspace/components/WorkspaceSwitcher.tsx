@@ -24,6 +24,8 @@ import { supabase } from '@/shared/lib/supabaseClient';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
 import { t } from '@lingui/macro';
 
+const DEFAULT_STATUS_COLOR = '#94a3b8';
+
 export const WorkspaceSwitcher: React.FC = () => {
   const {
     user,
@@ -52,7 +54,6 @@ export const WorkspaceSwitcher: React.FC = () => {
   const [templateSaved, setTemplateSaved] = useState(false);
   const [newTemplateStatusName, setNewTemplateStatusName] = useState('');
   const [newTemplateStatusEmoji, setNewTemplateStatusEmoji] = useState('');
-  const [newTemplateStatusColor, setNewTemplateStatusColor] = useState('#3b82f6');
   const [newTemplateTypeName, setNewTemplateTypeName] = useState('');
   const [newTemplateTagName, setNewTemplateTagName] = useState('');
   const [newTemplateTagColor, setNewTemplateTagColor] = useState('#3b82f6');
@@ -98,7 +99,7 @@ export const WorkspaceSwitcher: React.FC = () => {
         return {
           name: cleanedName,
           emoji: explicitEmoji || inlineEmoji || null,
-          color: item.color ?? '#94a3b8',
+          color: item.color ?? DEFAULT_STATUS_COLOR,
           is_final: Boolean(item.is_final),
           is_cancelled: Boolean(item.is_cancelled),
         };
@@ -144,7 +145,7 @@ export const WorkspaceSwitcher: React.FC = () => {
     setTemplateStatuses(statuses.map((status) => ({
       name: status.name,
       emoji: status.emoji ?? null,
-      color: status.color,
+      color: DEFAULT_STATUS_COLOR,
       is_final: status.isFinal,
       is_cancelled: status.isCancelled,
     })));
@@ -181,7 +182,7 @@ export const WorkspaceSwitcher: React.FC = () => {
       {
         name: newTemplateStatusName.trim(),
         emoji: newTemplateStatusEmoji.trim() || null,
-        color: newTemplateStatusColor,
+        color: DEFAULT_STATUS_COLOR,
         is_final: false,
         is_cancelled: false,
       },
@@ -320,7 +321,6 @@ export const WorkspaceSwitcher: React.FC = () => {
                           value={newTemplateStatusName}
                           onChange={(e) => setNewTemplateStatusName(e.target.value)}
                         />
-                        <ColorPicker value={newTemplateStatusColor} onChange={setNewTemplateStatusColor} />
                         <Button
                           type="button"
                           size="icon"
@@ -341,10 +341,6 @@ export const WorkspaceSwitcher: React.FC = () => {
                               value={status.name}
                               onChange={(e) => updateTemplateStatus(index, { name: e.target.value })}
                               className="flex-1 h-8"
-                            />
-                            <ColorPicker
-                              value={status.color}
-                              onChange={(color) => updateTemplateStatus(index, { color })}
                             />
                             <div className="flex items-center gap-3">
                               <label className="flex items-center gap-1 text-xs text-muted-foreground">
