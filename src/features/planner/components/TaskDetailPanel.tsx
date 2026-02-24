@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
@@ -27,6 +27,8 @@ const areArraysEqual = (left: string[], right: string[]) => {
   if (left.length !== right.length) return false;
   return left.every((value, index) => value === right[index]);
 };
+
+const normalizeProjectQuery = (value: string) => value.trim().toLowerCase();
 
 const areTasksEqual = (left: Task, right: Task) => (
   left.title === right.title &&
@@ -168,6 +170,7 @@ export const TaskDetailPanel: React.FC = () => {
   const [subtasksError, setSubtasksError] = useState('');
   const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [projectQuery, setProjectQuery] = useState('');
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
   
   const task = tasks.find(t => t.id === selectedTaskId);
@@ -191,6 +194,49 @@ export const TaskDetailPanel: React.FC = () => {
     );
   }, [filteredAssignees, task]);
   const noProjectDisabled = groupMode === 'project';
+  const filteredProjectOptions = useMemo(() => {
+    const query = normalizeProjectQuery(projectQuery);
+    if (!query) return projectOptions;
+    return projectOptions.filter((project) => (
+      project.name.toLowerCase().includes(query)
+      || (project.code ?? '').toLowerCase().includes(query)
+    ));
+  }, [projectOptions, projectQuery]);
+
+  const handleProjectSelectOpenChange = useCallback((nextOpen: boolean) => {
+    if (!nextOpen) {
+      setProjectQuery('');
+    }
+  }, []);
+
+  const handleProjectSelectKeyDown = useCallback((event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.isComposing) return;
+
+    if (event.key === 'Backspace') {
+      if (!projectQuery) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setProjectQuery((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    if (event.key === 'Escape' && projectQuery) {
+      event.preventDefault();
+      event.stopPropagation();
+      setProjectQuery('');
+      return;
+    }
+
+    const isPrintableKey = event.key.length === 1
+      && !event.altKey
+      && !event.ctrlKey
+      && !event.metaKey;
+    if (!isPrintableKey) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    setProjectQuery((prev) => prev + event.key);
+  }, [projectQuery]);
 
   useEffect(() => {
     if (!selectedTaskId) {
@@ -697,19 +743,28 @@ export const TaskDetailPanel: React.FC = () => {
                   onValueChange={(v) => {
                     if (noProjectDisabled && v === 'none') return;
                     handleUpdate('projectId', v === 'none' ? null : v);
+                    setProjectQuery('');
                   }}
+                  onOpenChange={handleProjectSelectOpenChange}
                   disabled={isReadOnly}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t`Select project`} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent onKeyDown={handleProjectSelectKeyDown}>
                     <div
                       className="max-h-48 overflow-y-auto overscroll-contain pr-2"
                       onWheelCapture={(event) => event.stopPropagation()}
                     >
+                      <div className="px-2 py-1 text-[11px] text-muted-foreground">
+                        <span
+                          className="mr-1.5 inline-block h-3 w-px animate-pulse align-middle bg-foreground/60"
+                          aria-hidden="true"
+                        />
+                        {projectQuery ? t`Filter: ${projectQuery}` : t`Type to filter projects...`}
+                      </div>
                       <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
-                      {projectOptions.map((project) => (
+                      {filteredProjectOptions.map((project) => (
                         <SelectItem key={project.id} value={project.id}>
                           <div className="flex items-center gap-2">
                             <div
@@ -723,6 +778,11 @@ export const TaskDetailPanel: React.FC = () => {
                           </div>
                         </SelectItem>
                       ))}
+                      {filteredProjectOptions.length === 0 && (
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                          {t`No projects found`}
+                        </div>
+                      )}
                     </div>
                   </SelectContent>
                 </Select>
@@ -921,13 +981,7 @@ export const TaskDetailPanel: React.FC = () => {
                       <SelectContent>
                         {statuses.map(s => (
                           <SelectItem key={s.id} value={s.id}>
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div
-                                className="w-2.5 h-2.5 rounded-full"
-                                style={{ backgroundColor: s.color }}
-                              />
-                              <span className="truncate">{formatStatusLabel(s.name, s.emoji)}</span>
-                            </div>
+                            <span className="truncate">{formatStatusLabel(s.name, s.emoji)}</span>
                           </SelectItem>
                         ))}
                       </SelectContent>
