@@ -20,15 +20,21 @@ import { AlertTriangle, ChevronDown, CircleDot, Layers, Plus, RotateCw, Trash2, 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { RepeatTaskUpdateScope, Task, TaskPriority, TaskSubtask } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { addDays, endOfMonth, format, isSameMonth, isSameYear, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
+import {
+  filterProjectsByQuery,
+  getDefaultRepeatUntil,
+  RepeatEnds,
+  RepeatFrequency,
+  resolveProjectQueryFromKeyDown,
+  validateRepeatConfig,
+} from '@/features/planner/lib/taskFormRules';
 
 const areArraysEqual = (left: string[], right: string[]) => {
   if (left.length !== right.length) return false;
   return left.every((value, index) => value === right[index]);
 };
-
-const normalizeProjectQuery = (value: string) => value.trim().toLowerCase();
 
 const areTasksEqual = (left: Task, right: Task) => (
   left.title === right.title &&
@@ -63,9 +69,6 @@ type TaskSubtaskRow = {
   position: number;
   created_at: string;
 };
-
-type RepeatFrequency = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
-type RepeatEnds = 'never' | 'on' | 'after';
 
 const buildRepeatConfigSignature = (params: {
   frequency: RepeatFrequency;
@@ -194,14 +197,10 @@ export const TaskDetailPanel: React.FC = () => {
     );
   }, [filteredAssignees, task]);
   const noProjectDisabled = groupMode === 'project';
-  const filteredProjectOptions = useMemo(() => {
-    const query = normalizeProjectQuery(projectQuery);
-    if (!query) return projectOptions;
-    return projectOptions.filter((project) => (
-      project.name.toLowerCase().includes(query)
-      || (project.code ?? '').toLowerCase().includes(query)
-    ));
-  }, [projectOptions, projectQuery]);
+  const filteredProjectOptions = useMemo(
+    () => filterProjectsByQuery(projectOptions, projectQuery),
+    [projectOptions, projectQuery],
+  );
 
   const handleProjectSelectOpenChange = useCallback((nextOpen: boolean) => {
     if (!nextOpen) {
@@ -210,32 +209,18 @@ export const TaskDetailPanel: React.FC = () => {
   }, []);
 
   const handleProjectSelectKeyDown = useCallback((event: React.KeyboardEvent<HTMLElement>) => {
-    if (event.isComposing) return;
-
-    if (event.key === 'Backspace') {
-      if (!projectQuery) return;
-      event.preventDefault();
-      event.stopPropagation();
-      setProjectQuery((prev) => prev.slice(0, -1));
-      return;
-    }
-
-    if (event.key === 'Escape' && projectQuery) {
-      event.preventDefault();
-      event.stopPropagation();
-      setProjectQuery('');
-      return;
-    }
-
-    const isPrintableKey = event.key.length === 1
-      && !event.altKey
-      && !event.ctrlKey
-      && !event.metaKey;
-    if (!isPrintableKey) return;
-
+    const nextQuery = resolveProjectQueryFromKeyDown({
+      currentQuery: projectQuery,
+      key: event.key,
+      isComposing: event.isComposing,
+      altKey: event.altKey,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+    });
+    if (nextQuery === null) return;
     event.preventDefault();
     event.stopPropagation();
-    setProjectQuery((prev) => prev + event.key);
+    setProjectQuery(nextQuery);
   }, [projectQuery]);
 
   useEffect(() => {
@@ -308,15 +293,6 @@ export const TaskDetailPanel: React.FC = () => {
       active = false;
     };
   }, [currentWorkspaceId, taskId]);
-
-  const getDefaultRepeatUntil = (baseDate: string) => {
-    const start = parseISO(baseDate);
-    const next = addDays(start, 1);
-    if (isSameMonth(next, start) && isSameYear(next, start)) {
-      return format(next, 'yyyy-MM-dd');
-    }
-    return format(endOfMonth(start), 'yyyy-MM-dd');
-  };
 
   useEffect(() => {
     if (!task) return;
@@ -437,15 +413,19 @@ export const TaskDetailPanel: React.FC = () => {
     });
     if (nextSignature === repeatConfigSnapshotRef.current) return true;
 
-    if (repeatFrequency !== 'none') {
-      if (repeatEnds === 'after' && (!repeatCount || repeatCount < 1)) {
-        setRepeatError(t`Enter how many repeats to create.`);
-        return false;
-      }
-      if (repeatEnds === 'on' && !repeatUntil) {
-        setRepeatError(t`Select an end date.`);
-        return false;
-      }
+    const repeatValidationError = validateRepeatConfig({
+      frequency: repeatFrequency,
+      ends: repeatEnds,
+      until: repeatUntil,
+      count: repeatCount,
+    });
+    if (repeatValidationError === 'missing_count') {
+      setRepeatError(t`Enter how many repeats to create.`);
+      return false;
+    }
+    if (repeatValidationError === 'missing_until') {
+      setRepeatError(t`Select an end date.`);
+      return false;
     }
 
     setRepeatError('');
