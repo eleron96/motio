@@ -22,9 +22,15 @@ import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
 import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
-import { compareNames } from '@/shared/lib/nameSorting';
 import { fetchAssigneeTasks as fetchAssigneeTasksFromApi } from '@/infrastructure/members/memberTasksRepository';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
+import {
+  buildGroupIdByUserId,
+  buildGroupNameById,
+  buildMemberGroups,
+  filterAndSortByName,
+  splitAssigneesByActivity,
+} from '@/features/members/lib/memberSelectors';
 
 type AssigneeUniqueTaskCountRow = {
   assignee_id: string | null;
@@ -281,58 +287,42 @@ const MembersPage = () => {
     }));
   }, [memberGroupBy, memberSort, tasksViewPrefsStorageKey]);
 
-  const activeAssignees = useMemo(
-    () => [...assignees].filter((assignee) => assignee.isActive).sort((a, b) => a.name.localeCompare(b.name)),
-    [assignees],
-  );
-  const disabledAssignees = useMemo(
-    () => [...assignees].filter((assignee) => !assignee.isActive).sort((a, b) => a.name.localeCompare(b.name)),
+  const { active: activeAssignees, disabled: disabledAssignees } = useMemo(
+    () => splitAssigneesByActivity(assignees),
     [assignees],
   );
   const groupNameById = useMemo(
-    () => new Map(groups.map((group) => [group.id, group.name])),
+    () => buildGroupNameById(groups),
     [groups],
   );
   const groupIdByUserId = useMemo(
-    () => new Map(memberGroupAssignments.map((assignment) => [assignment.userId, assignment.groupId])),
+    () => buildGroupIdByUserId(memberGroupAssignments),
     [memberGroupAssignments],
   );
 
-  const normalizedMemberSearch = memberSearch.trim().toLowerCase();
-  const buildMemberGroups = useMemo(() => {
-    return (list: typeof assignees) => {
-      const filtered = normalizedMemberSearch
-        ? list.filter((assignee) => assignee.name.toLowerCase().includes(normalizedMemberSearch))
-        : list;
-      const sorted = [...filtered].sort((a, b) => compareNames(a.name, b.name, memberSort));
-      if (memberGroupBy === 'none') {
-        return [{ id: 'all', name: null, members: sorted }];
-      }
-      const buckets = new Map<string, typeof assignees>();
-      sorted.forEach((assignee) => {
-        const groupId = assignee.userId ? groupIdByUserId.get(assignee.userId) ?? 'none' : 'none';
-        const key = groupId ?? 'none';
-        const groupList = buckets.get(key) ?? [];
-        groupList.push(assignee);
-        buckets.set(key, groupList);
-      });
-      const groupsList = Array.from(buckets.entries()).map(([id, members]) => ({
-        id,
-        name: id === 'none' ? t`No group` : groupNameById.get(id) ?? t`No group`,
-        members,
-      }));
-      groupsList.sort((left, right) => compareNames(left.name ?? '', right.name ?? '', 'asc'));
-      return groupsList;
-    };
-  }, [groupIdByUserId, groupNameById, memberGroupBy, memberSort, normalizedMemberSearch]);
-
   const activeMemberGroups = useMemo(
-    () => buildMemberGroups(activeAssignees),
-    [activeAssignees, buildMemberGroups],
+    () => buildMemberGroups({
+      assignees: activeAssignees,
+      memberSearch,
+      memberSort,
+      memberGroupBy,
+      groupIdByUserId,
+      groupNameById,
+      noGroupLabel: t`No group`,
+    }),
+    [activeAssignees, groupIdByUserId, groupNameById, memberGroupBy, memberSearch, memberSort],
   );
   const disabledMemberGroups = useMemo(
-    () => buildMemberGroups(disabledAssignees),
-    [disabledAssignees, buildMemberGroups],
+    () => buildMemberGroups({
+      assignees: disabledAssignees,
+      memberSearch,
+      memberSort,
+      memberGroupBy,
+      groupIdByUserId,
+      groupNameById,
+      noGroupLabel: t`No group`,
+    }),
+    [disabledAssignees, groupIdByUserId, groupNameById, memberGroupBy, memberSearch, memberSort],
   );
   const activeVisibleAssignees = useMemo(
     () => activeMemberGroups.flatMap((group) => group.members),
@@ -401,13 +391,10 @@ const MembersPage = () => {
     () => [...projects].sort((a, b) => a.name.localeCompare(b.name)),
     [projects],
   );
-  const normalizedGroupSearch = groupSearch.trim().toLowerCase();
-  const sortedGroups = useMemo(() => {
-    const filtered = normalizedGroupSearch
-      ? groups.filter((group) => group.name.toLowerCase().includes(normalizedGroupSearch))
-      : groups;
-    return [...filtered].sort((a, b) => compareNames(a.name, b.name, groupSort));
-  }, [groups, groupSort, normalizedGroupSearch]);
+  const sortedGroups = useMemo(
+    () => filterAndSortByName(groups, groupSearch, groupSort),
+    [groupSearch, groupSort, groups],
+  );
 
   const selectedGroup = useMemo(
     () => groups.find((group) => group.id === selectedGroupId) ?? null,

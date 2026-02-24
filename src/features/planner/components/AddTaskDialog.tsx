@@ -23,16 +23,23 @@ import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ChevronDown, Plus, X } from 'lucide-react';
-import { format, addDays } from '@/features/planner/lib/dateUtils';
+import { format } from '@/features/planner/lib/dateUtils';
 import { cn } from '@/shared/lib/classNames';
 import { TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { endOfMonth, isSameMonth, isSameYear, parseISO } from 'date-fns';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { t } from '@lingui/macro';
 import { Status } from '@/features/planner/types/planner';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { toast } from 'sonner';
+import {
+  filterProjectsByQuery,
+  getDefaultRepeatUntil,
+  RepeatEnds,
+  RepeatFrequency,
+  resolveProjectQueryFromKeyDown,
+  validateRepeatConfig,
+} from '@/features/planner/lib/taskFormRules';
 
 interface AddTaskDialogProps {
   open: boolean;
@@ -70,8 +77,6 @@ const resolveDefaultStatusId = (statuses: Status[]) => {
   return firstOpen?.id ?? statuses[0]?.id ?? '';
 };
 
-const normalizeProjectQuery = (value: string) => value.trim().toLowerCase();
-
 const LazyRichTextEditor = lazy(async () => {
   const module = await import('@/features/planner/components/RichTextEditor');
   return { default: module.RichTextEditor };
@@ -94,7 +99,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   initialProjectId,
   initialAssigneeIds,
 }) => {
-  type RepeatFrequency = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
   const { projects, trackedProjectIds, assignees, statuses, taskTypes, tags, groupMode, addTask, createRepeats } = usePlannerStore();
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const filteredAssignees = useFilteredAssignees(assignees);
@@ -118,14 +122,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const defaultStart = format(today, 'yyyy-MM-dd');
   const initialStart = initialStartDate ?? defaultStart;
   const initialEnd = initialEndDate ?? initialStart;
-  const getDefaultRepeatUntil = (baseDate: string) => {
-    const start = parseISO(baseDate);
-    const next = addDays(start, 1);
-    if (isSameMonth(next, start) && isSameYear(next, start)) {
-      return format(next, 'yyyy-MM-dd');
-    }
-    return format(endOfMonth(start), 'yyyy-MM-dd');
-  };
   const [title, setTitle] = useState('');
   const [projectId, setProjectId] = useState<string>('none');
   const [projectInitialized, setProjectInitialized] = useState(false);
@@ -139,7 +135,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [description, setDescription] = useState('');
   const repeatUntilAutoRef = useRef(true);
   const [repeatFrequency, setRepeatFrequency] = useState<RepeatFrequency>('none');
-  const [repeatEnds, setRepeatEnds] = useState<'never' | 'on' | 'after'>('never');
+  const [repeatEnds, setRepeatEnds] = useState<RepeatEnds>('never');
   const [repeatUntil, setRepeatUntil] = useState(getDefaultRepeatUntil(initialStart));
   const [repeatCount, setRepeatCount] = useState(4);
   const [repeatError, setRepeatError] = useState('');
@@ -165,14 +161,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!ids || ids.length === 0) return [];
     return sortAssigneeIds(ids);
   }, [sortAssigneeIds]);
-  const filteredProjects = useMemo(() => {
-    const query = normalizeProjectQuery(projectQuery);
-    if (!query) return activeProjects;
-    return activeProjects.filter((project) => (
-      project.name.toLowerCase().includes(query)
-      || (project.code ?? '').toLowerCase().includes(query)
-    ));
-  }, [activeProjects, projectQuery]);
+  const filteredProjects = useMemo(
+    () => filterProjectsByQuery(activeProjects, projectQuery),
+    [activeProjects, projectQuery],
+  );
 
   const markChanged = useCallback(() => {
     setHasChanges(true);
@@ -185,32 +177,18 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   }, []);
 
   const handleProjectSelectKeyDown = useCallback((event: React.KeyboardEvent<HTMLElement>) => {
-    if (event.isComposing) return;
-
-    if (event.key === 'Backspace') {
-      if (!projectQuery) return;
-      event.preventDefault();
-      event.stopPropagation();
-      setProjectQuery((prev) => prev.slice(0, -1));
-      return;
-    }
-
-    if (event.key === 'Escape' && projectQuery) {
-      event.preventDefault();
-      event.stopPropagation();
-      setProjectQuery('');
-      return;
-    }
-
-    const isPrintableKey = event.key.length === 1
-      && !event.altKey
-      && !event.ctrlKey
-      && !event.metaKey;
-    if (!isPrintableKey) return;
-
+    const nextQuery = resolveProjectQueryFromKeyDown({
+      currentQuery: projectQuery,
+      key: event.key,
+      isComposing: event.isComposing,
+      altKey: event.altKey,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+    });
+    if (nextQuery === null) return;
     event.preventDefault();
     event.stopPropagation();
-    setProjectQuery((prev) => prev + event.key);
+    setProjectQuery(nextQuery);
   }, [projectQuery]);
 
   const handleTagToggle = (tagId: string) => {
@@ -314,15 +292,19 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!title.trim() || !statusId || !typeId) return;
 
     setRepeatError('');
-    if (repeatFrequency !== 'none') {
-      if (repeatEnds === 'after' && (!repeatCount || repeatCount < 1)) {
-        setRepeatError(t`Enter how many repeats to create.`);
-        return;
-      }
-      if (repeatEnds === 'on' && !repeatUntil) {
-        setRepeatError(t`Select an end date.`);
-        return;
-      }
+    const repeatValidationError = validateRepeatConfig({
+      frequency: repeatFrequency,
+      ends: repeatEnds,
+      until: repeatUntil,
+      count: repeatCount,
+    });
+    if (repeatValidationError === 'missing_count') {
+      setRepeatError(t`Enter how many repeats to create.`);
+      return;
+    }
+    if (repeatValidationError === 'missing_until') {
+      setRepeatError(t`Select an end date.`);
+      return;
     }
 
     setRepeatCreating(true);

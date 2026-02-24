@@ -17,7 +17,6 @@ import { t } from '@lingui/macro';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
-import { compareNames } from '@/shared/lib/nameSorting';
 import { format, parseISO } from 'date-fns';
 import {
   Settings,
@@ -30,6 +29,16 @@ import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
+import {
+  buildCustomerProjectCounts,
+  buildGroupedMilestones,
+  filterAndSortMilestones,
+  filterCustomersBySearch,
+  filterProjectsByCustomerAndSearch,
+  groupProjectsForSidebar,
+  sortCustomersByName,
+  splitMilestonesByDate,
+} from '@/features/projects/lib/projectsSelectors';
 
 type DisplayTaskRow = {
   key: string;
@@ -195,14 +204,14 @@ const ProjectsPage = () => {
     () => new Map(projects.map((project) => [project.id, project])),
     [projects],
   );
-  const sortedCustomers = useMemo(() => {
-    return [...customers].sort((a, b) => compareNames(a.name, b.name, nameSort));
-  }, [customers, nameSort]);
-  const normalizedCustomerSearch = customerSearch.trim().toLowerCase();
-  const filteredCustomers = useMemo(() => {
-    if (!normalizedCustomerSearch) return sortedCustomers;
-    return sortedCustomers.filter((customer) => customer.name.toLowerCase().includes(normalizedCustomerSearch));
-  }, [normalizedCustomerSearch, sortedCustomers]);
+  const sortedCustomers = useMemo(
+    () => sortCustomersByName(customers, nameSort),
+    [customers, nameSort],
+  );
+  const filteredCustomers = useMemo(
+    () => filterCustomersBySearch(sortedCustomers, customerSearch),
+    [customerSearch, sortedCustomers],
+  );
 
   const selectedProject = useMemo(
     () => projects.find((project) => project.id === selectedProjectId) ?? null,
@@ -249,151 +258,57 @@ const ProjectsPage = () => {
     [assignees, projectAssigneeIds],
   );
 
-  const customerProjectCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    projects.forEach((project) => {
-      const key = project.customerId ?? 'none';
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    });
-    return counts;
-  }, [projects]);
-
-  const matchesCustomerFilter = useCallback((project: Project) => {
-    if (customerFilterIds.length === 0) return true;
-    const targetId = project.customerId ?? 'none';
-    return customerFilterIds.includes(targetId);
-  }, [customerFilterIds]);
-
-  const matchesProjectSearch = useCallback((project: Project) => {
-    const query = projectSearch.trim().toLowerCase();
-    if (!query) return true;
-    return project.name.toLowerCase().includes(query);
-  }, [projectSearch]);
+  const customerProjectCounts = useMemo(
+    () => buildCustomerProjectCounts(projects),
+    [projects],
+  );
 
   const filteredActiveProjects = useMemo(
-    () => activeProjects.filter((project) => matchesCustomerFilter(project) && matchesProjectSearch(project)),
-    [activeProjects, matchesCustomerFilter, matchesProjectSearch],
+    () => filterProjectsByCustomerAndSearch(activeProjects, customerFilterIds, projectSearch),
+    [activeProjects, customerFilterIds, projectSearch],
   );
 
   const filteredArchivedProjects = useMemo(
-    () => archivedProjects.filter((project) => matchesCustomerFilter(project) && matchesProjectSearch(project)),
-    [archivedProjects, matchesCustomerFilter, matchesProjectSearch],
+    () => filterProjectsByCustomerAndSearch(archivedProjects, customerFilterIds, projectSearch),
+    [archivedProjects, customerFilterIds, projectSearch],
   );
+
   const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
-  const normalizedMilestoneSearch = milestoneSearch.trim().toLowerCase();
   const todayMilestoneKey = format(new Date(), 'yyyy-MM-dd');
-  const filteredMilestones = useMemo(() => {
-    const matchesSearch = (milestone: Milestone) => {
-      if (!normalizedMilestoneSearch) return true;
-      const project = projectById.get(milestone.projectId);
-      const customer = project?.customerId ? customerById.get(project.customerId) : null;
-      return [
-        milestone.title,
-        project?.name ?? '',
-        project?.code ?? '',
-        customer?.name ?? '',
-      ].join(' ').toLowerCase().includes(normalizedMilestoneSearch);
-    };
 
-    return milestones
-      .filter(matchesSearch)
-      .sort((left, right) => {
-        const leftTracked = trackedProjectIdSet.has(left.projectId);
-        const rightTracked = trackedProjectIdSet.has(right.projectId);
-        if (leftTracked !== rightTracked) return leftTracked ? -1 : 1;
-        const byDate = left.date.localeCompare(right.date);
-        if (byDate !== 0) return byDate;
-        const byTitle = compareNames(left.title, right.title, nameSort);
-        if (byTitle !== 0) return byTitle;
-        const leftProjectName = projectById.get(left.projectId)?.name ?? '';
-        const rightProjectName = projectById.get(right.projectId)?.name ?? '';
-        return compareNames(leftProjectName, rightProjectName, nameSort);
-      });
-  }, [customerById, milestones, nameSort, normalizedMilestoneSearch, projectById, trackedProjectIdSet]);
-  const filteredActiveMilestones = useMemo(() => {
-    return filteredMilestones.filter((milestone) => milestone.date >= todayMilestoneKey);
-  }, [filteredMilestones, todayMilestoneKey]);
-  const filteredPastMilestones = useMemo(() => {
-    return filteredMilestones.filter((milestone) => milestone.date < todayMilestoneKey);
-  }, [filteredMilestones, todayMilestoneKey]);
+  const filteredMilestones = useMemo(
+    () => filterAndSortMilestones({
+      milestones,
+      projectById,
+      customerById,
+      trackedProjectIdSet,
+      milestoneSearch,
+      nameSort,
+    }),
+    [customerById, milestoneSearch, milestones, nameSort, projectById, trackedProjectIdSet],
+  );
+  const { active: filteredActiveMilestones, past: filteredPastMilestones } = useMemo(
+    () => splitMilestonesByDate(filteredMilestones, todayMilestoneKey),
+    [filteredMilestones, todayMilestoneKey],
+  );
   const visibleMilestones = milestoneTab === 'active' ? filteredActiveMilestones : filteredPastMilestones;
-  const groupedMilestones = useMemo(() => {
-    const buckets = new Map<string, Milestone[]>();
-    visibleMilestones.forEach((milestone) => {
-      if (milestoneGroupBy === 'project') {
-        const key = projectById.has(milestone.projectId) ? milestone.projectId : 'missing-project';
-        const list = buckets.get(key) ?? [];
-        list.push(milestone);
-        buckets.set(key, list);
-        return;
-      }
-
-      if (milestoneGroupBy === 'customer') {
-        const project = projectById.get(milestone.projectId);
-        const key = project ? (project.customerId ?? 'none') : 'missing-project';
-        const list = buckets.get(key) ?? [];
-        list.push(milestone);
-        buckets.set(key, list);
-        return;
-      }
-
-      const monthKey = format(parseISO(milestone.date), 'yyyy-MM');
-      const list = buckets.get(monthKey) ?? [];
-      list.push(milestone);
-      buckets.set(monthKey, list);
-    });
-
-    if (milestoneGroupBy === 'project') {
-      const orderedProjects = sortProjectsByTracking(projects, trackedProjectIds, nameSort);
-      const result = orderedProjects
-        .map((project) => {
-          const list = buckets.get(project.id) ?? [];
-          if (list.length === 0) return null;
-          return {
-            id: project.id,
-            name: formatProjectLabel(project.name, project.code),
-            milestones: list,
-          };
-        })
-        .filter((item): item is { id: string; name: string; milestones: Milestone[] } => Boolean(item));
-      const missing = buckets.get('missing-project');
-      if (missing && missing.length > 0) {
-        result.push({ id: 'missing-project', name: t`Unknown project`, milestones: missing });
-      }
-      return result;
-    }
-
-    if (milestoneGroupBy === 'customer') {
-      const result = sortedCustomers
-        .map((customer) => {
-          const list = buckets.get(customer.id) ?? [];
-          if (list.length === 0) return null;
-          return {
-            id: customer.id,
-            name: customer.name,
-            milestones: list,
-          };
-        })
-        .filter((item): item is { id: string; name: string; milestones: Milestone[] } => Boolean(item));
-      const noCustomer = buckets.get('none');
-      if (noCustomer && noCustomer.length > 0) {
-        result.push({ id: 'none', name: t`No customer`, milestones: noCustomer });
-      }
-      const missing = buckets.get('missing-project');
-      if (missing && missing.length > 0) {
-        result.push({ id: 'missing-project', name: t`Unknown project`, milestones: missing });
-      }
-      return result;
-    }
-
-    return Array.from(buckets.entries())
-      .sort((left, right) => right[0].localeCompare(left[0]))
-      .map(([monthKey, list]) => ({
-        id: monthKey,
-        name: format(parseISO(`${monthKey}-01`), 'LLLL yyyy', { locale: dateLocale }),
-        milestones: list,
-      }));
-  }, [dateLocale, milestoneGroupBy, nameSort, projectById, projects, sortedCustomers, trackedProjectIds, visibleMilestones]);
+  const groupedMilestones = useMemo(
+    () => buildGroupedMilestones({
+      visibleMilestones,
+      milestoneGroupBy,
+      projectById,
+      projects,
+      sortedCustomers,
+      trackedProjectIds,
+      nameSort,
+      dateLocale,
+      labels: {
+        unknownProject: t`Unknown project`,
+        noCustomer: t`No customer`,
+      },
+    }),
+    [dateLocale, milestoneGroupBy, nameSort, projectById, projects, sortedCustomers, trackedProjectIds, visibleMilestones],
+  );
   const selectedMilestone = useMemo(
     () => milestones.find((milestone) => milestone.id === selectedMilestoneId) ?? null,
     [milestones, selectedMilestoneId],
@@ -875,36 +790,17 @@ const ProjectsPage = () => {
   const deleteMilestoneLabel = deleteMilestoneTarget?.title ?? t`this milestone`;
   const deleteCustomerLabel = deleteCustomerTarget?.name ?? t`this customer`;
 
-  const groupedProjects = useCallback((list: Project[]) => {
-    if (!groupByCustomer) {
-      return [
-        { id: 'all', name: t`All projects`, projects: list },
-      ];
-    }
-
-    const grouped = new Map<string, Project[]>();
-    list.forEach((project) => {
-      const key = project.customerId ?? 'none';
-      const bucket = grouped.get(key) ?? [];
-      bucket.push(project);
-      grouped.set(key, bucket);
-    });
-
-    const result: Array<{ id: string; name: string; projects: Project[] }> = [];
-    sortedCustomers.forEach((customer) => {
-      const bucket = grouped.get(customer.id);
-      if (bucket && bucket.length > 0) {
-        result.push({ id: customer.id, name: customer.name, projects: sortProjectsByTracking(bucket, trackedProjectIds) });
-      }
-    });
-
-    const noCustomer = grouped.get('none');
-    if (noCustomer && noCustomer.length > 0) {
-      result.push({ id: 'none', name: t`No customer`, projects: sortProjectsByTracking(noCustomer, trackedProjectIds) });
-    }
-
-    return result;
-  }, [groupByCustomer, sortedCustomers, trackedProjectIds]);
+  const groupedProjects = useCallback(
+    (list: Project[]) => groupProjectsForSidebar(
+      list,
+      groupByCustomer,
+      sortedCustomers,
+      trackedProjectIds,
+      t`No customer`,
+      t`All projects`,
+    ),
+    [groupByCustomer, sortedCustomers, trackedProjectIds],
+  );
 
   const handleOpenProjectFromCustomer = useCallback((project: Project) => {
     setMode('projects');

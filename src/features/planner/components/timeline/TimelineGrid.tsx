@@ -7,27 +7,26 @@ import { TimelineRow } from './TimelineRow';
 import { TaskBar } from './TaskBar';
 import { MilestoneDialog } from './MilestoneDialog';
 import { getVisibleDays, getDayWidth, getTaskPosition, SIDEBAR_WIDTH, HEADER_HEIGHT, MIN_ROW_HEIGHT, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
-import { Milestone, Task, ViewMode } from '@/features/planner/types/planner';
-
-/** Дополнительный отступ снизу у строки пользователя в режиме группировки по исполнителям (визуально больше расстояние между пользователями) */
-const ASSIGNEE_ROW_GAP = 20;
-/** Показываем 2 полных дня слева от фокусной даты, остальное пространство оставляем под будущие дни. */
-const LEFT_CONTEXT_DAYS = 2;
-const SCROLL_REANCHOR_MIN_SHIFT_DAYS: Record<ViewMode, number> = {
-  day: 3,
-  week: 10,
-  calendar: 21,
-};
-const SCROLL_REANCHOR_EDGE_TRIGGER_DAYS: Record<ViewMode, number> = {
-  day: 10,
-  week: 14,
-  calendar: 21,
-};
-const EDGE_REANCHOR_COOLDOWN_MS = 450;
-const TIMELINE_SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
-const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
-const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
-import { calculateTaskLanes, getMaxLanes, TaskWithLane } from '@/features/planner/lib/taskLanes';
+import { Milestone, ViewMode } from '@/features/planner/types/planner';
+import {
+  buildAssigneeGroupMap,
+  buildTimelineDisplayRows,
+  calculateTimelineRowHeights,
+  groupTasksByTimelineRow,
+  resolveCurrentUserAssigneeId,
+  selectFilteredTasks,
+  selectTimelineGroupItems,
+  selectVisibleAssignees,
+} from '@/features/planner/lib/timelineSelectors';
+import {
+  buildMilestoneTooltipCells,
+  buildVisibleDayIndexMap,
+  buildVisibleMilestoneLines,
+  calculateMilestoneOffsets,
+  filterMilestonesByProjects,
+  groupMilestonesByDate,
+  sortMilestonesByDateAndTitle,
+} from '@/features/planner/lib/timelineMilestoneSelectors';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
@@ -51,6 +50,25 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
+
+/** Дополнительный отступ снизу у строки пользователя в режиме группировки по исполнителям (визуально больше расстояние между пользователями) */
+const ASSIGNEE_ROW_GAP = 20;
+/** Показываем 2 полных дня слева от фокусной даты, остальное пространство оставляем под будущие дни. */
+const LEFT_CONTEXT_DAYS = 2;
+const SCROLL_REANCHOR_MIN_SHIFT_DAYS: Record<ViewMode, number> = {
+  day: 3,
+  week: 10,
+  calendar: 21,
+};
+const SCROLL_REANCHOR_EDGE_TRIGGER_DAYS: Record<ViewMode, number> = {
+  day: 10,
+  week: 14,
+  calendar: 21,
+};
+const EDGE_REANCHOR_COOLDOWN_MS = 450;
+const TIMELINE_SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
+const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
+const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
 
 interface TimelineGridProps {
   onCreateTask?: (payload: {
@@ -101,23 +119,15 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const filteredAssignees = useFilteredAssignees(assignees);
 
-  const assigneeGroupMap = useMemo(() => {
-    const groupByUserId = new Map(memberGroupAssignments.map((assignment) => [assignment.userId, assignment.groupId]));
-    const map = new Map<string, string>();
-    assignees.forEach((assignee) => {
-      if (!assignee.userId) return;
-      const groupId = groupByUserId.get(assignee.userId);
-      if (groupId) {
-        map.set(assignee.id, groupId);
-      }
-    });
-    return map;
-  }, [assignees, memberGroupAssignments]);
+  const assigneeGroupMap = useMemo(
+    () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
+    [assignees, memberGroupAssignments],
+  );
 
-  const myAssigneeId = useMemo(() => {
-    if (!user?.id) return null;
-    return assignees.find((a) => a.userId === user.id)?.id ?? null;
-  }, [assignees, user?.id]);
+  const myAssigneeId = useMemo(
+    () => resolveCurrentUserAssigneeId(assignees, user?.id),
+    [assignees, user?.id],
+  );
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
@@ -193,174 +203,73 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     [projects]
   );
 
-  const filteredMilestones = useMemo(() => {
-    if (filters.projectIds.length === 0) return milestones;
-    return milestones.filter((milestone) => filters.projectIds.includes(milestone.projectId));
-  }, [milestones, filters.projectIds]);
+  const filteredMilestones = useMemo(
+    () => filterMilestonesByProjects(milestones, filters.projectIds),
+    [milestones, filters.projectIds],
+  );
 
-  const sortedMilestones = useMemo(() => {
-    return [...filteredMilestones].sort((left, right) => {
-      if (left.date === right.date) {
-        return left.title.localeCompare(right.title);
-      }
-      return left.date.localeCompare(right.date);
-    });
-  }, [filteredMilestones]);
+  const sortedMilestones = useMemo(
+    () => sortMilestonesByDateAndTitle(filteredMilestones),
+    [filteredMilestones],
+  );
 
-  const visibleDayIndex = useMemo(() => {
-    const map = new Map<string, number>();
-    visibleDays.forEach((day, index) => {
-      map.set(format(day, 'yyyy-MM-dd'), index);
-    });
-    return map;
-  }, [visibleDays]);
+  const visibleDayIndex = useMemo(
+    () => buildVisibleDayIndexMap(visibleDays),
+    [visibleDays],
+  );
 
-  const milestonesByDate = useMemo(() => {
-    const map = new Map<string, Milestone[]>();
-    sortedMilestones.forEach((milestone) => {
-      const list = map.get(milestone.date) ?? [];
-      list.push(milestone);
-      map.set(milestone.date, list);
-    });
-    return map;
-  }, [sortedMilestones]);
+  const milestonesByDate = useMemo(
+    () => groupMilestonesByDate(sortedMilestones),
+    [sortedMilestones],
+  );
 
-  const milestoneOffsets = useMemo(() => {
-    const offsets = new Map<string, number>();
-    milestonesByDate.forEach((items) => {
-      items.forEach((item, index) => {
-        const offset = items.length > 1 ? (index - (items.length - 1) / 2) * 8 : 0;
-        offsets.set(item.id, offset);
-      });
-    });
-    return offsets;
-  }, [milestonesByDate]);
+  const milestoneOffsets = useMemo(
+    () => calculateMilestoneOffsets(milestonesByDate),
+    [milestonesByDate],
+  );
   
-  // Filter tasks
-  const filteredTasks = useMemo(() => {
-    return tasks.filter(task => {
-      if (filters.projectIds.length > 0 && task.projectId && !filters.projectIds.includes(task.projectId)) {
-        return false;
-      }
-      if (filters.assigneeIds.length > 0) {
-        if (!task.assigneeIds.some((id) => filters.assigneeIds.includes(id))) {
-          return false;
-        }
-      } else if (filters.hideUnassigned && task.assigneeIds.length === 0) {
-        return false;
-      }
-      if (filters.statusIds.length > 0 && !filters.statusIds.includes(task.statusId)) {
-        return false;
-      }
-      if (filters.typeIds.length > 0 && !filters.typeIds.includes(task.typeId)) {
-        return false;
-      }
-      if (filters.tagIds.length > 0 && !filters.tagIds.some(id => task.tagIds.includes(id))) {
-        return false;
-      }
-      if (filters.groupIds.length > 0) {
-        const matchesGroup = task.assigneeIds.some((id) => {
-          const groupId = assigneeGroupMap.get(id);
-          return groupId ? filters.groupIds.includes(groupId) : false;
-        });
-        if (!matchesGroup) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [tasks, filters, assigneeGroupMap]);
-  
-  const visibleAssignees = useMemo(() => {
-    if (groupMode !== 'assignee') return filteredAssignees;
-    let list = filteredAssignees;
-    if (filters.assigneeIds.length > 0) {
-      list = list.filter((assignee) => filters.assigneeIds.includes(assignee.id));
-    }
-    if (filters.groupIds.length > 0) {
-      list = list.filter((assignee) => {
-        const groupId = assigneeGroupMap.get(assignee.id);
-        return groupId ? filters.groupIds.includes(groupId) : false;
-      });
-    }
-    return list;
-  }, [assigneeGroupMap, filteredAssignees, filters.assigneeIds, filters.groupIds, groupMode]);
+  const filteredTasks = useMemo(
+    () => selectFilteredTasks(tasks, filters, assigneeGroupMap),
+    [tasks, filters, assigneeGroupMap],
+  );
 
-  // Group items (assignees or projects). При группировке по исполнителям: сначала текущий пользователь, затем остальные по алфавиту.
-  const groupItems = useMemo(() => {
-    if (groupMode === 'assignee') {
-      const sorted = [...visibleAssignees].sort((a, b) => {
-        if (myAssigneeId && a.id === myAssigneeId) return -1;
-        if (myAssigneeId && b.id === myAssigneeId) return 1;
-        return (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' });
-      });
-      return sorted.map(a => ({ id: a.id, name: a.name, color: undefined }));
-    }
-    return projects.map(p => ({ id: p.id, name: formatProjectLabel(p.name, p.code), color: p.color }));
-  }, [groupMode, visibleAssignees, projects, myAssigneeId]);
-  
-  // Group tasks by row with lane calculation
-  const tasksByRow = useMemo(() => {
-    const grouped: Record<string, TaskWithLane[]> = {};
-    
-    groupItems.forEach(item => {
-      grouped[item.id] = [];
-    });
-    grouped['unassigned'] = [];
-    
-    // Group tasks first
-    const tasksPerGroup: Record<string, Task[]> = {};
-    groupItems.forEach(item => {
-      tasksPerGroup[item.id] = [];
-    });
-    tasksPerGroup['unassigned'] = [];
-    
-    const visibleGroupIds = new Set(groupItems.map((item) => item.id));
+  const visibleAssignees = useMemo(
+    () => selectVisibleAssignees({
+      groupMode,
+      filteredAssignees,
+      filters,
+      assigneeGroupMap,
+    }),
+    [assigneeGroupMap, filteredAssignees, filters, groupMode],
+  );
 
-    filteredTasks.forEach(task => {
-      if (groupMode === 'assignee') {
-        const matchingAssignees = Array.from(new Set(task.assigneeIds)).filter((id) => visibleGroupIds.has(id));
-        if (matchingAssignees.length === 0) {
-          tasksPerGroup['unassigned'].push(task);
-          return;
-        }
-        matchingAssignees.forEach((assigneeId) => {
-          if (!tasksPerGroup[assigneeId]) {
-            tasksPerGroup[assigneeId] = [];
-          }
-          tasksPerGroup[assigneeId].push(task);
-        });
-        return;
-      }
+  const groupItems = useMemo(
+    () => selectTimelineGroupItems({
+      groupMode,
+      visibleAssignees,
+      projects,
+      myAssigneeId,
+    }),
+    [groupMode, visibleAssignees, projects, myAssigneeId],
+  );
 
-      const groupId = task.projectId || 'unassigned';
-      if (!tasksPerGroup[groupId]) {
-        tasksPerGroup[groupId] = [];
-      }
-      tasksPerGroup[groupId].push(task);
-    });
-    
-    // Calculate lanes for each group
-    Object.entries(tasksPerGroup).forEach(([groupId, tasks]) => {
-      grouped[groupId] = calculateTaskLanes(tasks);
-    });
-    
-    return grouped;
-  }, [filteredTasks, groupItems, groupMode]);
-  
-  // Calculate row heights based on max lanes
-  const rowHeights = useMemo(() => {
-    const heights: Record<string, number> = {};
-    
-    Object.entries(tasksByRow).forEach(([groupId, tasks]) => {
-      const maxLanes = getMaxLanes(tasks);
-      // Calculate height: padding (16px) + (task height + gap) * lanes
-      const calculatedHeight = 16 + maxLanes * (TASK_HEIGHT + TASK_GAP);
-      heights[groupId] = Math.max(MIN_ROW_HEIGHT, calculatedHeight);
-    });
-    
-    return heights;
-  }, [tasksByRow]);
+  const tasksByRow = useMemo(
+    () => groupTasksByTimelineRow({
+      filteredTasks,
+      groupItems,
+      groupMode,
+    }),
+    [filteredTasks, groupItems, groupMode],
+  );
+
+  const rowHeights = useMemo(
+    () => calculateTimelineRowHeights(tasksByRow, {
+      minRowHeight: MIN_ROW_HEIGHT,
+      taskHeight: TASK_HEIGHT,
+      taskGap: TASK_GAP,
+    }),
+    [tasksByRow],
+  );
   
   const handleSidebarScroll = useCallback(() => {
     if (syncingVerticalRef.current) {
@@ -708,35 +617,23 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     };
   }, [highlightedTaskId, tasks.length, viewMode]);
   
-  // Rows to display (including unassigned if there are unassigned tasks). В режиме по исполнителям — чуть больше отступ между строками пользователей.
-  const displayRows = useMemo(() => {
-    const rows = groupItems.map(item => {
-      const baseHeight = rowHeights[item.id] || MIN_ROW_HEIGHT;
-      const height = groupMode === 'assignee' && item.id !== 'unassigned'
-        ? baseHeight + ASSIGNEE_ROW_GAP
-        : baseHeight;
-      return {
-        ...item,
-        tasks: tasksByRow[item.id] || [],
-        height,
-      };
-    });
-
-    const showUnassignedRow = tasksByRow['unassigned']?.length > 0
-      && (groupMode === 'project' || (filters.assigneeIds.length === 0 && !filters.hideUnassigned));
-    
-    if (showUnassignedRow) {
-      rows.push({
-        id: 'unassigned',
-        name: groupMode === 'assignee' ? t`Unassigned` : t`No project`,
-        color: '#94a3b8',
-        tasks: tasksByRow['unassigned'],
-        height: rowHeights['unassigned'] || MIN_ROW_HEIGHT,
-      });
-    }
-    
-    return rows;
-  }, [filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, rowHeights, tasksByRow]);
+  const displayRows = useMemo(
+    () => buildTimelineDisplayRows({
+      groupItems,
+      tasksByRow,
+      rowHeights,
+      groupMode,
+      assigneeFilterCount: filters.assigneeIds.length,
+      hideUnassigned: filters.hideUnassigned,
+      labels: {
+        unassigned: t`Unassigned`,
+        noProject: t`No project`,
+      },
+      minRowHeight: MIN_ROW_HEIGHT,
+      assigneeRowGap: ASSIGNEE_ROW_GAP,
+    }),
+    [filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, rowHeights, tasksByRow],
+  );
 
   const rowTaskElementsById = useMemo(() => {
     const elementsByRowId = new Map<string, React.ReactNode[]>();
@@ -880,35 +777,25 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     onCreateTask?.(defaults);
   }, [assignees, canEdit, groupMode, onCreateTask, projects]);
 
-  // По умолчанию показываем линию от каждой вехи, попадающей в видимый диапазон дат
-  const visibleMilestoneLines = useMemo(() => {
-    const lines: { date: string; color: string }[] = [];
-    const seenDates = new Set<string>();
-    for (const m of sortedMilestones) {
-      if (!visibleDayIndex.has(m.date) || seenDates.has(m.date)) continue;
-      seenDates.add(m.date);
-      const project = projectById.get(m.projectId);
-      lines.push({ date: m.date, color: project?.color ?? '#94a3b8' });
-    }
-    return lines;
-  }, [sortedMilestones, visibleDayIndex, projectById]);
+  const visibleMilestoneLines = useMemo(
+    () => buildVisibleMilestoneLines({
+      milestones: sortedMilestones,
+      visibleDayIndex,
+      projectById,
+      defaultColor: '#94a3b8',
+    }),
+    [projectById, sortedMilestones, visibleDayIndex],
+  );
 
-  const milestoneTooltipCells = useMemo(() => {
-    const cells: Array<{ date: string; dayIndex: number; color: string; milestones: Milestone[] }> = [];
-    milestonesByDate.forEach((dayMilestones, date) => {
-      const dayIndex = visibleDayIndex.get(date);
-      if (typeof dayIndex !== 'number') return;
-      const project = projectById.get(dayMilestones[0]?.projectId ?? '');
-      cells.push({
-        date,
-        dayIndex,
-        color: project?.color ?? '#94a3b8',
-        milestones: dayMilestones,
-      });
-    });
-    cells.sort((left, right) => left.dayIndex - right.dayIndex);
-    return cells;
-  }, [milestonesByDate, projectById, visibleDayIndex]);
+  const milestoneTooltipCells = useMemo(
+    () => buildMilestoneTooltipCells({
+      milestonesByDate,
+      visibleDayIndex,
+      projectById,
+      defaultColor: '#94a3b8',
+    }),
+    [milestonesByDate, projectById, visibleDayIndex],
+  );
 
   const renderMilestoneTooltipBody = useCallback((date: string, dayMilestones: Milestone[]) => (
     <div className="space-y-1.5">
