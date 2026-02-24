@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-02-24
+### Changed
+- No documented changes.
+
 ## [0.1.83] - 2026-02-20
 ### Changed
 - Dashboard: increased default legend display limits (more columns/rows and denser layout). More categories are now shown before collapsing into hidden items.
