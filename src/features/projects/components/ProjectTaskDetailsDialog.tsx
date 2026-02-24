@@ -67,18 +67,13 @@ export const ProjectTaskDetailsDialog: React.FC<ProjectTaskDetailsDialogProps> =
             </div>
             <div>
               <div className="text-xs text-muted-foreground">{t`Status`}</div>
-              <div className="flex items-center gap-2 text-sm">
-                <span
-                  className="inline-flex h-2 w-2 rounded-full"
-                  style={{ backgroundColor: statusById.get(selectedTask.statusId)?.color ?? '#94a3b8' }}
-                />
-                <span>{statusById.get(selectedTask.statusId)
+              <div className="text-sm">
+                {statusById.get(selectedTask.statusId)
                   ? formatStatusLabel(
                     statusById.get(selectedTask.statusId)!.name,
                     statusById.get(selectedTask.statusId)!.emoji,
                   )
                   : t`Unknown`}
-                </span>
               </div>
             </div>
             <div>

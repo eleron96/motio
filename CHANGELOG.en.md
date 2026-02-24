@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- UI: removed status color indicators across the app (filters, tables, task detail cards, task tooltip/context menu). Statuses are now shown as text/emoji only.
+
 ## [0.2.9] - 2026-02-24
 ### Fixed
 - Timeline day/week: on dates with multiple milestones, right-click no longer routes to task creation; it now opens a context menu with Create milestone action.
