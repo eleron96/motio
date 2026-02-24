@@ -70,6 +70,31 @@ const countTaskUnits = (tasks: Task[]) => {
   return units.size;
 };
 
+const pickNearestRepeatTaskFromToday = (task: Task, tasks: Task[]) => {
+  if (!task.repeatId) return task;
+
+  const series = tasks.filter((item) => item.repeatId === task.repeatId);
+  if (series.length === 0) return task;
+
+  const todayTime = parseISO(format(new Date(), 'yyyy-MM-dd')).getTime();
+  return series.reduce((best, candidate) => {
+    const bestDiff = parseISO(best.startDate).getTime() - todayTime;
+    const candidateDiff = parseISO(candidate.startDate).getTime() - todayTime;
+
+    const bestDistance = Math.abs(bestDiff);
+    const candidateDistance = Math.abs(candidateDiff);
+    if (candidateDistance < bestDistance) return candidate;
+    if (candidateDistance > bestDistance) return best;
+
+    const bestIsFutureOrToday = bestDiff >= 0;
+    const candidateIsFutureOrToday = candidateDiff >= 0;
+    if (candidateIsFutureOrToday && !bestIsFutureOrToday) return candidate;
+    if (!candidateIsFutureOrToday && bestIsFutureOrToday) return best;
+
+    return parseISO(candidate.startDate) < parseISO(best.startDate) ? candidate : best;
+  });
+};
+
 const MembersPage = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
@@ -648,17 +673,19 @@ const MembersPage = () => {
 
   const handleOpenTaskInTimeline = useCallback(() => {
     if (!selectedTask) return;
-    setHighlightedTaskId(selectedTask.id);
+    const timelineTask = pickNearestRepeatTaskFromToday(selectedTask, assigneeTasks);
+    setHighlightedTaskId(timelineTask.id);
     clearFilters();
     if (user?.id && typeof window !== 'undefined') {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
     setViewMode('week');
-    setCurrentDate(selectedTask.startDate);
-    requestScrollToDate(selectedTask.startDate);
+    setCurrentDate(timelineTask.startDate);
+    requestScrollToDate(timelineTask.startDate);
     setSelectedTaskId(null);
     navigate('/');
   }, [
+    assigneeTasks,
     clearFilters,
     navigate,
     requestScrollToDate,
