@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.11] - 2026-02-24
 ### Changed
 - Planner refactor: heavy timeline/projects/members logic moved to selectors; task create and edit now share a single rule set for project filtering and repeat validation.
 
