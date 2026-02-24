@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { z } from "npm:zod@3.25.76";
-import { ADMIN_ACTIONS } from "../../../../src/shared/contracts/actions.ts";
+import { ADMIN_ACTIONS } from "../_shared/actions.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
