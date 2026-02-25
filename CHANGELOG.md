@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.18] - 2026-02-25
 ### Changed
 - Ребрендинг: проект и пользовательские интерфейсы переименованы в Motio (обновлены заголовки, auth/account брендинг и Keycloak/email отображаемое имя).
 
