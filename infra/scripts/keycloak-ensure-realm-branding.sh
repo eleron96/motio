@@ -8,8 +8,8 @@ fi
 
 env_file="${1:-.env}"
 kc_base_url="${KEYCLOAK_ADMIN_BASE_URL:-http://127.0.0.1:8081}"
-desired_display_name="${KEYCLOAK_REALM_DISPLAY_NAME:-Motio - Timeline Planner}"
-desired_display_name_html="${KEYCLOAK_REALM_DISPLAY_NAME_HTML:-<strong>Motio - Timeline Planner</strong>}"
+desired_display_name="${KEYCLOAK_REALM_DISPLAY_NAME:-Motio}"
+desired_display_name_html="${KEYCLOAK_REALM_DISPLAY_NAME_HTML:-<strong>Motio</strong>}"
 desired_email_theme="${KEYCLOAK_REALM_EMAIL_THEME:-timeline}"
 
 if [[ ! -f "$env_file" ]]; then
