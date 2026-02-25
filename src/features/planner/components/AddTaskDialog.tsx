@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
+import { useProjectQueryInput } from '@/features/planner/hooks/useProjectQueryInput';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
@@ -32,12 +33,15 @@ import { t } from '@lingui/macro';
 import { Status } from '@/features/planner/types/planner';
 import { toast } from 'sonner';
 import {
+  buildCreateRepeatsOptions,
   filterProjectsByQuery,
+  getAutoRepeatUntilOnEndsChange,
+  getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
   RepeatEnds,
   RepeatFrequency,
-  resolveProjectQueryFromKeyDown,
-  validateRepeatConfig,
+  resolveRepeatValidationMessage,
+  shouldAutoSyncRepeatUntil,
 } from '@/features/planner/lib/taskFormRules';
 
 interface AddTaskDialogProps {
@@ -153,11 +157,16 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [repeatOpen, setRepeatOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
-  const [projectQuery, setProjectQuery] = useState('');
   const [subtasksOpen, setSubtasksOpen] = useState(false);
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
+  const {
+    projectQuery,
+    clearProjectQuery,
+    handleProjectSelectOpenChange,
+    handleProjectSelectKeyDown,
+  } = useProjectQueryInput();
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -179,27 +188,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const markChanged = useCallback(() => {
     setHasChanges(true);
   }, []);
-
-  const handleProjectSelectOpenChange = useCallback((nextOpen: boolean) => {
-    if (!nextOpen) {
-      setProjectQuery('');
-    }
-  }, []);
-
-  const handleProjectSelectKeyDown = useCallback((event: React.KeyboardEvent<HTMLElement>) => {
-    const nextQuery = resolveProjectQueryFromKeyDown({
-      currentQuery: projectQuery,
-      key: event.key,
-      isComposing: event.isComposing,
-      altKey: event.altKey,
-      ctrlKey: event.ctrlKey,
-      metaKey: event.metaKey,
-    });
-    if (nextQuery === null) return;
-    event.preventDefault();
-    event.stopPropagation();
-    setProjectQuery(nextQuery);
-  }, [projectQuery]);
 
   const handleTagToggle = (tagId: string) => {
     markChanged();
@@ -223,18 +211,26 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleRepeatFrequencyChange = (value: typeof repeatFrequency) => {
     markChanged();
     setRepeatFrequency(value);
-    if (value === 'none') return;
-    if (repeatEnds !== 'on') return;
+    const nextUntil = getAutoRepeatUntilOnFrequencyChange({
+      nextFrequency: value,
+      currentEnds: repeatEnds,
+      baseDate: startDate,
+    });
+    if (!nextUntil) return;
     repeatUntilAutoRef.current = true;
-    setRepeatUntil(getDefaultRepeatUntil(startDate));
+    setRepeatUntil(nextUntil);
   };
 
   const handleRepeatEndsChange = (value: typeof repeatEnds) => {
     markChanged();
     setRepeatEnds(value);
-    if (value !== 'on') return;
+    const nextUntil = getAutoRepeatUntilOnEndsChange({
+      nextEnds: value,
+      baseDate: startDate,
+    });
+    if (!nextUntil) return;
     repeatUntilAutoRef.current = true;
-    setRepeatUntil(getDefaultRepeatUntil(startDate));
+    setRepeatUntil(nextUntil);
   };
 
   const handleRepeatToggle = (enabled: boolean) => {
@@ -268,8 +264,11 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleStartDateChange = (value: string) => {
     markChanged();
     setStartDate(value);
-    if (repeatEnds !== 'on' || repeatFrequency === 'none') return;
-    if (!repeatUntilAutoRef.current) return;
+    if (!shouldAutoSyncRepeatUntil({
+      frequency: repeatFrequency,
+      ends: repeatEnds,
+      auto: repeatUntilAutoRef.current,
+    })) return;
     setRepeatUntil(getDefaultRepeatUntil(value));
   };
 
@@ -302,18 +301,17 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!title.trim() || !statusId || !typeId) return;
 
     setRepeatError('');
-    const repeatValidationError = validateRepeatConfig({
+    const repeatValidationMessage = resolveRepeatValidationMessage({
       frequency: repeatFrequency,
       ends: repeatEnds,
       until: repeatUntil,
       count: repeatCount,
+    }, {
+      missingCount: t`Enter how many repeats to create.`,
+      missingUntil: t`Select an end date.`,
     });
-    if (repeatValidationError === 'missing_count') {
-      setRepeatError(t`Enter how many repeats to create.`);
-      return;
-    }
-    if (repeatValidationError === 'missing_until') {
-      setRepeatError(t`Select an end date.`);
+    if (repeatValidationMessage) {
+      setRepeatError(repeatValidationMessage);
       return;
     }
 
@@ -351,12 +349,15 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     }
 
     if (repeatFrequency !== 'none') {
-      const result = await createRepeats(createdTask.id, {
-        frequency: repeatFrequency,
-        ends: repeatEnds,
-        untilDate: repeatEnds === 'on' ? repeatUntil : undefined,
-        count: repeatEnds === 'after' ? repeatCount : undefined,
-      });
+      const result = await createRepeats(
+        createdTask.id,
+        buildCreateRepeatsOptions({
+          frequency: repeatFrequency,
+          ends: repeatEnds,
+          until: repeatUntil,
+          count: repeatCount,
+        }),
+      );
       if (result.error) {
         setRepeatError(result.error);
         setRepeatCreating(false);
@@ -368,7 +369,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setTitle('');
     setProjectId(activeProjects[0]?.id || 'none');
     setProjectInitialized(false);
-    setProjectQuery('');
+    clearProjectQuery();
     setAssigneeIds([]);
     setStatusId(defaultStatusId);
     setTypeId(taskTypes[0]?.id || '');
@@ -402,7 +403,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   useEffect(() => {
     if (!open) {
       setProjectInitialized(false);
-      setProjectQuery('');
+      clearProjectQuery();
       setHasChanges(false);
       setRepeatOpen(false);
       setConfirmCloseOpen(false);
@@ -442,6 +443,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setProjectInitialized(true);
   }, [
     activeProjects,
+    clearProjectQuery,
     defaultStart,
     initialAssigneeIds,
     initialEndDate,
@@ -520,7 +522,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 onValueChange={(value) => {
                   markChanged();
                   setProjectId(value);
-                  setProjectQuery('');
+                  clearProjectQuery();
                 }}
                 onOpenChange={handleProjectSelectOpenChange}
               >

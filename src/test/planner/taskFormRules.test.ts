@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildCreateRepeatsOptions,
   filterProjectsByQuery,
+  getAutoRepeatUntilOnEndsChange,
+  getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
   resolveProjectQueryFromKeyDown,
+  resolveRepeatValidationMessage,
+  shouldAutoSyncRepeatUntil,
   validateRepeatConfig,
 } from '@/features/planner/lib/taskFormRules';
 
@@ -90,5 +95,90 @@ describe('taskFormRules', () => {
       until: '',
       count: 4,
     })).toBe('missing_until');
+
+    expect(resolveRepeatValidationMessage({
+      frequency: 'weekly',
+      ends: 'after',
+      until: '',
+      count: 0,
+    }, {
+      missingCount: 'count required',
+      missingUntil: 'until required',
+    })).toBe('count required');
+
+    expect(resolveRepeatValidationMessage({
+      frequency: 'weekly',
+      ends: 'on',
+      until: '',
+      count: 4,
+    }, {
+      missingCount: 'count required',
+      missingUntil: 'until required',
+    })).toBe('until required');
+
+    expect(resolveRepeatValidationMessage({
+      frequency: 'weekly',
+      ends: 'never',
+      until: '',
+      count: 4,
+    }, {
+      missingCount: 'count required',
+      missingUntil: 'until required',
+    })).toBeNull();
+
+    expect(buildCreateRepeatsOptions({
+      frequency: 'weekly',
+      ends: 'on',
+      until: '2026-03-01',
+      count: 7,
+    })).toEqual({
+      frequency: 'weekly',
+      ends: 'on',
+      untilDate: '2026-03-01',
+      count: undefined,
+    });
+
+    expect(buildCreateRepeatsOptions({
+      frequency: 'weekly',
+      ends: 'after',
+      until: '2026-03-01',
+      count: 7,
+    })).toEqual({
+      frequency: 'weekly',
+      ends: 'after',
+      untilDate: undefined,
+      count: 7,
+    });
+
+    expect(getAutoRepeatUntilOnFrequencyChange({
+      nextFrequency: 'weekly',
+      currentEnds: 'on',
+      baseDate: '2026-01-31',
+    })).toBe('2026-01-31');
+    expect(getAutoRepeatUntilOnFrequencyChange({
+      nextFrequency: 'none',
+      currentEnds: 'on',
+      baseDate: '2026-01-31',
+    })).toBeNull();
+
+    expect(getAutoRepeatUntilOnEndsChange({
+      nextEnds: 'on',
+      baseDate: '2026-01-31',
+    })).toBe('2026-01-31');
+    expect(getAutoRepeatUntilOnEndsChange({
+      nextEnds: 'never',
+      baseDate: '2026-01-31',
+    })).toBeNull();
+
+    expect(shouldAutoSyncRepeatUntil({
+      frequency: 'weekly',
+      ends: 'on',
+      auto: true,
+    })).toBe(true);
+    expect(shouldAutoSyncRepeatUntil({
+      frequency: 'none',
+      ends: 'on',
+      auto: true,
+    })).toBe(false);
   });
 });
