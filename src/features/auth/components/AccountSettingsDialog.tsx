@@ -246,7 +246,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
               {`v${APP_VERSION}`}
             </button>
             <div>
-              © Motio — Timeline Planner,{` `}
+              © Motio,{` `}
               <a
                 href="https://nikog.net"
                 target="_blank"

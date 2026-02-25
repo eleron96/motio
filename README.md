@@ -1,6 +1,6 @@
-# Motio - Timeline Planner
+# Motio
 
-Motio - Timeline Planner — приложение для командного планирования задач на таймлайне.
+Motio — приложение для командного планирования задач на таймлайне.
 
 Стек проекта:
 - Frontend: `Vite + React + TypeScript + Zustand + TanStack Query`

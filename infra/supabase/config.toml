@@ -1,4 +1,4 @@
-project_id = "timeline-buddy"
+project_id = "motio"
 
 [api]
 port = 54321

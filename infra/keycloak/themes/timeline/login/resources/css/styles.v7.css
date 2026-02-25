@@ -134,7 +134,7 @@ html.login-pf {
 }
 
 #kc-page-title::before {
-  content: "Timeline Planner";
+  content: "Motio";
   display: block;
   margin: 0 0 14px;
   font-size: 11px;
@@ -350,7 +350,7 @@ html.login-pf {
 }
 
 #kc-content-wrapper::after {
-  content: "© Motio — Timeline Planner, NIKO G.";
+  content: "© Motio, NIKO G.";
   display: block;
   margin-top: 22px;
   text-align: center;

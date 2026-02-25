@@ -118,7 +118,7 @@ const AuthPage: React.FC = () => {
         <CardHeader className="space-y-4">
           <div className="space-y-1 text-center">
             <div className="text-2xl font-semibold tracking-tight text-slate-900">Motio</div>
-            <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Timeline Planner</div>
+            <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Workspace Planner</div>
           </div>
           <div className="space-y-1">
             <CardTitle>{t`Sign in required`}</CardTitle>
@@ -158,7 +158,7 @@ const AuthPage: React.FC = () => {
       </Card>
 
       <div className="absolute bottom-6 z-10 text-center text-[11px] text-slate-500">
-        © Motio — Timeline Planner, NIKO G.
+        © Motio, NIKO G.
       </div>
     </div>
   );
