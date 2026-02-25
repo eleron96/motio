@@ -15,7 +15,6 @@ import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
-import { supabase } from '@/shared/lib/supabaseClient';
 import { AlertTriangle, ChevronDown, CircleDot, Layers, Plus, RotateCw, Trash2, User, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { RepeatTaskUpdateScope, Task, TaskPriority, TaskSubtask } from '@/features/planner/types/planner';
@@ -60,16 +59,6 @@ type PendingRepeatUpdate = {
   resetDraftOnCancel: boolean;
 };
 
-type TaskSubtaskRow = {
-  id: string;
-  task_id: string;
-  title: string;
-  is_done: boolean;
-  done_at: string | null;
-  position: number;
-  created_at: string;
-};
-
 const buildRepeatConfigSignature = (params: {
   frequency: RepeatFrequency;
   ends: RepeatEnds;
@@ -88,15 +77,6 @@ const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
     return currentValue !== value;
   })
 );
-
-const mapSubtaskRow = (row: TaskSubtaskRow): TaskSubtask => ({
-  id: row.id,
-  taskId: row.task_id,
-  title: row.title,
-  isDone: row.is_done,
-  doneAt: row.done_at,
-  position: row.position,
-});
 
 const inferRepeatFrequency = (series: Task[]): RepeatFrequency => {
   if (series.length < 2) return 'none';
@@ -130,6 +110,10 @@ export const TaskDetailPanel: React.FC = () => {
     deleteTaskSeries,
     duplicateTask,
     createRepeats,
+    fetchTaskSubtasks,
+    createTaskSubtask,
+    updateTaskSubtaskCompletion,
+    deleteTaskSubtask,
   } = usePlannerStore();
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
@@ -266,25 +250,18 @@ export const TaskDetailPanel: React.FC = () => {
     const loadSubtasks = async () => {
       setSubtasksLoading(true);
       setSubtasksError('');
-      const { data, error } = await supabase
-        .from('task_subtasks')
-        .select('id, task_id, title, is_done, done_at, position, created_at')
-        .eq('workspace_id', currentWorkspaceId)
-        .eq('task_id', taskId)
-        .order('position', { ascending: true })
-        .order('created_at', { ascending: true });
+      const result = await fetchTaskSubtasks(currentWorkspaceId, taskId);
 
       if (!active) return;
-      if (error) {
-        setSubtasksError(error.message);
+      if (result.error) {
+        setSubtasksError(result.error);
         setSubtasks([]);
         setSubtasksLoading(false);
         return;
       }
 
-      const parsed = ((data ?? []) as TaskSubtaskRow[]).map(mapSubtaskRow);
-      setSubtasks(parsed);
-      setSubtasksOpen(parsed.length > 0);
+      setSubtasks(result.subtasks);
+      setSubtasksOpen(result.subtasks.length > 0);
       setSubtasksLoading(false);
     };
 
@@ -292,7 +269,7 @@ export const TaskDetailPanel: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [currentWorkspaceId, taskId]);
+  }, [currentWorkspaceId, fetchTaskSubtasks, taskId]);
 
   useEffect(() => {
     if (!task) return;
@@ -589,33 +566,22 @@ export const TaskDetailPanel: React.FC = () => {
     setSubtasksSaving(true);
     setSubtasksError('');
 
-    const { data, error } = await supabase
-      .from('task_subtasks')
-      .insert({
-        workspace_id: currentWorkspaceId,
-        task_id: task.id,
-        title,
-        is_done: false,
-        done_at: null,
-        position: nextPosition,
-      })
-      .select('id, task_id, title, is_done, done_at, position, created_at')
-      .single();
-
-    if (error || !data) {
-      setSubtasksError(error?.message ?? t`Failed to add subtask.`);
+    const result = await createTaskSubtask(currentWorkspaceId, task.id, title, nextPosition);
+    if (result.error || !result.subtask) {
+      setSubtasksError(result.error ?? t`Failed to add subtask.`);
       setSubtasksSaving(false);
       return;
     }
 
-    setSubtasks((current) => [...current, mapSubtaskRow(data as TaskSubtaskRow)]);
+    const createdSubtask = result.subtask;
+    setSubtasks((current) => [...current, createdSubtask]);
     setNewSubtaskTitle('');
     setSubtasksSaving(false);
     subtaskInputRef.current?.focus();
   };
 
   const handleToggleSubtask = async (subtaskId: string, isDone: boolean) => {
-    if (!task || !canEdit) return;
+    if (!task || !currentWorkspaceId || !canEdit) return;
     const previous = subtasks.find((item) => item.id === subtaskId);
     if (!previous) return;
 
@@ -627,44 +593,37 @@ export const TaskDetailPanel: React.FC = () => {
         : item
     )));
 
-    const { error } = await supabase
-      .from('task_subtasks')
-      .update({
-        is_done: isDone,
-        done_at: nextDoneAt,
-      })
-      .eq('id', subtaskId)
-      .eq('task_id', task.id);
-
-    if (error) {
+    const result = await updateTaskSubtaskCompletion(
+      currentWorkspaceId,
+      task.id,
+      subtaskId,
+      isDone,
+      nextDoneAt,
+    );
+    if (result.error) {
       setSubtasks((current) => current.map((item) => (
         item.id === subtaskId
           ? { ...item, isDone: previous.isDone, doneAt: previous.doneAt }
           : item
       )));
-      setSubtasksError(error.message);
+      setSubtasksError(result.error);
     }
   };
 
   const handleDeleteSubtask = async (subtaskId: string) => {
-    if (!task || !canEdit) return;
+    if (!task || !currentWorkspaceId || !canEdit) return;
     const previous = subtasks.find((item) => item.id === subtaskId);
     if (!previous) return;
 
     setSubtasksError('');
     setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
 
-    const { error } = await supabase
-      .from('task_subtasks')
-      .delete()
-      .eq('id', subtaskId)
-      .eq('task_id', task.id);
-
-    if (error) {
+    const result = await deleteTaskSubtask(currentWorkspaceId, task.id, subtaskId);
+    if (result.error) {
       setSubtasks((current) => (
         [...current, previous].sort((left, right) => left.position - right.position)
       ));
-      setSubtasksError(error.message || t`Failed to delete subtask.`);
+      setSubtasksError(result.error || t`Failed to delete subtask.`);
     }
   };
 

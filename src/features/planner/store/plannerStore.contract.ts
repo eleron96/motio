@@ -12,10 +12,23 @@ import {
   Status,
   Tag,
   Task,
+  TaskSubtask,
   TaskType,
   ViewMode,
 } from '@/features/planner/types/planner';
 import { MutationResult } from '@/features/planner/store/plannerStore.helpers';
+
+export type PlannerGroup = {
+  id: string;
+  name: string;
+};
+
+export type PlannerGroupMember = {
+  userId: string;
+  role: 'admin' | 'editor' | 'viewer';
+  email: string;
+  displayName: string | null;
+};
 
 export interface PlannerStore extends PlannerState {
   workspaceId: string | null;
@@ -38,6 +51,16 @@ export interface PlannerStore extends PlannerState {
   loadWorkspaceData: (workspaceId: string) => Promise<void>;
   refreshAssignees: () => Promise<void>;
   refreshMemberGroups: () => Promise<void>;
+  fetchAssigneeTaskCounts: (params: {
+    workspaceId: string;
+    startDate: string;
+    endDate: string;
+  }) => Promise<{ counts: Record<string, number>; date: string; error?: string }>;
+  fetchMemberGroups: (workspaceId: string) => Promise<{ groups: PlannerGroup[]; error?: string }>;
+  fetchGroupMembers: (workspaceId: string, groupId: string) => Promise<{ members: PlannerGroupMember[]; error?: string }>;
+  createMemberGroup: (workspaceId: string, name: string) => Promise<{ groupId?: string; error?: string }>;
+  updateMemberGroup: (workspaceId: string, groupId: string, name: string) => Promise<MutationResult>;
+  deleteMemberGroup: (workspaceId: string, groupId: string) => Promise<MutationResult>;
   reset: () => void;
   markTimelineInteraction: (durationMs?: number) => void;
   upsertTasks: (tasks: Task[]) => void;
@@ -55,6 +78,17 @@ export interface PlannerStore extends PlannerState {
   reassignTask: (id: string, assigneeId: string | null, projectId?: string | null) => Promise<void>;
   deleteTaskSeries: (repeatId: string, fromDate: string) => Promise<void>;
   removeAssigneeFromTask: (id: string, assigneeId: string, mode: 'single' | 'following') => Promise<void>;
+  fetchTaskSubtasks: (workspaceId: string, taskId: string) => Promise<{ subtasks: TaskSubtask[]; error?: string }>;
+  createTaskSubtask: (workspaceId: string, taskId: string, title: string, position: number) => Promise<{ subtask?: TaskSubtask; error?: string }>;
+  createTaskSubtasks: (workspaceId: string, taskId: string, titles: string[]) => Promise<MutationResult>;
+  updateTaskSubtaskCompletion: (
+    workspaceId: string,
+    taskId: string,
+    subtaskId: string,
+    isDone: boolean,
+    doneAt: string | null,
+  ) => Promise<MutationResult>;
+  deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
 
   addProject: (project: Omit<Project, 'id'>) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<MutationResult>;

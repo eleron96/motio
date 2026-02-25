@@ -30,7 +30,6 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { t } from '@lingui/macro';
 import { Status } from '@/features/planner/types/planner';
-import { supabase } from '@/shared/lib/supabaseClient';
 import { toast } from 'sonner';
 import {
   filterProjectsByQuery,
@@ -99,7 +98,18 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   initialProjectId,
   initialAssigneeIds,
 }) => {
-  const { projects, trackedProjectIds, assignees, statuses, taskTypes, tags, groupMode, addTask, createRepeats } = usePlannerStore();
+  const {
+    projects,
+    trackedProjectIds,
+    assignees,
+    statuses,
+    taskTypes,
+    tags,
+    groupMode,
+    addTask,
+    createRepeats,
+    createTaskSubtasks,
+  } = usePlannerStore();
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const filteredAssignees = useFilteredAssignees(assignees);
   const activeProjects = useMemo(
@@ -329,21 +339,13 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     }
 
     if (subtasks.length > 0 && currentWorkspaceId) {
-      const { error: subtaskInsertError } = await supabase
-        .from('task_subtasks')
-        .insert(
-          subtasks.map((subtask, index) => ({
-            workspace_id: currentWorkspaceId,
-            task_id: createdTask.id,
-            title: subtask.title,
-            is_done: false,
-            done_at: null,
-            position: index,
-          })),
-        );
-
-      if (subtaskInsertError) {
-        console.error(subtaskInsertError);
+      const subtaskResult = await createTaskSubtasks(
+        currentWorkspaceId,
+        createdTask.id,
+        subtasks.map((subtask) => subtask.title),
+      );
+      if (subtaskResult.error) {
+        console.error(subtaskResult.error);
         toast(t`Task was created, but subtasks were not saved.`);
       }
     }
