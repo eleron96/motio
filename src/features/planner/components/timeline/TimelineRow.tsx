@@ -18,6 +18,7 @@ interface TimelineRowProps {
   dayWidth: number;
   viewMode: ViewMode;
   todayKey: string;
+  holidayDates?: Set<string>;
   height: number;
   children: React.ReactNode;
   canEdit?: boolean;
@@ -32,6 +33,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   dayWidth,
   viewMode,
   todayKey,
+  holidayDates,
   height,
   children,
   canEdit = false,
@@ -86,13 +88,16 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
               const dayKey = format(day, 'yyyy-MM-dd');
               const today = dayKey === todayKey;
               const weekend = isWeekend(day);
+              const isHoliday = holidayDates?.has(dayKey) ?? false;
               
               return (
                 <div
                   key={index}
+                  data-day-key={dayKey}
                   className={cn(
                     'h-full border-r border-timeline-grid transition-colors relative',
                     weekend && 'bg-timeline-weekend/50',
+                    isHoliday && 'holiday-hatch',
                     today && 'today-hatch'
                   )}
                   style={{ width: dayWidth }}
@@ -129,6 +134,7 @@ const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps
   && prev.dayWidth === next.dayWidth
   && prev.viewMode === next.viewMode
   && prev.todayKey === next.todayKey
+  && prev.holidayDates === next.holidayDates
   && prev.height === next.height
   && prev.children === next.children
   && prev.canEdit === next.canEdit

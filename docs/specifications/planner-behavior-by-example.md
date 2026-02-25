@@ -86,3 +86,22 @@ Then:
 Покрытие:
 - `src/shared/domain/taskDescription.ts`
 - `src/test/shared/taskDescription.test.ts`
+
+## Scenario 6: Timeline highlights holidays with subtle hatch
+
+Given:
+- для текущего workspace загружены праздничные даты;
+- пользователь открыт в timeline (`day`/`week`) режиме.
+
+When:
+- рендерится шапка и строки таймлайна.
+
+Then:
+- день с праздничной датой получает слабую серую штриховку;
+- обычные дни остаются без праздничной штриховки.
+
+Покрытие:
+- `src/features/planner/hooks/useHolidayMap.ts`
+- `src/features/planner/components/timeline/TimelineHeader.tsx`
+- `src/features/planner/components/timeline/TimelineRow.tsx`
+- `src/test/planner/holidayMap.test.tsx`
