@@ -124,6 +124,15 @@ export const isToday = (date: Date): boolean => {
   return isSameDay(date, new Date());
 };
 
+export const shouldApplyHolidayHatch = (
+  dayKey: string,
+  weekend: boolean,
+  holidayDates?: Set<string>,
+): boolean => {
+  if (weekend) return false;
+  return Boolean(holidayDates?.has(dayKey));
+};
+
 export const calculateNewDates = (
   originalStart: string,
   originalEnd: string,

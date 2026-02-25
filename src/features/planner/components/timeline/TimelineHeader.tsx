@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { isWeekend, formatDayHeader } from '@/features/planner/lib/dateUtils';
+import { isWeekend, formatDayHeader, shouldApplyHolidayHatch } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -119,7 +119,7 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
           const dayKey = format(day, 'yyyy-MM-dd');
           const today = dayKey === todayKey;
           const weekend = isWeekend(day);
-          const isHoliday = holidayDates?.has(dayKey) ?? false;
+          const isHoliday = shouldApplyHolidayHatch(dayKey, weekend, holidayDates);
           const isAttentionDay = attentionDate === dayKey;
           
           return (
