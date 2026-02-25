@@ -5,6 +5,25 @@ export type RepeatEnds = 'never' | 'on' | 'after';
 
 export type RepeatValidationError = 'missing_count' | 'missing_until';
 
+type RepeatValidationMessages = {
+  missingCount: string;
+  missingUntil: string;
+};
+
+type RepeatConfigInput = {
+  frequency: RepeatFrequency;
+  ends: RepeatEnds;
+  until: string;
+  count: number | null | undefined;
+};
+
+export type RepeatCreateOptions = {
+  frequency: Exclude<RepeatFrequency, 'none'>;
+  ends: RepeatEnds;
+  untilDate?: string;
+  count?: number;
+};
+
 type ProjectQueryKeyInput = {
   currentQuery: string;
   key: string;
@@ -70,12 +89,7 @@ export const getDefaultRepeatUntil = (baseDate: string) => {
   return format(endOfMonth(start), 'yyyy-MM-dd');
 };
 
-export const validateRepeatConfig = (params: {
-  frequency: RepeatFrequency;
-  ends: RepeatEnds;
-  until: string;
-  count: number | null | undefined;
-}): RepeatValidationError | null => {
+export const validateRepeatConfig = (params: RepeatConfigInput): RepeatValidationError | null => {
   if (params.frequency === 'none') return null;
   if (params.ends === 'after' && (!params.count || params.count < 1)) {
     return 'missing_count';
@@ -85,3 +99,52 @@ export const validateRepeatConfig = (params: {
   }
   return null;
 };
+
+export const resolveRepeatValidationMessage = (
+  params: RepeatConfigInput,
+  messages: RepeatValidationMessages,
+) => {
+  const error = validateRepeatConfig(params);
+  if (error === 'missing_count') return messages.missingCount;
+  if (error === 'missing_until') return messages.missingUntil;
+  return null;
+};
+
+export const buildCreateRepeatsOptions = (params: {
+  frequency: Exclude<RepeatFrequency, 'none'>;
+  ends: RepeatEnds;
+  until: string;
+  count: number;
+}): RepeatCreateOptions => ({
+  frequency: params.frequency,
+  ends: params.ends,
+  untilDate: params.ends === 'on' ? params.until : undefined,
+  count: params.ends === 'after' ? params.count : undefined,
+});
+
+export const getAutoRepeatUntilOnFrequencyChange = (params: {
+  nextFrequency: RepeatFrequency;
+  currentEnds: RepeatEnds;
+  baseDate: string;
+}) => {
+  if (params.nextFrequency === 'none' || params.currentEnds !== 'on') return null;
+  return getDefaultRepeatUntil(params.baseDate);
+};
+
+export const getAutoRepeatUntilOnEndsChange = (params: {
+  nextEnds: RepeatEnds;
+  baseDate: string;
+}) => {
+  if (params.nextEnds !== 'on') return null;
+  return getDefaultRepeatUntil(params.baseDate);
+};
+
+export const shouldAutoSyncRepeatUntil = (params: {
+  frequency: RepeatFrequency;
+  ends: RepeatEnds;
+  auto: boolean;
+}) => (
+  params.auto
+  && params.frequency !== 'none'
+  && params.ends === 'on'
+);

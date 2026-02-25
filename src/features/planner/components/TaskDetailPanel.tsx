@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
+import { useProjectQueryInput } from '@/features/planner/hooks/useProjectQueryInput';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
 import { Button } from '@/shared/ui/button';
@@ -22,12 +23,15 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { format, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 import {
+  buildCreateRepeatsOptions,
   filterProjectsByQuery,
+  getAutoRepeatUntilOnEndsChange,
+  getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
   RepeatEnds,
   RepeatFrequency,
-  resolveProjectQueryFromKeyDown,
-  validateRepeatConfig,
+  resolveRepeatValidationMessage,
+  shouldAutoSyncRepeatUntil,
 } from '@/features/planner/lib/taskFormRules';
 
 const areArraysEqual = (left: string[], right: string[]) => {
@@ -157,8 +161,13 @@ export const TaskDetailPanel: React.FC = () => {
   const [subtasksError, setSubtasksError] = useState('');
   const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [projectQuery, setProjectQuery] = useState('');
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
+  const {
+    projectQuery,
+    clearProjectQuery,
+    handleProjectSelectOpenChange,
+    handleProjectSelectKeyDown,
+  } = useProjectQueryInput();
   
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
@@ -185,27 +194,6 @@ export const TaskDetailPanel: React.FC = () => {
     () => filterProjectsByQuery(projectOptions, projectQuery),
     [projectOptions, projectQuery],
   );
-
-  const handleProjectSelectOpenChange = useCallback((nextOpen: boolean) => {
-    if (!nextOpen) {
-      setProjectQuery('');
-    }
-  }, []);
-
-  const handleProjectSelectKeyDown = useCallback((event: React.KeyboardEvent<HTMLElement>) => {
-    const nextQuery = resolveProjectQueryFromKeyDown({
-      currentQuery: projectQuery,
-      key: event.key,
-      isComposing: event.isComposing,
-      altKey: event.altKey,
-      ctrlKey: event.ctrlKey,
-      metaKey: event.metaKey,
-    });
-    if (nextQuery === null) return;
-    event.preventDefault();
-    event.stopPropagation();
-    setProjectQuery(nextQuery);
-  }, [projectQuery]);
 
   useEffect(() => {
     if (!selectedTaskId) {
@@ -324,25 +312,37 @@ export const TaskDetailPanel: React.FC = () => {
 
   useEffect(() => {
     if (!task) return;
-    if (repeatFrequency === 'none' || repeatEnds !== 'on') return;
-    if (!repeatUntilAutoRef.current) return;
+    if (!shouldAutoSyncRepeatUntil({
+      frequency: repeatFrequency,
+      ends: repeatEnds,
+      auto: repeatUntilAutoRef.current,
+    })) return;
     setRepeatUntil(getDefaultRepeatUntil(task.startDate));
   }, [repeatEnds, repeatFrequency, task]);
 
   const handleRepeatFrequencyChange = (value: typeof repeatFrequency) => {
     setRepeatFrequency(value);
-    if (value === 'none') return;
-    if (repeatEnds === 'on' && task) {
-      repeatUntilAutoRef.current = true;
-      setRepeatUntil(getDefaultRepeatUntil(task.startDate));
-    }
+    if (!task) return;
+    const nextUntil = getAutoRepeatUntilOnFrequencyChange({
+      nextFrequency: value,
+      currentEnds: repeatEnds,
+      baseDate: task.startDate,
+    });
+    if (!nextUntil) return;
+    repeatUntilAutoRef.current = true;
+    setRepeatUntil(nextUntil);
   };
 
   const handleRepeatEndsChange = (value: typeof repeatEnds) => {
     setRepeatEnds(value);
-    if (value !== 'on' || !task) return;
+    if (!task) return;
+    const nextUntil = getAutoRepeatUntilOnEndsChange({
+      nextEnds: value,
+      baseDate: task.startDate,
+    });
+    if (!nextUntil) return;
     repeatUntilAutoRef.current = true;
-    setRepeatUntil(getDefaultRepeatUntil(task.startDate));
+    setRepeatUntil(nextUntil);
   };
 
   const isDirty = useMemo(() => {
@@ -390,18 +390,17 @@ export const TaskDetailPanel: React.FC = () => {
     });
     if (nextSignature === repeatConfigSnapshotRef.current) return true;
 
-    const repeatValidationError = validateRepeatConfig({
+    const repeatValidationMessage = resolveRepeatValidationMessage({
       frequency: repeatFrequency,
       ends: repeatEnds,
       until: repeatUntil,
       count: repeatCount,
+    }, {
+      missingCount: t`Enter how many repeats to create.`,
+      missingUntil: t`Select an end date.`,
     });
-    if (repeatValidationError === 'missing_count') {
-      setRepeatError(t`Enter how many repeats to create.`);
-      return false;
-    }
-    if (repeatValidationError === 'missing_until') {
-      setRepeatError(t`Select an end date.`);
+    if (repeatValidationMessage) {
+      setRepeatError(repeatValidationMessage);
       return false;
     }
 
@@ -416,12 +415,15 @@ export const TaskDetailPanel: React.FC = () => {
     setRepeatCreating(true);
     setRepeatNotice('');
 
-    const result = await createRepeats(task.id, {
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      untilDate: repeatEnds === 'on' ? repeatUntil : undefined,
-      count: repeatEnds === 'after' ? repeatCount : undefined,
-    });
+    const result = await createRepeats(
+      task.id,
+      buildCreateRepeatsOptions({
+        frequency: repeatFrequency,
+        ends: repeatEnds,
+        until: repeatUntil,
+        count: repeatCount,
+      }),
+    );
 
     repeatInFlightRef.current = false;
     setRepeatCreating(false);
@@ -682,7 +684,7 @@ export const TaskDetailPanel: React.FC = () => {
                   onValueChange={(v) => {
                     if (noProjectDisabled && v === 'none') return;
                     handleUpdate('projectId', v === 'none' ? null : v);
-                    setProjectQuery('');
+                    clearProjectQuery();
                   }}
                   onOpenChange={handleProjectSelectOpenChange}
                   disabled={isReadOnly}
