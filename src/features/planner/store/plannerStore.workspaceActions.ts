@@ -28,8 +28,35 @@ import {
 
 type WorkspaceActions = Pick<
   PlannerStore,
-  'loadWorkspaceData' | 'refreshAssignees' | 'refreshMemberGroups'
+  | 'loadWorkspaceData'
+  | 'refreshAssignees'
+  | 'refreshMemberGroups'
+  | 'fetchAssigneeTaskCounts'
+  | 'fetchMemberGroups'
+  | 'fetchGroupMembers'
+  | 'createMemberGroup'
+  | 'updateMemberGroup'
+  | 'deleteMemberGroup'
 >;
+
+type WorkspaceMemberWithProfileRow = {
+  user_id: string;
+  role: 'admin' | 'editor' | 'viewer';
+  profiles: {
+    email: string;
+    display_name: string | null;
+  } | null;
+};
+
+const mapAssigneeTaskCounts = (rows: AssigneeUniqueTaskCountRow[] | null | undefined) => {
+  const totals: Record<string, number> = {};
+  (rows ?? []).forEach((row) => {
+    if (!row.assignee_id) return;
+    const value = typeof row.total === 'string' ? Number(row.total) : (row.total ?? 0);
+    totals[row.assignee_id] = value;
+  });
+  return totals;
+};
 
 export const createWorkspaceActions = (
   set: PlannerSetState,
@@ -282,12 +309,9 @@ export const createWorkspaceActions = (
             console.error(countsRes.error);
             return;
           }
-          const totals: Record<string, number> = {};
-          ((countsRes.data as AssigneeUniqueTaskCountRow[] | null | undefined) ?? []).forEach((row) => {
-            if (!row.assignee_id) return;
-            const value = typeof row.total === 'string' ? Number(row.total) : (row.total ?? 0);
-            totals[row.assignee_id] = value;
-          });
+          const totals = mapAssigneeTaskCounts(
+            (countsRes.data as AssigneeUniqueTaskCountRow[] | null | undefined) ?? [],
+          );
           set({
             assigneeTaskCounts: totals,
             assigneeCountsDate: today,
@@ -384,5 +408,133 @@ export const createWorkspaceActions = (
         groupIds: state.filters.groupIds.filter((id) => groupIds.has(id)),
       },
     }));
+  },
+
+  fetchAssigneeTaskCounts: async ({ workspaceId, startDate, endDate }) => {
+    const { data, error } = await supabase.rpc('assignee_unique_task_counts', {
+      p_workspace_id: workspaceId,
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
+    if (error) {
+      return {
+        counts: {},
+        date: startDate,
+        error: error.message,
+      };
+    }
+
+    const counts = mapAssigneeTaskCounts((data ?? []) as AssigneeUniqueTaskCountRow[]);
+    if (get().workspaceId === workspaceId) {
+      set({
+        assigneeTaskCounts: counts,
+        assigneeCountsDate: startDate,
+        assigneeCountsWorkspaceId: workspaceId,
+      });
+    }
+    return {
+      counts,
+      date: startDate,
+    };
+  },
+
+  fetchMemberGroups: async (workspaceId) => {
+    const { data, error } = await supabase
+      .from('member_groups')
+      .select('id, name')
+      .eq('workspace_id', workspaceId)
+      .order('name', { ascending: true });
+
+    if (error) {
+      return { groups: [], error: error.message };
+    }
+
+    return {
+      groups: (data ?? []).map((row) => ({
+        id: (row as MemberGroupRow).id,
+        name: (row as MemberGroupRow).name,
+      })),
+    };
+  },
+
+  fetchGroupMembers: async (workspaceId, groupId) => {
+    const { data, error } = await supabase
+      .from('workspace_members')
+      .select('user_id, role, profiles(email, display_name)')
+      .eq('workspace_id', workspaceId)
+      .eq('group_id', groupId);
+
+    if (error) {
+      return { members: [], error: error.message };
+    }
+
+    const members = ((data ?? []) as WorkspaceMemberWithProfileRow[]).map((row) => ({
+      userId: row.user_id,
+      role: row.role,
+      email: row.profiles?.email ?? '',
+      displayName: row.profiles?.display_name ?? null,
+    }));
+    members.sort((left, right) => {
+      const leftValue = (left.displayName || left.email).toLowerCase();
+      const rightValue = (right.displayName || right.email).toLowerCase();
+      return leftValue.localeCompare(rightValue);
+    });
+
+    return { members };
+  },
+
+  createMemberGroup: async (workspaceId, name) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      return { error: 'Group name is required.' };
+    }
+
+    const { data, error } = await supabase
+      .from('member_groups')
+      .insert({ workspace_id: workspaceId, name: trimmedName })
+      .select('id')
+      .single();
+
+    if (error || !data) {
+      return { error: error?.message ?? 'Failed to create group.' };
+    }
+
+    await get().refreshMemberGroups();
+    return { groupId: (data as { id: string }).id };
+  },
+
+  updateMemberGroup: async (workspaceId, groupId, name) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      return { error: 'Group name is required.' };
+    }
+
+    const { error } = await supabase
+      .from('member_groups')
+      .update({ name: trimmedName })
+      .eq('id', groupId)
+      .eq('workspace_id', workspaceId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    await get().refreshMemberGroups();
+    return {};
+  },
+
+  deleteMemberGroup: async (workspaceId, groupId) => {
+    const { error } = await supabase
+      .from('member_groups')
+      .delete()
+      .eq('id', groupId)
+      .eq('workspace_id', workspaceId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    await get().refreshMemberGroups();
+    return {};
   },
 });

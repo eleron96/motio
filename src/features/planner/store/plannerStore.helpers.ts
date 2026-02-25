@@ -18,6 +18,7 @@ import {
   Tag,
   Task,
   TaskPriority,
+  TaskSubtask,
   TaskType,
   ViewMode,
 } from '@/features/planner/types/planner';
@@ -97,6 +98,16 @@ export type MilestoneRow = {
   project_id: string;
   date: string;
   title: string;
+};
+
+export type TaskSubtaskRow = {
+  id: string;
+  task_id: string;
+  title: string;
+  is_done: boolean;
+  done_at: string | null;
+  position: number;
+  created_at: string;
 };
 
 export type SupabaseResult<T> = {
@@ -221,6 +232,15 @@ export const mapMilestoneRow = (row: MilestoneRow): Milestone => ({
   title: row.title,
   projectId: row.project_id,
   date: row.date,
+});
+
+export const mapTaskSubtaskRow = (row: TaskSubtaskRow): TaskSubtask => ({
+  id: row.id,
+  taskId: row.task_id,
+  title: row.title,
+  isDone: row.is_done,
+  doneAt: row.done_at,
+  position: row.position,
 });
 
 export const mapTaskUpdates = (updates: Partial<Task>) => {

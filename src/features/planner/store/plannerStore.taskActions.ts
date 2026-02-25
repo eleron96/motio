@@ -15,8 +15,10 @@ import type {
   PlannerStore,
 } from '@/features/planner/store/plannerStore.contract';
 import {
+  mapTaskSubtaskRow,
   mapTaskUpdates,
   pickActiveAssigneeIds,
+  TaskSubtaskRow,
   TaskRow,
   uniqueAssigneeIds,
 } from '@/features/planner/store/plannerStore.helpers';
@@ -33,6 +35,11 @@ type TaskActions = Pick<
   | 'reassignTask'
   | 'deleteTaskSeries'
   | 'removeAssigneeFromTask'
+  | 'fetchTaskSubtasks'
+  | 'createTaskSubtask'
+  | 'createTaskSubtasks'
+  | 'updateTaskSubtaskCompletion'
+  | 'deleteTaskSubtask'
 >;
 
 export const createTaskActions = (
@@ -536,5 +543,98 @@ export const createTaskActions = (
           : state.selectedTaskId,
       };
     });
+  },
+
+  fetchTaskSubtasks: async (workspaceId, taskId) => {
+    const { data, error } = await supabase
+      .from('task_subtasks')
+      .select('id, task_id, title, is_done, done_at, position, created_at')
+      .eq('workspace_id', workspaceId)
+      .eq('task_id', taskId)
+      .order('position', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      return { subtasks: [], error: error.message };
+    }
+
+    return {
+      subtasks: ((data ?? []) as TaskSubtaskRow[]).map(mapTaskSubtaskRow),
+    };
+  },
+
+  createTaskSubtask: async (workspaceId, taskId, title, position) => {
+    const { data, error } = await supabase
+      .from('task_subtasks')
+      .insert({
+        workspace_id: workspaceId,
+        task_id: taskId,
+        title,
+        is_done: false,
+        done_at: null,
+        position,
+      })
+      .select('id, task_id, title, is_done, done_at, position, created_at')
+      .single();
+
+    if (error || !data) {
+      return { error: error?.message ?? 'Failed to create subtask.' };
+    }
+
+    return { subtask: mapTaskSubtaskRow(data as TaskSubtaskRow) };
+  },
+
+  createTaskSubtasks: async (workspaceId, taskId, titles) => {
+    if (titles.length === 0) return {};
+
+    const { error } = await supabase
+      .from('task_subtasks')
+      .insert(titles.map((title, index) => ({
+        workspace_id: workspaceId,
+        task_id: taskId,
+        title,
+        is_done: false,
+        done_at: null,
+        position: index,
+      })));
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {};
+  },
+
+  updateTaskSubtaskCompletion: async (workspaceId, taskId, subtaskId, isDone, doneAt) => {
+    const { error } = await supabase
+      .from('task_subtasks')
+      .update({
+        is_done: isDone,
+        done_at: doneAt,
+      })
+      .eq('workspace_id', workspaceId)
+      .eq('task_id', taskId)
+      .eq('id', subtaskId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {};
+  },
+
+  deleteTaskSubtask: async (workspaceId, taskId, subtaskId) => {
+    const { error } = await supabase
+      .from('task_subtasks')
+      .delete()
+      .eq('workspace_id', workspaceId)
+      .eq('task_id', taskId)
+      .eq('id', subtaskId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {};
   },
 });

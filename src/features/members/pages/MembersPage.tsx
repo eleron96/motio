@@ -9,7 +9,6 @@ import { InviteNotifications } from '@/features/auth/components/InviteNotificati
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
-import { supabase } from '@/shared/lib/supabaseClient';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { createLatestAsyncRequest } from '@/shared/lib/latestAsyncRequest';
@@ -32,22 +31,9 @@ import {
   splitAssigneesByActivity,
 } from '@/features/members/lib/memberSelectors';
 
-type AssigneeUniqueTaskCountRow = {
-  assignee_id: string | null;
-  total: number | string | null;
-};
-
 type MemberGroup = {
   id: string;
-  workspace_id: string;
   name: string;
-  created_at: string;
-};
-
-type GroupMemberRow = {
-  user_id: string;
-  role: WorkspaceRole;
-  profiles: { email: string; display_name: string | null } | null;
 };
 
 type GroupMember = {
@@ -151,7 +137,12 @@ const MembersPage = () => {
     taskTypes,
     tags,
     loadWorkspaceData,
-    refreshMemberGroups,
+    fetchAssigneeTaskCounts,
+    fetchMemberGroups,
+    fetchGroupMembers,
+    createMemberGroup,
+    updateMemberGroup,
+    deleteMemberGroup,
     deleteTasks,
     setHighlightedTaskId,
     setViewMode,
@@ -166,7 +157,12 @@ const MembersPage = () => {
     taskTypes: state.taskTypes,
     tags: state.tags,
     loadWorkspaceData: state.loadWorkspaceData,
-    refreshMemberGroups: state.refreshMemberGroups,
+    fetchAssigneeTaskCounts: state.fetchAssigneeTaskCounts,
+    fetchMemberGroups: state.fetchMemberGroups,
+    fetchGroupMembers: state.fetchGroupMembers,
+    createMemberGroup: state.createMemberGroup,
+    updateMemberGroup: state.updateMemberGroup,
+    deleteMemberGroup: state.deleteMemberGroup,
     deleteTasks: state.deleteTasks,
     setHighlightedTaskId: state.setHighlightedTaskId,
     setViewMode: state.setViewMode,
@@ -405,78 +401,50 @@ const MembersPage = () => {
     if (!currentWorkspaceId) return;
     const today = format(new Date(), 'yyyy-MM-dd');
     const countsEnd = format(addYears(parseISO(today), 10), 'yyyy-MM-dd');
-    const { data, error } = await supabase.rpc('assignee_unique_task_counts', {
-      p_workspace_id: currentWorkspaceId,
-      p_start_date: today,
-      p_end_date: countsEnd,
+    const result = await fetchAssigneeTaskCounts({
+      workspaceId: currentWorkspaceId,
+      startDate: today,
+      endDate: countsEnd,
     });
-
-    if (error) {
-      console.error(error);
+    if (result.error) {
+      console.error(result.error);
       return;
     }
-
-    const nextCounts: Record<string, number> = {};
-    ((data ?? []) as AssigneeUniqueTaskCountRow[]).forEach((row) => {
-      if (!row.assignee_id) return;
-      const value = typeof row.total === 'string' ? Number(row.total) : (row.total ?? 0);
-      nextCounts[row.assignee_id] = value;
-    });
-    setMemberTaskCounts(nextCounts);
-    setMemberTaskCountsDate(today);
-  }, [currentWorkspaceId]);
+    setMemberTaskCounts(result.counts);
+    setMemberTaskCountsDate(result.date);
+  }, [currentWorkspaceId, fetchAssigneeTaskCounts]);
 
   const fetchGroups = useCallback(async () => {
     if (!currentWorkspaceId) return;
     setGroupsLoading(true);
     setGroupsError('');
-    const { data, error } = await supabase
-      .from('member_groups')
-      .select('id, workspace_id, name, created_at')
-      .eq('workspace_id', currentWorkspaceId)
-      .order('name', { ascending: true });
-
-    if (error) {
-      setGroupsError(error.message);
+    const result = await fetchMemberGroups(currentWorkspaceId);
+    if (result.error) {
+      setGroupsError(result.error);
       setGroupsLoading(false);
       return;
     }
 
-    setGroups((data ?? []) as MemberGroup[]);
+    setGroups(result.groups);
     setGroupsLoading(false);
-  }, [currentWorkspaceId]);
+  }, [currentWorkspaceId, fetchMemberGroups]);
 
-  const fetchGroupMembers = useCallback(async (groupId: string) => {
+  const fetchSelectedGroupMembers = useCallback(async (groupId: string) => {
     if (!currentWorkspaceId) return;
     setGroupMembersLoading(true);
     setGroupMembersError('');
-    const { data, error } = await supabase
-      .from('workspace_members')
-      .select('user_id, role, profiles(email, display_name)')
-      .eq('workspace_id', currentWorkspaceId)
-      .eq('group_id', groupId);
-
-    if (error) {
-      setGroupMembersError(error.message);
+    const result = await fetchGroupMembers(currentWorkspaceId, groupId);
+    if (result.error) {
+      setGroupMembersError(result.error);
       setGroupMembersLoading(false);
       return;
     }
-
-    const rows = (data ?? []) as GroupMemberRow[];
-    const members = rows.map((row) => ({
-      userId: row.user_id,
-      role: row.role,
-      email: row.profiles?.email ?? t`unknown`,
-      displayName: row.profiles?.display_name ?? null,
-    }));
-    members.sort((a, b) => {
-      const left = (a.displayName || a.email).toLowerCase();
-      const right = (b.displayName || b.email).toLowerCase();
-      return left.localeCompare(right);
-    });
-    setGroupMembers(members);
+    setGroupMembers(result.members.map((member) => ({
+      ...member,
+      email: member.email || t`unknown`,
+    })));
     setGroupMembersLoading(false);
-  }, [currentWorkspaceId]);
+  }, [currentWorkspaceId, fetchGroupMembers]);
 
   useEffect(() => {
     if (currentWorkspaceId) {
@@ -500,8 +468,8 @@ const MembersPage = () => {
       setGroupMembers([]);
       return;
     }
-    fetchGroupMembers(selectedGroupId);
-  }, [fetchGroupMembers, mode, selectedGroupId]);
+    fetchSelectedGroupMembers(selectedGroupId);
+  }, [fetchSelectedGroupMembers, mode, selectedGroupId]);
 
   useEffect(() => {
     if (mode !== 'tasks' || !currentWorkspaceId) return;
@@ -762,14 +730,9 @@ const MembersPage = () => {
     if (!trimmedName) return;
     setGroupActionLoading(true);
     setGroupsError('');
-    const { data, error } = await supabase
-      .from('member_groups')
-      .insert({ workspace_id: currentWorkspaceId, name: trimmedName })
-      .select('id')
-      .single();
-
-    if (error) {
-      setGroupsError(error.message);
+    const result = await createMemberGroup(currentWorkspaceId, trimmedName);
+    if (result.error) {
+      setGroupsError(result.error);
       setGroupActionLoading(false);
       return;
     }
@@ -777,12 +740,11 @@ const MembersPage = () => {
     setNewGroupName('');
     setCreatingGroup(false);
     await fetchGroups();
-    await refreshMemberGroups();
-    if (data?.id) {
-      setSelectedGroupId(data.id);
+    if (result.groupId) {
+      setSelectedGroupId(result.groupId);
     }
     setGroupActionLoading(false);
-  }, [currentWorkspaceId, fetchGroups, isAdmin, newGroupName, refreshMemberGroups]);
+  }, [createMemberGroup, currentWorkspaceId, fetchGroups, isAdmin, newGroupName]);
 
   const handleStartEditGroup = useCallback((group: MemberGroup) => {
     setEditingGroupId(group.id);
@@ -795,24 +757,18 @@ const MembersPage = () => {
     if (!trimmedName) return;
     setGroupActionLoading(true);
     setGroupsError('');
-    const { error } = await supabase
-      .from('member_groups')
-      .update({ name: trimmedName })
-      .eq('id', editingGroupId)
-      .eq('workspace_id', currentWorkspaceId);
-
-    if (error) {
-      setGroupsError(error.message);
+    const result = await updateMemberGroup(currentWorkspaceId, editingGroupId, trimmedName);
+    if (result.error) {
+      setGroupsError(result.error);
       setGroupActionLoading(false);
       return;
     }
 
     await fetchGroups();
-    await refreshMemberGroups();
     setEditingGroupId(null);
     setEditingGroupName('');
     setGroupActionLoading(false);
-  }, [currentWorkspaceId, editingGroupId, editingGroupName, fetchGroups, isAdmin, refreshMemberGroups]);
+  }, [currentWorkspaceId, editingGroupId, editingGroupName, fetchGroups, isAdmin, updateMemberGroup]);
 
   const handleDeleteGroup = useCallback(async (group?: MemberGroup) => {
     if (!currentWorkspaceId || !isAdmin) return;
@@ -825,22 +781,16 @@ const MembersPage = () => {
     }
     setGroupActionLoading(true);
     setGroupsError('');
-    const { error } = await supabase
-      .from('member_groups')
-      .delete()
-      .eq('id', targetGroupId)
-      .eq('workspace_id', currentWorkspaceId);
-
-    if (error) {
-      setGroupsError(error.message);
+    const result = await deleteMemberGroup(currentWorkspaceId, targetGroupId);
+    if (result.error) {
+      setGroupsError(result.error);
       setGroupActionLoading(false);
       return;
     }
 
     await fetchGroups();
-    await refreshMemberGroups();
     setGroupActionLoading(false);
-  }, [currentWorkspaceId, fetchGroups, isAdmin, refreshMemberGroups, selectedGroup?.name, selectedGroupId]);
+  }, [currentWorkspaceId, deleteMemberGroup, fetchGroups, isAdmin, selectedGroup?.name, selectedGroupId]);
 
   const handleGroupMemberClick = useCallback((userId: string) => {
     const assignee = assigneeByUserId.get(userId);
