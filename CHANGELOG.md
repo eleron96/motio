@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.17] - 2026-02-25
 ### Changed
 - Логи релизов для пользователей обновлены: добавлены детальные описания изменений в версиях `0.2.15` и `0.2.16`.
 
