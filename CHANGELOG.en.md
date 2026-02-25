@@ -7,13 +7,16 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- User-facing release logs were refreshed with detailed change notes for versions `0.2.15` and `0.2.16`.
+
 ## [0.2.16] - 2026-02-25
 ### Changed
-- No documented changes.
+- Planner: deduplicated repeat/project query rules between task create/edit flows so filtering and validation behavior stays consistent and covered by tests.
 
 ## [0.2.15] - 2026-02-25
 ### Changed
-- No documented changes.
+- Planner: moved Supabase requests from member/task UI components into store actions so UI flows use one scenario layer with predictable sync/error handling.
 
 ## [0.2.14] - 2026-02-24
 ### Fixed
