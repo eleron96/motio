@@ -294,10 +294,10 @@
   .holiday-hatch {
     background-image: repeating-linear-gradient(
       135deg,
-      hsl(var(--muted-foreground) / 0.16) 0 7px,
-      hsl(var(--muted-foreground) / 0.04) 7px 14px
+      hsl(var(--muted-foreground) / 0.10) 0 6px,
+      hsl(var(--muted-foreground) / 0.015) 6px 18px
     );
-    background-color: hsl(var(--muted-foreground) / 0.08);
+    background-color: hsl(var(--muted-foreground) / 0.045);
   }
 
   .today-hatch {

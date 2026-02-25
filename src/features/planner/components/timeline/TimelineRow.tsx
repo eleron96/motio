@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { format } from 'date-fns';
-import { isWeekend } from '@/features/planner/lib/dateUtils';
+import { isWeekend, shouldApplyHolidayHatch } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
 import {
@@ -88,7 +88,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
               const dayKey = format(day, 'yyyy-MM-dd');
               const today = dayKey === todayKey;
               const weekend = isWeekend(day);
-              const isHoliday = holidayDates?.has(dayKey) ?? false;
+              const isHoliday = shouldApplyHolidayHatch(dayKey, weekend, holidayDates);
               
               return (
                 <div
