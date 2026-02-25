@@ -21,6 +21,7 @@ interface TimelineHeaderProps {
   viewportWidth: number;
   attentionDate: string | null;
   todayKey: string;
+  holidayDates?: Set<string>;
   onDateContextAction?: (date: string) => void;
 }
 
@@ -32,6 +33,7 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   viewportWidth,
   attentionDate,
   todayKey,
+  holidayDates,
   onDateContextAction,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
@@ -117,15 +119,18 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
           const dayKey = format(day, 'yyyy-MM-dd');
           const today = dayKey === todayKey;
           const weekend = isWeekend(day);
+          const isHoliday = holidayDates?.has(dayKey) ?? false;
           const isAttentionDay = attentionDate === dayKey;
           
           return (
             <ContextMenu key={index}>
               <ContextMenuTrigger asChild>
                 <div
+                  data-day-key={dayKey}
                   className={cn(
                     'flex flex-col items-center justify-center border-r border-border transition-colors py-2 gap-1',
                     weekend && 'bg-timeline-weekend',
+                    isHoliday && 'holiday-hatch',
                     today && 'today-hatch',
                     onDateContextAction && 'cursor-context-menu',
                   )}

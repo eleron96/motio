@@ -291,6 +291,15 @@
     pointer-events: none;
   }
 
+  .holiday-hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      hsl(var(--muted-foreground) / 0.16) 0 7px,
+      hsl(var(--muted-foreground) / 0.04) 7px 14px
+    );
+    background-color: hsl(var(--muted-foreground) / 0.08);
+  }
+
   .today-hatch {
     background-image: repeating-linear-gradient(
       135deg,

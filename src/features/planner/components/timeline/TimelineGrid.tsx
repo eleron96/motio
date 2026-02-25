@@ -50,6 +50,7 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
+import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 
 /** Дополнительный отступ снизу у строки пользователя в режиме группировки по исполнителям (визуально больше расстояние между пользователями) */
 const ASSIGNEE_ROW_GAP = 20;
@@ -95,7 +96,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const todayKey = useTodayKey();
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
-  const { 
+  const {
     tasks,
     milestones,
     projects, 
@@ -116,6 +117,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   } = usePlannerStore();
   const user = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
+  const workspaces = useAuthStore((state) => state.workspaces);
+  const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const filteredAssignees = useFilteredAssignees(assignees);
 
@@ -164,6 +167,20 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     : `clamp(${TIMELINE_SIDEBAR_MIN_WIDTH}px, 26vw, ${TIMELINE_SIDEBAR_AUTO_MAX_WIDTH}px)`;
   
   const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode), [currentDate, viewMode]);
+  const visibleHolidayYears = useMemo(
+    () => Array.from(new Set(visibleDays.map((day) => day.getFullYear()))),
+    [visibleDays],
+  );
+  const holidayCountryCode = useMemo(() => {
+    const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
+    return normalizeHolidayCountryCode(currentWorkspace?.holidayCountry);
+  }, [workspaces, currentWorkspaceId]);
+  const { holidayDates } = useHolidayMap({
+    years: visibleHolidayYears,
+    holidayCountryCode,
+    fallbackHolidayLabel: t`Non-working day`,
+    holidayLabel: t`Holiday`,
+  });
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
   const scrollReanchorMinShiftDays = SCROLL_REANCHOR_MIN_SHIFT_DAYS[viewMode];
@@ -991,6 +1008,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   viewportWidth={viewportWidth}
                   attentionDate={timelineAttentionDate}
                   todayKey={todayKey}
+                  holidayDates={holidayDates}
                   onDateContextAction={canEdit ? handleCreateMilestone : undefined}
                 />
                 <TooltipProvider delayDuration={180}>
@@ -1223,6 +1241,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 dayWidth={dayWidth}
                 viewMode={viewMode}
                 todayKey={todayKey}
+                holidayDates={holidayDates}
                 height={row.height}
                 canEdit={canEdit}
                 onCreateTask={handleCreateTaskAt}
