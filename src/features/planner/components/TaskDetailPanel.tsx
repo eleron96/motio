@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
-import { useProjectQueryInput } from '@/features/planner/hooks/useProjectQueryInput';
+import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
 import { Button } from '@/shared/ui/button';
@@ -10,7 +10,6 @@ import { Input } from '@/shared/ui/input';
 import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
-import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
@@ -24,7 +23,6 @@ import { format, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 import {
   buildCreateRepeatsOptions,
-  filterProjectsByQuery,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
@@ -162,12 +160,6 @@ export const TaskDetailPanel: React.FC = () => {
   const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
-  const {
-    projectQuery,
-    clearProjectQuery,
-    handleProjectSelectOpenChange,
-    handleProjectSelectKeyDown,
-  } = useProjectQueryInput();
   
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
@@ -190,10 +182,6 @@ export const TaskDetailPanel: React.FC = () => {
     );
   }, [filteredAssignees, task]);
   const noProjectDisabled = groupMode === 'project';
-  const filteredProjectOptions = useMemo(
-    () => filterProjectsByQuery(projectOptions, projectQuery),
-    [projectOptions, projectQuery],
-  );
 
   useEffect(() => {
     if (!selectedTaskId) {
@@ -679,54 +667,17 @@ export const TaskDetailPanel: React.FC = () => {
 
               <div className="space-y-2">
                 <Label>{t`Project`}</Label>
-                <Select
+                <TaskProjectSelect
                   value={task.projectId || 'none'}
+                  projects={projectOptions}
+                  disabled={isReadOnly}
+                  noProjectDisabled={noProjectDisabled}
+                  showArchivedBadge
                   onValueChange={(v) => {
                     if (noProjectDisabled && v === 'none') return;
                     handleUpdate('projectId', v === 'none' ? null : v);
-                    clearProjectQuery();
                   }}
-                  onOpenChange={handleProjectSelectOpenChange}
-                  disabled={isReadOnly}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t`Select project`} />
-                  </SelectTrigger>
-                  <SelectContent onKeyDown={handleProjectSelectKeyDown}>
-                    <div
-                      className="max-h-48 overflow-y-auto overscroll-contain pr-2"
-                      onWheelCapture={(event) => event.stopPropagation()}
-                    >
-                      <div className="px-2 py-1 text-[11px] text-muted-foreground">
-                        <span
-                          className="mr-1.5 inline-block h-3 w-px animate-pulse align-middle bg-foreground/60"
-                          aria-hidden="true"
-                        />
-                        {projectQuery ? t`Filter: ${projectQuery}` : t`Type to filter projects...`}
-                      </div>
-                      <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
-                      {filteredProjectOptions.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-2.5 h-2.5 rounded-full"
-                              style={{ backgroundColor: project.color }}
-                            />
-                            {formatProjectLabel(project.name, project.code)}
-                            {project.archived && (
-                              <span className="ml-1 text-[10px] text-muted-foreground">({t`Archived`})</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                      {filteredProjectOptions.length === 0 && (
-                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                          {t`No projects found`}
-                        </div>
-                      )}
-                    </div>
-                  </SelectContent>
-                </Select>
+                />
                 {currentProject && (
                   <div className="text-xs text-muted-foreground">
                     {t`Customer`}: {currentProjectCustomer?.name ?? t`No customer`}
