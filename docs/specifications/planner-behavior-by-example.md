@@ -106,3 +106,23 @@ Then:
 - `src/features/planner/components/timeline/TimelineHeader.tsx`
 - `src/features/planner/components/timeline/TimelineRow.tsx`
 - `src/test/planner/holidayMap.test.tsx`
+
+## Scenario 7: Project search is identical in task create and edit forms
+
+Given:
+- пользователь открывает создание задачи и редактирование существующей задачи;
+- в обоих формах доступен выпадающий список проектов.
+
+When:
+- пользователь вводит символы в строку поиска проектов внутри списка.
+
+Then:
+- в обоих формах применяется одинаковая фильтрация по `name`/`code`;
+- показываются одинаковые подсказки `Filter: ...` и `No projects found`;
+- выбор проекта очищает поисковую строку.
+
+Покрытие:
+- `src/features/planner/components/AddTaskDialog.tsx`
+- `src/features/planner/components/TaskDetailPanel.tsx`
+- `src/features/planner/components/TaskProjectSelect.tsx`
+- `src/features/planner/hooks/useProjectQueryInput.ts`

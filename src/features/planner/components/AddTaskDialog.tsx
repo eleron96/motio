@@ -1,12 +1,11 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
-import { useProjectQueryInput } from '@/features/planner/hooks/useProjectQueryInput';
+import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
-import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
 import {
   AlertDialog,
@@ -34,7 +33,6 @@ import { Status } from '@/features/planner/types/planner';
 import { toast } from 'sonner';
 import {
   buildCreateRepeatsOptions,
-  filterProjectsByQuery,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
@@ -161,12 +159,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
-  const {
-    projectQuery,
-    clearProjectQuery,
-    handleProjectSelectOpenChange,
-    handleProjectSelectKeyDown,
-  } = useProjectQueryInput();
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -180,10 +172,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!ids || ids.length === 0) return [];
     return sortAssigneeIds(ids);
   }, [sortAssigneeIds]);
-  const filteredProjects = useMemo(
-    () => filterProjectsByQuery(activeProjects, projectQuery),
-    [activeProjects, projectQuery],
-  );
 
   const markChanged = useCallback(() => {
     setHasChanges(true);
@@ -369,7 +357,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setTitle('');
     setProjectId(activeProjects[0]?.id || 'none');
     setProjectInitialized(false);
-    clearProjectQuery();
     setAssigneeIds([]);
     setStatusId(defaultStatusId);
     setTypeId(taskTypes[0]?.id || '');
@@ -403,7 +390,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   useEffect(() => {
     if (!open) {
       setProjectInitialized(false);
-      clearProjectQuery();
       setHasChanges(false);
       setRepeatOpen(false);
       setConfirmCloseOpen(false);
@@ -443,7 +429,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setProjectInitialized(true);
   }, [
     activeProjects,
-    clearProjectQuery,
     defaultStart,
     initialAssigneeIds,
     initialEndDate,
@@ -517,50 +502,15 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t`Project`}</Label>
-              <Select
+              <TaskProjectSelect
                 value={projectId}
+                projects={activeProjects}
+                noProjectDisabled={noProjectDisabled}
                 onValueChange={(value) => {
                   markChanged();
                   setProjectId(value);
-                  clearProjectQuery();
                 }}
-                onOpenChange={handleProjectSelectOpenChange}
-              >
-                <SelectTrigger className="min-w-0 overflow-hidden">
-                  <SelectValue placeholder={t`Select project`} />
-                </SelectTrigger>
-                <SelectContent onKeyDown={handleProjectSelectKeyDown}>
-                  <div
-                    className="max-h-48 overflow-y-auto overscroll-contain pr-2"
-                    onWheelCapture={(event) => event.stopPropagation()}
-                  >
-                    <div className="px-2 py-1 text-[11px] text-muted-foreground">
-                      <span
-                        className="mr-1.5 inline-block h-3 w-px animate-pulse align-middle bg-foreground/60"
-                        aria-hidden="true"
-                      />
-                      {projectQuery ? t`Filter: ${projectQuery}` : t`Type to filter projects...`}
-                    </div>
-                    <SelectItem value="none" disabled={noProjectDisabled}>{t`No project`}</SelectItem>
-                    {filteredProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        <span className="inline-flex min-w-0 items-center gap-2">
-                          <span
-                            className="h-2.5 w-2.5 shrink-0 rounded-full"
-                            style={{ backgroundColor: project.color }}
-                          />
-                          <span className="truncate">{formatProjectLabel(project.name, project.code)}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                    {filteredProjects.length === 0 && (
-                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                        {t`No projects found`}
-                      </div>
-                    )}
-                  </div>
-                </SelectContent>
-              </Select>
+              />
             </div>
             
             <div className="space-y-1.5">
