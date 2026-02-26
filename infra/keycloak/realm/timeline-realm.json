@@ -14,6 +14,10 @@
   "verifyEmail": true,
   "resetPasswordAllowed": true,
   "rememberMe": true,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "ssoSessionIdleTimeoutRememberMe": 86400,
+  "ssoSessionMaxLifespanRememberMe": 604800,
   "internationalizationEnabled": true,
   "supportedLocales": [
     "en",

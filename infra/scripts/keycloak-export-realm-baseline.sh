@@ -194,6 +194,10 @@ realm_keys = [
   "verifyEmail",
   "resetPasswordAllowed",
   "rememberMe",
+  "ssoSessionIdleTimeout",
+  "ssoSessionMaxLifespan",
+  "ssoSessionIdleTimeoutRememberMe",
+  "ssoSessionMaxLifespanRememberMe",
   "internationalizationEnabled",
   "supportedLocales",
   "defaultLocale",
@@ -278,4 +282,3 @@ output_path.write_text(
 print(f"Exported Keycloak realm baseline: {output_path}")
 print(f"Managed clients: {', '.join(managed_client_ids)}")
 PY
-

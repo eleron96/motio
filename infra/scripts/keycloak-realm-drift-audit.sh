@@ -212,6 +212,10 @@ realm_keys = [
   "verifyEmail",
   "resetPasswordAllowed",
   "rememberMe",
+  "ssoSessionIdleTimeout",
+  "ssoSessionMaxLifespan",
+  "ssoSessionIdleTimeoutRememberMe",
+  "ssoSessionMaxLifespanRememberMe",
   "internationalizationEnabled",
   "supportedLocales",
   "defaultLocale",
@@ -297,4 +301,3 @@ if diffs:
 print("Keycloak realm drift audit passed: no drift in managed fields.")
 print(f"Managed config: {desired_path}")
 PY
-
