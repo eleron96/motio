@@ -347,7 +347,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         ...(destination ? { redirectTo: destination } : {}),
         scopes: 'openid profile email',
         queryParams: {
-          prompt: 'login',
           ...(locale ? { ui_locales: locale } : {}),
         },
       },
