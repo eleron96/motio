@@ -59,6 +59,38 @@ motio.nikog.net {
       reverse_proxy host.docker.internal:8080
     }
 
+    handle /assets* {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle /branding* {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle /favicon.ico {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle /favicon.png {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle /placeholder.svg {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle /robots.txt {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle /sitemap.xml {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle / {
+      reverse_proxy host.docker.internal:5174
+    }
+
     handle {
       reverse_proxy host.docker.internal:5173
     }
