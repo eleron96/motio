@@ -39,14 +39,16 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-2">
+        <div className="mx-auto flex w-full max-w-[1500px] items-center justify-between px-4 py-1.5 sm:px-6 lg:px-10">
           <Link to="/" className="flex items-center">
-            <img src={logoMotio} alt="Motio logo" className="h-11 w-11 shrink-0 object-contain" />
+            <img src={logoMotio} alt="Motio logo" className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14" />
           </Link>
 
           {!loading && user ? (
-            <div className="flex items-center gap-3">
-              <span className="max-w-[200px] truncate text-sm text-slate-600">{user.email ?? "Signed in"}</span>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="max-w-[140px] truncate text-xs text-slate-600 sm:max-w-[220px] sm:text-sm">
+                {user.email ?? "Signed in"}
+              </span>
               <Button
                 type="button"
                 variant="outline"
@@ -64,18 +66,18 @@ const LandingPage = () => {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-6 py-14">
+      <main className="mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6 sm:py-12 lg:px-10 lg:py-16 xl:py-20">
         <section
           id="overview"
-          className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 md:p-12"
+          className="rounded-3xl border border-slate-200 bg-white p-5 text-center shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 sm:p-8 lg:p-12 xl:p-14"
         >
-          <h1 className="text-4xl font-semibold leading-tight text-slate-900 md:text-5xl">
+          <h1 className="text-3xl font-semibold leading-tight text-slate-900 sm:text-4xl lg:text-5xl xl:text-6xl">
             One clear timeline for projects and people
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
+          <p className="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base lg:text-lg">
             Motio keeps tasks, milestones, and workload in one shared workspace.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-600">
+          <div className="mt-5 flex flex-wrap justify-center gap-2 text-[11px] font-medium uppercase tracking-wide text-slate-600 sm:mt-6 sm:text-xs">
             <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1">Tasks</span>
             <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1">Projects</span>
             <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1">Capacity</span>
@@ -84,19 +86,19 @@ const LandingPage = () => {
 
         <section
           id="flow"
-          className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-700"
+          className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 text-center shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-700 sm:mt-8 sm:p-8 lg:mt-10 lg:p-10"
         >
-          <h2 className="text-2xl font-semibold text-slate-900">What you get</h2>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 motion-safe:delay-75 motion-safe:transition-all motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md">
+          <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">What you get</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 motion-safe:delay-75 motion-safe:transition-all motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md sm:p-5">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700">1. Plan</h3>
               <p className="mt-2 text-sm text-slate-600">Add tasks with dates and owners.</p>
             </article>
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 motion-safe:delay-150 motion-safe:transition-all motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md">
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 motion-safe:delay-150 motion-safe:transition-all motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md sm:p-5">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700">2. Coordinate</h3>
               <p className="mt-2 text-sm text-slate-600">Group work into projects and milestones.</p>
             </article>
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 motion-safe:delay-200 motion-safe:transition-all motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md">
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 motion-safe:delay-200 motion-safe:transition-all motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md sm:col-span-2 sm:p-5 xl:col-span-1">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-700">3. Balance</h3>
               <p className="mt-2 text-sm text-slate-600">See overload early and rebalance fast.</p>
             </article>
@@ -105,9 +107,9 @@ const LandingPage = () => {
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-6 py-4 text-xs text-slate-600 md:flex-row md:items-center md:justify-between">
-          <p className="flex items-center gap-2">
-            <img src={logoMotio} alt="Motio logo" className="h-4 w-4 shrink-0 object-contain" />
+        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-1 px-4 py-2 text-[11px] text-slate-600 sm:px-6 lg:px-10 md:flex-row md:items-center md:justify-between">
+          <p className="flex items-center gap-1.5">
+            <img src={logoMotio} alt="Motio logo" className="h-3.5 w-3.5 shrink-0 object-contain" />
             <span>© {currentYear} Motio. Team planning workspace.</span>
           </p>
           <p>
