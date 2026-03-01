@@ -98,6 +98,57 @@
     formOptions.parentNode.insertBefore(headerHint, formOptions);
   }
 
+  function findLogoutConfirmControl() {
+    var container = doc.getElementById('kc-logout-confirm');
+    if (!container) return null;
+
+    var byId = container.querySelector('#kc-logout');
+    if (byId) return byId;
+
+    var byName = container.querySelector('input[name="confirmLogout"],button[name="confirmLogout"]');
+    if (byName) return byName;
+
+    return container.querySelector('button[type="submit"],input[type="submit"]');
+  }
+
+  function autoConfirmLogoutIfNeeded() {
+    var control = findLogoutConfirmControl();
+    if (!control) return false;
+
+    try {
+      var guardKey = 'timeline.kc.logout.' + window.location.pathname + window.location.search;
+      if (window.sessionStorage.getItem(guardKey) === '1') {
+        return false;
+      }
+      window.sessionStorage.setItem(guardKey, '1');
+    } catch (_error) {
+      // Ignore sessionStorage errors.
+    }
+
+    setPageHidden(true);
+    var revealTimer = window.setTimeout(function () {
+      setPageHidden(false);
+    }, 1200);
+
+    window.setTimeout(function () {
+      if (typeof control.click === 'function') {
+        control.click();
+        return;
+      }
+
+      var form = control.form || doc.querySelector('#kc-logout-confirm form');
+      if (form && typeof form.submit === 'function') {
+        form.submit();
+        return;
+      }
+
+      window.clearTimeout(revealTimer);
+      setPageHidden(false);
+    }, 0);
+
+    return true;
+  }
+
   function isReAuthScreen() {
     var passwordInput = doc.getElementById('password');
     var usernameInput = doc.getElementById('username');
@@ -117,6 +168,10 @@
     disableAutofocus();
     fixPasswordToggleControls();
     moveRegisterRequiredHint();
+
+    if (autoConfirmLogoutIfNeeded()) {
+      return;
+    }
 
     if (!isReAuthScreen()) {
       setPageHidden(false);
