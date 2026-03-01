@@ -8,6 +8,7 @@ import {
   getAuthSessionStateFromStorageEvent,
   isSupabaseAuthStorageKey,
 } from '@/features/auth/lib/authSessionSync';
+import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -124,6 +125,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const handleStorage = (event: StorageEvent) => {
       const syncState = getAuthSessionStateFromStorageEvent(event);
       if (syncState === 'signed-out') {
+        // A remote tab initiated logout: mark recent sign-out locally to force prompt=login.
+        markRecentSignOut();
         void handleSession(null, true, { broadcast: false });
         void supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
         return;
