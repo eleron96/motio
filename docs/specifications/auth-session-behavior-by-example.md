@@ -108,3 +108,21 @@ Then:
 Покрытие:
 - `src/features/auth/providers/AuthProvider.tsx`
 - `src/features/auth/lib/authSessionSync.ts`
+
+## Scenario 7: Stale OAuth callback params do not leave blank auth page
+
+Given:
+- пользователь оказался на `/auth?code=...&redirect=/app`;
+- локальная сессия не восстановилась (например после logout в другой вкладке).
+
+When:
+- `AuthPage` фиксирует наличие callback `code`, но пользователь остаётся неавторизованным после grace-паузы.
+
+Then:
+- callback-параметры очищаются до безопасного `/auth?redirect=/app`;
+- запускается обычный login flow и пользователь сразу попадает на страницу ввода логина Keycloak;
+- страница `/auth?code=...` не зависает в пустом состоянии.
+
+Покрытие:
+- `src/features/auth/pages/AuthPage.tsx`
+- `src/features/auth/lib/authRedirect.ts`
