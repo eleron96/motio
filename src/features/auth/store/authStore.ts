@@ -570,7 +570,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ signOutRedirectInProgress: true });
     markRecentSignOut();
     broadcastAuthSessionSync('signed-out');
-    await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    const { error: globalSignOutError } = await supabase.auth.signOut({ scope: 'global' });
+    if (globalSignOutError) {
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    }
     set({
       user: null,
       session: null,

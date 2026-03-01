@@ -5,7 +5,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import {
   broadcastAuthSessionSync,
-  isAuthSessionSyncStorageEvent,
+  getAuthSessionStateFromStorageEvent,
   isSupabaseAuthStorageKey,
 } from '@/features/auth/lib/authSessionSync';
 
@@ -122,7 +122,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const handleStorage = (event: StorageEvent) => {
-      if (isAuthSessionSyncStorageEvent(event) || isSupabaseAuthStorageKey(event.key)) {
+      const syncState = getAuthSessionStateFromStorageEvent(event);
+      if (syncState === 'signed-out') {
+        void handleSession(null, true, { broadcast: false });
+        void supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+        return;
+      }
+      if (syncState === 'signed-in' || isSupabaseAuthStorageKey(event.key)) {
         void reconcileSession('storage', true);
       }
     };
