@@ -80,12 +80,10 @@ When:
 
 Then:
 - приложение выполняет logout через `/oauth2/sign_out` и возвращает пользователя на `/`;
-- при возврате на `/auth` после logout страница не запускает авто-SSO повторно в том же browser-tab;
-- повторный вход выполняется только по явному действию пользователя (`Continue with Keycloak`);
+- при переходе на `/auth?redirect=/app` страница сразу запускает OAuth-редирект и переводит пользователя на страницу логина Keycloak;
 - при следующем переходе в `/app` oauth2-proxy запрашивает новый логин (`prompt=login`);
 - logout не падает в Keycloak error-page, если IdP-сессия уже отсутствует.
 
 Покрытие:
 - `src/features/auth/store/authStore.ts`
 - `src/features/auth/pages/AuthPage.tsx`
-- `src/features/auth/lib/recentSignOut.ts`
