@@ -39,9 +39,9 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-[1500px] items-center justify-between px-4 py-1.5 sm:px-6 lg:px-10">
-          <Link to="/" className="flex items-center">
-            <img src={logoMotio} alt="Motio logo" className="h-12 w-12 shrink-0 object-contain sm:h-14 sm:w-14" />
+        <div className="mx-auto flex h-16 w-full max-w-[1500px] items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-10">
+          <Link to="/" className="flex h-full items-center py-1">
+            <img src={logoMotio} alt="Motio logo" className="h-full w-auto shrink-0 object-contain" />
           </Link>
 
           {!loading && user ? (
