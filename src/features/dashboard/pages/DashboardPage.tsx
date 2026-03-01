@@ -452,11 +452,11 @@ const DashboardPage = () => {
   ]);
 
   if (isSuperAdmin) {
-    return <Navigate to="/admin/users" replace />;
+    return <Navigate to="/app/admin/users" replace />;
   }
 
   if (isWorkspaceSwitching) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   const handleLayoutChange = (_layout: Layout[], allLayouts: Layouts) => {

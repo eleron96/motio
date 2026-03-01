@@ -6,7 +6,7 @@ import { t } from '@lingui/macro';
 export const WorkspaceNav: React.FC = () => (
   <nav className="flex items-center gap-1 rounded-lg bg-muted/40 p-1">
     <NavLink
-      to="/"
+      to="/app"
       end
       className={({ isActive }) => cn(
         'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
@@ -16,7 +16,7 @@ export const WorkspaceNav: React.FC = () => (
       {t`Timeline`}
     </NavLink>
     <NavLink
-      to="/dashboard"
+      to="/app/dashboard"
       className={({ isActive }) => cn(
         'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
         isActive ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',
@@ -25,7 +25,7 @@ export const WorkspaceNav: React.FC = () => (
       {t`Dashboard`}
     </NavLink>
     <NavLink
-      to="/projects"
+      to="/app/projects"
       className={({ isActive }) => cn(
         'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
         isActive ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',
@@ -34,7 +34,7 @@ export const WorkspaceNav: React.FC = () => (
       {t`Projects`}
     </NavLink>
     <NavLink
-      to="/members"
+      to="/app/members"
       className={({ isActive }) => cn(
         'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
         isActive ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',

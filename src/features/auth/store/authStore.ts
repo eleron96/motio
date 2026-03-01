@@ -4,6 +4,7 @@ import { supabase } from '@/shared/lib/supabaseClient';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { isSupportedLocale, type Locale } from '@/shared/lib/locale';
 import { clearPendingLocale, getPendingLocale } from '@/features/auth/lib/pendingLocale';
+import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
 import { workspaceSyncService } from '@/application/workspace/workspaceSyncService';
 import { ADMIN_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
 import { invokeAdminFunction, invokeInviteFunction } from '@/infrastructure/auth/functionsGateway';
@@ -99,6 +100,7 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  signOutRedirectInProgress: boolean;
   workspaces: WorkspaceSummary[];
   currentWorkspaceId: string | null;
   currentWorkspaceRole: WorkspaceRole | null;
@@ -122,6 +124,7 @@ interface AuthState {
   backupsError: string | null;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
+  setSignOutRedirectInProgress: (value: boolean) => void;
   resolveSuperAdmin: (user: User | null) => Promise<boolean>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signInWithKeycloak: (redirectTo?: string) => Promise<{ error?: string }>;
@@ -175,53 +178,16 @@ const getBackupBaseUrl = () => {
   return base ? `${base}/backup` : '';
 };
 
-const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
-
-const isLocalHostname = (hostname: string) => {
-  const normalized = hostname.trim().toLowerCase();
-  return normalized === 'localhost' || normalized === '127.0.0.1' || normalized === '::1' || normalized === 'host.docker.internal';
-};
-
-const resolveKeycloakPublicBase = () => {
-  const configured = trimTrailingSlash((import.meta.env.VITE_KEYCLOAK_PUBLIC_URL ?? '').trim());
-  if (!configured) return null;
-
-  try {
-    const parsed = new URL(configured);
-    if (
-      typeof window !== 'undefined'
-      && isLocalHostname(parsed.hostname)
-      && !isLocalHostname(window.location.hostname)
-    ) {
-      return trimTrailingSlash(window.location.origin);
-    }
-    return trimTrailingSlash(parsed.toString());
-  } catch (_error) {
-    return null;
-  }
-};
-
 const getOauth2ProxySignOutPath = () => {
   const signOutPath = (import.meta.env.VITE_OAUTH2_PROXY_SIGN_OUT_PATH ?? '/oauth2/sign_out').trim();
   if (!signOutPath) return '/oauth2/sign_out';
-  const separator = signOutPath.includes('?') ? '&' : '?';
-  return `${signOutPath}${separator}rd=${encodeURIComponent('/auth?silent=1')}`;
-};
 
-const getKeycloakLogoutUrl = (postLogoutRedirectUri: string) => {
-  const keycloakPublicUrl = resolveKeycloakPublicBase();
-  const keycloakRealm = (import.meta.env.VITE_KEYCLOAK_REALM ?? '').trim();
-  const keycloakClientId = (import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? '').trim();
+  const [rawPath, rawQuery = ''] = signOutPath.split('?', 2);
+  const params = new URLSearchParams(rawQuery);
+  params.set('rd', '/');
 
-  if (!keycloakPublicUrl || !keycloakRealm || !keycloakClientId) {
-    return null;
-  }
-
-  return (
-    `${keycloakPublicUrl}/realms/${encodeURIComponent(keycloakRealm)}/protocol/openid-connect/logout`
-    + `?client_id=${encodeURIComponent(keycloakClientId)}`
-    + `&post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`
-  );
+  const query = params.toString();
+  return query ? `${rawPath}?${query}` : rawPath;
 };
 
 const parseBackupApiError = async (response: Response) => {
@@ -272,6 +238,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
   loading: true,
+  signOutRedirectInProgress: false,
   workspaces: [],
   currentWorkspaceId: null,
   currentWorkspaceRole: null,
@@ -305,6 +272,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
   setLoading: (loading) => set({ loading }),
+  setSignOutRedirectInProgress: (value) => set({ signOutRedirectInProgress: value }),
   resolveSuperAdmin: async (user) => {
     if (!user) {
       set({ isSuperAdmin: false, superAdminLoading: false });
@@ -598,11 +566,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return {};
   },
   signOut: async () => {
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem('auth.skipAutoOAuthUntil');
-      window.sessionStorage.setItem('auth.silentOAuth', '1');
-    }
-    await supabase.auth.signOut({ scope: 'local' });
+    set({ signOutRedirectInProgress: true });
+    markRecentSignOut();
+    await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
     set({
       user: null,
       session: null,
@@ -626,23 +592,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profileLocale: null,
       isSuperAdmin: false,
       superAdminLoading: false,
+      signOutRedirectInProgress: true,
     });
 
     if (typeof window !== 'undefined') {
       const oauth2ProxyEnabled = import.meta.env.VITE_OAUTH2_PROXY_ENABLED === 'true';
       if (oauth2ProxyEnabled) {
-        const proxySignOutPath = getOauth2ProxySignOutPath();
-        const proxySignOutAbsoluteUrl = new URL(proxySignOutPath, window.location.origin).toString();
-        const keycloakLogoutUrl = getKeycloakLogoutUrl(proxySignOutAbsoluteUrl);
-        if (keycloakLogoutUrl) {
-          window.location.replace(keycloakLogoutUrl);
-          return;
-        }
-        window.location.replace(proxySignOutPath);
+        window.location.replace(getOauth2ProxySignOutPath());
         return;
       }
-      window.location.replace('/auth?silent=1');
+      window.location.replace('/');
+      return;
     }
+    set({ signOutRedirectInProgress: false });
   },
   fetchWorkspaces: async () => {
     const user = get().user;

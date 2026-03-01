@@ -7,6 +7,86 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.38] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.37] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.36] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.35] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.34] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.33] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.32] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.31] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.30] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.29] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.28] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.27] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.26] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.25] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.24] - 2026-03-01
+### Changed
+- No documented changes.
+
+## [0.2.23] - 2026-02-26
+### Changed
+- No documented changes.
+
+## [0.2.22] - 2026-02-26
+### Changed
+- No documented changes.
+
+## [0.2.21] - 2026-02-26
+### Changed
+- No documented changes.
+
+## [0.2.20] - 2026-02-25
+### Changed
+- No documented changes.
+
+## [0.2.19] - 2026-02-25
+### Changed
+- No documented changes.
+
 ## [0.2.18] - 2026-02-25
 ### Changed
 - Rebranding: project and user-facing surfaces were renamed to Motio (updated page titles, auth/account branding, and Keycloak/email display name).

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
 interface ProtectedRouteProps {
@@ -7,9 +7,10 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuthStore();
+  const { user, loading, signOutRedirectInProgress } = useAuthStore();
+  const location = useLocation();
 
-  if (loading) {
+  if (loading || signOutRedirectInProgress) {
     return (
       <div className="flex h-screen items-center justify-center text-sm text-muted-foreground">
         Loading...
@@ -18,7 +19,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    const redirectTarget = `${location.pathname}${location.search}`;
+    return <Navigate to={`/auth?redirect=${encodeURIComponent(redirectTarget)}`} replace />;
   }
 
   return <>{children}</>;

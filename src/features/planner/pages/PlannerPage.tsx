@@ -322,7 +322,7 @@ const PlannerPage = () => {
   }, []);
 
   if (isSuperAdmin) {
-    return <Navigate to="/admin/users" replace />;
+    return <Navigate to="/app/admin/users" replace />;
   }
   
   return (

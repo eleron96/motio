@@ -37,3 +37,55 @@ Then:
 - `infra/scripts/keycloak-ensure-realm-session-policy.sh`
 - `infra/scripts/prod-compose.sh`
 - `infra/keycloak/realm/timeline-realm.prod.json`
+
+## Scenario 3: OAuth2 logout always returns to public root
+
+Given:
+- включён oauth2-proxy logout flow;
+- пользователь нажимает `Sign out` в приложении.
+
+When:
+- формируется URL выхода для `/oauth2/sign_out`.
+
+Then:
+- параметр `rd` всегда принудительно равен `/`;
+- пользователь возвращается на публичный лендинг, а не в приватный `/app`.
+
+Покрытие:
+- `src/features/auth/store/authStore.ts`
+
+## Scenario 4: Protected routes do not trigger auto-login during sign-out redirect
+
+Given:
+- пользователь выходит из приватного `/app` маршрута.
+
+When:
+- локальная сессия очищается и запускается redirect на `/oauth2/sign_out`.
+
+Then:
+- `ProtectedRoute` не перенаправляет пользователя на `/auth?redirect=/app` в этот момент;
+- автоматический OAuth вход не стартует до завершения redirect на публичный `/`.
+
+Покрытие:
+- `src/features/auth/store/authStore.ts`
+- `src/app/ProtectedRoute.tsx`
+
+## Scenario 5: Sign out remains stable and requires explicit re-login
+
+Given:
+- пользователь авторизован через Keycloak SSO и oauth2-proxy.
+
+When:
+- пользователь нажимает `Sign out`.
+
+Then:
+- приложение выполняет logout через `/oauth2/sign_out` и возвращает пользователя на `/`;
+- при возврате на `/auth` после logout страница не запускает авто-SSO повторно в том же browser-tab;
+- повторный вход выполняется только по явному действию пользователя (`Continue with Keycloak`);
+- при следующем переходе в `/app` oauth2-proxy запрашивает новый логин (`prompt=login`);
+- logout не падает в Keycloak error-page, если IdP-сессия уже отсутствует.
+
+Покрытие:
+- `src/features/auth/store/authStore.ts`
+- `src/features/auth/pages/AuthPage.tsx`
+- `src/features/auth/lib/recentSignOut.ts`
