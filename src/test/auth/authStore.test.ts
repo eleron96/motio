@@ -11,13 +11,13 @@ describe('auth store sign-out path', () => {
     vi.unstubAllEnvs();
   });
 
-  it('redirects to /auth?silent=1 after oauth2 sign-out', () => {
+  it('redirects to / after oauth2 sign-out', () => {
     const signOutPath = getOauth2ProxySignOutPath();
     const [rawPath, rawQuery = ''] = signOutPath.split('?', 2);
     const query = new URLSearchParams(rawQuery);
 
     expect(rawPath).toBe('/oauth2/sign_out');
-    expect(query.get('rd')).toBe('/auth?silent=1');
+    expect(query.get('rd')).toBe('/');
   });
 
   it('preserves existing sign-out query params while overriding rd', () => {
@@ -29,6 +29,6 @@ describe('auth store sign-out path', () => {
 
     expect(rawPath).toBe('/oauth2/sign_out');
     expect(query.get('foo')).toBe('bar');
-    expect(query.get('rd')).toBe('/auth?silent=1');
+    expect(query.get('rd')).toBe('/');
   });
 });

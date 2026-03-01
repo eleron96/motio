@@ -50,7 +50,7 @@ When:
 Then:
 - `oauth2-proxy` вызывает Keycloak end-session endpoint через `OAUTH2_PROXY_BACKEND_LOGOUT_URL`;
 - в backend logout URL передаётся `id_token_hint={id_token}` для RP-initiated logout без подтверждающей страницы;
-- browser redirect (`rd`) после `/oauth2/sign_out` всегда ведёт на `/auth?silent=1` для контролируемого post-logout UX.
+- browser redirect (`rd`) после `/oauth2/sign_out` всегда ведёт на `/` (public landing) для post-logout UX без автологина.
 
 Покрытие:
 - `src/features/auth/store/authStore.ts`
@@ -66,7 +66,7 @@ When:
 Then:
 - `ProtectedRoute` не перенаправляет пользователя на `/auth?redirect=/app` в этот момент;
 - автоматический OAuth вход не стартует до завершения logout-chain;
-- при попадании на `/auth?silent=1` страница не запускает auto OAuth и сохраняет ручной re-login.
+- после завершения logout-chain пользователь попадает на `/`, где не запускается OAuth flow.
 
 Покрытие:
 - `src/features/auth/store/authStore.ts`
@@ -82,9 +82,9 @@ When:
 - пользователь нажимает `Sign out`.
 
 Then:
-- приложение выполняет logout через `/oauth2/sign_out` -> oauth2-proxy backend logout -> Keycloak end-session -> `/auth?silent=1`;
+- приложение выполняет logout через `/oauth2/sign_out` -> oauth2-proxy backend logout -> Keycloak end-session -> `/`;
 - пользователь не попадает обратно в `/app` автоматически через оставшуюся IdP-сессию;
-- страница `/auth?silent=1` показывает кнопку входа и ждёт явного действия пользователя;
+- на `/` пользователь остаётся в logged-out состоянии до явной попытки входа;
 - logout не падает в Keycloak error-page, если IdP-сессия уже отсутствует.
 
 Покрытие:
@@ -136,7 +136,7 @@ Then:
 Given:
 - пользователь только что выполнил `Sign out`;
 - в session storage установлен recent sign-out marker;
-- открыта страница `/auth?silent=1`.
+- пользователь снова инициирует вход на `/auth` или через переход на приватный маршрут.
 
 When:
 - пользователь инициирует следующий auth attempt (auto flow или ручной `Continue with Keycloak`).
