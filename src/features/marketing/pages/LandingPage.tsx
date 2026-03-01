@@ -49,6 +49,9 @@ const LandingPage = () => {
               <span className="max-w-[140px] truncate text-xs text-slate-600 sm:max-w-[220px] sm:text-sm">
                 {user.email ?? "Signed in"}
               </span>
+              <Button asChild variant="secondary">
+                <Link to="/app">Go to timeline</Link>
+              </Button>
               <Button
                 type="button"
                 variant="outline"
