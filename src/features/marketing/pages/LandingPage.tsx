@@ -37,7 +37,7 @@ const LandingPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="flex min-h-screen flex-col bg-white text-slate-900">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-16 w-full max-w-[1500px] items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-10">
           <Link to="/" className="flex h-1/3 items-center">
@@ -66,7 +66,7 @@ const LandingPage = () => {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1500px] px-4 py-8 sm:px-6 sm:py-12 lg:px-10 lg:py-16 xl:py-20">
+      <main className="mx-auto w-full max-w-[1500px] flex-1 px-4 py-8 sm:px-6 sm:py-12 lg:px-10 lg:py-16 xl:py-20">
         <section
           id="overview"
           className="rounded-3xl border border-slate-200 bg-white p-5 text-center shadow-sm motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500 sm:p-8 lg:p-12 xl:p-14"
@@ -107,12 +107,9 @@ const LandingPage = () => {
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-1 px-4 py-2 text-[11px] text-slate-600 sm:px-6 lg:px-10 md:flex-row md:items-center md:justify-between">
-          <p className="flex items-center gap-1.5">
-            <img src={logoMotio} alt="Motio logo" className="h-3.5 w-3.5 shrink-0 object-contain" />
-            <span>© {currentYear} Motio. Team planning workspace.</span>
-          </p>
-          <p>
+        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-0.5 px-4 py-1 text-[10px] leading-tight text-slate-600 sm:px-6 lg:px-10 md:h-8 md:flex-row md:items-center md:justify-between md:py-0 md:leading-none">
+          <p className="leading-tight md:leading-none">© {currentYear} Motio. Team planning workspace.</p>
+          <p className="leading-tight md:leading-none">
             Designed and developed by{" "}
             <a
               href="https://nikog.net"
