@@ -179,7 +179,7 @@ const getBackupBaseUrl = () => {
   return base ? `${base}/backup` : '';
 };
 
-const SILENT_SIGN_OUT_LANDING_PATH = '/auth?silent=1';
+const POST_SIGN_OUT_LANDING_PATH = '/';
 
 export const getOauth2ProxySignOutPath = () => {
   const signOutPath = (import.meta.env.VITE_OAUTH2_PROXY_SIGN_OUT_PATH ?? '/oauth2/sign_out').trim();
@@ -187,7 +187,7 @@ export const getOauth2ProxySignOutPath = () => {
 
   const [rawPath, rawQuery = ''] = signOutPath.split('?', 2);
   const params = new URLSearchParams(rawQuery);
-  params.set('rd', SILENT_SIGN_OUT_LANDING_PATH);
+  params.set('rd', POST_SIGN_OUT_LANDING_PATH);
 
   const query = params.toString();
   return query ? `${rawPath}?${query}` : rawPath;
