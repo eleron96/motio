@@ -7,8 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Keep deployment release history tracked (synced from the server after each deploy).
-!infra/releases.log
+# Do not track deployment runtime/release logs.
+infra/releases.log
 
 bun.lockb
 date-fns-*.tgz
@@ -20,6 +20,9 @@ dist-ssr
 *.local
 .env
 .env.compose
+.env.*
+!.env.example
+!.env.compose.example
 .supabase
 .supabase-functions.log
 .supabase-functions.env
