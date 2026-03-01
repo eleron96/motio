@@ -4,7 +4,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { Button } from "@/shared/ui/button";
 import { usePageSeo } from "@/shared/lib/seo/usePageSeo";
 import { trackGoogleEvent } from "@/shared/lib/analytics/googleTag";
-import logoMotio from "@/shared/assets/branding/logo-motio.png";
+import logoMotio from "../../../../logo motio.png";
 
 const LandingPage = () => {
   const user = useAuthStore((state) => state.user);
