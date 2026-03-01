@@ -82,6 +82,11 @@ export const isAuthSessionSyncStorageEvent = (event: StorageEvent): boolean => (
   event.key === AUTH_SESSION_SYNC_STORAGE_KEY && typeof event.newValue === 'string'
 );
 
+export const getAuthSessionStateFromStorageEvent = (event: StorageEvent): AuthSessionState | null => {
+  if (!isAuthSessionSyncStorageEvent(event)) return null;
+  return parseAuthSessionSyncPayload(event.newValue)?.state ?? null;
+};
+
 export const isSupabaseAuthStorageKey = (key: string | null): boolean => (
   typeof key === 'string' && key.startsWith('sb-') && key.includes('-auth-token')
 );

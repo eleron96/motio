@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   AUTH_SESSION_SYNC_STORAGE_KEY,
   broadcastAuthSessionSync,
+  getAuthSessionStateFromStorageEvent,
   isAuthSessionSyncStorageEvent,
   isSupabaseAuthStorageKey,
   parseAuthSessionSyncPayload,
@@ -42,6 +43,28 @@ describe('auth session sync', () => {
       }),
     });
     expect(isAuthSessionSyncStorageEvent(event)).toBe(true);
+  });
+
+  it('extracts signed-out state from auth sync storage event', () => {
+    const event = new StorageEvent('storage', {
+      key: AUTH_SESSION_SYNC_STORAGE_KEY,
+      newValue: JSON.stringify({
+        state: 'signed-out',
+        at: 1_000,
+        source: 'tab-a',
+      }),
+    });
+
+    expect(getAuthSessionStateFromStorageEvent(event)).toBe('signed-out');
+  });
+
+  it('returns null for invalid auth sync storage event payload', () => {
+    const event = new StorageEvent('storage', {
+      key: AUTH_SESSION_SYNC_STORAGE_KEY,
+      newValue: '{invalid-json',
+    });
+
+    expect(getAuthSessionStateFromStorageEvent(event)).toBeNull();
   });
 
   it('detects supabase auth storage keys', () => {
