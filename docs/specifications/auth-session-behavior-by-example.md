@@ -87,3 +87,22 @@ Then:
 Покрытие:
 - `src/features/auth/store/authStore.ts`
 - `src/features/auth/pages/AuthPage.tsx`
+
+## Scenario 6: Session state is synchronized across browser tabs
+
+Given:
+- пользователь открывает две вкладки одного браузера на `motio.nikog.net`;
+- хотя бы в одной вкладке меняется auth state (вход/выход).
+
+When:
+- во второй вкладке срабатывают browser events (`storage`, `focus`, `visibilitychange`, `online`);
+- приложение выполняет reconcile текущей Supabase-сессии.
+
+Then:
+- вторая вкладка без ручного reload получает актуальный auth state;
+- после logout в одной вкладке в другой вкладке не сохраняется stale authenticated UI;
+- синхронизация не зацикливается и не вызывает лишние постоянные refresh-запросы.
+
+Покрытие:
+- `src/features/auth/providers/AuthProvider.tsx`
+- `src/features/auth/lib/authSessionSync.ts`

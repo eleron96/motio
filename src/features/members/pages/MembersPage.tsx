@@ -30,6 +30,7 @@ import {
   filterAndSortByName,
   splitAssigneesByActivity,
 } from '@/features/members/lib/memberSelectors';
+import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
 type MemberGroup = {
   id: string;
@@ -89,6 +90,13 @@ const pickNearestRepeatTaskFromToday = (task: Task, tasks: Task[]) => {
 };
 
 const MembersPage = () => {
+  usePageSeo({
+    title: 'Motio — Members',
+    description: 'Private members workspace in Motio.',
+    canonicalPath: '/app/members',
+    robots: 'noindex, nofollow',
+  });
+
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [tab, setTab] = useState<'active' | 'disabled'>('active');

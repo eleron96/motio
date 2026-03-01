@@ -19,6 +19,7 @@ import { Filters, ViewMode } from '@/features/planner/types/planner';
 import { format } from 'date-fns';
 import { Navigate } from 'react-router-dom';
 import { t } from '@lingui/macro';
+import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
 type AddTaskDefaults = {
   startDate: string;
@@ -109,6 +110,13 @@ const PlannerTimelineArea = React.memo(({
 PlannerTimelineArea.displayName = 'PlannerTimelineArea';
 
 const PlannerPage = () => {
+  usePageSeo({
+    title: 'Motio — Timeline',
+    description: 'Private timeline workspace in Motio.',
+    canonicalPath: '/app',
+    robots: 'noindex, nofollow',
+  });
+
   const [filterCollapsed, setFilterCollapsed] = useState(true);
   const [filterWidth, setFilterWidth] = useState(320);
   const [timelineSidebarWidth, setTimelineSidebarWidth] = useState<number | null>(null);

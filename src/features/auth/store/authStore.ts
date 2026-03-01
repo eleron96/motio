@@ -5,6 +5,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 import { isSupportedLocale, type Locale } from '@/shared/lib/locale';
 import { clearPendingLocale, getPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
+import { broadcastAuthSessionSync } from '@/features/auth/lib/authSessionSync';
 import { workspaceSyncService } from '@/application/workspace/workspaceSyncService';
 import { ADMIN_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
 import { invokeAdminFunction, invokeInviteFunction } from '@/infrastructure/auth/functionsGateway';
@@ -568,6 +569,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     set({ signOutRedirectInProgress: true });
     markRecentSignOut();
+    broadcastAuthSessionSync('signed-out');
     await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
     set({
       user: null,

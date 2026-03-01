@@ -85,3 +85,22 @@ Then:
 
 Покрытие:
 - `src/features/marketing/pages/LandingPage.tsx`
+
+## Scenario 6: Private sections set route-specific page title
+
+Given:
+- пользователь авторизован и работает в приватной части приложения.
+
+When:
+- пользователь открывает маршруты `/app`, `/app/dashboard`, `/app/projects`, `/app/members`, `/app/admin/users`.
+
+Then:
+- заголовок вкладки соответствует текущему разделу, а не остаётся от `/auth`;
+- приватные страницы помечены как `noindex, nofollow`.
+
+Покрытие:
+- `src/features/planner/pages/PlannerPage.tsx`
+- `src/features/dashboard/pages/DashboardPage.tsx`
+- `src/features/projects/pages/ProjectsPage.tsx`
+- `src/features/members/pages/MembersPage.tsx`
+- `src/features/admin/pages/AdminUsersPage.tsx`
