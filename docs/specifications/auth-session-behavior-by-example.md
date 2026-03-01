@@ -84,6 +84,7 @@ When:
 
 Then:
 - приложение выполняет logout через `/oauth2/sign_out` -> Keycloak end-session -> `/auth?silent=1`;
+- если Keycloak показывает `logout-confirm`, подтверждение отправляется автоматически без ручного клика;
 - пользователь не попадает обратно в `/app` автоматически через оставшуюся IdP-сессию;
 - страница `/auth?silent=1` показывает кнопку входа и ждёт явного действия пользователя;
 - logout не падает в Keycloak error-page, если IdP-сессия уже отсутствует.
@@ -91,6 +92,7 @@ Then:
 Покрытие:
 - `src/features/auth/store/authStore.ts`
 - `src/features/auth/pages/AuthPage.tsx`
+- `infra/keycloak/themes/timeline/login/resources/js/login.v4.js`
 
 ## Scenario 6: Session state is synchronized across browser tabs
 
