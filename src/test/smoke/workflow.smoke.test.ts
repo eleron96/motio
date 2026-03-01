@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const supabaseMocks = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
+  signInWithOAuth: vi.fn(),
   signUp: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   updateUser: vi.fn(),
@@ -20,6 +21,7 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
   supabase: {
     auth: {
       signInWithPassword: supabaseMocks.signInWithPassword,
+      signInWithOAuth: supabaseMocks.signInWithOAuth,
       signUp: supabaseMocks.signUp,
       resetPasswordForEmail: supabaseMocks.resetPasswordForEmail,
       updateUser: supabaseMocks.updateUser,
@@ -37,6 +39,7 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
 vi.mock('@/shared/store/localeStore', () => ({
   useLocaleStore: {
     getState: () => ({
+      locale: 'en',
       setLocaleFromProfile: localeStoreMocks.setLocaleFromProfile,
     }),
   },
@@ -151,6 +154,47 @@ describe('Smoke: key user workflows', () => {
     const result = await useAuthStore.getState().signIn('user@example.com', 'bad-pass');
 
     expect(result).toEqual({ error: 'Invalid login credentials' });
+  });
+
+  it('login: keycloak includes prompt=login when forceLogin is enabled', async () => {
+    supabaseMocks.signInWithOAuth.mockResolvedValue({ error: null });
+
+    const result = await useAuthStore
+      .getState()
+      .signInWithKeycloak('http://localhost:5173/auth?redirect=%2Fapp', { forceLogin: true });
+
+    expect(result).toEqual({});
+    expect(supabaseMocks.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'keycloak',
+      options: {
+        redirectTo: 'http://localhost:5173/auth?redirect=%2Fapp',
+        scopes: 'openid profile email',
+        queryParams: {
+          ui_locales: 'en',
+          prompt: 'login',
+        },
+      },
+    });
+  });
+
+  it('login: keycloak omits prompt when forceLogin is disabled', async () => {
+    supabaseMocks.signInWithOAuth.mockResolvedValue({ error: null });
+
+    const result = await useAuthStore
+      .getState()
+      .signInWithKeycloak('http://localhost:5173/auth?redirect=%2Fapp');
+
+    expect(result).toEqual({});
+    expect(supabaseMocks.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'keycloak',
+      options: {
+        redirectTo: 'http://localhost:5173/auth?redirect=%2Fapp',
+        scopes: 'openid profile email',
+        queryParams: {
+          ui_locales: 'en',
+        },
+      },
+    });
   });
 
   it('planner: creates a task for current workspace', async () => {

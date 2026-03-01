@@ -38,7 +38,7 @@ Then:
 - `infra/scripts/prod-compose.sh`
 - `infra/keycloak/realm/timeline-realm.prod.json`
 
-## Scenario 3: OAuth2 logout always returns to public root
+## Scenario 3: OAuth2 logout chains through Keycloak end-session
 
 Given:
 - включён oauth2-proxy logout flow;
@@ -48,8 +48,10 @@ When:
 - формируется URL выхода для `/oauth2/sign_out`.
 
 Then:
-- параметр `rd` всегда принудительно равен `/`;
-- пользователь возвращается на публичный лендинг, а не в приватный `/app`.
+- параметр `rd` указывает на Keycloak end-session endpoint (`/protocol/openid-connect/logout`);
+- в end-session URL передаются `client_id` и `post_logout_redirect_uri`;
+- `post_logout_redirect_uri` всегда ведёт на `/auth?silent=1` для контролируемого post-logout UX;
+- если Keycloak logout URL не может быть собран (неполный runtime config), fallback `rd` = `/auth?silent=1`.
 
 Покрытие:
 - `src/features/auth/store/authStore.ts`
@@ -64,11 +66,13 @@ When:
 
 Then:
 - `ProtectedRoute` не перенаправляет пользователя на `/auth?redirect=/app` в этот момент;
-- автоматический OAuth вход не стартует до завершения redirect на публичный `/`.
+- автоматический OAuth вход не стартует до завершения logout-chain;
+- при попадании на `/auth?silent=1` страница не запускает auto OAuth и сохраняет ручной re-login.
 
 Покрытие:
 - `src/features/auth/store/authStore.ts`
 - `src/app/ProtectedRoute.tsx`
+- `src/features/auth/pages/AuthPage.tsx`
 
 ## Scenario 5: Sign out remains stable and requires explicit re-login
 
@@ -79,9 +83,9 @@ When:
 - пользователь нажимает `Sign out`.
 
 Then:
-- приложение выполняет logout через `/oauth2/sign_out` и возвращает пользователя на `/`;
-- при переходе на `/auth?redirect=/app` страница сразу запускает OAuth-редирект и переводит пользователя на страницу логина Keycloak;
-- при следующем переходе в `/app` oauth2-proxy запрашивает новый логин (`prompt=login`);
+- приложение выполняет logout через `/oauth2/sign_out` -> Keycloak end-session -> `/auth?silent=1`;
+- пользователь не попадает обратно в `/app` автоматически через оставшуюся IdP-сессию;
+- страница `/auth?silent=1` показывает кнопку входа и ждёт явного действия пользователя;
 - logout не падает в Keycloak error-page, если IdP-сессия уже отсутствует.
 
 Покрытие:
@@ -126,3 +130,23 @@ Then:
 Покрытие:
 - `src/features/auth/pages/AuthPage.tsx`
 - `src/features/auth/lib/authRedirect.ts`
+
+## Scenario 8: Recent sign-out forces prompt=login on the next auth attempt
+
+Given:
+- пользователь только что выполнил `Sign out`;
+- в session storage установлен recent sign-out marker;
+- открыта страница `/auth?silent=1`.
+
+When:
+- пользователь инициирует следующий auth attempt (auto flow или ручной `Continue with Keycloak`).
+
+Then:
+- `signInWithKeycloak` получает `forceLogin=true`;
+- OAuth query params включают `prompt=login`;
+- Keycloak показывает экран логина даже при существующей SSO-сессии.
+
+Покрытие:
+- `src/features/auth/store/authStore.ts`
+- `src/features/auth/pages/AuthPage.tsx`
+- `src/features/auth/lib/recentSignOut.ts`

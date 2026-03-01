@@ -128,7 +128,7 @@ interface AuthState {
   setSignOutRedirectInProgress: (value: boolean) => void;
   resolveSuperAdmin: (user: User | null) => Promise<boolean>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithKeycloak: (redirectTo?: string) => Promise<{ error?: string }>;
+  signInWithKeycloak: (redirectTo?: string, options?: { forceLogin?: boolean }) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
   sendPasswordReset: (email: string) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
@@ -179,13 +179,35 @@ const getBackupBaseUrl = () => {
   return base ? `${base}/backup` : '';
 };
 
-const getOauth2ProxySignOutPath = () => {
+const SILENT_SIGN_OUT_LANDING_PATH = '/auth?silent=1';
+
+const buildKeycloakEndSessionUrl = () => {
+  if (typeof window === 'undefined') return null;
+
+  const keycloakPublicUrl = (import.meta.env.VITE_KEYCLOAK_PUBLIC_URL ?? '').trim().replace(/\/+$/, '');
+  const keycloakRealm = (import.meta.env.VITE_KEYCLOAK_REALM ?? '').trim();
+  const keycloakClientId = (import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? '').trim();
+
+  if (!keycloakPublicUrl || !keycloakRealm || !keycloakClientId) {
+    return null;
+  }
+
+  const postLogoutRedirectUri = `${window.location.origin}${SILENT_SIGN_OUT_LANDING_PATH}`;
+  const params = new URLSearchParams({
+    client_id: keycloakClientId,
+    post_logout_redirect_uri: postLogoutRedirectUri,
+  });
+
+  return `${keycloakPublicUrl}/realms/${encodeURIComponent(keycloakRealm)}/protocol/openid-connect/logout?${params.toString()}`;
+};
+
+export const getOauth2ProxySignOutPath = () => {
   const signOutPath = (import.meta.env.VITE_OAUTH2_PROXY_SIGN_OUT_PATH ?? '/oauth2/sign_out').trim();
   if (!signOutPath) return '/oauth2/sign_out';
 
   const [rawPath, rawQuery = ''] = signOutPath.split('?', 2);
   const params = new URLSearchParams(rawQuery);
-  params.set('rd', '/');
+  params.set('rd', buildKeycloakEndSessionUrl() ?? SILENT_SIGN_OUT_LANDING_PATH);
 
   const query = params.toString();
   return query ? `${rawPath}?${query}` : rawPath;
@@ -306,7 +328,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     return { error: 'Authentication failed.' };
   },
-  signInWithKeycloak: async (redirectTo) => {
+  signInWithKeycloak: async (redirectTo, options) => {
     const destination = redirectTo
       ?? (typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined);
     const locale = useLocaleStore.getState().locale;
@@ -317,6 +339,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         scopes: 'openid profile email',
         queryParams: {
           ...(locale ? { ui_locales: locale } : {}),
+          ...(options?.forceLogin ? { prompt: 'login' } : {}),
         },
       },
     });

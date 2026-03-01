@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -9,6 +9,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { setPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { buildAuthPath, getAuthRecoveryPath, getRedirectTargetFromSearch } from '@/features/auth/lib/authRedirect';
+import { consumeRecentSignOut } from '@/features/auth/lib/recentSignOut';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
@@ -22,7 +23,14 @@ const AuthPage: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading, signInWithKeycloak } = useAuthStore();
+  const {
+    user,
+    loading,
+    signInWithKeycloak,
+    signOutRedirectInProgress,
+    setSignOutRedirectInProgress,
+  } = useAuthStore();
+  const forceLoginRef = useRef<boolean>(consumeRecentSignOut());
 
   const [submitting, setSubmitting] = useState(false);
   const [oauthAttempted, setOauthAttempted] = useState(false);
@@ -58,6 +66,11 @@ const AuthPage: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
+    if (!signOutRedirectInProgress) return;
+    setSignOutRedirectInProgress(false);
+  }, [setSignOutRedirectInProgress, signOutRedirectInProgress]);
+
+  useEffect(() => {
     if (!oauthError) return;
     setError(oauthError);
     setSubmitting(false);
@@ -87,7 +100,7 @@ const AuthPage: React.FC = () => {
     const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}${redirectPath}`
       : undefined;
-    signInWithKeycloak(redirectTo)
+    signInWithKeycloak(redirectTo, { forceLogin: forceLoginRef.current })
       .then(({ error: keycloakError }) => {
         if (keycloakError) {
           setError(keycloakError);
@@ -120,7 +133,7 @@ const AuthPage: React.FC = () => {
     const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}${redirectPath}`
       : undefined;
-    const { error: keycloakError } = await signInWithKeycloak(redirectTo);
+    const { error: keycloakError } = await signInWithKeycloak(redirectTo, { forceLogin: forceLoginRef.current });
     if (keycloakError) {
       setError(keycloakError);
       setSubmitting(false);
