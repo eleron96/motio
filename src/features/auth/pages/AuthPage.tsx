@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { setPendingLocale } from '@/features/auth/lib/pendingLocale';
+import { buildAuthPath, getAuthRecoveryPath, getRedirectTargetFromSearch } from '@/features/auth/lib/authRedirect';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
@@ -49,12 +50,7 @@ const AuthPage: React.FC = () => {
   }, [location.search]);
 
   const redirectTarget = useMemo(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const redirect = searchParams.get('redirect');
-    if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//')) {
-      return null;
-    }
-    return redirect;
+    return getRedirectTargetFromSearch(location.search);
   }, [location.search]);
   const silentMode = useMemo(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -87,7 +83,7 @@ const AuthPage: React.FC = () => {
     setOauthAttempted(true);
     setSubmitting(true);
 
-    const redirectPath = redirectTarget ? `/auth?redirect=${encodeURIComponent(redirectTarget)}` : '/auth';
+    const redirectPath = buildAuthPath(redirectTarget);
     const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}${redirectPath}`
       : undefined;
@@ -104,11 +100,23 @@ const AuthPage: React.FC = () => {
       });
   }, [hasOauthCode, loading, oauthAttempted, redirectTarget, signInWithKeycloak, silentMode, user]);
 
+  useEffect(() => {
+    if (loading || user || !hasOauthCode || oauthError) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setSubmitting(false);
+      setOauthAttempted(false);
+      navigate(getAuthRecoveryPath(location.search), { replace: true });
+    }, 900);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [hasOauthCode, loading, location.search, navigate, oauthError, user]);
+
   const handleKeycloakSignIn = async () => {
     setError('');
     setSubmitting(true);
 
-    const redirectPath = redirectTarget ? `/auth?redirect=${encodeURIComponent(redirectTarget)}` : '/auth';
+    const redirectPath = buildAuthPath(redirectTarget);
     const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}${redirectPath}`
       : undefined;
