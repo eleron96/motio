@@ -26,6 +26,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shar
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import type { Locale } from '@/shared/lib/locale';
+import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
 const formatDate = (value: string | null | undefined, locale: Locale) => {
   if (!value) return '—';
@@ -84,6 +85,13 @@ const formatBackupType = (type: BackupEntry['type']) => {
 };
 
 const AdminUsersPage: React.FC = () => {
+  usePageSeo({
+    title: 'Motio — Admin',
+    description: 'Private admin panel in Motio.',
+    canonicalPath: '/app/admin/users',
+    robots: 'noindex, nofollow',
+  });
+
   const {
     user,
     isSuperAdmin,

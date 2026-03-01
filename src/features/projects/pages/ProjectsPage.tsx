@@ -39,6 +39,7 @@ import {
   sortCustomersByName,
   splitMilestonesByDate,
 } from '@/features/projects/lib/projectsSelectors';
+import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
 type DisplayTaskRow = {
   key: string;
@@ -51,6 +52,13 @@ type DisplayTaskRow = {
 };
 
 const ProjectsPage = () => {
+  usePageSeo({
+    title: 'Motio — Projects',
+    description: 'Private projects workspace in Motio.',
+    canonicalPath: '/app/projects',
+    robots: 'noindex, nofollow',
+  });
+
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [tab, setTab] = useState<'active' | 'archived'>('active');

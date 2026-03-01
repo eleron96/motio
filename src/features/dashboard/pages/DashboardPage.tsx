@@ -60,12 +60,20 @@ import { DashboardLayouts, DashboardWidget } from '@/features/dashboard/types/da
 import { Navigate } from 'react-router-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { t } from '@lingui/macro';
+import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
 const MOBILE_DRAG_HOLD_MS = 420;
 const MOBILE_DRAG_MOVE_TOLERANCE_PX = 10;
 const MOBILE_DRAG_ARM_TTL_MS = 4500;
 
 const DashboardPage = () => {
+  usePageSeo({
+    title: 'Motio — Dashboard',
+    description: 'Private dashboard workspace in Motio.',
+    canonicalPath: '/app/dashboard',
+    robots: 'noindex, nofollow',
+  });
+
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
