@@ -13,7 +13,7 @@
 ## 2. Источники истины
 
 1. Архитектурные границы: `docs/architecture/frontend-boundaries.md`.
-2. Поведенческие спецификации: `docs/specifications/planner-behavior-by-example.md`.
+2. Поведенческие спецификации: релевантный файл из `docs/specifications/*` (не только planner).
 3. Текущая карта системы: `docs/codex-map.md`.
 4. Dev/Prod команды: `README.md` и `Makefile`.
 
@@ -161,7 +161,22 @@
 
 1. `npm run lint`
 2. `npm run test`
-3. Проверить diff на случайные debug-логи и закомментированный код.
+3. `npx tsc --noEmit`
+4. Проверить diff на случайные debug-логи и закомментированный код.
+
+## 7.4. Ветки и PR (обязательно)
+
+1. Любая задача выполняется в отдельной ветке `codex/<task-name>`, созданной от актуального `main`.
+2. Прямой push в `main` запрещен; `main` обновляется только через PR.
+3. Одна задача = одна ветка = один PR.
+4. Предпочтительный merge для PR: `squash`.
+5. Перед открытием PR обязательно: `npm run lint`, `npm run test`, `npx tsc --noEmit`.
+6. При изменении пользовательского поведения в той же ветке обновлять тесты и релевантный файл из `docs/specifications/*`.
+7. Релиз выполняется только из актуального `main`.
+8. `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md`, `infra/releases.log` изменяются только в релизном коммите (`chore(release): ...`) или через `make release-sync`.
+9. Каждый production-релиз помечать git-тегом `vX.Y.Z`.
+10. `old-version` считать архивной веткой для отката; обычную разработку в ней не вести.
+11. Для срочного фикса: отдельная ветка от `main` -> PR -> merge в `main` -> релиз.
 
 ## 8. Definition of Done
 
