@@ -566,7 +566,7 @@ export const InviteNotifications: React.FC = () => {
     requestScrollToDate(scrollDate);
     setSelectedTaskId(null);
     setOpen(false);
-    navigate('/');
+    navigate('/app');
     setOpeningNotificationId(null);
   }, [
     clearFilters,

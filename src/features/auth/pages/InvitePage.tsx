@@ -3,8 +3,16 @@ import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { toast } from '@/shared/ui/sonner';
 import { t } from '@lingui/macro';
+import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
 const InvitePage: React.FC = () => {
+  usePageSeo({
+    title: 'Приглашение в workspace — Motio',
+    description: 'Страница принятия приглашения в рабочее пространство Motio.',
+    canonicalPath: '/invite',
+    robots: 'noindex, nofollow',
+  });
+
   const { inviteToken } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -43,7 +51,7 @@ const InvitePage: React.FC = () => {
       toast(t`Workspace joined`, {
         description: t`You were added to a new workspace.`,
       });
-      navigate('/', { replace: true });
+      navigate('/app', { replace: true });
     };
 
     void accept();

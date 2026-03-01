@@ -77,6 +77,8 @@ make up
 ### 2. URLs
 
 - Приложение: `http://localhost:5173`
+- Публичный лендинг: `http://localhost:5173/`
+- Приватное приложение: `http://localhost:5173/app`
 - Keycloak: `http://localhost:8081`
 - Keycloak Admin Console (prod): `https://motio.nikog.net/admin/master/console/`
 - Supabase Gateway health: `http://localhost:8080/health`
@@ -193,6 +195,7 @@ make check-prod-secrets-remote
 - `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT` — падать ли деплою при найденном drift.
 - `OAUTH2_PROXY_*` — проксирование входа на фронт (`localhost:5173`).
 - `VITE_KEYCLOAK_PUBLIC_URL`, `VITE_KEYCLOAK_REALM`, `VITE_KEYCLOAK_CLIENT_ID` — клиентская часть logout/redirect логики.
+- `VITE_GA_MEASUREMENT_ID` — GA4 Measurement ID для Google tag (например `G-XXXXXXXXXX`).
 
 ### Supabase / DB
 

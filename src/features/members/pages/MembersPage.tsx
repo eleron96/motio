@@ -639,7 +639,7 @@ const MembersPage = () => {
     setCurrentDate(timelineTask.startDate);
     requestScrollToDate(timelineTask.startDate);
     setSelectedTaskId(null);
-    navigate('/');
+    navigate('/app');
   }, [
     assigneeTasks,
     clearFilters,
@@ -801,7 +801,7 @@ const MembersPage = () => {
   }, [assigneeByUserId, setMode, setSelectedAssigneeId, setTab]);
 
   if (isSuperAdmin) {
-    return <Navigate to="/admin/users" replace />;
+    return <Navigate to="/app/admin/users" replace />;
   }
 
   return (

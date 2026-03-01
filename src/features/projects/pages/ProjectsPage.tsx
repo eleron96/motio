@@ -373,7 +373,7 @@ const ProjectsPage = () => {
     setCurrentDate(selectedTask.startDate);
     requestScrollToDate(selectedTask.startDate);
     setSelectedTaskId(null);
-    navigate('/');
+    navigate('/app');
   }, [
     clearFilters,
     navigate,
@@ -809,7 +809,7 @@ const ProjectsPage = () => {
   }, []);
 
   if (isSuperAdmin) {
-    return <Navigate to="/admin/users" replace />;
+    return <Navigate to="/app/admin/users" replace />;
   }
 
   return (

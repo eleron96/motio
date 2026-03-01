@@ -8,9 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { setPendingLocale } from '@/features/auth/lib/pendingLocale';
+import { clearRecentSignOut, consumeRecentSignOut } from '@/features/auth/lib/recentSignOut';
 import { t } from '@lingui/macro';
+import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
 const AuthPage: React.FC = () => {
+  usePageSeo({
+    title: 'Вход в Motio',
+    description: 'Вход в рабочее пространство Motio через защищенный SSO flow.',
+    canonicalPath: '/auth',
+    robots: 'noindex, nofollow',
+  });
+
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading, signInWithKeycloak } = useAuthStore();
@@ -18,6 +27,7 @@ const AuthPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [oauthAttempted, setOauthAttempted] = useState(false);
   const [error, setError] = useState('');
+  const [recentSignOutBlocked] = useState(() => consumeRecentSignOut());
 
   const locale = useLocaleStore((state) => state.locale);
   const setLocale = useLocaleStore((state) => state.setLocale);
@@ -44,6 +54,10 @@ const AuthPage: React.FC = () => {
     }
     return redirect;
   }, [location.search]);
+  const silentMode = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get('silent') === '1';
+  }, [location.search]);
 
   useEffect(() => {
     if (!oauthError) return;
@@ -56,12 +70,17 @@ const AuthPage: React.FC = () => {
     if (!user) return;
     const redirectTo = redirectTarget
       ?? (location.state as { redirectTo?: string } | null)?.redirectTo
-      ?? '/';
+      ?? '/app';
     navigate(redirectTo, { replace: true });
   }, [location.state, navigate, redirectTarget, user]);
 
   useEffect(() => {
     if (loading || user || oauthAttempted) return;
+    if (silentMode || recentSignOutBlocked) {
+      setOauthAttempted(true);
+      setSubmitting(false);
+      return;
+    }
 
     setOauthAttempted(true);
     setSubmitting(true);
@@ -81,11 +100,12 @@ const AuthPage: React.FC = () => {
         setError(authError instanceof Error ? authError.message : t`Authentication failed.`);
         setSubmitting(false);
       });
-  }, [loading, oauthAttempted, redirectTarget, signInWithKeycloak, user]);
+  }, [loading, oauthAttempted, recentSignOutBlocked, redirectTarget, signInWithKeycloak, silentMode, user]);
 
   const handleKeycloakSignIn = async () => {
     setError('');
     setSubmitting(true);
+    clearRecentSignOut();
 
     const redirectPath = redirectTarget ? `/auth?redirect=${encodeURIComponent(redirectTarget)}` : '/auth';
     const redirectTo = typeof window !== 'undefined'
@@ -106,7 +126,7 @@ const AuthPage: React.FC = () => {
 
   const authError = error || oauthError;
 
-  if (!user && !authError) {
+  if (!user && !authError && !silentMode && !oauthAttempted) {
     return <div className="min-h-screen bg-background" />;
   }
 
