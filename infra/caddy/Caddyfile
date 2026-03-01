@@ -39,6 +39,10 @@ motio.nikog.net {
       reverse_proxy host.docker.internal:8080
     }
 
+    handle /auth* {
+      reverse_proxy host.docker.internal:5174
+    }
+
     handle /rest/v1* {
       reverse_proxy host.docker.internal:8080
     }
@@ -84,6 +88,10 @@ motio.nikog.net {
     }
 
     handle /sitemap.xml {
+      reverse_proxy host.docker.internal:5174
+    }
+
+    handle /invite* {
       reverse_proxy host.docker.internal:5174
     }
 
