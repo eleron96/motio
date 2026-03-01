@@ -43,6 +43,10 @@ const AuthPage: React.FC = () => {
 
     return rawCode ? `${rawCode}: ${description}` : description;
   }, [location.search]);
+  const hasOauthCode = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.has('code');
+  }, [location.search]);
 
   const redirectTarget = useMemo(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -73,7 +77,7 @@ const AuthPage: React.FC = () => {
   }, [location.state, navigate, redirectTarget, user]);
 
   useEffect(() => {
-    if (loading || user || oauthAttempted) return;
+    if (loading || user || oauthAttempted || hasOauthCode) return;
     if (silentMode) {
       setOauthAttempted(true);
       setSubmitting(false);
@@ -91,14 +95,14 @@ const AuthPage: React.FC = () => {
       .then(({ error: keycloakError }) => {
         if (keycloakError) {
           setError(keycloakError);
+          setSubmitting(false);
         }
-        setSubmitting(false);
       })
       .catch((authError: unknown) => {
         setError(authError instanceof Error ? authError.message : t`Authentication failed.`);
         setSubmitting(false);
       });
-  }, [loading, oauthAttempted, redirectTarget, signInWithKeycloak, silentMode, user]);
+  }, [hasOauthCode, loading, oauthAttempted, redirectTarget, signInWithKeycloak, silentMode, user]);
 
   const handleKeycloakSignIn = async () => {
     setError('');
@@ -111,8 +115,8 @@ const AuthPage: React.FC = () => {
     const { error: keycloakError } = await signInWithKeycloak(redirectTo);
     if (keycloakError) {
       setError(keycloakError);
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   const handleLocaleChange = (value: string) => {
@@ -123,7 +127,7 @@ const AuthPage: React.FC = () => {
 
   const authError = error || oauthError;
 
-  if (!user && !authError && !silentMode && (!oauthAttempted || submitting)) {
+  if (!user && !authError && !silentMode) {
     return <div className="min-h-screen bg-background" />;
   }
 
