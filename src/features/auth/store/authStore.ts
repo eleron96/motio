@@ -181,33 +181,13 @@ const getBackupBaseUrl = () => {
 
 const SILENT_SIGN_OUT_LANDING_PATH = '/auth?silent=1';
 
-const buildKeycloakEndSessionUrl = () => {
-  if (typeof window === 'undefined') return null;
-
-  const keycloakPublicUrl = (import.meta.env.VITE_KEYCLOAK_PUBLIC_URL ?? '').trim().replace(/\/+$/, '');
-  const keycloakRealm = (import.meta.env.VITE_KEYCLOAK_REALM ?? '').trim();
-  const keycloakClientId = (import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? '').trim();
-
-  if (!keycloakPublicUrl || !keycloakRealm || !keycloakClientId) {
-    return null;
-  }
-
-  const postLogoutRedirectUri = `${window.location.origin}${SILENT_SIGN_OUT_LANDING_PATH}`;
-  const params = new URLSearchParams({
-    client_id: keycloakClientId,
-    post_logout_redirect_uri: postLogoutRedirectUri,
-  });
-
-  return `${keycloakPublicUrl}/realms/${encodeURIComponent(keycloakRealm)}/protocol/openid-connect/logout?${params.toString()}`;
-};
-
 export const getOauth2ProxySignOutPath = () => {
   const signOutPath = (import.meta.env.VITE_OAUTH2_PROXY_SIGN_OUT_PATH ?? '/oauth2/sign_out').trim();
   if (!signOutPath) return '/oauth2/sign_out';
 
   const [rawPath, rawQuery = ''] = signOutPath.split('?', 2);
   const params = new URLSearchParams(rawQuery);
-  params.set('rd', buildKeycloakEndSessionUrl() ?? SILENT_SIGN_OUT_LANDING_PATH);
+  params.set('rd', SILENT_SIGN_OUT_LANDING_PATH);
 
   const query = params.toString();
   return query ? `${rawPath}?${query}` : rawPath;

@@ -38,7 +38,7 @@ Then:
 - `infra/scripts/prod-compose.sh`
 - `infra/keycloak/realm/timeline-realm.prod.json`
 
-## Scenario 3: OAuth2 logout chains through Keycloak end-session
+## Scenario 3: OAuth2 logout chains through Keycloak end-session via oauth2-proxy backend logout
 
 Given:
 - включён oauth2-proxy logout flow;
@@ -48,10 +48,9 @@ When:
 - формируется URL выхода для `/oauth2/sign_out`.
 
 Then:
-- параметр `rd` указывает на Keycloak end-session endpoint (`/protocol/openid-connect/logout`);
-- в end-session URL передаются `client_id` и `post_logout_redirect_uri`;
-- `post_logout_redirect_uri` всегда ведёт на `/auth?silent=1` для контролируемого post-logout UX;
-- если Keycloak logout URL не может быть собран (неполный runtime config), fallback `rd` = `/auth?silent=1`.
+- `oauth2-proxy` вызывает Keycloak end-session endpoint через `OAUTH2_PROXY_BACKEND_LOGOUT_URL`;
+- в backend logout URL передаётся `id_token_hint={id_token}` для RP-initiated logout без подтверждающей страницы;
+- browser redirect (`rd`) после `/oauth2/sign_out` всегда ведёт на `/auth?silent=1` для контролируемого post-logout UX.
 
 Покрытие:
 - `src/features/auth/store/authStore.ts`
@@ -83,8 +82,7 @@ When:
 - пользователь нажимает `Sign out`.
 
 Then:
-- приложение выполняет logout через `/oauth2/sign_out` -> Keycloak end-session -> `/auth?silent=1`;
-- если Keycloak показывает `logout-confirm`, подтверждение отправляется автоматически без ручного клика;
+- приложение выполняет logout через `/oauth2/sign_out` -> oauth2-proxy backend logout -> Keycloak end-session -> `/auth?silent=1`;
 - пользователь не попадает обратно в `/app` автоматически через оставшуюся IdP-сессию;
 - страница `/auth?silent=1` показывает кнопку входа и ждёт явного действия пользователя;
 - logout не падает в Keycloak error-page, если IdP-сессия уже отсутствует.
@@ -92,7 +90,6 @@ Then:
 Покрытие:
 - `src/features/auth/store/authStore.ts`
 - `src/features/auth/pages/AuthPage.tsx`
-- `infra/keycloak/themes/timeline/login/resources/js/login.v4.js`
 
 ## Scenario 6: Session state is synchronized across browser tabs
 
