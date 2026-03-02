@@ -37,7 +37,16 @@ export const fetchProjectTasks = async ({
     .eq('project_id', projectId)
     .order('start_date', { ascending: true });
   query = withAbortSignal(query, signal);
-  const { data, error } = await query;
+  let data: unknown[] | null = null;
+  let error: { message: string } | null = null;
+  try {
+    const response = await query;
+    data = response.data;
+    error = response.error;
+  } catch (queryError) {
+    if (isAbortError(queryError)) return [];
+    throw queryError;
+  }
   if (error) {
     if (isAbortError(error)) return [];
     throw new Error(error.message);

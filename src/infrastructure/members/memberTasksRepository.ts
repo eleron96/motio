@@ -116,9 +116,20 @@ export const fetchAssigneeTasks = async ({
   }
 
   sortedQuery = withAbortSignal(sortedQuery, signal);
-  const { data, error, count } = taskScope === 'current'
-    ? await sortedQuery
-    : await sortedQuery.range(offset, offset + pageSize - 1);
+  let data: unknown[] | null = null;
+  let error: { message: string } | null = null;
+  let count: number | null = null;
+  try {
+    const response = taskScope === 'current'
+      ? await sortedQuery
+      : await sortedQuery.range(offset, offset + pageSize - 1);
+    data = response.data;
+    error = response.error;
+    count = response.count;
+  } catch (queryError) {
+    if (isAbortError(queryError)) return null;
+    throw queryError;
+  }
 
   if (error) {
     if (isAbortError(error)) return null;
