@@ -104,3 +104,19 @@ Then:
 - `src/features/projects/pages/ProjectsPage.tsx`
 - `src/features/members/pages/MembersPage.tsx`
 - `src/features/admin/pages/AdminUsersPage.tsx`
+
+## Scenario 7: Canonical host and transport compatibility are enforced at edge
+
+Given:
+- пользователь открывает сайт через `www.motio.nikog.net` или через нестабильную сеть.
+
+When:
+- запрос попадает на edge proxy (Caddy).
+
+Then:
+- `www.motio.nikog.net` перенаправляется на канонический `https://motio.nikog.net{uri}` c `308`;
+- edge использует совместимый транспортный режим `h1/h2` (без `h3`);
+- контент кодируется `gzip` без `zstd` для снижения проблем совместимости на части сетей.
+
+Покрытие:
+- `infra/caddy/Caddyfile`
