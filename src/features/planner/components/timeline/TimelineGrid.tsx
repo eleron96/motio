@@ -121,6 +121,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const filteredAssignees = useFilteredAssignees(assignees);
+  const activeFilteredAssignees = useMemo(
+    () => filteredAssignees.filter((assignee) => assignee.isActive),
+    [filteredAssignees],
+  );
 
   const assigneeGroupMap = useMemo(
     () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
@@ -246,18 +250,18 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   );
   
   const filteredTasks = useMemo(
-    () => selectFilteredTasks(tasks, filters, assigneeGroupMap),
-    [tasks, filters, assigneeGroupMap],
+    () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
+    [tasks, filters, assigneeGroupMap, assignees],
   );
 
   const visibleAssignees = useMemo(
     () => selectVisibleAssignees({
       groupMode,
-      filteredAssignees,
+      filteredAssignees: activeFilteredAssignees,
       filters,
       assigneeGroupMap,
     }),
-    [assigneeGroupMap, filteredAssignees, filters, groupMode],
+    [activeFilteredAssignees, assigneeGroupMap, filters, groupMode],
   );
 
   const groupItems = useMemo(

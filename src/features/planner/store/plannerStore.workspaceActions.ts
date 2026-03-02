@@ -275,6 +275,7 @@ export const createWorkspaceActions = (
     ));
     const nextTrackedProjectIds = get().trackedProjectIds;
     const activeProjectIds = new Set(nextProjects.filter((project) => !project.archived).map((project) => project.id));
+    const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
     const activeGroupIds = new Set(memberGroups.map((group) => group.id));
 
     if (get().dataRequestId !== requestId) return;
@@ -295,6 +296,7 @@ export const createWorkspaceActions = (
       filters: {
         ...state.filters,
         projectIds: state.filters.projectIds.filter((id) => activeProjectIds.has(id)),
+        assigneeIds: state.filters.assigneeIds.filter((id) => activeAssigneeIds.has(id)),
         groupIds: state.filters.groupIds.filter((id) => activeGroupIds.has(id)),
       },
       loading: false,
@@ -366,7 +368,15 @@ export const createWorkspaceActions = (
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);
 
-    set({ assignees });
+    const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
+
+    set((state) => ({
+      assignees,
+      filters: {
+        ...state.filters,
+        assigneeIds: state.filters.assigneeIds.filter((id) => activeAssigneeIds.has(id)),
+      },
+    }));
   },
 
   refreshMemberGroups: async () => {
