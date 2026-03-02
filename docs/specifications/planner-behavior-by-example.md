@@ -126,3 +126,24 @@ Then:
 - `src/features/planner/components/TaskDetailPanel.tsx`
 - `src/features/planner/components/TaskProjectSelect.tsx`
 - `src/features/planner/hooks/useProjectQueryInput.ts`
+
+## Scenario 8: Disabled assignees are hidden in timeline and people filter
+
+Given:
+- в workspace есть активные и отключенные участники;
+- у отключенного участника есть назначенные задачи.
+
+When:
+- пользователь открывает timeline (`day`/`week`/`calendar`) и левый фильтр `People`.
+
+Then:
+- отключенные участники не отображаются в `People` фильтре;
+- задачи, назначенные только на отключенных участников, не отображаются в таймлайне;
+- задачи с активным и отключенным участником остаются видимыми по активному участнику.
+
+Покрытие:
+- `src/features/planner/lib/timelineSelectors.ts`
+- `src/features/planner/components/FilterPanel.tsx`
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/features/planner/components/timeline/CalendarTimeline.tsx`
+- `src/test/planner/timelineSelectors.test.ts`

@@ -41,37 +41,57 @@ export const selectFilteredTasks = (
   tasks: Task[],
   filters: Filters,
   assigneeGroupMap: Map<string, string>,
-) => tasks.filter((task) => {
-  if (filters.projectIds.length > 0 && task.projectId && !filters.projectIds.includes(task.projectId)) {
-    return false;
-  }
-  if (filters.assigneeIds.length > 0) {
-    if (!task.assigneeIds.some((id) => filters.assigneeIds.includes(id))) {
+  assignees: Assignee[],
+) => {
+  const assigneeById = new Map(assignees.map((assignee) => [assignee.id, assignee]));
+
+  return tasks.filter((task) => {
+    if (task.assigneeIds.length > 0 && assigneeById.size > 0) {
+      const hasVisibleAssignee = task.assigneeIds.some((id) => {
+        const assignee = assigneeById.get(id);
+        // Не скрываем задачу, если исполнитель неизвестен локальному кэшу.
+        return assignee ? assignee.isActive : true;
+      });
+      if (!hasVisibleAssignee) {
+        return false;
+      }
+    }
+
+    if (filters.projectIds.length > 0 && task.projectId && !filters.projectIds.includes(task.projectId)) {
       return false;
     }
-  } else if (filters.hideUnassigned && task.assigneeIds.length === 0) {
-    return false;
-  }
-  if (filters.statusIds.length > 0 && !filters.statusIds.includes(task.statusId)) {
-    return false;
-  }
-  if (filters.typeIds.length > 0 && !filters.typeIds.includes(task.typeId)) {
-    return false;
-  }
-  if (filters.tagIds.length > 0 && !filters.tagIds.some((id) => task.tagIds.includes(id))) {
-    return false;
-  }
-  if (filters.groupIds.length > 0) {
-    const matchesGroup = task.assigneeIds.some((id) => {
-      const groupId = assigneeGroupMap.get(id);
-      return groupId ? filters.groupIds.includes(groupId) : false;
-    });
-    if (!matchesGroup) {
+
+    if (filters.assigneeIds.length > 0) {
+      if (!task.assigneeIds.some((id) => filters.assigneeIds.includes(id))) {
+        return false;
+      }
+    } else if (filters.hideUnassigned && task.assigneeIds.length === 0) {
       return false;
     }
-  }
-  return true;
-});
+
+    if (filters.statusIds.length > 0 && !filters.statusIds.includes(task.statusId)) {
+      return false;
+    }
+    if (filters.typeIds.length > 0 && !filters.typeIds.includes(task.typeId)) {
+      return false;
+    }
+    if (filters.tagIds.length > 0 && !filters.tagIds.some((id) => task.tagIds.includes(id))) {
+      return false;
+    }
+
+    if (filters.groupIds.length > 0) {
+      const matchesGroup = task.assigneeIds.some((id) => {
+        const groupId = assigneeGroupMap.get(id);
+        return groupId ? filters.groupIds.includes(groupId) : false;
+      });
+      if (!matchesGroup) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+};
 
 export const selectVisibleAssignees = ({
   groupMode,
