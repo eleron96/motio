@@ -1,6 +1,16 @@
+{
+  servers {
+    protocols h1 h2
+  }
+}
+
+www.motio.nikog.net {
+  redir https://motio.nikog.net{uri} 308
+}
+
 motio.nikog.net {
   route {
-    encode zstd gzip
+    encode gzip
 
     redir /realms /realms/timeline/account 302
     redir /realms/ /realms/timeline/account 302
