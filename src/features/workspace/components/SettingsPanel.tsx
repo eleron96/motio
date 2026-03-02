@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/shared/ui/command';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
+import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 
 interface SettingsPanelProps {
   open: boolean;
@@ -159,7 +160,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           .sort((left, right) => left.name.localeCompare(right.name));
         setHolidayCountryOptions(normalized);
       } catch (error) {
-        if ((error as { name?: string })?.name !== 'AbortError') {
+        if (!isAbortError(error)) {
           console.error(error);
         }
       } finally {
