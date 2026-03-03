@@ -166,3 +166,22 @@ Then:
 Покрытие:
 - `src/features/planner/hooks/usePlannerLiveSync.ts`
 - `src/test/planner/usePlannerLiveSync.test.tsx`
+
+## Scenario 10: Live sync pipeline is single-flight and ignores stale async runs
+
+Given:
+- realtime flush и reconcile триггеры приходят почти одновременно;
+- часть запросов выполняется с задержкой;
+- пользователь может переключить workspace во время in-flight запроса.
+
+When:
+- запускается sync pipeline для `usePlannerLiveSync`.
+
+Then:
+- `flush` и `reconcile` не выполняются параллельно (single-flight execution);
+- stale async ответ из старого lifecycle не мутирует store;
+- `fallbackFailureCount` растет с clamp при ошибках и сбрасывается после успешного reconcile.
+
+Покрытие:
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`
