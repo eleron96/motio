@@ -293,6 +293,14 @@ services:
       OAUTH2_PROXY_PASS_ACCESS_TOKEN: "false"
       OAUTH2_PROXY_SESSION_COOKIE_MINIMAL: "true"
       OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
+      # Backend logout calls Keycloak end-session with id_token_hint on every /oauth2/sign_out.
+      # NOTE: SESSION_COOKIE_MINIMAL=true strips the id_token from the stored session, so
+      # {id_token} substitution resolves to an empty string. Keycloak cannot identify the
+      # specific SSO session without a valid hint and the backend logout becomes best-effort.
+      # Primary protection against silent re-login is the prompt=login forceLogin mechanism
+      # in the SPA (src/features/auth/pages/AuthPage.tsx + recentSignOut.ts).
+      # To restore per-session SSO termination: set SESSION_COOKIE_MINIMAL=false (adds ~1 KB
+      # to the cookie) or supply a pre-issued id_token via OAUTH2_PROXY_BACKEND_LOGOUT_URL.
       OAUTH2_PROXY_BACKEND_LOGOUT_URL: ${OAUTH2_PROXY_BACKEND_LOGOUT_URL:-http://keycloak:8080/realms/timeline/protocol/openid-connect/logout?id_token_hint={id_token}}
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
       OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"
