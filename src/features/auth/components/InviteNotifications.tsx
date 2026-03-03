@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { supabase } from '@/shared/lib/supabaseClient';
+import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { cn } from '@/shared/lib/classNames';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
@@ -44,26 +45,6 @@ type TaskNotification = {
   taskExists: boolean;
   createdAt: string;
   readAt: string | null;
-};
-
-const parseFunctionError = async (error: { message: string }, response?: Response) => {
-  let message = error.message;
-  if (response) {
-    try {
-      const body = await response.clone().json();
-      if (body && typeof body === 'object' && typeof (body as { error?: string }).error === 'string') {
-        message = (body as { error: string }).error;
-      }
-    } catch (_error) {
-      try {
-        const text = await response.clone().text();
-        if (text) message = text;
-      } catch (_innerError) {
-        // Ignore response parsing errors and keep the original message.
-      }
-    }
-  }
-  return message;
 };
 
 const isPendingInvite = (value: unknown): value is PendingInvite => {
@@ -244,7 +225,7 @@ export const InviteNotifications: React.FC = () => {
     });
 
     if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
+      setErrorMessage(await parseInvokeError(error, response));
       if (showLoading) {
         setLoading(false);
       }
@@ -491,7 +472,7 @@ export const InviteNotifications: React.FC = () => {
     });
 
     if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
+      setErrorMessage(await parseInvokeError(error, response));
       setBusyToken(null);
       return;
     }
@@ -512,7 +493,7 @@ export const InviteNotifications: React.FC = () => {
     });
 
     if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
+      setErrorMessage(await parseInvokeError(error, response));
       setBusyNotificationId(null);
       return false;
     }
