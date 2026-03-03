@@ -204,6 +204,7 @@ make check-prod-secrets-remote
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_DB_URL`, `SUPABASE_INTERNAL_URL`
 - `PGRST_DB_URI`, `GOTRUE_DB_DATABASE_URL`
+- `POSTGRES_WAL_LEVEL` — must be `logical` for Supabase Realtime CDC.
 
 ### Backup / Restore
 

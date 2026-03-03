@@ -17,6 +17,8 @@ services:
       - -c
       - max_wal_size=${POSTGRES_MAX_WAL_SIZE:-2GB}
       - -c
+      - wal_level=${POSTGRES_WAL_LEVEL:-logical}
+      - -c
       - listen_addresses=*
     ports:
       - "54322:5432"
