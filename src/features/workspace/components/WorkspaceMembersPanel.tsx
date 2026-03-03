@@ -11,6 +11,7 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { supabase } from '@/shared/lib/supabaseClient';
+import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import { t } from '@lingui/macro';
 
@@ -48,27 +49,6 @@ const sentInviteStatuses: ReadonlyArray<SentInvite['status']> = [
 const isSentInviteStatus = (value: unknown): value is SentInvite['status'] => (
   typeof value === 'string' && sentInviteStatuses.includes(value as SentInvite['status'])
 );
-
-const parseInvokeErrorMessage = async (invokeError: { message: string }, response?: Response) => {
-  let message = invokeError.message;
-  if (!response) return message;
-
-  try {
-    const body = await response.clone().json();
-    if (body && typeof body === 'object' && typeof (body as { error?: string }).error === 'string') {
-      message = (body as { error: string }).error;
-    }
-  } catch (_error) {
-    try {
-      const text = await response.clone().text();
-      if (text) message = text;
-    } catch (_innerError) {
-      // Keep original invoke error.
-    }
-  }
-
-  return message;
-};
 
 export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   active = true,
@@ -161,7 +141,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     });
 
     if (error) {
-      setError(await parseInvokeErrorMessage(error, response));
+      setError(await parseInvokeError(error, response));
       setSentInvitesLoading(false);
       return;
     }
@@ -322,7 +302,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     });
 
     if (error) {
-      setError(await parseInvokeErrorMessage(error, response));
+      setError(await parseInvokeError(error, response));
       setCancelingToken(null);
       return;
     }
