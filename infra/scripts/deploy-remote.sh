@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-host="${1:-${DEPLOY_HOST:-root@85.239.60.3}}"
+host="${1:-${DEPLOY_HOST:-root@185.207.66.120}}"
 remote_dir="${DEPLOY_PATH:-/opt/new_toggl}"
 
 echo "Deploy target: ${host}:${remote_dir}"
@@ -10,6 +10,7 @@ echo "Deploy target: ${host}:${remote_dir}"
 rsync_output="$(
   rsync -az --itemize-changes \
     --exclude '.git' \
+    --exclude '.claude/' \
     --exclude 'node_modules' \
     --exclude 'dist' \
     --exclude '.env' \
