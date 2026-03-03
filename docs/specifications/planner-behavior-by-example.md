@@ -147,3 +147,22 @@ Then:
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
 - `src/features/planner/components/timeline/CalendarTimeline.tsx`
 - `src/test/planner/timelineSelectors.test.ts`
+
+## Scenario 9: Realtime upserts are deferred during timeline interaction and replayed after
+
+Given:
+- в `usePlannerLiveSync` пришел realtime upsert события по задаче;
+- пользователь в этот момент взаимодействует с timeline (drag/scroll), и `timelineInteractingUntil` еще в будущем.
+
+When:
+- flush очереди запускается в defer-режиме;
+- окно взаимодействия заканчивается.
+
+Then:
+- upsert не теряется и остается в очереди;
+- выполняется повторный flush после `INTERACTION_RETRY_MS`;
+- задача применяется в store после завершения interaction-window.
+
+Покрытие:
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`

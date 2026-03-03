@@ -268,12 +268,13 @@ export const usePlannerLiveSync = (
         && (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0)
       );
 
+      if (shouldDeferUpserts) {
+        scheduleFlush(INTERACTION_RETRY_MS);
+        return;
+      }
+
       flushInFlight = true;
       try {
-        if (shouldDeferUpserts) {
-          return;
-        }
-
         const taskUpsertIds = takeFromSet(pendingTaskUpserts, EVENT_BATCH_SIZE);
         if (taskUpsertIds.length > 0) {
           const { data, error } = await supabase
@@ -335,11 +336,6 @@ export const usePlannerLiveSync = (
         }
       } finally {
         flushInFlight = false;
-      }
-
-      if (shouldDeferUpserts) {
-        scheduleFlush(INTERACTION_RETRY_MS);
-        return;
       }
 
       if (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0) {
