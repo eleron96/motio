@@ -96,25 +96,23 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const todayKey = useTodayKey();
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
-  const {
-    tasks,
-    milestones,
-    projects, 
-    assignees, 
-    memberGroupAssignments,
-    viewMode, 
-    groupMode, 
-    currentDate,
-    setCurrentDate,
-    requestScrollToDate,
-    scrollTargetDate,
-    scrollRequestId,
-    filters,
-    highlightedTaskId,
-    timelineAttentionDate,
-    setTimelineAttentionDate,
-    markTimelineInteraction,
-  } = usePlannerStore();
+  const tasks = usePlannerStore((state) => state.tasks);
+  const milestones = usePlannerStore((state) => state.milestones);
+  const projects = usePlannerStore((state) => state.projects);
+  const assignees = usePlannerStore((state) => state.assignees);
+  const memberGroupAssignments = usePlannerStore((state) => state.memberGroupAssignments);
+  const viewMode = usePlannerStore((state) => state.viewMode);
+  const groupMode = usePlannerStore((state) => state.groupMode);
+  const currentDate = usePlannerStore((state) => state.currentDate);
+  const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
+  const requestScrollToDate = usePlannerStore((state) => state.requestScrollToDate);
+  const scrollTargetDate = usePlannerStore((state) => state.scrollTargetDate);
+  const scrollRequestId = usePlannerStore((state) => state.scrollRequestId);
+  const filters = usePlannerStore((state) => state.filters);
+  const highlightedTaskId = usePlannerStore((state) => state.highlightedTaskId);
+  const timelineAttentionDate = usePlannerStore((state) => state.timelineAttentionDate);
+  const setTimelineAttentionDate = usePlannerStore((state) => state.setTimelineAttentionDate);
+  const markTimelineInteraction = usePlannerStore((state) => state.markTimelineInteraction);
   const user = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);
@@ -148,6 +146,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     target: HTMLDivElement | null;
     didMove: boolean;
   } | null>(null);
+  const dragScrollFrameRef = useRef<number | null>(null);
+  const pendingDragClientXRef = useRef<number | null>(null);
   const lastDragTimeRef = useRef(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const lastRenderedFocusIndexRef = useRef(-1);
@@ -412,6 +412,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       target: e.currentTarget,
       didMove: false,
     };
+    pendingDragClientXRef.current = e.clientX;
     markTimelineInteraction(900);
     setIsDragScrolling(true);
     e.preventDefault();
@@ -420,23 +421,45 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   useEffect(() => {
     if (!isDragScrolling) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const prevBodyCursor = document.body.style.cursor;
+    const prevBodyUserSelect = document.body.style.userSelect;
+    document.body.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+
+    const flushDragScroll = () => {
+      dragScrollFrameRef.current = null;
       const state = dragScrollRef.current;
-      if (!state?.target) return;
-      markTimelineInteraction(900);
-      const deltaX = e.clientX - state.startX;
+      const pointerX = pendingDragClientXRef.current;
+      if (!state?.target || typeof pointerX !== 'number') return;
+      const deltaX = pointerX - state.startX;
       if (!state.didMove && Math.abs(deltaX) > 4) {
         state.didMove = true;
       }
-      const nextScrollLeft = state.startScrollLeft - deltaX;
-      state.target.scrollLeft = nextScrollLeft;
+      state.target.scrollLeft = state.startScrollLeft - deltaX;
+    };
+
+    const scheduleDragScroll = () => {
+      if (dragScrollFrameRef.current !== null) return;
+      dragScrollFrameRef.current = window.requestAnimationFrame(flushDragScroll);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const state = dragScrollRef.current;
+      if (!state?.target) return;
+      pendingDragClientXRef.current = e.clientX;
+      scheduleDragScroll();
     };
 
     const handleMouseUp = () => {
+      if (dragScrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(dragScrollFrameRef.current);
+        dragScrollFrameRef.current = null;
+      }
       if (dragScrollRef.current?.didMove) {
         lastDragTimeRef.current = Date.now();
       }
       dragScrollRef.current = null;
+      pendingDragClientXRef.current = null;
       setIsDragScrolling(false);
     };
 
@@ -445,8 +468,14 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      if (dragScrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(dragScrollFrameRef.current);
+        dragScrollFrameRef.current = null;
+      }
+      document.body.style.cursor = prevBodyCursor;
+      document.body.style.userSelect = prevBodyUserSelect;
     };
-  }, [isDragScrolling, markTimelineInteraction]);
+  }, [isDragScrolling]);
 
   useEffect(() => {
     if (!isSidebarResizing) return;
@@ -504,6 +533,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     }
     if (scrollSyncFrameRef.current !== null) {
       window.cancelAnimationFrame(scrollSyncFrameRef.current);
+    }
+    if (dragScrollFrameRef.current !== null) {
+      window.cancelAnimationFrame(dragScrollFrameRef.current);
+      dragScrollFrameRef.current = null;
     }
   }, []);
 
@@ -910,7 +943,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   return (
     <div className={cn(
       'relative flex flex-col h-full overflow-hidden bg-background',
-      highlightedTaskId && 'task-highlight-mode'
+      highlightedTaskId && 'task-highlight-mode',
+      isDragScrolling && 'timeline-drag-scroll-active',
     )}
     onPointerDownCapture={clearTimelineAttention}
     onWheelCapture={clearTimelineAttention}

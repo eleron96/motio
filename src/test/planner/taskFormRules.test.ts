@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   buildCreateRepeatsOptions,
   filterProjectsByQuery,
+  formatRepeatCountInputValue,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
+  parseRepeatCountInput,
   resolveProjectQueryFromKeyDown,
   resolveRepeatValidationMessage,
   shouldAutoSyncRepeatUntil,
@@ -180,5 +182,17 @@ describe('taskFormRules', () => {
       ends: 'on',
       auto: true,
     })).toBe(false);
+  });
+
+  it('keeps repeat count input empty after clear and without leading zero on next entry', () => {
+    const clearedCount = parseRepeatCountInput('');
+    expect(clearedCount).toBe(0);
+    expect(formatRepeatCountInputValue(clearedCount ?? 0)).toBe('');
+
+    const typedCount = parseRepeatCountInput('2');
+    expect(typedCount).toBe(2);
+    expect(formatRepeatCountInputValue(typedCount ?? 0)).toBe(2);
+
+    expect(parseRepeatCountInput('1e')).toBeNull();
   });
 });
