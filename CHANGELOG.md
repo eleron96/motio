@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.60] - 2026-03-05
 ### Fixed
 - Исправлено падение дашборда на /app/dashboard из-за отсутствующего импорта Settings (ошибка 'Settings is not defined').
 
