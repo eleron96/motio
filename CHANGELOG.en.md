@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.60] - 2026-03-05
 ### Fixed
 - Fixed dashboard crash on /app/dashboard caused by a missing Settings import ('Settings is not defined').
 
