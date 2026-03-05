@@ -3,9 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
-import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
-import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
+import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
@@ -13,7 +11,7 @@ import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { createLatestAsyncRequest } from '@/shared/lib/latestAsyncRequest';
 import { addYears, format, parseISO } from 'date-fns';
-import { Settings, User, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Task } from '@/features/planner/types/planner';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
@@ -814,38 +812,17 @@ const MembersPage = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
-          <WorkspaceSwitcher />
-          <WorkspaceNav />
-        </div>
-        <div className="flex items-center gap-2">
-          {mode === 'groups' && isAdmin && (
-            <Button size="sm" className="gap-2" onClick={() => setCreatingGroup(true)}>
-              <Plus className="h-4 w-4" />
-              {t`New group`}
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="h-9 w-9"
-            disabled={!canEdit}
-          >
-            <Settings className="h-4 w-4" />
+      <WorkspacePageHeader
+        primaryAction={mode === 'groups' && isAdmin ? (
+          <Button size="sm" className="gap-2" onClick={() => setCreatingGroup(true)}>
+            <Plus className="h-4 w-4" />
+            {t`New group`}
           </Button>
-          <InviteNotifications />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowAccountSettings(true)}
-            className="h-9 w-9"
-          >
-            <User className="h-4 w-4" />
-          </Button>
-        </div>
-      </header>
+        ) : null}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenAccountSettings={() => setShowAccountSettings(true)}
+        settingsDisabled={!canEdit}
+      />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <MembersSidebar

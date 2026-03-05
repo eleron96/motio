@@ -9,9 +9,7 @@ import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPa
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
 import { useProjectsPageEffects } from '@/features/projects/hooks/useProjectsPageEffects';
 import { useProjectTasksQuery } from '@/features/projects/hooks/useProjectTasksQuery';
-import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
-import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
+import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
@@ -19,8 +17,6 @@ import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { format, parseISO } from 'date-fns';
 import {
-  Settings,
-  User,
   Plus,
 } from 'lucide-react';
 import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
@@ -822,63 +818,42 @@ const ProjectsPage = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
-          <WorkspaceSwitcher />
-          <WorkspaceNav />
-        </div>
-        <div className="flex items-center gap-2">
-          {mode === 'customers' ? (
-            <Button
-              onClick={() => setCreateCustomerOpen(true)}
-              size="sm"
-              className="gap-2"
-              disabled={!canEdit}
-            >
-              <Plus className="h-4 w-4" />
-              {t`New customer`}
-            </Button>
-          ) : mode === 'milestones' ? (
-            <Button
-              onClick={handleOpenCreateMilestone}
-              size="sm"
-              className="gap-2"
-              disabled={!canEdit}
-            >
-              <Plus className="h-4 w-4" />
-              {t`New milestone`}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setCreateProjectOpen(true)}
-              size="sm"
-              className="gap-2"
-              disabled={!canEdit}
-            >
-              <Plus className="h-4 w-4" />
-              {t`New project`}
-            </Button>
-          )}
+      <WorkspacePageHeader
+        primaryAction={mode === 'customers' ? (
           <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="h-9 w-9"
+            onClick={() => setCreateCustomerOpen(true)}
+            size="sm"
+            className="gap-2"
             disabled={!canEdit}
           >
-            <Settings className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
+            {t`New customer`}
           </Button>
-          <InviteNotifications />
+        ) : mode === 'milestones' ? (
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowAccountSettings(true)}
-            className="h-9 w-9"
+            onClick={handleOpenCreateMilestone}
+            size="sm"
+            className="gap-2"
+            disabled={!canEdit}
           >
-            <User className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
+            {t`New milestone`}
           </Button>
-        </div>
-      </header>
+        ) : (
+          <Button
+            onClick={() => setCreateProjectOpen(true)}
+            size="sm"
+            className="gap-2"
+            disabled={!canEdit}
+          >
+            <Plus className="h-4 w-4" />
+            {t`New project`}
+          </Button>
+        )}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenAccountSettings={() => setShowAccountSettings(true)}
+        settingsDisabled={!canEdit}
+      />
 
       {mutationError && (
         <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">

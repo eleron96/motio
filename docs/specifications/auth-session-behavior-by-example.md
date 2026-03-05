@@ -150,3 +150,22 @@ Then:
 - `src/features/auth/store/authStore.ts`
 - `src/features/auth/pages/AuthPage.tsx`
 - `src/features/auth/lib/recentSignOut.ts`
+
+## Scenario 9: Header account shortcut shows initials instead of generic user icon
+
+Given:
+- пользователь открыт в приватном разделе (`Timeline`, `Dashboard`, `Projects`, `Members`);
+- профиль загружен, и доступно имя или email пользователя.
+
+When:
+- рендерится кнопка открытия `Account settings` в правом верхнем углу.
+
+Then:
+- вместо иконки пользователя отображается круглый бейдж с инициалами;
+- вычисление инициалов совпадает с логикой в `Account settings`;
+- если имя/email недоступны, отображается fallback `U`.
+
+Покрытие:
+- `src/features/auth/components/AccountBadgeButton.tsx`
+- `src/features/auth/components/AccountSettingsDialog.tsx`
+- `src/shared/lib/accountIdentity.ts`
