@@ -56,6 +56,7 @@ const MILESTONE_SELECT = [
 const EVENT_FLUSH_MS = 320;
 const EVENT_BATCH_SIZE = 120;
 const INTERACTION_RETRY_MS = 220;
+const INITIAL_RECONCILE_DELAY_MS = 15_000;
 const FALLBACK_POLL_BASE_MS = 45_000;
 const FALLBACK_POLL_MAX_MS = 180_000;
 const FALLBACK_FAILURE_MAX = 6;
@@ -111,11 +112,13 @@ export const usePlannerLiveSync = (
     const pendingMilestoneUpserts = new Set<string>();
     let flushTimer: number | null = null;
     let fallbackTimer: number | null = null;
+    let initialReconcileTimer: number | null = null;
     let syncInFlight = false;
     let flushRequested = false;
     let reconcileRequested = false;
     let fallbackFailureCount = 0;
     let channelHealthy = true;
+    let hasSubscribedOnce = false;
     const rangeRef: LoadedRange = loadedRange;
     const workspaceRef = workspaceId;
 
@@ -140,6 +143,13 @@ export const usePlannerLiveSync = (
         window.clearTimeout(fallbackTimer);
       }
       fallbackTimer = null;
+    };
+
+    const clearInitialReconcileTimer = () => {
+      if (initialReconcileTimer !== null && typeof window !== 'undefined') {
+        window.clearTimeout(initialReconcileTimer);
+      }
+      initialReconcileTimer = null;
     };
 
     const canRunReconcileNow = () => (
@@ -502,11 +512,25 @@ export const usePlannerLiveSync = (
           channelHealthy = true;
           resetFallbackFailures();
           clearFallbackTimer();
+          if (!hasSubscribedOnce) {
+            hasSubscribedOnce = true;
+            if (typeof window === 'undefined') {
+              requestReconcile('resubscribe');
+              return;
+            }
+            clearInitialReconcileTimer();
+            initialReconcileTimer = window.setTimeout(() => {
+              initialReconcileTimer = null;
+              requestReconcile('resubscribe');
+            }, INITIAL_RECONCILE_DELAY_MS);
+            return;
+          }
           requestReconcile('resubscribe');
           return;
         }
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           channelHealthy = false;
+          clearInitialReconcileTimer();
           growFallbackFailures();
           requestReconcile('channel');
           scheduleFallbackPoll();
@@ -534,6 +558,7 @@ export const usePlannerLiveSync = (
       lifecycleEpoch += 1;
       clearFlushTimer();
       clearFallbackTimer();
+      clearInitialReconcileTimer();
       if (typeof window !== 'undefined') {
         window.removeEventListener('focus', handleVisibilityOrFocus);
         window.removeEventListener('pageshow', handleVisibilityOrFocus);

@@ -185,3 +185,21 @@ Then:
 Покрытие:
 - `src/features/planner/hooks/usePlannerLiveSync.ts`
 - `src/test/planner/usePlannerLiveSync.test.tsx`
+
+## Scenario 11: Initial live reconcile is deferred after first subscribe
+
+Given:
+- пользователь открывает planner, и realtime channel только что перешёл в `SUBSCRIBED`;
+- первоначальный список задач уже загружается обычным bootstrap-потоком.
+
+When:
+- срабатывает первый `SUBSCRIBED` status в `usePlannerLiveSync`.
+
+Then:
+- reconcile не запускается мгновенно;
+- первый reconcile выполняется с короткой задержкой;
+- повторные `SUBSCRIBED` после разрыва соединения запускают reconcile сразу.
+
+Покрытие:
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`
