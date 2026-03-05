@@ -280,10 +280,22 @@ export COMPOSE_MENU=0
 
 docker compose -f "$compose_file" --env-file "$env_file" up -d db
 
+DB_WAIT_TIMEOUT_SECONDS="${DB_WAIT_TIMEOUT_SECONDS:-300}"
+db_wait_started_at="$(date +%s)"
+
 until docker compose -f "$compose_file" --env-file "$env_file" exec -T \
   -e PGPASSWORD="$POSTGRES_PASSWORD" db \
   pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; do
-  echo "Waiting for database..."
+  db_wait_now="$(date +%s)"
+  db_wait_elapsed="$((db_wait_now - db_wait_started_at))"
+  if (( db_wait_elapsed >= DB_WAIT_TIMEOUT_SECONDS )); then
+    echo "Timed out waiting for database readiness after ${DB_WAIT_TIMEOUT_SECONDS}s." >&2
+    docker compose -f "$compose_file" --env-file "$env_file" ps db || true
+    docker compose -f "$compose_file" --env-file "$env_file" logs --tail=40 db || true
+    exit 1
+  fi
+
+  echo "Waiting for database... (${db_wait_elapsed}s/${DB_WAIT_TIMEOUT_SECONDS}s)"
   sleep 2
 done
 
@@ -396,8 +408,13 @@ if command -v curl >/dev/null 2>&1; then
   bootstrap_url="http://localhost:8080/functions/v1/admin"
   bootstrap_payload='{"action":"bootstrap.sync"}'
   bootstrap_ok=0
+  BOOTSTRAP_CONNECT_TIMEOUT_SECONDS="${BOOTSTRAP_CONNECT_TIMEOUT_SECONDS:-5}"
+  BOOTSTRAP_REQUEST_TIMEOUT_SECONDS="${BOOTSTRAP_REQUEST_TIMEOUT_SECONDS:-10}"
   for attempt in {1..20}; do
-    status_code=$(curl -sS -o /dev/null -w "%{http_code}" \
+    status_code=$(curl \
+      --connect-timeout "$BOOTSTRAP_CONNECT_TIMEOUT_SECONDS" \
+      --max-time "$BOOTSTRAP_REQUEST_TIMEOUT_SECONDS" \
+      -sS -o /dev/null -w "%{http_code}" \
       -X POST \
       -H "Content-Type: application/json" \
       -d "$bootstrap_payload" \
