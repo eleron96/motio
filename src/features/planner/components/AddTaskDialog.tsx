@@ -33,9 +33,11 @@ import { Status } from '@/features/planner/types/planner';
 import { toast } from 'sonner';
 import {
   buildCreateRepeatsOptions,
+  formatRepeatCountInputValue,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
+  parseRepeatCountInput,
   RepeatEnds,
   RepeatFrequency,
   resolveRepeatValidationMessage,
@@ -733,10 +735,13 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                       id="new-repeat-count"
                       type="number"
                       min={1}
-                      value={repeatCount}
+                      step={1}
+                      value={formatRepeatCountInputValue(repeatCount)}
                       onChange={(e) => {
                         markChanged();
-                        setRepeatCount(Number(e.target.value));
+                        const nextRepeatCount = parseRepeatCountInput(e.target.value);
+                        if (nextRepeatCount === null) return;
+                        setRepeatCount(nextRepeatCount);
                       }}
                     />
                     <p className="text-[11px] text-muted-foreground">{t`Creates the specified number of repeats.`}</p>
