@@ -97,6 +97,7 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 
 const workspaceOne = 'ws-live-1';
 const workspaceTwo = 'ws-live-2';
+const INITIAL_RECONCILE_DELAY_MS = 15_000;
 
 const rangeFor = (workspaceId: string) => ({
   start: '2026-03-01',
@@ -304,6 +305,12 @@ describe('usePlannerLiveSync', () => {
       flushDeferred.resolve({ data: [taskRowFor(workspaceOne)], error: null });
       await Promise.resolve();
       await Promise.resolve();
+    });
+
+    expect(reconcileStarted).toBe(false);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INITIAL_RECONCILE_DELAY_MS);
     });
 
     expect(reconcileStarted).toBe(true);

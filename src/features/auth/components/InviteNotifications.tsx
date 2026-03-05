@@ -116,8 +116,13 @@ const VISIBLE_POLL_MAX_MS = 8 * 60_000;
 const SENT_UPDATES_REFRESH_MS = 10 * 60_000;
 const POLL_JITTER_RATIO = 0.2;
 const REALTIME_REFRESH_DEBOUNCE_MS = 900;
+const INITIAL_POLL_IDLE_TIMEOUT_MS = 1_500;
 
 type PollingSource = 'initial' | 'timer' | 'focus' | 'open' | 'realtime';
+type IdleSchedulerWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
 
 export const InviteNotifications: React.FC = () => {
   const navigate = useNavigate();
@@ -146,6 +151,8 @@ export const InviteNotifications: React.FC = () => {
   const inviteReactionSessionStartedAtRef = useRef<number>(Date.now());
   const pollingTimerRef = useRef<number | null>(null);
   const realtimeRefreshTimerRef = useRef<number | null>(null);
+  const initialPollIdleRef = useRef<number | null>(null);
+  const initialPollTimeoutRef = useRef<number | null>(null);
   const pollingFailureCountRef = useRef(0);
   const pollingInFlightRef = useRef(false);
   const lastSentUpdatesSyncAtRef = useRef(0);
@@ -266,6 +273,21 @@ export const InviteNotifications: React.FC = () => {
     realtimeRefreshTimerRef.current = null;
   }, []);
 
+  const clearInitialPollSchedule = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (initialPollTimeoutRef.current !== null) {
+      window.clearTimeout(initialPollTimeoutRef.current);
+      initialPollTimeoutRef.current = null;
+    }
+    if (initialPollIdleRef.current !== null) {
+      const idleWindow = window as IdleSchedulerWindow;
+      if (typeof idleWindow.cancelIdleCallback === 'function') {
+        idleWindow.cancelIdleCallback(initialPollIdleRef.current);
+      }
+      initialPollIdleRef.current = null;
+    }
+  }, []);
+
   const scheduleNextPollingCycle = useCallback(() => {
     if (!user || typeof window === 'undefined') return;
     if (typeof document !== 'undefined' && document.hidden) return;
@@ -362,6 +384,7 @@ export const InviteNotifications: React.FC = () => {
 
   useEffect(() => {
     if (!user) {
+      clearInitialPollSchedule();
       clearPollingTimer();
       setPendingInvites([]);
       setTaskNotifications([]);
@@ -375,19 +398,32 @@ export const InviteNotifications: React.FC = () => {
         clearPollingTimer();
         return;
       }
+      clearInitialPollSchedule();
       void runPollingCycle('focus');
     };
 
-    void runPollingCycle('initial');
+    const idleWindow = window as IdleSchedulerWindow;
+    if (typeof idleWindow.requestIdleCallback === 'function') {
+      initialPollIdleRef.current = idleWindow.requestIdleCallback(() => {
+        initialPollIdleRef.current = null;
+        void runPollingCycle('initial');
+      }, { timeout: INITIAL_POLL_IDLE_TIMEOUT_MS });
+    } else {
+      initialPollTimeoutRef.current = window.setTimeout(() => {
+        initialPollTimeoutRef.current = null;
+        void runPollingCycle('initial');
+      }, INITIAL_POLL_IDLE_TIMEOUT_MS);
+    }
     window.addEventListener('focus', handleVisibilityOrFocus);
     document.addEventListener('visibilitychange', handleVisibilityOrFocus);
 
     return () => {
+      clearInitialPollSchedule();
       clearPollingTimer();
       window.removeEventListener('focus', handleVisibilityOrFocus);
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
-  }, [clearPollingTimer, runPollingCycle, user]);
+  }, [clearInitialPollSchedule, clearPollingTimer, runPollingCycle, user]);
 
   useEffect(() => {
     if (!open || !user) return;

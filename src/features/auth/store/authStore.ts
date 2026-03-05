@@ -289,7 +289,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .eq('user_id', user.id)
         .maybeSingle();
       const isSuperAdmin = Boolean(data && !error);
-      set({ isSuperAdmin, superAdminLoading: false });
+      if (isSuperAdmin) {
+        set({
+          isSuperAdmin: true,
+          superAdminLoading: false,
+          workspaces: [],
+          currentWorkspaceId: null,
+          currentWorkspaceRole: null,
+        });
+      } else {
+        set({ isSuperAdmin: false, superAdminLoading: false });
+      }
       return isSuperAdmin;
     } catch (_error) {
       set({ isSuperAdmin: false, superAdminLoading: false });
@@ -662,6 +672,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       : workspaces[0]?.id ?? null;
 
     const nextRole = workspaces.find((workspace) => workspace.id === nextId)?.role ?? null;
+
+    if (get().isSuperAdmin) {
+      set({
+        workspaces: [],
+        currentWorkspaceId: null,
+        currentWorkspaceRole: null,
+      });
+      return;
+    }
 
     set({
       workspaces,
