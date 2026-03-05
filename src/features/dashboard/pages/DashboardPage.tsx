@@ -3,7 +3,7 @@ import { ResponsiveGridLayout, cloneLayout, useContainerWidth } from 'react-grid
 import type { Layout, Layouts } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Settings } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
