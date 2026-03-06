@@ -120,3 +120,22 @@ Then:
 
 Покрытие:
 - `infra/caddy/Caddyfile`
+
+## Scenario 8: Unknown routes show localized 404 page
+
+Given:
+- пользователь открывает несуществующий маршрут;
+- активна локаль `en` или `ru`.
+
+When:
+- роутер попадает в catch-all `*` маршрут.
+
+Then:
+- отображается отдельная страница `404` вместо пустого экрана;
+- copy страницы локализован для `en/ru` (дружелюбный текст + CTA);
+- пользователь может вернуться на `/` или перейти в `/app`.
+
+Покрытие:
+- `src/app/App.tsx`
+- `src/app/NotFoundPage.tsx`
+- `src/test/app/notFoundPage.test.tsx`

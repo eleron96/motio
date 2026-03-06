@@ -46,6 +46,10 @@ const AuthPage: React.FC = () => {
     const rawDescription = searchParams.get('error_description');
     if (!rawError) return '';
 
+    if (rawCode === 'bad_oauth_state') {
+      return t`Your sign-in session expired. Please continue with Keycloak again.`;
+    }
+
     const description = rawDescription
       ? decodeURIComponent(rawDescription.replace(/\+/g, ' '))
       : t`Authentication failed.`;
@@ -86,7 +90,7 @@ const AuthPage: React.FC = () => {
   }, [location.state, navigate, redirectTarget, user]);
 
   useEffect(() => {
-    if (loading || user || oauthAttempted || hasOauthCode) return;
+    if (loading || user || oauthAttempted || hasOauthCode || oauthError) return;
     if (silentMode) {
       setOauthAttempted(true);
       setSubmitting(false);
@@ -111,7 +115,7 @@ const AuthPage: React.FC = () => {
         setError(authError instanceof Error ? authError.message : t`Authentication failed.`);
         setSubmitting(false);
       });
-  }, [hasOauthCode, loading, oauthAttempted, redirectTarget, signInWithKeycloak, silentMode, user]);
+  }, [hasOauthCode, loading, oauthAttempted, oauthError, redirectTarget, signInWithKeycloak, silentMode, user]);
 
   useEffect(() => {
     if (loading || user || !hasOauthCode || oauthError) return;

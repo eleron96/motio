@@ -189,3 +189,22 @@ Then:
 - `src/features/auth/lib/notificationReadState.ts`
 - `src/test/auth/notificationReadState.test.ts`
 - `infra/supabase/functions/notifications/index.ts`
+
+## Scenario 11: Expired OAuth callback state does not show raw JSON error page
+
+Given:
+- пользователь оставил вкладку открытой, и OAuth callback завершился с устаревшим `state`;
+- backend `/auth/v1/callback` возвращает ошибку `bad_oauth_state`.
+
+When:
+- браузер открывает callback endpoint.
+
+Then:
+- пользователь не остаётся на сырой JSON-странице backend;
+- gateway перенаправляет на `/auth` с безопасными error-параметрами;
+- `AuthPage` показывает человекочитаемое сообщение и кнопку повторного входа.
+
+Покрытие:
+- `infra/supabase/nginx.conf`
+- `src/features/auth/pages/AuthPage.tsx`
+- `src/test/auth/authPage.forceLogin.test.tsx`
