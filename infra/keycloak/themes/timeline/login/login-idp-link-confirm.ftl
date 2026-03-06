@@ -3,10 +3,6 @@
     <#if section = "header">
         ${msg("confirmLinkIdpTitle")}
     <#elseif section = "form">
-        <div class="timeline-idp-link-summary">
-            ${msg("timelineIdpConfirmHint", idpDisplayName)}
-        </div>
-
         <form id="kc-register-form" class="timeline-idp-link-form" action="${url.loginAction}" method="post">
             <button
                 type="submit"
@@ -16,7 +12,6 @@
                 value="updateProfile"
             >
                 <span class="timeline-idp-choice-title">${msg("confirmLinkIdpReviewProfile")}</span>
-                <span class="timeline-idp-choice-description">${msg("timelineIdpReviewProfileDescription")}</span>
             </button>
 
             <button
@@ -27,7 +22,6 @@
                 value="linkAccount"
             >
                 <span class="timeline-idp-choice-title">${msg("confirmLinkIdpContinue", idpDisplayName)}</span>
-                <span class="timeline-idp-choice-description">${msg("timelineIdpContinueLinkDescription", idpDisplayName)}</span>
             </button>
         </form>
     </#if>
