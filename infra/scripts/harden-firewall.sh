@@ -4,7 +4,7 @@ set -euo pipefail
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root_dir"
 
-host="${1:-${DEPLOY_HOST:-root@85.239.60.3}}"
+host="${1:-${DEPLOY_HOST:-root@94.141.162.237}}"
 ssh_port="${SSH_PORT:-22}"
 public_ports="${PUBLIC_PORTS:-80,443}"
 blocked_ports="${BLOCKED_PORTS:-54322,8080,8081,5173}"

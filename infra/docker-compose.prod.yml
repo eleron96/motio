@@ -7,7 +7,7 @@ services:
       - -c
       - max_connections=${POSTGRES_MAX_CONNECTIONS:-150}
       - -c
-      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-512MB}
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-1GB}
       - -c
       - effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-2GB}
       - -c
@@ -70,6 +70,7 @@ services:
       KC_SPI_THEME_STATIC_MAX_AGE: ${KEYCLOAK_THEME_STATIC_MAX_AGE:-604800}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      JAVA_OPTS_APPEND: "${KEYCLOAK_JAVA_OPTS_APPEND:--Xms256m -Xmx1g}"
     command: ["start", "--http-enabled=true", "--proxy-headers=xforwarded", "--import-realm"]
     volumes:
       - ./keycloak/realm:/opt/keycloak/data/import:ro

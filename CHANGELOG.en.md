@@ -7,6 +7,34 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Fixed assignee picker ordering while popover is open: no jump or auto-scroll until it closes.
+- Removed duplicate assignment notifications when creating recurring task series.
+
+## [0.2.66] - 2026-03-06
+### Changed
+- No documented changes.
+
+## [0.2.65] - 2026-03-06
+### Changed
+- No documented changes.
+
+## [0.2.64] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.63] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.62] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.61] - 2026-03-05
+### Changed
+- No documented changes.
+
 ## [0.2.60] - 2026-03-05
 ### Fixed
 - Fixed dashboard crash on /app/dashboard caused by a missing Settings import ('Settings is not defined').

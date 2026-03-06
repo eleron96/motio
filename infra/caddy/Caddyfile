@@ -8,7 +8,7 @@ www.motio.nikog.net {
 
 motio.nikog.net {
   route {
-    encode gzip
+    encode zstd gzip
 
     redir /realms /realms/timeline/account 302
     redir /realms/ /realms/timeline/account 302
