@@ -1,7 +1,5 @@
-{
-  servers {
-    protocols h1
-  }
+monitor.motio.nikog.net {
+  reverse_proxy beszel:8090
 }
 
 www.motio.nikog.net {

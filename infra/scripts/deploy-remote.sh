@@ -49,6 +49,15 @@ if [[ "${keycloak_theme_changed}" == "true" ]]; then
   ssh "$host" "cd '${remote_dir}' && docker compose -f infra/docker-compose.prod.yml --env-file .env up -d --force-recreate --no-deps keycloak"
 fi
 
+# Ensure caddy can reach monitor service by DNS name `beszel` on a shared user-defined network.
+# `host.docker.internal:8090` is not reachable when beszel is bound to 127.0.0.1 on host.
+ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy' && docker ps --format '{{.Names}}' | grep -qx 'beszel'; then \
+  docker network inspect motio-monitor >/dev/null 2>&1 || docker network create motio-monitor >/dev/null; \
+  docker network connect motio-monitor motio-caddy >/dev/null 2>&1 || true; \
+  docker network connect motio-monitor beszel >/dev/null 2>&1 || true; \
+  echo 'Ensured motio-monitor network for caddy<->beszel.'; \
+fi"
+
 ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then \
   host_hash=\$(sha1sum '${remote_dir}/infra/caddy/Caddyfile' | awk '{print \$1}'); \
   container_hash=\$(docker exec motio-caddy sha1sum /etc/caddy/Caddyfile 2>/dev/null | awk '{print \$1}' || true); \
