@@ -4,15 +4,13 @@
         ${msg("confirmLinkIdpTitle")}
     <#elseif section = "form">
         <form id="kc-register-form" class="timeline-idp-link-form" action="${url.loginAction}" method="post">
-            <button
-                type="submit"
-                class="${properties.kcButtonClass!} ${properties.kcButtonDefaultClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!} timeline-idp-choice timeline-idp-choice-secondary"
-                name="submitAction"
-                id="updateProfile"
-                value="updateProfile"
+            <a
+                id="timeline-link-account-back"
+                class="${properties.kcButtonClass!} ${properties.kcButtonDefaultClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!} timeline-idp-choice timeline-idp-choice-secondary timeline-idp-choice-link"
+                href="${url.loginRestartFlowUrl}"
             >
-                <span class="timeline-idp-choice-title">${msg("confirmLinkIdpReviewProfile")}</span>
-            </button>
+                <span class="timeline-idp-choice-title">${msg("timelineIdpBackToAnotherMethod")}</span>
+            </a>
 
             <button
                 type="submit"
