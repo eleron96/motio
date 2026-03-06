@@ -203,3 +203,38 @@ Then:
 Покрытие:
 - `src/features/planner/hooks/usePlannerLiveSync.ts`
 - `src/test/planner/usePlannerLiveSync.test.tsx`
+
+## Scenario 12: Repeat task creation does not spam assignee notifications
+
+Given:
+- пользователь создает задачу с назначенным участником и включает повторения;
+- система генерирует серию задач с одинаковым `repeatId`.
+
+When:
+- БД-триггер `notify_task_assignment` обрабатывает `INSERT` задач серии.
+
+Then:
+- назначенный пользователь получает одно уведомление о назначении;
+- дополнительные `INSERT` в уже существующей repeat-серии не создают дубли.
+
+Покрытие:
+- `infra/supabase/migrations/0050_dedupe_repeat_series_assignment_notifications.sql`
+
+## Scenario 13: Assignee list does not jump while selection popover is open
+
+Given:
+- пользователь открывает создание задачи и раскрывает список исполнителей;
+- в списке используется сортировка с приоритетом выбранных исполнителей.
+
+When:
+- пользователь выбирает/снимает исполнителей, пока popover остается открытым.
+
+Then:
+- порядок строк в текущем открытом списке не пересортировывается;
+- автоподскролл к началу списка не происходит;
+- пересортировка применяется после закрытия popover.
+
+Покрытие:
+- `src/features/planner/components/AddTaskDialog.tsx`
+- `src/features/planner/lib/assigneePopoverOrder.ts`
+- `src/test/planner/assigneePopoverOrder.test.ts`

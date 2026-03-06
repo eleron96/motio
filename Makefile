@@ -34,7 +34,7 @@ check-prod-secrets:
 	./infra/scripts/check-prod-secrets.sh
 
 check-prod-secrets-remote:
-	@host=$${DEPLOY_HOST:-root@85.239.60.3}; \
+	@host=$${DEPLOY_HOST:-root@94.141.162.237}; \
 	remote_dir=$${DEPLOY_PATH:-/opt/new_toggl}; \
 	ssh $$host "cd '$$remote_dir' && bash -s .env" < ./infra/scripts/check-prod-secrets.sh
 
