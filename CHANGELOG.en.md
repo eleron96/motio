@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.69] - 2026-03-06
 ### Fixed
 - Fixed Keycloak 'Account already exists' screen: action buttons no longer merge and text is compact; 'Return to Home' is now placed above the footer signature.
 

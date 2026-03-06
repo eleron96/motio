@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.69] - 2026-03-06
 ### Fixed
 - Исправлен экран Keycloak 'Учетная запись уже существует': кнопки не сливаются, текст компактный; кнопка 'Вернуться на главную' теперь расположена над подписью.
 
