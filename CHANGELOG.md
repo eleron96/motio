@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.68] - 2026-03-06
 ### Changed
 - Оформлены экраны Keycloak 'Учетная запись уже существует' в стиле Motio и добавлена кнопка возврата на главную на страницах входа.
 
