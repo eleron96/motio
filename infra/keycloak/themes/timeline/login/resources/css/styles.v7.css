@@ -309,6 +309,7 @@ button.select-auth-box-parent {
 
 .timeline-login-footer-actions {
   margin-top: 14px;
+  margin-bottom: 0;
 }
 
 #timeline-back-home {
@@ -391,18 +392,21 @@ button.select-auth-box-parent {
 
 .timeline-idp-choice {
   width: 100%;
-  min-height: 42px;
+  min-height: 48px;
   border-radius: 10px;
   border: 1px solid var(--timeline-primary);
   background: var(--timeline-primary);
   color: #fff;
   text-align: left;
   padding: 10px 12px;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 2px;
+  gap: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
   box-shadow: 0 10px 22px -16px rgba(31, 168, 184, 1);
 }
 
@@ -426,12 +430,19 @@ button.select-auth-box-parent {
 }
 
 .timeline-idp-choice-title {
+  display: block;
+  width: 100%;
   font-size: 14px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .timeline-idp-choice-description {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
@@ -561,7 +572,7 @@ button.select-auth-box-parent {
   box-shadow: none;
 }
 
-#kc-content-wrapper::after {
+.login-pf-page .card-pf::after {
   content: "© Motio, NIKO G.";
   display: block;
   margin-top: 22px;
