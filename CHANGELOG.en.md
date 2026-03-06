@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.70] - 2026-03-06
+### Added
+- Landing: refreshed homepage design with animated demo blocks, updated sections, and expanded Russian localization copy.
+
 ### Fixed
 - Keycloak: increased spacing between cards on 'Account already exists', made the back-to-other-sign-in action explicit, and aligned the warning block with Motio styling.
 
