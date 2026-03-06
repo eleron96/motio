@@ -1798,8 +1798,12 @@ msgstr "On"
 #~ msgstr "On date"
 
 #: src/features/marketing/pages/LandingPage.tsx:401
-msgid "One <0>clear timeline</0><1/>for your whole team"
-msgstr "One <0>clear timeline</0><1/>for your whole team"
+msgid "One <0>clear timeline</0><1/> for your whole team"
+msgstr "One <0>clear timeline</0><1/> for your whole team"
+
+#: src/features/marketing/pages/LandingPage.tsx:401
+#~ msgid "One <0>clear timeline</0><1/>for your whole team"
+#~ msgstr "One <0>clear timeline</0><1/>for your whole team"
 
 #: src/features/planner/components/timeline/TaskBar.tsx:544
 msgid "Only for {scopedAssigneeName}"

@@ -1118,7 +1118,7 @@ msgstr "Название группы"
 
 #: src/features/marketing/pages/LandingPage.tsx:467
 msgid "Group tasks by project, set milestones, and track progress without switching tools."
-msgstr "Группируйте задачи по проектам, ставьте вехи и отслеживайте прогресс без смены инструментов."
+msgstr "Группируйте задачи по проектам, ставьте вехи и отслеживайте прогресс в одном месте."
 
 #: src/features/members/components/MembersSidebar.tsx:137
 #: src/features/planner/components/FilterPanel.tsx:344
@@ -1797,13 +1797,13 @@ msgstr "Вкл."
 #~ msgid "On date"
 #~ msgstr "На дату"
 
-#: src/features/marketing/pages/LandingPage.tsx:
-#~ msgid "One <0>clear timeline</0><1/> for your whole team"
-#~ msgstr "Один <0>понятный таймлайн</0><1/> для всей команды"
+#: src/features/marketing/pages/LandingPage.tsx:401
+msgid "One <0>clear timeline</0><1/> for your whole team"
+msgstr "Один <0>понятный таймлайн</0><1/> для всей команды"
 
 #: src/features/marketing/pages/LandingPage.tsx:401
-msgid "One <0>clear timeline</0><1/>for your whole team"
-msgstr "Один <0>понятный таймлайн</0><1/>для всей команды"
+#~ msgid "One <0>clear timeline</0><1/>for your whole team"
+#~ msgstr "Один <0>понятный таймлайн</0><1/>для всей команды"
 
 #: src/features/planner/components/timeline/TaskBar.tsx:544
 msgid "Only for {scopedAssigneeName}"
@@ -2154,7 +2154,7 @@ msgstr ""
 
 #: src/features/marketing/pages/LandingPage.tsx:466
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
-msgstr "Видите все задачи и кто чем занят в любом диапазоне дат. Замечаете пробелы и пересечения сразу."
+msgstr "Все задачи на одной линии времени. Сразу видно, кто и когда занят."
 
 #: src/features/projects/components/ProjectsMainPanel.tsx:401
 msgid "Select a customer"
@@ -2259,7 +2259,7 @@ msgstr "Отправленные приглашения"
 
 #: src/features/marketing/pages/LandingPage.tsx:569
 msgid "Set up your team workspace in seconds. No credit card needed."
-msgstr "Настройте воркспейс за секунды. Карта не нужна."
+msgstr "Настройте рабочее пространство за секунды."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:549
 msgid "Show legend"
