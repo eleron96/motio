@@ -208,3 +208,45 @@ Then:
 - `infra/supabase/nginx.conf`
 - `src/features/auth/pages/AuthPage.tsx`
 - `src/test/auth/authPage.forceLogin.test.tsx`
+
+## Scenario 12: Keycloak login screens keep Motio styling and home exit action
+
+Given:
+- пользователь находится на Keycloak-экранах входа (`Sign in to your account`);
+- пользователь может попасть в дополнительный шаг выбора метода (`Try Another Way` -> `Select login method`).
+
+When:
+- Keycloak рендерит страницу выбора метода входа и страницу логина.
+
+Then:
+- список методов (`Select login method`) рендерится в том же визуальном стиле Motio, без «сырых» дефолтных блоков;
+- ссылка `Try Another Way` отображается как явное action-контрол;
+- на экранах входа есть отдельная кнопка возврата на главную страницу.
+
+Покрытие:
+- `infra/keycloak/themes/timeline/login/resources/css/styles.v7.css`
+- `infra/keycloak/themes/timeline/login/footer.ftl`
+- `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
+- `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
+
+## Scenario 13: "Account already exists" linking screens follow Motio visual style
+
+Given:
+- пользователь входит через внешний IdP (например Google), а email уже существует в realm;
+- Keycloak показывает сценарий link-account (`Account already exists`).
+
+When:
+- открываются экраны подтверждения/связывания (`login-idp-link-email`, `login-idp-link-confirm`, `login-idp-link-confirm-override`).
+
+Then:
+- экран использует карточки действий в стиле Motio вместо сырых дефолтных блоков;
+- действия связывания визуально читаемы и единообразны;
+- общий футер с возвратом на главную остается доступен.
+
+Покрытие:
+- `infra/keycloak/themes/timeline/login/login-idp-link-email.ftl`
+- `infra/keycloak/themes/timeline/login/login-idp-link-confirm.ftl`
+- `infra/keycloak/themes/timeline/login/login-idp-link-confirm-override.ftl`
+- `infra/keycloak/themes/timeline/login/resources/css/styles.v7.css`
+- `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
+- `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
