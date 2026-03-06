@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { cn } from '@/shared/lib/classNames';
+import { markAllNotificationsAsRead } from '@/features/auth/lib/notificationReadState';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import type { WorkspaceRole } from '@/features/auth/store/authStore';
@@ -144,6 +145,7 @@ export const InviteNotifications: React.FC = () => {
   const [taskNotifications, setTaskNotifications] = useState<TaskNotification[]>([]);
   const [busyToken, setBusyToken] = useState<string | null>(null);
   const [busyNotificationId, setBusyNotificationId] = useState<string | null>(null);
+  const [markAllBusy, setMarkAllBusy] = useState(false);
   const [openingNotificationId, setOpeningNotificationId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -552,6 +554,27 @@ export const InviteNotifications: React.FC = () => {
     return true;
   }, []);
 
+  const handleMarkAllTaskNotificationsRead = useCallback(async () => {
+    if (markAllBusy || unreadTaskCount === 0) return;
+
+    setMarkAllBusy(true);
+    setErrorMessage('');
+
+    const { error, response } = await supabase.functions.invoke('notifications', {
+      body: { action: 'markAllRead' },
+    });
+
+    if (error) {
+      setErrorMessage(await parseInvokeError(error, response));
+      setMarkAllBusy(false);
+      return;
+    }
+
+    const readAtIso = new Date().toISOString();
+    setTaskNotifications((current) => markAllNotificationsAsRead(current, readAtIso));
+    setMarkAllBusy(false);
+  }, [markAllBusy, unreadTaskCount]);
+
   const handleOpenTaskNotification = useCallback(async (notification: TaskNotification) => {
     if (openingNotificationId || !notification.taskId) return;
 
@@ -625,11 +648,24 @@ export const InviteNotifications: React.FC = () => {
             <>
               {taskNotifications.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t`Task updates`}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t`Task updates`}</p>
+                    {unreadTaskCount > 0 && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-xs"
+                        disabled={markAllBusy || loading || openingNotificationId !== null || busyNotificationId !== null}
+                        onClick={() => void handleMarkAllTaskNotificationsRead()}
+                      >
+                        {t`Mark as read`} ({unreadTaskCount})
+                      </Button>
+                    )}
+                  </div>
                   {taskNotifications.map((notification) => {
                     const actorLabel = notification.actorDisplayName || notification.actorEmail || t`Unknown user`;
                     const isUnread = !notification.readAt;
-                    const isBusy = busyNotificationId === notification.id || openingNotificationId === notification.id;
+                    const isBusy = markAllBusy || busyNotificationId === notification.id || openingNotificationId === notification.id;
                     const dateLabel = formatNotificationDate(notification.createdAt);
                     const markAsUnread = !isUnread;
 
