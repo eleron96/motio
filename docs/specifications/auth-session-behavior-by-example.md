@@ -169,3 +169,23 @@ Then:
 - `src/features/auth/components/AccountBadgeButton.tsx`
 - `src/features/auth/components/AccountSettingsDialog.tsx`
 - `src/shared/lib/accountIdentity.ts`
+
+## Scenario 10: Notifications dropdown can mark all task notifications as read
+
+Given:
+- пользователь открыл выпадающий список `Notifications`;
+- в блоке `Task updates` есть непрочитанные уведомления.
+
+When:
+- пользователь нажимает bulk-действие `Mark as read` в заголовке блока `Task updates`.
+
+Then:
+- все непрочитанные task-уведомления пользователя помечаются как прочитанные одним запросом;
+- счетчик непрочитанных в колокольчике обновляется без перезагрузки страницы;
+- удаленные уведомления (`deleted_at`) не затрагиваются.
+
+Покрытие:
+- `src/features/auth/components/InviteNotifications.tsx`
+- `src/features/auth/lib/notificationReadState.ts`
+- `src/test/auth/notificationReadState.test.ts`
+- `infra/supabase/functions/notifications/index.ts`

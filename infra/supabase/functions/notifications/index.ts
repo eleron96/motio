@@ -11,7 +11,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type NotificationAction = "list" | "markRead" | "markUnread" | "delete";
+type NotificationAction = "list" | "markRead" | "markUnread" | "markAllRead" | "delete";
 
 interface NotificationsPayload {
   action?: NotificationAction;
@@ -226,7 +226,7 @@ const ensureNotificationAccess = async (notificationId: string, userId: string) 
 const handleUpdate = async (
   authUser: AuthNotificationsUser,
   payload: NotificationsPayload,
-  action: Exclude<NotificationAction, "list">,
+  action: Exclude<NotificationAction, "list" | "markAllRead">,
 ) => {
   const notificationId = payload.notificationId?.trim() ?? "";
   if (!notificationId) {
@@ -272,6 +272,43 @@ const handleUpdate = async (
   return jsonResponse({ success: true });
 };
 
+const handleMarkAllRead = async (authUser: AuthNotificationsUser) => {
+  const { data: memberships, error: membershipsError } = await supabaseAdmin
+    .from("workspace_members")
+    .select("workspace_id")
+    .eq("user_id", authUser.id);
+
+  if (membershipsError) {
+    return jsonResponse({ error: membershipsError.message }, 400);
+  }
+
+  const workspaceIds = Array.from(new Set(
+    (memberships ?? [])
+      .map((row) => row.workspace_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0),
+  ));
+
+  if (workspaceIds.length === 0) {
+    return jsonResponse({ success: true, updated: 0 });
+  }
+
+  const readAt = new Date().toISOString();
+  const { data: updatedRows, error } = await supabaseAdmin
+    .from("user_notifications")
+    .update({ read_at: readAt })
+    .eq("recipient_user_id", authUser.id)
+    .is("deleted_at", null)
+    .is("read_at", null)
+    .in("workspace_id", workspaceIds)
+    .select("id");
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  return jsonResponse({ success: true, updated: (updatedRows ?? []).length });
+};
+
 const handleNotifications = async (req: Request) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
@@ -294,6 +331,10 @@ const handleNotifications = async (req: Request) => {
   const action = payload.action ?? "list";
   if (action === "markRead" || action === "markUnread" || action === "delete") {
     return handleUpdate(authResult.user, payload, action);
+  }
+
+  if (action === "markAllRead") {
+    return handleMarkAllRead(authResult.user);
   }
 
   return handleList(authResult.user, payload);
