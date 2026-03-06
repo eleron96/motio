@@ -150,4 +150,12 @@ describe('AuthPage: forceLogin via forceLoginRef', () => {
       );
     });
   });
+
+  it('shows friendly message for stale oauth callback state without raw backend payload', async () => {
+    await renderAuthPage('?error=oauth_callback_failed&error_code=bad_oauth_state');
+
+    expect(await screen.findByText('Authentication error')).toBeInTheDocument();
+    expect(screen.getByText('Your sign-in session expired. Please continue with Keycloak again.')).toBeInTheDocument();
+    expect(mockSignInWithKeycloak).not.toHaveBeenCalled();
+  });
 });
