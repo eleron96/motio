@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.71] - 2026-03-06
+### Changed
+- No documented changes.
+
 ## [0.2.70] - 2026-03-06
 ### Added
 - Landing: refreshed homepage design with animated demo blocks, updated sections, and expanded Russian localization copy.
