@@ -158,7 +158,7 @@ const LandingPage = () => {
 
     const maxBar = Math.max(...DASH_BAR_DATA.map(d => d.value));
     DASH_BAR_DATA.forEach(d => {
-      const heightPx = (d.value / maxBar) * 56;
+      const heightPx = (d.value / maxBar) * 48;
       const group = document.createElement('div');
       group.className = 'db-bar-group';
       group.innerHTML = `
@@ -400,7 +400,7 @@ const LandingPage = () => {
           >
             <Trans>
               One <em className="not-italic text-blue-500">clear timeline</em>
-              <br />for your whole team
+              <br />{' '}for your whole team
             </Trans>
           </h1>
 
@@ -539,7 +539,7 @@ const LandingPage = () => {
                 <div className="flex divide-x divide-slate-200 border-b border-slate-200">
                   <div className="flex-[1.6] bg-white p-3">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t`Tasks by project`}</p>
-                    <div ref={dashBarRef} className="flex h-14 items-end gap-1.5" />
+                    <div ref={dashBarRef} className="flex h-20 items-end gap-1.5" />
                   </div>
                   <div className="flex-1 bg-white p-3">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{t`By status`}</p>
