@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.67] - 2026-03-06
 ### Fixed
 - Fixed assignee picker ordering while popover is open: no jump or auto-scroll until it closes.
 - Removed duplicate assignment notifications when creating recurring task series.
