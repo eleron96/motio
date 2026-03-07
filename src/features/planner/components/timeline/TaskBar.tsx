@@ -418,7 +418,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             <div
               className={cn(
                 'flex min-w-0 flex-col justify-center',
-                labelLayout.mode === 'minimal' ? 'gap-0' : 'gap-0.5',
+                labelLayout.wrapTitle || labelLayout.mode === 'minimal' ? 'gap-0' : 'gap-0.5',
               )}
               style={{
                 transform: labelLayout.contentOffset > 0
@@ -426,7 +426,11 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                   : undefined,
               }}
             >
-              <div className={cn('flex min-w-0 items-center', labelLayout.showLeadingMeta ? 'gap-2' : 'gap-0')}>
+              <div className={cn(
+                'flex min-w-0',
+                labelLayout.wrapTitle ? 'items-start' : 'items-center',
+                labelLayout.showLeadingMeta ? 'gap-2' : 'gap-0',
+              )}>
                 {labelLayout.showLeadingMeta && hasStatusEmoji && (
                   <span className="inline-flex h-4 w-4 flex-shrink-0 items-center justify-center text-sm leading-none">
                     {status.emoji}
@@ -457,8 +461,17 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                 )}
                 <span
                   className={cn(
-                    'task-label min-w-0 truncate font-semibold',
-                    labelLayout.mode === 'minimal' ? 'text-xs leading-tight' : 'text-sm leading-tight',
+                    'task-label min-w-0 font-semibold',
+                    labelLayout.wrapTitle
+                      ? 'flex-1 whitespace-normal break-words line-clamp-2'
+                      : 'truncate',
+                    labelLayout.wrapTitle
+                      ? (labelLayout.mode === 'minimal'
+                        ? 'text-[10px] leading-[1.05rem]'
+                        : 'text-[11px] leading-[1.05rem]')
+                      : (labelLayout.mode === 'minimal'
+                        ? 'text-xs leading-tight'
+                        : 'text-sm leading-tight'),
                     isCompleted && 'line-through',
                   )}
                   style={{ color: textColor }}
