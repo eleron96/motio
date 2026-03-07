@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.82] - 2026-03-07
 ### Changed
 - Планировщик: подпись задачи на timeline теперь не сдвигается, если заголовок уже виден, а название проекта сохраняется в обычном режиме.
 
