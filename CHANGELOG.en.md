@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.85] - 2026-03-07
 ### Changed
 - Planner: minimal shifted task titles now reach the visible boundary correctly and remain readable.
 
