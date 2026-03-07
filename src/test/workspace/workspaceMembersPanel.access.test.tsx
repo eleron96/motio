@@ -79,20 +79,36 @@ describe('WorkspaceMembersPanel access tabs', () => {
     plannerState.fetchMemberGroups.mockClear();
   });
 
-  it('shows active, disabled, and history views inside access', async () => {
+  it('shows sidebar-style access views and filters active/disabled members', async () => {
     const user = userEvent.setup();
 
     render(<WorkspaceMembersPanel />);
 
     expect(screen.getByText('Team access')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Active 2' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Disabled 1' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search people...')).toBeInTheDocument();
     expect(await screen.findByText('anna@example.com')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'History 1' })).toBeInTheDocument();
+    });
     expect(screen.queryByText('ivan@example.com')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'Disabled' }));
-    expect(await screen.findByText('ivan@example.com')).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('Search people...'), 'anna');
+    expect(screen.getByText('anna@example.com')).toBeInTheDocument();
+    expect(screen.queryByText('niko@example.com')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'History' }));
+    await user.clear(screen.getByPlaceholderText('Search people...'));
+    await user.click(screen.getByRole('tab', { name: 'Disabled 1' }));
+    expect(await screen.findByText('ivan@example.com')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search people...')).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Search people...'), 'zzz');
+    expect(screen.getByText('No matches.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'History 1' }));
     expect(await screen.findByText('Niko changed Ivan from viewer to editor.')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search people...')).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(authState.listWorkspaceMemberActivity).toHaveBeenCalledWith({
