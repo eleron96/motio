@@ -329,8 +329,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="general" className="flex-1 flex flex-col mt-4">
-            <TabsList className="flex flex-wrap w-full h-auto items-start justify-start gap-2 mb-4">
+          <Tabs defaultValue="general" className="mt-4 flex flex-1 flex-col">
+            <TabsList className="mb-4 grid w-full max-w-sm grid-cols-2">
               <TabsTrigger value="general" className="whitespace-nowrap">{t`General`}</TabsTrigger>
               <TabsTrigger value="workflow" className="whitespace-nowrap">{t`Workflow`}</TabsTrigger>
             </TabsList>

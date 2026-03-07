@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Workspace settings: верхние вкладки General и Workflow теперь выделяются в общем стиле вкладок проекта.
+
 ## [0.2.88] - 2026-03-07
 ### Changed
 - Нет зафиксированных изменений.
