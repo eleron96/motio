@@ -1,4 +1,4 @@
-import React, { startTransition, useCallback, useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { startTransition, useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -149,10 +149,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
   const sidebarResizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
-  const syncingRef = useRef<HTMLDivElement | null>(null);
-  const syncingVerticalRef = useRef(false);
   const dragScrollRef = useRef<{
     startX: number;
     startScrollLeft: number;
@@ -169,7 +166,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const [isDragScrolling, setIsDragScrolling] = useState(false);
   const [isSidebarResizing, setIsSidebarResizing] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(0);
-  const [sidebarPad, setSidebarPad] = useState(0);
+  const [sidebarViewportWidth, setSidebarViewportWidth] = useState(0);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -210,6 +207,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   });
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
+  const totalSurfaceWidth = `calc(${resolvedSidebarWidth} + ${totalWidth}px)`;
   const scrollReanchorMinShiftDays = SCROLL_REANCHOR_MIN_SHIFT_DAYS[viewMode];
   const scrollReanchorEdgeTriggerDays = SCROLL_REANCHOR_EDGE_TRIGGER_DAYS[viewMode];
   const currentDateObj = useMemo(() => parseISO(currentDate), [currentDate]);
@@ -315,28 +313,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     [tasksByRow],
   );
   
-  const handleSidebarScroll = useCallback(() => {
-    if (syncingVerticalRef.current) {
-      syncingVerticalRef.current = false;
-      return;
-    }
-    const sidebar = sidebarRef.current;
-    const grid = scrollContainerRef.current;
-    if (!sidebar || !grid || sidebar.scrollTop === grid.scrollTop) return;
-    syncingVerticalRef.current = true;
-    grid.scrollTop = sidebar.scrollTop;
-    requestAnimationFrame(() => {
-      syncingVerticalRef.current = false;
-    });
-  }, []);
-
-  // Горизонтальный скролл: scrollLeft для линий вех и подписи месяца; вертикальная синхронизация с сайдбаром
+  // Timeline uses one shared scroll surface: scrollLeft drives the right grid,
+  // while native vertical scroll moves sidebar rows and task rows together.
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     markTimelineInteraction(700);
-    if (syncingRef.current && syncingRef.current !== e.currentTarget) {
-      return;
-    }
-    syncingRef.current = e.currentTarget;
     const newScrollLeft = e.currentTarget.scrollLeft;
     pendingScrollLeftRef.current = newScrollLeft;
     let nextFocusIndex = -1;
@@ -359,23 +339,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           setScrollLeft((prev) => (prev === pending ? prev : pending));
         }
       });
-    }
-    requestAnimationFrame(() => {
-      syncingRef.current = null;
-    });
-
-    if (syncingVerticalRef.current) {
-      syncingVerticalRef.current = false;
-    } else {
-      const sidebar = sidebarRef.current;
-      const grid = e.currentTarget;
-      if (sidebar && grid && sidebar.scrollTop !== grid.scrollTop) {
-        syncingVerticalRef.current = true;
-        sidebar.scrollTop = grid.scrollTop;
-        requestAnimationFrame(() => {
-          syncingVerticalRef.current = false;
-        });
-      }
     }
 
     if (ignoreScrollDateUpdateRef.current) {
@@ -426,7 +389,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     const target = e.target;
-    if (target instanceof Element && target.closest('.task-bar, .milestone-dot, .milestone-cell')) {
+    if (
+      target instanceof Element
+      && target.closest('.task-bar, .milestone-dot, .milestone-cell, [data-timeline-sidebar], [data-timeline-resize-handle]')
+    ) {
       return;
     }
     dragScrollRef.current = {
@@ -580,18 +546,28 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   }, [dayWidth]);
 
   useEffect(() => {
-    if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const updateWidth = () => setViewportWidth(container.clientWidth);
-    updateWidth();
+    if (!container) return undefined;
+
+    const updateDimensions = () => {
+      const measuredSidebarWidth = sidebarContainerRef.current?.getBoundingClientRect().width ?? 0;
+      setSidebarViewportWidth((prev) => (prev === measuredSidebarWidth ? prev : measuredSidebarWidth));
+      const nextViewportWidth = Math.max(0, container.clientWidth - measuredSidebarWidth);
+      setViewportWidth((prev) => (prev === nextViewportWidth ? prev : nextViewportWidth));
+    };
+
+    updateDimensions();
 
     if (typeof ResizeObserver !== 'undefined') {
-      const observer = new ResizeObserver(updateWidth);
+      const observer = new ResizeObserver(updateDimensions);
       observer.observe(container);
+      if (sidebarContainerRef.current) {
+        observer.observe(sidebarContainerRef.current);
+      }
       return () => observer.disconnect();
     }
     return undefined;
-  }, []);
+  }, [resolvedSidebarWidth]);
 
   const lastCenteredRef = useRef<{ date: string; viewMode: string } | null>(null);
 
@@ -676,7 +652,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         const containerRect = container.getBoundingClientRect();
         const taskRect = taskElement.getBoundingClientRect();
         const taskCenter = taskRect.left - containerRect.left + container.scrollLeft + taskRect.width / 2;
-        const targetLeft = Math.max(0, taskCenter - container.clientWidth / 2);
+        const effectiveViewportWidth = viewportWidth || Math.max(0, container.clientWidth - sidebarViewportWidth);
+        const viewportCenter = sidebarViewportWidth + effectiveViewportWidth / 2;
+        const targetLeft = Math.max(0, taskCenter - viewportCenter);
         container.scrollTo({ left: targetLeft, behavior: 'smooth' });
         return;
       }
@@ -694,7 +672,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         highlightedTaskScrollTimerRef.current = null;
       }
     };
-  }, [highlightedTaskId, tasks.length, viewMode]);
+  }, [highlightedTaskId, sidebarViewportWidth, tasks.length, viewMode, viewportWidth]);
   
   const displayRows = useMemo(
     () => buildTimelineDisplayRows({
@@ -744,30 +722,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     });
     return elementsByRowId;
   }, [canEdit, dayWidth, displayRows, groupMode, visibleDays]);
-
-  useLayoutEffect(() => {
-    const sidebar = sidebarRef.current;
-    const grid = scrollContainerRef.current;
-    if (!sidebar || !grid) return;
-
-    const updatePad = () => {
-      const sidebarRange = sidebar.scrollHeight - sidebar.clientHeight;
-      const gridRange = grid.scrollHeight - grid.clientHeight;
-      const adjustedSidebarRange = Math.max(0, sidebarRange - sidebarPad);
-      const diff = Math.max(0, gridRange - adjustedSidebarRange);
-      setSidebarPad(diff);
-    };
-
-    updatePad();
-
-    if (typeof ResizeObserver !== 'undefined') {
-      const observer = new ResizeObserver(updatePad);
-      observer.observe(sidebar);
-      observer.observe(grid);
-      return () => observer.disconnect();
-    }
-    return undefined;
-  }, [displayRows, sidebarPad]);
 
   const handleJumpToToday = () => {
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -976,94 +930,19 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     onWheelCapture={clearTimelineAttention}
     onTouchStartCapture={clearTimelineAttention}
     >
-      {/* Сайдбар и сетка — два скролла с синхронизацией по вертикали */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <div
-          ref={sidebarContainerRef}
-          className="flex flex-col flex-shrink-0 bg-timeline-header border-r border-border"
-          style={{ width: resolvedSidebarWidth }}
-        >
-          <div className="flex-shrink-0 border-b border-border" style={{ height: HEADER_HEIGHT }} />
-          <div className="flex-shrink-0 border-b border-border" style={{ height: milestoneRowHeight }} />
-          <div
-            ref={sidebarRef}
-            className="flex-1 min-h-0 overflow-y-auto scrollbar-hidden"
-            onScroll={handleSidebarScroll}
-          >
-            {displayRows.map((row) => (
-              <div
-                key={row.id}
-                className={cn(
-                  'flex items-center gap-2 border-b border-border transition-colors box-border hover:bg-timeline-row-hover',
-                  isMobileAssigneeTimeline ? 'justify-center px-1.5' : isMobile ? 'px-3' : 'px-4',
-                )}
-                style={{ height: row.height }}
-              >
-                <div className={cn(
-                  'min-w-0 flex flex-1 items-center gap-3',
-                  isMobileAssigneeTimeline && 'justify-center',
-                )}>
-                  {row.color && (
-                    <div
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: row.color }}
-                    />
-                  )}
-                  {isMobileAssigneeTimeline ? (
-                    <span
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted text-[10px] font-semibold uppercase tracking-[0.04em] text-foreground"
-                      title={row.name}
-                      aria-label={row.name}
-                    >
-                      {getSidebarRowMonogram(row.name)}
-                    </span>
-                  ) : (
-                    <span
-                      className={cn(
-                        'min-w-0 font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere]',
-                        isMobile && groupMode === 'assignee'
-                          ? 'text-xs leading-5 line-clamp-1'
-                          : 'text-sm leading-snug line-clamp-2',
-                      )}
-                      title={row.name}
-                    >
-                      {row.name}
-                    </span>
-                  )}
-                </div>
-                {groupMode === 'project' && (
-                  <span className="shrink-0 pl-2 text-xs text-muted-foreground">
-                    {row.tasks.length}
-                  </span>
-                )}
-              </div>
-            ))}
-            {sidebarPad > 0 && (
-              <div aria-hidden className="w-full" style={{ height: sidebarPad }} />
-            )}
-          </div>
-        </div>
-        {!isMobile && (
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize timeline sidebar"
-            className={`h-full w-1 flex-shrink-0 cursor-col-resize bg-transparent transition-colors ${isSidebarResizing ? 'bg-border/80' : 'hover:bg-border/70'}`}
-            onMouseDown={handleSidebarResizeStart}
-            onDoubleClick={handleSidebarResizeReset}
-          />
-        )}
-        <div
           ref={scrollContainerRef}
+          data-testid="timeline-scroll-container"
+          data-timeline-scroll-owner="vertical"
           className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}`}
           onScroll={handleScroll}
           onMouseDown={handleDragStart}
         >
-          <div className="relative" style={{ width: totalWidth, minHeight: '100%' }}>
-            {/* Линии вех внутри скролла — под задачами и под интерфейсом создания задачи */}
+          <div className="relative min-h-full" style={{ width: totalSurfaceWidth }}>
             <div
               className="pointer-events-none absolute z-0 left-0"
-              style={{ top: milestoneLineTop, width: totalWidth, height: milestoneLineHeight }}
+              style={{ left: resolvedSidebarWidth, top: milestoneLineTop, width: totalWidth, height: milestoneLineHeight }}
             >
               {visibleMilestoneLines.map(({ date, color }) => {
                 const lineIndex = visibleDayIndex.get(date);
@@ -1086,53 +965,105 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
               })}
             </div>
             <div className="sticky top-0 z-20 bg-background">
-              <div className="relative border-b border-border" style={{ width: totalWidth }}>
-                <TimelineHeader
-                  visibleDays={visibleDays}
-                  dayWidth={dayWidth}
-                  viewMode={viewMode}
-                  scrollLeft={scrollLeft}
-                  viewportWidth={viewportWidth}
-                  attentionDate={timelineAttentionDate}
-                  todayKey={todayKey}
-                  holidayDates={holidayDates}
-                  onDateContextAction={canEdit ? handleCreateMilestone : undefined}
-                />
-                <TooltipProvider delayDuration={180}>
-                  {milestoneTooltipCells.map((cell) => {
-                    const triggerStyle = {
-                      left: cell.dayIndex * dayWidth,
-                      width: dayWidth,
-                      top: milestoneHeaderRowTop,
-                      height: milestoneHeaderRowHeight,
-                    };
-                    const hasMultipleMilestones = cell.milestones.length > 1;
-                    if (hasMultipleMilestones) {
-                      return (
-                        <ContextMenu key={`header-milestone-cell-${cell.date}`}>
-                          <DropdownMenu>
+              <div className="flex">
+                <div
+                  ref={sidebarContainerRef}
+                  data-testid="timeline-sidebar-header"
+                  data-timeline-sidebar="header"
+                  className="sticky left-0 z-30 flex-shrink-0 bg-timeline-header border-r border-border"
+                  style={{ width: resolvedSidebarWidth }}
+                >
+                  <div className="flex-shrink-0 border-b border-border" style={{ height: HEADER_HEIGHT }} />
+                  <div className="flex-shrink-0 border-b border-border" style={{ height: milestoneRowHeight }} />
+                </div>
+                <div className="flex-shrink-0" style={{ width: totalWidth }}>
+                  <div className="relative border-b border-border" style={{ width: totalWidth }}>
+                    <TimelineHeader
+                      visibleDays={visibleDays}
+                      dayWidth={dayWidth}
+                      viewMode={viewMode}
+                      scrollLeft={scrollLeft}
+                      viewportWidth={viewportWidth}
+                      attentionDate={timelineAttentionDate}
+                      todayKey={todayKey}
+                      holidayDates={holidayDates}
+                      onDateContextAction={canEdit ? handleCreateMilestone : undefined}
+                    />
+                    <TooltipProvider delayDuration={180}>
+                      {milestoneTooltipCells.map((cell) => {
+                        const triggerStyle = {
+                          left: cell.dayIndex * dayWidth,
+                          width: dayWidth,
+                          top: milestoneHeaderRowTop,
+                          height: milestoneHeaderRowHeight,
+                        };
+                        const hasMultipleMilestones = cell.milestones.length > 1;
+                        if (hasMultipleMilestones) {
+                          return (
+                            <ContextMenu key={`header-milestone-cell-${cell.date}`}>
+                              <DropdownMenu>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <ContextMenuTrigger asChild>
+                                      <DropdownMenuTrigger asChild>
+                                        <button
+                                          ref={(node) => {
+                                            if (node) {
+                                              milestoneHeaderMenuTriggerRefs.current.set(cell.date, node);
+                                            } else {
+                                              milestoneHeaderMenuTriggerRefs.current.delete(cell.date);
+                                            }
+                                          }}
+                                          type="button"
+                                          className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                                          style={triggerStyle}
+                                          onClick={(event) => event.stopPropagation()}
+                                          onDoubleClick={(event) => event.stopPropagation()}
+                                          onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                          onMouseLeave={handleMilestoneHoverEnd}
+                                          aria-label={t`Select milestone`}
+                                        />
+                                      </DropdownMenuTrigger>
+                                    </ContextMenuTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="bottom"
+                                    sideOffset={6}
+                                    className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                                  >
+                                    {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                                  </TooltipContent>
+                                </Tooltip>
+                                <DropdownMenuContent align="center" className="w-72">
+                                  {renderMilestoneMenuItems(cell.milestones)}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              {renderMilestoneContextMenu(cell.date)}
+                            </ContextMenu>
+                          );
+                        }
+
+                        const singleMilestone = cell.milestones[0];
+                        if (!singleMilestone) return null;
+
+                        return (
+                          <ContextMenu key={`header-milestone-cell-${cell.date}`}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <ContextMenuTrigger asChild>
-                                  <DropdownMenuTrigger asChild>
-                                    <button
-                                      ref={(node) => {
-                                        if (node) {
-                                          milestoneHeaderMenuTriggerRefs.current.set(cell.date, node);
-                                        } else {
-                                          milestoneHeaderMenuTriggerRefs.current.delete(cell.date);
-                                        }
-                                      }}
-                                      type="button"
-                                      className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
-                                      style={triggerStyle}
-                                      onClick={(event) => event.stopPropagation()}
-                                      onDoubleClick={(event) => event.stopPropagation()}
-                                      onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                                      onMouseLeave={handleMilestoneHoverEnd}
-                                      aria-label={t`Select milestone`}
-                                    />
-                                  </DropdownMenuTrigger>
+                                  <button
+                                    type="button"
+                                    className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                                    style={triggerStyle}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleEditMilestone(singleMilestone);
+                                    }}
+                                    onDoubleClick={(event) => event.stopPropagation()}
+                                    onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                    onMouseLeave={handleMilestoneHoverEnd}
+                                    aria-label={t`Edit milestone`}
+                                  />
                                 </ContextMenuTrigger>
                               </TooltipTrigger>
                               <TooltipContent
@@ -1143,83 +1074,83 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                                 {renderMilestoneTooltipBody(cell.date, cell.milestones)}
                               </TooltipContent>
                             </Tooltip>
-                            <DropdownMenuContent align="center" className="w-72">
-                              {renderMilestoneMenuItems(cell.milestones)}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          {renderMilestoneContextMenu(cell.date)}
-                        </ContextMenu>
-                      );
-                    }
+                            {renderMilestoneContextMenu(cell.date)}
+                          </ContextMenu>
+                        );
+                      })}
+                    </TooltipProvider>
+                  </div>
+                  <div
+                    className="relative border-b border-border bg-timeline-header"
+                    style={{ width: totalWidth, height: milestoneRowHeight }}
+                    onDoubleClick={handleMilestoneRowDoubleClick}
+                  >
+                    <TooltipProvider delayDuration={180}>
+                      {milestoneTooltipCells.map((cell) => {
+                        const triggerStyle = {
+                          left: cell.dayIndex * dayWidth,
+                          width: dayWidth,
+                        };
+                        const hasMultipleMilestones = cell.milestones.length > 1;
+                        if (hasMultipleMilestones) {
+                          return (
+                            <ContextMenu key={`milestone-cell-${cell.date}`}>
+                              <DropdownMenu>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <ContextMenuTrigger asChild>
+                                      <DropdownMenuTrigger asChild>
+                                        <button
+                                          type="button"
+                                          className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                                          style={triggerStyle}
+                                          onClick={(event) => event.stopPropagation()}
+                                          onDoubleClick={(event) => event.stopPropagation()}
+                                          onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                          onMouseLeave={handleMilestoneHoverEnd}
+                                          aria-label={t`Select milestone`}
+                                        />
+                                      </DropdownMenuTrigger>
+                                    </ContextMenuTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="bottom"
+                                    sideOffset={6}
+                                    className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
+                                  >
+                                    {renderMilestoneTooltipBody(cell.date, cell.milestones)}
+                                  </TooltipContent>
+                                </Tooltip>
+                                <DropdownMenuContent align="center" className="w-72">
+                                  {renderMilestoneMenuItems(cell.milestones)}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              {renderMilestoneContextMenu(cell.date)}
+                            </ContextMenu>
+                          );
+                        }
 
-                    const singleMilestone = cell.milestones[0];
-                    if (!singleMilestone) return null;
+                        const singleMilestone = cell.milestones[0];
+                        if (!singleMilestone) return null;
 
-                    return (
-                      <ContextMenu key={`header-milestone-cell-${cell.date}`}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <ContextMenuTrigger asChild>
-                              <button
-                                type="button"
-                                className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
-                                style={triggerStyle}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleEditMilestone(singleMilestone);
-                                }}
-                                onDoubleClick={(event) => event.stopPropagation()}
-                                onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                                onMouseLeave={handleMilestoneHoverEnd}
-                                aria-label={t`Edit milestone`}
-                              />
-                            </ContextMenuTrigger>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            side="bottom"
-                            sideOffset={6}
-                            className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
-                          >
-                            {renderMilestoneTooltipBody(cell.date, cell.milestones)}
-                          </TooltipContent>
-                        </Tooltip>
-                        {renderMilestoneContextMenu(cell.date)}
-                      </ContextMenu>
-                    );
-                  })}
-                </TooltipProvider>
-              </div>
-              <div
-                className="relative border-b border-border bg-timeline-header"
-                style={{ width: totalWidth, height: milestoneRowHeight }}
-                onDoubleClick={handleMilestoneRowDoubleClick}
-              >
-                <TooltipProvider delayDuration={180}>
-                  {milestoneTooltipCells.map((cell) => {
-                    const triggerStyle = {
-                      left: cell.dayIndex * dayWidth,
-                      width: dayWidth,
-                    };
-                    const hasMultipleMilestones = cell.milestones.length > 1;
-                    if (hasMultipleMilestones) {
-                      return (
-                        <ContextMenu key={`milestone-cell-${cell.date}`}>
-                          <DropdownMenu>
+                        return (
+                          <ContextMenu key={`milestone-cell-${cell.date}`}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <ContextMenuTrigger asChild>
-                                  <DropdownMenuTrigger asChild>
-                                    <button
-                                      type="button"
-                                      className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
-                                      style={triggerStyle}
-                                      onClick={(event) => event.stopPropagation()}
-                                      onDoubleClick={(event) => event.stopPropagation()}
-                                      onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
-                                      onMouseLeave={handleMilestoneHoverEnd}
-                                      aria-label={t`Select milestone`}
-                                    />
-                                  </DropdownMenuTrigger>
+                                  <button
+                                    type="button"
+                                    className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                                    style={triggerStyle}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleEditMilestone(singleMilestone);
+                                    }}
+                                    onDoubleClick={(event) => event.stopPropagation()}
+                                    onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                    onMouseLeave={handleMilestoneHoverEnd}
+                                    aria-label={t`Edit milestone`}
+                                  />
                                 </ContextMenuTrigger>
                               </TooltipTrigger>
                               <TooltipContent
@@ -1230,115 +1161,148 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                                 {renderMilestoneTooltipBody(cell.date, cell.milestones)}
                               </TooltipContent>
                             </Tooltip>
-                            <DropdownMenuContent align="center" className="w-72">
-                              {renderMilestoneMenuItems(cell.milestones)}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          {renderMilestoneContextMenu(cell.date)}
-                        </ContextMenu>
-                      );
-                    }
+                            {renderMilestoneContextMenu(cell.date)}
+                          </ContextMenu>
+                        );
+                      })}
 
-                    const singleMilestone = cell.milestones[0];
-                    if (!singleMilestone) return null;
+                      {sortedMilestones.map((milestone) => {
+                        const dayIndex = visibleDayIndex.get(milestone.date);
+                        if (dayIndex === undefined) return null;
+                        const project = projectById.get(milestone.projectId);
+                        const color = project?.color ?? '#94a3b8';
+                        const dotColor = hexToRgba(color, 0.45) ?? color;
+                        const dotBorder = hexToRgba(color, 0.8) ?? color;
+                        const offset = milestoneOffsets.get(milestone.id) ?? 0;
+                        const left = dayIndex * dayWidth + dayWidth / 2 + offset;
+                        const dayMilestones = milestonesByDate.get(milestone.date) ?? [];
+                        const hasMultipleMilestones = dayMilestones.length > 1;
 
-                    return (
-                      <ContextMenu key={`milestone-cell-${cell.date}`}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
+                        if (hasMultipleMilestones) {
+                          return (
+                            <span
+                              key={milestone.id}
+                              className="milestone-dot pointer-events-none absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border"
+                              style={{ left, backgroundColor: dotColor, borderColor: dotBorder }}
+                            />
+                          );
+                        }
+
+                        return (
+                          <ContextMenu key={milestone.id}>
                             <ContextMenuTrigger asChild>
                               <button
                                 type="button"
-                                className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
-                                style={triggerStyle}
+                                className="milestone-dot absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-transform hover:scale-110"
+                                style={{ left, backgroundColor: dotColor, borderColor: dotBorder }}
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  handleEditMilestone(singleMilestone);
+                                  handleEditMilestone(milestone);
                                 }}
-                                onDoubleClick={(event) => event.stopPropagation()}
-                                onMouseEnter={() => handleMilestoneHover(cell.date, cell.color)}
+                                onMouseEnter={() => handleMilestoneHover(milestone.date, color)}
                                 onMouseLeave={handleMilestoneHoverEnd}
-                                aria-label={t`Edit milestone`}
                               />
                             </ContextMenuTrigger>
-                          </TooltipTrigger>
-                          <TooltipContent
-                            side="bottom"
-                            sideOffset={6}
-                            className="w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur"
-                          >
-                            {renderMilestoneTooltipBody(cell.date, cell.milestones)}
-                          </TooltipContent>
-                        </Tooltip>
-                        {renderMilestoneContextMenu(cell.date)}
-                      </ContextMenu>
-                    );
-                  })}
-
-                  {sortedMilestones.map((milestone) => {
-                    const dayIndex = visibleDayIndex.get(milestone.date);
-                    if (dayIndex === undefined) return null;
-                    const project = projectById.get(milestone.projectId);
-                    const color = project?.color ?? '#94a3b8';
-                    const dotColor = hexToRgba(color, 0.45) ?? color;
-                    const dotBorder = hexToRgba(color, 0.8) ?? color;
-                    const offset = milestoneOffsets.get(milestone.id) ?? 0;
-                    const left = dayIndex * dayWidth + dayWidth / 2 + offset;
-                    const dayMilestones = milestonesByDate.get(milestone.date) ?? [];
-                    const hasMultipleMilestones = dayMilestones.length > 1;
-
-                    if (hasMultipleMilestones) {
-                      return (
-                        <span
-                          key={milestone.id}
-                          className="milestone-dot pointer-events-none absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border"
-                          style={{ left, backgroundColor: dotColor, borderColor: dotBorder }}
-                        />
-                      );
-                    }
-
-                    return (
-                      <ContextMenu key={milestone.id}>
-                        <ContextMenuTrigger asChild>
-                          <button
-                            type="button"
-                            className="milestone-dot absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-transform hover:scale-110"
-                            style={{ left, backgroundColor: dotColor, borderColor: dotBorder }}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleEditMilestone(milestone);
-                            }}
-                            onMouseEnter={() => handleMilestoneHover(milestone.date, color)}
-                            onMouseLeave={handleMilestoneHoverEnd}
-                          />
-                        </ContextMenuTrigger>
-                        {renderMilestoneContextMenu(milestone.date)}
-                      </ContextMenu>
-                    );
-                  })}
-                </TooltipProvider>
+                            {renderMilestoneContextMenu(milestone.date)}
+                          </ContextMenu>
+                        );
+                      })}
+                    </TooltipProvider>
+                  </div>
+                </div>
               </div>
             </div>
             {displayRows.map((row, rowIndex) => (
-              <TimelineRow
-                key={row.id}
-                rowId={row.id}
-                rowIndex={rowIndex}
-                visibleDays={visibleDays}
-                dayWidth={dayWidth}
-                viewMode={viewMode}
-                todayKey={todayKey}
-                holidayDates={holidayDates}
-                height={row.height}
-                canEdit={canEdit}
-                onCreateTask={handleCreateTaskAt}
-              >
-                {rowTaskElementsById.get(row.id)}
-              </TimelineRow>
+              <div key={row.id} className="flex">
+                <div
+                  data-testid={`timeline-sidebar-row-${row.id}`}
+                  data-timeline-sidebar="row"
+                  className="sticky left-0 z-10 flex-shrink-0 border-r border-border bg-timeline-header"
+                  style={{ width: resolvedSidebarWidth, height: row.height }}
+                >
+                  <div
+                    className={cn(
+                      'flex h-full items-center gap-2 border-b border-border transition-colors box-border hover:bg-timeline-row-hover',
+                      isMobileAssigneeTimeline ? 'justify-center px-1.5' : isMobile ? 'px-3' : 'px-4',
+                    )}
+                  >
+                    <div className={cn(
+                      'min-w-0 flex flex-1 items-center gap-3',
+                      isMobileAssigneeTimeline && 'justify-center',
+                    )}>
+                      {row.color && (
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: row.color }}
+                        />
+                      )}
+                      {isMobileAssigneeTimeline ? (
+                        <span
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted text-[10px] font-semibold uppercase tracking-[0.04em] text-foreground"
+                          title={row.name}
+                          aria-label={row.name}
+                        >
+                          {getSidebarRowMonogram(row.name)}
+                        </span>
+                      ) : (
+                        <span
+                          className={cn(
+                            'min-w-0 font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere]',
+                            isMobile && groupMode === 'assignee'
+                              ? 'text-xs leading-5 line-clamp-1'
+                              : 'text-sm leading-snug line-clamp-2',
+                          )}
+                          title={row.name}
+                        >
+                          {row.name}
+                        </span>
+                      )}
+                    </div>
+                    {groupMode === 'project' && (
+                      <span className="shrink-0 pl-2 text-xs text-muted-foreground">
+                        {row.tasks.length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div
+                  data-testid={`timeline-task-row-${row.id}`}
+                  className="relative flex-shrink-0"
+                  style={{ width: totalWidth }}
+                >
+                  <TimelineRow
+                    rowId={row.id}
+                    rowIndex={rowIndex}
+                    visibleDays={visibleDays}
+                    dayWidth={dayWidth}
+                    viewMode={viewMode}
+                    todayKey={todayKey}
+                    holidayDates={holidayDates}
+                    height={row.height}
+                    canEdit={canEdit}
+                    onCreateTask={handleCreateTaskAt}
+                  >
+                    {rowTaskElementsById.get(row.id)}
+                  </TimelineRow>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </div>
+
+      {!isMobile && sidebarViewportWidth > 0 && (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize timeline sidebar"
+          data-timeline-resize-handle
+          className={`absolute inset-y-0 z-30 w-1 cursor-col-resize bg-transparent transition-colors ${isSidebarResizing ? 'bg-border/80' : 'hover:bg-border/70'}`}
+          style={{ left: Math.max(0, sidebarViewportWidth - 2) }}
+          onMouseDown={handleSidebarResizeStart}
+          onDoubleClick={handleSidebarResizeReset}
+        />
+      )}
 
       {showTodayButton && (
         <Button
