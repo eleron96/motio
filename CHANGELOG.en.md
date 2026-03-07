@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Planner: timeline label shifting now applies only to genuinely long tasks, while short partially clipped tasks keep their default label position.
+
 ## [0.2.80] - 2026-03-07
 ### Changed
 - Planner: long timeline tasks now shift their label into the visible segment and hide secondary info when space is tight.
