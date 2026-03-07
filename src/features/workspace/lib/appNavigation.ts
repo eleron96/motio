@@ -22,7 +22,7 @@ export const getAppNavigationItems = (): AppNavigationItem[] => [
   },
   {
     to: '/app/members',
-    label: t`Members`,
+    label: t`Team`,
   },
 ];
 

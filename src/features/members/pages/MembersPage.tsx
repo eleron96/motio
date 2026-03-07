@@ -91,8 +91,8 @@ const pickNearestRepeatTaskFromToday = (task: Task, tasks: Task[]) => {
 
 const MembersPage = () => {
   usePageSeo({
-    title: 'Motio — Members',
-    description: 'Private members workspace in Motio.',
+    title: 'Motio — Team',
+    description: 'Private team workspace in Motio.',
     canonicalPath: '/app/members',
     robots: 'noindex, nofollow',
   });
@@ -814,12 +814,12 @@ const MembersPage = () => {
     ? t`Access`
     : mode === 'groups'
       ? t`Groups`
-      : t`Tasks`;
+      : t`People`;
   const mobileSummary = mode === 'access'
     ? t`Workspace access`
     : mode === 'groups'
       ? (selectedGroup?.name ?? t`Select a group`)
-      : (selectedAssignee?.name ?? t`Select a member`);
+      : (selectedAssignee?.name ?? t`Select a person`);
 
   const renderMembersSidebar = (closeOnSelect = false) => (
     <MembersSidebar

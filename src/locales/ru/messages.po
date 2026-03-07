@@ -21,7 +21,7 @@ msgstr ""
 msgid "(disabled)"
 msgstr "(отключен)"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:542
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:406
 msgid "(you)"
 msgstr "(вы)"
 
@@ -56,6 +56,54 @@ msgstr "{0} проектов"
 #: src/features/projects/pages/ProjectsPage.tsx:437
 msgid "{0} selected"
 msgstr "{0} выбрано"
+
+#. placeholder {0}: formatRole(previousRole)
+#. placeholder {1}: formatRole(nextRole)
+#: src/shared/lib/workspaceMemberActivity.ts:50
+msgid "{actor} changed {target} from {0} to {1}."
+msgstr "{actor}: роль {target} изменена с {0} на {1}."
+
+#: src/shared/lib/workspaceMemberActivity.ts:54
+msgid "{actor} changed {target} group from {fromGroup} to {toGroup}."
+msgstr "{actor}: группа {target} изменена с {fromGroup} на {toGroup}."
+
+#. placeholder {0}: formatStatus(previousStatus)
+#. placeholder {1}: formatStatus(nextStatus)
+#: src/shared/lib/workspaceMemberActivity.ts:59
+msgid "{actor} changed {target} status from {0} to {1}."
+msgstr "{actor}: статус {target} изменён с {0} на {1}."
+
+#. placeholder {0}: wrapLabel(groupName, t`Unnamed group`)
+#: src/shared/lib/workspaceMemberActivity.ts:61
+msgid "{actor} created the group {0}."
+msgstr "{actor}: создана группа {0}."
+
+#. placeholder {0}: wrapLabel(groupName, t`Unnamed group`)
+#: src/shared/lib/workspaceMemberActivity.ts:65
+msgid "{actor} deleted the group {0}."
+msgstr "{actor}: группа {0} удалена."
+
+#: src/shared/lib/workspaceMemberActivity.ts:46
+msgid "{actor} invited {target} as {rolePart} in {groupPart}."
+msgstr "{actor}: выдан доступ {target} с ролью {rolePart} в группу {groupPart}."
+
+#: src/shared/lib/workspaceMemberActivity.ts:47
+msgid "{actor} invited {target} as {rolePart}."
+msgstr "{actor}: выдан доступ {target} с ролью {rolePart}."
+
+#: src/shared/lib/workspaceMemberActivity.ts:57
+msgid "{actor} removed {target} from the workspace."
+msgstr "{actor}: пользователь {target} удалён из рабочего пространства."
+
+#. placeholder {0}: wrapLabel(previousGroupName, t`Unnamed group`)
+#. placeholder {1}: wrapLabel(nextGroupName, t`Unnamed group`)
+#: src/shared/lib/workspaceMemberActivity.ts:63
+msgid "{actor} renamed group {0} to {1}."
+msgstr "{actor}: группа {0} переименована в {1}."
+
+#: src/shared/lib/workspaceMemberActivity.ts:67
+msgid "{actor} updated workspace access."
+msgstr "{actor}: доступ рабочего пространства обновлён."
 
 #: src/features/projects/components/ProjectsMainPanel.tsx:479
 msgid "{customersCount} customers"
@@ -105,7 +153,7 @@ msgid "Accept"
 msgstr "Принять"
 
 #: src/features/auth/components/InviteNotifications.tsx:193
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:275
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:334
 msgid "Accepted"
 msgstr "Принято"
 
@@ -116,29 +164,34 @@ msgid "Access"
 msgstr "Доступ"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:374
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:309
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:372
 msgid "Access denied"
 msgstr "Нет доступа"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:25
 #: src/features/auth/components/AccountSettingsDialog.tsx:128
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:138
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:142
 msgid "Account settings"
 msgstr "Настройки аккаунта"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:433
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:588
 msgid "Action failed"
 msgstr "Действие не выполнено"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:524
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:688
 msgid "Actions"
 msgstr "Действия"
+
+#: src/shared/lib/workspaceMemberActivity.ts:21
+msgid "active"
+msgstr "активен"
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:59
 #: src/features/members/components/MembersSidebar.tsx:186
 #: src/features/projects/components/ProjectsSidebar.tsx:617
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:188
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:592
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:230
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:456
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:648
 msgid "Active"
 msgstr "Активен"
 
@@ -156,7 +209,7 @@ msgstr "Добавьте описание..."
 msgid "Add group"
 msgstr "Добавить группу"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:351
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:506
 msgid "Add member"
 msgstr "Добавить участника"
 
@@ -185,10 +238,14 @@ msgstr "Добавить виджет"
 msgid "Add your name"
 msgstr "Добавьте имя"
 
+#: src/shared/lib/workspaceMemberActivity.ts:14
+msgid "admin"
+msgstr "администратор"
+
 #: src/features/auth/components/InviteNotifications.tsx:103
 #: src/features/members/pages/MembersPage.tsx:199
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:374
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:426
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:529
 msgid "Admin"
 msgstr "Администратор"
 
@@ -374,7 +431,7 @@ msgstr "Диапазон календаря"
 msgid "Cancel"
 msgstr "Отмена"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:277
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:336
 msgid "Canceled"
 msgstr "Отменено"
 
@@ -407,7 +464,7 @@ msgstr "Стиль графика"
 #~ msgid "Check your email to confirm your account."
 #~ msgstr "Проверьте почту, чтобы подтвердить аккаунт."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:418
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:573
 msgid "Check your inbox"
 msgstr "Проверьте почту"
 
@@ -677,7 +734,7 @@ msgid "Decline"
 msgstr "Отклонить"
 
 #: src/features/auth/components/InviteNotifications.tsx:193
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:276
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:335
 msgid "Declined"
 msgstr "Отклонено"
 
@@ -789,17 +846,22 @@ msgstr "Разработано <0>NIKO G.</0>"
 msgid "Details"
 msgstr "Подробнее"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:589
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:453
 msgid "Disable member"
 msgstr "Отключить участника"
+
+#: src/shared/lib/workspaceMemberActivity.ts:21
+msgid "disabled"
+msgstr "отключен"
 
 #: src/features/members/components/MembersSidebar.tsx:187
 #: src/features/members/components/MembersSidebar.tsx:266
 #: src/features/members/components/MemberTasksPanel.tsx:143
 #: src/features/members/pages/MembersPage.tsx:949
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:188
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:548
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:592
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:230
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:412
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:456
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:649
 msgid "Disabled"
 msgstr "Отключен"
 
@@ -877,14 +939,18 @@ msgstr ""
 msgid "Edit widget"
 msgstr "Редактировать виджет"
 
+#: src/shared/lib/workspaceMemberActivity.ts:15
+msgid "editor"
+msgstr "редактор"
+
 #: src/features/auth/components/InviteNotifications.tsx:104
 #: src/features/members/pages/MembersPage.tsx:200
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:373
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:561
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:425
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:528
 msgid "Editor"
 msgstr "Редактор"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:356
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:511
 msgid "Email"
 msgstr "Email"
 
@@ -900,7 +966,7 @@ msgstr "Email"
 msgid "Emoji"
 msgstr "Эмодзи"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:589
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:453
 msgid "Enable member"
 msgstr "Включить участника"
 
@@ -979,7 +1045,7 @@ msgstr "Всё что нужно команде чтобы работать сл
 msgid "Expand filters"
 msgstr "Развернуть фильтры"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:278
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:337
 msgid "Expired"
 msgstr "Истекло"
 
@@ -1090,8 +1156,8 @@ msgid "Go to timeline"
 msgstr "Перейти к таймлайну"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:88
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:379
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:513
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:534
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:677
 msgid "Group"
 msgstr "Группа"
 
@@ -1145,6 +1211,10 @@ msgstr "Высокий"
 msgid "High priority"
 msgstr "Высокий приоритет"
 
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:650
+msgid "History"
+msgstr "История"
+
 #: src/features/dashboard/pages/DashboardPage.tsx:757
 msgid "Hold the widget header to enable moving."
 msgstr "Удерживайте заголовок виджета, чтобы включить перемещение."
@@ -1170,7 +1240,7 @@ msgstr "В работе"
 msgid "Include unassigned"
 msgstr "Включить без исполнителя"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:416
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:571
 msgid "Invite created"
 msgstr "Приглашение создано"
 
@@ -1178,7 +1248,7 @@ msgstr "Приглашение создано"
 #~ msgid "Invite link created"
 #~ msgstr "Ссылка-приглашение создана"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:345
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:500
 msgid "Invite people and share access."
 msgstr "Приглашайте людей и делитесь доступом."
 
@@ -1195,7 +1265,7 @@ msgid "Invited by"
 msgstr "Пригласил"
 
 #: src/features/auth/components/InviteNotifications.tsx:748
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:343
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:498
 msgid "Invites"
 msgstr "Приглашения"
 
@@ -1255,7 +1325,7 @@ msgstr "Загрузка дашборда..."
 
 #: src/features/auth/components/InviteNotifications.tsx:644
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:727
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:444
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:599
 msgid "Loading data..."
 msgstr "Загрузка данных..."
 
@@ -1264,13 +1334,17 @@ msgid "Loading editor..."
 msgstr ""
 
 #: src/features/members/components/MembersSidebar.tsx:317
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:386
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:571
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:435
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:541
 msgid "Loading groups..."
 msgstr "Загрузка групп..."
 
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:711
+msgid "Loading history..."
+msgstr "Загрузка истории..."
+
 #: src/features/members/pages/MembersPage.tsx:923
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:528
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:692
 msgid "Loading members..."
 msgstr "Загрузка участников..."
 
@@ -1317,12 +1391,20 @@ msgid "Low priority"
 msgstr "Низкий приоритет"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:328
-msgid "Manage invites, roles, and access."
-msgstr "Управляйте приглашениями, ролями и доступом."
+#~ msgid "Manage invites, roles, and access."
+#~ msgstr "Управляйте приглашениями, ролями и доступом."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:487
-msgid "Manage roles, groups, and status."
-msgstr "Управляйте ролями, группами и статусом."
+#~ msgid "Manage roles, groups, and status."
+#~ msgstr "Управляйте ролями, группами и статусом."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:483
+msgid "Manage team invites, roles, and access."
+msgstr "Управляйте приглашениями, ролями и доступом команды."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:642
+msgid "Manage team roles, groups, and status."
+msgstr "Управляйте ролями, группами и статусом участников."
 
 #: src/features/workspace/components/WorkspaceMembersSheet.tsx:18
 msgid "Manage workspace members, roles, and invitations."
@@ -1368,20 +1450,19 @@ msgstr "Средний"
 msgid "Medium priority"
 msgstr "Средний приоритет"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:497
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:661
 msgid "Member"
 msgstr "Участник"
 
 #: src/features/marketing/pages/LandingPage.tsx:442
-#: src/features/workspace/lib/appNavigation.ts:25
 msgid "Members"
 msgstr "Участники"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:485
-msgid "Members & roles"
-msgstr "Участники и роли"
+#~ msgid "Members & roles"
+#~ msgstr "Участники и роли"
 
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:83
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:87
 msgid "Menu"
 msgstr "Меню"
 
@@ -1456,7 +1537,7 @@ msgstr "Рабочее пространство моей команды"
 msgid "Name"
 msgstr "Название"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:360
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:515
 msgid "name@example.com"
 msgstr "name@example.com"
 
@@ -1535,6 +1616,7 @@ msgstr "Далее"
 #~ msgstr "Нет действий"
 
 #: src/features/members/components/MembersSidebar.tsx:192
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:695
 msgid "No active members."
 msgstr "Нет активных участников."
 
@@ -1616,20 +1698,23 @@ msgid "No description."
 msgstr "Нет описания."
 
 #: src/features/members/components/MembersSidebar.tsx:238
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:698
 msgid "No disabled members."
 msgstr "Нет отключенных участников."
 
 #: src/features/members/pages/MembersPage.tsx:317
 #: src/features/members/pages/MembersPage.tsx:329
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:184
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:386
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:389
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:571
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:574
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:226
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:435
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:438
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:541
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:544
+#: src/shared/lib/workspaceMemberActivity.ts:52
+#: src/shared/lib/workspaceMemberActivity.ts:53
 msgid "No group"
 msgstr "Без группы"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:401
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:556
 msgid "No groups created yet."
 msgstr "Группы еще не созданы."
 
@@ -1638,7 +1723,11 @@ msgstr "Группы еще не созданы."
 msgid "No groups yet."
 msgstr "Групп пока нет."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:446
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:717
+msgid "No history yet."
+msgstr "История пока пуста."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:601
 msgid "No invites sent yet."
 msgstr "Отправленных приглашений пока нет."
 
@@ -1652,8 +1741,8 @@ msgid "No matches."
 msgstr ""
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:531
-msgid "No members found."
-msgstr "Участники не найдены."
+#~ msgid "No members found."
+#~ msgstr "Участники не найдены."
 
 #: src/features/members/pages/MembersPage.tsx:931
 msgid "No members in this group."
@@ -1788,7 +1877,7 @@ msgstr "Не отслеживается"
 #: src/features/auth/components/InviteNotifications.tsx:631
 #: src/features/auth/components/InviteNotifications.tsx:641
 #: src/features/marketing/pages/LandingPage.tsx:469
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:145
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:149
 msgid "Notifications"
 msgstr "Уведомления"
 
@@ -1847,7 +1936,7 @@ msgstr "Открытые"
 msgid "Open fullscreen"
 msgstr "Открыть во весь экран"
 
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:148
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:152
 msgid "Open invites and task updates."
 msgstr "Откройте приглашения и обновления задач."
 
@@ -1911,14 +2000,20 @@ msgstr "Пастельная мята"
 msgid "Pastel sky"
 msgstr "Пастельное небо"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:279
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:338
 msgid "Pending"
 msgstr "Ожидает"
 
+#: src/features/members/components/MembersSidebar.tsx:115
+#: src/features/members/pages/MembersPage.tsx:817
 #: src/features/planner/components/FilterPanel.tsx:303
 #: src/features/planner/components/timeline/TimelineControls.tsx:151
 msgid "People"
-msgstr "Люди"
+msgstr "Участники"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:640
+msgid "People access"
+msgstr "Участники"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:412
 msgid "Period"
@@ -1983,7 +2078,7 @@ msgstr "Проекты"
 msgid "Projects & milestones"
 msgstr "Проекты и вехи"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:335
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:490
 msgid "Read-only"
 msgstr "Только чтение"
 
@@ -2004,7 +2099,7 @@ msgstr "Обновить"
 #~ msgid "Register"
 #~ msgstr "Регистрация"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:606
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:470
 msgid "Remove"
 msgstr "Удалить"
 
@@ -2088,7 +2183,7 @@ msgstr "Восстановить"
 msgid "Return to Home"
 msgstr "Вернуться на главную"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:472
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:627
 msgid "Revoke"
 msgstr ""
 
@@ -2097,8 +2192,8 @@ msgid "Right-click to add your first widget."
 msgstr "Щелкните правой кнопкой, чтобы добавить первый виджет."
 
 #: src/features/auth/components/InviteNotifications.tsx:755
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:366
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:505
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:521
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:669
 msgid "Role"
 msgstr "Роль"
 
@@ -2145,16 +2240,17 @@ msgid "Search groups..."
 msgstr "Поиск групп..."
 
 #: src/features/members/components/MembersSidebar.tsx:154
-msgid "Search members..."
-msgstr "Поиск участников..."
+#~ msgid "Search members..."
+#~ msgstr "Поиск участников..."
 
 #: src/features/projects/components/ProjectsSidebar.tsx:483
 msgid "Search milestones..."
 msgstr "Поиск вех..."
 
+#: src/features/members/components/MembersSidebar.tsx:154
 #: src/features/planner/components/FilterPanel.tsx:310
 msgid "Search people..."
-msgstr ""
+msgstr "Поиск участников..."
 
 #: src/features/planner/components/FilterPanel.tsx:264
 #: src/features/projects/components/ProjectsSidebar.tsx:542
@@ -2178,7 +2274,7 @@ msgstr "Поиск задач..."
 msgid "Search types..."
 msgstr ""
 
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:101
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:105
 msgid "Sections"
 msgstr "Разделы"
 
@@ -2200,12 +2296,12 @@ msgid "Select a group to see members."
 msgstr "Выберите группу, чтобы увидеть участников."
 
 #: src/features/members/pages/MembersPage.tsx:822
-msgid "Select a member"
-msgstr "Выберите участника"
+#~ msgid "Select a member"
+#~ msgstr "Выберите участника"
 
 #: src/features/members/components/MemberTasksPanel.tsx:131
-msgid "Select a member to view details."
-msgstr "Выберите участника, чтобы увидеть детали."
+#~ msgid "Select a member to view details."
+#~ msgstr "Выберите участника, чтобы увидеть детали."
 
 #: src/features/projects/pages/ProjectsPage.tsx:825
 msgid "Select a milestone"
@@ -2214,6 +2310,14 @@ msgstr ""
 #: src/features/projects/components/ProjectsMainPanel.tsx:383
 msgid "Select a milestone to view details."
 msgstr "Выберите веху, чтобы увидеть детали."
+
+#: src/features/members/pages/MembersPage.tsx:822
+msgid "Select a person"
+msgstr "Выберите участника"
+
+#: src/features/members/components/MemberTasksPanel.tsx:131
+msgid "Select a person to view details."
+msgstr "Выберите участника, чтобы увидеть детали."
 
 #: src/features/projects/pages/ProjectsPage.tsx:828
 msgid "Select a project"
@@ -2293,7 +2397,7 @@ msgstr "Выберите рабочее пространство"
 #~ msgid "Selected statuses"
 #~ msgstr "Выбранные статусы"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:405
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:560
 msgid "Send invite"
 msgstr "Отправить приглашение"
 
@@ -2301,7 +2405,7 @@ msgstr "Отправить приглашение"
 #~ msgid "Send reset link"
 #~ msgstr "Отправить ссылку"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:442
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:597
 msgid "Sent invites"
 msgstr "Отправленные приглашения"
 
@@ -2380,7 +2484,7 @@ msgstr "Начать бесплатно →"
 #: src/features/projects/components/ProjectsMainPanel.tsx:300
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:69
 #: src/features/workspace/components/SettingsPanel.tsx:566
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:521
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:685
 msgid "Status"
 msgstr "Статус"
 
@@ -2454,8 +2558,6 @@ msgstr "Задача создана, но подзадачи не удалось
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:761
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:899
-#: src/features/members/components/MembersSidebar.tsx:115
-#: src/features/members/pages/MembersPage.tsx:817
 msgid "Tasks"
 msgstr "Задачи"
 
@@ -2470,6 +2572,14 @@ msgstr "Загрузка количества задач..."
 #: src/features/members/components/MemberTasksPanel.tsx:170
 msgid "Tasks from today"
 msgstr "Задачи с сегодняшнего дня"
+
+#: src/features/workspace/lib/appNavigation.ts:25
+msgid "Team"
+msgstr "Команда"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:481
+msgid "Team access"
+msgstr "Доступ команды"
 
 #: src/features/marketing/pages/LandingPage.tsx:612
 msgid "Team planning workspace."
@@ -2606,7 +2716,7 @@ msgstr "Название Я–А"
 msgid "Today"
 msgstr "Сегодня"
 
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:112
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:116
 msgid "Tools"
 msgstr "Инструменты"
 
@@ -2689,10 +2799,14 @@ msgstr "неизвестно"
 #: src/features/projects/components/ProjectsMainPanel.tsx:343
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:76
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:106
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:187
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:450
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:229
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:605
 msgid "Unknown"
 msgstr "Неизвестно"
+
+#: src/shared/lib/workspaceMemberActivity.ts:28
+msgid "Unknown member"
+msgstr "Неизвестный участник"
 
 #: src/features/projects/components/ProjectsMainPanel.tsx:402
 #: src/features/projects/components/ProjectsMainPanel.tsx:448
@@ -2701,13 +2815,25 @@ msgstr "Неизвестно"
 msgid "Unknown project"
 msgstr "Неизвестный проект"
 
+#: src/shared/lib/workspaceMemberActivity.ts:17
+msgid "unknown role"
+msgstr "неизвестная роль"
+
 #: src/features/auth/components/AccountBadgeButton.tsx:16
 #: src/features/auth/components/AccountSettingsDialog.tsx:79
 #: src/features/auth/components/InviteNotifications.tsx:666
 #: src/features/auth/components/InviteNotifications.tsx:750
 #: src/features/planner/components/timeline/TaskBar.tsx:154
+#: src/shared/lib/workspaceMemberActivity.ts:27
 msgid "Unknown user"
 msgstr "Неизвестный пользователь"
+
+#: src/shared/lib/workspaceMemberActivity.ts:61
+#: src/shared/lib/workspaceMemberActivity.ts:63
+#: src/shared/lib/workspaceMemberActivity.ts:63
+#: src/shared/lib/workspaceMemberActivity.ts:65
+msgid "Unnamed group"
+msgstr "Группа без названия"
 
 #: src/features/dashboard/pages/DashboardPage.tsx:826
 #: src/features/planner/components/TaskDetailDialogs.tsx:76
@@ -2783,10 +2909,14 @@ msgstr ""
 msgid "View tasks"
 msgstr "Просмотреть задачи"
 
+#: src/shared/lib/workspaceMemberActivity.ts:16
+msgid "viewer"
+msgstr "наблюдатель"
+
 #: src/features/auth/components/InviteNotifications.tsx:105
 #: src/features/members/pages/MembersPage.tsx:201
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:372
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:560
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:424
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:527
 msgid "Viewer"
 msgstr "Просмотр"
 
@@ -2832,7 +2962,7 @@ msgstr "Виджет"
 msgid "Workflow"
 msgstr "Процесс"
 
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:90
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:94
 #: src/features/workspace/lib/appNavigation.ts:39
 msgid "Workspace"
 msgstr "Рабочее пространство"
@@ -2850,7 +2980,6 @@ msgstr "Вы добавлены в рабочее пространство"
 msgid "Workspace limit reached (5)."
 msgstr "Достигнут лимит рабочих пространств (5)."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:326
 #: src/features/workspace/components/WorkspaceMembersSheet.tsx:16
 msgid "Workspace members"
 msgstr "Участники рабочего пространства"
@@ -2875,7 +3004,7 @@ msgid "Workspace sections"
 msgstr "Разделы рабочего пространства"
 
 #: src/features/workspace/components/SettingsPanel.tsx:325
-#: src/features/workspace/components/WorkspaceMobileMenu.tsx:126
+#: src/features/workspace/components/WorkspaceMobileMenu.tsx:130
 msgid "Workspace settings"
 msgstr "Настройки рабочего пространства"
 
@@ -2900,7 +3029,7 @@ msgstr "Ежегодный повтор"
 #~ msgid "You are not signed in."
 #~ msgstr "Вы не вошли в систему."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:313
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:376
 msgid "You cannot remove yourself."
 msgstr "Вы не можете удалить себя."
 
@@ -2927,7 +3056,7 @@ msgstr "У вас есть несохраненные изменения вех�
 msgid "You have view access and cannot edit this workspace."
 msgstr "У вас доступ только для просмотра, и вы не можете редактировать это рабочее пространство."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:336
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:491
 msgid "You have view access and cannot manage members."
 msgstr "У вас доступ только для просмотра, и вы не можете управлять участниками."
 

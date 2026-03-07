@@ -6,6 +6,7 @@ import {
   type WorkspaceTemplate,
 } from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -28,6 +29,11 @@ import {
   TagRow,
   TaskTypeRow,
 } from '@/features/planner/store/plannerStore.helpers';
+import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
+import {
+  buildWorkspaceMemberActivityActorSnapshot,
+  buildWorkspaceMemberActivityTargetLabel,
+} from '@/shared/domain/workspaceMemberActivity';
 
 type CatalogActions = Pick<
   PlannerStore,
@@ -318,12 +324,13 @@ export const createCatalogActions = (
 
   updateAssignee: async (id, updates) => {
     const workspaceId = get().workspaceId;
-    if (!workspaceId) return;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+    const currentAssignee = get().assignees.find((assignee) => assignee.id === id) ?? null;
 
     const payload: Record<string, unknown> = {};
     if ('name' in updates) payload.name = updates.name;
     if ('isActive' in updates) payload.is_active = updates.isActive;
-    if (Object.keys(payload).length === 0) return;
+    if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase
       .from('assignees')
@@ -335,13 +342,39 @@ export const createCatalogActions = (
 
     if (error || !data) {
       console.error(error);
-      return;
+      return { error: error?.message ?? 'Failed to update assignee.' };
     }
 
     const updated = mapAssigneeRow(data as AssigneeRow);
     set((state) => ({
       assignees: state.assignees.map((assignee) => (assignee.id === id ? updated : assignee)),
     }));
+
+    if (currentAssignee && 'isActive' in updates && currentAssignee.isActive !== updated.isActive) {
+      const authState = useAuthStore.getState();
+      const { actorUserId, actorLabel } = buildWorkspaceMemberActivityActorSnapshot({
+        userId: authState.user?.id,
+        displayName: authState.profileDisplayName,
+        email: authState.user?.email,
+      });
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'member_status_changed',
+        actorUserId,
+        actorLabel,
+        targetUserId: updated.userId ?? null,
+        targetLabel: buildWorkspaceMemberActivityTargetLabel(updated.name, null),
+        details: {
+          previousStatus: currentAssignee.isActive ? 'active' : 'disabled',
+          nextStatus: updated.isActive ? 'active' : 'disabled',
+        },
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
+
+    return emptyMutationResult;
   },
 
   deleteAssignee: async (id) => {
