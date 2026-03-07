@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.83] - 2026-03-07
 ### Changed
 - Планировщик: длинные задачи на timeline теперь показывают остаток заголовка в компактном двухстрочном режиме вместо раннего обрезания.
 

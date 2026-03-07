@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.83] - 2026-03-07
 ### Changed
 - Planner: long timeline tasks now show the remaining title in a compact two-line mode instead of truncating too early.
 
