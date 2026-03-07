@@ -10,8 +10,6 @@ import { Badge } from '@/shared/ui/badge';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { supabase } from '@/shared/lib/supabaseClient';
-import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import { t } from '@lingui/macro';
 
@@ -38,18 +36,6 @@ type SentInvite = {
   createdAt: string | null;
 };
 
-const sentInviteStatuses: ReadonlyArray<SentInvite['status']> = [
-  'pending',
-  'accepted',
-  'declined',
-  'canceled',
-  'expired',
-];
-
-const isSentInviteStatus = (value: unknown): value is SentInvite['status'] => (
-  typeof value === 'string' && sentInviteStatuses.includes(value as SentInvite['status'])
-);
-
 export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   active = true,
   showTitle = true,
@@ -62,13 +48,21 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     membersLoading,
     fetchMembers,
     inviteMember,
+    listSentInvites,
+    cancelSentInvite,
     updateMemberRole,
     updateMemberGroup,
     removeMember,
     currentWorkspaceId,
     currentWorkspaceRole,
   } = useAuthStore();
-  const { assignees, refreshAssignees, updateAssignee, setWorkspaceId } = usePlannerStore();
+  const {
+    assignees,
+    refreshAssignees,
+    updateAssignee,
+    setWorkspaceId,
+    fetchMemberGroups,
+  } = usePlannerStore();
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('viewer');
@@ -108,25 +102,21 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     let isMounted = true;
     setGroupsLoading(true);
     setGroupsError('');
-    supabase
-      .from('member_groups')
-      .select('id, name')
-      .eq('workspace_id', currentWorkspaceId)
-      .order('name', { ascending: true })
-      .then(({ data, error }) => {
+    fetchMemberGroups(currentWorkspaceId)
+      .then((result) => {
         if (!isMounted) return;
-        if (error) {
-          setGroupsError(error.message);
+        if (result.error) {
+          setGroupsError(result.error);
           setGroupsLoading(false);
           return;
         }
-        setGroups((data ?? []) as MemberGroup[]);
+        setGroups(result.groups as MemberGroup[]);
         setGroupsLoading(false);
       });
     return () => {
       isMounted = false;
     };
-  }, [active, currentWorkspaceId]);
+  }, [active, currentWorkspaceId, fetchMemberGroups]);
 
   const loadSentInvites = useCallback(async () => {
     if (!active || !isAdmin || !currentWorkspaceId) {
@@ -136,46 +126,19 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     }
 
     setSentInvitesLoading(true);
-    const { data, error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'listSent', pendingOnly: true },
+    const { invites, error } = await listSentInvites({
+      workspaceId: currentWorkspaceId,
+      pendingOnly: true,
     });
 
     if (error) {
-      setError(await parseInvokeError(error, response));
+      setError(error);
       setSentInvitesLoading(false);
       return;
     }
-
-    const rows = Array.isArray((data as { invites?: unknown } | null)?.invites)
-      ? ((data as { invites: unknown[] }).invites ?? [])
-      : [];
-
-    const parsed = rows
-      .filter((row) => {
-        if (!row || typeof row !== 'object') return false;
-        const candidate = row as Partial<SentInvite>;
-        return (
-          typeof candidate.token === 'string'
-          && typeof candidate.workspaceId === 'string'
-          && isSentInviteStatus(candidate.status)
-        );
-      })
-      .map((row) => {
-        const candidate = row as Partial<SentInvite>;
-        return {
-          token: candidate.token as string,
-          workspaceId: candidate.workspaceId as string,
-          email: typeof candidate.email === 'string' ? candidate.email : '',
-          status: candidate.status as SentInvite['status'],
-          isPending: typeof candidate.isPending === 'boolean' ? candidate.isPending : candidate.status === 'pending',
-          createdAt: typeof candidate.createdAt === 'string' ? candidate.createdAt : null,
-        } satisfies SentInvite;
-      })
-      .filter((row) => row.workspaceId === currentWorkspaceId);
-
-    setSentInvites(parsed);
+    setSentInvites(invites as SentInvite[]);
     setSentInvitesLoading(false);
-  }, [active, currentWorkspaceId, isAdmin]);
+  }, [active, currentWorkspaceId, isAdmin, listSentInvites]);
 
   useEffect(() => {
     if (!active || !isAdmin || !currentWorkspaceId) {
@@ -297,19 +260,16 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     setCancelingToken(token);
     setError('');
 
-    const { error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'cancel', token },
-    });
-
+    const { error } = await cancelSentInvite(token);
     if (error) {
-      setError(await parseInvokeError(error, response));
+      setError(error);
       setCancelingToken(null);
       return;
     }
 
     await loadSentInvites();
     setCancelingToken(null);
-  }, [isAdmin, loadSentInvites]);
+  }, [cancelSentInvite, isAdmin, loadSentInvites]);
 
   const getInviteStatusLabel = (status: SentInvite['status']) => {
     if (status === 'accepted') return t`Accepted`;

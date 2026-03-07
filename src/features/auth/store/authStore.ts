@@ -41,6 +41,17 @@ interface WorkspaceMemberProfileRow {
   profiles: { email: string; display_name: string | null } | null;
 }
 
+type SentInviteStatus = 'pending' | 'accepted' | 'declined' | 'canceled' | 'expired';
+
+interface SentInviteSummary {
+  token: string;
+  workspaceId: string;
+  email: string;
+  status: SentInviteStatus;
+  isPending: boolean;
+  createdAt: string | null;
+}
+
 const DEFAULT_HOLIDAY_COUNTRY = 'RU';
 
 const normalizeHolidayCountryCode = (value: string | null | undefined) => {
@@ -160,6 +171,11 @@ interface AuthState {
     role: WorkspaceRole,
     groupId?: string | null
   ) => Promise<{ error?: string; actionLink?: string; warning?: string; inviteEmail?: string; inviteStatus?: string }>;
+  listSentInvites: (options?: {
+    workspaceId?: string | null;
+    pendingOnly?: boolean;
+  }) => Promise<{ invites: SentInviteSummary[]; error?: string }>;
+  cancelSentInvite: (token: string) => Promise<{ error?: string }>;
   acceptInvite: (token: string) => Promise<{ error?: string; workspaceId?: string; warning?: string }>;
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<{ error?: string }>;
   updateMemberGroup: (userId: string, groupId: string | null) => Promise<{ error?: string }>;
@@ -173,6 +189,38 @@ const getWorkspaceStorageKey = (userId: string) => `current-workspace-${userId}`
 const isTransientSchemaAuthError = (message: string) => (
   message.toLowerCase().includes('database error querying schema')
 );
+
+const sentInviteStatuses: ReadonlyArray<SentInviteStatus> = [
+  'pending',
+  'accepted',
+  'declined',
+  'canceled',
+  'expired',
+];
+
+const isSentInviteStatus = (value: unknown): value is SentInviteStatus => (
+  typeof value === 'string' && sentInviteStatuses.includes(value as SentInviteStatus)
+);
+
+const parseSentInvites = (value: unknown): SentInviteSummary[] => {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((row): row is Partial<SentInviteSummary> => Boolean(row && typeof row === 'object'))
+    .filter((row) => (
+      typeof row.token === 'string'
+      && typeof row.workspaceId === 'string'
+      && isSentInviteStatus(row.status)
+    ))
+    .map((row) => ({
+      token: row.token as string,
+      workspaceId: row.workspaceId as string,
+      email: typeof row.email === 'string' ? row.email : '',
+      status: row.status as SentInviteStatus,
+      isPending: typeof row.isPending === 'boolean' ? row.isPending : row.status === 'pending',
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : null,
+    }));
+};
 
 const getBackupBaseUrl = () => {
   const base = import.meta.env.VITE_SUPABASE_URL;
@@ -877,6 +925,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       inviteEmail: data?.inviteEmail,
       inviteStatus: data?.inviteStatus,
     };
+  },
+  listSentInvites: async (options) => {
+    const { data, error } = await invokeInviteFunction<{ invites?: unknown }>({
+      action: INVITE_ACTIONS.LIST_SENT,
+      pendingOnly: options?.pendingOnly,
+    });
+    if (error) return { invites: [], error };
+
+    const targetWorkspaceId = options?.workspaceId ?? get().currentWorkspaceId;
+    const invites = parseSentInvites(data?.invites).filter((invite) => (
+      targetWorkspaceId ? invite.workspaceId === targetWorkspaceId : true
+    ));
+    return { invites };
+  },
+  cancelSentInvite: async (token) => {
+    const inviteToken = token.trim();
+    if (!inviteToken) return { error: 'Invite token is required.' };
+
+    const { error } = await invokeInviteFunction({
+      action: INVITE_ACTIONS.CANCEL,
+      token: inviteToken,
+    });
+    if (error) return { error };
+    return {};
   },
   acceptInvite: async (token) => {
     const inviteToken = token.trim();
