@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.84] - 2026-03-07
 ### Changed
 - Планировщик: заголовок длинной задачи на timeline перестает сдвигаться внутри блока после достижения видимой границы.
 
