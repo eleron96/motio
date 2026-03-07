@@ -463,15 +463,9 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                   className={cn(
                     'task-label min-w-0 font-semibold',
                     labelLayout.wrapTitle
-                      ? 'flex-1 whitespace-normal break-words line-clamp-2'
+                      ? 'flex-1 whitespace-normal break-words'
                       : 'truncate',
-                    labelLayout.wrapTitle
-                      ? (labelLayout.mode === 'minimal'
-                        ? 'text-[10px] leading-[1.05rem]'
-                        : 'text-[11px] leading-[1.05rem]')
-                      : (labelLayout.mode === 'minimal'
-                        ? 'text-xs leading-tight'
-                        : 'text-sm leading-tight'),
+                    'text-sm leading-tight',
                     isCompleted && 'line-through',
                   )}
                   style={{ color: textColor }}

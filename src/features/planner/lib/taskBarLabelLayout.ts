@@ -78,7 +78,6 @@ export const getTaskBarLabelLayout = ({
   const isShifted = safeBarWidth >= LONG_TASK_MIN_WIDTH_FOR_SHIFT
     && hiddenLeftWidth >= safeTitleStartOffset;
   const hiddenTitleWidth = Math.max(0, hiddenLeftWidth - safeTitleStartOffset);
-  const contentOffset = isShifted ? hiddenTitleWidth : 0;
   const availableWidth = Math.max(0, visibleWidth - CONTENT_SIDE_INSET * 2);
 
   const mode: TaskBarLabelMode = !isShifted
@@ -89,6 +88,16 @@ export const getTaskBarLabelLayout = ({
         ? 'compact'
         : 'minimal';
   const wrapTitle = isShifted && availableWidth <= WRAPPED_TITLE_MAX_WIDTH;
+  // In minimal shifted mode showLeadingMeta is false (no leading icons rendered),
+  // so the title starts directly at the content div's left edge.
+  // We must shift by the full hiddenLeftWidth so the title lands at the viewport left,
+  // not hiddenTitleWidth which would leave it titleStartOffset px off-screen.
+  const leadingMetaHidden = isShifted && mode === 'minimal';
+  const contentOffset = !isShifted
+    ? 0
+    : leadingMetaHidden
+      ? hiddenLeftWidth
+      : hiddenTitleWidth;
 
   return {
     availableWidth,
