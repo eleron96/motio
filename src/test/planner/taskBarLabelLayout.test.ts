@@ -32,6 +32,21 @@ describe('getTaskBarLabelLayout', () => {
     expect(result.showLeadingMeta).toBe(true);
   });
 
+  it('keeps short clipped tasks unchanged', () => {
+    const result = getTaskBarLabelLayout({
+      barLeft: 40,
+      barWidth: 180,
+      viewportLeft: 120,
+      viewportWidth: 320,
+    });
+
+    expect(result.visibleWidth).toBe(100);
+    expect(result.contentOffset).toBe(0);
+    expect(result.mode).toBe('minimal');
+    expect(result.showProject).toBe(false);
+    expect(result.showLeadingMeta).toBe(false);
+  });
+
   it('falls back to minimal mode for a very narrow visible segment', () => {
     const result = getTaskBarLabelLayout({
       barLeft: 0,
