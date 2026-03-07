@@ -8,27 +8,48 @@ describe('getTaskBarLabelLayout', () => {
       barWidth: 240,
       viewportLeft: 0,
       viewportWidth: 480,
+      titleStartOffset: 56,
     });
 
     expect(result.visibleWidth).toBe(240);
     expect(result.contentOffset).toBe(0);
+    expect(result.isShifted).toBe(false);
     expect(result.mode).toBe('full');
     expect(result.showProject).toBe(true);
     expect(result.showLeadingMeta).toBe(true);
   });
 
-  it('shifts content right when the left part of the task is outside the viewport', () => {
+  it('keeps the default layout when the title is already visible', () => {
     const result = getTaskBarLabelLayout({
       barLeft: 40,
-      barWidth: 240,
-      viewportLeft: 120,
+      barWidth: 300,
+      viewportLeft: 80,
       viewportWidth: 320,
+      titleStartOffset: 56,
     });
 
-    expect(result.visibleWidth).toBe(160);
+    expect(result.visibleWidth).toBe(260);
+    expect(result.contentOffset).toBe(0);
+    expect(result.isShifted).toBe(false);
+    expect(result.mode).toBe('full');
+    expect(result.showProject).toBe(true);
+    expect(result.showLeadingMeta).toBe(true);
+  });
+
+  it('shifts content right only when the title is fully outside the viewport', () => {
+    const result = getTaskBarLabelLayout({
+      barLeft: 40,
+      barWidth: 300,
+      viewportLeft: 120,
+      viewportWidth: 320,
+      titleStartOffset: 56,
+    });
+
+    expect(result.visibleWidth).toBe(220);
     expect(result.contentOffset).toBe(80);
-    expect(result.mode).toBe('compact');
-    expect(result.showProject).toBe(false);
+    expect(result.isShifted).toBe(true);
+    expect(result.mode).toBe('full');
+    expect(result.showProject).toBe(true);
     expect(result.showLeadingMeta).toBe(true);
   });
 
@@ -38,25 +59,29 @@ describe('getTaskBarLabelLayout', () => {
       barWidth: 180,
       viewportLeft: 120,
       viewportWidth: 320,
+      titleStartOffset: 56,
     });
 
     expect(result.visibleWidth).toBe(100);
     expect(result.contentOffset).toBe(0);
-    expect(result.mode).toBe('minimal');
-    expect(result.showProject).toBe(false);
-    expect(result.showLeadingMeta).toBe(false);
+    expect(result.isShifted).toBe(false);
+    expect(result.mode).toBe('full');
+    expect(result.showProject).toBe(true);
+    expect(result.showLeadingMeta).toBe(true);
   });
 
-  it('falls back to minimal mode for a very narrow visible segment', () => {
+  it('falls back to minimal mode only when a shifted task has a very narrow visible segment', () => {
     const result = getTaskBarLabelLayout({
       barLeft: 0,
       barWidth: 320,
       viewportLeft: 280,
       viewportWidth: 80,
+      titleStartOffset: 56,
     });
 
     expect(result.visibleWidth).toBe(40);
     expect(result.contentOffset).toBe(280);
+    expect(result.isShifted).toBe(true);
     expect(result.mode).toBe('minimal');
     expect(result.showProject).toBe(false);
     expect(result.showLeadingMeta).toBe(false);
