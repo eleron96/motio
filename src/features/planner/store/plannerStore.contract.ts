@@ -101,7 +101,7 @@ export interface PlannerStore extends PlannerState {
   deleteCustomer: (id: string) => Promise<MutationResult>;
 
   addAssignee: (assignee: Omit<Assignee, 'id'>) => Promise<void>;
-  updateAssignee: (id: string, updates: Partial<Assignee>) => Promise<void>;
+  updateAssignee: (id: string, updates: Partial<Assignee>) => Promise<MutationResult>;
   deleteAssignee: (id: string) => Promise<void>;
 
   addStatus: (status: Omit<Status, 'id'>) => Promise<void>;

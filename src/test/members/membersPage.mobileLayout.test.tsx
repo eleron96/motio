@@ -104,9 +104,9 @@ describe('MembersPage mobile layout', () => {
     );
 
     expect(screen.getByText('Member tasks panel')).toBeInTheDocument();
-    expect(screen.getByText('Select a member')).toBeInTheDocument();
+    expect(screen.getByText('Select a person')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Tasks' }));
+    await user.click(screen.getByRole('button', { name: 'People' }));
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Members sidebar')).toBeInTheDocument();

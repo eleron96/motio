@@ -112,7 +112,7 @@ export const MembersSidebar = ({
               mode === 'tasks' && 'bg-foreground text-background shadow-sm'
             )}
           >
-            {t`Tasks`}
+            {t`People`}
           </Button>
           {isAdmin && (
             <Button
@@ -151,7 +151,7 @@ export const MembersSidebar = ({
             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
               <Input
                 className="h-8"
-                placeholder={t`Search members...`}
+                placeholder={t`Search people...`}
                 value={memberSearch}
                 onChange={(event) => onMemberSearchChange(event.target.value)}
               />

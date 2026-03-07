@@ -128,7 +128,7 @@ export const MemberTasksPanel = ({
     <>
       {!selectedAssignee && (
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          {t`Select a member to view details.`}
+          {t`Select a person to view details.`}
         </div>
       )}
 

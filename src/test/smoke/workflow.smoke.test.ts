@@ -113,6 +113,33 @@ const mockMilestoneDelete = (result: { error: { message: string } | null }) => {
   return { remove, eqId, eqWorkspace };
 };
 
+const mockInviteCreate = (groupName = 'Core team') => {
+  const activityInsert = vi.fn().mockResolvedValue({ error: null });
+  const memberGroupsIn = vi.fn().mockResolvedValue({
+    data: [{ id: 'group-1', name: groupName }],
+    error: null,
+  });
+  const memberGroupsEq = vi.fn().mockReturnValue({ in: memberGroupsIn });
+  const memberGroupsSelect = vi.fn().mockReturnValue({ eq: memberGroupsEq });
+
+  supabaseMocks.from.mockImplementation((table: string) => {
+    if (table === 'member_groups') {
+      return { select: memberGroupsSelect };
+    }
+    if (table === 'workspace_member_activity') {
+      return { insert: activityInsert };
+    }
+    throw new Error(`Unexpected table: ${table}`);
+  });
+
+  return {
+    activityInsert,
+    memberGroupsEq,
+    memberGroupsIn,
+    memberGroupsSelect,
+  };
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   if (typeof window !== 'undefined' && window.localStorage && typeof window.localStorage.clear === 'function') {
@@ -253,6 +280,7 @@ describe('Smoke: key user workflows', () => {
     useAuthStore.setState({
       currentWorkspaceId: 'ws-1',
     });
+    const { activityInsert, memberGroupsEq, memberGroupsIn } = mockInviteCreate();
 
     supabaseMocks.invoke.mockResolvedValue({
       data: {
@@ -281,6 +309,17 @@ describe('Smoke: key user workflows', () => {
         groupId: 'group-1',
       },
     });
+    expect(memberGroupsEq).toHaveBeenCalledWith('workspace_id', 'ws-1');
+    expect(memberGroupsIn).toHaveBeenCalledWith('id', ['group-1']);
+    expect(activityInsert).toHaveBeenCalledWith(expect.objectContaining({
+      workspace_id: 'ws-1',
+      action: 'invite_created',
+      target_email: 'member@example.com',
+      details: expect.objectContaining({
+        inviteRole: 'editor',
+        inviteGroupName: 'Core team',
+      }),
+    }));
   });
 
   it('planner: surfaces deleteProject error and keeps local state intact', async () => {

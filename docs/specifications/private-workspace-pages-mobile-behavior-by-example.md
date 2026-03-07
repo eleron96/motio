@@ -22,7 +22,7 @@ Then:
 - `src/shared/ui/mobile-page-sheet-layout.tsx`
 - `src/test/projects/projectsPage.mobileLayout.test.tsx`
 
-## Scenario 2: Projects tasks and member tasks use cards on mobile
+## Scenario 2: Projects tasks and people tasks use cards on mobile
 
 Given:
 - пользователь открыт на `/app/projects` или `/app/members`;
@@ -42,7 +42,7 @@ Then:
 - `src/test/projects/projectsMainPanel.mobile.test.tsx`
 - `src/test/members/memberTasksPanel.mobile.test.tsx`
 
-## Scenario 3: Members page uses sheet-based selector on mobile
+## Scenario 3: Team page uses sheet-based selector on mobile
 
 Given:
 - пользователь открыт на `/app/members`;
@@ -53,7 +53,7 @@ When:
 - пользователь открывает selector/sidebar.
 
 Then:
-- выбор участников/групп выполняется через mobile sheet;
+- выбор `People/Access/Groups` выполняется через mobile sheet;
 - основной panel `tasks/access/groups` остается на странице в одном столбце;
 - desktop постоянный sidebar сохраняется только для `768px+`.
 
@@ -62,3 +62,25 @@ Then:
 - `src/features/members/components/MembersSidebar.tsx`
 - `src/shared/ui/mobile-page-sheet-layout.tsx`
 - `src/test/members/membersPage.mobileLayout.test.tsx`
+
+## Scenario 4: Team access separates active, disabled, and history views
+
+Given:
+- пользователь открыт в разделе `Team`;
+- открыт режим `Access`;
+- в workspace есть активные и отключенные люди, а также история изменений прав/групп.
+
+When:
+- рендерится panel доступа команды;
+- пользователь переключает под-вкладки `Active`, `Disabled`, `History`.
+
+Then:
+- `Active` показывает только активных людей;
+- `Disabled` показывает только отключенных людей;
+- `History` показывает текстовые записи с датой и временем о приглашениях, смене ролей, смене групп, отключении и удалении.
+
+Покрытие:
+- `src/features/workspace/components/WorkspaceMembersPanel.tsx`
+- `src/shared/lib/workspaceMemberActivity.ts`
+- `src/test/workspace/workspaceMembersPanel.access.test.tsx`
+- `src/test/shared/workspaceMemberActivity.test.ts`

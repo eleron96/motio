@@ -29,7 +29,7 @@ Given:
 - drawer открыт.
 
 When:
-- пользователь выбирает раздел `Timeline`, `Dashboard`, `Projects` или `Members`.
+- пользователь выбирает раздел `Timeline`, `Dashboard`, `Projects` или `Team`.
 
 Then:
 - приложение переходит на выбранный маршрут `/app*`;
