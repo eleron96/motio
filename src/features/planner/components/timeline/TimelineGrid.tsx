@@ -52,7 +52,7 @@ import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { getCompactPersonName } from '@/shared/domain/personName';
+import { getPersonMonogram } from '@/shared/domain/personName';
 
 /** Дополнительный отступ снизу у строки пользователя в режиме группировки по исполнителям (визуально больше расстояние между пользователями) */
 const ASSIGNEE_ROW_GAP = 20;
@@ -72,10 +72,12 @@ const EDGE_REANCHOR_COOLDOWN_MS = 450;
 const TIMELINE_SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
 const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
 const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
-const TIMELINE_MOBILE_SIDEBAR_MIN_WIDTH = 120;
-const TIMELINE_MOBILE_SIDEBAR_MAX_WIDTH = 164;
-const TIMELINE_MOBILE_SIDEBAR_AUTO_MAX_WIDTH = 152;
-const TIMELINE_MOBILE_NAME_MAX_LENGTH = 14;
+const TIMELINE_MOBILE_PROJECT_SIDEBAR_MIN_WIDTH = 120;
+const TIMELINE_MOBILE_PROJECT_SIDEBAR_MAX_WIDTH = 164;
+const TIMELINE_MOBILE_PROJECT_SIDEBAR_AUTO_MAX_WIDTH = 152;
+const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MIN_WIDTH = 44;
+const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MAX_WIDTH = 56;
+const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_AUTO_MAX_WIDTH = 52;
 
 interface TimelineGridProps {
   onCreateTask?: (payload: {
@@ -177,12 +179,19 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     visible: boolean;
   } | null>(null);
   const milestoneRowHeight = 24;
-  const sidebarMinWidth = isMobile ? TIMELINE_MOBILE_SIDEBAR_MIN_WIDTH : TIMELINE_SIDEBAR_MIN_WIDTH;
-  const sidebarMaxWidth = isMobile ? TIMELINE_MOBILE_SIDEBAR_MAX_WIDTH : TIMELINE_SIDEBAR_MAX_WIDTH;
-  const sidebarAutoMaxWidth = isMobile ? TIMELINE_MOBILE_SIDEBAR_AUTO_MAX_WIDTH : TIMELINE_SIDEBAR_AUTO_MAX_WIDTH;
+  const isMobileAssigneeTimeline = isMobile && groupMode === 'assignee';
+  const sidebarMinWidth = isMobile
+    ? (groupMode === 'assignee' ? TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MIN_WIDTH : TIMELINE_MOBILE_PROJECT_SIDEBAR_MIN_WIDTH)
+    : TIMELINE_SIDEBAR_MIN_WIDTH;
+  const sidebarMaxWidth = isMobile
+    ? (groupMode === 'assignee' ? TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MAX_WIDTH : TIMELINE_MOBILE_PROJECT_SIDEBAR_MAX_WIDTH)
+    : TIMELINE_SIDEBAR_MAX_WIDTH;
+  const sidebarAutoMaxWidth = isMobile
+    ? (groupMode === 'assignee' ? TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_AUTO_MAX_WIDTH : TIMELINE_MOBILE_PROJECT_SIDEBAR_AUTO_MAX_WIDTH)
+    : TIMELINE_SIDEBAR_AUTO_MAX_WIDTH;
   const resolvedSidebarWidth = typeof sidebarWidth === 'number' && Number.isFinite(sidebarWidth)
     ? `${clampTimelineSidebarWidth(sidebarWidth, sidebarMinWidth, sidebarMaxWidth)}px`
-    : `clamp(${sidebarMinWidth}px, ${isMobile ? '38vw' : '26vw'}, ${sidebarAutoMaxWidth}px)`;
+    : `clamp(${sidebarMinWidth}px, ${isMobileAssigneeTimeline ? '12vw' : isMobile ? '38vw' : '26vw'}, ${sidebarAutoMaxWidth}px)`;
   
   const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode), [currentDate, viewMode]);
   const visibleHolidayYears = useMemo(
@@ -955,13 +964,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const milestoneLineHoverWidth = 4;
   const milestoneHeaderRowTop = 40;
   const milestoneHeaderRowHeight = HEADER_HEIGHT - milestoneHeaderRowTop;
-  const getSidebarRowLabel = useCallback((rowName: string, rowId: string) => {
-    if (!isMobile || groupMode !== 'assignee' || rowId === 'unassigned') {
-      return rowName;
-    }
-
-    return getCompactPersonName(rowName, TIMELINE_MOBILE_NAME_MAX_LENGTH);
-  }, [groupMode, isMobile]);
+  const getSidebarRowMonogram = useCallback((rowName: string) => getPersonMonogram(rowName, 'U'), []);
 
   return (
     <div className={cn(
@@ -992,28 +995,41 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 key={row.id}
                 className={cn(
                   'flex items-center gap-2 border-b border-border transition-colors box-border hover:bg-timeline-row-hover',
-                  isMobile ? 'px-3' : 'px-4',
+                  isMobileAssigneeTimeline ? 'justify-center px-1.5' : isMobile ? 'px-3' : 'px-4',
                 )}
                 style={{ height: row.height }}
               >
-                <div className="min-w-0 flex flex-1 items-center gap-3">
+                <div className={cn(
+                  'min-w-0 flex flex-1 items-center gap-3',
+                  isMobileAssigneeTimeline && 'justify-center',
+                )}>
                   {row.color && (
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0"
                       style={{ backgroundColor: row.color }}
                     />
                   )}
-                  <span
-                    className={cn(
-                      'min-w-0 font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere]',
-                      isMobile && groupMode === 'assignee'
-                        ? 'text-xs leading-5 line-clamp-1'
-                        : 'text-sm leading-snug line-clamp-2',
-                    )}
-                    title={row.name}
-                  >
-                    {getSidebarRowLabel(row.name, row.id)}
-                  </span>
+                  {isMobileAssigneeTimeline ? (
+                    <span
+                      className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted text-[10px] font-semibold uppercase tracking-[0.04em] text-foreground"
+                      title={row.name}
+                      aria-label={row.name}
+                    >
+                      {getSidebarRowMonogram(row.name)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        'min-w-0 font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere]',
+                        isMobile && groupMode === 'assignee'
+                          ? 'text-xs leading-5 line-clamp-1'
+                          : 'text-sm leading-snug line-clamp-2',
+                      )}
+                      title={row.name}
+                    >
+                      {row.name}
+                    </span>
+                  )}
                 </div>
                 {groupMode === 'project' && (
                   <span className="shrink-0 pl-2 text-xs text-muted-foreground">
@@ -1027,14 +1043,16 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
             )}
           </div>
         </div>
-        <div
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Resize timeline sidebar"
-          className={`h-full w-1 flex-shrink-0 cursor-col-resize bg-transparent transition-colors ${isSidebarResizing ? 'bg-border/80' : 'hover:bg-border/70'}`}
-          onMouseDown={handleSidebarResizeStart}
-          onDoubleClick={handleSidebarResizeReset}
-        />
+        {!isMobile && (
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize timeline sidebar"
+            className={`h-full w-1 flex-shrink-0 cursor-col-resize bg-transparent transition-colors ${isSidebarResizing ? 'bg-border/80' : 'hover:bg-border/70'}`}
+            onMouseDown={handleSidebarResizeStart}
+            onDoubleClick={handleSidebarResizeReset}
+          />
+        )}
         <div
           ref={scrollContainerRef}
           className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}`}

@@ -29,6 +29,8 @@ import {
   splitAssigneesByActivity,
 } from '@/features/members/lib/memberSelectors';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
 
 type MemberGroup = {
   id: string;
@@ -133,7 +135,9 @@ const MembersPage = () => {
   const [editingGroupName, setEditingGroupName] = useState('');
   const [memberTaskCounts, setMemberTaskCounts] = useState<Record<string, number>>({});
   const [memberTaskCountsDate, setMemberTaskCountsDate] = useState<string | null>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const pageSize = 100;
+  const isMobile = useIsMobile();
 
   const {
     assignees,
@@ -806,6 +810,242 @@ const MembersPage = () => {
     setMode('tasks');
   }, [assigneeByUserId, setMode, setSelectedAssigneeId, setTab]);
 
+  const mobileSheetLabel = mode === 'access'
+    ? t`Access`
+    : mode === 'groups'
+      ? t`Groups`
+      : t`Tasks`;
+  const mobileSummary = mode === 'access'
+    ? t`Workspace access`
+    : mode === 'groups'
+      ? (selectedGroup?.name ?? t`Select a group`)
+      : (selectedAssignee?.name ?? t`Select a member`);
+
+  const renderMembersSidebar = (closeOnSelect = false) => (
+    <MembersSidebar
+      className={closeOnSelect ? 'w-full border-r-0' : undefined}
+      mode={mode}
+      onModeChange={setMode}
+      isAdmin={isAdmin}
+      tab={tab}
+      onTabChange={setTab}
+      memberSearch={memberSearch}
+      onMemberSearchChange={setMemberSearch}
+      memberSort={memberSort}
+      memberSortLabel={memberSortLabel}
+      onToggleMemberSort={() => setMemberSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+      memberGroupBy={memberGroupBy}
+      onToggleMemberGroupBy={() => setMemberGroupBy((current) => (current === 'group' ? 'none' : 'group'))}
+      activeVisibleAssignees={activeVisibleAssignees}
+      disabledVisibleAssignees={disabledVisibleAssignees}
+      activeMemberGroups={activeMemberGroups}
+      disabledMemberGroups={disabledMemberGroups}
+      selectedAssigneeId={selectedAssigneeId}
+      onSelectAssignee={(assigneeId) => {
+        setSelectedAssigneeId(assigneeId);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
+      memberTaskCountsDate={memberTaskCountsDate}
+      memberTaskCounts={memberTaskCounts}
+      groupSearch={groupSearch}
+      onGroupSearchChange={setGroupSearch}
+      groupSort={groupSort}
+      groupSortLabel={groupSortLabel}
+      onToggleGroupSort={() => setGroupSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+      groupsError={groupsError}
+      creatingGroup={creatingGroup}
+      groupsLoading={groupsLoading}
+      sortedGroups={sortedGroups}
+      selectedGroupId={selectedGroupId}
+      onSelectGroup={(groupId) => {
+        setSelectedGroupId(groupId);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
+      onStartEditGroup={handleStartEditGroup}
+      onDeleteGroup={(group) => {
+        void handleDeleteGroup(group);
+      }}
+    />
+  );
+
+  const renderMembersContent = () => (
+    <section className="flex-1 overflow-hidden flex flex-col">
+      {mode === 'access' && (
+        <div className={`flex-1 overflow-auto ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}>
+          <WorkspaceMembersPanel />
+        </div>
+      )}
+
+      {mode === 'groups' && (
+        <div className={`flex-1 overflow-auto ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}>
+          {!selectedGroup && (
+            <div className="text-sm text-muted-foreground">
+              {t`Select a group to see members.`}
+            </div>
+          )}
+
+          {selectedGroup && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {editingGroupId === selectedGroup.id ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input
+                      className="w-full sm:w-[240px]"
+                      value={editingGroupName}
+                      onChange={(event) => setEditingGroupName(event.target.value)}
+                      disabled={!isAdmin || groupActionLoading}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleSaveGroupName}
+                      disabled={!isAdmin || groupActionLoading || !editingGroupName.trim()}
+                    >
+                      {t`Save`}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditingGroupId(null);
+                        setEditingGroupName('');
+                      }}
+                      disabled={groupActionLoading}
+                    >
+                      {t`Cancel`}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-lg font-semibold">{selectedGroup.name}</div>
+                )}
+              </div>
+
+              {groupMembersLoading && (
+                <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
+              )}
+              {!groupMembersLoading && groupMembersError && (
+                <div className="text-sm text-destructive">{groupMembersError}</div>
+              )}
+              {!groupMembersLoading && !groupMembersError && (
+                <>
+                  {groupMembers.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">{t`No members in this group.`}</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {groupMembers.map((member) => {
+                        const assignee = assigneeByUserId.get(member.userId);
+                        const isActive = assignee?.isActive ?? true;
+                        return (
+                          <button
+                            key={member.userId}
+                            type="button"
+                            onClick={() => handleGroupMemberClick(member.userId)}
+                            className="w-full rounded-lg border px-3 py-2 text-left transition-colors hover:bg-muted/40"
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-medium leading-snug break-words line-clamp-2">
+                                {member.displayName || member.email}
+                              </span>
+                              {!isActive && (
+                                <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
+                              )}
+                              <Badge variant="outline" className="text-[10px]">
+                                {roleLabels[member.role] ?? member.role}
+                              </Badge>
+                            </div>
+                            <div className="text-xs text-muted-foreground leading-snug break-words line-clamp-2">
+                              {member.displayName ? member.email : t`View tasks`}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {mode === 'tasks' && (
+        <MemberTasksPanel
+          selectedAssignee={selectedAssignee}
+          taskScope={taskScope}
+          onChangeTaskScope={(scope) => {
+            setTaskScope(scope);
+            setPageIndex(1);
+          }}
+          memberTaskCountsDate={memberTaskCountsDate}
+          search={search}
+          onSearchChange={(value) => {
+            setSearch(value);
+            setPageIndex(1);
+          }}
+          statusFilterLabel={statusFilterLabel}
+          setStatusPreset={setStatusPreset}
+          statuses={statuses}
+          statusFilterIds={statusFilterIds}
+          onToggleStatus={handleToggleStatus}
+          projectFilterLabel={projectFilterLabel}
+          projectOptions={projectOptions}
+          projectFilterIds={projectFilterIds}
+          onToggleProject={handleToggleProject}
+          pastFromDate={pastFromDate}
+          onPastFromDateChange={(value) => {
+            setPastFromDate(value);
+            setPageIndex(1);
+          }}
+          pastToDate={pastToDate}
+          onPastToDateChange={(value) => {
+            setPastToDate(value);
+            setPageIndex(1);
+          }}
+          pastSort={pastSort}
+          onPastSortChange={(value) => {
+            setPastSort(value);
+            setPageIndex(1);
+          }}
+          onClearFilters={() => {
+            setSearch('');
+            setStatusFilterIds([]);
+            setProjectFilterIds([]);
+            setPastFromDate('');
+            setPastToDate('');
+            setPageIndex(1);
+          }}
+          onRefresh={() => {
+            if (selectedAssigneeId) {
+              void fetchAssigneeTasks(selectedAssigneeId);
+            }
+            void refreshMemberTaskCounts();
+          }}
+          selectedAssigneeId={selectedAssigneeId}
+          tasksLoading={tasksLoading}
+          selectedCount={selectedCount}
+          onDeleteSelected={() => {
+            void handleDeleteSelected();
+          }}
+          tasksError={tasksError}
+          displayTaskRows={displayTaskRows}
+          allVisibleSelected={allVisibleSelected}
+          someVisibleSelected={someVisibleSelected}
+          onToggleAll={handleToggleAll}
+          statusById={statusById}
+          projectById={projectById}
+          selectedTaskIds={selectedTaskIds}
+          onSelectTask={setSelectedTaskId}
+          onToggleTask={handleToggleTask}
+          taskScopePageSize={pageSize}
+          displayTotalCount={displayTotalCount}
+          pageIndex={pageIndex}
+          totalPages={totalPages}
+          onPrevPage={() => setPageIndex((current) => Math.max(1, current - 1))}
+          onNextPage={() => setPageIndex((current) => Math.min(totalPages, current + 1))}
+        />
+      )}
+    </section>
+  );
+
   if (isSuperAdmin) {
     return <Navigate to="/app/admin/users" replace />;
   }
@@ -824,221 +1064,23 @@ const MembersPage = () => {
         settingsDisabled={!canEdit}
       />
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        <MembersSidebar
-          mode={mode}
-          onModeChange={setMode}
-          isAdmin={isAdmin}
-          tab={tab}
-          onTabChange={setTab}
-          memberSearch={memberSearch}
-          onMemberSearchChange={setMemberSearch}
-          memberSort={memberSort}
-          memberSortLabel={memberSortLabel}
-          onToggleMemberSort={() => setMemberSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
-          memberGroupBy={memberGroupBy}
-          onToggleMemberGroupBy={() => setMemberGroupBy((current) => (current === 'group' ? 'none' : 'group'))}
-          activeVisibleAssignees={activeVisibleAssignees}
-          disabledVisibleAssignees={disabledVisibleAssignees}
-          activeMemberGroups={activeMemberGroups}
-          disabledMemberGroups={disabledMemberGroups}
-          selectedAssigneeId={selectedAssigneeId}
-          onSelectAssignee={setSelectedAssigneeId}
-          memberTaskCountsDate={memberTaskCountsDate}
-          memberTaskCounts={memberTaskCounts}
-          groupSearch={groupSearch}
-          onGroupSearchChange={setGroupSearch}
-          groupSort={groupSort}
-          groupSortLabel={groupSortLabel}
-          onToggleGroupSort={() => setGroupSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
-          groupsError={groupsError}
-          creatingGroup={creatingGroup}
-          groupsLoading={groupsLoading}
-          sortedGroups={sortedGroups}
-          selectedGroupId={selectedGroupId}
-          onSelectGroup={setSelectedGroupId}
-          onStartEditGroup={handleStartEditGroup}
-          onDeleteGroup={(group) => {
-            void handleDeleteGroup(group);
-          }}
-        />
-
-        <section className="flex-1 overflow-hidden flex flex-col">
-          {mode === 'access' && (
-            <div className="flex-1 overflow-auto px-6 py-4">
-              <WorkspaceMembersPanel />
-            </div>
-          )}
-
-          {mode === 'groups' && (
-            <div className="flex-1 overflow-auto px-6 py-4">
-              {!selectedGroup && (
-                <div className="text-sm text-muted-foreground">
-                  {t`Select a group to see members.`}
-                </div>
-              )}
-
-              {selectedGroup && (
-                <div className="space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    {editingGroupId === selectedGroup.id ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Input
-                          className="w-[240px]"
-                          value={editingGroupName}
-                          onChange={(event) => setEditingGroupName(event.target.value)}
-                          disabled={!isAdmin || groupActionLoading}
-                        />
-                        <Button
-                          size="sm"
-                          onClick={handleSaveGroupName}
-                          disabled={!isAdmin || groupActionLoading || !editingGroupName.trim()}
-                        >
-                          {t`Save`}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setEditingGroupId(null);
-                            setEditingGroupName('');
-                          }}
-                          disabled={groupActionLoading}
-                        >
-                          {t`Cancel`}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-lg font-semibold">{selectedGroup.name}</div>
-                    )}
-                  </div>
-
-                  {groupMembersLoading && (
-                    <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
-                  )}
-                  {!groupMembersLoading && groupMembersError && (
-                    <div className="text-sm text-destructive">{groupMembersError}</div>
-                  )}
-                  {!groupMembersLoading && !groupMembersError && (
-                    <>
-                      {groupMembers.length === 0 ? (
-                        <div className="text-sm text-muted-foreground">{t`No members in this group.`}</div>
-                      ) : (
-                        <div className="space-y-2">
-                          {groupMembers.map((member) => {
-                            const assignee = assigneeByUserId.get(member.userId);
-                            const isActive = assignee?.isActive ?? true;
-                            return (
-                              <button
-                                key={member.userId}
-                                type="button"
-                                onClick={() => handleGroupMemberClick(member.userId)}
-                                className="w-full rounded-lg border px-3 py-2 text-left transition-colors hover:bg-muted/40"
-                              >
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-sm font-medium leading-snug break-words line-clamp-2">
-                                    {member.displayName || member.email}
-                                  </span>
-                                  {!isActive && (
-                                    <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
-                                  )}
-                                  <Badge variant="outline" className="text-[10px]">
-                                    {roleLabels[member.role] ?? member.role}
-                                  </Badge>
-                                </div>
-                                <div className="text-xs text-muted-foreground leading-snug break-words line-clamp-2">
-                                  {member.displayName ? member.email : t`View tasks`}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {mode === 'tasks' && (
-            <MemberTasksPanel
-              selectedAssignee={selectedAssignee}
-              taskScope={taskScope}
-              onChangeTaskScope={(scope) => {
-                setTaskScope(scope);
-                setPageIndex(1);
-              }}
-              memberTaskCountsDate={memberTaskCountsDate}
-              search={search}
-              onSearchChange={(value) => {
-                setSearch(value);
-                setPageIndex(1);
-              }}
-              statusFilterLabel={statusFilterLabel}
-              setStatusPreset={setStatusPreset}
-              statuses={statuses}
-              statusFilterIds={statusFilterIds}
-              onToggleStatus={handleToggleStatus}
-              projectFilterLabel={projectFilterLabel}
-              projectOptions={projectOptions}
-              projectFilterIds={projectFilterIds}
-              onToggleProject={handleToggleProject}
-              pastFromDate={pastFromDate}
-              onPastFromDateChange={(value) => {
-                setPastFromDate(value);
-                setPageIndex(1);
-              }}
-              pastToDate={pastToDate}
-              onPastToDateChange={(value) => {
-                setPastToDate(value);
-                setPageIndex(1);
-              }}
-              pastSort={pastSort}
-              onPastSortChange={(value) => {
-                setPastSort(value);
-                setPageIndex(1);
-              }}
-              onClearFilters={() => {
-                setSearch('');
-                setStatusFilterIds([]);
-                setProjectFilterIds([]);
-                setPastFromDate('');
-                setPastToDate('');
-                setPageIndex(1);
-              }}
-              onRefresh={() => {
-                if (selectedAssigneeId) {
-                  void fetchAssigneeTasks(selectedAssigneeId);
-                }
-                void refreshMemberTaskCounts();
-              }}
-              selectedAssigneeId={selectedAssigneeId}
-              tasksLoading={tasksLoading}
-              selectedCount={selectedCount}
-              onDeleteSelected={() => {
-                void handleDeleteSelected();
-              }}
-              tasksError={tasksError}
-              displayTaskRows={displayTaskRows}
-              allVisibleSelected={allVisibleSelected}
-              someVisibleSelected={someVisibleSelected}
-              onToggleAll={handleToggleAll}
-              statusById={statusById}
-              projectById={projectById}
-              selectedTaskIds={selectedTaskIds}
-              onSelectTask={setSelectedTaskId}
-              onToggleTask={handleToggleTask}
-              taskScopePageSize={pageSize}
-              displayTotalCount={displayTotalCount}
-              pageIndex={pageIndex}
-              totalPages={totalPages}
-              onPrevPage={() => setPageIndex((current) => Math.max(1, current - 1))}
-              onNextPage={() => setPageIndex((current) => Math.min(totalPages, current + 1))}
-            />
-          )}
-        </section>
-      </div>
+      {isMobile ? (
+        <MobilePageSheetLayout
+          open={mobileSidebarOpen}
+          onOpenChange={setMobileSidebarOpen}
+          browseLabel={mobileSheetLabel}
+          sheetTitle={mobileSheetLabel}
+          summary={mobileSummary}
+          sheetContent={renderMembersSidebar(true)}
+        >
+          {renderMembersContent()}
+        </MobilePageSheetLayout>
+      ) : (
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          {renderMembersSidebar()}
+          {renderMembersContent()}
+        </div>
+      )}
 
       <MembersDialogs
         creatingGroup={creatingGroup}

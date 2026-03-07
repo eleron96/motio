@@ -52,3 +52,26 @@ export const getCompactPersonName = (
   const shortened = Array.from(compactSource).slice(0, Math.max(1, maxLength - 1)).join('').trimEnd();
   return shortened ? `${shortened}…` : normalized;
 };
+
+export const getPersonMonogram = (
+  value: string | null | undefined,
+  fallback = '?',
+) => {
+  const normalized = normalizeWhitespace(value);
+  if (!normalized) return fallback;
+
+  const compactSource = normalized.split('@')[0] ?? normalized;
+  const parts = compactSource.split(/[\s._-]+/).filter(Boolean);
+
+  const initials = parts
+    .slice(0, 2)
+    .map(getLeadingLetter)
+    .filter(Boolean)
+    .join('');
+
+  if (initials) {
+    return initials;
+  }
+
+  return getLeadingLetter(compactSource) || fallback;
+};

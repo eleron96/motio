@@ -111,6 +111,7 @@ describe('WorkspacePageHeader mobile menu', () => {
     expect(accountButton).toHaveClass('h-auto', 'whitespace-normal', 'text-left');
     expect(screen.getByText('Sections')).toBeInTheDocument();
     expect(screen.getByText('Tools')).toBeInTheDocument();
+    expect(screen.queryByText('Navigate between workspace sections and account tools.')).not.toBeInTheDocument();
   });
 
   it('keeps the desktop header flow without burger menu', () => {
