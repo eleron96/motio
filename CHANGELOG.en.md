@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Planner: long timeline task titles stop shifting inside the bar once they reach the visible boundary.
+
 ## [0.2.83] - 2026-03-07
 ### Changed
 - Planner: long timeline tasks now show the remaining title in a compact two-line mode instead of truncating too early.

@@ -48,7 +48,7 @@ describe('getTaskBarLabelLayout', () => {
     });
 
     expect(result.visibleWidth).toBe(220);
-    expect(result.contentOffset).toBe(80);
+    expect(result.contentOffset).toBe(24);
     expect(result.isShifted).toBe(true);
     expect(result.mode).toBe('full');
     expect(result.wrapTitle).toBe(false);
@@ -84,7 +84,7 @@ describe('getTaskBarLabelLayout', () => {
     });
 
     expect(result.visibleWidth).toBe(40);
-    expect(result.contentOffset).toBe(280);
+    expect(result.contentOffset).toBe(224);
     expect(result.isShifted).toBe(true);
     expect(result.mode).toBe('minimal');
     expect(result.wrapTitle).toBe(true);
@@ -102,7 +102,7 @@ describe('getTaskBarLabelLayout', () => {
     });
 
     expect(result.visibleWidth).toBe(170);
-    expect(result.contentOffset).toBe(80);
+    expect(result.contentOffset).toBe(24);
     expect(result.isShifted).toBe(true);
     expect(result.mode).toBe('compact');
     expect(result.wrapTitle).toBe(true);

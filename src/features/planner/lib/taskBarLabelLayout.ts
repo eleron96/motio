@@ -77,7 +77,8 @@ export const getTaskBarLabelLayout = ({
   const safeTitleStartOffset = Math.max(0, titleStartOffset);
   const isShifted = safeBarWidth >= LONG_TASK_MIN_WIDTH_FOR_SHIFT
     && hiddenLeftWidth >= safeTitleStartOffset;
-  const contentOffset = isShifted ? hiddenLeftWidth : 0;
+  const hiddenTitleWidth = Math.max(0, hiddenLeftWidth - safeTitleStartOffset);
+  const contentOffset = isShifted ? hiddenTitleWidth : 0;
   const availableWidth = Math.max(0, visibleWidth - CONTENT_SIDE_INSET * 2);
 
   const mode: TaskBarLabelMode = !isShifted
