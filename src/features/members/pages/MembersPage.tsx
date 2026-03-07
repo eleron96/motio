@@ -55,6 +55,8 @@ type DisplayTaskRow = {
   } | null;
 };
 
+type AccessTab = 'active' | 'disabled' | 'history';
+
 const countTaskUnits = (tasks: Task[]) => {
   const units = new Set<string>();
   tasks.forEach((task) => {
@@ -101,6 +103,8 @@ const MembersPage = () => {
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [tab, setTab] = useState<'active' | 'disabled'>('active');
   const [mode, setMode] = useState<'tasks' | 'access' | 'groups'>('tasks');
+  const [accessTab, setAccessTab] = useState<AccessTab>('active');
+  const [accessSearch, setAccessSearch] = useState('');
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
   const [assigneeTasks, setAssigneeTasks] = useState<Task[]>([]);
   const [tasksLoading, setTasksLoading] = useState(false);
@@ -183,11 +187,13 @@ const MembersPage = () => {
 
   const {
     user,
+    members,
     currentWorkspaceId,
     currentWorkspaceRole,
     isSuperAdmin,
   } = useAuthStore(useShallow((state) => ({
     user: state.user,
+    members: state.members,
     currentWorkspaceId: state.currentWorkspaceId,
     currentWorkspaceRole: state.currentWorkspaceRole,
     isSuperAdmin: state.isSuperAdmin,
@@ -400,6 +406,14 @@ const MembersPage = () => {
   const sortedGroups = useMemo(
     () => filterAndSortByName(groups, groupSearch, groupSort),
     [groupSearch, groupSort, groups],
+  );
+  const activeAccessCount = useMemo(
+    () => members.filter((member) => assigneeByUserId.get(member.userId)?.isActive ?? true).length,
+    [assigneeByUserId, members],
+  );
+  const disabledAccessCount = useMemo(
+    () => members.filter((member) => !(assigneeByUserId.get(member.userId)?.isActive ?? true)).length,
+    [assigneeByUserId, members],
   );
 
   const selectedGroup = useMemo(
@@ -816,7 +830,11 @@ const MembersPage = () => {
       ? t`Groups`
       : t`People`;
   const mobileSummary = mode === 'access'
-    ? t`Workspace access`
+    ? accessTab === 'history'
+      ? t`History`
+      : accessTab === 'disabled'
+        ? t`Disabled people`
+        : t`Active people`
     : mode === 'groups'
       ? (selectedGroup?.name ?? t`Select a group`)
       : (selectedAssignee?.name ?? t`Select a person`);
@@ -829,6 +847,15 @@ const MembersPage = () => {
       isAdmin={isAdmin}
       tab={tab}
       onTabChange={setTab}
+      accessTab={accessTab}
+      onAccessTabChange={(nextTab) => {
+        setAccessTab(nextTab);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
+      accessSearch={accessSearch}
+      onAccessSearchChange={setAccessSearch}
+      activeAccessCount={activeAccessCount}
+      disabledAccessCount={disabledAccessCount}
       memberSearch={memberSearch}
       onMemberSearchChange={setMemberSearch}
       memberSort={memberSort}
@@ -872,7 +899,10 @@ const MembersPage = () => {
     <section className="flex-1 overflow-hidden flex flex-col">
       {mode === 'access' && (
         <div className={`flex-1 overflow-auto ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}>
-          <WorkspaceMembersPanel />
+          <WorkspaceMembersPanel
+            accessTab={accessTab}
+            accessSearch={accessSearch}
+          />
         </div>
       )}
 

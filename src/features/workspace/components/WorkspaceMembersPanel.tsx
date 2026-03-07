@@ -12,7 +12,6 @@ import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import { t } from '@lingui/macro';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberActivity';
 import { formatWorkspaceMemberActivity } from '@/shared/lib/workspaceMemberActivity';
 import { matchesWorkspaceMemberSearch } from '@/shared/domain/workspaceMemberSearch';
@@ -21,6 +20,8 @@ interface WorkspaceMembersPanelProps {
   active?: boolean;
   showTitle?: boolean;
   className?: string;
+  accessTab?: 'active' | 'disabled' | 'history';
+  accessSearch?: string;
 }
 
 type MemberGroup = {
@@ -40,12 +41,12 @@ type SentInvite = {
   createdAt: string | null;
 };
 
-type AccessTab = 'active' | 'disabled' | 'history';
-
 export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   active = true,
   showTitle = true,
   className,
+  accessTab = 'active',
+  accessSearch = '',
 }) => {
   const {
     user,
@@ -86,8 +87,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const [inviteGroupId, setInviteGroupId] = useState('none');
   const [memberSortKey, setMemberSortKey] = useState<MemberSortKey>('member');
   const [memberSortDirection, setMemberSortDirection] = useState<MemberSortDirection>('asc');
-  const [accessTab, setAccessTab] = useState<AccessTab>('active');
-  const [accessSearch, setAccessSearch] = useState('');
   const [memberActivity, setMemberActivity] = useState<WorkspaceMemberActivityEntry[]>([]);
   const [memberActivityLoading, setMemberActivityLoading] = useState(false);
   const [memberActivityError, setMemberActivityError] = useState('');
@@ -665,202 +664,111 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
           </div>
         </div>
 
-        <Tabs value={accessTab} onValueChange={(value) => setAccessTab(value as AccessTab)} className="space-y-0">
-          <div className="grid gap-4 md:grid-cols-[220px,minmax(0,1fr)]">
-            <div className="space-y-3 md:border-r md:pr-4">
-              <TabsList className="flex h-auto w-full flex-col items-stretch gap-2 bg-transparent p-0">
-                <TabsTrigger
-                  value="active"
-                  className="h-auto w-full justify-between rounded-lg border border-border bg-background px-3 py-3 text-left text-sm data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm"
-                >
-                  <span>{t`Active`}</span>
-                  <Badge
-                    variant="secondary"
-                    className={cn(
-                      'ml-3 min-w-6 justify-center rounded-full px-2 text-[10px]',
-                      accessTab === 'active' && 'bg-background/15 text-background',
-                    )}
-                  >
-                    {activeSortedMembers.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="disabled"
-                  className="h-auto w-full justify-between rounded-lg border border-border bg-background px-3 py-3 text-left text-sm data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm"
-                >
-                  <span>{t`Disabled`}</span>
-                  <Badge
-                    variant="secondary"
-                    className={cn(
-                      'ml-3 min-w-6 justify-center rounded-full px-2 text-[10px]',
-                      accessTab === 'disabled' && 'bg-background/15 text-background',
-                    )}
-                  >
-                    {disabledSortedMembers.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="history"
-                  className="h-auto w-full justify-between rounded-lg border border-border bg-background px-3 py-3 text-left text-sm data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm"
-                >
-                  <span>{t`History`}</span>
-                  <Badge
-                    variant="secondary"
-                    className={cn(
-                      'ml-3 min-w-6 justify-center rounded-full px-2 text-[10px]',
-                      accessTab === 'history' && 'bg-background/15 text-background',
-                    )}
-                  >
-                    {memberActivity.length}
-                  </Badge>
-                </TabsTrigger>
-              </TabsList>
+        <div className="min-w-0">
+          {accessTab !== 'history' && (
+            <div className="hidden md:grid grid-cols-[1fr,140px,180px,120px,90px] gap-3 px-2 pb-3 text-xs text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('member')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
+              >
+                <span>{t`Member`}</span>
+                {renderSortIcon('member')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('role')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
+              >
+                <span>{t`Role`}</span>
+                {renderSortIcon('role')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('group')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
+              >
+                <span>{t`Group`}</span>
+                {renderSortIcon('group')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('status')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
+              >
+                <span>{t`Status`}</span>
+                {renderSortIcon('status')}
+              </button>
+              <span className="text-right">{t`Actions`}</span>
+            </div>
+          )}
 
-              {accessTab !== 'history' && (
-                <Input
-                  className="h-9"
-                  placeholder={t`Search people...`}
-                  value={accessSearch}
-                  onChange={(event) => setAccessSearch(event.target.value)}
-                />
+          {accessTab === 'active' && (
+            <div className="space-y-3">
+              {membersLoading && (
+                <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
+              )}
+              {!membersLoading && filteredActiveMembers.length === 0 && !accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No active members.`}</div>
+              )}
+              {!membersLoading && filteredActiveMembers.length === 0 && accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
+              )}
+              {!membersLoading && filteredActiveMembers.length > 0 && (
+                <div className="space-y-2">
+                  {filteredActiveMembers.map(renderMemberRow)}
+                </div>
               )}
             </div>
+          )}
 
-            <div className="min-w-0">
-              <TabsContent value="active" className="mt-0 space-y-3">
-                <div className="hidden md:grid grid-cols-[1fr,140px,180px,120px,90px] gap-3 px-2 text-xs text-muted-foreground">
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('member')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Member`}</span>
-                    {renderSortIcon('member')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('role')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Role`}</span>
-                    {renderSortIcon('role')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('group')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Group`}</span>
-                    {renderSortIcon('group')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('status')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Status`}</span>
-                    {renderSortIcon('status')}
-                  </button>
-                  <span className="text-right">{t`Actions`}</span>
+          {accessTab === 'disabled' && (
+            <div className="space-y-3">
+              {membersLoading && (
+                <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
+              )}
+              {!membersLoading && filteredDisabledMembers.length === 0 && !accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No disabled members.`}</div>
+              )}
+              {!membersLoading && filteredDisabledMembers.length === 0 && accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
+              )}
+              {!membersLoading && filteredDisabledMembers.length > 0 && (
+                <div className="space-y-2">
+                  {filteredDisabledMembers.map(renderMemberRow)}
                 </div>
-
-                {membersLoading && (
-                  <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
-                )}
-                {!membersLoading && filteredActiveMembers.length === 0 && !accessSearch.trim() && (
-                  <div className="text-sm text-muted-foreground">{t`No active members.`}</div>
-                )}
-                {!membersLoading && filteredActiveMembers.length === 0 && accessSearch.trim() && (
-                  <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
-                )}
-                {!membersLoading && filteredActiveMembers.length > 0 && (
-                  <div className="space-y-2">
-                    {filteredActiveMembers.map(renderMemberRow)}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="disabled" className="mt-0 space-y-3">
-                <div className="hidden md:grid grid-cols-[1fr,140px,180px,120px,90px] gap-3 px-2 text-xs text-muted-foreground">
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('member')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Member`}</span>
-                    {renderSortIcon('member')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('role')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Role`}</span>
-                    {renderSortIcon('role')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('group')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Group`}</span>
-                    {renderSortIcon('group')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleMemberSortChange('status')}
-                    className="inline-flex items-center gap-1 text-left hover:text-foreground"
-                  >
-                    <span>{t`Status`}</span>
-                    {renderSortIcon('status')}
-                  </button>
-                  <span className="text-right">{t`Actions`}</span>
-                </div>
-
-                {membersLoading && (
-                  <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
-                )}
-                {!membersLoading && filteredDisabledMembers.length === 0 && !accessSearch.trim() && (
-                  <div className="text-sm text-muted-foreground">{t`No disabled members.`}</div>
-                )}
-                {!membersLoading && filteredDisabledMembers.length === 0 && accessSearch.trim() && (
-                  <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
-                )}
-                {!membersLoading && filteredDisabledMembers.length > 0 && (
-                  <div className="space-y-2">
-                    {filteredDisabledMembers.map(renderMemberRow)}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="history" className="mt-0 space-y-2">
-                {memberActivityLoading && (
-                  <div className="text-sm text-muted-foreground">{t`Loading history...`}</div>
-                )}
-                {!memberActivityLoading && memberActivityError && (
-                  <div className="text-sm text-destructive">{memberActivityError}</div>
-                )}
-                {!memberActivityLoading && !memberActivityError && memberActivity.length === 0 && (
-                  <div className="text-sm text-muted-foreground">{t`No history yet.`}</div>
-                )}
-                {!memberActivityLoading && !memberActivityError && memberActivity.length > 0 && (
-                  <div className="space-y-2">
-                    {memberActivity.map((entry) => (
-                      <div key={entry.id} className="rounded-md border px-3 py-2">
-                        <div className="text-xs text-muted-foreground">
-                          {formatHistoryDate(entry.createdAt)}
-                        </div>
-                        <div className="mt-1 text-sm leading-relaxed">
-                          {formatWorkspaceMemberActivity(entry)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+              )}
             </div>
-          </div>
-        </Tabs>
+          )}
+
+          {accessTab === 'history' && (
+            <div className="space-y-2">
+              {memberActivityLoading && (
+                <div className="text-sm text-muted-foreground">{t`Loading history...`}</div>
+              )}
+              {!memberActivityLoading && memberActivityError && (
+                <div className="text-sm text-destructive">{memberActivityError}</div>
+              )}
+              {!memberActivityLoading && !memberActivityError && memberActivity.length === 0 && (
+                <div className="text-sm text-muted-foreground">{t`No history yet.`}</div>
+              )}
+              {!memberActivityLoading && !memberActivityError && memberActivity.length > 0 && (
+                <div className="space-y-2">
+                  {memberActivity.map((entry) => (
+                    <div key={entry.id} className="rounded-md border px-3 py-2">
+                      <div className="text-xs text-muted-foreground">
+                        {formatHistoryDate(entry.createdAt)}
+                      </div>
+                      <div className="mt-1 text-sm leading-relaxed">
+                        {formatWorkspaceMemberActivity(entry)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
