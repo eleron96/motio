@@ -27,6 +27,7 @@ type GroupRecord = {
 };
 
 type MembersSidebarProps = {
+  className?: string;
   mode: Mode;
   onModeChange: (mode: Mode) => void;
   isAdmin: boolean;
@@ -63,6 +64,7 @@ type MembersSidebarProps = {
 };
 
 export const MembersSidebar = ({
+  className,
   mode,
   onModeChange,
   isAdmin,
@@ -98,7 +100,7 @@ export const MembersSidebar = ({
   onDeleteGroup,
 }: MembersSidebarProps) => {
   return (
-    <aside className="w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col">
+    <aside className={cn('w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col', className)}>
       <div className="px-4 py-3 border-b border-border">
         <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
           <Button

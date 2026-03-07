@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getCompactPersonName } from '@/shared/domain/personName';
+import { getCompactPersonName, getPersonMonogram } from '@/shared/domain/personName';
 
 describe('getCompactPersonName', () => {
   it('keeps short names unchanged', () => {
@@ -20,5 +20,23 @@ describe('getCompactPersonName', () => {
 
   it('truncates a single long token when initials are not available', () => {
     expect(getCompactPersonName('Supercalifragilistic')).toBe('Supercalifrag…');
+  });
+});
+
+describe('getPersonMonogram', () => {
+  it('builds two-letter initials from multi-word names', () => {
+    expect(getPersonMonogram('Иван Петров')).toBe('ИП');
+  });
+
+  it('builds initials from email-like labels', () => {
+    expect(getPersonMonogram('very.long.person@example.com')).toBe('VL');
+  });
+
+  it('falls back to a single leading character for one-word labels', () => {
+    expect(getPersonMonogram('Madonna')).toBe('M');
+  });
+
+  it('uses fallback for empty values', () => {
+    expect(getPersonMonogram('', 'U')).toBe('U');
   });
 });

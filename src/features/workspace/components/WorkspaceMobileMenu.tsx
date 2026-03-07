@@ -5,7 +5,7 @@ import { t } from '@lingui/macro';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { Button } from '@/shared/ui/button';
 import { Separator } from '@/shared/ui/separator';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { getAppNavigationLabel } from '@/features/workspace/lib/appNavigation';
@@ -78,12 +78,13 @@ export const WorkspaceMobileMenu: React.FC<WorkspaceMobileMenuProps> = ({
       </div>
 
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="left" className="w-[18rem] overflow-y-auto px-4 py-5 sm:max-w-[18rem]">
+        <SheetContent
+          side="left"
+          aria-describedby={undefined}
+          className="w-[18rem] overflow-y-auto px-4 py-5 sm:max-w-[18rem]"
+        >
           <SheetHeader className="pr-8 text-left">
             <SheetTitle>{t`Menu`}</SheetTitle>
-            <SheetDescription>
-              {t`Navigate between workspace sections and account tools.`}
-            </SheetDescription>
           </SheetHeader>
 
           <div className="mt-6 flex flex-col gap-5">
