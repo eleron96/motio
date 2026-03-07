@@ -96,6 +96,23 @@ describe('WorkspacePageHeader mobile menu', () => {
     expect(screen.getByText('Projects')).toBeInTheDocument();
   });
 
+  it('keeps long workspace actions readable in the mobile drawer', async () => {
+    useIsMobileMock.mockReturnValue(true);
+    const user = userEvent.setup();
+
+    renderHeader('/app');
+
+    await user.click(screen.getByRole('button', { name: 'Open navigation menu' }));
+
+    const settingsButton = await screen.findByRole('button', { name: 'Workspace settings' });
+    const accountButton = screen.getByRole('button', { name: 'Account settings' });
+
+    expect(settingsButton).toHaveClass('h-auto', 'whitespace-normal', 'text-left');
+    expect(accountButton).toHaveClass('h-auto', 'whitespace-normal', 'text-left');
+    expect(screen.getByText('Sections')).toBeInTheDocument();
+    expect(screen.getByText('Tools')).toBeInTheDocument();
+  });
+
   it('keeps the desktop header flow without burger menu', () => {
     useIsMobileMock.mockReturnValue(false);
 

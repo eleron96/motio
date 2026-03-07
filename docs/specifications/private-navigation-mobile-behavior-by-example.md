@@ -58,3 +58,22 @@ Then:
 Покрытие:
 - `src/features/workspace/components/WorkspacePageHeader.tsx`
 - `src/test/workspace/workspacePageHeader.mobileMenu.test.tsx`
+
+## Scenario 4: Mobile drawer stays readable in localized UI
+
+Given:
+- пользователь работает на мобильном экране меньше `768px`;
+- интерфейс переключен на русскую локаль;
+- открыт drawer приватной навигации.
+
+When:
+- drawer рендерит служебные заголовки и кнопки инструментов workspace.
+
+Then:
+- служебные лейблы drawer не распадаются на визуально шумные разреженные символы;
+- кнопка `Настройки рабочего пространства` переносит длинный текст внутри плашки;
+- пользователь может прочитать инструменты без горизонтального переполнения.
+
+Покрытие:
+- `src/features/workspace/components/WorkspaceMobileMenu.tsx`
+- `src/test/workspace/workspacePageHeader.mobileMenu.test.tsx`

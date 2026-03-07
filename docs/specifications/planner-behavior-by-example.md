@@ -238,3 +238,23 @@ Then:
 - `src/features/planner/components/AddTaskDialog.tsx`
 - `src/features/planner/lib/assigneePopoverOrder.ts`
 - `src/test/planner/assigneePopoverOrder.test.ts`
+
+## Scenario 14: Mobile timeline uses compact assignee labels
+
+Given:
+- пользователь открывает planner timeline на экране меньше `768px`;
+- timeline сгруппирован по исполнителям;
+- в workspace есть исполнители с длинными именами.
+
+When:
+- рендерится левая колонка имен timeline.
+
+Then:
+- для исполнителей используется компактная мобильная подпись вместо полного длинного имени;
+- полное имя остается доступно через `title`;
+- mobile sidebar занимает меньше места, чем desktop-ширина по умолчанию.
+
+Покрытие:
+- `src/shared/domain/personName.ts`
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/test/shared/personName.test.ts`

@@ -89,7 +89,7 @@ export const WorkspaceMobileMenu: React.FC<WorkspaceMobileMenuProps> = ({
           <div className="mt-6 flex flex-col gap-5">
             <div className="space-y-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-[11px] font-medium text-muted-foreground">
                   {t`Workspace`}
                 </p>
               </div>
@@ -100,7 +100,7 @@ export const WorkspaceMobileMenu: React.FC<WorkspaceMobileMenuProps> = ({
 
             <div className="space-y-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-[11px] font-medium text-muted-foreground">
                   {t`Sections`}
                 </p>
               </div>
@@ -111,7 +111,7 @@ export const WorkspaceMobileMenu: React.FC<WorkspaceMobileMenuProps> = ({
 
             <div className="space-y-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <p className="text-[11px] font-medium text-muted-foreground">
                   {t`Tools`}
                 </p>
               </div>
@@ -120,22 +120,26 @@ export const WorkspaceMobileMenu: React.FC<WorkspaceMobileMenuProps> = ({
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full justify-start gap-2"
+                  className="h-auto min-h-10 w-full justify-start gap-2 whitespace-normal py-2 text-left"
                   onClick={handleOpenSettings}
                   disabled={settingsDisabled}
                 >
-                  <Settings className="h-4 w-4" />
-                  {t`Workspace settings`}
+                  <Settings className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="min-w-0 leading-5">
+                    {t`Workspace settings`}
+                  </span>
                 </Button>
               )}
 
               <Button
                 type="button"
                 variant="outline"
-                className="w-full justify-start"
+                className="h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left"
                 onClick={handleOpenAccountSettings}
               >
-                {t`Account settings`}
+                <span className="min-w-0 leading-5">
+                  {t`Account settings`}
+                </span>
               </Button>
 
               <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
