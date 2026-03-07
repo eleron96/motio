@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.80] - 2026-03-07
 ### Changed
 - Планировщик: длинные задачи на timeline теперь сдвигают подпись в видимую часть блока и скрывают вторичную информацию при нехватке места.
 
