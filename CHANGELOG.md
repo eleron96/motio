@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.79] - 2026-03-07
 ### Changed
 - Команда: выровнена ширина и внутренняя раскладка переключателей Active/Disabled/History в sidebar доступа.
 

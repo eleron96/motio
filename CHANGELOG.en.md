@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.79] - 2026-03-07
 ### Changed
 - Team: aligned width and internal layout of Active/Disabled/History controls in the access sidebar.
 
