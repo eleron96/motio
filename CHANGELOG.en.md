@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Team: aligned width and internal layout of Active/Disabled/History controls in the access sidebar.
+
 ## [0.2.78] - 2026-03-07
 ### Changed
 - Team: moved Active/Disabled/History access views and search into the left sidebar.

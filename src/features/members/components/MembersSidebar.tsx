@@ -319,18 +319,21 @@ export const MembersSidebar = ({
                   key={item.value}
                   type="button"
                   onClick={() => onAccessTabChange(item.value)}
-                  className={`w-full rounded-lg border px-3 py-3 text-left transition-colors ${
+                  className={`box-border w-full rounded-lg border px-3 py-3 text-left transition-colors ${
                     accessTab === item.value
                       ? 'border-foreground/60 bg-muted/60'
                       : 'border-border hover:bg-muted/40'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{item.label}</span>
+                  <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                    <span className="min-w-0 text-sm font-medium">{item.label}</span>
                     {typeof item.count === 'number' && (
-                      <Badge variant="secondary" className="ml-auto text-[10px]">
+                      <Badge variant="secondary" className="h-5 min-w-6 justify-center px-1.5 text-[10px] tabular-nums">
                         {item.count}
                       </Badge>
+                    )}
+                    {typeof item.count !== 'number' && (
+                      <span className="h-5 w-6" aria-hidden="true" />
                     )}
                   </div>
                 </button>
