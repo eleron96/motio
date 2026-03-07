@@ -75,14 +75,17 @@ When:
 - пользователь переключает под-вкладки `Active`, `Disabled`, `History`.
 
 Then:
-- выбор `Active`, `Disabled`, `History` рендерится отдельным selector-блоком сбоку, а не узкой полосой сверху;
+- выбор `Active`, `Disabled`, `History` рендерится в левом sidebar внутри режима `Access`, по той же схеме, что и списки в `People` и `Groups`;
 - `Active` показывает только активных людей;
 - `Disabled` показывает только отключенных людей;
-- в `Active` и `Disabled` доступен поиск по участникам;
+- в sidebar для `Active` и `Disabled` доступен поиск по участникам;
 - `History` показывает текстовые записи с датой и временем о приглашениях, смене ролей, смене групп, отключении и удалении.
 
 Покрытие:
+- `src/features/members/pages/MembersPage.tsx`
+- `src/features/members/components/MembersSidebar.tsx`
 - `src/features/workspace/components/WorkspaceMembersPanel.tsx`
 - `src/shared/lib/workspaceMemberActivity.ts`
+- `src/test/members/membersSidebar.access.test.tsx`
 - `src/test/workspace/workspaceMembersPanel.access.test.tsx`
 - `src/test/shared/workspaceMemberActivity.test.ts`

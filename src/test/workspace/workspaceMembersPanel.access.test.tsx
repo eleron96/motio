@@ -1,7 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 
 vi.mock('@lingui/macro', () => ({
@@ -70,7 +69,7 @@ vi.mock('@/features/planner/store/plannerStore', () => ({
   usePlannerStore: () => plannerState,
 }));
 
-describe('WorkspaceMembersPanel access tabs', () => {
+describe('WorkspaceMembersPanel access content', () => {
   beforeEach(() => {
     authState.fetchMembers.mockClear();
     authState.listSentInvites.mockClear();
@@ -79,36 +78,25 @@ describe('WorkspaceMembersPanel access tabs', () => {
     plannerState.fetchMemberGroups.mockClear();
   });
 
-  it('shows sidebar-style access views and filters active/disabled members', async () => {
-    const user = userEvent.setup();
-
-    render(<WorkspaceMembersPanel />);
+  it('renders controlled active, disabled, and history views', async () => {
+    const { rerender } = render(
+      <WorkspaceMembersPanel accessTab="active" accessSearch="anna" />,
+    );
 
     expect(screen.getByText('Team access')).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Active 2' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Disabled 1' })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Search people...')).toBeInTheDocument();
     expect(await screen.findByText('anna@example.com')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByRole('tab', { name: 'History 1' })).toBeInTheDocument();
-    });
+    expect(screen.queryByText('niko@example.com')).not.toBeInTheDocument();
     expect(screen.queryByText('ivan@example.com')).not.toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText('Search people...'), 'anna');
-    expect(screen.getByText('anna@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('niko@example.com')).not.toBeInTheDocument();
-
-    await user.clear(screen.getByPlaceholderText('Search people...'));
-    await user.click(screen.getByRole('tab', { name: 'Disabled 1' }));
+    rerender(<WorkspaceMembersPanel accessTab="disabled" accessSearch="" />);
     expect(await screen.findByText('ivan@example.com')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Search people...')).toBeInTheDocument();
+    expect(screen.queryByText('anna@example.com')).not.toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText('Search people...'), 'zzz');
-    expect(screen.getByText('No matches.')).toBeInTheDocument();
+    rerender(<WorkspaceMembersPanel accessTab="disabled" accessSearch="zzz" />);
+    expect(await screen.findByText('No matches.')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'History 1' }));
+    rerender(<WorkspaceMembersPanel accessTab="history" />);
     expect(await screen.findByText('Niko changed Ivan from viewer to editor.')).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText('Search people...')).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(authState.listWorkspaceMemberActivity).toHaveBeenCalledWith({
