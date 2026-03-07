@@ -1,4 +1,10 @@
 import { supabase } from '@/shared/lib/supabaseClient';
+import {
+  buildWorkspaceTemplateFromCatalog,
+  diffWorkspaceTemplate,
+  normalizeWorkspaceTemplate,
+  type WorkspaceTemplate,
+} from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
 import type {
   PlannerGetState,
@@ -44,12 +50,23 @@ type CatalogActions = Pick<
   | 'addTag'
   | 'updateTag'
   | 'deleteTag'
+  | 'loadWorkspaceTemplate'
+  | 'saveWorkspaceTemplate'
+  | 'applyWorkspaceTemplate'
   | 'addMilestone'
   | 'updateMilestone'
   | 'deleteMilestone'
 >;
 
 const emptyMutationResult: MutationResult = {};
+const DEFAULT_STATUS_COLOR = '#94a3b8';
+
+const getCurrentUserId = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return { error: error.message };
+  if (!data.user?.id) return { error: 'Not authenticated.' };
+  return { userId: data.user.id };
+};
 
 export const createCatalogActions = (
   set: PlannerSetState,
@@ -599,6 +616,119 @@ export const createCatalogActions = (
         tagIds: task.tagIds.filter((tagId) => tagId !== id),
       })),
     }));
+  },
+
+  loadWorkspaceTemplate: async () => {
+    const userResult = await getCurrentUserId();
+    if (userResult.error) return { error: userResult.error };
+
+    const { data, error } = await supabase
+      .from('user_workspace_templates')
+      .select('statuses, task_types, tags')
+      .eq('user_id', userResult.userId)
+      .maybeSingle();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    if (!data) {
+      return { error: 'No template saved yet.' };
+    }
+
+    return {
+      template: normalizeWorkspaceTemplate(data),
+    };
+  },
+
+  saveWorkspaceTemplate: async (template: WorkspaceTemplate) => {
+    const userResult = await getCurrentUserId();
+    if (userResult.error) return { error: userResult.error };
+
+    const normalizedTemplate = buildWorkspaceTemplateFromCatalog({
+      statuses: template.statuses.map((status) => ({
+        name: status.name,
+        emoji: status.emoji,
+        color: status.color,
+        isFinal: status.is_final,
+        isCancelled: status.is_cancelled,
+      })),
+      taskTypes: template.taskTypes,
+      tags: template.tags,
+    });
+
+    const { error } = await supabase
+      .from('user_workspace_templates')
+      .upsert({
+        user_id: userResult.userId,
+        statuses: normalizedTemplate.statuses,
+        task_types: normalizedTemplate.taskTypes,
+        tags: normalizedTemplate.tags,
+      });
+
+    if (error) return { error: error.message };
+
+    return emptyMutationResult;
+  },
+
+  applyWorkspaceTemplate: async () => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const templateResult = await get().loadWorkspaceTemplate();
+    if (templateResult.error || !templateResult.template) {
+      return { error: templateResult.error ?? 'No template saved yet.' };
+    }
+
+    const diff = diffWorkspaceTemplate(templateResult.template, {
+      statuses: get().statuses,
+      taskTypes: get().taskTypes,
+      tags: get().tags,
+    });
+
+    if (diff.statuses.length > 0) {
+      const { error } = await supabase
+        .from('statuses')
+        .insert(diff.statuses.map((status) => ({
+          workspace_id: workspaceId,
+          name: status.name.trim(),
+          emoji: status.emoji ?? null,
+          color: status.color ?? DEFAULT_STATUS_COLOR,
+          is_final: !!status.is_final && !status.is_cancelled,
+          is_cancelled: !!status.is_cancelled,
+        })));
+      if (error) return { error: error.message };
+    }
+
+    if (diff.taskTypes.length > 0) {
+      const { error } = await supabase
+        .from('task_types')
+        .insert(diff.taskTypes.map((taskType) => ({
+          workspace_id: workspaceId,
+          name: taskType.name.trim(),
+          icon: taskType.icon ?? null,
+        })));
+      if (error) return { error: error.message };
+    }
+
+    if (diff.tags.length > 0) {
+      const { error } = await supabase
+        .from('tags')
+        .insert(diff.tags.map((tag) => ({
+          workspace_id: workspaceId,
+          name: tag.name.trim(),
+          color: tag.color ?? DEFAULT_STATUS_COLOR,
+        })));
+      if (error) return { error: error.message };
+    }
+
+    if (diff.statuses.length === 0 && diff.taskTypes.length === 0 && diff.tags.length === 0) {
+      return emptyMutationResult;
+    }
+
+    set({ loadedRange: null });
+    await get().loadWorkspaceData(workspaceId);
+    return emptyMutationResult;
   },
 
   addMilestone: async (milestone) => {

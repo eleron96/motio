@@ -17,6 +17,7 @@ import {
   ViewMode,
 } from '@/features/planner/types/planner';
 import { MutationResult } from '@/features/planner/store/plannerStore.helpers';
+import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 
 export type PlannerGroup = {
   id: string;
@@ -114,6 +115,9 @@ export interface PlannerStore extends PlannerState {
   addTag: (tag: Omit<Tag, 'id'>) => Promise<void>;
   updateTag: (id: string, updates: Partial<Tag>) => Promise<void>;
   deleteTag: (id: string) => Promise<void>;
+  loadWorkspaceTemplate: () => Promise<{ template?: WorkspaceTemplate; error?: string }>;
+  saveWorkspaceTemplate: (template: WorkspaceTemplate) => Promise<MutationResult>;
+  applyWorkspaceTemplate: () => Promise<MutationResult>;
 
   addMilestone: (milestone: Omit<Milestone, 'id'>) => Promise<MutationResult>;
   updateMilestone: (id: string, updates: Partial<Milestone>) => Promise<MutationResult>;
