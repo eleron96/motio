@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.78] - 2026-03-07
 ### Changed
 - Команда: в разделе Access переключатели Active/Disabled/History и поиск перенесены в левый sidebar.
 
