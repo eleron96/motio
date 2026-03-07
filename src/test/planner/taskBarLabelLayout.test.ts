@@ -84,7 +84,11 @@ describe('getTaskBarLabelLayout', () => {
     });
 
     expect(result.visibleWidth).toBe(40);
-    expect(result.contentOffset).toBe(224);
+    // In minimal mode showLeadingMeta=false, so no leading icons are rendered.
+    // contentOffset must equal hiddenLeftWidth (280) so the title lands at the
+    // viewport left edge, not hiddenTitleWidth (224) which would leave it 56px
+    // before the viewport and invisible.
+    expect(result.contentOffset).toBe(280);
     expect(result.isShifted).toBe(true);
     expect(result.mode).toBe('minimal');
     expect(result.wrapTitle).toBe(true);
