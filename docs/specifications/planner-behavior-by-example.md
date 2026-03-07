@@ -258,3 +258,26 @@ Then:
 - `src/shared/domain/personName.ts`
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
 - `src/test/shared/personName.test.ts`
+
+## Scenario 15: Long timeline tasks keep their title in the visible segment
+
+Given:
+- задача занимает длинный диапазон на timeline;
+- пользователь прокрутил timeline так, что начало задачи ушло за левую границу viewport;
+- часть плашки задачи остается видимой.
+
+When:
+- рендерится `TaskBar` внутри timeline viewport;
+- изменяется доступная видимая ширина плашки.
+
+Then:
+- текстовый контент задачи сдвигается внутрь видимой части плашки, а не остается полностью за левым краем;
+- при достаточной видимой ширине показываются title и project;
+- при узкой видимой части вторичная информация скрывается, чтобы приоритет оставался у title;
+- пользователь не видит просто пустую цветную полосу, если для заголовка еще есть место.
+
+Покрытие:
+- `src/features/planner/lib/taskBarLabelLayout.ts`
+- `src/features/planner/components/timeline/TaskBar.tsx`
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/test/planner/taskBarLabelLayout.test.ts`
