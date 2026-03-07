@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.88] - 2026-03-07
+### Changed
+- No documented changes.
+
 ## [0.2.87] - 2026-03-07
 ### Changed
 - Planner: removed the experimental timeline task title shifting so labels render again in their original static layout.
