@@ -258,3 +258,22 @@ Then:
 - `src/shared/domain/personName.ts`
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
 - `src/test/shared/personName.test.ts`
+
+## Scenario 15: Timeline sidebar and task grid share one vertical scroll surface
+
+Given:
+- пользователь открыт в planner timeline (`day` или `week`);
+- слева отображается колонка имен/групп, справа сетка задач;
+- строк достаточно, чтобы появилась вертикальная прокрутка.
+
+When:
+- пользователь скроллит вертикально по колонке имен или по области задач.
+
+Then:
+- имена и строки задач двигаются как одна поверхность;
+- sidebar не имеет отдельного vertical viewport с ручной `scrollTop`-синхронизацией;
+- имена не дергаются и не догоняют task-grid на следующий кадр.
+
+Покрытие:
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/test/planner/timelineGrid.scrollSurface.test.tsx`
