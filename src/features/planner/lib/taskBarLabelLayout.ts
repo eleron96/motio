@@ -14,6 +14,7 @@ type TaskBarLabelLayout = {
   contentOffset: number;
   isShifted: boolean;
   mode: TaskBarLabelMode;
+  wrapTitle: boolean;
   showProject: boolean;
   showLeadingMeta: boolean;
 };
@@ -29,6 +30,7 @@ const CONTENT_SIDE_INSET = 12;
 const FULL_MODE_MIN_WIDTH = 176;
 const COMPACT_MODE_MIN_WIDTH = 104;
 const LONG_TASK_MIN_WIDTH_FOR_SHIFT = 240;
+const WRAPPED_TITLE_MAX_WIDTH = 160;
 const TASK_BAR_X_PADDING = 8;
 const LEADING_META_GAP = 8;
 const STATUS_EMOJI_WIDTH = 16;
@@ -85,6 +87,7 @@ export const getTaskBarLabelLayout = ({
       : availableWidth >= COMPACT_MODE_MIN_WIDTH
         ? 'compact'
         : 'minimal';
+  const wrapTitle = isShifted && availableWidth <= WRAPPED_TITLE_MAX_WIDTH;
 
   return {
     availableWidth,
@@ -92,7 +95,8 @@ export const getTaskBarLabelLayout = ({
     contentOffset,
     isShifted,
     mode,
-    showProject: !isShifted || mode === 'full',
+    wrapTitle,
+    showProject: !wrapTitle && (!isShifted || mode === 'full'),
     showLeadingMeta: !isShifted || mode !== 'minimal',
   };
 };

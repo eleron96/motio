@@ -15,6 +15,7 @@ describe('getTaskBarLabelLayout', () => {
     expect(result.contentOffset).toBe(0);
     expect(result.isShifted).toBe(false);
     expect(result.mode).toBe('full');
+    expect(result.wrapTitle).toBe(false);
     expect(result.showProject).toBe(true);
     expect(result.showLeadingMeta).toBe(true);
   });
@@ -32,6 +33,7 @@ describe('getTaskBarLabelLayout', () => {
     expect(result.contentOffset).toBe(0);
     expect(result.isShifted).toBe(false);
     expect(result.mode).toBe('full');
+    expect(result.wrapTitle).toBe(false);
     expect(result.showProject).toBe(true);
     expect(result.showLeadingMeta).toBe(true);
   });
@@ -49,6 +51,7 @@ describe('getTaskBarLabelLayout', () => {
     expect(result.contentOffset).toBe(80);
     expect(result.isShifted).toBe(true);
     expect(result.mode).toBe('full');
+    expect(result.wrapTitle).toBe(false);
     expect(result.showProject).toBe(true);
     expect(result.showLeadingMeta).toBe(true);
   });
@@ -66,6 +69,7 @@ describe('getTaskBarLabelLayout', () => {
     expect(result.contentOffset).toBe(0);
     expect(result.isShifted).toBe(false);
     expect(result.mode).toBe('full');
+    expect(result.wrapTitle).toBe(false);
     expect(result.showProject).toBe(true);
     expect(result.showLeadingMeta).toBe(true);
   });
@@ -83,7 +87,26 @@ describe('getTaskBarLabelLayout', () => {
     expect(result.contentOffset).toBe(280);
     expect(result.isShifted).toBe(true);
     expect(result.mode).toBe('minimal');
+    expect(result.wrapTitle).toBe(true);
     expect(result.showProject).toBe(false);
     expect(result.showLeadingMeta).toBe(false);
+  });
+
+  it('wraps the title and hides the project when a shifted task has limited visible width', () => {
+    const result = getTaskBarLabelLayout({
+      barLeft: 40,
+      barWidth: 320,
+      viewportLeft: 120,
+      viewportWidth: 170,
+      titleStartOffset: 56,
+    });
+
+    expect(result.visibleWidth).toBe(170);
+    expect(result.contentOffset).toBe(80);
+    expect(result.isShifted).toBe(true);
+    expect(result.mode).toBe('compact');
+    expect(result.wrapTitle).toBe(true);
+    expect(result.showProject).toBe(false);
+    expect(result.showLeadingMeta).toBe(true);
   });
 });

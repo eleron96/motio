@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Planner: long timeline tasks now show the remaining title in a compact two-line mode instead of truncating too early.
+
 ## [0.2.82] - 2026-03-07
 ### Changed
 - Planner: timeline task labels now stay in place when the title is already visible, and the project name remains in the default layout.
