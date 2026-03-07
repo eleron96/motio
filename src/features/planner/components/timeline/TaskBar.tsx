@@ -7,7 +7,7 @@ import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
-import { getTaskBarLabelLayout } from '@/features/planner/lib/taskBarLabelLayout';
+import { getTaskBarLabelLayout, getTaskBarTitleStartOffset } from '@/features/planner/lib/taskBarLabelLayout';
 import { Ban, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -90,6 +90,26 @@ const priorityStyles: Record<TaskPriority, { className: string; color: string }>
   high: { className: 'text-red-600', color: '#dc2626' },
 };
 
+type TaskBarStatusMeta = {
+  emoji?: string | null;
+  name: string;
+  isCancelled?: boolean | null;
+} | null | undefined;
+
+const getTaskBarMetaState = (task: Task, status: TaskBarStatusMeta) => {
+  const isCancelled = status
+    ? (status.isCancelled
+      ?? ['отменена', 'cancelled', 'canceled'].includes(stripStatusEmoji(status.name).trim().toLowerCase()))
+    : false;
+
+  return {
+    hasStatusEmoji: Boolean(status?.emoji),
+    isCancelled,
+    isRepeating: Boolean(task.repeatId),
+    hasPriority: Boolean(task.priority),
+  };
+};
+
 const TaskBarBase: React.FC<TaskBarProps> = ({
   task,
   position,
@@ -169,11 +189,12 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const priorityMeta = task.priority
     ? { ...priorityStyles[task.priority], label: priorityLabels[task.priority] }
     : null;
-  const isCancelled = status
-    ? (status.isCancelled
-      ?? ['отменена', 'cancelled', 'canceled'].includes(stripStatusEmoji(status.name).trim().toLowerCase()))
-    : false;
-  const isRepeating = Boolean(task.repeatId);
+  const taskBarMetaState = useMemo(
+    () => getTaskBarMetaState(task, status),
+    [status, task],
+  );
+  const { hasStatusEmoji, isCancelled, isRepeating, hasPriority } = taskBarMetaState;
+  const titleStartOffset = useMemo(() => getTaskBarTitleStartOffset(taskBarMetaState), [taskBarMetaState]);
   const hasFutureRepeats = isRepeating
     ? tasks.some((item) => item.repeatId === task.repeatId && item.startDate > task.startDate)
     : false;
@@ -323,7 +344,8 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     barWidth: effectiveWidth,
     viewportLeft,
     viewportWidth,
-  }), [effectiveWidth, visualLeft, viewportLeft, viewportWidth]);
+    titleStartOffset,
+  }), [effectiveWidth, titleStartOffset, visualLeft, viewportLeft, viewportWidth]);
 
   const handleStatusChange = (statusId: string) => {
     if (!canEdit || statusId === task.statusId) return;
@@ -405,7 +427,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
               }}
             >
               <div className={cn('flex min-w-0 items-center', labelLayout.showLeadingMeta ? 'gap-2' : 'gap-0')}>
-                {labelLayout.showLeadingMeta && status?.emoji && (
+                {labelLayout.showLeadingMeta && hasStatusEmoji && (
                   <span className="inline-flex h-4 w-4 flex-shrink-0 items-center justify-center text-sm leading-none">
                     {status.emoji}
                   </span>
@@ -421,7 +443,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                     title={t`Repeat`}
                   />
                 )}
-                {labelLayout.showLeadingMeta && priorityMeta && (
+                {labelLayout.showLeadingMeta && hasPriority && priorityMeta && (
                   <span
                     className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
                     style={priorityBadgeStyle}
@@ -648,16 +670,26 @@ const areTaskBarPropsEqual = (prev: TaskBarProps, next: TaskBarProps) => {
     barWidth: Math.max(prev.position.width, prev.dayWidth - 4),
     viewportLeft: prev.viewportLeft,
     viewportWidth: prev.viewportWidth,
+    titleStartOffset: getTaskBarTitleStartOffset(getTaskBarMetaState(
+      prev.task,
+      usePlannerStore.getState().statuses.find((status) => status.id === prev.task.statusId),
+    )),
   });
   const nextLayout = getTaskBarLabelLayout({
     barLeft: next.position.left,
     barWidth: Math.max(next.position.width, next.dayWidth - 4),
     viewportLeft: next.viewportLeft,
     viewportWidth: next.viewportWidth,
+    titleStartOffset: getTaskBarTitleStartOffset(getTaskBarMetaState(
+      next.task,
+      usePlannerStore.getState().statuses.find((status) => status.id === next.task.statusId),
+    )),
   });
 
   return prevLayout.contentOffset === nextLayout.contentOffset
-    && prevLayout.mode === nextLayout.mode;
+    && prevLayout.mode === nextLayout.mode
+    && prevLayout.showProject === nextLayout.showProject
+    && prevLayout.showLeadingMeta === nextLayout.showLeadingMeta;
 };
 
 export const TaskBar = React.memo(TaskBarBase, areTaskBarPropsEqual);

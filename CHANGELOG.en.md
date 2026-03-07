@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Planner: timeline task labels now stay in place when the title is already visible, and the project name remains in the default layout.
+
 ## [0.2.81] - 2026-03-07
 ### Changed
 - Planner: timeline label shifting now applies only to genuinely long tasks, while short partially clipped tasks keep their default label position.
