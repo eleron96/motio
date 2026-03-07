@@ -7,7 +7,6 @@ import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
-import { getTaskBarLabelLayout, getTaskBarTitleStartOffset } from '@/features/planner/lib/taskBarLabelLayout';
 import { Ban, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -43,8 +42,6 @@ interface TaskBarProps {
   position: { left: number; width: number };
   dayWidth: number;
   visibleDays: Date[];
-  viewportLeft: number;
-  viewportWidth: number;
   lane: number;
   canEdit: boolean;
   rowAssigneeId?: string | null;
@@ -90,32 +87,11 @@ const priorityStyles: Record<TaskPriority, { className: string; color: string }>
   high: { className: 'text-red-600', color: '#dc2626' },
 };
 
-type TaskBarStatusMeta = {
-  emoji?: string | null;
-  name: string;
-  isCancelled?: boolean | null;
-} | null | undefined;
-
-const getTaskBarMetaState = (task: Task, status: TaskBarStatusMeta) => {
-  const isCancelled = status
-    ? (status.isCancelled
-      ?? ['отменена', 'cancelled', 'canceled'].includes(stripStatusEmoji(status.name).trim().toLowerCase()))
-    : false;
-
-  return {
-    hasStatusEmoji: Boolean(status?.emoji),
-    isCancelled,
-    isRepeating: Boolean(task.repeatId),
-    hasPriority: Boolean(task.priority),
-  };
-};
-
 const TaskBarBase: React.FC<TaskBarProps> = ({
   task,
   position,
   dayWidth,
-  viewportLeft,
-  viewportWidth,
+  visibleDays,
   lane,
   canEdit,
   rowAssigneeId = null,
@@ -189,12 +165,11 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const priorityMeta = task.priority
     ? { ...priorityStyles[task.priority], label: priorityLabels[task.priority] }
     : null;
-  const taskBarMetaState = useMemo(
-    () => getTaskBarMetaState(task, status),
-    [status, task],
-  );
-  const { hasStatusEmoji, isCancelled, isRepeating, hasPriority } = taskBarMetaState;
-  const titleStartOffset = useMemo(() => getTaskBarTitleStartOffset(taskBarMetaState), [taskBarMetaState]);
+  const isCancelled = status
+    ? (status.isCancelled
+      ?? ['отменена', 'cancelled', 'canceled'].includes(stripStatusEmoji(status.name).trim().toLowerCase()))
+    : false;
+  const isRepeating = Boolean(task.repeatId);
   const hasFutureRepeats = isRepeating
     ? tasks.some((item) => item.repeatId === task.repeatId && item.startDate > task.startDate)
     : false;
@@ -338,14 +313,6 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     : isResizing === 'right'
     ? position.width + dragOffset.x
     : position.width;
-  const effectiveWidth = Math.max(visualWidth, dayWidth - 4);
-  const labelLayout = useMemo(() => getTaskBarLabelLayout({
-    barLeft: visualLeft,
-    barWidth: effectiveWidth,
-    viewportLeft,
-    viewportWidth,
-    titleStartOffset,
-  }), [effectiveWidth, titleStartOffset, visualLeft, viewportLeft, viewportWidth]);
 
   const handleStatusChange = (statusId: string) => {
     if (!canEdit || statusId === task.statusId) return;
@@ -401,7 +368,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
           style={{
             left: visualLeft,
             top: topPosition,
-            width: effectiveWidth,
+            width: Math.max(visualWidth, dayWidth - 4),
             height: TASK_HEIGHT,
             backgroundColor: bgColor,
             border: isFinalStyle ? '1px solid #24342B' : 'none',
@@ -414,76 +381,49 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
           />
           
           {/* Task content */}
-          <div className="relative flex min-w-0 flex-1 overflow-hidden">
-            <div
-              className={cn(
-                'flex min-w-0 flex-col justify-center',
-                labelLayout.wrapTitle ? 'gap-0' : 'gap-0.5',
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <div className="flex items-center gap-2 min-w-0">
+              {status?.emoji && (
+                <span className="inline-flex h-4 w-4 flex-shrink-0 items-center justify-center text-sm leading-none">
+                  {status.emoji}
+                </span>
               )}
-              style={{
-                width: labelLayout.contentWidth,
-                maxWidth: labelLayout.contentWidth,
-                transform: labelLayout.contentOffset > 0
-                  ? `translateX(${labelLayout.contentOffset}px)`
-                  : undefined,
-              }}
-            >
-              <div className={cn(
-                'flex min-w-0',
-                labelLayout.wrapTitle ? 'items-start' : 'items-center',
-                labelLayout.showLeadingMeta ? 'gap-2' : 'gap-0',
-              )}>
-                {labelLayout.showLeadingMeta && hasStatusEmoji && (
-                  <span className="inline-flex h-4 w-4 flex-shrink-0 items-center justify-center text-sm leading-none">
-                    {status.emoji}
-                  </span>
-                )}
-                {labelLayout.showLeadingMeta && isCancelled && (
-                  <Ban className="h-3 w-3 shrink-0 text-red-500" aria-label={t`Cancelled`} title={t`Cancelled`} />
-                )}
-                {labelLayout.showLeadingMeta && isRepeating && (
-                  <RotateCw
-                    className="h-3 w-3 shrink-0 opacity-80"
-                    style={{ color: textColor }}
-                    aria-label={t`Repeat`}
-                    title={t`Repeat`}
-                  />
-                )}
-                {labelLayout.showLeadingMeta && hasPriority && priorityMeta && (
-                  <span
-                    className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
-                    style={priorityBadgeStyle}
-                    title={priorityMeta.label}
-                    aria-label={priorityMeta.label}
-                  >
-                    <span className={cn('text-[11px] font-black leading-none priority-blink', priorityMeta.className)}>
-                      {prioritySymbol}
-                    </span>
-                  </span>
-                )}
-                <span
-                  className={cn(
-                    'task-label min-w-0 font-semibold',
-                    labelLayout.wrapTitle
-                      ? 'line-clamp-2 whitespace-normal break-words'
-                      : 'truncate',
-                    'text-sm leading-tight',
-                    isCompleted && 'line-through',
-                  )}
+              {isCancelled && (
+                <Ban className="h-3 w-3 text-red-500" aria-label={t`Cancelled`} title={t`Cancelled`} />
+              )}
+              {isRepeating && (
+                <RotateCw
+                  className="h-3 w-3 shrink-0 opacity-80"
                   style={{ color: textColor }}
-                >
-                  {task.title}
-                </span>
-              </div>
-              {labelLayout.showProject && (
+                  aria-label={t`Repeat`}
+                  title={t`Repeat`}
+                />
+              )}
+              {priorityMeta && (
                 <span
-                  className="min-w-0 text-[11px] leading-tight truncate"
-                  style={{ color: secondaryTextColor }}
+                  className="inline-flex h-4 w-4 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
+                  style={priorityBadgeStyle}
+                  title={priorityMeta.label}
+                  aria-label={priorityMeta.label}
                 >
-                  {project ? formatProjectLabel(project.name, project.code) : t`No project`}
+                  <span className={cn('text-[11px] font-black leading-none priority-blink', priorityMeta.className)}>
+                    {prioritySymbol}
+                  </span>
                 </span>
               )}
+              <span
+                className={cn('task-label text-sm font-semibold leading-tight truncate', isCompleted && 'line-through')}
+                style={{ color: textColor }}
+              >
+                {task.title}
+              </span>
             </div>
+            <span
+              className="text-[11px] leading-tight truncate"
+              style={{ color: secondaryTextColor }}
+            >
+              {project ? formatProjectLabel(project.name, project.code) : t`No project`}
+            </span>
           </div>
           
           {/* Right resize handle */}
@@ -660,48 +600,16 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   );
 };
 
-const areTaskBarPropsEqual = (prev: TaskBarProps, next: TaskBarProps) => {
-  if (
-    prev.task !== next.task
-    || prev.position.left !== next.position.left
-    || prev.position.width !== next.position.width
-    || prev.dayWidth !== next.dayWidth
-    || prev.visibleDays !== next.visibleDays
-    || prev.lane !== next.lane
-    || prev.canEdit !== next.canEdit
-    || prev.rowAssigneeId !== next.rowAssigneeId
-  ) {
-    return false;
-  }
-
-  const prevLayout = getTaskBarLabelLayout({
-    barLeft: prev.position.left,
-    barWidth: Math.max(prev.position.width, prev.dayWidth - 4),
-    viewportLeft: prev.viewportLeft,
-    viewportWidth: prev.viewportWidth,
-    titleStartOffset: getTaskBarTitleStartOffset(getTaskBarMetaState(
-      prev.task,
-      usePlannerStore.getState().statuses.find((status) => status.id === prev.task.statusId),
-    )),
-  });
-  const nextLayout = getTaskBarLabelLayout({
-    barLeft: next.position.left,
-    barWidth: Math.max(next.position.width, next.dayWidth - 4),
-    viewportLeft: next.viewportLeft,
-    viewportWidth: next.viewportWidth,
-    titleStartOffset: getTaskBarTitleStartOffset(getTaskBarMetaState(
-      next.task,
-      usePlannerStore.getState().statuses.find((status) => status.id === next.task.statusId),
-    )),
-  });
-
-  return prevLayout.contentOffset === nextLayout.contentOffset
-    && prevLayout.contentWidth === nextLayout.contentWidth
-    && prevLayout.mode === nextLayout.mode
-    && prevLayout.wrapTitle === nextLayout.wrapTitle
-    && prevLayout.showProject === nextLayout.showProject
-    && prevLayout.showLeadingMeta === nextLayout.showLeadingMeta;
-};
+const areTaskBarPropsEqual = (prev: TaskBarProps, next: TaskBarProps) => (
+  prev.task === next.task
+  && prev.position.left === next.position.left
+  && prev.position.width === next.position.width
+  && prev.dayWidth === next.dayWidth
+  && prev.visibleDays === next.visibleDays
+  && prev.lane === next.lane
+  && prev.canEdit === next.canEdit
+  && prev.rowAssigneeId === next.rowAssigneeId
+);
 
 export const TaskBar = React.memo(TaskBarBase, areTaskBarPropsEqual);
 TaskBar.displayName = 'TaskBar';
