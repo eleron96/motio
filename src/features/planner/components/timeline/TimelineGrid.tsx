@@ -734,8 +734,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
             position={position}
             dayWidth={dayWidth}
             visibleDays={visibleDays}
-            viewportLeft={scrollLeft}
-            viewportWidth={viewportWidth}
             lane={task.lane}
             canEdit={canEdit}
             rowAssigneeId={rowAssigneeId}
@@ -745,7 +743,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       elementsByRowId.set(row.id, taskElements);
     });
     return elementsByRowId;
-  }, [canEdit, dayWidth, displayRows, groupMode, scrollLeft, viewportWidth, visibleDays]);
+  }, [canEdit, dayWidth, displayRows, groupMode, visibleDays]);
 
   useLayoutEffect(() => {
     const sidebar = sidebarRef.current;
