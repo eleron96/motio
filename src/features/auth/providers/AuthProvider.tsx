@@ -62,8 +62,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       if (session?.user) {
         // Do not block workspace bootstrap on super-admin probe.
-        void fetchWorkspaces();
-        void fetchProfile();
+        void fetchWorkspaces().catch(() => undefined);
+        void fetchProfile().catch(() => undefined);
         void resolveSuperAdmin(session.user).catch(() => undefined);
       } else {
         resetPlanner();

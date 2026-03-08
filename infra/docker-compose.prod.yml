@@ -2,6 +2,11 @@ services:
   db:
     image: supabase/postgres:15.1.0.117
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
     command:
       - postgres
       - -c
@@ -18,6 +23,10 @@ services:
       - max_wal_size=${POSTGRES_MAX_WAL_SIZE:-2GB}
       - -c
       - wal_level=${POSTGRES_WAL_LEVEL:-logical}
+      - -c
+      - statement_timeout=${POSTGRES_STATEMENT_TIMEOUT:-30000}
+      - -c
+      - idle_in_transaction_session_timeout=${POSTGRES_IDLE_IN_TRANSACTION_TIMEOUT:-60000}
       - -c
       - listen_addresses=*
     ports:
@@ -38,6 +47,11 @@ services:
   keycloak-db:
     image: postgres:15-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     environment:
       POSTGRES_DB: ${KEYCLOAK_DB_NAME:-keycloak}
       POSTGRES_USER: ${KEYCLOAK_DB_USER:-keycloak}
@@ -53,6 +67,11 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.1
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
     depends_on:
       keycloak-db:
         condition: service_healthy
@@ -70,7 +89,7 @@ services:
       KC_SPI_THEME_STATIC_MAX_AGE: ${KEYCLOAK_THEME_STATIC_MAX_AGE:-604800}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-      JAVA_OPTS_APPEND: "${KEYCLOAK_JAVA_OPTS_APPEND:--Xms256m -Xmx1g}"
+      JAVA_OPTS_APPEND: "${KEYCLOAK_JAVA_OPTS_APPEND:--Xms512m -Xmx2g}"
     command: ["start", "--http-enabled=true", "--proxy-headers=xforwarded", "--import-realm"]
     volumes:
       - ./keycloak/realm:/opt/keycloak/data/import:ro
@@ -81,6 +100,11 @@ services:
   auth:
     image: supabase/gotrue:v2.151.0
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -101,7 +125,7 @@ services:
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_EXP: 86400
       GOTRUE_EXTERNAL_EMAIL_ENABLED: "false"
       GOTRUE_MAILER_AUTOCONFIRM: "true"
       GOTRUE_SMTP_HOST: ${GOTRUE_SMTP_HOST}
@@ -122,6 +146,11 @@ services:
   rest:
     image: postgrest/postgrest:v12.2.3
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -135,6 +164,11 @@ services:
   realtime:
     image: ghcr.io/supabase/realtime:v2.30.34
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -159,6 +193,11 @@ services:
   functions:
     image: supabase/edge-runtime:v1.41.2
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -191,6 +230,11 @@ services:
     build:
       context: ./backup-service
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -213,6 +257,11 @@ services:
   gateway:
     image: nginx:1.27-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
     depends_on:
       - auth
       - rest
@@ -239,6 +288,11 @@ services:
         VITE_OAUTH2_PROXY_ENABLED: ${VITE_OAUTH2_PROXY_ENABLED:-true}
         VITE_OAUTH2_PROXY_SIGN_OUT_PATH: ${VITE_OAUTH2_PROXY_SIGN_OUT_PATH:-/oauth2/sign_out}
         VITE_GA_MEASUREMENT_ID: ${VITE_GA_MEASUREMENT_ID:-}
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
     restart: unless-stopped
     # Host runtime currently fails seccomp SSB setup for this service on container create.
     # Keep web bootable until host seccomp/runc stack is normalized.
