@@ -48,6 +48,7 @@ export interface PlannerStore extends PlannerState {
   scrollRequestId: number;
   scrollTargetDate: string | null;
   timelineInteractingUntil: number;
+  syncHealthy: boolean;
   setWorkspaceId: (id: string | null) => void;
   loadWorkspaceData: (workspaceId: string) => Promise<void>;
   refreshAssignees: () => Promise<void>;
@@ -133,6 +134,7 @@ export interface PlannerStore extends PlannerState {
   clearFilters: () => void;
   setSelectedTaskId: (id: string | null) => void;
   setHighlightedTaskId: (id: string | null) => void;
+  setSyncHealthy: (healthy: boolean) => void;
 }
 
 export type PlannerSetState = (

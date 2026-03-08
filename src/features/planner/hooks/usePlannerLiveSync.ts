@@ -510,6 +510,7 @@ export const usePlannerLiveSync = (
         if (!active) return;
         if (status === 'SUBSCRIBED') {
           channelHealthy = true;
+          usePlannerStore.getState().setSyncHealthy(true);
           resetFallbackFailures();
           clearFallbackTimer();
           if (!hasSubscribedOnce) {
@@ -530,6 +531,7 @@ export const usePlannerLiveSync = (
         }
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           channelHealthy = false;
+          usePlannerStore.getState().setSyncHealthy(false);
           clearInitialReconcileTimer();
           growFallbackFailures();
           requestReconcile('channel');
