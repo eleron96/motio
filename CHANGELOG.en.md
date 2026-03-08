@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.90] - 2026-03-08
+### Changed
+- No documented changes.
+
 ## [0.2.89] - 2026-03-07
 ### Changed
 - Workspace settings: the General and Workflow top tabs now use the shared project tab style.
