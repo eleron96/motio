@@ -172,3 +172,59 @@
 3. Ошибки обрабатываются предсказуемо.
 4. Пройдены lint/test.
 5. Обновлены docs/spec при изменении пользовательского поведения.
+
+## 9. Правила инфраструктуры
+
+### 9.1. Docker Compose — перезапуск контейнеров
+
+1. **Никогда не перезапускать upstream-сервисы (`rest`, `auth`, `realtime`, `backup`) без перезапуска `gateway`.**
+   - nginx (gateway) резолвит IP сервисов только при старте контейнера.
+   - После пересоздания контейнеров (`--no-deps`) их IP меняются — gateway продолжает слать запросы на старые IP (111: Connection refused).
+   - Правило: `docker compose ... restart rest auth realtime backup && docker compose ... restart gateway`
+   - Предпочтительный путь: `make deploy-remote` / `prod-compose.sh` (поднимают весь стек сразу).
+
+2. При ручном вмешательстве через `docker compose up -d --no-deps <service>` всегда проверять лог gateway на ошибки `connect() failed`.
+
+### 9.2. Сетевая безопасность Docker
+
+1. **Все порты внутренних сервисов обязательно биндить на `127.0.0.1`**, не на `0.0.0.0`:
+   ```yaml
+   # ❌ Опасно — доступно из интернета:
+   ports:
+     - "5432:5432"
+   # ✅ Безопасно — только localhost:
+   ports:
+     - "127.0.0.1:5432:5432"
+   ```
+2. Публично доступны только порты 80 и 443 (через Caddy/reverse proxy).
+3. Перед деплоем проверять: `docker compose config | grep -A2 'ports:'` на наличие `0.0.0.0`-биндингов.
+
+### 9.3. PostgreSQL в Supabase-стеке
+
+1. **Суперпользователь — `supabase_admin`, не `postgres`.**
+   - `postgres` имеет `rolsuper=f` и `rolreplication=t` — изменить его пароль может только `supabase_admin`.
+   - При смене пароля подключаться именно как `supabase_admin`:
+     ```bash
+     docker exec -u postgres infra-db-1 psql -d postgres -U supabase_admin -c \
+       "ALTER ROLE postgres WITH PASSWORD '...'; ALTER ROLE supabase_admin WITH PASSWORD '...';"
+     ```
+2. После смены пароля в БД обязательно обновить `.env` на сервере и перезапустить `rest`, `auth`, `realtime`, `backup`, `gateway`.
+
+### 9.4. Управление секретами
+
+1. `.env` **не хранится в git** и **не копируется** `make deploy-remote` (rsync `--exclude '.env'`).
+   - Локальный `.env` — только для local dev.
+   - Серверный `.env` в `/opt/new_toggl/.env` управляется вручную через SSH.
+2. Никогда не использовать дефолтные пароли (`postgres`, `admin`, `secret`) в production.
+3. При любом инциденте безопасности: сначала сменить пароли в БД → обновить `.env` на сервере → перезапустить контейнеры → только потом анализировать логи.
+
+### 9.5. Признаки атаки на PostgreSQL (COPY FROM PROGRAM)
+
+Если в `docker logs infra-db-1` есть строки вида:
+```
+FATAL: password authentication failed for user "postgres"
+```
+массово за короткий период — это брутфорс. Проверить:
+1. `docker exec infra-db-1 psql -U supabase_admin -c "SELECT pid,usename,application_name,client_addr,state,query FROM pg_stat_activity WHERE state='active';"` — подозрительные сессии.
+2. `docker exec infra-db-1 ls /tmp` — наличие бинарей (`init`, `mysql`, `bot`).
+3. Ответные меры: удалить файлы, заблокировать IP в UFW, перебиндить порт на 127.0.0.1, сменить пароль.

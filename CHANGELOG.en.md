@@ -7,6 +7,17 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.92] - 2026-03-08
+### Security
+- PostgreSQL port (54322) rebound from `0.0.0.0` to `127.0.0.1` — external internet access closed.
+
+## [0.2.91] - 2026-03-08
+### Changed
+- Backup service: dump integrity validation via `pg_restore --list` and non-zero file size check after `pg_dump`.
+- Edge functions (admin, invite): DB/infrastructure error codes corrected from 400 to 500.
+- Admin edge function: added error handling in `Promise.all` for profiles, members, tasks, owners queries.
+- Caddy: added `Strict-Transport-Security` header (HSTS, max-age=1 year) for motio.nikog.net.
+
 ## [0.2.90] - 2026-03-08
 ### Changed
 - No documented changes.
