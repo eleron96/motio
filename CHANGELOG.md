@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.93] - 2026-03-09
+### Changed
+- Нет зафиксированных изменений.
+
 ## [0.2.92] - 2026-03-08
 ### Security
 - Порт PostgreSQL (54322) переведён с `0.0.0.0` на `127.0.0.1` — закрыт внешний доступ из интернета.
