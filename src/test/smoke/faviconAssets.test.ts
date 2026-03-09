@@ -30,6 +30,14 @@ describe("brand asset routing", () => {
 
   it("keeps public and login theme favicon assets in sync", () => {
     const caddyFile = readRepoText("infra", "caddy", "Caddyfile");
+    const loginTemplate = readRepoText(
+      "infra",
+      "keycloak",
+      "themes",
+      "timeline",
+      "login",
+      "template.ftl",
+    );
     const publicLight = readRepoFile("public", "favicon-theme-light.png");
     const publicDark = readRepoFile("public", "favicon-theme-dark.png");
     const keycloakLight = readRepoFile(
@@ -65,6 +73,11 @@ describe("brand asset routing", () => {
 
     expect(caddyFile).toContain("handle /favicon* {");
     expect(caddyFile).toContain("handle /logo.png {");
+    expect(loginTemplate).toContain('href="${url.resourcesPath}/img/favicon-theme-light.png"');
+    expect(loginTemplate).toContain('href="${url.resourcesPath}/img/favicon-theme-dark.png"');
+    expect(loginTemplate).toContain('media="(prefers-color-scheme: light)"');
+    expect(loginTemplate).toContain('media="(prefers-color-scheme: dark)"');
+    expect(loginTemplate).not.toContain('href="${url.resourcesPath}/img/favicon.ico"');
     expect(publicLight.equals(keycloakLight)).toBe(true);
     expect(publicDark.equals(keycloakDark)).toBe(true);
     expect(loginScript).toContain("favicon-theme-light.png");
