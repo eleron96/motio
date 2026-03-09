@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Favicon теперь выбирается по теме браузера: в светлой теме используется светлая иконка, в тёмной — тёмная, и это правило применяется и на экране входа.
+
 ## [0.2.95] - 2026-03-09
 ### Fixed
 - Favicon-ассеты синхронизированы между публичным сайтом и экраном входа: обновлены fallback-иконки, маршруты edge-прокси и Keycloak theme favicon.
