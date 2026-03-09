@@ -265,11 +265,13 @@ When:
 - браузер загружает favicon для вкладки login screen.
 
 Then:
+- Keycloak server-side head сразу рендерит theme-specific favicon links, без одиночного legacy `favicon.ico`;
 - в светлой теме браузера login screen использует `favicon-theme-light.png`;
 - в тёмной теме браузера login screen использует `favicon-theme-dark.png`;
 - login screen не остаётся на устаревшем отдельном theme favicon.
 
 Покрытие:
+- `infra/keycloak/themes/timeline/login/template.ftl`
 - `infra/keycloak/themes/timeline/login/resources/img/favicon-theme-light.png`
 - `infra/keycloak/themes/timeline/login/resources/img/favicon-theme-dark.png`
 - `infra/keycloak/themes/timeline/login/resources/js/login.v4.js`
