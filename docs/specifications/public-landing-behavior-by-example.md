@@ -140,26 +140,27 @@ Then:
 - `src/app/NotFoundPage.tsx`
 - `src/test/app/notFoundPage.test.tsx`
 
-## Scenario 9: Public brand assets use the current Motio favicon set
+## Scenario 9: Public favicon follows the browser color-scheme preference
 
 Given:
-- браузер, crawler или social preview client запрашивает публичные бренд-ассеты;
+- браузер пользователя поддерживает `prefers-color-scheme`;
 - приложение рендерит корневую страницу `/`.
 
 When:
-- запрашиваются `/favicon.ico`, `/favicon.png`, `/favicon_new.png` и `/logo.png`;
-- браузер читает favicon и preview мета-теги из `index.html`.
+- браузер использует светлую или тёмную тему интерфейса;
+- браузер читает favicon-link теги из `index.html`.
 
 Then:
-- текущий Motio favicon доступен и по canonical PNG-пути, и по fallback favicon-путям;
-- public landing не отдает устаревший favicon из старого fallback-файла;
-- social preview image и apple touch icon используют актуальный public asset без auth redirect.
+- в светлой теме используется `favicon-theme-light.png`;
+- в тёмной теме используется `favicon-theme-dark.png`;
+- favicon переключается по browser color scheme без влияния на `og:image` и `twitter:image`.
 
 Покрытие:
 - `index.html`
 - `infra/caddy/Caddyfile`
-- `public/favicon.ico`
-- `public/favicon.png`
-- `public/favicon_new.png`
+- `src/app/main.tsx`
+- `src/shared/lib/themeFavicon.ts`
+- `public/favicon-theme-light.png`
+- `public/favicon-theme-dark.png`
 - `public/logo.png`
 - `src/test/smoke/faviconAssets.test.ts`

@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Favicons now follow the browser color scheme: the light icon is used in light mode, the dark icon in dark mode, including the login screen.
+
 ## [0.2.95] - 2026-03-09
 ### Fixed
 - Favicon assets are now synchronized across the public site and login screen: fallback icons, edge proxy routes, and the Keycloak theme favicon were updated.

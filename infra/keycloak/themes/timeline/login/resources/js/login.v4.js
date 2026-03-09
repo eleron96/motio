@@ -2,6 +2,63 @@
   var doc = document;
   var root = doc.documentElement;
 
+  function getThemeFaviconHref(filename) {
+    var existingIcon = doc.querySelector('link[rel~="icon"][href], link[rel="shortcut icon"][href]');
+    if (existingIcon && existingIcon.href) {
+      return existingIcon.href.replace(/[^/?#]+([?#].*)?$/, filename);
+    }
+
+    var script = Array.prototype.slice.call(doc.scripts).find(function (item) {
+      return /\/js\/login\.v4\.js(?:\?.*)?$/.test(item.src || '');
+    });
+
+    if (script && script.src) {
+      return script.src.replace(/\/js\/login\.v4\.js(?:\?.*)?$/, '/img/' + filename);
+    }
+
+    return filename;
+  }
+
+  function upsertFaviconLink(rel, href, marker) {
+    var link = doc.querySelector('link[data-timeline-theme-favicon="' + marker + '"]');
+    if (!link) {
+      link = doc.createElement('link');
+      link.setAttribute('data-timeline-theme-favicon', marker);
+      doc.head.appendChild(link);
+    }
+
+    link.setAttribute('rel', rel);
+    link.setAttribute('href', href);
+  }
+
+  function syncThemeFavicons() {
+    if (!window.matchMedia) return;
+
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var href = getThemeFaviconHref(prefersDark ? 'favicon-theme-dark.png' : 'favicon-theme-light.png');
+
+    upsertFaviconLink('icon', href, 'active');
+    upsertFaviconLink('shortcut icon', href, 'shortcut');
+  }
+
+  function bindThemeFaviconListener() {
+    if (!window.matchMedia) return;
+
+    var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    var handleChange = function () {
+      syncThemeFavicons();
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+      return;
+    }
+
+    if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(handleChange);
+    }
+  }
+
   function setPageHidden(hidden) {
     if (!root) return;
     if (hidden) {
@@ -114,6 +171,7 @@
   }
 
   function run() {
+    syncThemeFavicons();
     disableAutofocus();
     fixPasswordToggleControls();
     moveRegisterRequiredHint();
@@ -158,6 +216,7 @@
   }
 
   run();
+  bindThemeFaviconListener();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', run, { once: true });
   }

@@ -254,20 +254,24 @@ Then:
 - `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
 - `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
 
-## Scenario 14: Keycloak login screens use the current Motio favicon
+## Scenario 14: Keycloak login screens follow the browser color-scheme favicon
 
 Given:
 - пользователь открывает `/auth` и попадает на Keycloak-hosted экран входа;
-- login screen рендерится отдельной Keycloak theme, а не основным `index.html`.
+- login screen рендерится отдельной Keycloak theme, а не основным `index.html`;
+- браузер пользователя использует светлую или тёмную тему интерфейса.
 
 When:
 - браузер загружает favicon для вкладки login screen.
 
 Then:
-- Keycloak theme использует тот же актуальный Motio favicon, что и public app fallback-path;
-- login screen не показывает устаревшую theme-иконку после обновления публичных бренд-ассетов.
+- в светлой теме браузера login screen использует `favicon-theme-light.png`;
+- в тёмной теме браузера login screen использует `favicon-theme-dark.png`;
+- login screen не остаётся на устаревшем отдельном theme favicon.
 
 Покрытие:
-- `infra/keycloak/themes/timeline/login/resources/img/favicon.ico`
+- `infra/keycloak/themes/timeline/login/resources/img/favicon-theme-light.png`
+- `infra/keycloak/themes/timeline/login/resources/img/favicon-theme-dark.png`
+- `infra/keycloak/themes/timeline/login/resources/js/login.v4.js`
 - `public/favicon.ico`
 - `src/test/smoke/faviconAssets.test.ts`
