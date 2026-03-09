@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Public branding assets refreshed: the site now uses the updated favicon and public images.
+
 ## [0.2.93] - 2026-03-09
 ### Changed
 - No documented changes.
