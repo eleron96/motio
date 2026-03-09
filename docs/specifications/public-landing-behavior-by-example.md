@@ -139,3 +139,27 @@ Then:
 - `src/app/App.tsx`
 - `src/app/NotFoundPage.tsx`
 - `src/test/app/notFoundPage.test.tsx`
+
+## Scenario 9: Public brand assets use the current Motio favicon set
+
+Given:
+- браузер, crawler или social preview client запрашивает публичные бренд-ассеты;
+- приложение рендерит корневую страницу `/`.
+
+When:
+- запрашиваются `/favicon.ico`, `/favicon.png`, `/favicon_new.png` и `/logo.png`;
+- браузер читает favicon и preview мета-теги из `index.html`.
+
+Then:
+- текущий Motio favicon доступен и по canonical PNG-пути, и по fallback favicon-путям;
+- public landing не отдает устаревший favicon из старого fallback-файла;
+- social preview image и apple touch icon используют актуальный public asset без auth redirect.
+
+Покрытие:
+- `index.html`
+- `infra/caddy/Caddyfile`
+- `public/favicon.ico`
+- `public/favicon.png`
+- `public/favicon_new.png`
+- `public/logo.png`
+- `src/test/smoke/faviconAssets.test.ts`

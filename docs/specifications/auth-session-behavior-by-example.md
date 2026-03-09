@@ -253,3 +253,21 @@ Then:
 - `infra/keycloak/themes/timeline/login/resources/css/styles.v7.css`
 - `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
 - `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
+
+## Scenario 14: Keycloak login screens use the current Motio favicon
+
+Given:
+- пользователь открывает `/auth` и попадает на Keycloak-hosted экран входа;
+- login screen рендерится отдельной Keycloak theme, а не основным `index.html`.
+
+When:
+- браузер загружает favicon для вкладки login screen.
+
+Then:
+- Keycloak theme использует тот же актуальный Motio favicon, что и public app fallback-path;
+- login screen не показывает устаревшую theme-иконку после обновления публичных бренд-ассетов.
+
+Покрытие:
+- `infra/keycloak/themes/timeline/login/resources/img/favicon.ico`
+- `public/favicon.ico`
+- `src/test/smoke/faviconAssets.test.ts`

@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Favicon-ассеты синхронизированы между публичным сайтом и экраном входа: обновлены fallback-иконки, маршруты edge-прокси и Keycloak theme favicon.
+
 ## [0.2.94] - 2026-03-09
 ### Changed
 - Публичные бренд-ассеты обновлены: favicon и изображения для сайта заменены на актуальные файлы.
