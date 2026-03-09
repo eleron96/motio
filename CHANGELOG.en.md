@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.95] - 2026-03-09
 ### Fixed
 - Favicon assets are now synchronized across the public site and login screen: fallback icons, edge proxy routes, and the Keycloak theme favicon were updated.
 
