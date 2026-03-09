@@ -81,11 +81,11 @@ motio.nikog.net {
       reverse_proxy host.docker.internal:5174
     }
 
-    handle /favicon.ico {
+    handle /favicon* {
       reverse_proxy host.docker.internal:5174
     }
 
-    handle /favicon.png {
+    handle /logo.png {
       reverse_proxy host.docker.internal:5174
     }
 
