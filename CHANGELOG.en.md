@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.96] - 2026-03-09
 ### Fixed
 - Favicons now follow the browser color scheme: the light icon is used in light mode, the dark icon in dark mode, including the login screen.
 
