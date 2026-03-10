@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Task comments: rich-text editor with @mentions, notifications, and comment count badge on timeline
+
 ## [0.2.49] - 2026-03-01
 ### Changed
 - No documented changes.
