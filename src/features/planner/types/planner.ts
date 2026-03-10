@@ -85,6 +85,18 @@ export interface Milestone {
   date: string; // ISO date
 }
 
+export interface TaskComment {
+  id: string;
+  taskId: string;
+  authorId: string;
+  authorDisplayName: string;
+  content: string; // sanitized HTML
+  mentionedUserIds: string[];
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+  isEdited: boolean; // updatedAt > createdAt by more than 1 second
+}
+
 export type ViewMode = 'day' | 'week' | 'calendar';
 export type GroupMode = 'assignee' | 'project';
 

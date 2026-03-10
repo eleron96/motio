@@ -12,6 +12,7 @@ const corsHeaders = {
 };
 
 type NotificationAction = "list" | "markRead" | "markUnread" | "delete";
+type NotificationType = "task_assigned" | "comment_mention";
 
 interface NotificationsPayload {
   action?: NotificationAction;
@@ -86,7 +87,7 @@ const handleList = async (
 
   const { data: rows, error } = await supabaseAdmin
     .from("user_notifications")
-    .select("id, workspace_id, actor_user_id, type, task_id, task_title_snapshot, task_start_date_snapshot, created_at, read_at")
+    .select("id, workspace_id, actor_user_id, type, task_id, task_title_snapshot, task_start_date_snapshot, comment_id, comment_preview, created_at, read_at")
     .eq("recipient_user_id", authUser.id)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -178,7 +179,7 @@ const handleList = async (
 
     return {
       id: row.id,
-      type: row.type,
+      type: row.type as NotificationType,
       workspaceId: row.workspace_id,
       workspaceName: workspaceNameMap.get(row.workspace_id) ?? "Workspace",
       actorUserId: row.actor_user_id,
@@ -188,6 +189,8 @@ const handleList = async (
       taskTitle: taskState?.title ?? row.task_title_snapshot ?? "Untitled task",
       taskStartDate: taskState?.startDate ?? row.task_start_date_snapshot ?? null,
       taskExists: Boolean(taskState),
+      commentId: (row as Record<string, unknown>).comment_id ?? null,
+      commentPreview: (row as Record<string, unknown>).comment_preview ?? null,
       createdAt: row.created_at,
       readAt: row.read_at,
     };

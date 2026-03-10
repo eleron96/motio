@@ -291,6 +291,23 @@
     pointer-events: none;
   }
 
+  /* @mention chip inside comment editors */
+  .comment-mention {
+    display: inline;
+    color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+    border-radius: 0.25rem;
+    padding: 0 0.2em;
+    font-weight: 500;
+    cursor: default;
+    white-space: nowrap;
+  }
+
+  /* Read-only rendering of mentions in comment bodies */
+  .comment-body .comment-mention {
+    pointer-events: none;
+  }
+
   .holiday-hatch {
     background-image: repeating-linear-gradient(
       135deg,
