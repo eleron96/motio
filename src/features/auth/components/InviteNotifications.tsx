@@ -32,7 +32,7 @@ type SentInviteSummary = {
 
 type TaskNotification = {
   id: string;
-  type: 'task_assigned';
+  type: 'task_assigned' | 'comment_mention';
   workspaceId: string;
   workspaceName: string;
   actorUserId: string | null;
@@ -42,6 +42,8 @@ type TaskNotification = {
   taskTitle: string;
   taskStartDate: string | null;
   taskExists: boolean;
+  commentId: string | null;
+  commentPreview: string | null;
   createdAt: string;
   readAt: string | null;
 };
@@ -104,7 +106,7 @@ const isTaskNotification = (value: unknown): value is TaskNotification => {
   const candidate = value as Partial<TaskNotification>;
   return (
     typeof candidate.id === 'string'
-    && candidate.type === 'task_assigned'
+    && (candidate.type === 'task_assigned' || candidate.type === 'comment_mention')
     && typeof candidate.workspaceId === 'string'
     && typeof candidate.workspaceName === 'string'
     && typeof candidate.taskTitle === 'string'
@@ -626,7 +628,10 @@ export const InviteNotifications: React.FC = () => {
                       >
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <p className="text-xs text-muted-foreground">
-                            {actorLabel} {t`assigned you to task`} · {notification.workspaceName}
+                            {notification.type === 'comment_mention'
+                              ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
+                              : <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>
+                            }
                           </p>
                           <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                             <Tooltip>
@@ -677,6 +682,11 @@ export const InviteNotifications: React.FC = () => {
                           disabled={isBusy}
                         >
                           <div className="text-sm font-medium">{notification.taskTitle}</div>
+                          {notification.type === 'comment_mention' && notification.commentPreview && (
+                            <div className="mt-1 truncate text-xs text-muted-foreground italic">
+                              "{notification.commentPreview}"
+                            </div>
+                          )}
                           <div className="mt-1 text-xs text-muted-foreground">
                             {notification.taskExists ? t`Go to task` : t`Task not found.`}
                           </div>
