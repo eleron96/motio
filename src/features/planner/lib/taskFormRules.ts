@@ -100,6 +100,17 @@ export const validateRepeatConfig = (params: RepeatConfigInput): RepeatValidatio
   return null;
 };
 
+export const parseRepeatCountInput = (rawValue: string): number | null => {
+  if (rawValue.trim() === '') return 0;
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed;
+};
+
+export const formatRepeatCountInputValue = (count: number): number | '' => (
+  count > 0 ? count : ''
+);
+
 export const resolveRepeatValidationMessage = (
   params: RepeatConfigInput,
   messages: RepeatValidationMessages,

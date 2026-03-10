@@ -1,6 +1,5 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { AccountSettingsDialog } from '@/features/auth/components/AccountSettingsDialog';
 import { MilestoneDialog } from '@/features/planner/components/timeline/MilestoneDialog';
 import {
   Assignee,
@@ -12,7 +11,7 @@ import {
   Task,
   TaskType,
 } from '@/features/planner/types/planner';
-import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
+import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/ui/alert-dialog';
 import { Button } from '@/shared/ui/button';
 import { ColorPicker } from '@/shared/ui/color-picker';
@@ -189,8 +188,12 @@ export const ProjectsDialogs = ({
 }: ProjectsDialogsProps) => {
   return (
     <>
-      <SettingsPanel open={showSettings} onOpenChange={setShowSettings} />
-      <AccountSettingsDialog open={showAccountSettings} onOpenChange={setShowAccountSettings} />
+      <WorkspaceCommonDialogs
+        showSettings={showSettings}
+        onShowSettingsChange={setShowSettings}
+        showAccountSettings={showAccountSettings}
+        onShowAccountSettingsChange={setShowAccountSettings}
+      />
 
       <Dialog
         open={createCustomerOpen}

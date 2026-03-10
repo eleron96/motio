@@ -21,6 +21,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
+import { buildAssigneeGroupMap, selectFilteredTasks } from '@/features/planner/lib/timelineSelectors';
 import {
   addDays,
   addMonths,
@@ -85,52 +86,15 @@ export const CalendarTimeline: React.FC = () => {
     return normalizeHolidayCountryCode(currentWorkspace?.holidayCountry);
   }, [workspaces, currentWorkspaceId]);
 
-  const assigneeGroupMap = useMemo(() => {
-    const groupByUserId = new Map(memberGroupAssignments.map((assignment) => [assignment.userId, assignment.groupId]));
-    const map = new Map<string, string>();
-    assignees.forEach((assignee) => {
-      if (!assignee.userId) return;
-      const groupId = groupByUserId.get(assignee.userId);
-      if (groupId) {
-        map.set(assignee.id, groupId);
-      }
-    });
-    return map;
-  }, [assignees, memberGroupAssignments]);
+  const assigneeGroupMap = useMemo(
+    () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
+    [assignees, memberGroupAssignments],
+  );
 
-  const filteredTasks = useMemo(() => {
-    return tasks.filter(task => {
-      if (filters.projectIds.length > 0 && task.projectId && !filters.projectIds.includes(task.projectId)) {
-        return false;
-      }
-      if (filters.assigneeIds.length > 0) {
-        if (!task.assigneeIds.some((id) => filters.assigneeIds.includes(id))) {
-          return false;
-        }
-      } else if (filters.hideUnassigned && task.assigneeIds.length === 0) {
-        return false;
-      }
-      if (filters.statusIds.length > 0 && !filters.statusIds.includes(task.statusId)) {
-        return false;
-      }
-      if (filters.typeIds.length > 0 && !filters.typeIds.includes(task.typeId)) {
-        return false;
-      }
-      if (filters.tagIds.length > 0 && !filters.tagIds.some(id => task.tagIds.includes(id))) {
-        return false;
-      }
-      if (filters.groupIds.length > 0) {
-        const matchesGroup = task.assigneeIds.some((id) => {
-          const groupId = assigneeGroupMap.get(id);
-          return groupId ? filters.groupIds.includes(groupId) : false;
-        });
-        if (!matchesGroup) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [tasks, filters, assigneeGroupMap]);
+  const filteredTasks = useMemo(
+    () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
+    [tasks, filters, assigneeGroupMap, assignees],
+  );
 
   const projectById = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),

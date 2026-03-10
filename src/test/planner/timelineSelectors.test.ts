@@ -55,6 +55,10 @@ const makeFilters = (overrides?: Partial<Filters>): Filters => ({
 
 describe('timelineSelectors', () => {
   it('filters tasks by combined planner filters and group mapping', () => {
+    const assignees = [
+      makeAssignee({ id: 'a1', name: 'Ann', isActive: true }),
+      makeAssignee({ id: 'a2', name: 'Bob', isActive: true }),
+    ];
     const tasks = [
       makeTask({ id: 't1', projectId: 'p1', assigneeIds: ['a1'], statusId: 's1', typeId: 'type-a', tagIds: ['tag-1'] }),
       makeTask({ id: 't2', projectId: 'p2', assigneeIds: ['a2'], statusId: 's1', typeId: 'type-a', tagIds: ['tag-1'] }),
@@ -73,6 +77,7 @@ describe('timelineSelectors', () => {
         tagIds: ['tag-1'],
       }),
       new Map([['a1', 'g1'], ['a2', 'g2']]),
+      assignees,
     );
 
     expect(filtered.map((task) => task.id)).toEqual(['t1']);
@@ -81,8 +86,25 @@ describe('timelineSelectors', () => {
       tasks,
       makeFilters({ hideUnassigned: true }),
       new Map([['a1', 'g1']]),
+      assignees,
     );
     expect(withoutUnassigned.some((task) => task.id === 't3')).toBe(false);
+  });
+
+  it('hides tasks assigned only to disabled assignees', () => {
+    const assignees = [
+      makeAssignee({ id: 'a1', name: 'Ann', isActive: true }),
+      makeAssignee({ id: 'a2', name: 'Bob', isActive: false }),
+    ];
+    const tasks = [
+      makeTask({ id: 'disabled-only', assigneeIds: ['a2'] }),
+      makeTask({ id: 'mixed', assigneeIds: ['a1', 'a2'] }),
+      makeTask({ id: 'active-only', assigneeIds: ['a1'] }),
+      makeTask({ id: 'unassigned', assigneeIds: [] }),
+    ];
+
+    const filtered = selectFilteredTasks(tasks, makeFilters(), new Map(), assignees);
+    expect(filtered.map((task) => task.id)).toEqual(['mixed', 'active-only', 'unassigned']);
   });
 
   it('applies assignee and group filters only in assignee mode', () => {

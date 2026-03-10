@@ -1,0 +1,183 @@
+# UTC timestamp | version | commit | user | host | backup
+2026-02-13T10:57:06Z | 0.1.0 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-105211.dump
+2026-02-13T12:10:43Z | 0.1.0 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-120519.dump
+2026-02-13T12:32:22Z | 0.1.0 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-122632.dump
+2026-02-13T12:49:53Z | 0.1.1 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-124444.dump
+2026-02-13T13:03:39Z | 0.1.2 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-125714.dump
+2026-02-13T13:13:42Z | 0.1.3 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-130737.dump
+2026-02-13T13:31:33Z | 0.1.4 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-132615.dump
+2026-02-13T13:54:48Z | 0.1.5 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-134925.dump
+2026-02-13T14:52:43Z | 0.1.6 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-144758.dump
+2026-02-13T15:05:15Z | 0.1.7 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-145956.dump
+2026-02-13T15:47:04Z | 0.1.9 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-153847.dump
+2026-02-13T16:17:43Z | 0.1.10 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-161247.dump
+2026-02-13T20:44:01Z | 0.1.11 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-203849.dump
+2026-02-13T21:14:03Z | 0.1.12 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-210849.dump
+2026-02-13T21:21:49Z | 0.1.13 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-211702.dump
+2026-02-13T22:12:44Z | 0.1.14 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-220716.dump
+2026-02-13T22:24:28Z | 0.1.15 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-221939.dump
+2026-02-13T23:01:47Z | 0.1.16 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260213-225739.dump
+2026-02-14T08:41:56Z | 0.1.17 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-083649.dump
+2026-02-14T09:25:34Z | 0.1.18 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-092107.dump
+2026-02-14T10:45:29Z | 0.1.19 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-104100.dump
+2026-02-14T11:31:24Z | 0.1.20 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-112322.dump
+2026-02-14T12:07:35Z | 0.1.21 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-120245.dump
+2026-02-14T12:39:58Z | 0.1.22 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-123350.dump
+2026-02-14T13:08:02Z | 0.1.23 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-130207.dump
+2026-02-14T13:33:56Z | 0.1.24 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-132756.dump
+2026-02-14T13:59:33Z | 0.1.25 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-135342.dump
+2026-02-14T14:31:39Z | 0.1.26 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-142446.dump
+2026-02-14T14:55:01Z | 0.1.27 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-144940.dump
+2026-02-14T15:05:18Z | 0.1.28 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-150014.dump
+2026-02-14T15:52:11Z | 0.1.29 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260214-154703.dump
+2026-02-16T15:32:52Z | 0.1.30 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-152610.dump
+2026-02-16T16:09:47Z | 0.1.31 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-160349.dump
+2026-02-16T21:22:59Z | 0.1.32 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-211754.dump
+2026-02-16T21:48:08Z | 0.1.33 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-214247.dump
+2026-02-16T22:01:45Z | 0.1.34 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-215636.dump
+2026-02-16T22:30:54Z | 0.1.35 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-222549.dump
+2026-02-16T22:48:06Z | 0.1.36 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-224337.dump
+2026-02-16T23:04:05Z | 0.1.37 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260216-225912.dump
+2026-02-17T08:09:17Z | 0.1.38 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260217-080017.dump
+2026-02-17T08:50:10Z | 0.1.39 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260217-084411.dump
+2026-02-17T09:19:05Z | 0.1.40 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260217-091231.dump
+2026-02-18T10:35:36Z | 0.1.41 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260218-102932.dump
+2026-02-18T11:13:35Z | 0.1.42 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260218-110329.dump
+2026-02-18T12:58:40Z | 0.1.43 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260218-125253.dump
+2026-02-18T13:31:45Z | 0.1.44 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260218-132502.dump
+2026-02-18T14:05:01Z | 0.1.45 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260218-135757.dump
+2026-02-18T21:20:49Z | 0.1.46 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260218-211953.dump
+2026-02-19T08:58:18Z | 0.1.47 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-085648.dump
+2026-02-19T09:07:49Z | 0.1.48 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-090706.dump
+2026-02-19T09:46:59Z | 0.1.49 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-094617.dump
+2026-02-19T09:57:55Z | 0.1.50 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-095714.dump
+2026-02-19T10:34:50Z | 0.1.51 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-103411.dump
+2026-02-19T10:57:05Z | 0.1.52 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-105625.dump
+2026-02-19T11:06:46Z | 0.1.53 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-110602.dump
+2026-02-19T11:32:57Z | 0.1.54 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-113207.dump
+2026-02-19T11:47:03Z | 0.1.55 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-114618.dump
+2026-02-19T12:00:36Z | 0.1.56 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-115948.dump
+2026-02-19T12:20:28Z | 0.1.57 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-121943.dump
+2026-02-19T12:40:00Z | 0.1.58 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-123920.dump
+2026-02-19T13:41:43Z | 0.1.59 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-134100.dump
+2026-02-19T13:59:50Z | 0.1.60 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-135906.dump
+2026-02-19T14:40:19Z | 0.1.61 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-143938.dump
+2026-02-19T14:48:27Z | 0.1.62 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-144749.dump
+2026-02-19T14:54:31Z | 0.1.63 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-145352.dump
+2026-02-19T15:03:35Z | 0.1.64 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-150256.dump
+2026-02-19T15:48:47Z | 0.1.65 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-154807.dump
+2026-02-19T16:44:44Z | 0.1.66 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-164359.dump
+2026-02-19T16:59:25Z | 0.1.67 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-165844.dump
+2026-02-19T17:04:39Z | 0.1.68 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260219-170400.dump
+2026-02-20T08:27:53Z | 0.1.69 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-082705.dump
+2026-02-20T10:32:41Z | 0.1.70 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-103154.dump
+2026-02-20T11:43:38Z | 0.1.71 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-114239.dump
+2026-02-20T13:13:10Z | 0.1.72 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-131209.dump
+2026-02-20T13:21:15Z | 0.1.73 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-132025.dump
+2026-02-20T13:30:21Z | 0.1.74 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-132915.dump
+2026-02-20T13:47:43Z | 0.1.75 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-134642.dump
+2026-02-20T13:57:30Z | 0.1.76 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-135631.dump
+2026-02-20T14:05:15Z | 0.1.77 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-140418.dump
+2026-02-20T14:16:56Z | 0.1.78 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-141600.dump
+2026-02-20T14:21:29Z | 0.1.79 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-142033.dump
+2026-02-20T15:50:56Z | 0.1.80 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-154955.dump
+2026-02-20T16:01:43Z | 0.1.81 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-160047.dump
+2026-02-20T16:16:31Z | 0.1.82 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-161537.dump
+2026-02-20T16:25:18Z | 0.1.83 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260220-162425.dump
+2026-02-24T13:31:28Z | 0.2.1 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-132817.dump
+2026-02-24T13:35:53Z | 0.2.2 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-133448.dump
+2026-02-24T13:47:09Z | 0.2.3 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-134606.dump
+2026-02-24T13:59:12Z | 0.2.4 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-135818.dump
+2026-02-24T14:11:03Z | 0.2.5 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-141001.dump
+2026-02-24T14:29:46Z | 0.2.6 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-142847.dump
+2026-02-24T14:43:13Z | 0.2.7 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-144221.dump | Timeline day/week: date hover and click now show milestone info and a milestone chooser; when multiple milestones exist on a date, clicking the day/dot opens a picker instead of a random milestone.
+2026-02-24T14:51:00Z | 0.2.8 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-145001.dump | Timeline day/week: milestone creation moved from double-click to right-click on date (Create milestone context action), including dates that already have milestones.
+2026-02-24T14:58:08Z | 0.2.9 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-145713.dump | Timeline day/week: on dates with multiple milestones, right-click no longer routes to task creation; it now opens a context menu with Create milestone action.
+2026-02-24T15:08:09Z | 0.2.10 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-150715.dump | UI: removed status color indicators across the app (filters, tables, task detail cards, task tooltip/context menu). Statuses are now shown as text/emoji only.
+2026-02-24T15:54:57Z | 0.2.11 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-155357.dump | Planner refactor: heavy timeline/projects/members logic moved to selectors; task create and edit now share a single rule set for project filtering and repeat validation.
+2026-02-24T16:05:24Z | 0.2.12 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-160425.dump | Timeline: double-click on a user row cell now always creates a task (date milestones no longer hijack the action). Deploy: edge functions are force-recreated on release to clear stale deno cache and import errors.
+2026-02-24T16:12:50Z | 0.2.13 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-161152.dump | Timeline: user row cells now show task-only context actions; milestone creation was removed from row cells, and row clicks no longer trigger milestone selection/edit.
+2026-02-24T16:16:54Z | 0.2.14 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260224-161601.dump | Timeline: milestone lane (between header dates and user rows) now supports milestone creation via double-click on a date cell.
+2026-02-25T11:33:40Z | 0.2.15 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260225-113206.dump | Planner: moved Supabase requests from member/task UI components into store actions so UI flows use one scenario layer with predictable sync/error handling.
+2026-02-25T11:57:09Z | 0.2.16 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260225-115611.dump | Planner: deduplicated repeat/project query rules between task create/edit flows so filtering and validation behavior stays consistent and covered by tests.
+2026-02-25T14:03:53Z | 0.2.17 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260225-140257.dump | User-facing release logs were refreshed with detailed change notes for versions `0.2.15` and `0.2.16`.
+2026-02-25T22:37:39Z | 0.2.18 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260225-223627.dump | Rebranding: project and user-facing surfaces were renamed to Motio (updated page titles, auth/account branding, and Keycloak/email display name).
+2026-02-25T22:48:44Z | 0.2.19 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260225-224740.dump | No documented changes.
+2026-02-25T23:00:09Z | 0.2.20 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260225-225906.dump | No documented changes.
+2026-02-26T12:18:23Z | 0.2.21 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260226-121704.dump | No documented changes.
+2026-02-26T15:12:48Z | 0.2.22 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260226-151142.dump | No documented changes.
+2026-02-26T15:16:38Z | 0.2.23 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260226-151528.dump | No documented changes.
+2026-03-01T09:39:21Z | 0.2.24 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-093811.dump | No documented changes.
+2026-03-01T09:49:01Z | 0.2.25 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-094749.dump | No documented changes.
+2026-03-01T10:01:32Z | 0.2.26 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-100014.dump | No documented changes.
+2026-03-01T10:11:48Z | 0.2.27 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-101046.dump | No documented changes.
+2026-03-01T10:18:08Z | 0.2.28 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-101709.dump | No documented changes.
+2026-03-01T10:26:00Z | 0.2.29 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-102456.dump | No documented changes.
+2026-03-01T10:36:53Z | 0.2.30 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-103553.dump | No documented changes.
+2026-03-01T10:51:59Z | 0.2.31 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-105058.dump | No documented changes.
+2026-03-01T11:09:07Z | 0.2.32 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-110808.dump | No documented changes.
+2026-03-01T11:16:47Z | 0.2.33 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-111545.dump | No documented changes.
+2026-03-01T11:23:01Z | 0.2.34 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-112203.dump | No documented changes.
+2026-03-01T11:29:37Z | 0.2.35 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-112840.dump | No documented changes.
+2026-03-01T11:41:02Z | 0.2.36 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-113959.dump | No documented changes.
+2026-03-01T11:49:12Z | 0.2.37 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-114757.dump | No documented changes.
+2026-03-01T11:54:26Z | 0.2.38 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-115326.dump | No documented changes.
+2026-03-01T12:54:59Z | 0.2.39 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-125348.dump | No documented changes.
+2026-03-01T13:05:24Z | 0.2.40 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-130410.dump | No documented changes.
+2026-03-01T13:20:24Z | 0.2.41 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-131915.dump | No documented changes.
+2026-03-01T14:08:20Z | 0.2.42 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-140719.dump | No documented changes.
+2026-03-01T14:18:09Z | 0.2.43 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-141707.dump | No documented changes.
+2026-03-01T14:28:11Z | 0.2.44 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-142710.dump | No documented changes.
+2026-03-01T14:34:57Z | 0.2.45 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-143353.dump | No documented changes.
+2026-03-01T15:21:31Z | 0.2.46 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-152028.dump | No documented changes.
+2026-03-01T15:31:45Z | 0.2.47 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-153045.dump | No documented changes.
+2026-03-01T15:47:55Z | 0.2.48 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-154647.dump | No documented changes.
+2026-03-01T16:02:50Z | 0.2.49 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260301-160149.dump | No documented changes.
+2026-03-02T09:14:40Z | 0.2.50 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260302-091329.dump | No documented changes.
+2026-03-02T09:30:32Z | 0.2.51 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260302-092911.dump | No documented changes.
+2026-03-02T09:47:06Z | 0.2.52 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260302-094555.dump | No documented changes.
+2026-03-02T21:20:55Z | 0.2.53 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260302-211946.dump | No documented changes.
+2026-03-02T22:46:45Z | 0.2.54 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260302-224541.dump | No documented changes.
+2026-03-03T21:43:59Z | 0.2.55 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260303-214234.dump | No documented changes.
+2026-03-03T22:10:55Z | 0.2.56 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260303-220942.dump | No documented changes.
+2026-03-03T22:23:18Z | 0.2.57 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260303-222211.dump | No documented changes.
+2026-03-03T23:06:04Z | 0.2.58 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260303-230503.dump | No documented changes.
+2026-03-05T16:32:53Z | 0.2.60 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260305-162924.dump | Fixed dashboard crash on /app/dashboard caused by a missing Settings import ('Settings is not defined').
+2026-03-05T21:01:49Z | 0.2.61 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260305-205942.dump | No documented changes.
+2026-03-05T22:41:18Z | 0.2.62 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260305-223936.dump | No documented changes.
+2026-03-05T23:32:27Z | 0.2.63 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260305-233144.dump | No documented changes.
+2026-03-05T23:38:28Z | 0.2.64 | n/a | root | msk-1-vm-5fd4 | infra/backups/pre-migrate-20260305-233737.dump | No documented changes.
+2026-03-06T08:15:40Z | 0.2.65 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-081419.dump | No documented changes.
+2026-03-06T08:18:27Z | 0.2.66 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-081731.dump | No documented changes.
+2026-03-06T10:31:00Z | 0.2.67 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-103016.dump | Fixed assignee picker ordering while popover is open: no jump or auto-scroll until it closes.
+2026-03-06T17:41:33Z | 0.2.68 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-174050.dump | Styled Keycloak 'Account already exists' linking screens to match Motio and added a return-to-home action on login pages.
+2026-03-06T17:51:01Z | 0.2.69 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-175005.dump | Fixed Keycloak 'Account already exists' screen: action buttons no longer merge and text is compact; 'Return to Home' is now placed above the footer signature.
+2026-03-06T18:16:52Z | 0.2.70 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-181600.dump | Keycloak: increased spacing between cards on 'Account already exists', made the back-to-other-sign-in action explicit, and aligned the warning block with Motio styling.
+2026-03-06T18:25:42Z | 0.2.71 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-182450.dump | No documented changes.
+2026-03-06T18:41:40Z | 0.2.72 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260306-184048.dump | No documented changes.
+2026-03-07T10:29:31Z | 0.2.73 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-102850.dump | No documented changes.
+2026-03-07T10:46:14Z | 0.2.74 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-104533.dump | No documented changes.
+2026-03-07T11:08:49Z | 0.2.75 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-110809.dump | No documented changes.
+2026-03-07T12:06:39Z | 0.2.76 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-120557.dump | No documented changes.
+2026-03-07T12:19:52Z | 0.2.77 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-121912.dump | No documented changes.
+2026-03-07T12:34:01Z | 0.2.78 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-123322.dump | Team: moved Active/Disabled/History access views and search into the left sidebar.
+2026-03-07T12:38:50Z | 0.2.79 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-123810.dump | Team: aligned width and internal layout of Active/Disabled/History controls in the access sidebar.
+2026-03-07T12:52:13Z | 0.2.80 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-125134.dump | Planner: long timeline tasks now shift their label into the visible segment and hide secondary info when space is tight.
+2026-03-07T12:58:52Z | 0.2.81 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-125812.dump | Planner: timeline label shifting now applies only to genuinely long tasks, while short partially clipped tasks keep their default label position.
+2026-03-07T13:07:40Z | 0.2.82 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-130700.dump | Planner: timeline task labels now stay in place when the title is already visible, and the project name remains in the default layout.
+2026-03-07T13:13:51Z | 0.2.83 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-131311.dump | Planner: long timeline tasks now show the remaining title in a compact two-line mode instead of truncating too early.
+2026-03-07T13:19:18Z | 0.2.84 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-131838.dump | Planner: long timeline task titles stop shifting inside the bar once they reach the visible boundary.
+2026-03-07T13:51:03Z | 0.2.85 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-135018.dump | Planner: minimal shifted task titles now reach the visible boundary correctly and remain readable.
+2026-03-07T14:01:09Z | 0.2.86 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-140030.dump | Planner: long timeline task titles now stay within the visible segment and do not drift deeper into the bar after shifting.
+2026-03-07T14:08:25Z | 0.2.87 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-140747.dump | Planner: removed the experimental timeline task title shifting so labels render again in their original static layout.
+2026-03-07T17:22:23Z | 0.2.88 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-172143.dump | No documented changes.
+2026-03-07T17:44:01Z | 0.2.89 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260307-174322.dump | Workspace settings: the General and Workflow top tabs now use the shared project tab style.
+2026-03-08T11:12:54Z | 0.2.90 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260308-111210.dump | No documented changes.
+2026-03-08T15:10:04Z | 0.2.91 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260308-150922.dump | No documented changes.
+2026-03-08T15:22:51Z | 0.2.92 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260308-152209.dump | No documented changes.
+2026-03-09T10:57:20Z | 0.2.93 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-105649.dump | n/a
+2026-03-09T10:58:12Z | 0.2.93 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-105732.dump | No documented changes.
+2026-03-09T11:05:10Z | 0.2.94 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-110427.dump | Public branding assets refreshed: the site now uses the updated favicon and public images.
+2026-03-09T11:21:14Z | 0.2.95 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-112031.dump | Favicon assets are now synchronized across the public site and login screen: fallback icons, edge proxy routes, and the Keycloak theme favicon were updated.
+2026-03-09T11:34:18Z | 0.2.96 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-113333.dump | Favicons now follow the browser color scheme: the light icon is used in light mode, the dark icon in dark mode, including the login screen.
+2026-03-09T12:07:25Z | 0.2.97 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-120639.dump | The login screen now serves the correct favicon immediately for light and dark browser themes.

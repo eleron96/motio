@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/app/ProtectedRoute";
 import { i18n } from "@/shared/lib/i18n";
 import { useLocaleStore } from "@/shared/store/localeStore";
 import { RouteAnalytics } from "@/app/RouteAnalytics";
+import { PageErrorBoundary } from "@/app/PageErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -40,14 +41,15 @@ const App = () => {
               }}
             >
               <RouteAnalytics />
-              <Suspense
-                fallback={(
-                  <div className="flex h-screen items-center justify-center text-sm text-muted-foreground">
-                    Loading...
-                  </div>
-                )}
-              >
-                <Routes>
+              <PageErrorBoundary>
+                <Suspense
+                  fallback={(
+                    <div className="flex h-screen items-center justify-center text-sm text-muted-foreground">
+                      Loading...
+                    </div>
+                  )}
+                >
+                  <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/invite/:inviteToken" element={<InvitePage />} />
@@ -97,8 +99,9 @@ const App = () => {
                   <Route path="/members" element={<Navigate to="/app/members" replace />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </Suspense>
+                  </Routes>
+                </Suspense>
+              </PageErrorBoundary>
             </BrowserRouter>
           </AuthProvider>
         </TooltipProvider>

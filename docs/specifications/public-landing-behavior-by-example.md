@@ -104,3 +104,63 @@ Then:
 - `src/features/projects/pages/ProjectsPage.tsx`
 - `src/features/members/pages/MembersPage.tsx`
 - `src/features/admin/pages/AdminUsersPage.tsx`
+
+## Scenario 7: Canonical host and transport compatibility are enforced at edge
+
+Given:
+- пользователь открывает сайт через `www.motio.nikog.net` или через нестабильную сеть.
+
+When:
+- запрос попадает на edge proxy (Caddy).
+
+Then:
+- `www.motio.nikog.net` перенаправляется на канонический `https://motio.nikog.net{uri}` c `308`;
+- edge использует стандартные транспортные протоколы Caddy (`h1/h2/h3`);
+- контент кодируется `zstd gzip`.
+
+Покрытие:
+- `infra/caddy/Caddyfile`
+
+## Scenario 8: Unknown routes show localized 404 page
+
+Given:
+- пользователь открывает несуществующий маршрут;
+- активна локаль `en` или `ru`.
+
+When:
+- роутер попадает в catch-all `*` маршрут.
+
+Then:
+- отображается отдельная страница `404` вместо пустого экрана;
+- copy страницы локализован для `en/ru` (дружелюбный текст + CTA);
+- пользователь может вернуться на `/` или перейти в `/app`.
+
+Покрытие:
+- `src/app/App.tsx`
+- `src/app/NotFoundPage.tsx`
+- `src/test/app/notFoundPage.test.tsx`
+
+## Scenario 9: Public favicon follows the browser color-scheme preference
+
+Given:
+- браузер пользователя поддерживает `prefers-color-scheme`;
+- приложение рендерит корневую страницу `/`.
+
+When:
+- браузер использует светлую или тёмную тему интерфейса;
+- браузер читает favicon-link теги из `index.html`.
+
+Then:
+- в светлой теме используется `favicon-theme-light.png`;
+- в тёмной теме используется `favicon-theme-dark.png`;
+- favicon переключается по browser color scheme без влияния на `og:image` и `twitter:image`.
+
+Покрытие:
+- `index.html`
+- `infra/caddy/Caddyfile`
+- `src/app/main.tsx`
+- `src/shared/lib/themeFavicon.ts`
+- `public/favicon-theme-light.png`
+- `public/favicon-theme-dark.png`
+- `public/logo.png`
+- `src/test/smoke/faviconAssets.test.ts`

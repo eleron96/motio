@@ -5,7 +5,9 @@ import { Button } from '@/shared/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { supabase } from '@/shared/lib/supabaseClient';
+import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { cn } from '@/shared/lib/classNames';
+import { markAllNotificationsAsRead } from '@/features/auth/lib/notificationReadState';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import type { WorkspaceRole } from '@/features/auth/store/authStore';
@@ -44,26 +46,6 @@ type TaskNotification = {
   taskExists: boolean;
   createdAt: string;
   readAt: string | null;
-};
-
-const parseFunctionError = async (error: { message: string }, response?: Response) => {
-  let message = error.message;
-  if (response) {
-    try {
-      const body = await response.clone().json();
-      if (body && typeof body === 'object' && typeof (body as { error?: string }).error === 'string') {
-        message = (body as { error: string }).error;
-      }
-    } catch (_error) {
-      try {
-        const text = await response.clone().text();
-        if (text) message = text;
-      } catch (_innerError) {
-        // Ignore response parsing errors and keep the original message.
-      }
-    }
-  }
-  return message;
 };
 
 const isPendingInvite = (value: unknown): value is PendingInvite => {
@@ -135,8 +117,13 @@ const VISIBLE_POLL_MAX_MS = 8 * 60_000;
 const SENT_UPDATES_REFRESH_MS = 10 * 60_000;
 const POLL_JITTER_RATIO = 0.2;
 const REALTIME_REFRESH_DEBOUNCE_MS = 900;
+const INITIAL_POLL_IDLE_TIMEOUT_MS = 1_500;
 
 type PollingSource = 'initial' | 'timer' | 'focus' | 'open' | 'realtime';
+type IdleSchedulerWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
 
 export const InviteNotifications: React.FC = () => {
   const navigate = useNavigate();
@@ -158,6 +145,7 @@ export const InviteNotifications: React.FC = () => {
   const [taskNotifications, setTaskNotifications] = useState<TaskNotification[]>([]);
   const [busyToken, setBusyToken] = useState<string | null>(null);
   const [busyNotificationId, setBusyNotificationId] = useState<string | null>(null);
+  const [markAllBusy, setMarkAllBusy] = useState(false);
   const [openingNotificationId, setOpeningNotificationId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -165,6 +153,8 @@ export const InviteNotifications: React.FC = () => {
   const inviteReactionSessionStartedAtRef = useRef<number>(Date.now());
   const pollingTimerRef = useRef<number | null>(null);
   const realtimeRefreshTimerRef = useRef<number | null>(null);
+  const initialPollIdleRef = useRef<number | null>(null);
+  const initialPollTimeoutRef = useRef<number | null>(null);
   const pollingFailureCountRef = useRef(0);
   const pollingInFlightRef = useRef(false);
   const lastSentUpdatesSyncAtRef = useRef(0);
@@ -244,7 +234,7 @@ export const InviteNotifications: React.FC = () => {
     });
 
     if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
+      setErrorMessage(await parseInvokeError(error, response));
       if (showLoading) {
         setLoading(false);
       }
@@ -283,6 +273,21 @@ export const InviteNotifications: React.FC = () => {
       window.clearTimeout(realtimeRefreshTimerRef.current);
     }
     realtimeRefreshTimerRef.current = null;
+  }, []);
+
+  const clearInitialPollSchedule = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    if (initialPollTimeoutRef.current !== null) {
+      window.clearTimeout(initialPollTimeoutRef.current);
+      initialPollTimeoutRef.current = null;
+    }
+    if (initialPollIdleRef.current !== null) {
+      const idleWindow = window as IdleSchedulerWindow;
+      if (typeof idleWindow.cancelIdleCallback === 'function') {
+        idleWindow.cancelIdleCallback(initialPollIdleRef.current);
+      }
+      initialPollIdleRef.current = null;
+    }
   }, []);
 
   const scheduleNextPollingCycle = useCallback(() => {
@@ -381,6 +386,7 @@ export const InviteNotifications: React.FC = () => {
 
   useEffect(() => {
     if (!user) {
+      clearInitialPollSchedule();
       clearPollingTimer();
       setPendingInvites([]);
       setTaskNotifications([]);
@@ -394,19 +400,32 @@ export const InviteNotifications: React.FC = () => {
         clearPollingTimer();
         return;
       }
+      clearInitialPollSchedule();
       void runPollingCycle('focus');
     };
 
-    void runPollingCycle('initial');
+    const idleWindow = window as IdleSchedulerWindow;
+    if (typeof idleWindow.requestIdleCallback === 'function') {
+      initialPollIdleRef.current = idleWindow.requestIdleCallback(() => {
+        initialPollIdleRef.current = null;
+        void runPollingCycle('initial');
+      }, { timeout: INITIAL_POLL_IDLE_TIMEOUT_MS });
+    } else {
+      initialPollTimeoutRef.current = window.setTimeout(() => {
+        initialPollTimeoutRef.current = null;
+        void runPollingCycle('initial');
+      }, INITIAL_POLL_IDLE_TIMEOUT_MS);
+    }
     window.addEventListener('focus', handleVisibilityOrFocus);
     document.addEventListener('visibilitychange', handleVisibilityOrFocus);
 
     return () => {
+      clearInitialPollSchedule();
       clearPollingTimer();
       window.removeEventListener('focus', handleVisibilityOrFocus);
       document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
-  }, [clearPollingTimer, runPollingCycle, user]);
+  }, [clearInitialPollSchedule, clearPollingTimer, runPollingCycle, user]);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -491,7 +510,7 @@ export const InviteNotifications: React.FC = () => {
     });
 
     if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
+      setErrorMessage(await parseInvokeError(error, response));
       setBusyToken(null);
       return;
     }
@@ -512,7 +531,7 @@ export const InviteNotifications: React.FC = () => {
     });
 
     if (error) {
-      setErrorMessage(await parseFunctionError(error, response));
+      setErrorMessage(await parseInvokeError(error, response));
       setBusyNotificationId(null);
       return false;
     }
@@ -534,6 +553,27 @@ export const InviteNotifications: React.FC = () => {
     setBusyNotificationId(null);
     return true;
   }, []);
+
+  const handleMarkAllTaskNotificationsRead = useCallback(async () => {
+    if (markAllBusy || unreadTaskCount === 0) return;
+
+    setMarkAllBusy(true);
+    setErrorMessage('');
+
+    const { error, response } = await supabase.functions.invoke('notifications', {
+      body: { action: 'markAllRead' },
+    });
+
+    if (error) {
+      setErrorMessage(await parseInvokeError(error, response));
+      setMarkAllBusy(false);
+      return;
+    }
+
+    const readAtIso = new Date().toISOString();
+    setTaskNotifications((current) => markAllNotificationsAsRead(current, readAtIso));
+    setMarkAllBusy(false);
+  }, [markAllBusy, unreadTaskCount]);
 
   const handleOpenTaskNotification = useCallback(async (notification: TaskNotification) => {
     if (openingNotificationId || !notification.taskId) return;
@@ -608,11 +648,24 @@ export const InviteNotifications: React.FC = () => {
             <>
               {taskNotifications.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t`Task updates`}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t`Task updates`}</p>
+                    {unreadTaskCount > 0 && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-xs"
+                        disabled={markAllBusy || loading || openingNotificationId !== null || busyNotificationId !== null}
+                        onClick={() => void handleMarkAllTaskNotificationsRead()}
+                      >
+                        {t`Mark as read`} ({unreadTaskCount})
+                      </Button>
+                    )}
+                  </div>
                   {taskNotifications.map((notification) => {
                     const actorLabel = notification.actorDisplayName || notification.actorEmail || t`Unknown user`;
                     const isUnread = !notification.readAt;
-                    const isBusy = busyNotificationId === notification.id || openingNotificationId === notification.id;
+                    const isBusy = markAllBusy || busyNotificationId === notification.id || openingNotificationId === notification.id;
                     const dateLabel = formatNotificationDate(notification.createdAt);
                     const markAsUnread = !isUnread;
 

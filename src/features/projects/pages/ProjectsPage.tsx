@@ -9,9 +9,7 @@ import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPa
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
 import { useProjectsPageEffects } from '@/features/projects/hooks/useProjectsPageEffects';
 import { useProjectTasksQuery } from '@/features/projects/hooks/useProjectTasksQuery';
-import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
-import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
+import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
@@ -19,8 +17,6 @@ import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { format, parseISO } from 'date-fns';
 import {
-  Settings,
-  User,
   Plus,
 } from 'lucide-react';
 import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
@@ -40,6 +36,8 @@ import {
   splitMilestonesByDate,
 } from '@/features/projects/lib/projectsSelectors';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
 
 type DisplayTaskRow = {
   key: string;
@@ -104,6 +102,8 @@ const ProjectsPage = () => {
   const [deleteMilestoneOpen, setDeleteMilestoneOpen] = useState(false);
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState<Customer | null>(null);
   const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const {
     projects,
@@ -816,69 +816,178 @@ const ProjectsPage = () => {
     setSelectedProjectId(project.id);
   }, []);
 
+  const mobileSheetLabel = mode === 'milestones'
+    ? t`Milestones`
+    : mode === 'customers'
+      ? t`Customers`
+      : t`Projects`;
+  const mobileSummary = mode === 'milestones'
+    ? (selectedMilestone?.title ?? t`Select a milestone`)
+    : mode === 'customers'
+      ? (selectedCustomer?.name ?? t`Select a customer`)
+      : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
+
+  const renderProjectsSidebar = (closeOnSelect = false) => (
+    <ProjectsSidebar
+      mode={mode}
+      onModeChange={setMode}
+      canEdit={canEdit}
+      nameSort={nameSort}
+      nameSortLabel={nameSortLabel}
+      onToggleNameSort={() => setNameSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+      customerSearch={customerSearch}
+      onCustomerSearchChange={setCustomerSearch}
+      sortedCustomers={sortedCustomers}
+      filteredCustomers={filteredCustomers}
+      customerProjectCounts={customerProjectCounts}
+      selectedCustomerId={selectedCustomerId}
+      onSelectCustomer={(customerId) => {
+        setSelectedCustomerId(customerId);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
+      onStartCustomerEdit={startCustomerEdit}
+      onRequestDeleteCustomer={requestDeleteCustomer}
+      milestoneTab={milestoneTab}
+      onMilestoneTabChange={setMilestoneTab}
+      milestoneSearch={milestoneSearch}
+      onMilestoneSearchChange={setMilestoneSearch}
+      milestoneGroupLabel={milestoneGroupLabel}
+      onCycleMilestoneGroup={handleCycleMilestoneGroup}
+      milestones={milestones}
+      visibleMilestones={visibleMilestones}
+      groupedMilestones={groupedMilestones}
+      selectedMilestoneId={selectedMilestoneId}
+      onSelectMilestone={(milestoneId) => {
+        setSelectedMilestoneId(milestoneId);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
+      onOpenMilestoneSettings={handleOpenMilestoneSettings}
+      onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
+      onRequestDeleteMilestone={requestDeleteMilestone}
+      projectById={projectById}
+      customerById={customerById}
+      trackedProjectIdSet={trackedProjectIdSet}
+      formatMilestoneDate={formatMilestoneDate}
+      tab={tab}
+      onTabChange={setTab}
+      projectSearch={projectSearch}
+      onProjectSearchChange={setProjectSearch}
+      customerFilterLabel={customerFilterLabel}
+      customerFilterIds={customerFilterIds}
+      onClearCustomerFilters={() => setCustomerFilterIds([])}
+      onToggleCustomerFilter={handleToggleCustomer}
+      groupByCustomer={groupByCustomer}
+      onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
+      activeProjects={activeProjects}
+      archivedProjects={archivedProjects}
+      filteredActiveProjects={filteredActiveProjects}
+      filteredArchivedProjects={filteredArchivedProjects}
+      selectedProjectId={selectedProjectId}
+      onSelectProject={(projectId) => {
+        setSelectedProjectId(projectId);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
+      onToggleTrackedProject={(projectId, nextTracked) => {
+        void toggleTrackedProject(projectId, nextTracked);
+      }}
+      onOpenProjectSettings={openProjectSettings}
+      onRequestDeleteProject={requestDeleteProject}
+      onToggleProjectArchived={handleToggleProjectArchived}
+      groupProjects={groupedProjects}
+    />
+  );
+
+  const renderProjectsMainPanel = () => (
+    <ProjectsMainPanel
+      mode={mode}
+      selectedProject={selectedProject}
+      customerById={customerById}
+      search={search}
+      onSearchChange={setSearch}
+      statusFilterLabel={statusFilterLabel}
+      setStatusPreset={setStatusPreset}
+      statuses={statuses}
+      statusFilterIds={statusFilterIds}
+      onToggleStatus={handleToggleStatus}
+      assigneeFilterLabel={assigneeFilterLabel}
+      assigneeOptions={assigneeOptions}
+      assigneeFilterIds={assigneeFilterIds}
+      onToggleAssignee={handleToggleAssignee}
+      onClearFilters={() => {
+        setSearch('');
+        setStatusFilterIds([]);
+        setAssigneeFilterIds([]);
+      }}
+      selectedProjectId={selectedProjectId}
+      onRefreshTasks={() => {
+        if (selectedProjectId) {
+          void refetchTasks();
+        }
+      }}
+      tasksLoading={tasksLoading}
+      tasksError={tasksError}
+      displayTaskRows={displayTaskRows}
+      statusById={statusById}
+      assigneeById={assigneeById}
+      onSelectTask={setSelectedTaskId}
+      selectedMilestone={selectedMilestone}
+      selectedMilestoneProject={selectedMilestoneProject}
+      selectedMilestoneCustomer={selectedMilestoneCustomer}
+      formatMilestoneDate={formatMilestoneDate}
+      trackedProjectIdSet={trackedProjectIdSet}
+      onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
+      onOpenMilestoneSettings={handleOpenMilestoneSettings}
+      onRequestDeleteMilestone={requestDeleteMilestone}
+      canEdit={canEdit}
+      selectedCustomer={selectedCustomer}
+      selectedCustomerProjects={selectedCustomerProjects}
+      customersCount={customers.length}
+      onOpenProjectFromCustomer={handleOpenProjectFromCustomer}
+    />
+  );
+
   if (isSuperAdmin) {
     return <Navigate to="/app/admin/users" replace />;
   }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
-          <WorkspaceSwitcher />
-          <WorkspaceNav />
-        </div>
-        <div className="flex items-center gap-2">
-          {mode === 'customers' ? (
-            <Button
-              onClick={() => setCreateCustomerOpen(true)}
-              size="sm"
-              className="gap-2"
-              disabled={!canEdit}
-            >
-              <Plus className="h-4 w-4" />
-              {t`New customer`}
-            </Button>
-          ) : mode === 'milestones' ? (
-            <Button
-              onClick={handleOpenCreateMilestone}
-              size="sm"
-              className="gap-2"
-              disabled={!canEdit}
-            >
-              <Plus className="h-4 w-4" />
-              {t`New milestone`}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setCreateProjectOpen(true)}
-              size="sm"
-              className="gap-2"
-              disabled={!canEdit}
-            >
-              <Plus className="h-4 w-4" />
-              {t`New project`}
-            </Button>
-          )}
+      <WorkspacePageHeader
+        primaryAction={mode === 'customers' ? (
           <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="h-9 w-9"
+            onClick={() => setCreateCustomerOpen(true)}
+            size="sm"
+            className="gap-2"
             disabled={!canEdit}
           >
-            <Settings className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
+            {t`New customer`}
           </Button>
-          <InviteNotifications />
+        ) : mode === 'milestones' ? (
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowAccountSettings(true)}
-            className="h-9 w-9"
+            onClick={handleOpenCreateMilestone}
+            size="sm"
+            className="gap-2"
+            disabled={!canEdit}
           >
-            <User className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
+            {t`New milestone`}
           </Button>
-        </div>
-      </header>
+        ) : (
+          <Button
+            onClick={() => setCreateProjectOpen(true)}
+            size="sm"
+            className="gap-2"
+            disabled={!canEdit}
+          >
+            <Plus className="h-4 w-4" />
+            {t`New project`}
+          </Button>
+        )}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenAccountSettings={() => setShowAccountSettings(true)}
+        settingsDisabled={!canEdit}
+      />
 
       {mutationError && (
         <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
@@ -896,123 +1005,34 @@ const ProjectsPage = () => {
         </div>
       )}
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        <ResizablePanelGroup
-          direction="horizontal"
-          autoSaveId="projects-layout-split"
-          className="flex-1 min-h-0"
+      {isMobile ? (
+        <MobilePageSheetLayout
+          open={mobileSidebarOpen}
+          onOpenChange={setMobileSidebarOpen}
+          browseLabel={mobileSheetLabel}
+          sheetTitle={mobileSheetLabel}
+          summary={mobileSummary}
+          sheetContent={renderProjectsSidebar(true)}
         >
-          <ResizablePanel defaultSize={28} minSize={18} maxSize={42} className="min-w-[260px]">
-            <ProjectsSidebar
-              mode={mode}
-              onModeChange={setMode}
-              canEdit={canEdit}
-              nameSort={nameSort}
-              nameSortLabel={nameSortLabel}
-              onToggleNameSort={() => setNameSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
-              customerSearch={customerSearch}
-              onCustomerSearchChange={setCustomerSearch}
-              sortedCustomers={sortedCustomers}
-              filteredCustomers={filteredCustomers}
-              customerProjectCounts={customerProjectCounts}
-              selectedCustomerId={selectedCustomerId}
-              onSelectCustomer={setSelectedCustomerId}
-              onStartCustomerEdit={startCustomerEdit}
-              onRequestDeleteCustomer={requestDeleteCustomer}
-              milestoneTab={milestoneTab}
-              onMilestoneTabChange={setMilestoneTab}
-              milestoneSearch={milestoneSearch}
-              onMilestoneSearchChange={setMilestoneSearch}
-              milestoneGroupLabel={milestoneGroupLabel}
-              onCycleMilestoneGroup={handleCycleMilestoneGroup}
-              milestones={milestones}
-              visibleMilestones={visibleMilestones}
-              groupedMilestones={groupedMilestones}
-              selectedMilestoneId={selectedMilestoneId}
-              onSelectMilestone={setSelectedMilestoneId}
-              onOpenMilestoneSettings={handleOpenMilestoneSettings}
-              onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
-              onRequestDeleteMilestone={requestDeleteMilestone}
-              projectById={projectById}
-              customerById={customerById}
-              trackedProjectIdSet={trackedProjectIdSet}
-              formatMilestoneDate={formatMilestoneDate}
-              tab={tab}
-              onTabChange={setTab}
-              projectSearch={projectSearch}
-              onProjectSearchChange={setProjectSearch}
-              customerFilterLabel={customerFilterLabel}
-              customerFilterIds={customerFilterIds}
-              onClearCustomerFilters={() => setCustomerFilterIds([])}
-              onToggleCustomerFilter={handleToggleCustomer}
-              groupByCustomer={groupByCustomer}
-              onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
-              activeProjects={activeProjects}
-              archivedProjects={archivedProjects}
-              filteredActiveProjects={filteredActiveProjects}
-              filteredArchivedProjects={filteredArchivedProjects}
-              selectedProjectId={selectedProjectId}
-              onSelectProject={setSelectedProjectId}
-              onToggleTrackedProject={(projectId, nextTracked) => {
-                void toggleTrackedProject(projectId, nextTracked);
-              }}
-              onOpenProjectSettings={openProjectSettings}
-              onRequestDeleteProject={requestDeleteProject}
-              onToggleProjectArchived={handleToggleProjectArchived}
-              groupProjects={groupedProjects}
-            />
-          </ResizablePanel>
-          <ResizableHandle withHandle className="bg-border/70" />
-          <ResizablePanel defaultSize={72} minSize={58}>
-            <ProjectsMainPanel
-              mode={mode}
-              selectedProject={selectedProject}
-              customerById={customerById}
-              search={search}
-              onSearchChange={setSearch}
-              statusFilterLabel={statusFilterLabel}
-              setStatusPreset={setStatusPreset}
-              statuses={statuses}
-              statusFilterIds={statusFilterIds}
-              onToggleStatus={handleToggleStatus}
-              assigneeFilterLabel={assigneeFilterLabel}
-              assigneeOptions={assigneeOptions}
-              assigneeFilterIds={assigneeFilterIds}
-              onToggleAssignee={handleToggleAssignee}
-              onClearFilters={() => {
-                setSearch('');
-                setStatusFilterIds([]);
-                setAssigneeFilterIds([]);
-              }}
-              selectedProjectId={selectedProjectId}
-              onRefreshTasks={() => {
-                if (selectedProjectId) {
-                  void refetchTasks();
-                }
-              }}
-              tasksLoading={tasksLoading}
-              tasksError={tasksError}
-              displayTaskRows={displayTaskRows}
-              statusById={statusById}
-              assigneeById={assigneeById}
-              onSelectTask={setSelectedTaskId}
-              selectedMilestone={selectedMilestone}
-              selectedMilestoneProject={selectedMilestoneProject}
-              selectedMilestoneCustomer={selectedMilestoneCustomer}
-              formatMilestoneDate={formatMilestoneDate}
-              trackedProjectIdSet={trackedProjectIdSet}
-              onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
-              onOpenMilestoneSettings={handleOpenMilestoneSettings}
-              onRequestDeleteMilestone={requestDeleteMilestone}
-              canEdit={canEdit}
-              selectedCustomer={selectedCustomer}
-              selectedCustomerProjects={selectedCustomerProjects}
-              customersCount={customers.length}
-              onOpenProjectFromCustomer={handleOpenProjectFromCustomer}
-            />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
+          {renderProjectsMainPanel()}
+        </MobilePageSheetLayout>
+      ) : (
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          <ResizablePanelGroup
+            direction="horizontal"
+            autoSaveId="projects-layout-split"
+            className="flex-1 min-h-0"
+          >
+            <ResizablePanel defaultSize={28} minSize={18} maxSize={42} className="min-w-[260px]">
+              {renderProjectsSidebar()}
+            </ResizablePanel>
+            <ResizableHandle withHandle className="bg-border/70" />
+            <ResizablePanel defaultSize={72} minSize={58}>
+              {renderProjectsMainPanel()}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </div>
+      )}
 
       <ProjectsDialogs
         canEdit={canEdit}

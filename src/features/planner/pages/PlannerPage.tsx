@@ -4,17 +4,14 @@ import { CalendarTimeline } from '@/features/planner/components/timeline/Calenda
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
-import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
-import { AccountSettingsDialog } from '@/features/auth/components/AccountSettingsDialog';
-import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { Button } from '@/shared/ui/button';
-import { Plus, Settings, User } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
-import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
+import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { Filters, ViewMode } from '@/features/planner/types/planner';
 import { format } from 'date-fns';
 import { Navigate } from 'react-router-dom';
@@ -336,13 +333,8 @@ const PlannerPage = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
-          <WorkspaceSwitcher />
-          <WorkspaceNav />
-        </div>
-        
-        <div className="flex items-center gap-2">
+      <WorkspacePageHeader
+        primaryAction={(
           <Button
             onClick={() => {
               setAddTaskDefaults(null);
@@ -355,26 +347,11 @@ const PlannerPage = () => {
             <Plus className="h-4 w-4" />
             {t`Add task`}
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="h-9 w-9"
-            disabled={!canEdit}
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-          <InviteNotifications />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowAccountSettings(true)}
-            className="h-9 w-9"
-          >
-            <User className="h-4 w-4" />
-          </Button>
-        </div>
-      </header>
+        )}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenAccountSettings={() => setShowAccountSettings(true)}
+        settingsDisabled={!canEdit}
+      />
 
       {hasActiveFilters && (
         <div className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-500 bg-sky-50 text-sm text-sky-700">
@@ -427,8 +404,12 @@ const PlannerPage = () => {
       
       {/* Panels */}
       <TaskDetailPanel />
-      <SettingsPanel open={showSettings} onOpenChange={setShowSettings} />
-      <AccountSettingsDialog open={showAccountSettings} onOpenChange={setShowAccountSettings} />
+      <WorkspaceCommonDialogs
+        showSettings={showSettings}
+        onShowSettingsChange={setShowSettings}
+        showAccountSettings={showAccountSettings}
+        onShowAccountSettingsChange={setShowAccountSettings}
+      />
       <AddTaskDialog
         open={showAddTask}
         onOpenChange={handleAddTaskOpenChange}

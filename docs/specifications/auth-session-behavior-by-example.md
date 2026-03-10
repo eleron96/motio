@@ -150,3 +150,130 @@ Then:
 - `src/features/auth/store/authStore.ts`
 - `src/features/auth/pages/AuthPage.tsx`
 - `src/features/auth/lib/recentSignOut.ts`
+
+## Scenario 9: Header account shortcut shows initials instead of generic user icon
+
+Given:
+- пользователь открыт в приватном разделе (`Timeline`, `Dashboard`, `Projects`, `Members`);
+- профиль загружен, и доступно имя или email пользователя.
+
+When:
+- рендерится кнопка открытия `Account settings` в правом верхнем углу.
+
+Then:
+- вместо иконки пользователя отображается круглый бейдж с инициалами;
+- вычисление инициалов совпадает с логикой в `Account settings`;
+- если имя/email недоступны, отображается fallback `U`.
+
+Покрытие:
+- `src/features/auth/components/AccountBadgeButton.tsx`
+- `src/features/auth/components/AccountSettingsDialog.tsx`
+- `src/shared/lib/accountIdentity.ts`
+
+## Scenario 10: Notifications dropdown can mark all task notifications as read
+
+Given:
+- пользователь открыл выпадающий список `Notifications`;
+- в блоке `Task updates` есть непрочитанные уведомления.
+
+When:
+- пользователь нажимает bulk-действие `Mark as read` в заголовке блока `Task updates`.
+
+Then:
+- все непрочитанные task-уведомления пользователя помечаются как прочитанные одним запросом;
+- счетчик непрочитанных в колокольчике обновляется без перезагрузки страницы;
+- удаленные уведомления (`deleted_at`) не затрагиваются.
+
+Покрытие:
+- `src/features/auth/components/InviteNotifications.tsx`
+- `src/features/auth/lib/notificationReadState.ts`
+- `src/test/auth/notificationReadState.test.ts`
+- `infra/supabase/functions/notifications/index.ts`
+
+## Scenario 11: Expired OAuth callback state does not show raw JSON error page
+
+Given:
+- пользователь оставил вкладку открытой, и OAuth callback завершился с устаревшим `state`;
+- backend `/auth/v1/callback` возвращает ошибку `bad_oauth_state`.
+
+When:
+- браузер открывает callback endpoint.
+
+Then:
+- пользователь не остаётся на сырой JSON-странице backend;
+- gateway перенаправляет на `/auth` с безопасными error-параметрами;
+- `AuthPage` показывает человекочитаемое сообщение и кнопку повторного входа.
+
+Покрытие:
+- `infra/supabase/nginx.conf`
+- `src/features/auth/pages/AuthPage.tsx`
+- `src/test/auth/authPage.forceLogin.test.tsx`
+
+## Scenario 12: Keycloak login screens keep Motio styling and home exit action
+
+Given:
+- пользователь находится на Keycloak-экранах входа (`Sign in to your account`);
+- пользователь может попасть в дополнительный шаг выбора метода (`Try Another Way` -> `Select login method`).
+
+When:
+- Keycloak рендерит страницу выбора метода входа и страницу логина.
+
+Then:
+- список методов (`Select login method`) рендерится в том же визуальном стиле Motio, без «сырых» дефолтных блоков;
+- ссылка `Try Another Way` отображается как явное action-контрол;
+- на экранах входа есть отдельная кнопка возврата на главную страницу;
+- подпись `© Motio, NIKO G.` остается последним элементом внизу карточки, ниже кнопки возврата.
+
+Покрытие:
+- `infra/keycloak/themes/timeline/login/resources/css/styles.v7.css`
+- `infra/keycloak/themes/timeline/login/footer.ftl`
+- `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
+- `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
+
+## Scenario 13: "Account already exists" linking screens follow Motio visual style
+
+Given:
+- пользователь входит через внешний IdP (например Google), а email уже существует в realm;
+- Keycloak показывает сценарий link-account (`Account already exists`).
+
+When:
+- открываются экраны подтверждения/связывания (`login-idp-link-email`, `login-idp-link-confirm`, `login-idp-link-confirm-override`).
+
+Then:
+- экран использует карточки действий в стиле Motio вместо сырых дефолтных блоков;
+- действия связывания визуально читаемы и единообразны, без сливающегося текста в кнопках;
+- первый action явно подписан как возврат к другому способу входа;
+- предупреждение `account already exists` отображается отдельной плашкой в карточной стилистике Motio, с явным текстом о существующем email;
+- общий футер с возвратом на главную остается доступен.
+
+Покрытие:
+- `infra/keycloak/themes/timeline/login/login-idp-link-email.ftl`
+- `infra/keycloak/themes/timeline/login/login-idp-link-confirm.ftl`
+- `infra/keycloak/themes/timeline/login/login-idp-link-confirm-override.ftl`
+- `infra/keycloak/themes/timeline/login/resources/css/styles.v7.css`
+- `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
+- `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
+
+## Scenario 14: Keycloak login screens follow the browser color-scheme favicon
+
+Given:
+- пользователь открывает `/auth` и попадает на Keycloak-hosted экран входа;
+- login screen рендерится отдельной Keycloak theme, а не основным `index.html`;
+- браузер пользователя использует светлую или тёмную тему интерфейса.
+
+When:
+- браузер загружает favicon для вкладки login screen.
+
+Then:
+- Keycloak server-side head сразу рендерит theme-specific favicon links, без одиночного legacy `favicon.ico`;
+- в светлой теме браузера login screen использует `favicon-theme-light.png`;
+- в тёмной теме браузера login screen использует `favicon-theme-dark.png`;
+- login screen не остаётся на устаревшем отдельном theme favicon.
+
+Покрытие:
+- `infra/keycloak/themes/timeline/login/template.ftl`
+- `infra/keycloak/themes/timeline/login/resources/img/favicon-theme-light.png`
+- `infra/keycloak/themes/timeline/login/resources/img/favicon-theme-dark.png`
+- `infra/keycloak/themes/timeline/login/resources/js/login.v4.js`
+- `public/favicon.ico`
+- `src/test/smoke/faviconAssets.test.ts`

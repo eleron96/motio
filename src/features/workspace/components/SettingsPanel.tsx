@@ -19,16 +19,15 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { Plus, Trash2, Settings2, CheckCircle2, Ban, Check, ChevronsUpDown } from 'lucide-react';
-import { supabase } from '@/shared/lib/supabaseClient';
 import { ColorPicker } from '@/shared/ui/color-picker';
 import { EmojiPicker } from '@/shared/ui/emoji-picker';
-import { splitStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { Textarea } from '@/shared/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/shared/ui/command';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
+import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 
 interface SettingsPanelProps {
   open: boolean;
@@ -83,11 +82,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     taskTypes, addTaskType, updateTaskType, deleteTaskType,
     tags, addTag, updateTag, deleteTag,
     workspaceId,
-    loadWorkspaceData,
+    applyWorkspaceTemplate,
   } = usePlannerStore();
 
   const {
-    user,
     workspaces,
     currentWorkspaceId,
     currentWorkspaceRole,
@@ -159,7 +157,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           .sort((left, right) => left.name.localeCompare(right.name));
         setHolidayCountryOptions(normalized);
       } catch (error) {
-        if ((error as { name?: string })?.name !== 'AbortError') {
+        if (!isAbortError(error)) {
           console.error(error);
         }
       } finally {
@@ -298,10 +296,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   };
 
   const handleApplyTemplate = async () => {
-    if (!user) {
-      setTemplateApplyError(t`You are not signed in.`);
-      return;
-    }
     if (!workspaceId) {
       setTemplateApplyError(t`Workspace not selected.`);
       return;
@@ -310,107 +304,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     setTemplateApplying(true);
     setTemplateApplyError('');
     setTemplateApplied(false);
-
-    const { data, error } = await supabase
-      .from('user_workspace_templates')
-      .select('statuses, task_types, tags')
-      .eq('user_id', user.id)
-      .single();
-
-    if (error) {
-      if ((error as { code?: string }).code === 'PGRST116') {
-        setTemplateApplyError(t`No template saved yet.`);
-      } else {
-        setTemplateApplyError(error.message);
-      }
+    const result = await applyWorkspaceTemplate();
+    if (result.error) {
+      setTemplateApplyError(result.error);
       setTemplateApplying(false);
       return;
     }
 
-    const templateStatuses = (data?.statuses as Array<{
-      name: string;
-      color: string;
-      emoji?: string | null;
-      is_final?: boolean;
-      is_cancelled?: boolean;
-    }>) ?? [];
-    const templateTypes = (data?.task_types as Array<{ name: string; icon?: string | null }>) ?? [];
-    const templateTags = (data?.tags as Array<{ name: string; color: string }>) ?? [];
-
-    const statusNames = new Set(statuses.map((status) => stripStatusEmoji(status.name).trim().toLowerCase()));
-    const typeNames = new Set(taskTypes.map((type) => type.name.trim().toLowerCase()));
-    const tagNames = new Set(tags.map((tag) => tag.name.trim().toLowerCase()));
-
-    const newStatuses = templateStatuses
-      .map((status) => {
-        const { name: cleanedName, emoji: inlineEmoji } = splitStatusLabel(status.name ?? '');
-        const explicitEmoji = typeof status.emoji === 'string' ? status.emoji.trim() : status.emoji;
-        return {
-          ...status,
-          name: cleanedName,
-          emoji: explicitEmoji || inlineEmoji || null,
-          is_cancelled: Boolean(status.is_cancelled),
-          is_final: Boolean(status.is_final),
-        };
-      })
-      .filter((status) => {
-        const name = status.name?.trim().toLowerCase();
-        return name && !statusNames.has(name);
-      });
-    const newTypes = templateTypes.filter((type) => {
-      const name = type.name?.trim().toLowerCase();
-      return name && !typeNames.has(name);
-    });
-    const newTags = templateTags.filter((tag) => {
-      const name = tag.name?.trim().toLowerCase();
-      return name && !tagNames.has(name);
-    });
-
-    try {
-      if (newStatuses.length > 0) {
-        const { error } = await supabase
-          .from('statuses')
-          .insert(newStatuses.map((status) => ({
-            workspace_id: workspaceId,
-            name: status.name.trim(),
-            emoji: status.emoji ?? null,
-            color: status.color ?? '#94a3b8',
-            is_final: !!status.is_final && !status.is_cancelled,
-            is_cancelled: !!status.is_cancelled,
-          })));
-        if (error) throw error;
-      }
-
-      if (newTypes.length > 0) {
-        const { error } = await supabase
-          .from('task_types')
-          .insert(newTypes.map((type) => ({
-            workspace_id: workspaceId,
-            name: type.name.trim(),
-            icon: type.icon ?? null,
-          })));
-        if (error) throw error;
-      }
-
-      if (newTags.length > 0) {
-        const { error } = await supabase
-          .from('tags')
-          .insert(newTags.map((tag) => ({
-            workspace_id: workspaceId,
-            name: tag.name.trim(),
-            color: tag.color ?? '#94a3b8',
-          })));
-        if (error) throw error;
-      }
-
-      await loadWorkspaceData(workspaceId);
-      setTemplateApplied(true);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t`Failed to apply template.`;
-      setTemplateApplyError(message);
-    } finally {
-      setTemplateApplying(false);
-    }
+    setTemplateApplied(true);
+    setTemplateApplying(false);
   };
 
   return (
@@ -427,8 +329,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="general" className="flex-1 flex flex-col mt-4">
-            <TabsList className="flex flex-wrap w-full h-auto items-start justify-start gap-2 mb-4">
+          <Tabs defaultValue="general" className="mt-4 flex flex-1 flex-col">
+            <TabsList className="mb-4 grid w-full max-w-sm grid-cols-2">
               <TabsTrigger value="general" className="whitespace-nowrap">{t`General`}</TabsTrigger>
               <TabsTrigger value="workflow" className="whitespace-nowrap">{t`Workflow`}</TabsTrigger>
             </TabsList>
@@ -588,7 +490,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
                           <Button
                             variant="secondary"
                             onClick={handleApplyTemplate}
-                            disabled={!user || !currentWorkspaceId || templateApplying}
+                            disabled={!currentWorkspaceId || templateApplying}
                           >
                             {t`Apply template`}
                           </Button>

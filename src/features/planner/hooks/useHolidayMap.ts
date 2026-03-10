@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { addDays, format, isWeekend, startOfYear } from 'date-fns';
+import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 
 const HOLIDAY_RETRY_DELAY_MS = 30000;
 const DEFAULT_HOLIDAY_COUNTRY_CODE = 'RU';
@@ -119,7 +120,7 @@ export const useHolidayMap = ({
           try {
             ruEntries = await loadRuProductionCalendarYear(year);
           } catch (productionError) {
-            if ((productionError as { name?: string })?.name === 'AbortError') {
+            if (isAbortError(productionError)) {
               return;
             }
             ruLoadFailed = true;
@@ -129,7 +130,7 @@ export const useHolidayMap = ({
           try {
             nagerEntries = await loadNagerYear(year);
           } catch (nagerError) {
-            if ((nagerError as { name?: string })?.name === 'AbortError') {
+            if (isAbortError(nagerError)) {
               return;
             }
             nagerLoadFailed = true;
@@ -171,7 +172,7 @@ export const useHolidayMap = ({
         mergeHolidayEntries(entries);
         loadedHolidayYears.current.add(year);
       } catch (error) {
-        if ((error as { name?: string })?.name !== 'AbortError') {
+        if (!isAbortError(error)) {
           console.error(error);
           shouldRetry = true;
         }

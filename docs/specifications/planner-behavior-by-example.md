@@ -126,3 +126,154 @@ Then:
 - `src/features/planner/components/TaskDetailPanel.tsx`
 - `src/features/planner/components/TaskProjectSelect.tsx`
 - `src/features/planner/hooks/useProjectQueryInput.ts`
+
+## Scenario 8: Disabled assignees are hidden in timeline and people filter
+
+Given:
+- в workspace есть активные и отключенные участники;
+- у отключенного участника есть назначенные задачи.
+
+When:
+- пользователь открывает timeline (`day`/`week`/`calendar`) и левый фильтр `People`.
+
+Then:
+- отключенные участники не отображаются в `People` фильтре;
+- задачи, назначенные только на отключенных участников, не отображаются в таймлайне;
+- задачи с активным и отключенным участником остаются видимыми по активному участнику.
+
+Покрытие:
+- `src/features/planner/lib/timelineSelectors.ts`
+- `src/features/planner/components/FilterPanel.tsx`
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/features/planner/components/timeline/CalendarTimeline.tsx`
+- `src/test/planner/timelineSelectors.test.ts`
+
+## Scenario 9: Realtime upserts are deferred during timeline interaction and replayed after
+
+Given:
+- в `usePlannerLiveSync` пришел realtime upsert события по задаче;
+- пользователь в этот момент взаимодействует с timeline (drag/scroll), и `timelineInteractingUntil` еще в будущем.
+
+When:
+- flush очереди запускается в defer-режиме;
+- окно взаимодействия заканчивается.
+
+Then:
+- upsert не теряется и остается в очереди;
+- выполняется повторный flush после `INTERACTION_RETRY_MS`;
+- задача применяется в store после завершения interaction-window.
+
+Покрытие:
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`
+
+## Scenario 10: Live sync pipeline is single-flight and ignores stale async runs
+
+Given:
+- realtime flush и reconcile триггеры приходят почти одновременно;
+- часть запросов выполняется с задержкой;
+- пользователь может переключить workspace во время in-flight запроса.
+
+When:
+- запускается sync pipeline для `usePlannerLiveSync`.
+
+Then:
+- `flush` и `reconcile` не выполняются параллельно (single-flight execution);
+- stale async ответ из старого lifecycle не мутирует store;
+- `fallbackFailureCount` растет с clamp при ошибках и сбрасывается после успешного reconcile.
+
+Покрытие:
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`
+
+## Scenario 11: Initial live reconcile is deferred after first subscribe
+
+Given:
+- пользователь открывает planner, и realtime channel только что перешёл в `SUBSCRIBED`;
+- первоначальный список задач уже загружается обычным bootstrap-потоком.
+
+When:
+- срабатывает первый `SUBSCRIBED` status в `usePlannerLiveSync`.
+
+Then:
+- reconcile не запускается мгновенно;
+- первый reconcile выполняется с короткой задержкой;
+- повторные `SUBSCRIBED` после разрыва соединения запускают reconcile сразу.
+
+Покрытие:
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`
+
+## Scenario 12: Repeat task creation does not spam assignee notifications
+
+Given:
+- пользователь создает задачу с назначенным участником и включает повторения;
+- система генерирует серию задач с одинаковым `repeatId`.
+
+When:
+- БД-триггер `notify_task_assignment` обрабатывает `INSERT` задач серии.
+
+Then:
+- назначенный пользователь получает одно уведомление о назначении;
+- дополнительные `INSERT` в уже существующей repeat-серии не создают дубли.
+
+Покрытие:
+- `infra/supabase/migrations/0050_dedupe_repeat_series_assignment_notifications.sql`
+
+## Scenario 13: Assignee list does not jump while selection popover is open
+
+Given:
+- пользователь открывает создание задачи и раскрывает список исполнителей;
+- в списке используется сортировка с приоритетом выбранных исполнителей.
+
+When:
+- пользователь выбирает/снимает исполнителей, пока popover остается открытым.
+
+Then:
+- порядок строк в текущем открытом списке не пересортировывается;
+- автоподскролл к началу списка не происходит;
+- пересортировка применяется после закрытия popover.
+
+Покрытие:
+- `src/features/planner/components/AddTaskDialog.tsx`
+- `src/features/planner/lib/assigneePopoverOrder.ts`
+- `src/test/planner/assigneePopoverOrder.test.ts`
+
+## Scenario 14: Mobile timeline uses compact assignee labels
+
+Given:
+- пользователь открывает planner timeline на экране меньше `768px`;
+- timeline сгруппирован по исполнителям;
+- в workspace есть исполнители с длинными именами.
+
+When:
+- рендерится левая колонка имен timeline.
+
+Then:
+- для исполнителей используются монограммы в компактных круглых лейблах вместо полного длинного имени;
+- полное имя остается доступно через `title`;
+- mobile assignee sidebar занимает примерно `44-56px`, а не desktop-ширину по умолчанию.
+
+Покрытие:
+- `src/shared/domain/personName.ts`
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/test/shared/personName.test.ts`
+
+## Scenario 15: Timeline sidebar and task grid share one vertical scroll surface
+
+Given:
+- пользователь открыт в planner timeline (`day` или `week`);
+- слева отображается колонка имен/групп, справа сетка задач;
+- строк достаточно, чтобы появилась вертикальная прокрутка.
+
+When:
+- пользователь скроллит вертикально по колонке имен или по области задач.
+
+Then:
+- имена и строки задач двигаются как одна поверхность;
+- sidebar не имеет отдельного vertical viewport с ручной `scrollTop`-синхронизацией;
+- имена не дергаются и не догоняют task-grid на следующий кадр.
+
+Покрытие:
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/test/planner/timelineGrid.scrollSurface.test.tsx`

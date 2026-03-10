@@ -36,9 +36,17 @@ export const withAbortSignal = <T>(query: T, signal: AbortSignal): T => {
 };
 
 export const isAbortError = (error: unknown) => {
-  if (!error || typeof error !== 'object') return false;
-  const candidate = error as { name?: string; message?: string };
+  if (!error) return false;
+  if (typeof error === 'string') {
+    return error.toLowerCase().includes('abort');
+  }
+  if (typeof error !== 'object') return false;
+  const candidate = error as { name?: string; message?: string; cause?: unknown };
   const name = (candidate.name ?? '').toLowerCase();
   const message = (candidate.message ?? '').toLowerCase();
-  return name.includes('abort') || message.includes('abort');
+  if (name.includes('abort') || message.includes('abort')) return true;
+  if (candidate.cause && candidate.cause !== error) {
+    return isAbortError(candidate.cause);
+  }
+  return false;
 };

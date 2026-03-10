@@ -10,14 +10,18 @@ import { Badge } from '@/shared/ui/badge';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { supabase } from '@/shared/lib/supabaseClient';
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import { t } from '@lingui/macro';
+import { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberActivity';
+import { formatWorkspaceMemberActivity } from '@/shared/lib/workspaceMemberActivity';
+import { matchesWorkspaceMemberSearch } from '@/shared/domain/workspaceMemberSearch';
 
 interface WorkspaceMembersPanelProps {
   active?: boolean;
   showTitle?: boolean;
   className?: string;
+  accessTab?: 'active' | 'disabled' | 'history';
+  accessSearch?: string;
 }
 
 type MemberGroup = {
@@ -37,43 +41,12 @@ type SentInvite = {
   createdAt: string | null;
 };
 
-const sentInviteStatuses: ReadonlyArray<SentInvite['status']> = [
-  'pending',
-  'accepted',
-  'declined',
-  'canceled',
-  'expired',
-];
-
-const isSentInviteStatus = (value: unknown): value is SentInvite['status'] => (
-  typeof value === 'string' && sentInviteStatuses.includes(value as SentInvite['status'])
-);
-
-const parseInvokeErrorMessage = async (invokeError: { message: string }, response?: Response) => {
-  let message = invokeError.message;
-  if (!response) return message;
-
-  try {
-    const body = await response.clone().json();
-    if (body && typeof body === 'object' && typeof (body as { error?: string }).error === 'string') {
-      message = (body as { error: string }).error;
-    }
-  } catch (_error) {
-    try {
-      const text = await response.clone().text();
-      if (text) message = text;
-    } catch (_innerError) {
-      // Keep original invoke error.
-    }
-  }
-
-  return message;
-};
-
 export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   active = true,
   showTitle = true,
   className,
+  accessTab = 'active',
+  accessSearch = '',
 }) => {
   const {
     user,
@@ -82,13 +55,22 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     membersLoading,
     fetchMembers,
     inviteMember,
+    listSentInvites,
+    cancelSentInvite,
+    listWorkspaceMemberActivity,
     updateMemberRole,
     updateMemberGroup,
     removeMember,
     currentWorkspaceId,
     currentWorkspaceRole,
   } = useAuthStore();
-  const { assignees, refreshAssignees, updateAssignee, setWorkspaceId } = usePlannerStore();
+  const {
+    assignees,
+    refreshAssignees,
+    updateAssignee,
+    setWorkspaceId,
+    fetchMemberGroups,
+  } = usePlannerStore();
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('viewer');
@@ -105,6 +87,9 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const [inviteGroupId, setInviteGroupId] = useState('none');
   const [memberSortKey, setMemberSortKey] = useState<MemberSortKey>('member');
   const [memberSortDirection, setMemberSortDirection] = useState<MemberSortDirection>('asc');
+  const [memberActivity, setMemberActivity] = useState<WorkspaceMemberActivityEntry[]>([]);
+  const [memberActivityLoading, setMemberActivityLoading] = useState(false);
+  const [memberActivityError, setMemberActivityError] = useState('');
 
   const isAdmin = currentWorkspaceRole === 'admin';
   const currentUserId = user?.id ?? null;
@@ -128,25 +113,21 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     let isMounted = true;
     setGroupsLoading(true);
     setGroupsError('');
-    supabase
-      .from('member_groups')
-      .select('id, name')
-      .eq('workspace_id', currentWorkspaceId)
-      .order('name', { ascending: true })
-      .then(({ data, error }) => {
+    fetchMemberGroups(currentWorkspaceId)
+      .then((result) => {
         if (!isMounted) return;
-        if (error) {
-          setGroupsError(error.message);
+        if (result.error) {
+          setGroupsError(result.error);
           setGroupsLoading(false);
           return;
         }
-        setGroups((data ?? []) as MemberGroup[]);
+        setGroups(result.groups as MemberGroup[]);
         setGroupsLoading(false);
       });
     return () => {
       isMounted = false;
     };
-  }, [active, currentWorkspaceId]);
+  }, [active, currentWorkspaceId, fetchMemberGroups]);
 
   const loadSentInvites = useCallback(async () => {
     if (!active || !isAdmin || !currentWorkspaceId) {
@@ -156,46 +137,43 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     }
 
     setSentInvitesLoading(true);
-    const { data, error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'listSent', pendingOnly: true },
+    const { invites, error } = await listSentInvites({
+      workspaceId: currentWorkspaceId,
+      pendingOnly: true,
     });
 
     if (error) {
-      setError(await parseInvokeErrorMessage(error, response));
+      setError(error);
       setSentInvitesLoading(false);
       return;
     }
-
-    const rows = Array.isArray((data as { invites?: unknown } | null)?.invites)
-      ? ((data as { invites: unknown[] }).invites ?? [])
-      : [];
-
-    const parsed = rows
-      .filter((row) => {
-        if (!row || typeof row !== 'object') return false;
-        const candidate = row as Partial<SentInvite>;
-        return (
-          typeof candidate.token === 'string'
-          && typeof candidate.workspaceId === 'string'
-          && isSentInviteStatus(candidate.status)
-        );
-      })
-      .map((row) => {
-        const candidate = row as Partial<SentInvite>;
-        return {
-          token: candidate.token as string,
-          workspaceId: candidate.workspaceId as string,
-          email: typeof candidate.email === 'string' ? candidate.email : '',
-          status: candidate.status as SentInvite['status'],
-          isPending: typeof candidate.isPending === 'boolean' ? candidate.isPending : candidate.status === 'pending',
-          createdAt: typeof candidate.createdAt === 'string' ? candidate.createdAt : null,
-        } satisfies SentInvite;
-      })
-      .filter((row) => row.workspaceId === currentWorkspaceId);
-
-    setSentInvites(parsed);
+    setSentInvites(invites as SentInvite[]);
     setSentInvitesLoading(false);
-  }, [active, currentWorkspaceId, isAdmin]);
+  }, [active, currentWorkspaceId, isAdmin, listSentInvites]);
+
+  const loadMemberActivity = useCallback(async () => {
+    if (!active || !currentWorkspaceId || !isAdmin) {
+      setMemberActivity([]);
+      setMemberActivityLoading(false);
+      setMemberActivityError('');
+      return;
+    }
+
+    setMemberActivityLoading(true);
+    setMemberActivityError('');
+    const { entries, error } = await listWorkspaceMemberActivity({
+      workspaceId: currentWorkspaceId,
+      limit: 100,
+    });
+    if (error) {
+      setMemberActivityError(error);
+      setMemberActivityLoading(false);
+      return;
+    }
+
+    setMemberActivity(entries);
+    setMemberActivityLoading(false);
+  }, [active, currentWorkspaceId, isAdmin, listWorkspaceMemberActivity]);
 
   useEffect(() => {
     if (!active || !isAdmin || !currentWorkspaceId) {
@@ -204,6 +182,14 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     }
     void loadSentInvites();
   }, [active, currentWorkspaceId, isAdmin, loadSentInvites]);
+
+  useEffect(() => {
+    if (!active || !isAdmin || !currentWorkspaceId) {
+      setMemberActivity([]);
+      return;
+    }
+    void loadMemberActivity();
+  }, [active, currentWorkspaceId, isAdmin, loadMemberActivity]);
 
   const assigneeByUserId = useMemo(() => {
     const map = new Map<string, typeof assignees[number]>();
@@ -259,6 +245,36 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     return list;
   }, [assigneeByUserId, groupNameById, memberSortDirection, memberSortKey, members]);
 
+  const activeSortedMembers = useMemo(
+    () => sortedMembers.filter((member) => (assigneeByUserId.get(member.userId)?.isActive ?? true)),
+    [assigneeByUserId, sortedMembers],
+  );
+
+  const disabledSortedMembers = useMemo(
+    () => sortedMembers.filter((member) => !(assigneeByUserId.get(member.userId)?.isActive ?? true)),
+    [assigneeByUserId, sortedMembers],
+  );
+
+  const filteredActiveMembers = useMemo(
+    () => activeSortedMembers.filter((member) => matchesWorkspaceMemberSearch({
+      email: member.email,
+      displayName: member.displayName,
+      role: member.role,
+      groupName: member.groupId ? (groupNameById.get(member.groupId) ?? null) : null,
+    }, accessSearch)),
+    [accessSearch, activeSortedMembers, groupNameById],
+  );
+
+  const filteredDisabledMembers = useMemo(
+    () => disabledSortedMembers.filter((member) => matchesWorkspaceMemberSearch({
+      email: member.email,
+      displayName: member.displayName,
+      role: member.role,
+      groupName: member.groupId ? (groupNameById.get(member.groupId) ?? null) : null,
+    }, accessSearch)),
+    [accessSearch, disabledSortedMembers, groupNameById],
+  );
+
   const renderSortIcon = (key: MemberSortKey) => {
     if (memberSortKey !== key) {
       return <ChevronsUpDown className="h-3 w-3 text-muted-foreground/70" />;
@@ -278,6 +294,12 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       }),
     [sentInvites],
   );
+
+  const formatHistoryDate = useCallback((isoDate: string) => {
+    const parsed = Date.parse(isoDate);
+    if (!Number.isFinite(parsed)) return '';
+    return new Date(parsed).toLocaleString();
+  }, []);
 
   const handleInvite = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -309,6 +331,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       setInviteGroupId('none');
       setInviteOpen(false);
       void loadSentInvites();
+      void loadMemberActivity();
     }
   };
 
@@ -317,19 +340,16 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     setCancelingToken(token);
     setError('');
 
-    const { error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'cancel', token },
-    });
-
+    const { error } = await cancelSentInvite(token);
     if (error) {
-      setError(await parseInvokeErrorMessage(error, response));
+      setError(error);
       setCancelingToken(null);
       return;
     }
 
     await loadSentInvites();
     setCancelingToken(null);
-  }, [isAdmin, loadSentInvites]);
+  }, [cancelSentInvite, isAdmin, loadSentInvites]);
 
   const getInviteStatusLabel = (status: SentInvite['status']) => {
     if (status === 'accepted') return t`Accepted`;
@@ -352,7 +372,9 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     const result = await updateMemberRole(userId, nextRole);
     if (result.error) {
       setError(result.error);
+      return;
     }
+    void loadMemberActivity();
   };
 
   const handleGroupChange = async (userId: string, nextGroupId: string) => {
@@ -361,7 +383,9 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     const result = await updateMemberGroup(userId, groupId);
     if (result.error) {
       setError(result.error);
+      return;
     }
+    void loadMemberActivity();
   };
 
   const handleRemove = async (userId: string) => {
@@ -376,16 +400,108 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     const result = await removeMember(userId);
     if (result.error) {
       setError(result.error);
+      return;
     }
+    void loadMemberActivity();
+  };
+
+  const handleMemberStatusChange = async (assigneeId: string, nextValue: boolean) => {
+    const result = await updateAssignee(assigneeId, { isActive: nextValue });
+    if (result?.error) {
+      setError(result.error);
+      return;
+    }
+    void loadMemberActivity();
+  };
+
+  const renderMemberRow = (member: typeof members[number]) => {
+    const isSelf = Boolean(currentUserId && member.userId === currentUserId);
+    const assignee = assigneeByUserId.get(member.userId);
+    const isActive = assignee?.isActive ?? true;
+
+    return (
+      <div key={member.userId} className="grid items-center gap-3 rounded-md border px-3 py-3 md:grid-cols-[1fr,140px,180px,120px,90px]">
+        <div className="min-w-0">
+          <div className="text-sm font-medium truncate">
+            {member.email}
+            {isSelf ? ` ${t`(you)`}` : ''}
+          </div>
+          {member.displayName && (
+            <div className="text-xs text-muted-foreground truncate">{member.displayName}</div>
+          )}
+          {!isActive && (
+            <Badge variant="secondary" className="mt-1 text-[10px]">{t`Disabled`}</Badge>
+          )}
+        </div>
+        <Select
+          value={member.role}
+          onValueChange={(value) => void handleRoleChange(member.userId, value as WorkspaceRole)}
+          disabled={!isAdmin}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="viewer">{t`Viewer`}</SelectItem>
+            <SelectItem value="editor">{t`Editor`}</SelectItem>
+            <SelectItem value="admin">{t`Admin`}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={member.groupId ?? 'none'}
+          onValueChange={(value) => void handleGroupChange(member.userId, value)}
+          disabled={!isAdmin}
+        >
+          <SelectTrigger className="w-[180px] max-w-[180px] [&>span]:truncate">
+            <SelectValue placeholder={groupsLoading ? t`Loading groups...` : t`No group`} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">{t`No group`}</SelectItem>
+            {groups.map((group) => (
+              <SelectItem key={group.id} value={group.id}>
+                {group.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="flex items-center gap-3">
+          {assignee ? (
+            <>
+              <Switch
+                checked={isActive}
+                onCheckedChange={(value) => void handleMemberStatusChange(assignee.id, value)}
+                disabled={!isAdmin || isSelf}
+                aria-label={isActive ? t`Disable member` : t`Enable member`}
+              />
+              <span className="text-[10px] text-muted-foreground">
+                {isActive ? t`Active` : t`Disabled`}
+              </span>
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground">—</span>
+          )}
+        </div>
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void handleRemove(member.userId)}
+            disabled={!canRemoveMembers || isSelf}
+          >
+            {t`Remove`}
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className={cn('space-y-4', className)}>
       {showTitle && (
         <div>
-          <h2 className="text-base font-semibold">{t`Workspace members`}</h2>
+          <h2 className="text-base font-semibold">{t`Team access`}</h2>
           <p className="text-xs text-muted-foreground">
-            {t`Manage invites, roles, and access.`}
+            {t`Manage team invites, roles, and access.`}
           </p>
         </div>
       )}
@@ -542,133 +658,117 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
 
       <div className="rounded-lg border bg-background p-4 space-y-3">
         <div>
-          <div className="text-sm font-semibold">{t`Members & roles`}</div>
+          <div className="text-sm font-semibold">{t`People access`}</div>
           <div className="text-xs text-muted-foreground">
-            {t`Manage roles, groups, and status.`}
+            {t`Manage team roles, groups, and status.`}
           </div>
         </div>
 
-        <div className="hidden md:grid grid-cols-[1fr,140px,180px,120px,90px] gap-3 text-xs text-muted-foreground px-2">
-          <button
-            type="button"
-            onClick={() => handleMemberSortChange('member')}
-            className="inline-flex items-center gap-1 text-left hover:text-foreground"
-          >
-            <span>{t`Member`}</span>
-            {renderSortIcon('member')}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMemberSortChange('role')}
-            className="inline-flex items-center gap-1 text-left hover:text-foreground"
-          >
-            <span>{t`Role`}</span>
-            {renderSortIcon('role')}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMemberSortChange('group')}
-            className="inline-flex items-center gap-1 text-left hover:text-foreground"
-          >
-            <span>{t`Group`}</span>
-            {renderSortIcon('group')}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMemberSortChange('status')}
-            className="inline-flex items-center gap-1 text-left hover:text-foreground"
-          >
-            <span>{t`Status`}</span>
-            {renderSortIcon('status')}
-          </button>
-          <span className="text-right">{t`Actions`}</span>
-        </div>
-
-        {membersLoading && (
-          <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
-        )}
-        {!membersLoading && members.length === 0 && (
-          <div className="text-sm text-muted-foreground">{t`No members found.`}</div>
-        )}
-        {sortedMembers.map((member) => {
-          const isSelf = Boolean(currentUserId && member.userId === currentUserId);
-          const assignee = assigneeByUserId.get(member.userId);
-          const isActive = assignee?.isActive ?? true;
-          return (
-            <div key={member.userId} className="grid items-center gap-3 rounded-md border px-3 py-3 md:grid-cols-[1fr,140px,180px,120px,90px]">
-              <div className="min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {member.email}
-                  {isSelf ? ` ${t`(you)`}` : ''}
-                </div>
-                {member.displayName && (
-                  <div className="text-xs text-muted-foreground truncate">{member.displayName}</div>
-                )}
-                {!isActive && (
-                  <Badge variant="secondary" className="mt-1 text-[10px]">{t`Disabled`}</Badge>
-                )}
-              </div>
-              <Select
-                value={member.role}
-                onValueChange={(value) => handleRoleChange(member.userId, value as WorkspaceRole)}
-                disabled={!isAdmin}
+        <div className="min-w-0">
+          {accessTab !== 'history' && (
+            <div className="hidden md:grid grid-cols-[1fr,140px,180px,120px,90px] gap-3 px-2 pb-3 text-xs text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('member')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="viewer">{t`Viewer`}</SelectItem>
-                  <SelectItem value="editor">{t`Editor`}</SelectItem>
-                  <SelectItem value="admin">{t`Admin`}</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={member.groupId ?? 'none'}
-                onValueChange={(value) => handleGroupChange(member.userId, value)}
-                disabled={!isAdmin}
+                <span>{t`Member`}</span>
+                {renderSortIcon('member')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('role')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
               >
-                <SelectTrigger className="w-[180px] max-w-[180px] [&>span]:truncate">
-                  <SelectValue placeholder={groupsLoading ? t`Loading groups...` : t`No group`} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{t`No group`}</SelectItem>
-                  {groups.map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      {group.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex items-center gap-3">
-                {assignee ? (
-                  <>
-                    <Switch
-                      checked={isActive}
-                      onCheckedChange={(value) => updateAssignee(assignee.id, { isActive: value })}
-                      disabled={!isAdmin || isSelf}
-                      aria-label={isActive ? t`Disable member` : t`Enable member`}
-                    />
-                    <span className="text-[10px] text-muted-foreground">
-                      {isActive ? t`Active` : t`Disabled`}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-xs text-muted-foreground">—</span>
-                )}
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemove(member.userId)}
-                  disabled={!canRemoveMembers || isSelf}
-                >
-                  {t`Remove`}
-                </Button>
-              </div>
+                <span>{t`Role`}</span>
+                {renderSortIcon('role')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('group')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
+              >
+                <span>{t`Group`}</span>
+                {renderSortIcon('group')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMemberSortChange('status')}
+                className="inline-flex items-center gap-1 text-left hover:text-foreground"
+              >
+                <span>{t`Status`}</span>
+                {renderSortIcon('status')}
+              </button>
+              <span className="text-right">{t`Actions`}</span>
             </div>
-          );
-        })}
+          )}
+
+          {accessTab === 'active' && (
+            <div className="space-y-3">
+              {membersLoading && (
+                <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
+              )}
+              {!membersLoading && filteredActiveMembers.length === 0 && !accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No active members.`}</div>
+              )}
+              {!membersLoading && filteredActiveMembers.length === 0 && accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
+              )}
+              {!membersLoading && filteredActiveMembers.length > 0 && (
+                <div className="space-y-2">
+                  {filteredActiveMembers.map(renderMemberRow)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {accessTab === 'disabled' && (
+            <div className="space-y-3">
+              {membersLoading && (
+                <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
+              )}
+              {!membersLoading && filteredDisabledMembers.length === 0 && !accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No disabled members.`}</div>
+              )}
+              {!membersLoading && filteredDisabledMembers.length === 0 && accessSearch.trim() && (
+                <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
+              )}
+              {!membersLoading && filteredDisabledMembers.length > 0 && (
+                <div className="space-y-2">
+                  {filteredDisabledMembers.map(renderMemberRow)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {accessTab === 'history' && (
+            <div className="space-y-2">
+              {memberActivityLoading && (
+                <div className="text-sm text-muted-foreground">{t`Loading history...`}</div>
+              )}
+              {!memberActivityLoading && memberActivityError && (
+                <div className="text-sm text-destructive">{memberActivityError}</div>
+              )}
+              {!memberActivityLoading && !memberActivityError && memberActivity.length === 0 && (
+                <div className="text-sm text-muted-foreground">{t`No history yet.`}</div>
+              )}
+              {!memberActivityLoading && !memberActivityError && memberActivity.length > 0 && (
+                <div className="space-y-2">
+                  {memberActivity.map((entry) => (
+                    <div key={entry.id} className="rounded-md border px-3 py-2">
+                      <div className="text-xs text-muted-foreground">
+                        {formatHistoryDate(entry.createdAt)}
+                      </div>
+                      <div className="mt-1 text-sm leading-relaxed">
+                        {formatWorkspaceMemberActivity(entry)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ import { ColorPicker } from '@/shared/ui/color-picker';
 import { EmojiPicker } from '@/shared/ui/emoji-picker';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/shared/ui/accordion';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { supabase } from '@/shared/lib/supabaseClient';
+import { buildWorkspaceTemplateFromCatalog, type WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
 import { t } from '@lingui/macro';
 
@@ -28,27 +28,26 @@ const DEFAULT_STATUS_COLOR = '#94a3b8';
 
 export const WorkspaceSwitcher: React.FC = () => {
   const {
-    user,
     workspaces,
     currentWorkspaceId,
     setCurrentWorkspaceId,
     createWorkspace,
   } = useAuthStore();
-  const { statuses, taskTypes, tags } = usePlannerStore();
+  const {
+    statuses,
+    taskTypes,
+    tags,
+    loadWorkspaceTemplate,
+    saveWorkspaceTemplate,
+  } = usePlannerStore();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [createError, setCreateError] = useState('');
   const [creating, setCreating] = useState(false);
-  const [templateStatuses, setTemplateStatuses] = useState<Array<{
-    name: string;
-    emoji: string | null;
-    color: string;
-    is_final: boolean;
-    is_cancelled: boolean;
-  }>>([]);
-  const [templateTypes, setTemplateTypes] = useState<Array<{ name: string; icon: string | null }>>([]);
-  const [templateTags, setTemplateTags] = useState<Array<{ name: string; color: string }>>([]);
+  const [templateStatuses, setTemplateStatuses] = useState<WorkspaceTemplate['statuses']>([]);
+  const [templateTypes, setTemplateTypes] = useState<WorkspaceTemplate['taskTypes']>([]);
+  const [templateTags, setTemplateTags] = useState<WorkspaceTemplate['tags']>([]);
   const [templateLoading, setTemplateLoading] = useState(false);
   const [templateError, setTemplateError] = useState('');
   const [templateSaved, setTemplateSaved] = useState(false);
@@ -62,23 +61,19 @@ export const WorkspaceSwitcher: React.FC = () => {
   const canCreateWorkspace = workspaces.length < 5;
 
   useEffect(() => {
-    if (!createOpen || !user) return;
+    if (!createOpen) return;
     let active = true;
 
     const loadTemplate = async () => {
       setTemplateLoading(true);
       setTemplateError('');
       setTemplateSaved(false);
-      const { data, error } = await supabase
-        .from('user_workspace_templates')
-        .select('statuses, task_types, tags')
-        .eq('user_id', user.id)
-        .single();
+      const result = await loadWorkspaceTemplate();
 
       if (!active) return;
-      if (error) {
-        if ((error as { code?: string }).code !== 'PGRST116') {
-          setTemplateError(error.message);
+      if (result.error) {
+        if (result.error !== t`No template saved yet.`) {
+          setTemplateError(result.error);
         }
         setTemplateStatuses([]);
         setTemplateTypes([]);
@@ -87,31 +82,9 @@ export const WorkspaceSwitcher: React.FC = () => {
         return;
       }
 
-      setTemplateStatuses((data?.statuses as Array<{
-        name: string;
-        emoji?: string | null;
-        color: string;
-        is_final?: boolean;
-        is_cancelled?: boolean;
-      }>)?.map((item) => {
-        const { name: cleanedName, emoji: inlineEmoji } = splitStatusLabel(item.name ?? '');
-        const explicitEmoji = typeof item.emoji === 'string' ? item.emoji.trim() : item.emoji;
-        return {
-          name: cleanedName,
-          emoji: explicitEmoji || inlineEmoji || null,
-          color: item.color ?? DEFAULT_STATUS_COLOR,
-          is_final: Boolean(item.is_final),
-          is_cancelled: Boolean(item.is_cancelled),
-        };
-      }) ?? []);
-      setTemplateTypes((data?.task_types as Array<{ name: string; icon?: string | null }>)?.map((item) => ({
-        name: item.name ?? '',
-        icon: item.icon ?? null,
-      })) ?? []);
-      setTemplateTags((data?.tags as Array<{ name: string; color: string }>)?.map((item) => ({
-        name: item.name ?? '',
-        color: item.color ?? '#94a3b8',
-      })) ?? []);
+      setTemplateStatuses(result.template?.statuses ?? []);
+      setTemplateTypes(result.template?.taskTypes ?? []);
+      setTemplateTags(result.template?.tags ?? []);
       setTemplateLoading(false);
     };
 
@@ -119,58 +92,43 @@ export const WorkspaceSwitcher: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [createOpen, user]);
+  }, [createOpen, loadWorkspaceTemplate]);
 
   const handleSaveTemplate = async () => {
-    if (!user) return;
     setTemplateError('');
     setTemplateSaved(false);
-    const { error } = await supabase
-      .from('user_workspace_templates')
-      .upsert({
-        user_id: user.id,
-        statuses: templateStatuses,
-        task_types: templateTypes,
-        tags: templateTags,
-      });
+    const result = await saveWorkspaceTemplate({
+      statuses: templateStatuses,
+      taskTypes: templateTypes,
+      tags: templateTags,
+    });
 
-    if (error) {
-      setTemplateError(error.message);
+    if (result.error) {
+      setTemplateError(result.error);
       return;
     }
     setTemplateSaved(true);
   };
 
   const handleCopyWorkspaceToTemplate = () => {
-    setTemplateStatuses(statuses.map((status) => ({
-      name: status.name,
-      emoji: status.emoji ?? null,
-      color: DEFAULT_STATUS_COLOR,
-      is_final: status.isFinal,
-      is_cancelled: status.isCancelled,
-    })));
-    setTemplateTypes(taskTypes.map((type) => ({
-      name: type.name,
-      icon: type.icon ?? null,
-    })));
-    setTemplateTags(tags.map((tag) => ({
-      name: tag.name,
-      color: tag.color,
-    })));
+    const template = buildWorkspaceTemplateFromCatalog({ statuses, taskTypes, tags });
+    setTemplateStatuses(template.statuses);
+    setTemplateTypes(template.taskTypes);
+    setTemplateTags(template.tags);
     setTemplateSaved(false);
   };
 
-  const updateTemplateStatus = (index: number, updates: Partial<{ name: string; emoji: string | null; color: string; is_final: boolean; is_cancelled: boolean }>) => {
+  const updateTemplateStatus = (index: number, updates: Partial<WorkspaceTemplate['statuses'][number]>) => {
     setTemplateStatuses((current) => current.map((item, i) => (i === index ? { ...item, ...updates } : item)));
     setTemplateSaved(false);
   };
 
-  const updateTemplateType = (index: number, updates: Partial<{ name: string; icon: string | null }>) => {
+  const updateTemplateType = (index: number, updates: Partial<WorkspaceTemplate['taskTypes'][number]>) => {
     setTemplateTypes((current) => current.map((item, i) => (i === index ? { ...item, ...updates } : item)));
     setTemplateSaved(false);
   };
 
-  const updateTemplateTag = (index: number, updates: Partial<{ name: string; color: string }>) => {
+  const updateTemplateTag = (index: number, updates: Partial<WorkspaceTemplate['tags'][number]>) => {
     setTemplateTags((current) => current.map((item, i) => (i === index ? { ...item, ...updates } : item)));
     setTemplateSaved(false);
   };
@@ -289,7 +247,7 @@ export const WorkspaceSwitcher: React.FC = () => {
                       <Button
                         type="button"
                         onClick={handleSaveTemplate}
-                        disabled={!user || templateLoading}
+                        disabled={templateLoading}
                       >
                         {t`Save template`}
                       </Button>

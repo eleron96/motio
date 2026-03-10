@@ -181,6 +181,9 @@ const pruneBackups = async (protectedNames = []) => {
       kept += 1;
       continue;
     }
+    if (file.name.startsWith('pre-restore-')) {
+      console.warn(`Pruning pre-restore backup: ${file.name}`);
+    }
     await fs.unlink(file.fullPath).catch(() => {});
   }
 };
@@ -239,7 +242,18 @@ const createBackup = async (type, options = {}) => {
     '--dbname',
     DB_URL,
   ]);
+  // Validate dump integrity with pg_restore --list (dry-run).
+  try {
+    await execFileAsync('pg_restore', ['--list', filePath]);
+  } catch (validationError) {
+    await fs.unlink(filePath).catch(() => {});
+    throw new Error(`Backup validation failed (corrupt dump): ${validationError.message || validationError}`);
+  }
   const stat = await fs.stat(filePath);
+  if (stat.size === 0) {
+    await fs.unlink(filePath).catch(() => {});
+    throw new Error('Backup file is empty after pg_dump.');
+  }
   if (shouldPrune) {
     await pruneBackups([name]);
   }

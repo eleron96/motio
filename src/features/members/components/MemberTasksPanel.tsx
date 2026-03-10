@@ -15,6 +15,7 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 type DisplayTaskRow = {
   key: string;
@@ -120,17 +121,20 @@ export const MemberTasksPanel = ({
   onPrevPage,
   onNextPage,
 }: MemberTasksPanelProps) => {
+  const isMobile = useIsMobile();
+  const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
+
   return (
     <>
       {!selectedAssignee && (
         <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-          {t`Select a member to view details.`}
+          {t`Select a person to view details.`}
         </div>
       )}
 
       {selectedAssignee && (
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="border-b border-border px-6 py-4">
+          <div className={`border-b border-border ${sectionPadding}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
@@ -168,17 +172,19 @@ export const MemberTasksPanel = ({
             </div>
           </div>
 
-          <div className="px-6 py-4 border-b border-border">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className={`border-b border-border ${sectionPadding}`}>
+            <div className={isMobile ? 'flex flex-col items-stretch gap-2' : 'flex flex-wrap items-center gap-3'}>
               <Input
-                className="w-[220px]"
+                className="w-full sm:w-[220px]"
                 placeholder={t`Search tasks...`}
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
               />
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline">{statusFilterLabel}</Button>
+                  <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
+                    {statusFilterLabel}
+                  </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-56 p-2" align="start">
                   <div className="flex gap-2 pb-2">
@@ -204,7 +210,9 @@ export const MemberTasksPanel = ({
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline">{projectFilterLabel}</Button>
+                  <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
+                    {projectFilterLabel}
+                  </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-56 p-2" align="start">
                   <ScrollArea className="max-h-48 pr-2">
@@ -233,18 +241,18 @@ export const MemberTasksPanel = ({
                 <>
                   <Input
                     type="date"
-                    className="w-[160px]"
+                    className="w-full sm:w-[160px]"
                     value={pastFromDate}
                     onChange={(event) => onPastFromDateChange(event.target.value)}
                   />
                   <Input
                     type="date"
-                    className="w-[160px]"
+                    className="w-full sm:w-[160px]"
                     value={pastToDate}
                     onChange={(event) => onPastToDateChange(event.target.value)}
                   />
                   <Select value={pastSort} onValueChange={(value) => onPastSortChange(value as PastSort)}>
-                    <SelectTrigger className="w-[170px]">
+                    <SelectTrigger className="w-full sm:w-[170px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -259,13 +267,13 @@ export const MemberTasksPanel = ({
                 </>
               )}
 
-              <Button variant="ghost" onClick={onClearFilters}>
+              <Button variant="ghost" className={isMobile ? 'w-full justify-center' : undefined} onClick={onClearFilters}>
                 {t`Clear filters`}
               </Button>
 
               <Button
                 variant="ghost"
-                className="ml-auto"
+                className={isMobile ? 'w-full justify-center' : 'ml-auto'}
                 onClick={onRefresh}
                 disabled={!selectedAssigneeId || tasksLoading}
               >
@@ -275,6 +283,7 @@ export const MemberTasksPanel = ({
               {selectedCount > 0 && (
                 <Button
                   variant="destructive"
+                  className={isMobile ? 'w-full justify-center' : undefined}
                   onClick={onDeleteSelected}
                   disabled={tasksLoading}
                 >
@@ -284,7 +293,7 @@ export const MemberTasksPanel = ({
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto px-6 py-4">
+          <div className={`flex-1 overflow-auto ${sectionPadding}`}>
             {tasksLoading && (
               <div className="text-sm text-muted-foreground">{t`Loading tasks...`}</div>
             )}
@@ -295,6 +304,87 @@ export const MemberTasksPanel = ({
               <>
                 {displayTaskRows.length === 0 ? (
                   <div className="text-sm text-muted-foreground">{t`No tasks match the current filters.`}</div>
+                ) : isMobile ? (
+                  <div className="space-y-3">
+                    {displayTaskRows.map((row) => {
+                      const { task } = row;
+                      const status = statusById.get(task.statusId);
+                      const project = task.projectId ? projectById.get(task.projectId) : null;
+                      const selectedInRow = row.taskIds.filter((taskId) => selectedTaskIds.has(taskId)).length;
+                      const rowChecked: boolean | 'indeterminate' = (
+                        selectedInRow === row.taskIds.length
+                          ? true
+                          : selectedInRow > 0
+                            ? 'indeterminate'
+                            : false
+                      );
+
+                      return (
+                        <div
+                          key={row.key}
+                          className="rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted/40"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div onClick={(event) => event.stopPropagation()}>
+                              <Checkbox
+                                checked={rowChecked}
+                                onCheckedChange={(value) => onToggleTask(row.taskIds, value as boolean | 'indeterminate')}
+                                aria-label={t`Select task ${task.title}`}
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              className="min-w-0 flex-1 text-left"
+                              onClick={() => onSelectTask(task.id)}
+                            >
+                              <div className="space-y-1">
+                                <div className="text-sm font-medium leading-snug break-words [overflow-wrap:anywhere] line-clamp-2">
+                                  {task.title}
+                                </div>
+                                {row.repeatMeta && (
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <Badge variant="outline" className="text-[10px]">
+                                      {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                                <div>
+                                  {status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {project ? (
+                                    <>
+                                      <span
+                                        className="inline-flex h-2 w-2 rounded-full"
+                                        style={{ backgroundColor: project.color }}
+                                      />
+                                      <span className="break-words [overflow-wrap:anywhere]">
+                                        {formatProjectLabel(project.name, project.code)}
+                                      </span>
+                                      {project.archived && (
+                                        <Badge variant="secondary" className="text-[10px]">{t`Archived`}</Badge>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span>{t`No project`}</span>
+                                  )}
+                                </div>
+                                <div>
+                                  {format(parseISO(task.startDate), 'dd MMM yyyy')} – {format(parseISO(task.endDate), 'dd MMM yyyy')}
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -384,12 +474,12 @@ export const MemberTasksPanel = ({
                   </Table>
                 )}
                 {taskScope === 'past' && displayTotalCount > taskScopePageSize && (
-                  <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <div className={`mt-4 text-xs text-muted-foreground ${isMobile ? 'space-y-2' : 'flex items-center justify-between'}`}>
                     <span>
                       {Math.min(displayTotalCount, (pageIndex - 1) * taskScopePageSize + 1)}–
                       {Math.min(displayTotalCount, pageIndex * taskScopePageSize)} {t`of`} {displayTotalCount}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className={`flex items-center gap-2 ${isMobile ? 'justify-between' : ''}`}>
                       <Button
                         variant="outline"
                         size="sm"

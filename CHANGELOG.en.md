@@ -7,6 +7,205 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.97] - 2026-03-09
+### Changed
+- The login screen now serves the correct favicon immediately for light and dark browser themes.
+
+## [0.2.96] - 2026-03-09
+### Fixed
+- Favicons now follow the browser color scheme: the light icon is used in light mode, the dark icon in dark mode, including the login screen.
+
+## [0.2.95] - 2026-03-09
+### Fixed
+- Favicon assets are now synchronized across the public site and login screen: fallback icons, edge proxy routes, and the Keycloak theme favicon were updated.
+
+## [0.2.94] - 2026-03-09
+### Changed
+- Public branding assets refreshed: the site now uses the updated favicon and public images.
+
+## [0.2.93] - 2026-03-09
+### Changed
+- No documented changes.
+
+## [0.2.92] - 2026-03-08
+### Security
+- PostgreSQL port (54322) rebound from `0.0.0.0` to `127.0.0.1` — external internet access closed.
+
+## [0.2.91] - 2026-03-08
+### Changed
+- Backup service: dump integrity validation via `pg_restore --list` and non-zero file size check after `pg_dump`.
+- Edge functions (admin, invite): DB/infrastructure error codes corrected from 400 to 500.
+- Admin edge function: added error handling in `Promise.all` for profiles, members, tasks, owners queries.
+- Caddy: added `Strict-Transport-Security` header (HSTS, max-age=1 year) for motio.nikog.net.
+
+## [0.2.90] - 2026-03-08
+### Changed
+- No documented changes.
+
+## [0.2.89] - 2026-03-07
+### Changed
+- Workspace settings: the General and Workflow top tabs now use the shared project tab style.
+
+## [0.2.88] - 2026-03-07
+### Changed
+- No documented changes.
+
+## [0.2.87] - 2026-03-07
+### Changed
+- Planner: removed the experimental timeline task title shifting so labels render again in their original static layout.
+
+## [0.2.86] - 2026-03-07
+### Changed
+- Planner: long timeline task titles now stay within the visible segment and do not drift deeper into the bar after shifting.
+
+## [0.2.85] - 2026-03-07
+### Changed
+- Planner: minimal shifted task titles now reach the visible boundary correctly and remain readable.
+
+## [0.2.84] - 2026-03-07
+### Changed
+- Planner: long timeline task titles stop shifting inside the bar once they reach the visible boundary.
+
+## [0.2.83] - 2026-03-07
+### Changed
+- Planner: long timeline tasks now show the remaining title in a compact two-line mode instead of truncating too early.
+
+## [0.2.82] - 2026-03-07
+### Changed
+- Planner: timeline task labels now stay in place when the title is already visible, and the project name remains in the default layout.
+
+## [0.2.81] - 2026-03-07
+### Changed
+- Planner: timeline label shifting now applies only to genuinely long tasks, while short partially clipped tasks keep their default label position.
+
+## [0.2.80] - 2026-03-07
+### Changed
+- Planner: long timeline tasks now shift their label into the visible segment and hide secondary info when space is tight.
+
+## [0.2.79] - 2026-03-07
+### Changed
+- Team: aligned width and internal layout of Active/Disabled/History controls in the access sidebar.
+
+## [0.2.78] - 2026-03-07
+### Changed
+- Team: moved Active/Disabled/History access views and search into the left sidebar.
+
+## [0.2.77] - 2026-03-07
+### Changed
+- No documented changes.
+
+## [0.2.76] - 2026-03-07
+### Changed
+- No documented changes.
+
+## [0.2.75] - 2026-03-07
+### Changed
+- No documented changes.
+
+## [0.2.74] - 2026-03-07
+### Changed
+- No documented changes.
+
+## [0.2.73] - 2026-03-07
+### Changed
+- No documented changes.
+
+## [0.2.72] - 2026-03-06
+### Changed
+- No documented changes.
+
+## [0.2.71] - 2026-03-06
+### Changed
+- No documented changes.
+
+## [0.2.70] - 2026-03-06
+### Added
+- Landing: refreshed homepage design with animated demo blocks, updated sections, and expanded Russian localization copy.
+
+### Fixed
+- Keycloak: increased spacing between cards on 'Account already exists', made the back-to-other-sign-in action explicit, and aligned the warning block with Motio styling.
+
+## [0.2.69] - 2026-03-06
+### Fixed
+- Fixed Keycloak 'Account already exists' screen: action buttons no longer merge and text is compact; 'Return to Home' is now placed above the footer signature.
+
+## [0.2.68] - 2026-03-06
+### Changed
+- Styled Keycloak 'Account already exists' linking screens to match Motio and added a return-to-home action on login pages.
+
+## [0.2.67] - 2026-03-06
+### Fixed
+- Fixed assignee picker ordering while popover is open: no jump or auto-scroll until it closes.
+- Removed duplicate assignment notifications when creating recurring task series.
+
+## [0.2.66] - 2026-03-06
+### Changed
+- No documented changes.
+
+## [0.2.65] - 2026-03-06
+### Changed
+- No documented changes.
+
+## [0.2.64] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.63] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.62] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.61] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.60] - 2026-03-05
+### Fixed
+- Fixed dashboard crash on /app/dashboard caused by a missing Settings import ('Settings is not defined').
+
+## [0.2.59] - 2026-03-05
+### Changed
+- No documented changes.
+
+## [0.2.58] - 2026-03-03
+### Changed
+- No documented changes.
+
+## [0.2.57] - 2026-03-03
+### Changed
+- No documented changes.
+
+## [0.2.56] - 2026-03-03
+### Changed
+- No documented changes.
+
+## [0.2.55] - 2026-03-03
+### Changed
+- No documented changes.
+
+## [0.2.54] - 2026-03-02
+### Changed
+- No documented changes.
+
+## [0.2.53] - 2026-03-02
+### Changed
+- No documented changes.
+
+## [0.2.52] - 2026-03-02
+### Changed
+- No documented changes.
+
+## [0.2.51] - 2026-03-02
+### Changed
+- No documented changes.
+
+## [0.2.50] - 2026-03-02
+### Changed
+- No documented changes.
+
 ## [0.2.49] - 2026-03-01
 ### Changed
 - No documented changes.
