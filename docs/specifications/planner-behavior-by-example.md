@@ -277,3 +277,44 @@ Then:
 Покрытие:
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
 - `src/test/planner/timelineGrid.scrollSurface.test.tsx`
+
+## Scenario 16: Task comment save uses the signed-in author and keeps the draft on failure
+
+Given:
+- пользователь открыл детали задачи и ввел комментарий;
+- сессия авторизации уже загружена.
+
+When:
+- пользователь нажимает `Save` в редакторе комментария.
+
+Then:
+- новый комментарий создается от `session.user.id`;
+- комментарий сразу появляется в треде задачи;
+- редактор нового комментария открывается высотой одной строки и растет по мере ввода;
+- браузерные пустые строки в начале/конце комментария не сохраняются автоматически;
+- если сохранение не удалось, текст в редакторе не очищается и пользователь видит ошибку.
+
+Покрытие:
+- `src/features/planner/components/TaskCommentSection.tsx`
+- `src/features/planner/lib/taskCommentEditorHtml.ts`
+- `src/test/planner/taskCommentEditorHtml.test.ts`
+
+## Scenario 17: Task comment soft delete is allowed for the author and workspace admin
+
+Given:
+- у задачи есть существующий комментарий;
+- комментарий еще не soft-deleted.
+
+When:
+- автор комментария или admin workspace нажимает `Delete`.
+
+Then:
+- приложение выполняет soft-delete через серверный сценарий и обновляет `deleted_at`;
+- комментарий исчезает из треда без ошибки RLS;
+- поля автора, workspace и задачи комментария не могут быть изменены через update path.
+
+Покрытие:
+- `src/infrastructure/tasks/taskCommentsRepository.ts`
+- `src/test/planner/taskCommentsRepository.test.ts`
+- `infra/supabase/migrations/0052_fix_task_comment_soft_delete_policy.sql`
+- `infra/supabase/migrations/0053_add_soft_delete_task_comment_rpc.sql`
