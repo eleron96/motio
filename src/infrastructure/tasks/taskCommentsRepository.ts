@@ -294,14 +294,12 @@ export const deleteTaskComment = async (
   workspaceId: string,
   commentId: string,
 ): Promise<{ error?: string }> => {
-  const { error } = await supabase
-    .from('task_comments')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', commentId)
-    .eq('workspace_id', workspaceId)
-    .is('deleted_at', null);
-
+  const { data, error } = await supabase.rpc('soft_delete_task_comment', {
+    target_workspace_id: workspaceId,
+    target_comment_id: commentId,
+  });
   if (error) return { error: error.message };
+  if (!data) return { error: 'Comment not found or no permission.' };
   return {};
 };
 

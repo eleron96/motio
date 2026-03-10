@@ -56,6 +56,11 @@ import { toast } from '@/shared/ui/sonner';
 import { cn } from '@/shared/lib/classNames';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import {
+  hasTaskCommentRichTags,
+  normalizeTaskCommentEditorHtml,
+  normalizeTaskCommentPlainText,
+} from '@/features/planner/lib/taskCommentEditorHtml';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import type { Assignee, TaskComment } from '@/features/planner/types/planner';
 import {
@@ -93,15 +98,11 @@ const monogram = (name: string): string => {
   return (name.slice(0, 2)).toUpperCase();
 };
 
-const hasRichTags = (v: string) =>
-  /<\/?(b|strong|i|em|u|s|strike|ul|ol|li|blockquote|br|div|p|span|img)\b/i.test(v);
-
-const normalizePlain = (t: string) => t.replace(/\u00a0/g, ' ');
-const isEmpty = (t: string) => normalizePlain(t).trim().length === 0;
+const isEmpty = (t: string) => normalizeTaskCommentPlainText(t).trim().length === 0;
 
 const setEditorValue = (editor: HTMLDivElement, value: string) => {
   if (!value) { editor.innerHTML = ''; return; }
-  if (hasRichTags(value)) { editor.innerHTML = sanitizeCommentHtml(value); return; }
+  if (hasTaskCommentRichTags(value)) { editor.innerHTML = sanitizeCommentHtml(value); return; }
   editor.textContent = value;
 };
 
@@ -112,7 +113,7 @@ const extractEditorValue = (editor: HTMLDivElement): string => {
     const img = wrapper.querySelector('img');
     if (img) wrapper.replaceWith(img); else wrapper.remove();
   });
-  const html = DOMPurify.sanitize(clone.innerHTML, {
+  const html = DOMPurify.sanitize(normalizeTaskCommentEditorHtml(clone.innerHTML), {
     ALLOWED_TAGS: [
       'b', 'strong', 'i', 'em', 'u', 's', 'strike',
       'ul', 'ol', 'li', 'blockquote',
@@ -129,7 +130,7 @@ const extractEditorValue = (editor: HTMLDivElement): string => {
   const text = editor.innerText ?? '';
   const hasImages = /<img\b/i.test(html);
   if (!hasImages && isEmpty(text)) return '';
-  return hasRichTags(html) ? html : normalizePlain(text);
+  return hasTaskCommentRichTags(html) ? html : normalizeTaskCommentPlainText(text);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -427,6 +428,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       const editor = editorRef.current;
       if (editor) { editor.innerHTML = ''; lastValueRef.current = ''; }
       setPlainLength(0);
+    } catch {
+      // Keep the draft intact so the user can retry after a failed save.
     } finally {
       setSaving(false);
     }
@@ -517,7 +520,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         suppressContentEditableWarning
         data-placeholder={placeholder ?? t`Add a comment or update...`}
         className={cn(
-          'rich-text-editor border-0 ring-0 focus-visible:ring-0 min-h-[80px] max-h-[40vh] overflow-y-auto',
+          'rich-text-editor border-0 ring-0 focus-visible:ring-0 min-h-[2.25rem] max-h-[40vh] overflow-y-auto leading-5',
           isFileDragOver && 'border-primary/60 bg-primary/5 ring-2 ring-primary/30',
           disabled && 'opacity-60 cursor-not-allowed',
         )}
@@ -802,7 +805,6 @@ const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
         ) : (
           <div
             className="comment-body rich-text-editor border-0 ring-0 p-0 min-h-0 text-sm"
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: sanitizeCommentHtml(comment.content) }}
           />
         )}
@@ -886,8 +888,11 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
 
-  const currentUserId = useAuthStore((s) => s.userId);
-  const currentUserDisplayName = useAuthStore((s) => s.displayName ?? '');
+  const currentUser = useAuthStore((s) => s.user);
+  const currentUserId = currentUser?.id ?? null;
+  const currentUserDisplayName = useAuthStore(
+    (s) => s.profileDisplayName ?? s.user?.email ?? '',
+  );
   const currentWorkspaceRole = useAuthStore((s) => s.currentWorkspaceRole);
   const isAdmin = currentWorkspaceRole === 'admin';
 
@@ -937,7 +942,11 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
 
   // ── create new comment
   const handleCreate = async (html: string) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      const message = t`You need to sign in again before adding comments.`;
+      toast(t`Failed to add comment`, { description: message });
+      throw new Error(message);
+    }
     const mentionedUserIds = extractMentionedUserIds(html);
     const result = await createTaskComment({
       workspaceId,
@@ -948,7 +957,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     });
     if ('error' in result) {
       toast(t`Failed to add comment`, { description: result.error });
-      return;
+      throw new Error(result.error);
     }
     // Optimistic: append at the end (newest last)
     setComments((prev) => [...prev, result.data]);
