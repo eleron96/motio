@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Task comments: editor with @mentions, notifications, and a timeline counter.
+
 ## [0.2.97] - 2026-03-09
 ### Changed
 - The login screen now serves the correct favicon immediately for light and dark browser themes.
