@@ -14,6 +14,7 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { Assignee, Customer, Milestone, Project, Status, Task } from '@/features/planner/types/planner';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 type DisplayTaskRow = {
   key: string;
@@ -102,6 +103,9 @@ export const ProjectsMainPanel = ({
   customersCount,
   onOpenProjectFromCustomer,
 }: ProjectsMainPanelProps) => {
+  const isMobile = useIsMobile();
+  const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
+
   return (
     <section className="h-full min-h-0 min-w-0 overflow-hidden flex flex-col">
       {mode === 'projects' ? (
@@ -114,7 +118,7 @@ export const ProjectsMainPanel = ({
 
           {selectedProject && (
             <div className="flex flex-1 flex-col overflow-hidden">
-              <div className="border-b border-border px-6 py-4">
+              <div className={`border-b border-border ${sectionPadding}`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div>
@@ -132,17 +136,19 @@ export const ProjectsMainPanel = ({
                 </div>
               </div>
 
-              <div className="px-6 py-4 border-b border-border">
-                <div className="flex flex-wrap items-center gap-3">
+              <div className={`border-b border-border ${sectionPadding}`}>
+                <div className={isMobile ? 'flex flex-col items-stretch gap-2' : 'flex flex-wrap items-center gap-3'}>
                   <Input
-                    className="w-[220px]"
+                    className="w-full sm:w-[220px]"
                     placeholder={t`Search tasks...`}
                     value={search}
                     onChange={(event) => onSearchChange(event.target.value)}
                   />
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline">{statusFilterLabel}</Button>
+                      <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
+                        {statusFilterLabel}
+                      </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-56 p-2" align="start">
                       <div className="flex gap-2 pb-2">
@@ -168,7 +174,9 @@ export const ProjectsMainPanel = ({
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline">{assigneeFilterLabel}</Button>
+                      <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
+                        {assigneeFilterLabel}
+                      </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-56 p-2" align="start">
                       <ScrollArea className="max-h-48 pr-2">
@@ -195,13 +203,13 @@ export const ProjectsMainPanel = ({
                     </PopoverContent>
                   </Popover>
 
-                  <Button variant="ghost" onClick={onClearFilters}>
+                  <Button variant="ghost" className={isMobile ? 'w-full justify-center' : undefined} onClick={onClearFilters}>
                     {t`Clear filters`}
                   </Button>
 
                   <Button
                     variant="ghost"
-                    className="ml-auto"
+                    className={isMobile ? 'w-full justify-center' : 'ml-auto'}
                     onClick={onRefreshTasks}
                     disabled={!selectedProjectId || tasksLoading}
                   >
@@ -211,7 +219,7 @@ export const ProjectsMainPanel = ({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-auto px-6 py-4">
+              <div className={`flex-1 overflow-auto ${sectionPadding}`}>
                 {tasksLoading && (
                   <div className="text-sm text-muted-foreground">{t`Loading tasks...`}</div>
                 )}
@@ -222,6 +230,68 @@ export const ProjectsMainPanel = ({
                   <>
                     {displayTaskRows.length === 0 ? (
                       <div className="text-sm text-muted-foreground">{t`No tasks match the current filters.`}</div>
+                    ) : isMobile ? (
+                      <div className="space-y-3">
+                        {displayTaskRows.map((row) => {
+                          const { task } = row;
+                          const status = statusById.get(task.statusId);
+                          const assigneesList = task.assigneeIds
+                            .map((id) => assigneeById.get(id))
+                            .filter((assignee): assignee is NonNullable<typeof assignee> => Boolean(assignee));
+
+                          return (
+                            <button
+                              key={row.key}
+                              type="button"
+                              className="w-full rounded-xl border border-border px-4 py-3 text-left transition-colors hover:bg-muted/40"
+                              onClick={() => onSelectTask(task.id)}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 space-y-1">
+                                  <div className="text-sm font-medium leading-snug break-words [overflow-wrap:anywhere] line-clamp-2">
+                                    {task.title}
+                                  </div>
+                                  {row.repeatMeta && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Badge variant="outline" className="text-[10px]">
+                                        {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
+                                      </Badge>
+                                      <span className="text-xs text-muted-foreground">
+                                        {formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                {status && (
+                                  <Badge variant="secondary" className="shrink-0 text-[10px]">
+                                    {formatStatusLabel(status.name, status.emoji)}
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                                <div>
+                                  {assigneesList.length === 0 ? (
+                                    <span>{t`Unassigned`}</span>
+                                  ) : (
+                                    <div className="flex flex-wrap gap-1">
+                                      {assigneesList.map((assignee) => (
+                                        <Badge key={assignee.id} variant="secondary" className="text-[10px]">
+                                          {assignee.name}
+                                          {!assignee.isActive && ` ${t`(disabled)`}`}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <div>
+                                  {format(parseISO(task.startDate), 'dd MMM yyyy')} – {format(parseISO(task.endDate), 'dd MMM yyyy')}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     ) : (
                       <Table>
                         <TableHeader>
@@ -315,7 +385,7 @@ export const ProjectsMainPanel = ({
           )}
           {selectedMilestone && (
             <div className="flex flex-1 flex-col overflow-hidden">
-              <div className="border-b border-border px-6 py-4">
+              <div className={`border-b border-border ${sectionPadding}`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
                     <CalendarDays className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
@@ -336,9 +406,10 @@ export const ProjectsMainPanel = ({
                       <Badge variant="secondary">{t`Archived`}</Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className={isMobile ? 'flex w-full flex-col gap-2' : 'flex items-center gap-2'}>
                     <Button
                       variant="outline"
+                      className={isMobile ? 'w-full' : undefined}
                       onClick={() => onOpenProjectFromMilestone(selectedMilestone)}
                       disabled={!selectedMilestoneProject}
                     >
@@ -346,6 +417,7 @@ export const ProjectsMainPanel = ({
                     </Button>
                     <Button
                       variant="outline"
+                      className={isMobile ? 'w-full' : undefined}
                       onClick={() => onOpenMilestoneSettings(selectedMilestone)}
                       disabled={!canEdit}
                     >
@@ -353,6 +425,7 @@ export const ProjectsMainPanel = ({
                     </Button>
                     <Button
                       variant="destructive"
+                      className={isMobile ? 'w-full' : undefined}
                       onClick={() => onRequestDeleteMilestone(selectedMilestone)}
                       disabled={!canEdit}
                     >
@@ -361,7 +434,7 @@ export const ProjectsMainPanel = ({
                   </div>
                 </div>
               </div>
-              <div className="flex-1 overflow-auto px-6 py-4">
+              <div className={`flex-1 overflow-auto ${sectionPadding}`}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <div className="text-xs text-muted-foreground">{t`Date`}</div>
@@ -394,7 +467,7 @@ export const ProjectsMainPanel = ({
         </div>
       ) : (
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="border-b border-border px-6 py-4">
+          <div className={`border-b border-border ${sectionPadding}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="text-lg font-semibold">
@@ -408,7 +481,7 @@ export const ProjectsMainPanel = ({
               </div>
             </div>
           </div>
-          <div className="flex-1 overflow-auto px-6 py-4">
+          <div className={`flex-1 overflow-auto ${sectionPadding}`}>
             {!selectedCustomer && (
               <div className="text-sm text-muted-foreground">{t`Choose a customer to see their projects.`}</div>
             )}

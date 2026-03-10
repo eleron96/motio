@@ -1,6 +1,7 @@
 import { addYears, format, parseISO } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import type {
   PlannerGetState,
@@ -25,6 +26,8 @@ import {
   SupabaseResult,
   TaskRow,
 } from '@/features/planner/store/plannerStore.helpers';
+import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
+import { buildWorkspaceMemberActivityActorSnapshot } from '@/shared/domain/workspaceMemberActivity';
 
 type WorkspaceActions = Pick<
   PlannerStore,
@@ -275,6 +278,7 @@ export const createWorkspaceActions = (
     ));
     const nextTrackedProjectIds = get().trackedProjectIds;
     const activeProjectIds = new Set(nextProjects.filter((project) => !project.archived).map((project) => project.id));
+    const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
     const activeGroupIds = new Set(memberGroups.map((group) => group.id));
 
     if (get().dataRequestId !== requestId) return;
@@ -295,6 +299,7 @@ export const createWorkspaceActions = (
       filters: {
         ...state.filters,
         projectIds: state.filters.projectIds.filter((id) => activeProjectIds.has(id)),
+        assigneeIds: state.filters.assigneeIds.filter((id) => activeAssigneeIds.has(id)),
         groupIds: state.filters.groupIds.filter((id) => activeGroupIds.has(id)),
       },
       loading: false,
@@ -366,7 +371,15 @@ export const createWorkspaceActions = (
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);
 
-    set({ assignees });
+    const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
+
+    set((state) => ({
+      assignees,
+      filters: {
+        ...state.filters,
+        assigneeIds: state.filters.assigneeIds.filter((id) => activeAssigneeIds.has(id)),
+      },
+    }));
   },
 
   refreshMemberGroups: async () => {
@@ -500,6 +513,24 @@ export const createWorkspaceActions = (
     }
 
     await get().refreshMemberGroups();
+    const authState = useAuthStore.getState();
+    const { actorUserId, actorLabel } = buildWorkspaceMemberActivityActorSnapshot({
+      userId: authState.user?.id,
+      displayName: authState.profileDisplayName,
+      email: authState.user?.email,
+    });
+    const logResult = await recordWorkspaceMemberActivity({
+      workspaceId,
+      action: 'group_created',
+      actorUserId,
+      actorLabel,
+      details: {
+        groupName: trimmedName,
+      },
+    });
+    if (logResult.error) {
+      console.error(logResult.error);
+    }
     return { groupId: (data as { id: string }).id };
   },
 
@@ -508,6 +539,7 @@ export const createWorkspaceActions = (
     if (!trimmedName) {
       return { error: 'Group name is required.' };
     }
+    const currentGroup = get().memberGroups.find((group) => group.id === groupId) ?? null;
 
     const { error } = await supabase
       .from('member_groups')
@@ -520,10 +552,32 @@ export const createWorkspaceActions = (
     }
 
     await get().refreshMemberGroups();
+    if (currentGroup && currentGroup.name !== trimmedName) {
+      const authState = useAuthStore.getState();
+      const { actorUserId, actorLabel } = buildWorkspaceMemberActivityActorSnapshot({
+        userId: authState.user?.id,
+        displayName: authState.profileDisplayName,
+        email: authState.user?.email,
+      });
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'group_renamed',
+        actorUserId,
+        actorLabel,
+        details: {
+          previousGroupName: currentGroup.name,
+          nextGroupName: trimmedName,
+        },
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
     return {};
   },
 
   deleteMemberGroup: async (workspaceId, groupId) => {
+    const currentGroup = get().memberGroups.find((group) => group.id === groupId) ?? null;
     const { error } = await supabase
       .from('member_groups')
       .delete()
@@ -535,6 +589,26 @@ export const createWorkspaceActions = (
     }
 
     await get().refreshMemberGroups();
+    if (currentGroup) {
+      const authState = useAuthStore.getState();
+      const { actorUserId, actorLabel } = buildWorkspaceMemberActivityActorSnapshot({
+        userId: authState.user?.id,
+        displayName: authState.profileDisplayName,
+        email: authState.user?.email,
+      });
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'group_deleted',
+        actorUserId,
+        actorLabel,
+        details: {
+          groupName: currentGroup.name,
+        },
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
     return {};
   },
 });

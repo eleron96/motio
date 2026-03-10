@@ -12,6 +12,7 @@ import { cn } from '@/shared/lib/classNames';
 
 type Mode = 'tasks' | 'access' | 'groups';
 type Tab = 'active' | 'disabled';
+type AccessTab = 'active' | 'disabled' | 'history';
 
 type MemberGroupBucket = {
   id: string;
@@ -27,11 +28,18 @@ type GroupRecord = {
 };
 
 type MembersSidebarProps = {
+  className?: string;
   mode: Mode;
   onModeChange: (mode: Mode) => void;
   isAdmin: boolean;
   tab: Tab;
   onTabChange: (tab: Tab) => void;
+  accessTab: AccessTab;
+  onAccessTabChange: (tab: AccessTab) => void;
+  accessSearch: string;
+  onAccessSearchChange: (value: string) => void;
+  activeAccessCount: number;
+  disabledAccessCount: number;
   memberSearch: string;
   onMemberSearchChange: (value: string) => void;
   memberSort: 'asc' | 'desc';
@@ -63,11 +71,18 @@ type MembersSidebarProps = {
 };
 
 export const MembersSidebar = ({
+  className,
   mode,
   onModeChange,
   isAdmin,
   tab,
   onTabChange,
+  accessTab,
+  onAccessTabChange,
+  accessSearch,
+  onAccessSearchChange,
+  activeAccessCount,
+  disabledAccessCount,
   memberSearch,
   onMemberSearchChange,
   memberSort,
@@ -98,7 +113,7 @@ export const MembersSidebar = ({
   onDeleteGroup,
 }: MembersSidebarProps) => {
   return (
-    <aside className="w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col">
+    <aside className={cn('w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col', className)}>
       <div className="px-4 py-3 border-b border-border">
         <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
           <Button
@@ -110,7 +125,7 @@ export const MembersSidebar = ({
               mode === 'tasks' && 'bg-foreground text-background shadow-sm'
             )}
           >
-            {t`Tasks`}
+            {t`People`}
           </Button>
           {isAdmin && (
             <Button
@@ -149,7 +164,7 @@ export const MembersSidebar = ({
             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
               <Input
                 className="h-8"
-                placeholder={t`Search members...`}
+                placeholder={t`Search people...`}
                 value={memberSearch}
                 onChange={(event) => onMemberSearchChange(event.target.value)}
               />
@@ -278,6 +293,63 @@ export const MembersSidebar = ({
             </ScrollArea>
           </TabsContent>
         </Tabs>
+      )}
+
+      {mode === 'access' && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="px-4 py-3 border-b border-border space-y-3">
+            <div className="space-y-2">
+              {[
+                {
+                  value: 'active' as const,
+                  label: t`Active`,
+                  count: activeAccessCount,
+                },
+                {
+                  value: 'disabled' as const,
+                  label: t`Disabled`,
+                  count: disabledAccessCount,
+                },
+                {
+                  value: 'history' as const,
+                  label: t`History`,
+                },
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => onAccessTabChange(item.value)}
+                  className={`box-border w-full rounded-lg border px-3 py-3 text-left transition-colors ${
+                    accessTab === item.value
+                      ? 'border-foreground/60 bg-muted/60'
+                      : 'border-border hover:bg-muted/40'
+                  }`}
+                >
+                  <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                    <span className="min-w-0 text-sm font-medium">{item.label}</span>
+                    {typeof item.count === 'number' && (
+                      <Badge variant="secondary" className="h-5 min-w-6 justify-center px-1.5 text-[10px] tabular-nums">
+                        {item.count}
+                      </Badge>
+                    )}
+                    {typeof item.count !== 'number' && (
+                      <span className="h-5 w-6" aria-hidden="true" />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {accessTab !== 'history' && (
+              <Input
+                className="h-8"
+                placeholder={t`Search people...`}
+                value={accessSearch}
+                onChange={(event) => onAccessSearchChange(event.target.value)}
+              />
+            )}
+          </div>
+        </div>
       )}
 
       {mode === 'groups' && (

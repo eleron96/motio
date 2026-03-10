@@ -451,3 +451,9 @@
 .task-highlight-mode .task-bar.task-highlight {
   opacity: 1;
 }
+
+.timeline-drag-scroll-active .task-bar,
+.timeline-drag-scroll-active .milestone-dot,
+.timeline-drag-scroll-active .milestone-cell {
+  pointer-events: none !important;
+}

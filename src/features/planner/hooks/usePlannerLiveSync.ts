@@ -56,8 +56,10 @@ const MILESTONE_SELECT = [
 const EVENT_FLUSH_MS = 320;
 const EVENT_BATCH_SIZE = 120;
 const INTERACTION_RETRY_MS = 220;
+const INITIAL_RECONCILE_DELAY_MS = 15_000;
 const FALLBACK_POLL_BASE_MS = 45_000;
 const FALLBACK_POLL_MAX_MS = 180_000;
+const FALLBACK_FAILURE_MAX = 6;
 const POLL_JITTER_RATIO = 0.18;
 
 const mapMilestoneRow = (row: MilestoneSyncRow): Milestone => ({
@@ -105,14 +107,18 @@ export const usePlannerLiveSync = (
     }
 
     let active = true;
+    let lifecycleEpoch = 0;
     const pendingTaskUpserts = new Set<string>();
     const pendingMilestoneUpserts = new Set<string>();
     let flushTimer: number | null = null;
-    let flushInFlight = false;
-    let reconcileInFlight = false;
     let fallbackTimer: number | null = null;
+    let initialReconcileTimer: number | null = null;
+    let syncInFlight = false;
+    let flushRequested = false;
+    let reconcileRequested = false;
     let fallbackFailureCount = 0;
     let channelHealthy = true;
+    let hasSubscribedOnce = false;
     const rangeRef: LoadedRange = loadedRange;
     const workspaceRef = workspaceId;
 
@@ -122,6 +128,8 @@ export const usePlannerLiveSync = (
     if (!lastMilestoneSyncAtRef.current) {
       lastMilestoneSyncAtRef.current = new Date().toISOString();
     }
+
+    const isLifecycleActive = (epoch: number) => active && epoch === lifecycleEpoch;
 
     const clearFlushTimer = () => {
       if (flushTimer !== null && typeof window !== 'undefined') {
@@ -137,19 +145,285 @@ export const usePlannerLiveSync = (
       fallbackTimer = null;
     };
 
+    const clearInitialReconcileTimer = () => {
+      if (initialReconcileTimer !== null && typeof window !== 'undefined') {
+        window.clearTimeout(initialReconcileTimer);
+      }
+      initialReconcileTimer = null;
+    };
+
+    const canRunReconcileNow = () => (
+      typeof document === 'undefined' || !document.hidden
+    );
+
+    const resetFallbackFailures = () => {
+      fallbackFailureCount = 0;
+    };
+
+    const growFallbackFailures = () => {
+      fallbackFailureCount = Math.min(fallbackFailureCount + 1, FALLBACK_FAILURE_MAX);
+    };
+
+    const runSyncRunner = async () => {
+      if (!active || syncInFlight) return;
+      syncInFlight = true;
+      try {
+        while (active) {
+          const shouldRunFlush = flushRequested;
+          const shouldRunReconcile = reconcileRequested && canRunReconcileNow();
+          if (!shouldRunFlush && !shouldRunReconcile) {
+            break;
+          }
+
+          if (shouldRunFlush) {
+            flushRequested = false;
+            const interactionUntil = usePlannerStore.getState().timelineInteractingUntil;
+            const shouldDeferUpserts = (
+              Date.now() < interactionUntil
+              && (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0)
+            );
+
+            if (shouldDeferUpserts) {
+              if (active && typeof window !== 'undefined') {
+                clearFlushTimer();
+                flushTimer = window.setTimeout(() => {
+                  flushTimer = null;
+                  flushRequested = true;
+                  void runSyncRunner();
+                }, INTERACTION_RETRY_MS);
+              }
+            } else {
+              const taskUpsertIds = takeFromSet(pendingTaskUpserts, EVENT_BATCH_SIZE);
+              if (taskUpsertIds.length > 0) {
+                const taskQueryEpoch = lifecycleEpoch;
+                const { data, error } = await supabase
+                  .from('tasks')
+                  .select(TASK_SELECT)
+                  .eq('workspace_id', workspaceRef)
+                  .in('id', taskUpsertIds);
+
+                if (!isLifecycleActive(taskQueryEpoch)) {
+                  break;
+                }
+
+                if (error) {
+                  console.error(error);
+                  taskUpsertIds.forEach((id) => pendingTaskUpserts.add(id));
+                  reconcileRequested = true;
+                } else {
+                  const rows = (data ?? []) as TaskSyncRow[];
+                  const byId = new Map(rows.map((row) => [row.id, row]));
+                  const upsertRows = rows.filter((row) => inTaskRange(row, rangeRef));
+                  if (upsertRows.length > 0) {
+                    upsertTasks(upsertRows.map(mapTaskRow));
+                  }
+                  const removeIds = taskUpsertIds.filter((id) => {
+                    const row = byId.get(id);
+                    if (!row) return true;
+                    return !inTaskRange(row, rangeRef);
+                  });
+                  if (removeIds.length > 0) {
+                    removeTasksByIds(removeIds);
+                  }
+                }
+              }
+
+              const milestoneUpsertIds = takeFromSet(pendingMilestoneUpserts, EVENT_BATCH_SIZE);
+              if (milestoneUpsertIds.length > 0) {
+                const milestoneQueryEpoch = lifecycleEpoch;
+                const { data, error } = await supabase
+                  .from('milestones')
+                  .select(MILESTONE_SELECT)
+                  .eq('workspace_id', workspaceRef)
+                  .in('id', milestoneUpsertIds);
+
+                if (!isLifecycleActive(milestoneQueryEpoch)) {
+                  break;
+                }
+
+                if (error) {
+                  console.error(error);
+                  milestoneUpsertIds.forEach((id) => pendingMilestoneUpserts.add(id));
+                  reconcileRequested = true;
+                } else {
+                  const rows = (data ?? []) as MilestoneSyncRow[];
+                  const byId = new Map(rows.map((row) => [row.id, row]));
+                  const upsertRows = rows.filter((row) => inMilestoneRange(row, rangeRef));
+                  if (upsertRows.length > 0) {
+                    upsertMilestones(upsertRows.map(mapMilestoneRow));
+                  }
+                  const removeIds = milestoneUpsertIds.filter((id) => {
+                    const row = byId.get(id);
+                    if (!row) return true;
+                    return !inMilestoneRange(row, rangeRef);
+                  });
+                  if (removeIds.length > 0) {
+                    removeMilestonesByIds(removeIds);
+                  }
+                }
+              }
+
+              if (
+                active
+                && typeof window !== 'undefined'
+                && (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0)
+              ) {
+                clearFlushTimer();
+                flushTimer = window.setTimeout(() => {
+                  flushTimer = null;
+                  flushRequested = true;
+                  void runSyncRunner();
+                }, 80);
+              }
+            }
+          }
+
+          if (reconcileRequested) {
+            if (!canRunReconcileNow()) {
+              break;
+            }
+            reconcileRequested = false;
+
+            const reconcileEpoch = lifecycleEpoch;
+            const nowIso = new Date().toISOString();
+            const taskSince = lastTaskSyncAtRef.current ?? nowIso;
+            const milestoneSince = lastMilestoneSyncAtRef.current ?? nowIso;
+
+            const [
+              taskDeltaRes,
+              milestoneDeltaRes,
+              taskIdsRes,
+              milestoneIdsRes,
+            ] = await Promise.all([
+              supabase
+                .from('tasks')
+                .select(TASK_SELECT)
+                .eq('workspace_id', workspaceRef)
+                .gt('updated_at', taskSince)
+                .gte('end_date', rangeRef.start)
+                .lte('start_date', rangeRef.end)
+                .order('updated_at', { ascending: true })
+                .limit(1000),
+              supabase
+                .from('milestones')
+                .select(MILESTONE_SELECT)
+                .eq('workspace_id', workspaceRef)
+                .gt('updated_at', milestoneSince)
+                .gte('date', rangeRef.start)
+                .lte('date', rangeRef.end)
+                .order('updated_at', { ascending: true })
+                .limit(1000),
+              supabase
+                .from('tasks')
+                .select('id')
+                .eq('workspace_id', workspaceRef)
+                .gte('end_date', rangeRef.start)
+                .lte('start_date', rangeRef.end),
+              supabase
+                .from('milestones')
+                .select('id')
+                .eq('workspace_id', workspaceRef)
+                .gte('date', rangeRef.start)
+                .lte('date', rangeRef.end),
+            ]);
+
+            if (!isLifecycleActive(reconcileEpoch)) {
+              break;
+            }
+
+            if (taskDeltaRes.error || milestoneDeltaRes.error || taskIdsRes.error || milestoneIdsRes.error) {
+              console.error(taskDeltaRes.error ?? milestoneDeltaRes.error ?? taskIdsRes.error ?? milestoneIdsRes.error);
+              growFallbackFailures();
+              if (
+                !channelHealthy
+                && active
+                && typeof window !== 'undefined'
+                && canRunReconcileNow()
+              ) {
+                clearFallbackTimer();
+                const baseDelay = Math.min(
+                  FALLBACK_POLL_BASE_MS * (2 ** fallbackFailureCount),
+                  FALLBACK_POLL_MAX_MS,
+                );
+                const jitterWindow = Math.round(baseDelay * POLL_JITTER_RATIO);
+                const jitter = Math.round((Math.random() * 2 - 1) * jitterWindow);
+                const delayMs = Math.max(20_000, baseDelay + jitter);
+                fallbackTimer = window.setTimeout(() => {
+                  fallbackTimer = null;
+                  reconcileRequested = true;
+                  void runSyncRunner();
+                }, delayMs);
+              }
+              continue;
+            }
+
+            const taskRows = (taskDeltaRes.data ?? []) as TaskSyncRow[];
+            const milestoneRows = (milestoneDeltaRes.data ?? []) as MilestoneSyncRow[];
+
+            if (taskRows.length > 0) {
+              upsertTasks(taskRows.map(mapTaskRow));
+            }
+            if (milestoneRows.length > 0) {
+              upsertMilestones(milestoneRows.map(mapMilestoneRow));
+            }
+
+            const remoteTaskIds = new Set(((taskIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
+            const staleTaskIds = usePlannerStore.getState().tasks
+              .filter((task) => (
+                task.endDate >= rangeRef.start
+                && task.startDate <= rangeRef.end
+                && !remoteTaskIds.has(task.id)
+              ))
+              .map((task) => task.id);
+            if (staleTaskIds.length > 0) {
+              removeTasksByIds(staleTaskIds);
+            }
+
+            const remoteMilestoneIds = new Set(((milestoneIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
+            const staleMilestoneIds = usePlannerStore.getState().milestones
+              .filter((milestone) => (
+                milestone.date >= rangeRef.start
+                && milestone.date <= rangeRef.end
+                && !remoteMilestoneIds.has(milestone.id)
+              ))
+              .map((milestone) => milestone.id);
+            if (staleMilestoneIds.length > 0) {
+              removeMilestonesByIds(staleMilestoneIds);
+            }
+
+            lastTaskSyncAtRef.current = nowIso;
+            lastMilestoneSyncAtRef.current = nowIso;
+            resetFallbackFailures();
+          }
+        }
+      } finally {
+        syncInFlight = false;
+        if (active && (flushRequested || (reconcileRequested && canRunReconcileNow()))) {
+          void runSyncRunner();
+        }
+      }
+    };
+
     const scheduleFlush = (delayMs = EVENT_FLUSH_MS) => {
       if (!active || typeof window === 'undefined') return;
       clearFlushTimer();
       flushTimer = window.setTimeout(() => {
         flushTimer = null;
-        void flushQueue();
+        flushRequested = true;
+        void runSyncRunner();
       }, delayMs);
+    };
+
+    const requestReconcile = (_reason: 'focus' | 'fallback' | 'resubscribe' | 'channel') => {
+      if (!active) return;
+      reconcileRequested = true;
+      void runSyncRunner();
     };
 
     const scheduleFallbackPoll = () => {
       if (!active || typeof window === 'undefined') return;
       if (channelHealthy) return;
-      if (typeof document !== 'undefined' && document.hidden) return;
+      if (!canRunReconcileNow()) return;
       clearFallbackTimer();
       const baseDelay = Math.min(
         FALLBACK_POLL_BASE_MS * (2 ** fallbackFailureCount),
@@ -160,191 +434,8 @@ export const usePlannerLiveSync = (
       const delayMs = Math.max(20_000, baseDelay + jitter);
       fallbackTimer = window.setTimeout(() => {
         fallbackTimer = null;
-        void runReconcile('fallback');
+        requestReconcile('fallback');
       }, delayMs);
-    };
-
-    const runReconcile = async (_reason: 'focus' | 'fallback' | 'resubscribe' | 'channel') => {
-      if (!active || reconcileInFlight) return;
-      if (typeof document !== 'undefined' && document.hidden) return;
-      reconcileInFlight = true;
-      try {
-        const nowIso = new Date().toISOString();
-        const taskSince = lastTaskSyncAtRef.current ?? nowIso;
-        const milestoneSince = lastMilestoneSyncAtRef.current ?? nowIso;
-
-        const [
-          taskDeltaRes,
-          milestoneDeltaRes,
-          taskIdsRes,
-          milestoneIdsRes,
-        ] = await Promise.all([
-          supabase
-            .from('tasks')
-            .select(TASK_SELECT)
-            .eq('workspace_id', workspaceRef)
-            .gt('updated_at', taskSince)
-            .gte('end_date', rangeRef.start)
-            .lte('start_date', rangeRef.end)
-            .order('updated_at', { ascending: true })
-            .limit(1000),
-          supabase
-            .from('milestones')
-            .select(MILESTONE_SELECT)
-            .eq('workspace_id', workspaceRef)
-            .gt('updated_at', milestoneSince)
-            .gte('date', rangeRef.start)
-            .lte('date', rangeRef.end)
-            .order('updated_at', { ascending: true })
-            .limit(1000),
-          supabase
-            .from('tasks')
-            .select('id')
-            .eq('workspace_id', workspaceRef)
-            .gte('end_date', rangeRef.start)
-            .lte('start_date', rangeRef.end),
-          supabase
-            .from('milestones')
-            .select('id')
-            .eq('workspace_id', workspaceRef)
-            .gte('date', rangeRef.start)
-            .lte('date', rangeRef.end),
-        ]);
-
-        if (taskDeltaRes.error || milestoneDeltaRes.error || taskIdsRes.error || milestoneIdsRes.error) {
-          console.error(taskDeltaRes.error ?? milestoneDeltaRes.error ?? taskIdsRes.error ?? milestoneIdsRes.error);
-          fallbackFailureCount += 1;
-          scheduleFallbackPoll();
-          return;
-        }
-
-        const taskRows = (taskDeltaRes.data ?? []) as TaskSyncRow[];
-        const milestoneRows = (milestoneDeltaRes.data ?? []) as MilestoneSyncRow[];
-
-        if (taskRows.length > 0) {
-          upsertTasks(taskRows.map(mapTaskRow));
-        }
-        if (milestoneRows.length > 0) {
-          upsertMilestones(milestoneRows.map(mapMilestoneRow));
-        }
-
-        const remoteTaskIds = new Set(((taskIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
-        const staleTaskIds = usePlannerStore.getState().tasks
-          .filter((task) => (
-            task.endDate >= rangeRef.start
-            && task.startDate <= rangeRef.end
-            && !remoteTaskIds.has(task.id)
-          ))
-          .map((task) => task.id);
-        if (staleTaskIds.length > 0) {
-          removeTasksByIds(staleTaskIds);
-        }
-
-        const remoteMilestoneIds = new Set(((milestoneIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
-        const staleMilestoneIds = usePlannerStore.getState().milestones
-          .filter((milestone) => (
-            milestone.date >= rangeRef.start
-            && milestone.date <= rangeRef.end
-            && !remoteMilestoneIds.has(milestone.id)
-          ))
-          .map((milestone) => milestone.id);
-        if (staleMilestoneIds.length > 0) {
-          removeMilestonesByIds(staleMilestoneIds);
-        }
-
-        lastTaskSyncAtRef.current = nowIso;
-        lastMilestoneSyncAtRef.current = nowIso;
-        fallbackFailureCount = 0;
-      } finally {
-        reconcileInFlight = false;
-      }
-    };
-
-    const flushQueue = async () => {
-      if (!active || flushInFlight) return;
-      const interactionUntil = usePlannerStore.getState().timelineInteractingUntil;
-      const shouldDeferUpserts = (
-        Date.now() < interactionUntil
-        && (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0)
-      );
-
-      flushInFlight = true;
-      try {
-        if (shouldDeferUpserts) {
-          return;
-        }
-
-        const taskUpsertIds = takeFromSet(pendingTaskUpserts, EVENT_BATCH_SIZE);
-        if (taskUpsertIds.length > 0) {
-          const { data, error } = await supabase
-            .from('tasks')
-            .select(TASK_SELECT)
-            .eq('workspace_id', workspaceRef)
-            .in('id', taskUpsertIds);
-
-          if (error) {
-            console.error(error);
-            taskUpsertIds.forEach((id) => pendingTaskUpserts.add(id));
-            void runReconcile('channel');
-          } else {
-            const rows = (data ?? []) as TaskSyncRow[];
-            const byId = new Map(rows.map((row) => [row.id, row]));
-            const upsertRows = rows.filter((row) => inTaskRange(row, rangeRef));
-            if (upsertRows.length > 0) {
-              upsertTasks(upsertRows.map(mapTaskRow));
-            }
-            const removeIds = taskUpsertIds.filter((id) => {
-              const row = byId.get(id);
-              if (!row) return true;
-              return !inTaskRange(row, rangeRef);
-            });
-            if (removeIds.length > 0) {
-              removeTasksByIds(removeIds);
-            }
-          }
-        }
-
-        const milestoneUpsertIds = takeFromSet(pendingMilestoneUpserts, EVENT_BATCH_SIZE);
-        if (milestoneUpsertIds.length > 0) {
-          const { data, error } = await supabase
-            .from('milestones')
-            .select(MILESTONE_SELECT)
-            .eq('workspace_id', workspaceRef)
-            .in('id', milestoneUpsertIds);
-
-          if (error) {
-            console.error(error);
-            milestoneUpsertIds.forEach((id) => pendingMilestoneUpserts.add(id));
-            void runReconcile('channel');
-          } else {
-            const rows = (data ?? []) as MilestoneSyncRow[];
-            const byId = new Map(rows.map((row) => [row.id, row]));
-            const upsertRows = rows.filter((row) => inMilestoneRange(row, rangeRef));
-            if (upsertRows.length > 0) {
-              upsertMilestones(upsertRows.map(mapMilestoneRow));
-            }
-            const removeIds = milestoneUpsertIds.filter((id) => {
-              const row = byId.get(id);
-              if (!row) return true;
-              return !inMilestoneRange(row, rangeRef);
-            });
-            if (removeIds.length > 0) {
-              removeMilestonesByIds(removeIds);
-            }
-          }
-        }
-      } finally {
-        flushInFlight = false;
-      }
-
-      if (shouldDeferUpserts) {
-        scheduleFlush(INTERACTION_RETRY_MS);
-        return;
-      }
-
-      if (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0) {
-        scheduleFlush(80);
-      }
     };
 
     const queueTaskUpsert = (id: string) => {
@@ -419,22 +510,38 @@ export const usePlannerLiveSync = (
         if (!active) return;
         if (status === 'SUBSCRIBED') {
           channelHealthy = true;
-          fallbackFailureCount = 0;
+          usePlannerStore.getState().setSyncHealthy(true);
+          resetFallbackFailures();
           clearFallbackTimer();
-          void runReconcile('resubscribe');
+          if (!hasSubscribedOnce) {
+            hasSubscribedOnce = true;
+            if (typeof window === 'undefined') {
+              requestReconcile('resubscribe');
+              return;
+            }
+            clearInitialReconcileTimer();
+            initialReconcileTimer = window.setTimeout(() => {
+              initialReconcileTimer = null;
+              requestReconcile('resubscribe');
+            }, INITIAL_RECONCILE_DELAY_MS);
+            return;
+          }
+          requestReconcile('resubscribe');
           return;
         }
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           channelHealthy = false;
-          fallbackFailureCount = Math.min(fallbackFailureCount + 1, 6);
-          void runReconcile('channel');
+          usePlannerStore.getState().setSyncHealthy(false);
+          clearInitialReconcileTimer();
+          growFallbackFailures();
+          requestReconcile('channel');
           scheduleFallbackPoll();
         }
       });
 
     const handleVisibilityOrFocus = () => {
-      if (typeof document !== 'undefined' && document.hidden) return;
-      void runReconcile('focus');
+      if (!canRunReconcileNow()) return;
+      requestReconcile('focus');
       if (!channelHealthy) {
         scheduleFallbackPoll();
       }
@@ -450,8 +557,10 @@ export const usePlannerLiveSync = (
 
     return () => {
       active = false;
+      lifecycleEpoch += 1;
       clearFlushTimer();
       clearFallbackTimer();
+      clearInitialReconcileTimer();
       if (typeof window !== 'undefined') {
         window.removeEventListener('focus', handleVisibilityOrFocus);
         window.removeEventListener('pageshow', handleVisibilityOrFocus);

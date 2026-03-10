@@ -23,9 +23,11 @@ import { format, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 import {
   buildCreateRepeatsOptions,
+  formatRepeatCountInputValue,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
+  parseRepeatCountInput,
   RepeatEnds,
   RepeatFrequency,
   resolveRepeatValidationMessage,
@@ -1029,8 +1031,13 @@ export const TaskDetailPanel: React.FC = () => {
                       id="repeat-count"
                       type="number"
                       min={1}
-                      value={repeatCount}
-                      onChange={(e) => setRepeatCount(Number(e.target.value))}
+                      step={1}
+                      value={formatRepeatCountInputValue(repeatCount)}
+                      onChange={(e) => {
+                        const nextRepeatCount = parseRepeatCountInput(e.target.value);
+                        if (nextRepeatCount === null) return;
+                        setRepeatCount(nextRepeatCount);
+                      }}
                       disabled={isReadOnly}
                       className="h-8 text-sm"
                     />

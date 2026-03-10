@@ -61,18 +61,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       if (session?.user) {
-        try {
-          const isSuperAdmin = await resolveSuperAdmin(session.user);
-          if (!active) return;
-          if (!isSuperAdmin) {
-            fetchWorkspaces();
-          }
-          fetchProfile();
-        } catch (_error) {
-          if (!active) return;
-          fetchWorkspaces();
-          fetchProfile();
-        }
+        // Do not block workspace bootstrap on super-admin probe.
+        void fetchWorkspaces().catch(() => undefined);
+        void fetchProfile().catch(() => undefined);
+        void resolveSuperAdmin(session.user).catch(() => undefined);
       } else {
         resetPlanner();
       }

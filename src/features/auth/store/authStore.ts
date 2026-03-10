@@ -9,6 +9,16 @@ import { broadcastAuthSessionSync } from '@/features/auth/lib/authSessionSync';
 import { workspaceSyncService } from '@/application/workspace/workspaceSyncService';
 import { ADMIN_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
 import { invokeAdminFunction, invokeInviteFunction } from '@/infrastructure/auth/functionsGateway';
+import {
+  fetchWorkspaceGroupNameMap,
+  listWorkspaceMemberActivity as listWorkspaceMemberActivityFromApi,
+  recordWorkspaceMemberActivity,
+} from '@/infrastructure/workspace/memberActivityRepository';
+import {
+  buildWorkspaceMemberActivityActorLabel,
+  buildWorkspaceMemberActivityTargetLabel,
+  WorkspaceMemberActivityEntry,
+} from '@/shared/domain/workspaceMemberActivity';
 
 export type WorkspaceRole = 'viewer' | 'editor' | 'admin';
 
@@ -39,6 +49,17 @@ interface WorkspaceMemberProfileRow {
   role: WorkspaceRole;
   group_id: string | null;
   profiles: { email: string; display_name: string | null } | null;
+}
+
+type SentInviteStatus = 'pending' | 'accepted' | 'declined' | 'canceled' | 'expired';
+
+interface SentInviteSummary {
+  token: string;
+  workspaceId: string;
+  email: string;
+  status: SentInviteStatus;
+  isPending: boolean;
+  createdAt: string | null;
 }
 
 const DEFAULT_HOLIDAY_COUNTRY = 'RU';
@@ -160,7 +181,13 @@ interface AuthState {
     role: WorkspaceRole,
     groupId?: string | null
   ) => Promise<{ error?: string; actionLink?: string; warning?: string; inviteEmail?: string; inviteStatus?: string }>;
+  listSentInvites: (options?: {
+    workspaceId?: string | null;
+    pendingOnly?: boolean;
+  }) => Promise<{ invites: SentInviteSummary[]; error?: string }>;
+  cancelSentInvite: (token: string) => Promise<{ error?: string }>;
   acceptInvite: (token: string) => Promise<{ error?: string; workspaceId?: string; warning?: string }>;
+  listWorkspaceMemberActivity: (options?: { workspaceId?: string | null; limit?: number }) => Promise<{ entries: WorkspaceMemberActivityEntry[]; error?: string }>;
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<{ error?: string }>;
   updateMemberGroup: (userId: string, groupId: string | null) => Promise<{ error?: string }>;
   removeMember: (userId: string) => Promise<{ error?: string }>;
@@ -174,9 +201,76 @@ const isTransientSchemaAuthError = (message: string) => (
   message.toLowerCase().includes('database error querying schema')
 );
 
+const sentInviteStatuses: ReadonlyArray<SentInviteStatus> = [
+  'pending',
+  'accepted',
+  'declined',
+  'canceled',
+  'expired',
+];
+
+const isSentInviteStatus = (value: unknown): value is SentInviteStatus => (
+  typeof value === 'string' && sentInviteStatuses.includes(value as SentInviteStatus)
+);
+
+const parseSentInvites = (value: unknown): SentInviteSummary[] => {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((row): row is Partial<SentInviteSummary> => Boolean(row && typeof row === 'object'))
+    .filter((row) => (
+      typeof row.token === 'string'
+      && typeof row.workspaceId === 'string'
+      && isSentInviteStatus(row.status)
+    ))
+    .map((row) => ({
+      token: row.token as string,
+      workspaceId: row.workspaceId as string,
+      email: typeof row.email === 'string' ? row.email : '',
+      status: row.status as SentInviteStatus,
+      isPending: typeof row.isPending === 'boolean' ? row.isPending : row.status === 'pending',
+      createdAt: typeof row.createdAt === 'string' ? row.createdAt : null,
+    }));
+};
+
 const getBackupBaseUrl = () => {
   const base = import.meta.env.VITE_SUPABASE_URL;
   return base ? `${base}/backup` : '';
+};
+
+const getWorkspaceActivityActorSnapshot = (state: Pick<AuthState, 'user' | 'profileDisplayName'>) => ({
+  actorUserId: state.user?.id ?? null,
+  actorLabel: buildWorkspaceMemberActivityActorLabel(
+    state.profileDisplayName,
+    state.user?.email,
+  ),
+});
+
+const fetchWorkspaceMemberSnapshot = async (
+  workspaceId: string,
+  userId: string,
+) => {
+  const { data, error } = await supabase
+    .from('workspace_members')
+    .select('user_id, role, group_id, profiles(email, display_name)')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { member: null as WorkspaceMember | null, error: error?.message };
+  }
+
+  const row = data as WorkspaceMemberProfileRow;
+  return {
+    member: {
+      userId: row.user_id,
+      role: row.role,
+      groupId: row.group_id ?? null,
+      email: row.profiles?.email ?? 'unknown',
+      displayName: row.profiles?.display_name ?? null,
+    },
+  };
 };
 
 const POST_SIGN_OUT_LANDING_PATH = '/';
@@ -289,7 +383,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .eq('user_id', user.id)
         .maybeSingle();
       const isSuperAdmin = Boolean(data && !error);
-      set({ isSuperAdmin, superAdminLoading: false });
+      if (isSuperAdmin) {
+        set({
+          isSuperAdmin: true,
+          superAdminLoading: false,
+          workspaces: [],
+          currentWorkspaceId: null,
+          currentWorkspaceRole: null,
+        });
+      } else {
+        set({ isSuperAdmin: false, superAdminLoading: false });
+      }
       return isSuperAdmin;
     } catch (_error) {
       set({ isSuperAdmin: false, superAdminLoading: false });
@@ -663,6 +767,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const nextRole = workspaces.find((workspace) => workspace.id === nextId)?.role ?? null;
 
+    if (get().isSuperAdmin) {
+      set({
+        workspaces: [],
+        currentWorkspaceId: null,
+        currentWorkspaceRole: null,
+      });
+      return;
+    }
+
     set({
       workspaces,
       currentWorkspaceId: nextId,
@@ -852,12 +965,57 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         inviteStatus: data?.inviteStatus,
       };
     }
+
+    if (data?.inviteStatus === 'pending') {
+      const { actorUserId, actorLabel } = getWorkspaceActivityActorSnapshot(get());
+      const { groupNameById } = await fetchWorkspaceGroupNameMap(workspaceId, [groupId]);
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'invite_created',
+        actorUserId,
+        actorLabel,
+        targetLabel: buildWorkspaceMemberActivityTargetLabel(null, data?.inviteEmail ?? email.trim()),
+        targetEmail: data?.inviteEmail ?? email.trim(),
+        details: {
+          inviteRole: role,
+          inviteGroupName: groupId ? (groupNameById.get(groupId) ?? null) : null,
+        },
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
+
     return {
       actionLink: data?.actionLink,
       warning: data?.warning,
       inviteEmail: data?.inviteEmail,
       inviteStatus: data?.inviteStatus,
     };
+  },
+  listSentInvites: async (options) => {
+    const { data, error } = await invokeInviteFunction<{ invites?: unknown }>({
+      action: INVITE_ACTIONS.LIST_SENT,
+      pendingOnly: options?.pendingOnly,
+    });
+    if (error) return { invites: [], error };
+
+    const targetWorkspaceId = options?.workspaceId ?? get().currentWorkspaceId;
+    const invites = parseSentInvites(data?.invites).filter((invite) => (
+      targetWorkspaceId ? invite.workspaceId === targetWorkspaceId : true
+    ));
+    return { invites };
+  },
+  cancelSentInvite: async (token) => {
+    const inviteToken = token.trim();
+    if (!inviteToken) return { error: 'Invite token is required.' };
+
+    const { error } = await invokeInviteFunction({
+      action: INVITE_ACTIONS.CANCEL,
+      token: inviteToken,
+    });
+    if (error) return { error };
+    return {};
   },
   acceptInvite: async (token) => {
     const inviteToken = token.trim();
@@ -877,9 +1035,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       warning: data?.warning,
     };
   },
+  listWorkspaceMemberActivity: async (options) => {
+    const workspaceId = options?.workspaceId ?? get().currentWorkspaceId;
+    if (!workspaceId) return { entries: [], error: 'Workspace not selected.' };
+    return listWorkspaceMemberActivityFromApi(workspaceId, { limit: options?.limit });
+  },
   updateMemberRole: async (userId, role) => {
     const workspaceId = get().currentWorkspaceId;
     if (!workspaceId) return { error: 'Workspace not selected.' };
+    const currentMember = get().members.find((member) => member.userId === userId)
+      ?? (await fetchWorkspaceMemberSnapshot(workspaceId, userId)).member;
 
     const { error } = await supabase
       .from('workspace_members')
@@ -893,11 +1058,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     await get().fetchMembers(workspaceId);
     await workspaceSyncService.refreshAssignees();
+
+    if (currentMember && currentMember.role !== role) {
+      const { actorUserId, actorLabel } = getWorkspaceActivityActorSnapshot(get());
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'member_role_changed',
+        actorUserId,
+        actorLabel,
+        targetUserId: currentMember.userId,
+        targetLabel: buildWorkspaceMemberActivityTargetLabel(currentMember.displayName, currentMember.email),
+        targetEmail: currentMember.email,
+        details: {
+          previousRole: currentMember.role,
+          nextRole: role,
+        },
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
+
     return {};
   },
   updateMemberGroup: async (userId, groupId) => {
     const workspaceId = get().currentWorkspaceId;
     if (!workspaceId) return { error: 'Workspace not selected.' };
+    const currentMember = get().members.find((member) => member.userId === userId)
+      ?? (await fetchWorkspaceMemberSnapshot(workspaceId, userId)).member;
+    const { groupNameById, error: groupNamesError } = await fetchWorkspaceGroupNameMap(
+      workspaceId,
+      [currentMember?.groupId, groupId],
+    );
+    if (groupNamesError) {
+      console.error(groupNamesError);
+    }
 
     const { error } = await supabase
       .from('workspace_members')
@@ -911,6 +1106,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     await get().fetchMembers(workspaceId);
     await workspaceSyncService.refreshMemberGroups();
+
+    if (currentMember && currentMember.groupId !== groupId) {
+      const { actorUserId, actorLabel } = getWorkspaceActivityActorSnapshot(get());
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'member_group_changed',
+        actorUserId,
+        actorLabel,
+        targetUserId: currentMember.userId,
+        targetLabel: buildWorkspaceMemberActivityTargetLabel(currentMember.displayName, currentMember.email),
+        targetEmail: currentMember.email,
+        details: {
+          previousGroupName: currentMember.groupId
+            ? (groupNameById.get(currentMember.groupId) ?? null)
+            : null,
+          nextGroupName: groupId ? (groupNameById.get(groupId) ?? null) : null,
+        },
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
+
     return {};
   },
   removeMember: async (userId) => {
@@ -924,6 +1142,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!currentUserId) {
       return { error: 'Access denied' };
     }
+
+    const currentMember = get().members.find((member) => member.userId === userId)
+      ?? (await fetchWorkspaceMemberSnapshot(workspaceId, userId)).member;
 
     const { data: workspace, error: workspaceError } = await supabase
       .from('workspaces')
@@ -951,6 +1172,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     await get().fetchMembers(workspaceId);
     await workspaceSyncService.refreshMemberGroups();
+
+    if (currentMember) {
+      const { actorUserId, actorLabel } = getWorkspaceActivityActorSnapshot(get());
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'member_removed',
+        actorUserId,
+        actorLabel,
+        targetUserId: currentMember.userId,
+        targetLabel: buildWorkspaceMemberActivityTargetLabel(currentMember.displayName, currentMember.email),
+        targetEmail: currentMember.email,
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
+
     return {};
   },
   updateDisplayName: async (displayName) => {

@@ -313,7 +313,7 @@ const handleCreateInvite = async (
     .lt("expires_at", nowIso);
 
   if (revokeExpiredError) {
-    return jsonResponse({ error: revokeExpiredError.message }, 400);
+    return jsonResponse({ error: revokeExpiredError.message }, 500);
   }
 
   const { data: existingInvite, error: existingInviteError } = await supabaseAdmin
@@ -329,7 +329,7 @@ const handleCreateInvite = async (
     .maybeSingle();
 
   if (existingInviteError) {
-    return jsonResponse({ error: existingInviteError.message }, 400);
+    return jsonResponse({ error: existingInviteError.message }, 500);
   }
 
   let inviteToken = "";
@@ -346,7 +346,7 @@ const handleCreateInvite = async (
       .eq("id", existingInvite.id);
 
     if (inviteUpdateError) {
-      return jsonResponse({ error: inviteUpdateError.message }, 400);
+      return jsonResponse({ error: inviteUpdateError.message }, 500);
     }
     inviteToken = existingInvite.token;
   } else {
@@ -378,7 +378,7 @@ const handleCreateInvite = async (
         .maybeSingle();
 
       if (racedInviteError || !racedInvite?.id) {
-        return jsonResponse({ error: inviteInsertError.message }, 400);
+        return jsonResponse({ error: inviteInsertError.message }, 500);
       }
 
       const { error: racedUpdateError } = await supabaseAdmin
@@ -392,7 +392,7 @@ const handleCreateInvite = async (
         .eq("id", racedInvite.id);
 
       if (racedUpdateError) {
-        return jsonResponse({ error: racedUpdateError.message }, 400);
+        return jsonResponse({ error: racedUpdateError.message }, 500);
       }
 
       inviteToken = racedInvite.token;
@@ -464,7 +464,7 @@ const handleAcceptInvite = async (
     .maybeSingle();
 
   if (inviteError) {
-    return jsonResponse({ error: inviteError.message }, 400);
+    return jsonResponse({ error: inviteError.message }, 500);
   }
 
   if (!invite) {
@@ -525,7 +525,7 @@ const handleAcceptInvite = async (
     });
 
   if (membershipInsertError) {
-    return jsonResponse({ error: membershipInsertError.message }, 400);
+    return jsonResponse({ error: membershipInsertError.message }, 500);
   }
 
   const { error: acceptedUpdateError } = await supabaseAdmin
@@ -535,7 +535,7 @@ const handleAcceptInvite = async (
     .is("accepted_at", null);
 
   if (acceptedUpdateError) {
-    return jsonResponse({ error: acceptedUpdateError.message }, 400);
+    return jsonResponse({ error: acceptedUpdateError.message }, 500);
   }
 
   const warnings: string[] = [];
@@ -586,7 +586,7 @@ const handleListInvites = async (authUser: AuthInviteUser) => {
     .lt("expires_at", nowIso);
 
   if (revokeExpiredError) {
-    return jsonResponse({ error: revokeExpiredError.message }, 400);
+    return jsonResponse({ error: revokeExpiredError.message }, 500);
   }
 
   const { data: inviteRows, error: invitesError } = await supabaseAdmin
@@ -599,7 +599,7 @@ const handleListInvites = async (authUser: AuthInviteUser) => {
     .order("created_at", { ascending: false });
 
   if (invitesError) {
-    return jsonResponse({ error: invitesError.message }, 400);
+    return jsonResponse({ error: invitesError.message }, 500);
   }
 
   const workspaceIds = Array.from(
@@ -625,7 +625,7 @@ const handleListInvites = async (authUser: AuthInviteUser) => {
       .select("id, name")
       .in("id", workspaceIds);
     if (workspaceError) {
-      return jsonResponse({ error: workspaceError.message }, 400);
+      return jsonResponse({ error: workspaceError.message }, 500);
     }
     workspaceNameMap = new Map(
       (workspaceRows ?? [])
@@ -641,7 +641,7 @@ const handleListInvites = async (authUser: AuthInviteUser) => {
       .select("id, display_name, email")
       .in("id", inviterIds);
     if (inviterError) {
-      return jsonResponse({ error: inviterError.message }, 400);
+      return jsonResponse({ error: inviterError.message }, 500);
     }
     inviterMap = new Map(
       (inviterRows ?? [])
@@ -690,7 +690,7 @@ const handleDeclineInvite = async (
     .maybeSingle();
 
   if (inviteError) {
-    return jsonResponse({ error: inviteError.message }, 400);
+    return jsonResponse({ error: inviteError.message }, 500);
   }
 
   if (!invite) {
@@ -716,7 +716,7 @@ const handleDeclineInvite = async (
     .is("revoked_at", null);
 
   if (revokeError) {
-    return jsonResponse({ error: revokeError.message }, 400);
+    return jsonResponse({ error: revokeError.message }, 500);
   }
 
   return jsonResponse({ success: true });
@@ -742,7 +742,7 @@ const handleListSentInvites = async (authUser: AuthInviteUser, payload: InvitePa
     : query);
 
   if (invitesError) {
-    return jsonResponse({ error: invitesError.message }, 400);
+    return jsonResponse({ error: invitesError.message }, 500);
   }
 
   const workspaceIds = Array.from(
@@ -760,7 +760,7 @@ const handleListSentInvites = async (authUser: AuthInviteUser, payload: InvitePa
       .select("id, name")
       .in("id", workspaceIds);
     if (workspaceError) {
-      return jsonResponse({ error: workspaceError.message }, 400);
+      return jsonResponse({ error: workspaceError.message }, 500);
     }
     workspaceNameMap = new Map(
       (workspaceRows ?? [])
@@ -824,7 +824,7 @@ const handleCancelInvite = async (
     .maybeSingle();
 
   if (inviteError) {
-    return jsonResponse({ error: inviteError.message }, 400);
+    return jsonResponse({ error: inviteError.message }, 500);
   }
 
   if (!invite) {
@@ -850,7 +850,7 @@ const handleCancelInvite = async (
     .is("revoked_at", null);
 
   if (revokeError) {
-    return jsonResponse({ error: revokeError.message }, 400);
+    return jsonResponse({ error: revokeError.message }, 500);
   }
 
   return jsonResponse({ success: true });

@@ -1,8 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { AccountSettingsDialog } from '@/features/auth/components/AccountSettingsDialog';
 import { TaskDetailsDialog } from '@/features/members/components/TaskDetailsDialog';
-import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
+import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { Assignee, Project, Status, Tag, Task, TaskType } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
@@ -129,8 +128,12 @@ export const MembersDialogs = ({
         onClose={() => setSelectedTaskId(null)}
       />
 
-      <SettingsPanel open={showSettings} onOpenChange={setShowSettings} />
-      <AccountSettingsDialog open={showAccountSettings} onOpenChange={setShowAccountSettings} />
+      <WorkspaceCommonDialogs
+        showSettings={showSettings}
+        onShowSettingsChange={setShowSettings}
+        showAccountSettings={showAccountSettings}
+        onShowAccountSettingsChange={setShowAccountSettings}
+      />
     </>
   );
 };

@@ -46,6 +46,9 @@ describe('latestAsyncRequest', () => {
   it('detects abort errors by name or message', () => {
     expect(isAbortError({ name: 'AbortError' })).toBe(true);
     expect(isAbortError({ message: 'The operation was aborted.' })).toBe(true);
+    expect(isAbortError({ message: 'signal is aborted without reason' })).toBe(true);
+    expect(isAbortError('AbortError: signal is aborted without reason')).toBe(true);
+    expect(isAbortError({ cause: { message: 'signal is aborted without reason' } })).toBe(true);
     expect(isAbortError({ message: 'Permission denied' })).toBe(false);
     expect(isAbortError(null)).toBe(false);
   });

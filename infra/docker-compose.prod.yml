@@ -2,12 +2,17 @@ services:
   db:
     image: supabase/postgres:15.1.0.117
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
     command:
       - postgres
       - -c
       - max_connections=${POSTGRES_MAX_CONNECTIONS:-150}
       - -c
-      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-512MB}
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-1GB}
       - -c
       - effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-2GB}
       - -c
@@ -17,9 +22,15 @@ services:
       - -c
       - max_wal_size=${POSTGRES_MAX_WAL_SIZE:-2GB}
       - -c
+      - wal_level=${POSTGRES_WAL_LEVEL:-logical}
+      - -c
+      - statement_timeout=${POSTGRES_STATEMENT_TIMEOUT:-30000}
+      - -c
+      - idle_in_transaction_session_timeout=${POSTGRES_IDLE_IN_TRANSACTION_TIMEOUT:-60000}
+      - -c
       - listen_addresses=*
     ports:
-      - "54322:5432"
+      - "127.0.0.1:54322:5432"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -36,6 +47,11 @@ services:
   keycloak-db:
     image: postgres:15-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     environment:
       POSTGRES_DB: ${KEYCLOAK_DB_NAME:-keycloak}
       POSTGRES_USER: ${KEYCLOAK_DB_USER:-keycloak}
@@ -51,6 +67,11 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.1
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
     depends_on:
       keycloak-db:
         condition: service_healthy
@@ -68,6 +89,7 @@ services:
       KC_SPI_THEME_STATIC_MAX_AGE: ${KEYCLOAK_THEME_STATIC_MAX_AGE:-604800}
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      JAVA_OPTS_APPEND: "${KEYCLOAK_JAVA_OPTS_APPEND:--Xms512m -Xmx2g}"
     command: ["start", "--http-enabled=true", "--proxy-headers=xforwarded", "--import-realm"]
     volumes:
       - ./keycloak/realm:/opt/keycloak/data/import:ro
@@ -78,6 +100,11 @@ services:
   auth:
     image: supabase/gotrue:v2.151.0
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -98,7 +125,7 @@ services:
       GOTRUE_JWT_SECRET: ${JWT_SECRET}
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_EXP: 86400
       GOTRUE_EXTERNAL_EMAIL_ENABLED: "false"
       GOTRUE_MAILER_AUTOCONFIRM: "true"
       GOTRUE_SMTP_HOST: ${GOTRUE_SMTP_HOST}
@@ -119,6 +146,11 @@ services:
   rest:
     image: postgrest/postgrest:v12.2.3
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -132,6 +164,11 @@ services:
   realtime:
     image: ghcr.io/supabase/realtime:v2.30.34
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -156,6 +193,11 @@ services:
   functions:
     image: supabase/edge-runtime:v1.41.2
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -188,6 +230,11 @@ services:
     build:
       context: ./backup-service
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
     depends_on:
       db:
         condition: service_healthy
@@ -210,6 +257,11 @@ services:
   gateway:
     image: nginx:1.27-alpine
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
     depends_on:
       - auth
       - rest
@@ -236,7 +288,16 @@ services:
         VITE_OAUTH2_PROXY_ENABLED: ${VITE_OAUTH2_PROXY_ENABLED:-true}
         VITE_OAUTH2_PROXY_SIGN_OUT_PATH: ${VITE_OAUTH2_PROXY_SIGN_OUT_PATH:-/oauth2/sign_out}
         VITE_GA_MEASUREMENT_ID: ${VITE_GA_MEASUREMENT_ID:-}
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
     restart: unless-stopped
+    # Host runtime currently fails seccomp SSB setup for this service on container create.
+    # Keep web bootable until host seccomp/runc stack is normalized.
+    security_opt:
+      - seccomp=unconfined
     depends_on:
       gateway:
         condition: service_started
@@ -280,6 +341,14 @@ services:
       OAUTH2_PROXY_PASS_ACCESS_TOKEN: "false"
       OAUTH2_PROXY_SESSION_COOKIE_MINIMAL: "true"
       OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
+      # Backend logout calls Keycloak end-session with id_token_hint on every /oauth2/sign_out.
+      # NOTE: SESSION_COOKIE_MINIMAL=true strips the id_token from the stored session, so
+      # {id_token} substitution resolves to an empty string. Keycloak cannot identify the
+      # specific SSO session without a valid hint and the backend logout becomes best-effort.
+      # Primary protection against silent re-login is the prompt=login forceLogin mechanism
+      # in the SPA (src/features/auth/pages/AuthPage.tsx + recentSignOut.ts).
+      # To restore per-session SSO termination: set SESSION_COOKIE_MINIMAL=false (adds ~1 KB
+      # to the cookie) or supply a pre-issued id_token via OAUTH2_PROXY_BACKEND_LOGOUT_URL.
       OAUTH2_PROXY_BACKEND_LOGOUT_URL: ${OAUTH2_PROXY_BACKEND_LOGOUT_URL:-http://keycloak:8080/realms/timeline/protocol/openid-connect/logout?id_token_hint={id_token}}
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
       OAUTH2_PROXY_SILENCE_PING_LOGGING: "true"

@@ -1,5 +1,12 @@
 import { supabase } from '@/shared/lib/supabaseClient';
+import {
+  buildWorkspaceTemplateFromCatalog,
+  diffWorkspaceTemplate,
+  normalizeWorkspaceTemplate,
+  type WorkspaceTemplate,
+} from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -22,6 +29,11 @@ import {
   TagRow,
   TaskTypeRow,
 } from '@/features/planner/store/plannerStore.helpers';
+import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
+import {
+  buildWorkspaceMemberActivityActorSnapshot,
+  buildWorkspaceMemberActivityTargetLabel,
+} from '@/shared/domain/workspaceMemberActivity';
 
 type CatalogActions = Pick<
   PlannerStore,
@@ -44,12 +56,23 @@ type CatalogActions = Pick<
   | 'addTag'
   | 'updateTag'
   | 'deleteTag'
+  | 'loadWorkspaceTemplate'
+  | 'saveWorkspaceTemplate'
+  | 'applyWorkspaceTemplate'
   | 'addMilestone'
   | 'updateMilestone'
   | 'deleteMilestone'
 >;
 
 const emptyMutationResult: MutationResult = {};
+const DEFAULT_STATUS_COLOR = '#94a3b8';
+
+const getCurrentUserId = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return { error: error.message };
+  if (!data.user?.id) return { error: 'Not authenticated.' };
+  return { userId: data.user.id };
+};
 
 export const createCatalogActions = (
   set: PlannerSetState,
@@ -301,12 +324,13 @@ export const createCatalogActions = (
 
   updateAssignee: async (id, updates) => {
     const workspaceId = get().workspaceId;
-    if (!workspaceId) return;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+    const currentAssignee = get().assignees.find((assignee) => assignee.id === id) ?? null;
 
     const payload: Record<string, unknown> = {};
     if ('name' in updates) payload.name = updates.name;
     if ('isActive' in updates) payload.is_active = updates.isActive;
-    if (Object.keys(payload).length === 0) return;
+    if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase
       .from('assignees')
@@ -318,13 +342,39 @@ export const createCatalogActions = (
 
     if (error || !data) {
       console.error(error);
-      return;
+      return { error: error?.message ?? 'Failed to update assignee.' };
     }
 
     const updated = mapAssigneeRow(data as AssigneeRow);
     set((state) => ({
       assignees: state.assignees.map((assignee) => (assignee.id === id ? updated : assignee)),
     }));
+
+    if (currentAssignee && 'isActive' in updates && currentAssignee.isActive !== updated.isActive) {
+      const authState = useAuthStore.getState();
+      const { actorUserId, actorLabel } = buildWorkspaceMemberActivityActorSnapshot({
+        userId: authState.user?.id,
+        displayName: authState.profileDisplayName,
+        email: authState.user?.email,
+      });
+      const logResult = await recordWorkspaceMemberActivity({
+        workspaceId,
+        action: 'member_status_changed',
+        actorUserId,
+        actorLabel,
+        targetUserId: updated.userId ?? null,
+        targetLabel: buildWorkspaceMemberActivityTargetLabel(updated.name, null),
+        details: {
+          previousStatus: currentAssignee.isActive ? 'active' : 'disabled',
+          nextStatus: updated.isActive ? 'active' : 'disabled',
+        },
+      });
+      if (logResult.error) {
+        console.error(logResult.error);
+      }
+    }
+
+    return emptyMutationResult;
   },
 
   deleteAssignee: async (id) => {
@@ -599,6 +649,119 @@ export const createCatalogActions = (
         tagIds: task.tagIds.filter((tagId) => tagId !== id),
       })),
     }));
+  },
+
+  loadWorkspaceTemplate: async () => {
+    const userResult = await getCurrentUserId();
+    if (userResult.error) return { error: userResult.error };
+
+    const { data, error } = await supabase
+      .from('user_workspace_templates')
+      .select('statuses, task_types, tags')
+      .eq('user_id', userResult.userId)
+      .maybeSingle();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    if (!data) {
+      return { error: 'No template saved yet.' };
+    }
+
+    return {
+      template: normalizeWorkspaceTemplate(data),
+    };
+  },
+
+  saveWorkspaceTemplate: async (template: WorkspaceTemplate) => {
+    const userResult = await getCurrentUserId();
+    if (userResult.error) return { error: userResult.error };
+
+    const normalizedTemplate = buildWorkspaceTemplateFromCatalog({
+      statuses: template.statuses.map((status) => ({
+        name: status.name,
+        emoji: status.emoji,
+        color: status.color,
+        isFinal: status.is_final,
+        isCancelled: status.is_cancelled,
+      })),
+      taskTypes: template.taskTypes,
+      tags: template.tags,
+    });
+
+    const { error } = await supabase
+      .from('user_workspace_templates')
+      .upsert({
+        user_id: userResult.userId,
+        statuses: normalizedTemplate.statuses,
+        task_types: normalizedTemplate.taskTypes,
+        tags: normalizedTemplate.tags,
+      });
+
+    if (error) return { error: error.message };
+
+    return emptyMutationResult;
+  },
+
+  applyWorkspaceTemplate: async () => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const templateResult = await get().loadWorkspaceTemplate();
+    if (templateResult.error || !templateResult.template) {
+      return { error: templateResult.error ?? 'No template saved yet.' };
+    }
+
+    const diff = diffWorkspaceTemplate(templateResult.template, {
+      statuses: get().statuses,
+      taskTypes: get().taskTypes,
+      tags: get().tags,
+    });
+
+    if (diff.statuses.length > 0) {
+      const { error } = await supabase
+        .from('statuses')
+        .insert(diff.statuses.map((status) => ({
+          workspace_id: workspaceId,
+          name: status.name.trim(),
+          emoji: status.emoji ?? null,
+          color: status.color ?? DEFAULT_STATUS_COLOR,
+          is_final: !!status.is_final && !status.is_cancelled,
+          is_cancelled: !!status.is_cancelled,
+        })));
+      if (error) return { error: error.message };
+    }
+
+    if (diff.taskTypes.length > 0) {
+      const { error } = await supabase
+        .from('task_types')
+        .insert(diff.taskTypes.map((taskType) => ({
+          workspace_id: workspaceId,
+          name: taskType.name.trim(),
+          icon: taskType.icon ?? null,
+        })));
+      if (error) return { error: error.message };
+    }
+
+    if (diff.tags.length > 0) {
+      const { error } = await supabase
+        .from('tags')
+        .insert(diff.tags.map((tag) => ({
+          workspace_id: workspaceId,
+          name: tag.name.trim(),
+          color: tag.color ?? DEFAULT_STATUS_COLOR,
+        })));
+      if (error) return { error: error.message };
+    }
+
+    if (diff.statuses.length === 0 && diff.taskTypes.length === 0 && diff.tags.length === 0) {
+      return emptyMutationResult;
+    }
+
+    set({ loadedRange: null });
+    await get().loadWorkspaceData(workspaceId);
+    return emptyMutationResult;
   },
 
   addMilestone: async (milestone) => {

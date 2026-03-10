@@ -40,8 +40,10 @@ export const usePlannerStore = create<PlannerStore>()(
       scrollRequestId: 0,
       scrollTargetDate: null,
       timelineInteractingUntil: 0,
+      syncHealthy: true,
 
       setWorkspaceId: (id) => set({ workspaceId: id }),
+      setSyncHealthy: (healthy) => set({ syncHealthy: healthy }),
 
       reset: () => set({
         tasks: [],
@@ -69,6 +71,7 @@ export const usePlannerStore = create<PlannerStore>()(
         scrollRequestId: 0,
         scrollTargetDate: null,
         timelineInteractingUntil: 0,
+        syncHealthy: true,
       }),
 
       markTimelineInteraction: (durationMs = 650) => set((state) => {

@@ -100,6 +100,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
   const isCalendarView = viewMode === 'calendar';
   
   const filteredAssignees = useFilteredAssignees(assignees);
+  const activeAssignees = useMemo(
+    () => filteredAssignees.filter((assignee) => assignee.isActive),
+    [filteredAssignees],
+  );
+  const disabledAssigneesCount = Math.max(0, filteredAssignees.length - activeAssignees.length);
   const activeProjects = useMemo(
     () => sortProjectsByTracking(
       projects.filter((project) => !project.archived),
@@ -125,9 +130,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
   }, [activeProjects, projectQuery]);
   const visibleAssignees = useMemo(() => {
     const query = normalizeQuery(peopleQuery);
-    if (!query) return filteredAssignees;
-    return filteredAssignees.filter((assignee) => assignee.name.toLowerCase().includes(query));
-  }, [filteredAssignees, peopleQuery]);
+    if (!query) return activeAssignees;
+    return activeAssignees.filter((assignee) => assignee.name.toLowerCase().includes(query));
+  }, [activeAssignees, peopleQuery]);
   const visibleGroups = useMemo(() => {
     const query = normalizeQuery(groupQuery);
     if (!query) return memberGroups;
@@ -307,8 +312,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
             onChange={(event) => setPeopleQuery(event.target.value)}
             disabled={isCalendarView}
           />
-          {filteredAssignees.length > 0 && visibleAssignees.length === 0 && (
+          {activeAssignees.length > 0 && visibleAssignees.length === 0 && (
             <div className="text-xs text-muted-foreground">{t`No matches.`}</div>
+          )}
+          {activeAssignees.length === 0 && (
+            <div className="text-xs text-muted-foreground">{t`No active people.`}</div>
           )}
           {visibleAssignees.map(assignee => (
             <label
@@ -322,14 +330,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
                 onCheckedChange={() => toggleFilter('assigneeIds', assignee.id)}
                 disabled={isCalendarView}
               />
-              <span className="text-sm truncate">
-                {assignee.name}
-                {!assignee.isActive && (
-                  <span className="ml-1 text-[10px] text-muted-foreground">{t`(disabled)`}</span>
-                )}
-              </span>
+              <span className="text-sm truncate">{assignee.name}</span>
             </label>
           ))}
+          {disabledAssigneesCount > 0 && (
+            <div className="pt-1 text-[11px] text-muted-foreground">
+              {t`Disabled people are hidden from filters.`}
+            </div>
+          )}
         </FilterSection>
 
         <FilterSection 

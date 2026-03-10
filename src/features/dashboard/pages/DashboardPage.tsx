@@ -3,7 +3,7 @@ import { ResponsiveGridLayout, cloneLayout, useContainerWidth } from 'react-grid
 import type { Layout, Layouts } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { ChevronDown, Plus, Settings, User } from 'lucide-react';
+import { ChevronDown, Plus, Settings } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
@@ -36,11 +36,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
-import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { SettingsPanel } from '@/features/workspace/components/SettingsPanel';
-import { AccountSettingsDialog } from '@/features/auth/components/AccountSettingsDialog';
-import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
+import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { cn } from '@/shared/lib/classNames';
 import {
   useDashboardStore,
@@ -812,38 +809,16 @@ const DashboardPage = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
-          <WorkspaceSwitcher />
-          <WorkspaceNav />
-        </div>
-
-        <div className="flex items-center gap-2">
-          {canEdit && (
-            <Button size="sm" className="gap-2" onClick={handleAddWidget} disabled={!canAddWidget}>
-              <Plus className="h-4 w-4" />
-              {t`Widget`}
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowSettings(true)}
-            className="h-9 w-9"
-          >
-            <Settings className="h-4 w-4" />
+      <WorkspacePageHeader
+        primaryAction={canEdit ? (
+          <Button size="sm" className="gap-2" onClick={handleAddWidget} disabled={!canAddWidget}>
+            <Plus className="h-4 w-4" />
+            {t`Widget`}
           </Button>
-          <InviteNotifications />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowAccountSettings(true)}
-            className="h-9 w-9"
-          >
-            <User className="h-4 w-4" />
-          </Button>
-        </div>
-      </header>
+        ) : null}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenAccountSettings={() => setShowAccountSettings(true)}
+      />
 
       <div className="flex items-center justify-between px-4 py-2 border-b border-border text-xs text-muted-foreground">
         <div>
@@ -974,8 +949,12 @@ const DashboardPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <SettingsPanel open={showSettings} onOpenChange={setShowSettings} />
-      <AccountSettingsDialog open={showAccountSettings} onOpenChange={setShowAccountSettings} />
+      <WorkspaceCommonDialogs
+        showSettings={showSettings}
+        onShowSettingsChange={setShowSettings}
+        showAccountSettings={showAccountSettings}
+        onShowAccountSettingsChange={setShowAccountSettings}
+      />
     </div>
   );
 };

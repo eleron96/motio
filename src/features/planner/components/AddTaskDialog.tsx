@@ -28,14 +28,17 @@ import { cn } from '@/shared/lib/classNames';
 import { TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
+import { orderAssigneesForPopover } from '@/features/planner/lib/assigneePopoverOrder';
 import { t } from '@lingui/macro';
 import { Status } from '@/features/planner/types/planner';
 import { toast } from 'sonner';
 import {
   buildCreateRepeatsOptions,
+  formatRepeatCountInputValue,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
+  parseRepeatCountInput,
   RepeatEnds,
   RepeatFrequency,
   resolveRepeatValidationMessage,
@@ -158,6 +161,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [subtasksOpen, setSubtasksOpen] = useState(false);
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
+  const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
@@ -282,6 +287,15 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     markChanged();
     setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
   };
+
+  const handleAssigneePopoverOpenChange = useCallback((nextOpen: boolean) => {
+    setAssigneePopoverOpen(nextOpen);
+    if (nextOpen) {
+      setAssigneePopoverFrozenOrderIds(selectableAssignees.map((assignee) => assignee.id));
+      return;
+    }
+    setAssigneePopoverFrozenOrderIds(null);
+  }, [selectableAssignees]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -374,6 +388,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatCreating(false);
     setRepeatOpen(false);
     setHasChanges(false);
+    setAssigneePopoverOpen(false);
+    setAssigneePopoverFrozenOrderIds(null);
     setSubtasksOpen(false);
     setSubtasks([]);
     setNewSubtaskTitle('');
@@ -393,6 +409,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       setHasChanges(false);
       setRepeatOpen(false);
       setConfirmCloseOpen(false);
+      setAssigneePopoverOpen(false);
+      setAssigneePopoverFrozenOrderIds(null);
       setSubtasksOpen(false);
       setSubtasks([]);
       setNewSubtaskTitle('');
@@ -423,6 +441,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatError('');
     setRepeatOpen(false);
     setHasChanges(false);
+    setAssigneePopoverOpen(false);
+    setAssigneePopoverFrozenOrderIds(null);
     setSubtasksOpen(false);
     setSubtasks([]);
     setNewSubtaskTitle('');
@@ -458,21 +478,12 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   }, [assigneeIds, selectableAssignees]);
 
   const orderedSelectableAssignees = useMemo(() => {
-    if (assigneeIds.length === 0) return selectableAssignees;
-    const selectedIds = new Set(assigneeIds);
-    const selected: typeof selectableAssignees = [];
-    const unselected: typeof selectableAssignees = [];
-
-    for (const assignee of selectableAssignees) {
-      if (selectedIds.has(assignee.id)) {
-        selected.push(assignee);
-      } else {
-        unselected.push(assignee);
-      }
-    }
-
-    return [...selected, ...unselected];
-  }, [assigneeIds, selectableAssignees]);
+    return orderAssigneesForPopover({
+      assignees: selectableAssignees,
+      selectedAssigneeIds: assigneeIds,
+      frozenOrderIds: assigneePopoverOpen ? assigneePopoverFrozenOrderIds : null,
+    });
+  }, [assigneeIds, assigneePopoverFrozenOrderIds, assigneePopoverOpen, selectableAssignees]);
   
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -515,7 +526,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             
             <div className="space-y-1.5">
               <Label>{t`Assignees`}</Label>
-              <Popover>
+              <Popover open={assigneePopoverOpen} onOpenChange={handleAssigneePopoverOpenChange}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
                     <span className="truncate">{assigneeLabel}</span>
@@ -733,10 +744,13 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                       id="new-repeat-count"
                       type="number"
                       min={1}
-                      value={repeatCount}
+                      step={1}
+                      value={formatRepeatCountInputValue(repeatCount)}
                       onChange={(e) => {
                         markChanged();
-                        setRepeatCount(Number(e.target.value));
+                        const nextRepeatCount = parseRepeatCountInput(e.target.value);
+                        if (nextRepeatCount === null) return;
+                        setRepeatCount(nextRepeatCount);
                       }}
                     />
                     <p className="text-[11px] text-muted-foreground">{t`Creates the specified number of repeats.`}</p>

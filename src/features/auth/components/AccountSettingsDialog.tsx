@@ -17,6 +17,7 @@ import { supabase } from '@/shared/lib/supabaseClient';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { APP_VERSION, getLatestReleaseNotes } from '@/shared/lib/releaseNotes';
+import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
@@ -75,20 +76,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     setReleaseNotesOpen(false);
   }, [open]);
 
-  const signedInLabel = user?.email
-    ?? user?.user_metadata?.full_name
-    ?? user?.user_metadata?.name
-    ?? user?.id
-    ?? t`Unknown user`;
-  const avatarSource = displayName || signedInLabel;
-  const initials = avatarSource
-    .split('@')[0]
-    .split(/[\s._-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
-    || 'U';
+  const signedInLabel = getAccountSignedInLabel(user, t`Unknown user`);
+  const initials = getAccountInitials(displayName, signedInLabel);
 
   const isDisplayNameDirty = displayName !== initialDisplayName;
   const showSave = Boolean(user && isEditingName && isDisplayNameDirty);

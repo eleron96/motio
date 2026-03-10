@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-host="${1:-${DEPLOY_HOST:-root@85.239.60.3}}"
+host="${1:-${DEPLOY_HOST:-root@94.141.162.237}}"
 remote_dir="${DEPLOY_PATH:-/opt/new_toggl}"
 
 echo "Deploy target: ${host}:${remote_dir}"
@@ -10,6 +10,7 @@ echo "Deploy target: ${host}:${remote_dir}"
 rsync_output="$(
   rsync -az --itemize-changes \
     --exclude '.git' \
+    --exclude '.claude/' \
     --exclude 'node_modules' \
     --exclude 'dist' \
     --exclude '.env' \
@@ -47,6 +48,15 @@ if [[ "${keycloak_theme_changed}" == "true" ]]; then
   echo "Keycloak theme changes detected. Recreating keycloak to flush theme cache."
   ssh "$host" "cd '${remote_dir}' && docker compose -f infra/docker-compose.prod.yml --env-file .env up -d --force-recreate --no-deps keycloak"
 fi
+
+# Ensure caddy can reach monitor service by DNS name `beszel` on a shared user-defined network.
+# `host.docker.internal:8090` is not reachable when beszel is bound to 127.0.0.1 on host.
+ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy' && docker ps --format '{{.Names}}' | grep -qx 'beszel'; then \
+  docker network inspect motio-monitor >/dev/null 2>&1 || docker network create motio-monitor >/dev/null; \
+  docker network connect motio-monitor motio-caddy >/dev/null 2>&1 || true; \
+  docker network connect motio-monitor beszel >/dev/null 2>&1 || true; \
+  echo 'Ensured motio-monitor network for caddy<->beszel.'; \
+fi"
 
 ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then \
   host_hash=\$(sha1sum '${remote_dir}/infra/caddy/Caddyfile' | awk '{print \$1}'); \

@@ -564,7 +564,7 @@ const handleUsersList = async (payload: { search?: string }) => {
 
   const listed = await listAllAuthUsers(supabaseAdmin);
   if ("error" in listed) {
-    return jsonResponse({ error: listed.error }, 400);
+    return jsonResponse({ error: listed.error }, 500);
   }
 
   const { userIds: superAdminIds } = await listSuperAdminIds();
@@ -573,7 +573,7 @@ const handleUsersList = async (payload: { search?: string }) => {
   if (reserveAdminEmail) {
     const reserveUser = await findAuthUserByEmail(supabaseAdmin, reserveAdminEmail);
     if ("error" in reserveUser) {
-      return jsonResponse({ error: reserveUser.error }, 400);
+      return jsonResponse({ error: reserveUser.error }, 500);
     }
     if (reserveUser.user?.id) {
       superAdminSet.add(reserveUser.user.id);
@@ -588,7 +588,7 @@ const handleUsersList = async (payload: { search?: string }) => {
   }
 
   const [
-    { data: profiles },
+    { data: profiles, error: profilesError },
     { data: memberships, error: membershipsError },
     { data: ownedWorkspaces, error: ownedWorkspacesError },
     { data: taskMedia, error: taskMediaError },
@@ -611,14 +611,17 @@ const handleUsersList = async (payload: { search?: string }) => {
       .in("owner_id", userIds),
   ]);
 
+  if (profilesError) {
+    return jsonResponse({ error: profilesError.message }, 500);
+  }
   if (membershipsError) {
-    return jsonResponse({ error: membershipsError.message }, 400);
+    return jsonResponse({ error: membershipsError.message }, 500);
   }
   if (ownedWorkspacesError) {
-    return jsonResponse({ error: ownedWorkspacesError.message }, 400);
+    return jsonResponse({ error: ownedWorkspacesError.message }, 500);
   }
   if (taskMediaError) {
-    return jsonResponse({ error: taskMediaError.message }, 400);
+    return jsonResponse({ error: taskMediaError.message }, 500);
   }
 
   const profileMap = new Map(
@@ -738,7 +741,7 @@ const handleWorkspacesList = async () => {
     .from("workspaces")
     .select("id, name, owner_id, created_at");
   if (error) {
-    return jsonResponse({ error: error.message }, 400);
+    return jsonResponse({ error: error.message }, 500);
   }
 
   const workspaceIds = (workspaces ?? []).map((workspace) => workspace.id);
@@ -748,7 +751,11 @@ const handleWorkspacesList = async () => {
     return jsonResponse({ workspaces: [] });
   }
 
-  const [{ data: members }, { data: tasks }, { data: owners }] = await Promise.all([
+  const [
+    { data: members, error: membersError },
+    { data: tasks, error: tasksError },
+    { data: owners, error: ownersError },
+  ] = await Promise.all([
     supabaseAdmin
       .from("workspace_members")
       .select("workspace_id")
@@ -762,6 +769,16 @@ const handleWorkspacesList = async () => {
       .select("id, email, display_name")
       .in("id", ownerIds),
   ]);
+
+  if (membersError) {
+    return jsonResponse({ error: membersError.message }, 500);
+  }
+  if (tasksError) {
+    return jsonResponse({ error: tasksError.message }, 500);
+  }
+  if (ownersError) {
+    return jsonResponse({ error: ownersError.message }, 500);
+  }
 
   const memberCounts = new Map<string, number>();
   (members ?? []).forEach((row) => {
@@ -806,7 +823,7 @@ const handleWorkspacesUpdate = async (payload: { workspaceId?: string; name?: st
     .update({ name })
     .eq("id", workspaceId);
   if (error) {
-    return jsonResponse({ error: error.message }, 400);
+    return jsonResponse({ error: error.message }, 500);
   }
 
   return jsonResponse({ success: true });
@@ -823,7 +840,7 @@ const handleWorkspacesDelete = async (payload: { workspaceId?: string }) => {
     .delete()
     .eq("id", workspaceId);
   if (error) {
-    return jsonResponse({ error: error.message }, 400);
+    return jsonResponse({ error: error.message }, 500);
   }
 
   return jsonResponse({ success: true });
@@ -834,7 +851,7 @@ const handleSuperAdminsList = async () => {
     .from("super_admins")
     .select("user_id, created_at");
   if (error) {
-    return jsonResponse({ error: error.message }, 400);
+    return jsonResponse({ error: error.message }, 500);
   }
 
   const userIds = (data ?? []).map((row) => row.user_id);
@@ -876,7 +893,7 @@ const handleKeycloakSync = async () => {
   const result = await syncAllUsersToKeycloak();
 
   if ("fatalError" in result && result.fatalError) {
-    return jsonResponse({ error: result.fatalError }, 400);
+    return jsonResponse({ error: result.fatalError }, 500);
   }
 
   return jsonResponse({
