@@ -566,7 +566,15 @@ export const InviteNotifications: React.FC = () => {
     setViewMode('week');
     setCurrentDate(scrollDate);
     requestScrollToDate(scrollDate);
-    setSelectedTaskId(null);
+
+    // For comment_mention: open the task detail panel so comments are visible.
+    // For task_assigned: just highlight in the timeline (existing behaviour).
+    if (notification.type === 'comment_mention') {
+      setSelectedTaskId(notification.taskId);
+    } else {
+      setSelectedTaskId(null);
+    }
+
     setOpen(false);
     navigate('/app');
     setOpeningNotificationId(null);
