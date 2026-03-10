@@ -39,3 +39,4 @@ infra/backups/
 *.njsproj
 *.sln
 *.sw?
+.claude/

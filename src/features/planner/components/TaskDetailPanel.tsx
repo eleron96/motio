@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
 import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
+import { TaskCommentSection } from '@/features/planner/components/TaskCommentSection';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -793,6 +794,17 @@ export const TaskDetailPanel: React.FC = () => {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ── Comments section */}
+              {currentWorkspaceId && (
+                <div className="border-t border-border pt-3">
+                  <TaskCommentSection
+                    taskId={task.id}
+                    workspaceId={currentWorkspaceId}
+                    canEdit={canEdit}
+                  />
                 </div>
               )}
             </div>

@@ -7,10 +7,15 @@ import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
-import { Ban, RotateCw } from 'lucide-react';
+import { Ban, MessageSquare, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import { fetchTaskCommentCount } from '@/infrastructure/tasks/taskCommentsRepository';
+import { useAuthStore } from '@/features/auth/store/authStore';
+
+// Module-level cache: avoids re-fetching counts for tasks already loaded this session.
+const commentCountCache = new Map<string, number>();
 import {
   ContextMenu,
   ContextMenuContent,
@@ -97,6 +102,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   rowAssigneeId = null,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
+  const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const {
     tasks,
@@ -126,8 +132,28 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteForRowAssigneeOnly, setDeleteForRowAssigneeOnly] = useState(false);
+  const [commentCount, setCommentCount] = useState<number>(
+    () => commentCountCache.get(task.id) ?? 0,
+  );
   
   const barRef = useRef<HTMLDivElement>(null);
+
+  // Fetch comment count once per task (cached for the session)
+  useEffect(() => {
+    if (!currentWorkspaceId) return;
+    if (commentCountCache.has(task.id)) {
+      setCommentCount(commentCountCache.get(task.id) ?? 0);
+      return;
+    }
+    let cancelled = false;
+    fetchTaskCommentCount(currentWorkspaceId, task.id).then((count) => {
+      if (cancelled) return;
+      commentCountCache.set(task.id, count);
+      setCommentCount(count);
+    });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.id, currentWorkspaceId]);
   
   const project = projects.find(p => p.id === task.projectId);
   const activeProjects = useMemo(
@@ -418,12 +444,23 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                 {task.title}
               </span>
             </div>
-            <span
-              className="text-[11px] leading-tight truncate"
-              style={{ color: secondaryTextColor }}
-            >
-              {project ? formatProjectLabel(project.name, project.code) : t`No project`}
-            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className="text-[11px] leading-tight truncate"
+                style={{ color: secondaryTextColor }}
+              >
+                {project ? formatProjectLabel(project.name, project.code) : t`No project`}
+              </span>
+              {commentCount > 0 && (
+                <span
+                  className="flex shrink-0 items-center gap-0.5 text-[9px] leading-none opacity-70"
+                  style={{ color: secondaryTextColor }}
+                >
+                  <MessageSquare className="h-2.5 w-2.5" />
+                  {commentCount}
+                </span>
+              )}
+            </div>
           </div>
           
           {/* Right resize handle */}
