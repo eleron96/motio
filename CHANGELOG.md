@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Исправлено: список @mention в комментариях снова открывается рядом с курсором и не уезжает за пределы экрана.
+
 ## [0.3.3] - 2026-03-11
 ### Changed
 - Ispravlen @mention v kommentariyakh: menju polzovateley teper otkryvaetsya i pri vvode @ v contenteditable-obertke, s imenami i monogrammami uchastnikov workspace.

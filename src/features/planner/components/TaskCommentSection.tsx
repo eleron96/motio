@@ -62,6 +62,7 @@ import {
 } from '@/features/planner/lib/taskCommentEditorHtml';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import type { TaskComment } from '@/features/planner/types/planner';
+import { getCommentMentionPopoverPosition } from '@/features/planner/lib/commentMentionPopoverPosition';
 import {
   createTaskComment,
   deleteTaskComment,
@@ -237,6 +238,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [mentionAnchorRect, setMentionAnchorRect] = useState<DOMRect | null>(null);
   const mentionListRef = useRef<HTMLDivElement>(null);
   const [mentionHighlight, setMentionHighlight] = useState(0);
+  const [mentionPopoverPosition, setMentionPopoverPosition] = useState<ReturnType<
+    typeof getCommentMentionPopoverPosition
+  > | null>(null);
 
   // ── initialise editor
   useLayoutEffect(() => {
@@ -410,6 +414,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     mentionQueryRef.current = null;
     setMentionHighlight(0);
     setMentionAnchorRect(null);
+    setMentionPopoverPosition(null);
   }, []);
 
   const syncMentionAnchor = useCallback((fallbackElement?: HTMLElement | null) => {
@@ -472,6 +477,54 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     },
     [closeMention, detectMentionContext, saveSelection, syncFromEditor],
   );
+
+  const syncMentionPopoverPosition = useCallback(() => {
+    if (!mentionOpen || !mentionAnchorRect) {
+      setMentionPopoverPosition(null);
+      return;
+    }
+
+    const popoverElement = mentionListRef.current;
+    const nextPosition = getCommentMentionPopoverPosition({
+      anchorRect: mentionAnchorRect,
+      popoverSize: {
+        width: popoverElement?.offsetWidth || 256,
+        height: popoverElement?.offsetHeight || 224,
+      },
+      viewportSize: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+    });
+
+    setMentionPopoverPosition((current) => (
+      current &&
+      current.top === nextPosition.top &&
+      current.left === nextPosition.left &&
+      current.placement === nextPosition.placement
+        ? current
+        : nextPosition
+    ));
+  }, [mentionAnchorRect, mentionOpen]);
+
+  useLayoutEffect(() => {
+    if (!mentionOpen) return;
+    syncMentionPopoverPosition();
+  }, [filteredMentionCandidates.length, mentionOpen, mentionQuery, mentionHighlight, syncMentionPopoverPosition]);
+
+  useEffect(() => {
+    if (!mentionOpen) return;
+
+    const handleResize = () => syncMentionPopoverPosition();
+    const handleScroll = () => closeMention();
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [closeMention, mentionOpen, syncMentionPopoverPosition]);
 
   // ── image resize (identical to RichTextEditor logic)
   useEffect(() => {
@@ -701,16 +754,18 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       {/* mention floating popover */}
       {mentionOpen && (
         <div
-          className="fixed z-50 w-64 rounded-md border bg-popover shadow-md"
+          data-mention-popover="true"
+          className="fixed z-[60] w-64 rounded-md border bg-popover shadow-md"
           style={
-            mentionAnchorRect
+            mentionPopoverPosition
               ? {
-                  top: mentionAnchorRect.bottom + window.scrollY + 4,
-                  left: mentionAnchorRect.left + window.scrollX,
+                  top: mentionPopoverPosition.top,
+                  left: mentionPopoverPosition.left,
                 }
-              : { display: 'none' }
+              : { visibility: 'hidden' }
           }
           ref={mentionListRef}
+          data-placement={mentionPopoverPosition?.placement}
         >
           <div className="border-b px-3 py-1.5">
             <span className="text-xs text-muted-foreground">

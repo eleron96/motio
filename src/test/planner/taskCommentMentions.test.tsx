@@ -96,7 +96,7 @@ describe('TaskCommentSection mentions', () => {
       },
     ];
 
-    render(
+    const { container } = render(
       <TaskCommentSection
         taskId="task-1"
         workspaceId="workspace-1"
@@ -108,9 +108,55 @@ describe('TaskCommentSection mentions', () => {
       expect(mocks.repo.fetchTaskComments).toHaveBeenCalledWith('workspace-1', 'task-1');
     });
 
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1024,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: 768,
+    });
+    Object.defineProperty(window, 'scrollX', {
+      configurable: true,
+      value: 120,
+    });
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 400,
+    });
+
+    const editor = container.querySelector('[contenteditable="true"]');
+    expect(editor).not.toBeNull();
+
+    if (!(editor instanceof HTMLDivElement)) {
+      throw new Error('Expected HTMLDivElement editor');
+    }
+
+    vi.spyOn(editor, 'getBoundingClientRect').mockReturnValue({
+      x: 920,
+      y: 720,
+      top: 720,
+      left: 920,
+      bottom: 740,
+      right: 960,
+      width: 40,
+      height: 20,
+      toJSON: () => ({}),
+    } as DOMRect);
+
     fireEvent.click(screen.getByTitle('Mention a person'));
 
     expect(await screen.findByText('Anna')).toBeVisible();
+
+    await waitFor(() => {
+      const popover = screen.getByText('Anna').closest('[data-mention-popover="true"]');
+      expect(popover).not.toBeNull();
+      expect(popover).toHaveAttribute('data-placement', 'above');
+      expect(popover).toHaveStyle({
+        top: '492px',
+        left: '760px',
+      });
+    });
   });
 
   it('requests workspace members when the current mention cache belongs to another workspace', async () => {
