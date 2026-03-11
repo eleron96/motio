@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Fixed notification delete button localization, preserved timeline sidebar width across locale changes, and added comment counts to team task previews.
+
 ## [0.3.10] - 2026-03-11
 ### Changed
 - Added a bulk 'Delete all' action to notifications so task notifications can be removed directly from the dropdown in one step.

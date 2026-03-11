@@ -26,6 +26,7 @@ type MembersDialogsProps = {
   taskTypeById: Map<string, TaskType>;
   selectedTaskTags: Tag[];
   selectedTaskDescription: string;
+  selectedTaskCommentCount: number;
   handleOpenTaskInTimeline: () => void;
   showSettings: boolean;
   setShowSettings: (open: boolean) => void;
@@ -51,6 +52,7 @@ export const MembersDialogs = ({
   taskTypeById,
   selectedTaskTags,
   selectedTaskDescription,
+  selectedTaskCommentCount,
   handleOpenTaskInTimeline,
   showSettings,
   setShowSettings,
@@ -124,6 +126,7 @@ export const MembersDialogs = ({
         taskTypeById={taskTypeById}
         selectedTaskTags={selectedTaskTags}
         selectedTaskDescription={selectedTaskDescription}
+        selectedTaskCommentCount={selectedTaskCommentCount}
         onOpenTaskInTimeline={handleOpenTaskInTimeline}
         onClose={() => setSelectedTaskId(null)}
       />
