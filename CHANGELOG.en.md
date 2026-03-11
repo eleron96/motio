@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Fixed: the comment @mention picker opens next to the caret again and stays visible inside the viewport.
+
 ## [0.3.3] - 2026-03-11
 ### Changed
 - Fixed comment @mention: the user picker now opens when typing @ inside contenteditable wrapper nodes, with workspace member names and monograms.
