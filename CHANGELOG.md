@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.9] - 2026-03-11
 ### Changed
 - Исправлено всплывающее окно упоминаний в комментариях внутри модального окна задачи: список участников снова можно прокручивать и выбирать, а modal-layer больше не блокирует popup.
 
