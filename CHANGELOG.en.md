@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-03-11
 ### Changed
 - Fixed: the comment @mention picker opens next to the caret again and stays visible inside the viewport.
 
