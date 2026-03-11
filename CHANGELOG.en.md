@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Fixed comment count loading in team task previews: large task_comments queries are now batched, live sync no longer hits 502, and the card no longer shows a false 0 before the real count arrives.
+
 ## [0.3.11] - 2026-03-11
 ### Changed
 - Fixed notification delete button localization, preserved timeline sidebar width across locale changes, and added comment counts to team task previews.

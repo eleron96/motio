@@ -19,7 +19,7 @@ type TaskDetailsDialogProps = {
   taskTypeById: Map<string, TaskType>;
   selectedTaskTags: Tag[];
   selectedTaskDescription: string;
-  selectedTaskCommentCount: number;
+  selectedTaskCommentCount: number | undefined;
   onOpenTaskInTimeline: () => void;
   onClose: () => void;
 };
@@ -108,10 +108,13 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
             <div>
               <div className="text-xs text-muted-foreground">{t`Comments`}</div>
               <div className="flex items-center gap-2">
-                <Badge variant={selectedTaskCommentCount > 0 ? 'secondary' : 'outline'} className="min-w-8 justify-center text-[10px]">
-                  {selectedTaskCommentCount}
+                <Badge
+                  variant={typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 ? 'secondary' : 'outline'}
+                  className="min-w-8 justify-center text-[10px]"
+                >
+                  {typeof selectedTaskCommentCount === 'number' ? selectedTaskCommentCount : '...'}
                 </Badge>
-                {selectedTaskCommentCount > 0 && (
+                {typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 && (
                   <span className="text-xs text-muted-foreground">
                     {selectedTaskCommentCount === 1 ? t`1 comment` : t`${selectedTaskCommentCount} comments`}
                   </span>

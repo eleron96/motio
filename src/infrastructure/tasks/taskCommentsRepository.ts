@@ -1,7 +1,10 @@
 import DOMPurify from 'dompurify';
 import { supabase } from '@/shared/lib/supabaseClient';
 import type { TaskComment } from '@/features/planner/types/planner';
-import { buildTaskCommentCounts } from '@/shared/domain/taskCommentCount';
+import {
+  batchTaskCommentTaskIds,
+  buildTaskCommentCounts,
+} from '@/shared/domain/taskCommentCount';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -327,22 +330,27 @@ export const fetchTaskCommentCounts = async (
   workspaceId: string,
   taskIds: string[],
 ): Promise<{ data: Record<string, number> } | { error: string }> => {
-  const uniqueTaskIds = Array.from(new Set(taskIds.filter(Boolean)));
-  if (uniqueTaskIds.length === 0) {
+  const taskIdBatches = batchTaskCommentTaskIds(taskIds);
+  if (taskIdBatches.length === 0) {
     return { data: {} };
   }
 
-  const { data, error } = await supabase
-    .from('task_comments')
-    .select('task_id')
-    .eq('workspace_id', workspaceId)
-    .in('task_id', uniqueTaskIds)
-    .is('deleted_at', null);
+  const batchResults = await Promise.all(taskIdBatches.map((taskIdBatch) => (
+    supabase
+      .from('task_comments')
+      .select('task_id')
+      .eq('workspace_id', workspaceId)
+      .in('task_id', taskIdBatch)
+      .is('deleted_at', null)
+  )));
 
-  if (error) return { error: error.message };
+  const errorResult = batchResults.find((result) => result.error);
+  if (errorResult?.error) return { error: errorResult.error.message };
 
-  const commentTaskIds = ((data ?? []) as Array<{ task_id: string | null }>)
-    .map((row) => row.task_id);
+  const uniqueTaskIds = taskIdBatches.flat();
+  const commentTaskIds = batchResults.flatMap((result) => (
+    ((result.data ?? []) as Array<{ task_id: string | null }>).map((row) => row.task_id)
+  ));
 
   return {
     data: buildTaskCommentCounts(uniqueTaskIds, commentTaskIds),

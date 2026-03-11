@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { Milestone, TaskPriority, ViewMode } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { batchTaskCommentTaskIds } from '@/shared/domain/taskCommentCount';
 import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
 
 type LoadedRange = {
@@ -90,6 +91,41 @@ const takeFromSet = (source: Set<string>, limit: number) => {
     if (values.length >= limit) break;
   }
   return values;
+};
+
+const fetchTaskCommentDeltaRows = async (
+  workspaceId: string,
+  taskIds: string[],
+  since: string,
+): Promise<{ data: TaskCommentSyncRow[]; error: { message: string } | null }> => {
+  const taskIdBatches = batchTaskCommentTaskIds(taskIds);
+
+  if (taskIdBatches.length === 0) {
+    return { data: [], error: null };
+  }
+
+  const batchResults = await Promise.all(taskIdBatches.map((taskIdBatch) => (
+    supabase
+      .from('task_comments')
+      .select('task_id,updated_at')
+      .eq('workspace_id', workspaceId)
+      .in('task_id', taskIdBatch)
+      .gt('updated_at', since)
+      .order('updated_at', { ascending: true })
+      .limit(1000)
+  )));
+
+  const errorResult = batchResults.find((result) => result.error);
+  if (errorResult?.error) {
+    return { data: [], error: errorResult.error };
+  }
+
+  return {
+    data: batchResults.flatMap((result) => (
+      (result.data ?? []) as TaskCommentSyncRow[]
+    )),
+    error: null,
+  };
 };
 
 export const usePlannerLiveSync = (
@@ -363,16 +399,7 @@ export const usePlannerLiveSync = (
                 .eq('workspace_id', workspaceRef)
                 .gte('date', rangeRef.start)
                 .lte('date', rangeRef.end),
-              visibleTaskIds.length > 0
-                ? supabase
-                  .from('task_comments')
-                  .select('task_id,updated_at')
-                  .eq('workspace_id', workspaceRef)
-                  .in('task_id', visibleTaskIds)
-                  .gt('updated_at', taskCommentSince)
-                  .order('updated_at', { ascending: true })
-                  .limit(1000)
-                : Promise.resolve({ data: [], error: null }),
+              fetchTaskCommentDeltaRows(workspaceRef, visibleTaskIds, taskCommentSince),
             ]);
 
             if (!isLifecycleActive(reconcileEpoch)) {

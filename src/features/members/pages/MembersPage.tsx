@@ -628,6 +628,14 @@ const MembersPage = () => {
     void refreshTaskCommentCounts(currentWorkspaceId, visibleTaskIds);
   }, [currentWorkspaceId, refreshTaskCommentCounts, visibleTaskIds]);
 
+  useEffect(() => {
+    if (!currentWorkspaceId || !selectedTaskId) {
+      return;
+    }
+
+    void refreshTaskCommentCounts(currentWorkspaceId, [selectedTaskId]);
+  }, [currentWorkspaceId, refreshTaskCommentCounts, selectedTaskId]);
+
   const selectedTask = useMemo(
     () => assigneeTasks.find((task) => task.id === selectedTaskId) ?? null,
     [assigneeTasks, selectedTaskId],
@@ -644,7 +652,7 @@ const MembersPage = () => {
     if (!hasRichTags(selectedTask.description)) return selectedTask.description;
     return sanitizeTaskDescription(selectedTask.description);
   }, [selectedTask?.description]);
-  const selectedTaskCommentCount = selectedTask ? (taskCommentCounts[selectedTask.id] ?? 0) : 0;
+  const selectedTaskCommentCount = selectedTask ? taskCommentCounts[selectedTask.id] : undefined;
 
   const allVisibleSelected = visibleTaskIds.length > 0 && visibleTaskIds.every((id) => selectedTaskIds.has(id));
   const someVisibleSelected = visibleTaskIds.some((id) => selectedTaskIds.has(id));
