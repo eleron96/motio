@@ -494,6 +494,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       const editor = editorRef.current;
       if (!editor) return;
 
+      editor.focus();
+      restoreSelection();
       const mentionContext = detectMentionContext();
       const selection = window.getSelection();
       if (mentionContext && selection) {
@@ -509,7 +511,6 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         }
       }
 
-      editor.focus();
       const mentionHtml = [
         `<span class="comment-mention" contenteditable="false"`,
         ` data-mention-user-id="${candidate.userId}"`,
@@ -522,7 +523,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       syncFromEditor();
       closeMention();
     },
-    [closeMention, detectMentionContext, saveSelection, syncFromEditor],
+    [closeMention, detectMentionContext, restoreSelection, saveSelection, syncFromEditor],
   );
 
   const syncMentionPopoverPosition = useCallback(() => {
@@ -754,6 +755,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           // Detect @ mention trigger
           const mentionContext = detectMentionContext();
           if (mentionContext !== null) {
+            saveSelection();
             mentionQueryRef.current = mentionContext.query;
             setMentionQuery(mentionContext.query);
             if (!mentionOpen) {
@@ -859,6 +861,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           }
           ref={mentionListRef}
           data-placement={mentionPopoverPosition?.placement}
+          onWheel={(e) => e.stopPropagation()}
         >
           <div className="border-b px-3 py-1.5">
             <span className="text-xs text-muted-foreground">
@@ -872,6 +875,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           <div
             data-mention-options="true"
             className="max-h-48 overflow-y-auto overscroll-contain py-1"
+            onWheel={(e) => e.stopPropagation()}
           >
             {filteredMentionCandidates.map((candidate, idx) => (
               <button
@@ -885,8 +889,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 )}
                 onMouseDown={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   insertMention(candidate);
                 }}
+                onMouseEnter={() => setMentionHighlight(idx)}
               >
                 {/* Avatar / monogram */}
                 <span
