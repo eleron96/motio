@@ -84,7 +84,7 @@ describe('TaskCommentSection mentions', () => {
     }
   });
 
-  it('shows workspace members in the mention picker even when planner assignees are absent', async () => {
+  it('shows a visible mention picker with workspace members when the toolbar button is clicked', async () => {
     mocks.authState.membersWorkspaceId = 'workspace-1';
     mocks.authState.members = [
       {
@@ -110,7 +110,7 @@ describe('TaskCommentSection mentions', () => {
 
     fireEvent.click(screen.getByTitle('Mention a person'));
 
-    expect(await screen.findByText('Anna')).toBeInTheDocument();
+    expect(await screen.findByText('Anna')).toBeVisible();
   });
 
   it('requests workspace members when the current mention cache belongs to another workspace', async () => {
