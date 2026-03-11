@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-03-11
 ### Changed
 - Fixed: the comment mention popup now opens next to the @ button or caret and allows scrolling through the full member list.
 
