@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.8] - 2026-03-11
 ### Changed
 - Новые задачи теперь по умолчанию создаются без проекта. Контекстный проект сохраняется только если задача открыта из project-row или другого явного project-context.
 
