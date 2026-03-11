@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Planner comments: live-synced timeline counters and a more compact comment editor.
+- Release pipeline: deploy-remote and release now support an explicit NEXT_VERSION so minor releases can be shipped without bypassing the scripts.
+- Comments: the editor no longer shows a separate label above the input and now opens as a single line, expanding automatically while typing.
+- Planner: timeline comment counters now update immediately after comment create or delete and catch up via live sync without a page reload.
+
 ## [0.2.98] - 2026-03-11
 ### Added
 - Task comments: editor with @mentions, notifications, and a timeline counter.
