@@ -26,6 +26,11 @@ type MilestoneSyncRow = {
   updated_at: string;
 };
 
+type TaskCommentSyncRow = {
+  task_id: string;
+  updated_at: string;
+};
+
 const TASK_SELECT = [
   'id',
   'workspace_id',
@@ -95,14 +100,17 @@ export const usePlannerLiveSync = (
   const removeTasksByIds = usePlannerStore((state) => state.removeTasksByIds);
   const upsertMilestones = usePlannerStore((state) => state.upsertMilestones);
   const removeMilestonesByIds = usePlannerStore((state) => state.removeMilestonesByIds);
+  const refreshTaskCommentCounts = usePlannerStore((state) => state.refreshTaskCommentCounts);
 
   const lastTaskSyncAtRef = useRef<string | null>(null);
   const lastMilestoneSyncAtRef = useRef<string | null>(null);
+  const lastTaskCommentSyncAtRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!workspaceId || !loadedRange || loadedRange.workspaceId !== workspaceId) {
       lastTaskSyncAtRef.current = null;
       lastMilestoneSyncAtRef.current = null;
+      lastTaskCommentSyncAtRef.current = null;
       return;
     }
 
@@ -110,6 +118,7 @@ export const usePlannerLiveSync = (
     let lifecycleEpoch = 0;
     const pendingTaskUpserts = new Set<string>();
     const pendingMilestoneUpserts = new Set<string>();
+    const pendingTaskCommentCountRefreshes = new Set<string>();
     let flushTimer: number | null = null;
     let fallbackTimer: number | null = null;
     let initialReconcileTimer: number | null = null;
@@ -127,6 +136,9 @@ export const usePlannerLiveSync = (
     }
     if (!lastMilestoneSyncAtRef.current) {
       lastMilestoneSyncAtRef.current = new Date().toISOString();
+    }
+    if (!lastTaskCommentSyncAtRef.current) {
+      lastTaskCommentSyncAtRef.current = new Date().toISOString();
     }
 
     const isLifecycleActive = (epoch: number) => active && epoch === lifecycleEpoch;
@@ -216,6 +228,7 @@ export const usePlannerLiveSync = (
                   const upsertRows = rows.filter((row) => inTaskRange(row, rangeRef));
                   if (upsertRows.length > 0) {
                     upsertTasks(upsertRows.map(mapTaskRow));
+                    upsertRows.forEach((row) => pendingTaskCommentCountRefreshes.add(row.id));
                   }
                   const removeIds = taskUpsertIds.filter((id) => {
                     const row = byId.get(id);
@@ -263,10 +276,30 @@ export const usePlannerLiveSync = (
                 }
               }
 
+              const taskCommentRefreshIds = takeFromSet(
+                pendingTaskCommentCountRefreshes,
+                EVENT_BATCH_SIZE,
+              );
+              if (taskCommentRefreshIds.length > 0) {
+                const taskCommentRefreshEpoch = lifecycleEpoch;
+                const refreshResult = await refreshTaskCommentCounts(workspaceRef, taskCommentRefreshIds);
+                if (!isLifecycleActive(taskCommentRefreshEpoch)) {
+                  break;
+                }
+                if (refreshResult.error) {
+                  taskCommentRefreshIds.forEach((taskId) => pendingTaskCommentCountRefreshes.add(taskId));
+                  reconcileRequested = true;
+                }
+              }
+
               if (
                 active
                 && typeof window !== 'undefined'
-                && (pendingTaskUpserts.size > 0 || pendingMilestoneUpserts.size > 0)
+                && (
+                  pendingTaskUpserts.size > 0
+                  || pendingMilestoneUpserts.size > 0
+                  || pendingTaskCommentCountRefreshes.size > 0
+                )
               ) {
                 clearFlushTimer();
                 flushTimer = window.setTimeout(() => {
@@ -288,12 +321,17 @@ export const usePlannerLiveSync = (
             const nowIso = new Date().toISOString();
             const taskSince = lastTaskSyncAtRef.current ?? nowIso;
             const milestoneSince = lastMilestoneSyncAtRef.current ?? nowIso;
+            const taskCommentSince = lastTaskCommentSyncAtRef.current ?? nowIso;
+            const visibleTaskIds = usePlannerStore.getState().tasks
+              .filter((task) => task.endDate >= rangeRef.start && task.startDate <= rangeRef.end)
+              .map((task) => task.id);
 
             const [
               taskDeltaRes,
               milestoneDeltaRes,
               taskIdsRes,
               milestoneIdsRes,
+              taskCommentDeltaRes,
             ] = await Promise.all([
               supabase
                 .from('tasks')
@@ -325,14 +363,36 @@ export const usePlannerLiveSync = (
                 .eq('workspace_id', workspaceRef)
                 .gte('date', rangeRef.start)
                 .lte('date', rangeRef.end),
+              visibleTaskIds.length > 0
+                ? supabase
+                  .from('task_comments')
+                  .select('task_id,updated_at')
+                  .eq('workspace_id', workspaceRef)
+                  .in('task_id', visibleTaskIds)
+                  .gt('updated_at', taskCommentSince)
+                  .order('updated_at', { ascending: true })
+                  .limit(1000)
+                : Promise.resolve({ data: [], error: null }),
             ]);
 
             if (!isLifecycleActive(reconcileEpoch)) {
               break;
             }
 
-            if (taskDeltaRes.error || milestoneDeltaRes.error || taskIdsRes.error || milestoneIdsRes.error) {
-              console.error(taskDeltaRes.error ?? milestoneDeltaRes.error ?? taskIdsRes.error ?? milestoneIdsRes.error);
+            if (
+              taskDeltaRes.error
+              || milestoneDeltaRes.error
+              || taskIdsRes.error
+              || milestoneIdsRes.error
+              || taskCommentDeltaRes.error
+            ) {
+              console.error(
+                taskDeltaRes.error
+                ?? milestoneDeltaRes.error
+                ?? taskIdsRes.error
+                ?? milestoneIdsRes.error
+                ?? taskCommentDeltaRes.error,
+              );
               growFallbackFailures();
               if (
                 !channelHealthy
@@ -359,6 +419,7 @@ export const usePlannerLiveSync = (
 
             const taskRows = (taskDeltaRes.data ?? []) as TaskSyncRow[];
             const milestoneRows = (milestoneDeltaRes.data ?? []) as MilestoneSyncRow[];
+            const taskCommentRows = (taskCommentDeltaRes.data ?? []) as TaskCommentSyncRow[];
 
             if (taskRows.length > 0) {
               upsertTasks(taskRows.map(mapTaskRow));
@@ -391,8 +452,31 @@ export const usePlannerLiveSync = (
               removeMilestonesByIds(staleMilestoneIds);
             }
 
+            const taskCommentRefreshIds = new Set(
+              taskCommentRows
+                .map((row) => row.task_id)
+                .filter((taskId): taskId is string => typeof taskId === 'string' && taskId.length > 0),
+            );
+            taskRows.forEach((row) => {
+              if (inTaskRange(row, rangeRef)) {
+                taskCommentRefreshIds.add(row.id);
+              }
+            });
+            if (taskCommentRefreshIds.size > 0) {
+              const taskCommentRefreshEpoch = lifecycleEpoch;
+              const refreshResult = await refreshTaskCommentCounts(workspaceRef, Array.from(taskCommentRefreshIds));
+              if (!isLifecycleActive(taskCommentRefreshEpoch)) {
+                break;
+              }
+              if (refreshResult.error) {
+                growFallbackFailures();
+                continue;
+              }
+            }
+
             lastTaskSyncAtRef.current = nowIso;
             lastMilestoneSyncAtRef.current = nowIso;
+            lastTaskCommentSyncAtRef.current = nowIso;
             resetFallbackFailures();
           }
         }
@@ -458,8 +542,31 @@ export const usePlannerLiveSync = (
       removeMilestonesByIds([id]);
     };
 
+    const queueTaskCommentCountRefresh = (taskId: string) => {
+      pendingTaskCommentCountRefreshes.add(taskId);
+      scheduleFlush();
+    };
+
     const channel = supabase
       .channel(`planner-live-${workspaceRef}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'task_comments',
+          filter: `workspace_id=eq.${workspaceRef}`,
+        },
+        (payload) => {
+          if (!active) return;
+          const changedTaskId = payload.eventType === 'DELETE'
+            ? (payload.old as { task_id?: unknown } | null)?.task_id
+            : (payload.new as { task_id?: unknown } | null)?.task_id;
+          if (typeof changedTaskId === 'string') {
+            queueTaskCommentCountRefresh(changedTaskId);
+          }
+        },
+      )
       .on(
         'postgres_changes',
         {
@@ -573,6 +680,7 @@ export const usePlannerLiveSync = (
   }, [
     loadedRange,
     removeMilestonesByIds,
+    refreshTaskCommentCounts,
     removeTasksByIds,
     upsertMilestones,
     upsertTasks,

@@ -1,6 +1,7 @@
 import DOMPurify from 'dompurify';
 import { supabase } from '@/shared/lib/supabaseClient';
 import type { TaskComment } from '@/features/planner/types/planner';
+import { buildTaskCommentCounts } from '@/shared/domain/taskCommentCount';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -320,4 +321,30 @@ export const fetchTaskCommentCount = async (
 
   if (error || count === null) return 0;
   return count;
+};
+
+export const fetchTaskCommentCounts = async (
+  workspaceId: string,
+  taskIds: string[],
+): Promise<{ data: Record<string, number> } | { error: string }> => {
+  const uniqueTaskIds = Array.from(new Set(taskIds.filter(Boolean)));
+  if (uniqueTaskIds.length === 0) {
+    return { data: {} };
+  }
+
+  const { data, error } = await supabase
+    .from('task_comments')
+    .select('task_id')
+    .eq('workspace_id', workspaceId)
+    .in('task_id', uniqueTaskIds)
+    .is('deleted_at', null);
+
+  if (error) return { error: error.message };
+
+  const commentTaskIds = ((data ?? []) as Array<{ task_id: string | null }>)
+    .map((row) => row.task_id);
+
+  return {
+    data: buildTaskCommentCounts(uniqueTaskIds, commentTaskIds),
+  };
 };

@@ -318,3 +318,27 @@ Then:
 - `src/test/planner/taskCommentsRepository.test.ts`
 - `infra/supabase/migrations/0052_fix_task_comment_soft_delete_policy.sql`
 - `infra/supabase/migrations/0053_add_soft_delete_task_comment_rpc.sql`
+
+## Scenario 18: Timeline comment badge updates immediately and stays live-synced
+
+Given:
+- у задачи на timeline есть badge с количеством комментариев;
+- пользователь добавляет или удаляет комментарий в details panel, либо комментарий меняется из другой вкладки.
+
+When:
+- create/delete комментария завершается успешно;
+- или `usePlannerLiveSync` получает событие/делает reconcile по `task_comments`.
+
+Then:
+- badge на timeline-card обновляется без перезагрузки страницы;
+- count хранится в одном `plannerStore`, а не в локальном cache карточки;
+- пропущенные realtime-события догоняются через точечный refresh count по затронутым `taskId`.
+
+Покрытие:
+- `src/features/planner/components/TaskCommentSection.tsx`
+- `src/features/planner/components/timeline/TaskBar.tsx`
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/features/planner/store/plannerStore.ts`
+- `src/shared/domain/taskCommentCount.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`
+- `src/test/shared/taskCommentCount.test.ts`

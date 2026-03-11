@@ -11,11 +11,6 @@ import { Ban, MessageSquare, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import { fetchTaskCommentCount } from '@/infrastructure/tasks/taskCommentsRepository';
-import { useAuthStore } from '@/features/auth/store/authStore';
-
-// Module-level cache: avoids re-fetching counts for tasks already loaded this session.
-const commentCountCache = new Map<string, number>();
 import {
   ContextMenu,
   ContextMenuContent,
@@ -102,7 +97,6 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   rowAssigneeId = null,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
-  const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const {
     tasks,
@@ -123,6 +117,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     setHighlightedTaskId,
     groupMode,
   } = usePlannerStore();
+  const commentCount = usePlannerStore((state) => state.taskCommentCounts?.[task.id] ?? 0);
   
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState<'left' | 'right' | null>(null);
@@ -132,28 +127,8 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteForRowAssigneeOnly, setDeleteForRowAssigneeOnly] = useState(false);
-  const [commentCount, setCommentCount] = useState<number>(
-    () => commentCountCache.get(task.id) ?? 0,
-  );
   
   const barRef = useRef<HTMLDivElement>(null);
-
-  // Fetch comment count once per task (cached for the session)
-  useEffect(() => {
-    if (!currentWorkspaceId) return;
-    if (commentCountCache.has(task.id)) {
-      setCommentCount(commentCountCache.get(task.id) ?? 0);
-      return;
-    }
-    let cancelled = false;
-    fetchTaskCommentCount(currentWorkspaceId, task.id).then((count) => {
-      if (cancelled) return;
-      commentCountCache.set(task.id, count);
-      setCommentCount(count);
-    });
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task.id, currentWorkspaceId]);
   
   const project = projects.find(p => p.id === task.projectId);
   const activeProjects = useMemo(
