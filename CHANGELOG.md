@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.98] - 2026-03-11
 ### Added
 - Комментарии к задачам: редактор с @упоминаниями, уведомления и счётчик на таймлайне.
 
