@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.8] - 2026-03-11
 ### Changed
 - New tasks now default to no project. A project is preselected only when task creation is opened from an explicit project context such as a project row.
 
