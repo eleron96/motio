@@ -181,3 +181,4 @@
 2026-03-09T11:21:14Z | 0.2.95 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-112031.dump | Favicon assets are now synchronized across the public site and login screen: fallback icons, edge proxy routes, and the Keycloak theme favicon were updated.
 2026-03-09T11:34:18Z | 0.2.96 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-113333.dump | Favicons now follow the browser color scheme: the light icon is used in light mode, the dark icon in dark mode, including the login screen.
 2026-03-09T12:07:25Z | 0.2.97 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260309-120639.dump | The login screen now serves the correct favicon immediately for light and dark browser themes.
+2026-03-11T00:01:50Z | 0.2.98 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-000041.dump | Task comments: editor with @mentions, notifications, and a timeline counter.
