@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-03-11
 ### Changed
 - Fixed comment @mention popup: clicking the toolbar button now shows a visible workspace member list with names and monograms.
 

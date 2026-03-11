@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-03-11
 ### Changed
 - V kommentariyakh ispravlen popup @mention: pri klike na knopku spisok uchastnikov workspace teper vidim i pokazyvaet imena s monogrammami.
 
