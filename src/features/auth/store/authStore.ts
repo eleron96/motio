@@ -127,6 +127,7 @@ interface AuthState {
   currentWorkspaceId: string | null;
   currentWorkspaceRole: WorkspaceRole | null;
   members: WorkspaceMember[];
+  membersWorkspaceId: string | null;
   membersLoading: boolean;
   profileDisplayName: string | null;
   profileLocale: Locale | null;
@@ -340,6 +341,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   currentWorkspaceId: null,
   currentWorkspaceRole: null,
   members: [],
+  membersWorkspaceId: null,
   membersLoading: false,
   profileDisplayName: null,
   profileLocale: null,
@@ -362,6 +364,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       session,
       user,
+      members: [],
+      membersWorkspaceId: null,
+      membersLoading: false,
       profileDisplayName: null,
       profileLocale: null,
       isSuperAdmin: false,
@@ -390,6 +395,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           workspaces: [],
           currentWorkspaceId: null,
           currentWorkspaceRole: null,
+          members: [],
+          membersWorkspaceId: null,
+          membersLoading: false,
         });
       } else {
         set({ isSuperAdmin: false, superAdminLoading: false });
@@ -688,6 +696,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       currentWorkspaceId: null,
       currentWorkspaceRole: null,
       members: [],
+      membersWorkspaceId: null,
+      membersLoading: false,
       adminUsers: [],
       adminUsersLoading: false,
       adminUsersError: null,
@@ -726,6 +736,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         workspaces: [],
         currentWorkspaceId: null,
         currentWorkspaceRole: null,
+        members: [],
+        membersWorkspaceId: null,
+        membersLoading: false,
       });
       return;
     }
@@ -838,7 +851,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     }
     const role = get().workspaces.find((workspace) => workspace.id === id)?.role ?? null;
-    set({ currentWorkspaceId: id, currentWorkspaceRole: role });
+    set((state) => ({
+      currentWorkspaceId: id,
+      currentWorkspaceRole: role,
+      members: state.currentWorkspaceId === id ? state.members : [],
+      membersWorkspaceId: state.currentWorkspaceId === id ? state.membersWorkspaceId : null,
+      membersLoading: state.currentWorkspaceId === id ? state.membersLoading : false,
+    }));
   },
   createWorkspace: async (name) => {
     const { data, error } = await supabase.rpc('create_workspace', { workspace_name: name });
@@ -862,6 +881,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         currentWorkspaceId: null,
         currentWorkspaceRole: null,
         members: [],
+        membersWorkspaceId: null,
+        membersLoading: false,
       });
       workspaceSyncService.resetWorkspaceState();
 
@@ -915,7 +936,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchMembers: async (workspaceId) => {
     const targetWorkspaceId = workspaceId ?? get().currentWorkspaceId;
     if (!targetWorkspaceId) return;
-    set({ membersLoading: true });
+    set((state) => ({
+      membersLoading: true,
+      members: state.membersWorkspaceId === targetWorkspaceId ? state.members : [],
+      membersWorkspaceId: state.membersWorkspaceId === targetWorkspaceId
+        ? state.membersWorkspaceId
+        : null,
+    }));
 
     const { data, error } = await supabase
       .from('workspace_members')
@@ -925,7 +952,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (error) {
       console.error(error);
-      set({ membersLoading: false });
+      if (get().currentWorkspaceId !== targetWorkspaceId) return;
+      set({
+        members: [],
+        membersWorkspaceId: null,
+        membersLoading: false,
+      });
       return;
     }
 
@@ -938,7 +970,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       groupId: row.group_id ?? null,
     }));
 
-    set({ members, membersLoading: false });
+    if (get().currentWorkspaceId !== targetWorkspaceId) return;
+
+    set({
+      members,
+      membersWorkspaceId: targetWorkspaceId,
+      membersLoading: false,
+    });
   },
   inviteMember: async (email, role, groupId = null) => {
     const workspaceId = get().currentWorkspaceId;

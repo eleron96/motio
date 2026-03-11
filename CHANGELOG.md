@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- V komentariyah @mention teper pokazyvaet vsekh uchastnikov workspace, a ne tolko assignees zadachi.
+
 ## [0.3.0] - 2026-03-11
 ### Changed
 - Планировщик комментариев: live-синхронизация счётчиков на timeline и более компактный редактор комментариев.

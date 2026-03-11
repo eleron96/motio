@@ -342,3 +342,24 @@ Then:
 - `src/shared/domain/taskCommentCount.ts`
 - `src/test/planner/usePlannerLiveSync.test.tsx`
 - `src/test/shared/taskCommentCount.test.ts`
+
+## Scenario 19: Comment mentions target workspace members, not only assignees
+
+Given:
+- пользователь открыл комментарии задачи;
+- в workspace есть участник, который не присутствует в `planner.assignees`.
+
+When:
+- пользователь открывает список `@mention` в редакторе комментария.
+
+Then:
+- список строится из `workspace_members`;
+- участник workspace доступен для выбора даже без записи в assignees;
+- при переключении workspace устаревший список участников не используется.
+
+Покрытие:
+- `src/features/auth/store/authStore.ts`
+- `src/features/planner/components/TaskCommentSection.tsx`
+- `src/shared/domain/taskCommentMentionCandidates.ts`
+- `src/test/planner/taskCommentMentions.test.tsx`
+- `src/test/shared/taskCommentMentionCandidates.test.ts`
