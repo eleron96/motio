@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Fixed comment @mention popup: clicking the toolbar button now shows a visible workspace member list with names and monograms.
+
 ## [0.3.1] - 2026-03-11
 ### Changed
 - Comment @mention now shows all workspace members, not only task assignees.

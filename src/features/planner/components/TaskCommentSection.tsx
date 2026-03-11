@@ -357,6 +357,29 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     setMentionQuery('');
     mentionQueryRef.current = null;
     setMentionHighlight(0);
+    setMentionAnchorRect(null);
+  }, []);
+
+  const syncMentionAnchor = useCallback((fallbackElement?: HTMLElement | null) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const rect = selection.getRangeAt(0).getBoundingClientRect();
+      if (rect.width > 0 || rect.height > 0 || rect.top > 0 || rect.left > 0) {
+        setMentionAnchorRect(rect);
+        return;
+      }
+    }
+
+    const fallbackRect = fallbackElement?.getBoundingClientRect();
+    if (fallbackRect) {
+      setMentionAnchorRect(fallbackRect);
+      return;
+    }
+
+    const editorRect = editorRef.current?.getBoundingClientRect();
+    if (editorRect) {
+      setMentionAnchorRect(editorRect);
+    }
   }, []);
 
   const insertMention = useCallback(
@@ -498,6 +521,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             restoreSelection();
             document.execCommand('insertText', false, '@');
             saveSelection();
+            syncMentionAnchor(editor);
             setMentionQuery('');
             mentionQueryRef.current = '';
             setMentionOpen(true);
@@ -542,11 +566,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               setMentionOpen(true);
               setMentionHighlight(0);
             }
-            const sel = window.getSelection();
-            if (sel && sel.rangeCount > 0) {
-              const rect = sel.getRangeAt(0).getBoundingClientRect();
-              setMentionAnchorRect(rect);
-            }
+            syncMentionAnchor(editorRef.current);
           } else {
             if (mentionOpen) closeMention();
           }
