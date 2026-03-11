@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.6] - 2026-03-11
 ### Changed
 - Исправлено: popup упоминаний в комментариях теперь рендерится через portal и больше не уезжает в модалке, а уведомления о @mention больше не маскируются под назначение на задачу.
 
