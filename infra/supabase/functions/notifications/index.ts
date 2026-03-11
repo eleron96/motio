@@ -11,7 +11,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type NotificationAction = "list" | "markRead" | "markUnread" | "markAllRead" | "delete";
+type NotificationAction = "list" | "markRead" | "markUnread" | "markAllRead" | "deleteAll" | "delete";
 type NotificationType = "task_assigned" | "comment_mention";
 
 interface NotificationsPayload {
@@ -312,6 +312,42 @@ const handleMarkAllRead = async (authUser: AuthNotificationsUser) => {
   return jsonResponse({ success: true, updated: (updatedRows ?? []).length });
 };
 
+const handleDeleteAll = async (authUser: AuthNotificationsUser) => {
+  const { data: memberships, error: membershipsError } = await supabaseAdmin
+    .from("workspace_members")
+    .select("workspace_id")
+    .eq("user_id", authUser.id);
+
+  if (membershipsError) {
+    return jsonResponse({ error: membershipsError.message }, 400);
+  }
+
+  const workspaceIds = Array.from(new Set(
+    (memberships ?? [])
+      .map((row) => row.workspace_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0),
+  ));
+
+  if (workspaceIds.length === 0) {
+    return jsonResponse({ success: true, updated: 0 });
+  }
+
+  const deletedAt = new Date().toISOString();
+  const { data: updatedRows, error } = await supabaseAdmin
+    .from("user_notifications")
+    .update({ deleted_at: deletedAt })
+    .eq("recipient_user_id", authUser.id)
+    .is("deleted_at", null)
+    .in("workspace_id", workspaceIds)
+    .select("id");
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  return jsonResponse({ success: true, updated: (updatedRows ?? []).length });
+};
+
 const handleNotifications = async (req: Request) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
@@ -338,6 +374,10 @@ const handleNotifications = async (req: Request) => {
 
   if (action === "markAllRead") {
     return handleMarkAllRead(authResult.user);
+  }
+
+  if (action === "deleteAll") {
+    return handleDeleteAll(authResult.user);
   }
 
   return handleList(authResult.user, payload);

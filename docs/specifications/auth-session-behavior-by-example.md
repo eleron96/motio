@@ -170,23 +170,26 @@ Then:
 - `src/features/auth/components/AccountSettingsDialog.tsx`
 - `src/shared/lib/accountIdentity.ts`
 
-## Scenario 10: Notifications dropdown can mark all task notifications as read
+## Scenario 10: Notifications dropdown supports bulk task notification actions
 
 Given:
 - пользователь открыл выпадающий список `Notifications`;
 - в блоке `Task updates` есть непрочитанные уведомления.
 
 When:
-- пользователь нажимает bulk-действие `Mark as read` в заголовке блока `Task updates`.
+- пользователь нажимает bulk-действие `Mark as read` в заголовке блока `Task updates`;
+- или пользователь нажимает bulk-действие `Delete all` в том же блоке.
 
 Then:
 - все непрочитанные task-уведомления пользователя помечаются как прочитанные одним запросом;
+- bulk `Delete all` одним запросом soft-delete'ит все task-уведомления пользователя и сразу очищает список в dropdown;
 - счетчик непрочитанных в колокольчике обновляется без перезагрузки страницы;
-- удаленные уведомления (`deleted_at`) не затрагиваются.
+- уже удаленные уведомления (`deleted_at`) не затрагиваются и не возвращаются после refresh.
 
 Покрытие:
 - `src/features/auth/components/InviteNotifications.tsx`
 - `src/features/auth/lib/notificationReadState.ts`
+- `src/test/auth/inviteNotifications.test.tsx`
 - `src/test/auth/notificationReadState.test.ts`
 - `infra/supabase/functions/notifications/index.ts`
 
