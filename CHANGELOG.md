@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.7] - 2026-03-11
 ### Changed
 - Улучшено окно выбора участников в комментариях: список упоминаний прокручивается, клик по участнику вставляет mention, а наведенный вариант подсвечивается.
 
