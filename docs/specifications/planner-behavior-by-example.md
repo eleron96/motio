@@ -390,4 +390,23 @@ Then:
 - `infra/supabase/functions/inbox/taskNotifications.ts`
 - `infra/supabase/functions/notifications/index.ts`
 - `src/features/auth/components/InviteNotifications.tsx`
-- `src/test/auth/inboxTaskNotifications.test.ts`
+
+## Scenario 21: New tasks default to "No project" unless opened from project context
+
+Given:
+- пользователь открывает обычный диалог создания задачи без project-context;
+- в workspace при этом есть активные проекты.
+
+When:
+- пользователь создает новую задачу, не меняя поле проекта вручную.
+
+Then:
+- поле проекта по умолчанию стоит на `No project`;
+- в `addTask` уходит `projectId: null`, а не первый активный проект workspace;
+- если диалог был открыт из project-row/grouped timeline с явным `initialProjectId`, этот контекстный проект сохраняется.
+
+Покрытие:
+- `src/features/planner/components/AddTaskDialog.tsx`
+- `src/features/planner/lib/taskFormRules.ts`
+- `src/test/planner/addTaskDialog.test.tsx`
+- `src/test/planner/taskFormRules.test.ts`

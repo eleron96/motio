@@ -41,6 +41,7 @@ import {
   parseRepeatCountInput,
   RepeatEnds,
   RepeatFrequency,
+  resolveAddTaskProjectValue,
   resolveRepeatValidationMessage,
   shouldAutoSyncRepeatUntil,
 } from '@/features/planner/lib/taskFormRules';
@@ -132,6 +133,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     return resolveDefaultStatusId(statuses);
   }, [statuses]);
   const noProjectDisabled = groupMode === 'project';
+  const fallbackProjectId = activeProjects[0]?.id;
   
   const today = new Date();
   const defaultStart = format(today, 'yyyy-MM-dd');
@@ -369,7 +371,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     
     // Reset form
     setTitle('');
-    setProjectId(activeProjects[0]?.id || 'none');
+    setProjectId(resolveAddTaskProjectValue({
+      fallbackProjectId,
+      noProjectDisabled,
+    }));
     setProjectInitialized(false);
     setAssigneeIds([]);
     setStatusId(defaultStatusId);
@@ -419,12 +424,11 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (projectInitialized) return;
     const nextStart = initialStartDate ?? defaultStart;
     const nextEnd = initialEndDate ?? nextStart;
-    const initialProjectValue = initialProjectId === null
-      ? 'none'
-      : (initialProjectId ?? activeProjects[0]?.id ?? 'none');
-    const nextProjectId = noProjectDisabled && initialProjectValue === 'none'
-      ? (activeProjects[0]?.id ?? 'none')
-      : initialProjectValue;
+    const nextProjectId = resolveAddTaskProjectValue({
+      initialProjectId,
+      fallbackProjectId,
+      noProjectDisabled,
+    });
     const nextAssignees = normalizeAssigneeSelection(initialAssigneeIds)
       .filter((id) => selectableAssignees.some((assignee) => assignee.id === id));
 
@@ -448,8 +452,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setNewSubtaskTitle('');
     setProjectInitialized(true);
   }, [
-    activeProjects,
     defaultStart,
+    fallbackProjectId,
     initialAssigneeIds,
     initialEndDate,
     initialProjectId,
