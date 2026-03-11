@@ -126,7 +126,9 @@ describe('TaskCommentSection mentions', () => {
     });
 
     const editor = container.querySelector('[contenteditable="true"]');
+    const mentionButton = screen.getByTitle('Mention a person');
     expect(editor).not.toBeNull();
+    expect(mentionButton).not.toBeNull();
 
     if (!(editor instanceof HTMLDivElement)) {
       throw new Error('Expected HTMLDivElement editor');
@@ -144,17 +146,29 @@ describe('TaskCommentSection mentions', () => {
       toJSON: () => ({}),
     } as DOMRect);
 
-    fireEvent.click(screen.getByTitle('Mention a person'));
+    vi.spyOn(mentionButton, 'getBoundingClientRect').mockReturnValue({
+      x: 120,
+      y: 220,
+      top: 220,
+      left: 120,
+      bottom: 244,
+      right: 144,
+      width: 24,
+      height: 24,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(mentionButton);
 
     expect(await screen.findByText('Anna')).toBeVisible();
 
     await waitFor(() => {
       const popover = screen.getByText('Anna').closest('[data-mention-popover="true"]');
       expect(popover).not.toBeNull();
-      expect(popover).toHaveAttribute('data-placement', 'above');
+      expect(popover).toHaveAttribute('data-placement', 'below');
       expect(popover).toHaveStyle({
-        top: '492px',
-        left: '760px',
+        top: '248px',
+        left: '120px',
       });
     });
   });
@@ -202,6 +216,18 @@ describe('TaskCommentSection mentions', () => {
       throw new Error('Expected HTMLDivElement editor');
     }
 
+    vi.spyOn(editor, 'getBoundingClientRect').mockReturnValue({
+      x: 140,
+      y: 200,
+      top: 200,
+      left: 140,
+      bottom: 224,
+      right: 300,
+      width: 160,
+      height: 24,
+      toJSON: () => ({}),
+    } as DOMRect);
+
     editor.innerHTML = '<div>@</div>';
     const line = editor.firstElementChild;
     expect(line).not.toBeNull();
@@ -217,5 +243,51 @@ describe('TaskCommentSection mentions', () => {
     fireEvent.input(editor);
 
     expect(await screen.findByText('Anna')).toBeVisible();
+  });
+
+  it('keeps the mention picker open when the user scrolls the member list', async () => {
+    mocks.authState.membersWorkspaceId = 'workspace-1';
+    mocks.authState.members = Array.from({ length: 18 }, (_, index) => ({
+      userId: `user-${index + 2}`,
+      email: `user-${index + 2}@example.com`,
+      displayName: `User ${index + 2}`,
+      role: 'viewer' as const,
+      groupId: null,
+    }));
+
+    render(
+      <TaskCommentSection
+        taskId="task-1"
+        workspaceId="workspace-1"
+        canEdit
+      />,
+    );
+
+    const mentionButton = screen.getByTitle('Mention a person');
+    vi.spyOn(mentionButton, 'getBoundingClientRect').mockReturnValue({
+      x: 120,
+      y: 220,
+      top: 220,
+      left: 120,
+      bottom: 244,
+      right: 144,
+      width: 24,
+      height: 24,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(mentionButton);
+
+    expect(await screen.findByText('User 2')).toBeVisible();
+
+    const options = screen.getByText('User 2').closest('[data-mention-options="true"]');
+    expect(options).not.toBeNull();
+
+    options!.dispatchEvent(new Event('scroll', { bubbles: true }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Select a member')).toBeVisible();
+      expect(screen.getByText('User 2')).toBeVisible();
+    });
   });
 });

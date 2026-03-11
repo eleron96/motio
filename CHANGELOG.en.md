@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Fixed: the comment mention popup now opens next to the @ button or caret and allows scrolling through the full member list.
+
 ## [0.3.4] - 2026-03-11
 ### Changed
 - Fixed: the comment @mention picker opens next to the caret again and stays visible inside the viewport.
