@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createSupabaseClients, getProfileMap } from "../_shared/supabaseAuth.ts";
+import { mapInboxTaskNotifications, type InboxTaskNotification } from "./taskNotifications.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -46,7 +47,7 @@ type SentInviteSummary = {
 
 type TaskNotification = {
   id: string;
-  type: "task_assigned";
+  type: "task_assigned" | "comment_mention";
   workspaceId: string;
   workspaceName: string;
   actorUserId: string | null;
@@ -56,6 +57,8 @@ type TaskNotification = {
   taskTitle: string;
   taskStartDate: string | null;
   taskExists: boolean;
+  commentId: string | null;
+  commentPreview: string | null;
   createdAt: string;
   readAt: string | null;
 };
@@ -257,7 +260,7 @@ const loadSentInviteUpdates = async (authUser: AuthInboxUser, limit: number) => 
 const loadTaskNotifications = async (authUser: AuthInboxUser, limit: number) => {
   const { data: rows, error } = await supabaseAdmin
     .from("user_notifications")
-    .select("id, workspace_id, actor_user_id, type, task_id, task_title_snapshot, task_start_date_snapshot, created_at, read_at")
+    .select("id, workspace_id, actor_user_id, type, task_id, task_title_snapshot, task_start_date_snapshot, comment_id, comment_preview, created_at, read_at")
     .eq("recipient_user_id", authUser.id)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -325,30 +328,12 @@ const loadTaskNotifications = async (authUser: AuthInboxUser, limit: number) => 
     );
   }
 
-  const notifications: TaskNotification[] = visibleRows.map((row) => {
-    const actorProfile = typeof row.actor_user_id === "string"
-      ? profileResult.profiles.get(row.actor_user_id)
-      : undefined;
-    const taskState = typeof row.task_id === "string"
-      ? taskMap.get(row.task_id)
-      : undefined;
-
-    return {
-      id: row.id,
-      type: "task_assigned",
-      workspaceId: row.workspace_id,
-      workspaceName: workspaceNameResult.names.get(row.workspace_id) ?? "Workspace",
-      actorUserId: row.actor_user_id,
-      actorDisplayName: actorProfile?.displayName ?? null,
-      actorEmail: actorProfile?.email ?? null,
-      taskId: row.task_id,
-      taskTitle: taskState?.title ?? row.task_title_snapshot ?? "Untitled task",
-      taskStartDate: taskState?.startDate ?? row.task_start_date_snapshot ?? null,
-      taskExists: Boolean(taskState),
-      createdAt: row.created_at,
-      readAt: row.read_at,
-    };
-  });
+  const notifications: TaskNotification[] = mapInboxTaskNotifications(
+    visibleRows,
+    workspaceNameResult.names,
+    profileResult.profiles,
+    taskMap,
+  ) as InboxTaskNotification[];
 
   return { notifications };
 };

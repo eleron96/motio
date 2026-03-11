@@ -368,3 +368,24 @@ Then:
 - `src/shared/domain/taskCommentMentionCandidates.ts`
 - `src/test/planner/taskCommentMentions.test.tsx`
 - `src/test/shared/taskCommentMentionCandidates.test.ts`
+
+## Scenario 20: Comment mention notifications stay distinct from task assignment notifications
+
+Given:
+- пользователь отметил участника через `@mention` в комментарии задачи;
+- назначение исполнителя задачи при этом не менялось.
+
+When:
+- inbox/notifications загружают `user_notifications` для получателя.
+
+Then:
+- уведомление сохраняет тип `comment_mention`, а не превращается в `task_assigned`;
+- в payload доступны `comment_id` и `comment_preview`;
+- UI показывает текст про mention в комментарии, а не про назначение на задачу.
+
+Покрытие:
+- `infra/supabase/functions/inbox/index.ts`
+- `infra/supabase/functions/inbox/taskNotifications.ts`
+- `infra/supabase/functions/notifications/index.ts`
+- `src/features/auth/components/InviteNotifications.tsx`
+- `src/test/auth/inboxTaskNotifications.test.ts`

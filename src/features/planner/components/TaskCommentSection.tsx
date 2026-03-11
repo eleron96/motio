@@ -15,6 +15,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Bold,
   Image,
@@ -581,6 +582,42 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     };
   }, [mentionOpen, refreshMentionAnchor, syncMentionPopoverPosition]);
 
+  useEffect(() => {
+    if (!mentionOpen) return;
+
+    const handleSelectionChange = () => {
+      if (mentionAnchorSource !== 'caret') return;
+      const editor = editorRef.current;
+      const selection = window.getSelection();
+      if (!editor || !selection || selection.rangeCount === 0) return;
+      if (!editor.contains(selection.anchorNode)) return;
+      refreshMentionAnchor();
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+    };
+  }, [mentionAnchorSource, mentionOpen, refreshMentionAnchor]);
+
+  useEffect(() => {
+    if (!mentionOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (mentionListRef.current?.contains(target)) return;
+      if (editorRef.current?.contains(target)) return;
+      if (mentionButtonRef.current?.contains(target)) return;
+      closeMention();
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [closeMention, mentionOpen]);
+
   // ── image resize (identical to RichTextEditor logic)
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -808,7 +845,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       />
 
       {/* mention floating popover */}
-      {mentionOpen && (
+      {mentionOpen && typeof document !== 'undefined' && createPortal(
         <div
           data-mention-popover="true"
           className="fixed z-[60] w-64 rounded-md border bg-popover shadow-md"
@@ -863,7 +900,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             ))}
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* footer: char counter + actions */}
       <div className="flex items-center justify-between border-t border-input px-3 py-1.5">

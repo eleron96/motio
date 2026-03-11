@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Fixed: the comment mention popup now renders through a portal and no longer drifts inside dialogs, and @mention notifications are no longer mislabeled as task assignments.
+
 ## [0.3.5] - 2026-03-11
 ### Changed
 - Fixed: the comment mention popup now opens next to the @ button or caret and allows scrolling through the full member list.
