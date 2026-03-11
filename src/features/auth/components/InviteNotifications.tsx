@@ -7,7 +7,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { cn } from '@/shared/lib/classNames';
-import { markAllNotificationsAsRead } from '@/features/auth/lib/notificationReadState';
+import {
+  markAllNotificationsAsRead,
+  removeNotificationsByIds,
+} from '@/features/auth/lib/notificationReadState';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import type { WorkspaceRole } from '@/features/auth/store/authStore';
@@ -147,7 +150,7 @@ export const InviteNotifications: React.FC = () => {
   const [taskNotifications, setTaskNotifications] = useState<TaskNotification[]>([]);
   const [busyToken, setBusyToken] = useState<string | null>(null);
   const [busyNotificationId, setBusyNotificationId] = useState<string | null>(null);
-  const [markAllBusy, setMarkAllBusy] = useState(false);
+  const [bulkTaskAction, setBulkTaskAction] = useState<'markAllRead' | 'deleteAll' | null>(null);
   const [openingNotificationId, setOpeningNotificationId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -173,6 +176,7 @@ export const InviteNotifications: React.FC = () => {
   const totalBadgeCount = pendingCount + unreadTaskCount;
   const hasBadge = totalBadgeCount > 0;
   const badgeLabel = useMemo(() => (totalBadgeCount > 9 ? '9+' : String(totalBadgeCount)), [totalBadgeCount]);
+  const bulkTaskActionBusy = bulkTaskAction !== null;
 
   const applyInviteUpdateToasts = useCallback((sentInvites: SentInviteSummary[]) => {
     const now = Date.now();
@@ -557,9 +561,9 @@ export const InviteNotifications: React.FC = () => {
   }, []);
 
   const handleMarkAllTaskNotificationsRead = useCallback(async () => {
-    if (markAllBusy || unreadTaskCount === 0) return;
+    if (bulkTaskActionBusy || unreadTaskCount === 0) return;
 
-    setMarkAllBusy(true);
+    setBulkTaskAction('markAllRead');
     setErrorMessage('');
 
     const { error, response } = await supabase.functions.invoke('notifications', {
@@ -568,14 +572,35 @@ export const InviteNotifications: React.FC = () => {
 
     if (error) {
       setErrorMessage(await parseInvokeError(error, response));
-      setMarkAllBusy(false);
+      setBulkTaskAction(null);
       return;
     }
 
     const readAtIso = new Date().toISOString();
     setTaskNotifications((current) => markAllNotificationsAsRead(current, readAtIso));
-    setMarkAllBusy(false);
-  }, [markAllBusy, unreadTaskCount]);
+    setBulkTaskAction(null);
+  }, [bulkTaskActionBusy, unreadTaskCount]);
+
+  const handleDeleteAllTaskNotifications = useCallback(async () => {
+    if (bulkTaskActionBusy || taskNotifications.length === 0) return;
+
+    setBulkTaskAction('deleteAll');
+    setErrorMessage('');
+
+    const notificationIds = taskNotifications.map((notification) => notification.id);
+    const { error, response } = await supabase.functions.invoke('notifications', {
+      body: { action: 'deleteAll' },
+    });
+
+    if (error) {
+      setErrorMessage(await parseInvokeError(error, response));
+      setBulkTaskAction(null);
+      return;
+    }
+
+    setTaskNotifications((current) => removeNotificationsByIds(current, notificationIds));
+    setBulkTaskAction(null);
+  }, [bulkTaskActionBusy, taskNotifications]);
 
   const handleOpenTaskNotification = useCallback(async (notification: TaskNotification) => {
     if (openingNotificationId || !notification.taskId) return;
@@ -660,22 +685,33 @@ export const InviteNotifications: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t`Task updates`}</p>
-                    {unreadTaskCount > 0 && (
+                    <div className="flex items-center gap-1">
+                      {unreadTaskCount > 0 && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-xs"
+                          disabled={bulkTaskActionBusy || loading || openingNotificationId !== null || busyNotificationId !== null}
+                          onClick={() => void handleMarkAllTaskNotificationsRead()}
+                        >
+                          {t`Mark as read`} ({unreadTaskCount})
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-6 px-2 text-xs"
-                        disabled={markAllBusy || loading || openingNotificationId !== null || busyNotificationId !== null}
-                        onClick={() => void handleMarkAllTaskNotificationsRead()}
+                        className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        disabled={bulkTaskActionBusy || loading || openingNotificationId !== null || busyNotificationId !== null}
+                        onClick={() => void handleDeleteAllTaskNotifications()}
                       >
-                        {t`Mark as read`} ({unreadTaskCount})
+                        {t`Delete all`}
                       </Button>
-                    )}
+                    </div>
                   </div>
                   {taskNotifications.map((notification) => {
                     const actorLabel = notification.actorDisplayName || notification.actorEmail || t`Unknown user`;
                     const isUnread = !notification.readAt;
-                    const isBusy = markAllBusy || busyNotificationId === notification.id || openingNotificationId === notification.id;
+                    const isBusy = bulkTaskActionBusy || busyNotificationId === notification.id || openingNotificationId === notification.id;
                     const dateLabel = formatNotificationDate(notification.createdAt);
                     const markAsUnread = !isUnread;
 

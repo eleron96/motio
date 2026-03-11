@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Added a bulk 'Delete all' action to notifications so task notifications can be removed directly from the dropdown in one step.
+
 ## [0.3.9] - 2026-03-11
 ### Changed
 - Fixed the comment mention popup inside the task detail modal so the member list can be scrolled and selected again without the modal layer blocking interactions.
