@@ -165,6 +165,8 @@ describe('TaskCommentSection mentions', () => {
     await waitFor(() => {
       const popover = screen.getByText('Anna').closest('[data-mention-popover="true"]');
       expect(popover).not.toBeNull();
+      expect(document.body.contains(popover)).toBe(true);
+      expect(container.contains(popover)).toBe(false);
       expect(popover).toHaveAttribute('data-placement', 'below');
       expect(popover).toHaveStyle({
         top: '248px',
