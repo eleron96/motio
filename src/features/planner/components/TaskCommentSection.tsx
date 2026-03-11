@@ -99,6 +99,8 @@ const monogram = (name: string): string => {
 };
 
 const isEmpty = (t: string) => normalizeTaskCommentPlainText(t).trim().length === 0;
+const noopAdjustTaskCommentCount = () => undefined;
+const noopRefreshTaskCommentCounts = async () => ({});
 
 const setEditorValue = (editor: HTMLDivElement, value: string) => {
   if (!value) { editor.innerHTML = ''; return; }
@@ -520,7 +522,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         suppressContentEditableWarning
         data-placeholder={placeholder ?? t`Add a comment or update...`}
         className={cn(
-          'rich-text-editor border-0 ring-0 focus-visible:ring-0 min-h-[2.25rem] max-h-[40vh] overflow-y-auto leading-5',
+          'rich-text-editor comment-editor-input border-0 ring-0 focus-visible:ring-0 max-h-[40vh] overflow-y-auto leading-5',
           isFileDragOver && 'border-primary/60 bg-primary/5 ring-2 ring-primary/30',
           disabled && 'opacity-60 cursor-not-allowed',
         )}
@@ -895,6 +897,13 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
   );
   const currentWorkspaceRole = useAuthStore((s) => s.currentWorkspaceRole);
   const isAdmin = currentWorkspaceRole === 'admin';
+  const taskCommentCount = usePlannerStore((s) => s.taskCommentCounts?.[taskId] ?? 0);
+  const adjustTaskCommentCount = usePlannerStore(
+    (s) => s.adjustTaskCommentCount ?? noopAdjustTaskCommentCount,
+  );
+  const refreshTaskCommentCounts = usePlannerStore(
+    (s) => s.refreshTaskCommentCounts ?? noopRefreshTaskCommentCounts,
+  );
 
   // Assignees list for @mention candidates (only active members with a userId)
   const assignees = usePlannerStore((s) => s.assignees);
@@ -910,6 +919,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     setLoading(true);
     setComments([]);
     setNextCursor(null);
+    void refreshTaskCommentCounts(workspaceId, [taskId]);
 
     fetchTaskComments(workspaceId, taskId).then((result) => {
       if (cancelled) return;
@@ -923,7 +933,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     });
 
     return () => { cancelled = true; };
-  }, [taskId, workspaceId]);
+  }, [refreshTaskCommentCounts, taskId, workspaceId]);
 
   // ── load more (older) comments
   const handleLoadMore = async () => {
@@ -961,6 +971,8 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     }
     // Optimistic: append at the end (newest last)
     setComments((prev) => [...prev, result.data]);
+    adjustTaskCommentCount(taskId, 1);
+    void refreshTaskCommentCounts(workspaceId, [taskId]);
     void mentionedUserIds; // handled server-side via trigger
   };
 
@@ -973,9 +985,9 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
 
   const handleDeleted = useCallback((id: string) => {
     setComments((prev) => prev.filter((c) => c.id !== id));
-  }, []);
-
-  const commentCount = comments.length;
+    adjustTaskCommentCount(taskId, -1);
+    void refreshTaskCommentCounts(workspaceId, [taskId]);
+  }, [adjustTaskCommentCount, refreshTaskCommentCounts, taskId, workspaceId]);
 
   return (
     <div className="space-y-2 pt-1">
@@ -985,9 +997,9 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
         <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {t`Comments`}
         </span>
-        {commentCount > 0 && (
+        {taskCommentCount > 0 && (
           <span className="text-[9px] text-muted-foreground/70 tabular-nums">
-            {commentCount}
+            {taskCommentCount}
           </span>
         )}
       </div>
@@ -1028,7 +1040,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
           )}
 
           {/* Empty state */}
-          {!loading && comments.length === 0 && (
+          {!loading && comments.length === 0 && !canEdit && (
             <p className="py-3 text-center text-xs text-muted-foreground">
               {t`Add a comment or update`}
             </p>

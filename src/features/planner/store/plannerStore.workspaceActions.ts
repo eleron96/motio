@@ -3,6 +3,7 @@ import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
+import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -244,6 +245,7 @@ export const createWorkspaceActions = (
     if (get().dataRequestId !== requestId) return;
 
     const taskRows = (tasksRes.data ?? []) as TaskRow[];
+    const nextTaskIds = new Set(taskRows.map((row) => row.id));
     const assigneeRows = (assigneesRes.data ?? []) as AssigneeRow[];
     const taskAssigneeIds = new Set(
       taskRows.flatMap((row) => normalizeAssigneeIds(row.assignee_ids, row.assignee_id)),
@@ -285,6 +287,9 @@ export const createWorkspaceActions = (
 
     set((state) => ({
       tasks: taskRows.map(mapTaskRow),
+      taskCommentCounts: Object.fromEntries(
+        Object.entries(state.taskCommentCounts).filter(([taskId]) => nextTaskIds.has(taskId)),
+      ),
       milestones: (milestonesRes.data ?? []).map(mapMilestoneRow),
       projects: nextProjects,
       trackedProjectIds: nextTrackedProjectIds,
@@ -304,6 +309,19 @@ export const createWorkspaceActions = (
       },
       loading: false,
     }));
+
+    fetchTaskCommentCounts(workspaceId, taskRows.map((row) => row.id))
+      .then((commentCountsRes) => {
+        if (get().dataRequestId !== requestId) return;
+        if ('error' in commentCountsRes) {
+          console.error(commentCountsRes.error);
+          return;
+        }
+        get().upsertTaskCommentCounts(commentCountsRes.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     // Counts могут приходить позднее: это тяжелый запрос и не должен тормозить initial render.
     if (shouldFetchCounts) {

@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 type RealtimePayload = {
   eventType: string;
-  old: { id?: unknown } | null;
-  new: { id?: unknown } | null;
+  old: { id?: unknown; task_id?: unknown } | null;
+  new: { id?: unknown; task_id?: unknown } | null;
 };
 
 type QueryResult<T> = Promise<{ data: T; error: { message: string } | null }>;
@@ -29,6 +29,7 @@ const emptyResult = { data: [], error: null };
 const supabaseMocks = vi.hoisted(() => {
   let taskHandler: ((payload: RealtimePayload) => void) | null = null;
   let milestoneHandler: ((payload: RealtimePayload) => void) | null = null;
+  let taskCommentHandler: ((payload: RealtimePayload) => void) | null = null;
   let statusHandler: ((status: string) => void) | null = null;
 
   const channelApi = {
@@ -42,6 +43,9 @@ const supabaseMocks = vi.hoisted(() => {
       }
       if (filter.table === 'milestones') {
         milestoneHandler = handler;
+      }
+      if (filter.table === 'task_comments') {
+        taskCommentHandler = handler;
       }
       return channelApi;
     }),
@@ -73,6 +77,16 @@ const supabaseMocks = vi.hoisted(() => {
         eventType: 'INSERT',
         old: null,
         new: { id: milestoneId },
+      });
+    },
+    emitTaskCommentUpsert: (taskId: string) => {
+      if (!taskCommentHandler) {
+        throw new Error('Task comment realtime handler is not attached');
+      }
+      taskCommentHandler({
+        eventType: 'INSERT',
+        old: null,
+        new: { task_id: taskId },
       });
     },
     emitStatus: (status: string) => {
@@ -131,6 +145,14 @@ type RealtimeHandlers = {
   milestoneFlush?: (ids: string[], ctx: QueryContext) => QueryResult<unknown[]>;
   milestoneDelta?: (ctx: QueryContext) => QueryResult<unknown[]>;
   milestoneIds?: (ctx: QueryContext) => QueryResult<Array<{ id: string }>>;
+  taskCommentRefresh?: (
+    ids: string[],
+    ctx: QueryContext,
+  ) => QueryResult<Array<{ task_id: string | null }>>;
+  taskCommentDelta?: (
+    ids: string[],
+    ctx: QueryContext,
+  ) => QueryResult<Array<{ task_id: string | null; updated_at: string }>>;
 };
 
 const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
@@ -140,6 +162,8 @@ const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
   const milestoneFlush = handlers.milestoneFlush ?? (() => Promise.resolve(emptyResult));
   const milestoneDelta = handlers.milestoneDelta ?? (() => Promise.resolve(emptyResult));
   const milestoneIds = handlers.milestoneIds ?? (() => Promise.resolve(emptyResult));
+  const taskCommentRefresh = handlers.taskCommentRefresh ?? (() => Promise.resolve(emptyResult));
+  const taskCommentDelta = handlers.taskCommentDelta ?? (() => Promise.resolve(emptyResult));
 
   return (table: string) => {
     if (table === 'tasks') {
@@ -185,6 +209,26 @@ const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
               }),
               gte: (_gteField: string, _start: string) => ({
                 lte: (_lteField: string, _end: string) => milestoneIds(ctx),
+              }),
+            };
+          },
+        }),
+      };
+    }
+
+    if (table === 'task_comments') {
+      return {
+        select: (_columns: string) => ({
+          eq: (_field: string, workspaceId: string) => {
+            const ctx: QueryContext = { workspaceId };
+            return {
+              in: (_inField: string, ids: string[]) => ({
+                is: (_isField: string, _value: null) => taskCommentRefresh(ids, ctx),
+                gt: (_gtField: string, _since: string) => ({
+                  order: (_orderField: string, _opts: { ascending: boolean }) => ({
+                    limit: (_limit: number) => taskCommentDelta(ids, ctx),
+                  }),
+                }),
               }),
             };
           },
@@ -417,6 +461,41 @@ describe('usePlannerLiveSync', () => {
     });
 
     expect(usePlannerStore.getState().tasks).toHaveLength(0);
+
+    view.unmount();
+  });
+
+  it('refreshes task comment counts after task comment realtime events', async () => {
+    usePlannerStore.setState({
+      timelineInteractingUntil: 0,
+      workspaceId: workspaceOne,
+    });
+
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
+      taskCommentRefresh: async (ids) => ({
+        data: ids.flatMap((id) => (id === 'task-1'
+          ? [{ task_id: id }, { task_id: id }]
+          : [])),
+        error: null,
+      }),
+    }));
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    act(() => {
+      supabaseMocks.emitTaskCommentUpsert('task-1');
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(320);
+    });
+
+    expect(usePlannerStore.getState().taskCommentCounts['task-1']).toBe(2);
 
     view.unmount();
   });

@@ -7,6 +7,8 @@ import { initialFilters } from '@/features/planner/store/plannerStore.helpers';
 import { createWorkspaceActions } from '@/features/planner/store/plannerStore.workspaceActions';
 import { createTaskActions } from '@/features/planner/store/plannerStore.taskActions';
 import { createCatalogActions } from '@/features/planner/store/plannerStore.catalogActions';
+import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
+import { applyTaskCommentCountDelta } from '@/shared/domain/taskCommentCount';
 
 export const usePlannerStore = create<PlannerStore>()(
   persist(
@@ -35,6 +37,7 @@ export const usePlannerStore = create<PlannerStore>()(
       dataRequestId: 0,
       loadedRange: null,
       assigneeTaskCounts: {},
+      taskCommentCounts: {},
       assigneeCountsDate: null,
       assigneeCountsWorkspaceId: null,
       scrollRequestId: 0,
@@ -66,6 +69,7 @@ export const usePlannerStore = create<PlannerStore>()(
         dataRequestId: 0,
         loadedRange: null,
         assigneeTaskCounts: {},
+        taskCommentCounts: {},
         assigneeCountsDate: null,
         assigneeCountsWorkspaceId: null,
         scrollRequestId: 0,
@@ -114,9 +118,13 @@ export const usePlannerStore = create<PlannerStore>()(
         const removed = new Set(ids);
         const nextTasks = state.tasks.filter((task) => !removed.has(task.id));
         if (nextTasks.length === state.tasks.length) return state;
+        const nextTaskCommentCounts = Object.fromEntries(
+          Object.entries(state.taskCommentCounts).filter(([taskId]) => !removed.has(taskId)),
+        );
 
         return {
           tasks: nextTasks,
+          taskCommentCounts: nextTaskCommentCounts,
           selectedTaskId: state.selectedTaskId && removed.has(state.selectedTaskId)
             ? null
             : state.selectedTaskId,
@@ -125,6 +133,31 @@ export const usePlannerStore = create<PlannerStore>()(
             : state.highlightedTaskId,
         };
       }),
+
+      upsertTaskCommentCounts: (counts) => set((state) => ({
+        taskCommentCounts: {
+          ...state.taskCommentCounts,
+          ...counts,
+        },
+      })),
+
+      adjustTaskCommentCount: (taskId, delta) => set((state) => ({
+        taskCommentCounts: applyTaskCommentCountDelta(state.taskCommentCounts, taskId, delta),
+      })),
+
+      refreshTaskCommentCounts: async (workspaceId, taskIds) => {
+        const result = await fetchTaskCommentCounts(workspaceId, taskIds);
+        if ('error' in result) {
+          console.error(result.error);
+          return { error: result.error };
+        }
+        const activeWorkspaceId = get().workspaceId;
+        if (activeWorkspaceId && activeWorkspaceId !== workspaceId) {
+          return {};
+        }
+        get().upsertTaskCommentCounts(result.data);
+        return {};
+      },
 
       upsertMilestones: (milestones) => set((state) => {
         if (milestones.length === 0) return state;

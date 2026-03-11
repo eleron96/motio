@@ -43,6 +43,7 @@ export interface PlannerStore extends PlannerState {
     workspaceId: string;
   } | null;
   assigneeTaskCounts: Record<string, number>;
+  taskCommentCounts: Record<string, number>;
   assigneeCountsDate: string | null;
   assigneeCountsWorkspaceId: string | null;
   scrollRequestId: number;
@@ -67,6 +68,9 @@ export interface PlannerStore extends PlannerState {
   markTimelineInteraction: (durationMs?: number) => void;
   upsertTasks: (tasks: Task[]) => void;
   removeTasksByIds: (ids: string[]) => void;
+  upsertTaskCommentCounts: (counts: Record<string, number>) => void;
+  adjustTaskCommentCount: (taskId: string, delta: number) => void;
+  refreshTaskCommentCounts: (workspaceId: string, taskIds: string[]) => Promise<{ error?: string }>;
   upsertMilestones: (milestones: Milestone[]) => void;
   removeMilestonesByIds: (ids: string[]) => void;
 
