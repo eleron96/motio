@@ -33,6 +33,12 @@ type ProjectQueryKeyInput = {
   metaKey: boolean;
 };
 
+type AddTaskProjectValueInput = {
+  initialProjectId?: string | null;
+  fallbackProjectId?: string;
+  noProjectDisabled: boolean;
+};
+
 export const normalizeProjectQuery = (value: string) => value.trim().toLowerCase();
 
 export const filterProjectsByQuery = <T extends { name: string; code: string | null }>(
@@ -78,6 +84,18 @@ export const resolveProjectQueryFromKeyDown = ({
   if (!isPrintableKey) return null;
 
   return currentQuery + key;
+};
+
+export const resolveAddTaskProjectValue = ({
+  initialProjectId,
+  fallbackProjectId,
+  noProjectDisabled,
+}: AddTaskProjectValueInput) => {
+  const nextProjectValue = initialProjectId === null ? 'none' : (initialProjectId ?? 'none');
+  if (noProjectDisabled && nextProjectValue === 'none') {
+    return fallbackProjectId ?? 'none';
+  }
+  return nextProjectValue;
 };
 
 export const getDefaultRepeatUntil = (baseDate: string) => {

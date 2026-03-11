@@ -3,6 +3,7 @@ import {
   buildCreateRepeatsOptions,
   filterProjectsByQuery,
   formatRepeatCountInputValue,
+  resolveAddTaskProjectValue,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
@@ -71,6 +72,32 @@ describe('taskFormRules', () => {
       ctrlKey: false,
       metaKey: false,
     })).toBeNull();
+  });
+
+  it('defaults add-task project selection to no project unless context requires a project row', () => {
+    expect(resolveAddTaskProjectValue({
+      initialProjectId: undefined,
+      fallbackProjectId: 'project-1',
+      noProjectDisabled: false,
+    })).toBe('none');
+
+    expect(resolveAddTaskProjectValue({
+      initialProjectId: 'project-2',
+      fallbackProjectId: 'project-1',
+      noProjectDisabled: false,
+    })).toBe('project-2');
+
+    expect(resolveAddTaskProjectValue({
+      initialProjectId: null,
+      fallbackProjectId: 'project-1',
+      noProjectDisabled: false,
+    })).toBe('none');
+
+    expect(resolveAddTaskProjectValue({
+      initialProjectId: undefined,
+      fallbackProjectId: 'project-1',
+      noProjectDisabled: true,
+    })).toBe('project-1');
   });
 
   it('computes default repeat end date and validates repeat config', () => {
