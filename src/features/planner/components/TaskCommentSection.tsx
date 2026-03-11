@@ -119,6 +119,17 @@ const getSelectionRangeWithinEditor = (editor: HTMLDivElement): Range | null => 
   return editor.contains(range.commonAncestorContainer) ? range : null;
 };
 
+const isVisibleRect = (
+  rect: Pick<DOMRect, 'width' | 'height' | 'top' | 'left'> | null | undefined,
+) => (
+  Boolean(rect) && (
+    (rect.width > 0) ||
+    (rect.height > 0) ||
+    (rect.top > 0) ||
+    (rect.left > 0)
+  )
+);
+
 const getEditorTextBeforeCaret = (editor: HTMLDivElement, range: Range): string => {
   const prefixRange = range.cloneRange();
   prefixRange.selectNodeContents(editor);
@@ -207,6 +218,8 @@ interface CommentEditorProps {
   saveLabel?: string;
 }
 
+type MentionAnchorSource = 'button' | 'caret';
+
 const CommentEditor: React.FC<CommentEditorProps> = ({
   workspaceId,
   initialValue = '',
@@ -220,6 +233,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mentionButtonRef = useRef<HTMLButtonElement>(null);
   const savedSelectionRef = useRef<Range | null>(null);
   const lastValueRef = useRef(initialValue);
   const dragDepthRef = useRef(0);
@@ -236,6 +250,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionAnchorRect, setMentionAnchorRect] = useState<DOMRect | null>(null);
+  const [mentionAnchorSource, setMentionAnchorSource] = useState<MentionAnchorSource | null>(null);
   const mentionListRef = useRef<HTMLDivElement>(null);
   const [mentionHighlight, setMentionHighlight] = useState(0);
   const [mentionPopoverPosition, setMentionPopoverPosition] = useState<ReturnType<
@@ -414,33 +429,64 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     mentionQueryRef.current = null;
     setMentionHighlight(0);
     setMentionAnchorRect(null);
+    setMentionAnchorSource(null);
     setMentionPopoverPosition(null);
   }, []);
 
-  const syncMentionAnchor = useCallback((fallbackElement?: HTMLElement | null) => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      if (typeof range.getBoundingClientRect === 'function') {
-        const rect = range.getBoundingClientRect();
-        if (rect.width > 0 || rect.height > 0 || rect.top > 0 || rect.left > 0) {
-          setMentionAnchorRect(rect);
-          return;
+  const syncMentionAnchor = useCallback((
+    source: MentionAnchorSource,
+    fallbackElement?: HTMLElement | null,
+  ) => {
+    setMentionAnchorSource((current) => (current === source ? current : source));
+
+    if (source === 'caret') {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        if (typeof range.getClientRects === 'function') {
+          const rects = range.getClientRects();
+          const caretRect = rects.length > 0 ? rects[rects.length - 1] : null;
+          if (isVisibleRect(caretRect)) {
+            setMentionAnchorRect(caretRect as DOMRect);
+            return;
+          }
+        }
+        if (typeof range.getBoundingClientRect === 'function') {
+          const rect = range.getBoundingClientRect();
+          if (isVisibleRect(rect)) {
+            setMentionAnchorRect(rect);
+            return;
+          }
         }
       }
     }
 
+    const buttonRect = mentionButtonRef.current?.getBoundingClientRect();
+    if (source === 'button' && isVisibleRect(buttonRect)) {
+      setMentionAnchorRect(buttonRect as DOMRect);
+      return;
+    }
+
     const fallbackRect = fallbackElement?.getBoundingClientRect();
-    if (fallbackRect) {
-      setMentionAnchorRect(fallbackRect);
+    if (isVisibleRect(fallbackRect)) {
+      setMentionAnchorRect(fallbackRect as DOMRect);
       return;
     }
 
     const editorRect = editorRef.current?.getBoundingClientRect();
-    if (editorRect) {
-      setMentionAnchorRect(editorRect);
+    if (isVisibleRect(editorRect)) {
+      setMentionAnchorRect(editorRect as DOMRect);
     }
   }, []);
+
+  const refreshMentionAnchor = useCallback(() => {
+    if (!mentionAnchorSource) return;
+    if (mentionAnchorSource === 'button') {
+      syncMentionAnchor('button', mentionButtonRef.current);
+      return;
+    }
+    syncMentionAnchor('caret', editorRef.current);
+  }, [mentionAnchorSource, syncMentionAnchor]);
 
   const insertMention = useCallback(
     (candidate: TaskCommentMentionCandidate) => {
@@ -515,8 +561,17 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   useEffect(() => {
     if (!mentionOpen) return;
 
-    const handleResize = () => syncMentionPopoverPosition();
-    const handleScroll = () => closeMention();
+    const handleResize = () => {
+      refreshMentionAnchor();
+      syncMentionPopoverPosition();
+    };
+    const handleScroll = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Node && mentionListRef.current?.contains(target)) {
+        return;
+      }
+      refreshMentionAnchor();
+    };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, true);
@@ -524,7 +579,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [closeMention, mentionOpen, syncMentionPopoverPosition]);
+  }, [mentionOpen, refreshMentionAnchor, syncMentionPopoverPosition]);
 
   // ── image resize (identical to RichTextEditor logic)
   useEffect(() => {
@@ -611,6 +666,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         </button>
         {/* @ mention */}
         <button
+          ref={mentionButtonRef}
           type="button"
           title={t`Mention a person`}
           className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -622,7 +678,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
             restoreSelection();
             document.execCommand('insertText', false, '@');
             saveSelection();
-            syncMentionAnchor(editor);
+            syncMentionAnchor('button', mentionButtonRef.current ?? editor);
             setMentionQuery('');
             mentionQueryRef.current = '';
             setMentionOpen(true);
@@ -667,7 +723,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
               setMentionOpen(true);
               setMentionHighlight(0);
             }
-            syncMentionAnchor(editorRef.current);
+            syncMentionAnchor('caret', editorRef.current);
           } else {
             if (mentionOpen) closeMention();
           }
@@ -776,7 +832,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 : t`Select a member`}
             </span>
           </div>
-          <div className="max-h-48 overflow-y-auto py-1">
+          <div
+            data-mention-options="true"
+            className="max-h-48 overflow-y-auto overscroll-contain py-1"
+          >
             {filteredMentionCandidates.map((candidate, idx) => (
               <button
                 key={candidate.id}
