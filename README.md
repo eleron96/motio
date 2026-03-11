@@ -127,9 +127,16 @@ make keycloak-export-realm
 make deploy-remote
 ```
 
+Если нужен явный release version вместо автоинкремента patch, передайте `NEXT_VERSION`:
+
+```bash
+NEXT_VERSION=0.3.0 make deploy-remote
+```
+
 Скрипт `infra/scripts/deploy-remote.sh`:
 - синхронизирует код на удалённый сервер,
 - запускает `infra/scripts/prod-compose.sh` на сервере,
+- передаёт `NEXT_VERSION`, если он задан локально,
 - подтягивает обратно `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md` и `infra/releases.log` в локальный репозиторий.
 
 ## Keycloak Realm-as-Code (безопасный старт)
