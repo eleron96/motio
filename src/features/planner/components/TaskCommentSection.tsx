@@ -16,6 +16,7 @@ import React, {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { DismissableLayerBranch } from '@radix-ui/react-dismissable-layer';
 import {
   Bold,
   Image,
@@ -401,7 +402,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     const editor = editorRef.current;
     if (!editor) return null;
     const range = getSelectionRangeWithinEditor(editor);
-    if (!range.collapsed) return null;
+    if (!range || !range.collapsed) return null;
     const before = getEditorTextBeforeCaret(editor, range);
     // Find the last `@` that is not immediately preceded by a word character
     // (prevents false positives inside email addresses etc.)
@@ -848,64 +849,73 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
       {/* mention floating popover */}
       {mentionOpen && typeof document !== 'undefined' && createPortal(
-        <div
-          data-mention-popover="true"
-          className="fixed z-[60] w-64 rounded-md border bg-popover shadow-md"
-          style={
-            mentionPopoverPosition
-              ? {
-                  top: mentionPopoverPosition.top,
-                  left: mentionPopoverPosition.left,
-                }
-              : { visibility: 'hidden' }
-          }
-          ref={mentionListRef}
-          data-placement={mentionPopoverPosition?.placement}
-          onWheel={(e) => e.stopPropagation()}
+        <DismissableLayerBranch
+          data-mention-branch="true"
+          className="pointer-events-auto"
         >
-          <div className="border-b px-3 py-1.5">
-            <span className="text-xs text-muted-foreground">
-              {mentionsLoading
-                ? t`Loading members...`
-                : filteredMentionCandidates.length === 0
-                ? t`No members found`
-                : t`Select a member`}
-            </span>
-          </div>
           <div
-            data-mention-options="true"
-            className="max-h-48 overflow-y-auto overscroll-contain py-1"
+            data-mention-popover="true"
+            className="fixed z-[60] w-64 rounded-md border bg-popover shadow-md pointer-events-auto"
+            style={
+              mentionPopoverPosition
+                ? {
+                    top: mentionPopoverPosition.top,
+                    left: mentionPopoverPosition.left,
+                    pointerEvents: 'auto',
+                  }
+                : {
+                    visibility: 'hidden',
+                    pointerEvents: 'auto',
+                  }
+            }
+            ref={mentionListRef}
+            data-placement={mentionPopoverPosition?.placement}
             onWheel={(e) => e.stopPropagation()}
           >
-            {filteredMentionCandidates.map((candidate, idx) => (
-              <button
-                key={candidate.id}
-                type="button"
-                className={cn(
-                  'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
-                  idx === mentionHighlight
-                    ? 'bg-accent text-accent-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground',
-                )}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  insertMention(candidate);
-                }}
-                onMouseEnter={() => setMentionHighlight(idx)}
-              >
-                {/* Avatar / monogram */}
-                <span
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                  style={{ backgroundColor: monogramColor(candidate.userId) }}
+            <div className="border-b px-3 py-1.5">
+              <span className="text-xs text-muted-foreground">
+                {mentionsLoading
+                  ? t`Loading members...`
+                  : filteredMentionCandidates.length === 0
+                  ? t`No members found`
+                  : t`Select a member`}
+              </span>
+            </div>
+            <div
+              data-mention-options="true"
+              className="max-h-48 overflow-y-auto overscroll-contain py-1"
+              onWheel={(e) => e.stopPropagation()}
+            >
+              {filteredMentionCandidates.map((candidate, idx) => (
+                <button
+                  key={candidate.id}
+                  type="button"
+                  className={cn(
+                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
+                    idx === mentionHighlight
+                      ? 'bg-accent text-accent-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground',
+                  )}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    insertMention(candidate);
+                  }}
+                  onMouseEnter={() => setMentionHighlight(idx)}
                 >
-                  {monogram(candidate.name)}
-                </span>
-                <span className="truncate">{candidate.name}</span>
-              </button>
-            ))}
+                  {/* Avatar / monogram */}
+                  <span
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
+                    style={{ backgroundColor: monogramColor(candidate.userId) }}
+                  >
+                    {monogram(candidate.name)}
+                  </span>
+                  <span className="truncate">{candidate.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        </DismissableLayerBranch>
       , document.body)}
 
       {/* footer: char counter + actions */}
