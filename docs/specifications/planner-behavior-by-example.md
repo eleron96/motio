@@ -360,11 +360,13 @@ Then:
 - если редактор находится у нижней границы viewport или модалки, список флипается вверх и остается в видимой области;
 - внутренний scroll списка участников не закрывает popup и позволяет пролистать весь список;
 - клик по участнику из popup вставляет mention даже если popup рендерится через portal вне редактора;
+- внутри task detail modal popup остается интерактивным и не блокируется modal-layer;
 - hovered участник визуально подсвечивается как активный выбор;
 - список также открывается, когда браузер держит каретку внутри служебной `div/br`-обертки `contenteditable` после ввода `@`;
 - при переключении workspace устаревший список участников не используется.
 
 Покрытие:
+- `src/features/planner/components/TaskDetailPanel.tsx`
 - `src/features/auth/store/authStore.ts`
 - `src/features/planner/components/TaskCommentSection.tsx`
 - `src/shared/domain/taskCommentMentionCandidates.ts`

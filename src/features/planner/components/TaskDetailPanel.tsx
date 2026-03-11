@@ -55,7 +55,11 @@ const areTasksEqual = (left: Task, right: Task) => (
 
 const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
-  return Boolean(target.closest('[data-radix-popper-content-wrapper]'));
+  return Boolean(
+    target.closest('[data-radix-popper-content-wrapper]')
+    || target.closest('[data-mention-popover="true"]')
+    || target.closest('[data-mention-branch="true"]'),
+  );
 };
 
 type PendingRepeatUpdate = {

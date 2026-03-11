@@ -1,12 +1,21 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) => (
     strings.reduce((acc, str, index) => acc + str + (values[index] ?? ''), '')
   ),
 }));
+
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as typeof ResizeObserver;
+}
 
 const mocks = vi.hoisted(() => ({
   authState: {
@@ -70,6 +79,13 @@ vi.mock('@/infrastructure/tasks/taskCommentsRepository', () => ({
 }));
 
 import { TaskCommentSection } from '@/features/planner/components/TaskCommentSection';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/dialog';
 
 describe('TaskCommentSection mentions', () => {
   beforeEach(() => {
@@ -428,5 +444,84 @@ describe('TaskCommentSection mentions', () => {
 
     expect(borisOption).toHaveClass('bg-accent');
     expect(annaOption).not.toHaveClass('bg-accent');
+  });
+
+  it('keeps the task detail dialog open and interactive when selecting a mention from the portalled popup', async () => {
+    const user = userEvent.setup();
+    const onDialogOpenChange = vi.fn();
+
+    mocks.authState.membersWorkspaceId = 'workspace-1';
+    mocks.authState.members = [
+      {
+        userId: 'user-2',
+        email: 'anna@example.com',
+        displayName: 'Anna',
+        role: 'viewer',
+        groupId: null,
+      },
+    ];
+
+    const DialogHarness = () => {
+      const [open, setOpen] = React.useState(true);
+
+      return (
+        <Dialog
+          open={open}
+          onOpenChange={(nextOpen) => {
+            onDialogOpenChange(nextOpen);
+            setOpen(nextOpen);
+          }}
+        >
+          <DialogContent>
+            <DialogHeader className="sr-only">
+              <DialogTitle>Task details</DialogTitle>
+              <DialogDescription>Mention picker integration test</DialogDescription>
+            </DialogHeader>
+            <TaskCommentSection
+              taskId="task-1"
+              workspaceId="workspace-1"
+              canEdit
+            />
+          </DialogContent>
+        </Dialog>
+      );
+    };
+
+    render(<DialogHarness />);
+
+    const mentionButton = await screen.findByTitle('Mention a person');
+    vi.spyOn(mentionButton, 'getBoundingClientRect').mockReturnValue({
+      x: 120,
+      y: 220,
+      top: 220,
+      left: 120,
+      bottom: 244,
+      right: 144,
+      width: 24,
+      height: 24,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    await user.click(mentionButton);
+
+    const annaOption = await screen.findByText('Anna');
+    const mentionBranch = annaOption.closest('[data-mention-branch="true"]');
+    const mentionPopover = annaOption.closest('[data-mention-popover="true"]');
+
+    expect(document.body.style.pointerEvents).toBe('none');
+    expect(mentionBranch).not.toBeNull();
+    expect(mentionBranch).toHaveClass('pointer-events-auto');
+    expect(mentionPopover).not.toBeNull();
+    expect(mentionPopover).toHaveStyle({ pointerEvents: 'auto' });
+
+    await user.click(annaOption);
+
+    expect(document.execCommand).toHaveBeenCalledWith(
+      'insertHTML',
+      false,
+      expect.stringContaining('data-mention-user-id="user-2"'),
+    );
+    expect(onDialogOpenChange).not.toHaveBeenCalledWith(false);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });
