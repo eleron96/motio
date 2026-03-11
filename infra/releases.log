@@ -185,3 +185,4 @@
 2026-03-11T00:46:09Z | 0.3.0 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-004515.dump | Planner comments: live-synced timeline counters and a more compact comment editor.
 2026-03-11T01:01:56Z | 0.3.1 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-010059.dump | Comment @mention now shows all workspace members, not only task assignees.
 2026-03-11T01:09:40Z | 0.3.2 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-010845.dump | Fixed comment @mention popup: clicking the toolbar button now shows a visible workspace member list with names and monograms.
+2026-03-11T01:16:17Z | 0.3.3 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-011526.dump | Fixed comment @mention: the user picker now opens when typing @ inside contenteditable wrapper nodes, with workspace member names and monograms.
