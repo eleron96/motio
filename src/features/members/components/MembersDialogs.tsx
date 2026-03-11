@@ -26,7 +26,7 @@ type MembersDialogsProps = {
   taskTypeById: Map<string, TaskType>;
   selectedTaskTags: Tag[];
   selectedTaskDescription: string;
-  selectedTaskCommentCount: number;
+  selectedTaskCommentCount: number | undefined;
   handleOpenTaskInTimeline: () => void;
   showSettings: boolean;
   setShowSettings: (open: boolean) => void;

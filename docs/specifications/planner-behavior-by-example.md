@@ -333,6 +333,7 @@ Then:
 - badge на timeline-card обновляется без перезагрузки страницы;
 - count хранится в одном `plannerStore`, а не в локальном cache карточки;
 - пропущенные realtime-события догоняются через точечный refresh count по затронутым `taskId`.
+- refresh/reconcile больших списков задач батчится и не роняет `task_comments` запросы oversized `task_id=in(...)` URL.
 
 Покрытие:
 - `src/features/planner/components/TaskCommentSection.tsx`

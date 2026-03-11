@@ -108,6 +108,7 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
 
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { TASK_COMMENT_QUERY_BATCH_SIZE } from '@/shared/domain/taskCommentCount';
 
 const workspaceOne = 'ws-live-1';
 const workspaceTwo = 'ws-live-2';
@@ -496,6 +497,56 @@ describe('usePlannerLiveSync', () => {
     });
 
     expect(usePlannerStore.getState().taskCommentCounts['task-1']).toBe(2);
+
+    view.unmount();
+  });
+
+  it('batches task comment reconcile queries when many visible tasks are loaded', async () => {
+    const taskCommentDeltaCalls: string[][] = [];
+    const visibleTaskIds = Array.from(
+      { length: TASK_COMMENT_QUERY_BATCH_SIZE + 1 },
+      (_, index) => `task-${index}`,
+    );
+
+    usePlannerStore.setState({
+      timelineInteractingUntil: 0,
+      workspaceId: workspaceOne,
+      tasks: visibleTaskIds.map((id) => ({
+        id,
+        startDate: '2026-03-10',
+        endDate: '2026-03-11',
+      })) as never,
+    });
+
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
+      taskDelta: async () => emptyResult,
+      taskIds: async () => ({ data: visibleTaskIds.map((id) => ({ id })), error: null }),
+      milestoneDelta: async () => emptyResult,
+      milestoneIds: async () => emptyResult,
+      taskCommentDelta: async (ids) => {
+        taskCommentDeltaCalls.push(ids);
+        return emptyResult;
+      },
+    }));
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    act(() => {
+      supabaseMocks.emitStatus('SUBSCRIBED');
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INITIAL_RECONCILE_DELAY_MS + 50);
+    });
+
+    expect(taskCommentDeltaCalls).toHaveLength(2);
+    expect(taskCommentDeltaCalls[0]).toHaveLength(TASK_COMMENT_QUERY_BATCH_SIZE);
+    expect(taskCommentDeltaCalls[1]).toEqual([`task-${TASK_COMMENT_QUERY_BATCH_SIZE}`]);
 
     view.unmount();
   });

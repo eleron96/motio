@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyTaskCommentCountDelta,
+  batchTaskCommentTaskIds,
   buildTaskCommentCounts,
+  TASK_COMMENT_QUERY_BATCH_SIZE,
 } from '@/shared/domain/taskCommentCount';
 
 describe('taskCommentCount', () => {
@@ -30,5 +32,17 @@ describe('taskCommentCount', () => {
 
     const afterDecrement = applyTaskCommentCountDelta(afterIncrement, 'task-1', -10);
     expect(afterDecrement).toEqual({ 'task-1': 0 });
+  });
+
+  it('batches unique task ids for comment queries', () => {
+    const taskIds = Array.from(
+      { length: TASK_COMMENT_QUERY_BATCH_SIZE + 2 },
+      (_, index) => `task-${index}`,
+    );
+
+    expect(batchTaskCommentTaskIds([...taskIds, taskIds[0], '', null])).toEqual([
+      taskIds.slice(0, TASK_COMMENT_QUERY_BATCH_SIZE),
+      taskIds.slice(TASK_COMMENT_QUERY_BATCH_SIZE),
+    ]);
   });
 });
