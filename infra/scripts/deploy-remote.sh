@@ -28,6 +28,11 @@ if printf "%s\n" "${rsync_output}" | grep -q 'infra/keycloak/themes/'; then
   keycloak_theme_changed="true"
 fi
 
+remote_release_env=""
+if [[ -n "${NEXT_VERSION:-}" ]]; then
+  remote_release_env="NEXT_VERSION=$(printf '%q' "$NEXT_VERSION") "
+fi
+
 # motio-caddy binds a single file (/opt/new_toggl/infra/caddy/Caddyfile -> /etc/caddy/Caddyfile).
 # Plain rsync replaces the file via rename, which breaks that bind mount until the container restarts.
 # Sync the Caddyfile in-place to keep the inode stable.
@@ -42,7 +47,7 @@ rsync -az --inplace \
   "${root_dir}/infra/supabase/nginx.conf" \
   "${host}:${remote_dir}/infra/supabase/nginx.conf"
 
-ssh "$host" "cd '${remote_dir}' && bash infra/scripts/prod-compose.sh"
+ssh "$host" "cd '${remote_dir}' && ${remote_release_env}bash infra/scripts/prod-compose.sh"
 
 if [[ "${keycloak_theme_changed}" == "true" ]]; then
   echo "Keycloak theme changes detected. Recreating keycloak to flush theme cache."

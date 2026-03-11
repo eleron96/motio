@@ -118,6 +118,20 @@ increment_patch_version() {
   echo "${major}.${minor}.$((patch + 1))"
 }
 
+is_valid_semver() {
+  local version="$1"
+  [[ "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]
+}
+
+is_version_greater() {
+  local current="$1"
+  local candidate="$2"
+  local highest
+
+  highest="$(printf '%s\n%s\n' "$current" "$candidate" | sort -V | tail -n1)"
+  [[ "$candidate" == "$highest" && "$candidate" != "$current" ]]
+}
+
 restore_release_artifacts() {
   local restore_version="$1"
   printf "%s\n" "$restore_version" > "$version_file"
@@ -442,9 +456,26 @@ if [[ -z "$current_version" ]]; then
   current_version="0.0.0"
 fi
 
-if ! release_version="$(increment_patch_version "$current_version")"; then
-  echo "Invalid VERSION format: '$current_version'. Expected X.Y.Z." >&2
-  exit 1
+requested_version="${NEXT_VERSION:-}"
+if [[ -n "$requested_version" ]]; then
+  if ! is_valid_semver "$requested_version"; then
+    echo "Invalid NEXT_VERSION format: '$requested_version'. Expected X.Y.Z." >&2
+    exit 1
+  fi
+  if ! is_valid_semver "$current_version"; then
+    echo "Invalid VERSION format: '$current_version'. Expected X.Y.Z." >&2
+    exit 1
+  fi
+  if ! is_version_greater "$current_version" "$requested_version"; then
+    echo "NEXT_VERSION must be greater than current VERSION ($current_version)." >&2
+    exit 1
+  fi
+  release_version="$requested_version"
+else
+  if ! release_version="$(increment_patch_version "$current_version")"; then
+    echo "Invalid VERSION format: '$current_version'. Expected X.Y.Z." >&2
+    exit 1
+  fi
 fi
 
 release_backup_dir="$(mktemp -d)"
