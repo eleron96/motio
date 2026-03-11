@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Comment @mention now shows all workspace members, not only task assignees.
+
 ## [0.3.0] - 2026-03-11
 ### Changed
 - Planner comments: live-synced timeline counters and a more compact comment editor.

@@ -34,7 +34,6 @@ import { t } from '@lingui/macro';
 
 import { Button } from '@/shared/ui/button';
 import { ScrollArea } from '@/shared/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,7 +61,7 @@ import {
   normalizeTaskCommentPlainText,
 } from '@/features/planner/lib/taskCommentEditorHtml';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import type { Assignee, TaskComment } from '@/features/planner/types/planner';
+import type { TaskComment } from '@/features/planner/types/planner';
 import {
   createTaskComment,
   deleteTaskComment,
@@ -73,6 +72,10 @@ import {
   extractMentionedUserIds,
   updateTaskComment,
 } from '@/infrastructure/tasks/taskCommentsRepository';
+import {
+  buildTaskCommentMentionCandidates,
+  type TaskCommentMentionCandidate,
+} from '@/shared/domain/taskCommentMentionCandidates';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
@@ -144,7 +147,8 @@ interface CommentEditorProps {
   initialValue?: string;
   placeholder?: string;
   disabled?: boolean;
-  mentionCandidates: Assignee[];
+  mentionCandidates: TaskCommentMentionCandidate[];
+  mentionsLoading?: boolean;
   onSave: (html: string) => Promise<void>;
   onCancel?: () => void;
   saveLabel?: string;
@@ -156,6 +160,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   placeholder,
   disabled = false,
   mentionCandidates,
+  mentionsLoading = false,
   onSave,
   onCancel,
   saveLabel,
@@ -355,7 +360,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   }, []);
 
   const insertMention = useCallback(
-    (assignee: Assignee) => {
+    (candidate: TaskCommentMentionCandidate) => {
       const editor = editorRef.current;
       if (!editor) return;
 
@@ -384,9 +389,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       editor.focus();
       const mentionHtml = [
         `<span class="comment-mention" contenteditable="false"`,
-        ` data-mention-user-id="${assignee.userId ?? ''}"`,
-        ` data-mention-name="${assignee.name.replace(/"/g, '&quot;')}"`,
-        `>@${assignee.name}</span>`,
+        ` data-mention-user-id="${candidate.userId}"`,
+        ` data-mention-name="${candidate.name.replace(/"/g, '&quot;')}"`,
+        `>@${candidate.name}</span>`,
         '&nbsp;',
       ].join('');
       document.execCommand('insertHTML', false, mentionHtml);
@@ -641,15 +646,17 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         >
           <div className="border-b px-3 py-1.5">
             <span className="text-xs text-muted-foreground">
-              {filteredMentionCandidates.length === 0
+              {mentionsLoading
+                ? t`Loading members...`
+                : filteredMentionCandidates.length === 0
                 ? t`No members found`
                 : t`Select a member`}
             </span>
           </div>
           <div className="max-h-48 overflow-y-auto py-1">
-            {filteredMentionCandidates.map((assignee, idx) => (
+            {filteredMentionCandidates.map((candidate, idx) => (
               <button
-                key={assignee.id}
+                key={candidate.id}
                 type="button"
                 className={cn(
                   'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
@@ -659,17 +666,17 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
                 )}
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  insertMention(assignee);
+                  insertMention(candidate);
                 }}
               >
                 {/* Avatar / monogram */}
                 <span
                   className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                  style={{ backgroundColor: monogramColor(assignee.userId ?? assignee.id) }}
+                  style={{ backgroundColor: monogramColor(candidate.userId) }}
                 >
-                  {monogram(assignee.name)}
+                  {monogram(candidate.name)}
                 </span>
-                <span className="truncate">{assignee.name}</span>
+                <span className="truncate">{candidate.name}</span>
               </button>
             ))}
           </div>
@@ -723,7 +730,8 @@ interface TaskCommentItemProps {
   currentUserId: string | null;
   isAdmin: boolean;
   workspaceId: string;
-  mentionCandidates: Assignee[];
+  mentionCandidates: TaskCommentMentionCandidate[];
+  mentionsLoading: boolean;
   onUpdated: (updated: TaskComment) => void;
   onDeleted: (id: string) => void;
 }
@@ -734,6 +742,7 @@ const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
   isAdmin,
   workspaceId,
   mentionCandidates,
+  mentionsLoading,
   onUpdated,
   onDeleted,
 }) => {
@@ -800,6 +809,7 @@ const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
             workspaceId={workspaceId}
             initialValue={comment.content}
             mentionCandidates={mentionCandidates}
+            mentionsLoading={mentionsLoading}
             onSave={handleSaveEdit}
             onCancel={() => setEditing(false)}
             saveLabel={t`Update`}
@@ -896,6 +906,10 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     (s) => s.profileDisplayName ?? s.user?.email ?? '',
   );
   const currentWorkspaceRole = useAuthStore((s) => s.currentWorkspaceRole);
+  const workspaceMembers = useAuthStore((s) => s.members);
+  const membersWorkspaceId = useAuthStore((s) => s.membersWorkspaceId);
+  const membersLoading = useAuthStore((s) => s.membersLoading);
+  const fetchMembers = useAuthStore((s) => s.fetchMembers);
   const isAdmin = currentWorkspaceRole === 'admin';
   const taskCommentCount = usePlannerStore((s) => s.taskCommentCounts?.[taskId] ?? 0);
   const adjustTaskCommentCount = usePlannerStore(
@@ -905,11 +919,13 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     (s) => s.refreshTaskCommentCounts ?? noopRefreshTaskCommentCounts,
   );
 
-  // Assignees list for @mention candidates (only active members with a userId)
-  const assignees = usePlannerStore((s) => s.assignees);
-  const mentionCandidates = assignees.filter(
-    (a) => a.isActive && a.userId != null,
-  );
+  const mentionCandidates = buildTaskCommentMentionCandidates(workspaceMembers);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    if (membersWorkspaceId === workspaceId || membersLoading) return;
+    void fetchMembers(workspaceId);
+  }, [fetchMembers, membersLoading, membersWorkspaceId, workspaceId]);
 
   // ── load comments when the task opens
   useEffect(() => {
@@ -1056,6 +1072,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
                   isAdmin={isAdmin}
                   workspaceId={workspaceId}
                   mentionCandidates={mentionCandidates}
+                  mentionsLoading={membersLoading}
                   onUpdated={handleUpdated}
                   onDeleted={handleDeleted}
                 />
@@ -1070,6 +1087,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
         <CommentEditor
           workspaceId={workspaceId}
           mentionCandidates={mentionCandidates}
+          mentionsLoading={membersLoading}
           onSave={handleCreate}
           placeholder={t`Add a comment or update...`}
         />
