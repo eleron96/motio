@@ -247,6 +247,82 @@ describe('TaskCommentSection mentions', () => {
     expect(await screen.findByText('Anna')).toBeVisible();
   });
 
+  it('inserts the selected member when a mention candidate is clicked', async () => {
+    mocks.authState.membersWorkspaceId = 'workspace-1';
+    mocks.authState.members = [
+      {
+        userId: 'user-2',
+        email: 'anna@example.com',
+        displayName: 'Anna',
+        role: 'viewer',
+        groupId: null,
+      },
+      {
+        userId: 'user-3',
+        email: 'boris@example.com',
+        displayName: 'Boris',
+        role: 'viewer',
+        groupId: null,
+      },
+    ];
+
+    const { container } = render(
+      <TaskCommentSection
+        taskId="task-1"
+        workspaceId="workspace-1"
+        canEdit
+      />,
+    );
+
+    const editor = container.querySelector('[contenteditable="true"]');
+    expect(editor).not.toBeNull();
+
+    if (!(editor instanceof HTMLDivElement)) {
+      throw new Error('Expected HTMLDivElement editor');
+    }
+
+    vi.spyOn(editor, 'getBoundingClientRect').mockReturnValue({
+      x: 140,
+      y: 200,
+      top: 200,
+      left: 140,
+      bottom: 224,
+      right: 300,
+      width: 160,
+      height: 24,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    editor.textContent = '@';
+
+    const selection = window.getSelection();
+    expect(selection).not.toBeNull();
+    const range = document.createRange();
+    range.setStart(editor.firstChild!, 1);
+    range.collapse(true);
+    selection!.removeAllRanges();
+    selection!.addRange(range);
+
+    fireEvent.input(editor);
+
+    const annaOption = (await screen.findByText('Anna')).closest('button');
+    expect(annaOption).not.toBeNull();
+
+    selection!.removeAllRanges();
+    fireEvent.mouseDown(annaOption!);
+
+    expect(document.execCommand).toHaveBeenCalledWith(
+      'insertHTML',
+      false,
+      expect.stringContaining('data-mention-user-id="user-2"'),
+    );
+    expect(document.execCommand).toHaveBeenCalledWith(
+      'insertHTML',
+      false,
+      expect.stringContaining('@Anna'),
+    );
+  });
+
   it('keeps the mention picker open when the user scrolls the member list', async () => {
     mocks.authState.membersWorkspaceId = 'workspace-1';
     mocks.authState.members = Array.from({ length: 18 }, (_, index) => ({
@@ -285,11 +361,72 @@ describe('TaskCommentSection mentions', () => {
     const options = screen.getByText('User 2').closest('[data-mention-options="true"]');
     expect(options).not.toBeNull();
 
+    const windowWheelListener = vi.fn();
+    window.addEventListener('wheel', windowWheelListener);
+
+    fireEvent.wheel(options!, { deltaY: 120 });
     options!.dispatchEvent(new Event('scroll', { bubbles: true }));
 
     await waitFor(() => {
       expect(screen.getByText('Select a member')).toBeVisible();
       expect(screen.getByText('User 2')).toBeVisible();
     });
+
+    expect(windowWheelListener).not.toHaveBeenCalled();
+    window.removeEventListener('wheel', windowWheelListener);
+  });
+
+  it('highlights the hovered member in the mention picker', async () => {
+    mocks.authState.membersWorkspaceId = 'workspace-1';
+    mocks.authState.members = [
+      {
+        userId: 'user-2',
+        email: 'anna@example.com',
+        displayName: 'Anna',
+        role: 'viewer',
+        groupId: null,
+      },
+      {
+        userId: 'user-3',
+        email: 'boris@example.com',
+        displayName: 'Boris',
+        role: 'viewer',
+        groupId: null,
+      },
+    ];
+
+    render(
+      <TaskCommentSection
+        taskId="task-1"
+        workspaceId="workspace-1"
+        canEdit
+      />,
+    );
+
+    const mentionButton = screen.getByTitle('Mention a person');
+    vi.spyOn(mentionButton, 'getBoundingClientRect').mockReturnValue({
+      x: 120,
+      y: 220,
+      top: 220,
+      left: 120,
+      bottom: 244,
+      right: 144,
+      width: 24,
+      height: 24,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    fireEvent.click(mentionButton);
+
+    const annaOption = (await screen.findByText('Anna')).closest('button');
+    const borisOption = screen.getByText('Boris').closest('button');
+    expect(annaOption).not.toBeNull();
+    expect(borisOption).not.toBeNull();
+    expect(annaOption).toHaveClass('bg-accent');
+
+    fireEvent.mouseEnter(borisOption!);
+
+    expect(borisOption).toHaveClass('bg-accent');
+    expect(annaOption).not.toHaveClass('bg-accent');
   });
 });
