@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-11
 ### Changed
 - Планировщик комментариев: live-синхронизация счётчиков на timeline и более компактный редактор комментариев.
 - Release pipeline: deploy-remote и release теперь поддерживают явный NEXT_VERSION для штатного выпуска minor-версий без ручного обхода скриптов.
