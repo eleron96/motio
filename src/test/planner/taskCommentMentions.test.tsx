@@ -128,4 +128,48 @@ describe('TaskCommentSection mentions', () => {
       expect(mocks.authState.fetchMembers).toHaveBeenCalledWith('workspace-1');
     });
   });
+
+  it('opens the mention picker when the caret is inside an element node after typing @', async () => {
+    mocks.authState.membersWorkspaceId = 'workspace-1';
+    mocks.authState.members = [
+      {
+        userId: 'user-2',
+        email: 'anna@example.com',
+        displayName: 'Anna',
+        role: 'viewer',
+        groupId: null,
+      },
+    ];
+
+    const { container } = render(
+      <TaskCommentSection
+        taskId="task-1"
+        workspaceId="workspace-1"
+        canEdit
+      />,
+    );
+
+    const editor = container.querySelector('[contenteditable="true"]');
+    expect(editor).not.toBeNull();
+
+    if (!(editor instanceof HTMLDivElement)) {
+      throw new Error('Expected HTMLDivElement editor');
+    }
+
+    editor.innerHTML = '<div>@</div>';
+    const line = editor.firstElementChild;
+    expect(line).not.toBeNull();
+
+    const selection = window.getSelection();
+    expect(selection).not.toBeNull();
+    const range = document.createRange();
+    range.setStart(line!, 1);
+    range.collapse(true);
+    selection!.removeAllRanges();
+    selection!.addRange(range);
+
+    fireEvent.input(editor);
+
+    expect(await screen.findByText('Anna')).toBeVisible();
+  });
 });

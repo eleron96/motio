@@ -111,6 +111,58 @@ const setEditorValue = (editor: HTMLDivElement, value: string) => {
   editor.textContent = value;
 };
 
+const getSelectionRangeWithinEditor = (editor: HTMLDivElement): Range | null => {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return null;
+  const range = selection.getRangeAt(0);
+  return editor.contains(range.commonAncestorContainer) ? range : null;
+};
+
+const getEditorTextBeforeCaret = (editor: HTMLDivElement, range: Range): string => {
+  const prefixRange = range.cloneRange();
+  prefixRange.selectNodeContents(editor);
+  prefixRange.setEnd(range.startContainer, range.startOffset);
+  return normalizeTaskCommentPlainText(prefixRange.cloneContents().textContent ?? '');
+};
+
+const getTextNodePosition = (editor: HTMLDivElement, textOffset: number) => {
+  const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+  let traversed = 0;
+  let node = walker.nextNode();
+  let lastTextNode: Text | null = null;
+
+  while (node) {
+    const textNode = node as Text;
+    const textLength = textNode.textContent?.length ?? 0;
+    if (textOffset <= traversed + textLength) {
+      return {
+        node: textNode,
+        offset: Math.max(0, textOffset - traversed),
+      };
+    }
+    traversed += textLength;
+    lastTextNode = textNode;
+    node = walker.nextNode();
+  }
+
+  if (!lastTextNode) return null;
+  return {
+    node: lastTextNode,
+    offset: lastTextNode.textContent?.length ?? 0,
+  };
+};
+
+const createEditorTextRange = (editor: HTMLDivElement, startOffset: number, endOffset: number) => {
+  const start = getTextNodePosition(editor, startOffset);
+  const end = getTextNodePosition(editor, endOffset);
+  if (!start || !end) return null;
+
+  const range = document.createRange();
+  range.setStart(start.node, start.offset);
+  range.setEnd(end.node, end.offset);
+  return range;
+};
+
 const extractEditorValue = (editor: HTMLDivElement): string => {
   const clone = editor.cloneNode(true) as HTMLDivElement;
   clone.querySelectorAll('.rte-image-handle').forEach((n) => n.remove());
@@ -325,16 +377,12 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
    * Scans backwards from the current caret position looking for an unclosed `@`.
    * Returns the query string (text after `@`) or null if not in a mention context.
    */
-  const detectMentionContext = useCallback((): string | null => {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return null;
-    const range = sel.getRangeAt(0);
+  const detectMentionContext = useCallback((): { query: string; triggerStart: number; triggerEnd: number } | null => {
+    const editor = editorRef.current;
+    if (!editor) return null;
+    const range = getSelectionRangeWithinEditor(editor);
     if (!range.collapsed) return null;
-    const node = range.startContainer;
-    if (node.nodeType !== Node.TEXT_NODE) return null;
-    const text = node.textContent ?? '';
-    const offset = range.startOffset;
-    const before = text.slice(0, offset);
+    const before = getEditorTextBeforeCaret(editor, range);
     // Find the last `@` that is not immediately preceded by a word character
     // (prevents false positives inside email addresses etc.)
     const atIndex = before.lastIndexOf('@');
@@ -344,7 +392,11 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
     const query = before.slice(atIndex + 1);
     // If the query contains a space, the mention context was closed
     if (/\s/.test(query)) return null;
-    return query;
+    return {
+      query,
+      triggerStart: atIndex,
+      triggerEnd: before.length,
+    };
   }, []);
 
   const filteredMentionCandidates = mentionCandidates.filter((a) => {
@@ -363,10 +415,13 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
   const syncMentionAnchor = useCallback((fallbackElement?: HTMLElement | null) => {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
-      const rect = selection.getRangeAt(0).getBoundingClientRect();
-      if (rect.width > 0 || rect.height > 0 || rect.top > 0 || rect.left > 0) {
-        setMentionAnchorRect(rect);
-        return;
+      const range = selection.getRangeAt(0);
+      if (typeof range.getBoundingClientRect === 'function') {
+        const rect = range.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0 || rect.top > 0 || rect.left > 0) {
+          setMentionAnchorRect(rect);
+          return;
+        }
       }
     }
 
@@ -387,25 +442,18 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       const editor = editorRef.current;
       if (!editor) return;
 
-      // We need to delete the `@<query>` text that triggered the mention
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        const node = range.startContainer;
-        if (node.nodeType === Node.TEXT_NODE) {
-          const text = node.textContent ?? '';
-          const offset = range.startOffset;
-          const before = text.slice(0, offset);
-          const atIndex = before.lastIndexOf('@');
-          if (atIndex !== -1) {
-            // Delete from @ to caret
-            const delRange = document.createRange();
-            delRange.setStart(node, atIndex);
-            delRange.setEnd(node, offset);
-            delRange.deleteContents();
-            sel.removeAllRanges();
-            sel.addRange(delRange);
-          }
+      const mentionContext = detectMentionContext();
+      const selection = window.getSelection();
+      if (mentionContext && selection) {
+        const triggerRange = createEditorTextRange(
+          editor,
+          mentionContext.triggerStart,
+          mentionContext.triggerEnd,
+        );
+        if (triggerRange) {
+          triggerRange.deleteContents();
+          selection.removeAllRanges();
+          selection.addRange(triggerRange);
         }
       }
 
@@ -422,7 +470,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
       syncFromEditor();
       closeMention();
     },
-    [closeMention, saveSelection, syncFromEditor],
+    [closeMention, detectMentionContext, saveSelection, syncFromEditor],
   );
 
   // ── image resize (identical to RichTextEditor logic)
@@ -558,10 +606,10 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         onInput={() => {
           syncFromEditor();
           // Detect @ mention trigger
-          const query = detectMentionContext();
-          if (query !== null) {
-            mentionQueryRef.current = query;
-            setMentionQuery(query);
+          const mentionContext = detectMentionContext();
+          if (mentionContext !== null) {
+            mentionQueryRef.current = mentionContext.query;
+            setMentionQuery(mentionContext.query);
             if (!mentionOpen) {
               setMentionOpen(true);
               setMentionHighlight(0);
