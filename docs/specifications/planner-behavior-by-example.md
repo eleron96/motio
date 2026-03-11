@@ -412,3 +412,23 @@ Then:
 - `src/features/planner/lib/taskFormRules.ts`
 - `src/test/planner/addTaskDialog.test.tsx`
 - `src/test/planner/taskFormRules.test.ts`
+
+## Scenario 22: Timeline sidebar width survives locale switch and page remount
+
+Given:
+- пользователь изменил ширину левой колонки имен на timeline;
+- значение сохранено в `localStorage`;
+- пользователь переключает язык интерфейса, и страница таймлайна монтируется заново.
+
+When:
+- `PlannerPage` гидратирует сохраненную ширину sidebar после remount.
+
+Then:
+- сохраненное значение не удаляется во время hydration race;
+- таймлайн получает прежнюю пользовательскую ширину после смены языка;
+- key storage остается привязан к `userId + workspaceId`, а не к locale.
+
+Покрытие:
+- `src/features/planner/pages/PlannerPage.tsx`
+- `src/features/planner/lib/timelineSidebarWidthStorage.ts`
+- `src/test/planner/timelineSidebarWidthStorage.test.ts`

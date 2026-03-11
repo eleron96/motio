@@ -89,3 +89,23 @@ Then:
 - `src/test/members/membersSidebar.access.test.tsx`
 - `src/test/workspace/workspaceMembersPanel.access.test.tsx`
 - `src/test/shared/workspaceMemberActivity.test.ts`
+
+## Scenario 5: Team task preview shows whether the task has a comment thread
+
+Given:
+- пользователь открыт в разделе `Team` и просматривает задачу участника;
+- для задачи уже есть или нет комментарии.
+
+When:
+- открывается информационная карточка `Task details`.
+
+Then:
+- в карточке отображается поле `Comments`;
+- поле показывает количество комментариев по задаче;
+- при count > 0 пользователь сразу видит, что по задаче идет диалог.
+
+Покрытие:
+- `src/features/members/pages/MembersPage.tsx`
+- `src/features/members/components/MembersDialogs.tsx`
+- `src/features/members/components/TaskDetailsDialog.tsx`
+- `src/test/members/taskDetailsDialog.test.tsx`

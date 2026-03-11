@@ -17,6 +17,11 @@ import { format } from 'date-fns';
 import { Navigate } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
+import {
+  getTimelineSidebarWidthStorageKey,
+  readTimelineSidebarWidth,
+  writeTimelineSidebarWidth,
+} from '@/features/planner/lib/timelineSidebarWidthStorage';
 
 type AddTaskDefaults = {
   startDate: string;
@@ -43,17 +48,6 @@ const normalizeFilters = (value: unknown): Filters => {
     hideUnassigned: typeof candidate.hideUnassigned === 'boolean' ? candidate.hideUnassigned : false,
   };
 };
-
-const TIMELINE_SIDEBAR_MIN_WIDTH = 200;
-const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
-
-const clampTimelineSidebarWidth = (value: number) => (
-  Math.max(TIMELINE_SIDEBAR_MIN_WIDTH, Math.min(TIMELINE_SIDEBAR_MAX_WIDTH, value))
-);
-
-const getTimelineSidebarWidthStorageKey = (userId: string, workspaceId: string) => (
-  `planner-timeline-sidebar-width-${userId}-${workspaceId}`
-);
 
 interface PlannerTimelineAreaProps {
   viewMode: ViewMode;
@@ -116,7 +110,7 @@ const PlannerPage = () => {
 
   const [filterCollapsed, setFilterCollapsed] = useState(true);
   const [filterWidth, setFilterWidth] = useState(320);
-  const [timelineSidebarWidth, setTimelineSidebarWidth] = useState<number | null>(null);
+  const [timelineSidebarWidth, setTimelineSidebarWidth] = useState<number | null | undefined>(undefined);
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
@@ -243,19 +237,7 @@ const PlannerPage = () => {
       return;
     }
     const storageKey = getTimelineSidebarWidthStorageKey(user.id, currentWorkspaceId);
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) {
-      setTimelineSidebarWidth(null);
-      timelineSidebarWidthHydratedRef.current = true;
-      return;
-    }
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) {
-      setTimelineSidebarWidth(null);
-      timelineSidebarWidthHydratedRef.current = true;
-      return;
-    }
-    setTimelineSidebarWidth(clampTimelineSidebarWidth(parsed));
+    setTimelineSidebarWidth(readTimelineSidebarWidth(window.localStorage, storageKey));
     timelineSidebarWidthHydratedRef.current = true;
   }, [currentWorkspaceId, user?.id]);
 
@@ -264,11 +246,7 @@ const PlannerPage = () => {
     if (!user?.id || !currentWorkspaceId) return;
     if (!timelineSidebarWidthHydratedRef.current) return;
     const storageKey = getTimelineSidebarWidthStorageKey(user.id, currentWorkspaceId);
-    if (timelineSidebarWidth === null) {
-      window.localStorage.removeItem(storageKey);
-      return;
-    }
-    window.localStorage.setItem(storageKey, String(clampTimelineSidebarWidth(timelineSidebarWidth)));
+    writeTimelineSidebarWidth(window.localStorage, storageKey, timelineSidebarWidth);
   }, [currentWorkspaceId, timelineSidebarWidth, user?.id]);
 
   useEffect(() => {

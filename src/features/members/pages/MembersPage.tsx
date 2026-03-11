@@ -150,7 +150,9 @@ const MembersPage = () => {
     statuses,
     taskTypes,
     tags,
+    taskCommentCounts,
     loadWorkspaceData,
+    refreshTaskCommentCounts,
     fetchAssigneeTaskCounts,
     fetchMemberGroups,
     fetchGroupMembers,
@@ -170,7 +172,9 @@ const MembersPage = () => {
     statuses: state.statuses,
     taskTypes: state.taskTypes,
     tags: state.tags,
+    taskCommentCounts: state.taskCommentCounts,
     loadWorkspaceData: state.loadWorkspaceData,
+    refreshTaskCommentCounts: state.refreshTaskCommentCounts,
     fetchAssigneeTaskCounts: state.fetchAssigneeTaskCounts,
     fetchMemberGroups: state.fetchMemberGroups,
     fetchGroupMembers: state.fetchGroupMembers,
@@ -616,6 +620,14 @@ const MembersPage = () => {
     [displayTaskRows],
   );
 
+  useEffect(() => {
+    if (!currentWorkspaceId || visibleTaskIds.length === 0) {
+      return;
+    }
+
+    void refreshTaskCommentCounts(currentWorkspaceId, visibleTaskIds);
+  }, [currentWorkspaceId, refreshTaskCommentCounts, visibleTaskIds]);
+
   const selectedTask = useMemo(
     () => assigneeTasks.find((task) => task.id === selectedTaskId) ?? null,
     [assigneeTasks, selectedTaskId],
@@ -632,6 +644,7 @@ const MembersPage = () => {
     if (!hasRichTags(selectedTask.description)) return selectedTask.description;
     return sanitizeTaskDescription(selectedTask.description);
   }, [selectedTask?.description]);
+  const selectedTaskCommentCount = selectedTask ? (taskCommentCounts[selectedTask.id] ?? 0) : 0;
 
   const allVisibleSelected = visibleTaskIds.length > 0 && visibleTaskIds.every((id) => selectedTaskIds.has(id));
   const someVisibleSelected = visibleTaskIds.some((id) => selectedTaskIds.has(id));
@@ -1130,6 +1143,7 @@ const MembersPage = () => {
         taskTypeById={taskTypeById}
         selectedTaskTags={selectedTaskTags}
         selectedTaskDescription={selectedTaskDescription}
+        selectedTaskCommentCount={selectedTaskCommentCount}
         handleOpenTaskInTimeline={handleOpenTaskInTimeline}
         showSettings={showSettings}
         setShowSettings={setShowSettings}
