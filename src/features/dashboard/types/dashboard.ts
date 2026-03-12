@@ -57,6 +57,7 @@ export type DashboardWidget = {
   statusFilter: DashboardStatusFilter;
   statusIds?: string[];
   includeUnassigned?: boolean;
+  includeDisabledAssignees?: boolean;
   filterGroups?: DashboardFilterGroup[];
 };
 
@@ -88,6 +89,10 @@ export type DashboardOption = {
   name: string;
   code?: string | null;
   color?: string;
+};
+
+export type DashboardAssigneeOption = DashboardOption & {
+  isActive: boolean;
 };
 
 export type DashboardSummary = {

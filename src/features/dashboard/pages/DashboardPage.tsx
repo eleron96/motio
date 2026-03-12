@@ -63,6 +63,22 @@ const MOBILE_DRAG_HOLD_MS = 420;
 const MOBILE_DRAG_MOVE_TOLERANCE_PX = 10;
 const MOBILE_DRAG_ARM_TTL_MS = 4500;
 
+const isTaskWidget = (widget: DashboardWidget) => (
+  widget.type === 'kpi'
+  || widget.type === 'bar'
+  || widget.type === 'line'
+  || widget.type === 'area'
+  || widget.type === 'pie'
+);
+
+const isTimeSeriesWidget = (widget: DashboardWidget) => (
+  widget.type === 'line' || widget.type === 'area'
+);
+
+const getStatsVariantKey = (widget: DashboardWidget) => (
+  widget.includeDisabledAssignees ? 'includeDisabled' : 'activeOnly'
+);
+
 const DashboardPage = () => {
   usePageSeo({
     title: 'Motio — Dashboard',
@@ -284,27 +300,43 @@ const DashboardPage = () => {
     setRenameDashboardSaving(false);
   }, [renameDashboardOpen]);
 
-  const taskWidgetPeriods = useMemo(() => (
+  const activeOnlyTaskWidgetPeriods = useMemo(() => (
     widgets
-      .filter((widget) => (
-        widget.type === 'kpi'
-        || widget.type === 'bar'
-        || widget.type === 'line'
-        || widget.type === 'area'
-        || widget.type === 'pie'
-      ))
+      .filter((widget) => isTaskWidget(widget) && !widget.includeDisabledAssignees)
       .map((widget) => widget.period)
   ), [widgets]);
 
-  const periodsKey = useMemo(() => (
-    Array.from(new Set(taskWidgetPeriods)).sort().join('|')
-  ), [taskWidgetPeriods]);
+  const includeDisabledTaskWidgetPeriods = useMemo(() => (
+    widgets
+      .filter((widget) => isTaskWidget(widget) && widget.includeDisabledAssignees)
+      .map((widget) => widget.period)
+  ), [widgets]);
 
-  const seriesPeriodsKey = useMemo(() => (
+  const activeOnlyPeriodsKey = useMemo(() => (
+    Array.from(new Set(activeOnlyTaskWidgetPeriods)).sort().join('|')
+  ), [activeOnlyTaskWidgetPeriods]);
+
+  const includeDisabledPeriodsKey = useMemo(() => (
+    Array.from(new Set(includeDisabledTaskWidgetPeriods)).sort().join('|')
+  ), [includeDisabledTaskWidgetPeriods]);
+
+  const activeOnlySeriesPeriodsKey = useMemo(() => (
     Array.from(
       new Set(
         widgets
-          .filter((widget) => widget.type === 'line' || widget.type === 'area')
+          .filter((widget) => isTimeSeriesWidget(widget) && !widget.includeDisabledAssignees)
+          .map((widget) => widget.period),
+      ),
+    )
+      .sort()
+      .join('|')
+  ), [widgets]);
+
+  const includeDisabledSeriesPeriodsKey = useMemo(() => (
+    Array.from(
+      new Set(
+        widgets
+          .filter((widget) => isTimeSeriesWidget(widget) && widget.includeDisabledAssignees)
           .map((widget) => widget.period),
       ),
     )
@@ -314,14 +346,33 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (!currentWorkspaceId || isWorkspaceSwitching) return;
-    const periods = periodsKey ? periodsKey.split('|') : [];
-    const seriesPeriods = new Set(seriesPeriodsKey ? seriesPeriodsKey.split('|') : []);
-    periods.forEach((period) => loadStats(
+    const activeOnlyPeriods = activeOnlyPeriodsKey ? activeOnlyPeriodsKey.split('|') : [];
+    const activeOnlySeriesPeriods = new Set(activeOnlySeriesPeriodsKey ? activeOnlySeriesPeriodsKey.split('|') : []);
+    activeOnlyPeriods.forEach((period) => loadStats(
       currentWorkspaceId,
       period as DashboardWidget['period'],
-      seriesPeriods.has(period),
+      activeOnlySeriesPeriods.has(period),
+      false,
     ));
-  }, [currentWorkspaceId, isWorkspaceSwitching, loadStats, periodsKey, seriesPeriodsKey]);
+    const includeDisabledPeriods = includeDisabledPeriodsKey ? includeDisabledPeriodsKey.split('|') : [];
+    const includeDisabledSeriesPeriods = new Set(
+      includeDisabledSeriesPeriodsKey ? includeDisabledSeriesPeriodsKey.split('|') : [],
+    );
+    includeDisabledPeriods.forEach((period) => loadStats(
+      currentWorkspaceId,
+      period as DashboardWidget['period'],
+      includeDisabledSeriesPeriods.has(period),
+      true,
+    ));
+  }, [
+    activeOnlyPeriodsKey,
+    activeOnlySeriesPeriodsKey,
+    currentWorkspaceId,
+    includeDisabledPeriodsKey,
+    includeDisabledSeriesPeriodsKey,
+    isWorkspaceSwitching,
+    loadStats,
+  ]);
 
   useEffect(() => {
     if (!canEdit || !dirty || !currentWorkspaceId || !currentDashboardId || isWorkspaceSwitching) return;
@@ -585,12 +636,8 @@ const DashboardPage = () => {
     const effectiveSize = layoutItem
       ? getClosestWidgetSize(layoutItem.w, layoutItem.h, cols, widget.type)
       : (widget.size ?? (widget.type === 'kpi' ? 'small' : 'medium'));
-    const statsState = statsByPeriod[widget.period];
-    const isTaskWidget = widget.type === 'kpi'
-      || widget.type === 'bar'
-      || widget.type === 'line'
-      || widget.type === 'area'
-      || widget.type === 'pie';
+    const statsState = statsByPeriod[widget.period][getStatsVariantKey(widget)];
+    const taskWidget = isTaskWidget(widget);
     const useAssigneeRows = shouldUseAssigneeRows(widget);
     const rows = useAssigneeRows ? statsState?.rows : (statsState?.rowsBase ?? statsState?.rows);
     const seriesRows = useAssigneeRows ? statsState?.seriesRows : (statsState?.seriesRowsBase ?? statsState?.seriesRows);
@@ -602,13 +649,13 @@ const DashboardPage = () => {
       ...row,
       group_id: row.assignee_id ? assigneeGroupMap[row.assignee_id] ?? null : null,
     }));
-    const data = statsState && isTaskWidget
+    const data = statsState && taskWidget
       ? (widget.type === 'line' || widget.type === 'area'
         ? buildTimeSeriesData(seriesRowsWithGroups, widget, statuses, projects)
         : buildWidgetData(rowsWithGroups, widget, statuses, projects))
       : null;
-    const loading = isTaskWidget ? (statsState?.loading ?? false) : false;
-    const widgetError = isTaskWidget ? (statsState?.error ?? null) : null;
+    const loading = taskWidget ? (statsState?.loading ?? false) : false;
+    const widgetError = taskWidget ? (statsState?.error ?? null) : null;
     const widgetWithSize = { ...widget, size: effectiveSize };
     const widgetNode = (
       <div className="h-full w-full" onContextMenu={handleDashboardContextMenu}>
