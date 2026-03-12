@@ -15,6 +15,7 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
+import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 type DisplayTaskRow = {
@@ -28,12 +29,10 @@ type DisplayTaskRow = {
   } | null;
 };
 
-type PastSort = 'start_desc' | 'start_asc' | 'end_desc' | 'end_asc' | 'title_asc' | 'title_desc';
-
 type MemberTasksPanelProps = {
   selectedAssignee: Assignee | null;
-  taskScope: 'current' | 'past';
-  onChangeTaskScope: (scope: 'current' | 'past') => void;
+  taskScope: TaskScope;
+  onChangeTaskScope: (scope: TaskScope) => void;
   memberTaskCountsDate: string | null;
   search: string;
   onSearchChange: (value: string) => void;
@@ -50,8 +49,8 @@ type MemberTasksPanelProps = {
   onPastFromDateChange: (value: string) => void;
   pastToDate: string;
   onPastToDateChange: (value: string) => void;
-  pastSort: PastSort;
-  onPastSortChange: (value: PastSort) => void;
+  pastSort: PastTaskSort;
+  onPastSortChange: (value: PastTaskSort) => void;
   onClearFilters: () => void;
   onRefresh: () => void;
   selectedAssigneeId: string | null;
@@ -251,7 +250,7 @@ export const MemberTasksPanel = ({
                     value={pastToDate}
                     onChange={(event) => onPastToDateChange(event.target.value)}
                   />
-                  <Select value={pastSort} onValueChange={(value) => onPastSortChange(value as PastSort)}>
+                  <Select value={pastSort} onValueChange={(value) => onPastSortChange(value as PastTaskSort)}>
                     <SelectTrigger className="w-full sm:w-[170px]">
                       <SelectValue />
                     </SelectTrigger>

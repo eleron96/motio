@@ -259,6 +259,32 @@ Then:
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
 - `src/test/shared/personName.test.ts`
 
+## Scenario 15: Project tasks panel separates current and past scopes
+
+Given:
+- пользователь открыт на странице `Projects`;
+- выбран конкретный проект;
+- у проекта есть текущие и завершившиеся задачи, включая repeat-series.
+
+When:
+- пользователь смотрит задачи проекта в scope `Current` или переключается в `Past`.
+
+Then:
+- по умолчанию показываются только текущие задачи (`endDate >= today`);
+- в `Past` показываются только прошедшие задачи (`endDate < today`);
+- в `Current` repeat-series схлопываются в одну строку;
+- в `Past` repeat-series остаются развернутыми по одной задаче;
+- для `Past` доступны фильтры по диапазону дат, сортировка и пагинация.
+
+Покрытие:
+- `src/features/projects/pages/ProjectsPage.tsx`
+- `src/features/projects/components/ProjectsMainPanel.tsx`
+- `src/infrastructure/projects/projectTasksRepository.ts`
+- `src/shared/domain/taskScope.ts`
+- `src/test/projects/projectsMainPanel.taskScope.test.tsx`
+- `src/test/projects/projectTasksRepository.test.ts`
+- `src/test/shared/taskScope.test.ts`
+
 ## Scenario 15: Timeline sidebar and task grid share one vertical scroll surface
 
 Given:

@@ -68,6 +68,8 @@ vi.mock('@/features/projects/hooks/useProjectsPageEffects', () => ({
 vi.mock('@/features/projects/hooks/useProjectTasksQuery', () => ({
   useProjectTasksQuery: () => ({
     projectTasks: [],
+    totalCount: 0,
+    availableAssigneeIds: [],
     tasksLoading: false,
     tasksError: '',
     refetchTasks: vi.fn(),

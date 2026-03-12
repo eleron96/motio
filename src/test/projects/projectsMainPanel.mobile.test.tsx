@@ -27,6 +27,8 @@ describe('ProjectsMainPanel mobile', () => {
         mode="projects"
         selectedProject={{ id: 'p1', name: 'Website redesign', code: 'WEB', color: '#3b82f6', customerId: 'c1', archived: false } as never}
         customerById={new Map([['c1', { id: 'c1', name: 'Acme' } as never]])}
+        taskScope="current"
+        onChangeTaskScope={vi.fn()}
         search=""
         onSearchChange={vi.fn()}
         statusFilterLabel="All statuses"
@@ -38,6 +40,12 @@ describe('ProjectsMainPanel mobile', () => {
         assigneeOptions={[{ id: 'a1', name: 'Alexandra Robertson', isActive: true } as never]}
         assigneeFilterIds={[]}
         onToggleAssignee={vi.fn()}
+        pastFromDate=""
+        onPastFromDateChange={vi.fn()}
+        pastToDate=""
+        onPastToDateChange={vi.fn()}
+        pastSort="end_desc"
+        onPastSortChange={vi.fn()}
         onClearFilters={vi.fn()}
         selectedProjectId="p1"
         onRefreshTasks={vi.fn()}
@@ -57,6 +65,12 @@ describe('ProjectsMainPanel mobile', () => {
             repeatMeta: null,
           },
         ]}
+        taskScopePageSize={100}
+        displayTotalCount={1}
+        pageIndex={1}
+        totalPages={1}
+        onPrevPage={vi.fn()}
+        onNextPage={vi.fn()}
         statusById={new Map([['s1', { id: 's1', name: 'In progress', emoji: null } as never]])}
         assigneeById={new Map([['a1', { id: 'a1', name: 'Alexandra Robertson', isActive: true } as never]])}
         onSelectTask={vi.fn()}

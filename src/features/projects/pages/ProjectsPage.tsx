@@ -22,6 +22,12 @@ import {
 import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
 import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
+import {
+  DEFAULT_PAST_TASK_SORT,
+  shouldCollapseRepeatSeriesInTaskScope,
+  type PastTaskSort,
+  type TaskScope,
+} from '@/shared/domain/taskScope';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
@@ -68,6 +74,11 @@ const ProjectsPage = () => {
   const [customerSearch, setCustomerSearch] = useState('');
   const [statusFilterIds, setStatusFilterIds] = useState<string[]>([]);
   const [assigneeFilterIds, setAssigneeFilterIds] = useState<string[]>([]);
+  const [taskScope, setTaskScope] = useState<TaskScope>('current');
+  const [pastFromDate, setPastFromDate] = useState('');
+  const [pastToDate, setPastToDate] = useState('');
+  const [pastSort, setPastSort] = useState<PastTaskSort>(DEFAULT_PAST_TASK_SORT);
+  const [pageIndex, setPageIndex] = useState(1);
   const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
   const [mode, setMode] = useState<'projects' | 'milestones' | 'customers'>('projects');
   const [milestoneSearch, setMilestoneSearch] = useState('');
@@ -104,6 +115,7 @@ const ProjectsPage = () => {
   const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
+  const pageSize = 100;
 
   const {
     projects,
@@ -226,14 +238,29 @@ const ProjectsPage = () => {
     [projects, selectedProjectId],
   );
 
+  useEffect(() => {
+    setPageIndex(1);
+  }, [selectedProjectId]);
+
   const {
     projectTasks,
+    totalCount,
+    availableAssigneeIds,
     tasksLoading,
     tasksError,
     refetchTasks,
   } = useProjectTasksQuery({
     workspaceId: currentWorkspaceId,
     projectId: selectedProjectId,
+    taskScope,
+    pastFromDate,
+    pastToDate,
+    pastSort,
+    statusFilterIds,
+    assigneeFilterIds,
+    search,
+    pageIndex,
+    pageSize,
   });
 
   const statusById = useMemo(
@@ -253,16 +280,15 @@ const ProjectsPage = () => {
     [tags],
   );
 
-  const projectAssigneeIds = useMemo(() => {
-    const ids = new Set<string>();
-    projectTasks.forEach((task) => {
-      task.assigneeIds.forEach((id) => ids.add(id));
-    });
-    return ids;
-  }, [projectTasks]);
+  const projectAssigneeIds = useMemo(
+    () => new Set<string>([...availableAssigneeIds, ...assigneeFilterIds]),
+    [assigneeFilterIds, availableAssigneeIds],
+  );
 
   const assigneeOptions = useMemo(
-    () => assignees.filter((assignee) => projectAssigneeIds.has(assignee.id)),
+    () => assignees
+      .filter((assignee) => projectAssigneeIds.has(assignee.id))
+      .sort((left, right) => left.name.localeCompare(right.name)),
     [assignees, projectAssigneeIds],
   );
 
@@ -394,24 +420,16 @@ const ProjectsPage = () => {
     user?.id,
   ]);
 
-  const filteredTasks = useMemo(() => (
-    projectTasks.filter((task) => {
-      if (search.trim()) {
-        const query = search.trim().toLowerCase();
-        if (!task.title.toLowerCase().includes(query)) return false;
-      }
-      if (statusFilterIds.length > 0 && !statusFilterIds.includes(task.statusId)) {
-        return false;
-      }
-      if (assigneeFilterIds.length > 0) {
-        if (!task.assigneeIds.some((id) => assigneeFilterIds.includes(id))) return false;
-      }
-      return true;
-    })
-  ), [assigneeFilterIds, projectTasks, search, statusFilterIds]);
+  const displayTaskRows = useMemo<DisplayTaskRow[]>(() => {
+    if (!shouldCollapseRepeatSeriesInTaskScope(taskScope)) {
+      return projectTasks.map((task) => ({
+        key: task.id,
+        task,
+        repeatMeta: null,
+      }));
+    }
 
-  const displayTaskRows = useMemo<DisplayTaskRow[]>(() => (
-    buildRepeatSeriesRows(filteredTasks).map((row) => ({
+    return buildRepeatSeriesRows(projectTasks).map((row) => ({
       key: row.key,
       task: row.task,
       repeatMeta: row.repeatMeta
@@ -421,8 +439,15 @@ const ProjectsPage = () => {
           total: row.repeatMeta.total,
         }
         : null,
-    }))
-  ), [filteredTasks]);
+    }));
+  }, [projectTasks, taskScope]);
+
+  const totalPages = taskScope === 'past'
+    ? Math.max(1, Math.ceil(totalCount / pageSize))
+    : 1;
+  const displayTotalCount = taskScope === 'current'
+    ? displayTaskRows.length
+    : totalCount;
 
   const statusFilterLabel = statusFilterIds.length === 0
     ? t`All statuses`
@@ -439,6 +464,7 @@ const ProjectsPage = () => {
   const nameSortLabel = nameSort === 'asc' ? t`A-Z` : t`Z-A`;
 
   const handleToggleStatus = (statusId: string) => {
+    setPageIndex(1);
     setStatusFilterIds((current) => (
       current.includes(statusId)
         ? current.filter((id) => id !== statusId)
@@ -447,6 +473,7 @@ const ProjectsPage = () => {
   };
 
   const handleToggleAssignee = (assigneeId: string) => {
+    setPageIndex(1);
     setAssigneeFilterIds((current) => (
       current.includes(assigneeId)
         ? current.filter((id) => id !== assigneeId)
@@ -463,6 +490,7 @@ const ProjectsPage = () => {
   };
 
   const setStatusPreset = (mode: 'all' | 'open' | 'done') => {
+    setPageIndex(1);
     if (mode === 'all') {
       setStatusFilterIds([]);
       return;
@@ -902,8 +930,16 @@ const ProjectsPage = () => {
       mode={mode}
       selectedProject={selectedProject}
       customerById={customerById}
+      taskScope={taskScope}
+      onChangeTaskScope={(scope) => {
+        setTaskScope(scope);
+        setPageIndex(1);
+      }}
       search={search}
-      onSearchChange={setSearch}
+      onSearchChange={(value) => {
+        setSearch(value);
+        setPageIndex(1);
+      }}
       statusFilterLabel={statusFilterLabel}
       setStatusPreset={setStatusPreset}
       statuses={statuses}
@@ -913,10 +949,28 @@ const ProjectsPage = () => {
       assigneeOptions={assigneeOptions}
       assigneeFilterIds={assigneeFilterIds}
       onToggleAssignee={handleToggleAssignee}
+      pastFromDate={pastFromDate}
+      onPastFromDateChange={(value) => {
+        setPastFromDate(value);
+        setPageIndex(1);
+      }}
+      pastToDate={pastToDate}
+      onPastToDateChange={(value) => {
+        setPastToDate(value);
+        setPageIndex(1);
+      }}
+      pastSort={pastSort}
+      onPastSortChange={(value) => {
+        setPastSort(value);
+        setPageIndex(1);
+      }}
       onClearFilters={() => {
         setSearch('');
         setStatusFilterIds([]);
         setAssigneeFilterIds([]);
+        setPastFromDate('');
+        setPastToDate('');
+        setPageIndex(1);
       }}
       selectedProjectId={selectedProjectId}
       onRefreshTasks={() => {
@@ -927,6 +981,12 @@ const ProjectsPage = () => {
       tasksLoading={tasksLoading}
       tasksError={tasksError}
       displayTaskRows={displayTaskRows}
+      taskScopePageSize={pageSize}
+      displayTotalCount={displayTotalCount}
+      pageIndex={pageIndex}
+      totalPages={totalPages}
+      onPrevPage={() => setPageIndex((current) => Math.max(1, current - 1))}
+      onNextPage={() => setPageIndex((current) => Math.min(totalPages, current + 1))}
       statusById={statusById}
       assigneeById={assigneeById}
       onSelectTask={setSelectedTaskId}
