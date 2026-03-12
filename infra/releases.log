@@ -195,3 +195,5 @@
 2026-03-11T10:09:39Z | 0.3.10 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-100859.dump | Added a bulk 'Delete all' action to notifications so task notifications can be removed directly from the dropdown in one step.
 2026-03-11T10:25:02Z | 0.3.11 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-102421.dump | Fixed notification delete button localization, preserved timeline sidebar width across locale changes, and added comment counts to team task previews.
 2026-03-11T10:40:07Z | 0.3.12 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260311-103927.dump | Fixed comment count loading in team task previews: large task_comments queries are now batched, live sync no longer hits 502, and the card no longer shows a false 0 before the real count arrives.
+2026-03-12T13:40:16Z | 0.3.13 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260312-133934.dump | No documented changes.
+2026-03-12T13:43:17Z | 0.3.14 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260312-134234.dump | No documented changes.

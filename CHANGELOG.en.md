@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.14] - 2026-03-12
+### Changed
+- No documented changes.
+
+## [0.3.13] - 2026-03-12
+### Changed
+- No documented changes.
+
 ## [0.3.12] - 2026-03-11
 ### Changed
 - Fixed comment count loading in team task previews: large task_comments queries are now batched, live sync no longer hits 502, and the card no longer shows a false 0 before the real count arrives.
