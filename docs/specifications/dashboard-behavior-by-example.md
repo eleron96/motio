@@ -29,11 +29,29 @@ Then:
 - тумблер `Show disabled users` не отображается;
 - assignee-значения в advanced filters остаются доступными без скрытой фильтрации по disabled-статусу.
 
+## Scenario 3: Chart tooltip shows the hovered category or date
+
+Given:
+- в dashboard есть столбчатый widget с категориями по оси X;
+- в dashboard есть area widget с daily time-series.
+
+When:
+- пользователь наводит курсор на столбец bar-chart;
+- пользователь наводит курсор на точку area-chart.
+
+Then:
+- tooltip bar-chart показывает название наведенного столбца и его значение;
+- tooltip area-chart показывает дату наведенной точки и значение series.
+
 Покрытие:
 - `src/features/dashboard/components/WidgetEditorDialog.tsx`
 - `src/features/dashboard/lib/dashboardAssigneeOptions.ts`
+- `src/features/dashboard/lib/dashboardChartLabels.ts`
+- `src/features/dashboard/components/DashboardWidgetCard.tsx`
 - `src/features/dashboard/pages/DashboardPage.tsx`
 - `src/features/dashboard/store/dashboardStore.ts`
 - `infra/supabase/migrations/0055_add_dashboard_disabled_assignee_stats.sql`
 - `src/test/dashboard/dashboardAssigneeOptions.test.ts`
+- `src/test/dashboard/dashboardChartLabels.test.ts`
+- `src/test/dashboard/dashboardWidgetCard.tooltip.test.tsx`
 - `src/test/dashboard/widgetEditorDialog.test.tsx`
