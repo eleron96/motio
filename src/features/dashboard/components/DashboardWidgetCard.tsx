@@ -49,6 +49,10 @@ import {
   type DashboardViewportProfile,
 } from '@/features/dashboard/lib/dashboardResponsive';
 import { compactLegendItems, resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
+import {
+  formatDashboardChartTooltipLabel,
+  getDashboardChartLabelDataKey,
+} from '@/features/dashboard/lib/dashboardChartLabels';
 import { getBarPalette, getPeriodRange } from '@/features/dashboard/lib/dashboardUtils';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -486,6 +490,10 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     const resolvedIndex = colorIndexBySeries.get(seriesNameOrKey) ?? index;
     return paletteColors[resolvedIndex % paletteColors.length];
   }, [colorIndexBySeries, paletteColors]);
+  const chartLabelDataKey = getDashboardChartLabelDataKey(widget.type);
+  const formatTooltipLabel = React.useCallback((value: string | number | undefined) => (
+    formatDashboardChartTooltipLabel(widget.type, value, dateLocale)
+  ), [dateLocale, widget.type]);
   const legendList = showLegendResolved && legendItems.length > 0 ? (
     <div className="min-w-0 overflow-hidden">
       <div
@@ -770,10 +778,15 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                     margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
                   >
                     <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                    {chartLabelDataKey && (
+                      <XAxis dataKey={chartLabelDataKey} hide />
+                    )}
                     {showAxes && (
                       <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={36} />
                     )}
-                    <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                    <ChartTooltip
+                      content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel} />}
+                    />
                     <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                       {chartSeries.map((entry, index) => (
                         <Cell key={`${entry.name}-${index}`} fill={getSeriesColor(entry.name, index)} />
@@ -810,10 +823,15 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                 >
                   <LineChart data={timeSeries}>
                     <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                    {chartLabelDataKey && (
+                      <XAxis dataKey={chartLabelDataKey} hide />
+                    )}
                     {showAxes && (
                       <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={36} />
                     )}
-                    <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                    <ChartTooltip
+                      content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel} />}
+                    />
                     {seriesKeys.map((seriesKey, index) => (
                       <Line
                         key={seriesKey.key}
@@ -856,10 +874,15 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                 >
                   <AreaChart data={timeSeries}>
                     <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                    {chartLabelDataKey && (
+                      <XAxis dataKey={chartLabelDataKey} hide />
+                    )}
                     {showAxes && (
                       <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={36} />
                     )}
-                    <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                    <ChartTooltip
+                      content={<ChartTooltipContent indicator="dot" labelFormatter={formatTooltipLabel} />}
+                    />
                     {seriesKeys.map((seriesKey, index) => (
                       <Area
                         key={seriesKey.key}
