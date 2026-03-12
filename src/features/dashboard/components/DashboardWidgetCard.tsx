@@ -57,6 +57,7 @@ import { getBarPalette, getPeriodRange } from '@/features/dashboard/lib/dashboar
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import { CHART_GRID_STROKE_COLOR, DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
 const filterLabels: Record<DashboardStatusFilter, string> = {
   all: t`All statuses`,
@@ -151,8 +152,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const paletteColors = React.useMemo(() => {
     const nextPalette = widget.type !== 'kpi'
       ? getBarPalette(widget.barPalette)
-      : ['#94A3B8'];
-    return nextPalette.length > 0 ? nextPalette : ['#94A3B8'];
+      : [DEFAULT_NEUTRAL_COLOR];
+    return nextPalette.length > 0 ? nextPalette : [DEFAULT_NEUTRAL_COLOR];
   }, [widget.barPalette, widget.type]);
   const isChart = widget.type === 'bar' || widget.type === 'line' || widget.type === 'area' || widget.type === 'pie';
   const chartShellRef = React.useRef<HTMLDivElement | null>(null);
@@ -557,7 +558,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     projects.map((project) => [project.id, formatProjectLabel(project.name, project.code)]),
   );
   const projectColorById = new Map(
-    projects.map((project) => [project.id, project.color ?? '#94A3B8']),
+    projects.map((project) => [project.id, project.color ?? DEFAULT_NEUTRAL_COLOR]),
   );
   const now = new Date();
   const milestoneRangeStart = startOfDay(now);
@@ -777,7 +778,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                     maxBarSize={dynamicBarMaxSize}
                     margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
                   >
-                    <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                    <CartesianGrid vertical={false} stroke={CHART_GRID_STROKE_COLOR} />
                     {chartLabelDataKey && (
                       <XAxis dataKey={chartLabelDataKey} hide />
                     )}
@@ -822,7 +823,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                   style={{ aspectRatio: 'auto', minHeight: chartCanvasMinHeight }}
                 >
                   <LineChart data={timeSeries}>
-                    <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                    <CartesianGrid vertical={false} stroke={CHART_GRID_STROKE_COLOR} />
                     {chartLabelDataKey && (
                       <XAxis dataKey={chartLabelDataKey} hide />
                     )}
@@ -873,7 +874,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                   style={{ aspectRatio: 'auto', minHeight: chartCanvasMinHeight }}
                 >
                   <AreaChart data={timeSeries}>
-                    <CartesianGrid vertical={false} stroke="#E5E7EB" />
+                    <CartesianGrid vertical={false} stroke={CHART_GRID_STROKE_COLOR} />
                     {chartLabelDataKey && (
                       <XAxis dataKey={chartLabelDataKey} hide />
                     )}
@@ -1078,7 +1079,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                   const key = format(day, 'yyyy-MM-dd');
                   const dayMilestones = milestonesByDate.get(key) ?? [];
                   const dayColors = dayMilestones.map(
-                    (milestone) => projectColorById.get(milestone.projectId) ?? '#94A3B8',
+                    (milestone) => projectColorById.get(milestone.projectId) ?? DEFAULT_NEUTRAL_COLOR,
                   );
                   const maxDots = isSmall ? 2 : size === 'medium' ? 3 : 4;
                   const visibleColors = dayColors.slice(0, maxDots);
@@ -1126,7 +1127,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
                           <div className="grid gap-1">
                             {dayMilestones.map((milestone) => {
                             const projectName = projectNameById.get(milestone.projectId) ?? t`No project`;
-                            const projectColor = projectColorById.get(milestone.projectId) ?? '#94A3B8';
+                            const projectColor = projectColorById.get(milestone.projectId) ?? DEFAULT_NEUTRAL_COLOR;
                             return (
                               <div key={milestone.id} className="flex items-start gap-2">
                                 <span

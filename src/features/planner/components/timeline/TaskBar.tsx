@@ -12,6 +12,12 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import {
+  DEFAULT_NEUTRAL_COLOR,
+  TASK_PRIORITY_COLORS,
+  hexToRgba,
+  isDarkHexColor,
+} from '@/shared/lib/colors';
+import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
@@ -47,44 +53,10 @@ interface TaskBarProps {
   rowAssigneeId?: string | null;
 }
 
-const normalizeHex = (color: string) => {
-  const raw = color.startsWith('#') ? color.slice(1) : color;
-  if (raw.length === 3) {
-    return raw.split('').map((char) => `${char}${char}`).join('');
-  }
-  if (raw.length === 6) {
-    return raw;
-  }
-  return null;
-};
-
-const isDarkColor = (color: string) => {
-  const hex = normalizeHex(color);
-  if (!hex || !/^[0-9a-fA-F]{6}$/.test(hex)) {
-    return false;
-  }
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return luminance < 0.5;
-};
-
-const hexToRgba = (color: string, alpha: number) => {
-  const hex = normalizeHex(color);
-  if (!hex || !/^[0-9a-fA-F]{6}$/.test(hex)) {
-    return null;
-  }
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
 const priorityStyles: Record<TaskPriority, { className: string; color: string }> = {
-  low: { className: 'text-emerald-600', color: '#16a34a' },
-  medium: { className: 'text-amber-500', color: '#f59e0b' },
-  high: { className: 'text-red-600', color: '#dc2626' },
+  low: { className: 'text-emerald-600', color: TASK_PRIORITY_COLORS.low },
+  medium: { className: 'text-amber-500', color: TASK_PRIORITY_COLORS.medium },
+  high: { className: 'text-red-600', color: TASK_PRIORITY_COLORS.high },
 };
 
 const TaskBarBase: React.FC<TaskBarProps> = ({
@@ -177,11 +149,11 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const noProjectDisabled = groupMode === 'project';
   
   const fallbackProjectColor = projects.length === 1 ? projects[0]?.color : undefined;
-  const baseBgColor = project?.color || fallbackProjectColor || '#94a3b8';
+  const baseBgColor = project?.color || fallbackProjectColor || DEFAULT_NEUTRAL_COLOR;
   const isFinalStatus = Boolean(status?.isFinal);
   const isFinalStyle = isFinalStatus && !isCancelled;
   const bgColor = isFinalStyle ? '#ffffff' : baseBgColor;
-  const isDarkBackground = isDarkColor(bgColor);
+  const isDarkBackground = isDarkHexColor(bgColor);
   const baseTextColor = isDarkBackground ? '#f8fafc' : '#14181F';
   const textColor = isFinalStyle ? '#64748b' : baseTextColor;
   const secondaryTextColor = isFinalStyle

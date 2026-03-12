@@ -34,6 +34,7 @@ import {
   buildWorkspaceMemberActivityActorSnapshot,
   buildWorkspaceMemberActivityTargetLabel,
 } from '@/shared/domain/workspaceMemberActivity';
+import { DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 
 type CatalogActions = Pick<
   PlannerStore,
@@ -65,7 +66,6 @@ type CatalogActions = Pick<
 >;
 
 const emptyMutationResult: MutationResult = {};
-const DEFAULT_STATUS_COLOR = '#94a3b8';
 
 const getCurrentUserId = async () => {
   const { data, error } = await supabase.auth.getUser();

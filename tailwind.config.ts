@@ -15,7 +15,16 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ["var(--font-sans)"],
+      },
+      fontSize: {
+        "ui-2xs": ["0.625rem", { lineHeight: "0.875rem" }],
+        "ui-xs": ["0.75rem", { lineHeight: "1rem" }],
+        "ui-sm": ["0.875rem", { lineHeight: "1.25rem" }],
+        "ui-base": ["1rem", { lineHeight: "1.5rem" }],
+        "ui-lg": ["1.125rem", { lineHeight: "1.75rem" }],
+        "ui-xl": ["1.25rem", { lineHeight: "1.75rem" }],
+        "ui-2xl": ["1.5rem", { lineHeight: "2rem" }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -59,6 +68,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        surface: {
+          sunken: "hsl(var(--surface-sunken))",
+          subtle: "hsl(var(--surface-subtle))",
+          raised: "hsl(var(--surface-raised))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -91,6 +105,11 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        "elevation-1": "var(--shadow-elevation-1)",
+        "elevation-2": "var(--shadow-elevation-2)",
+        "focus-ring": "var(--shadow-focus-ring)",
       },
       keyframes: {
         "accordion-down": {

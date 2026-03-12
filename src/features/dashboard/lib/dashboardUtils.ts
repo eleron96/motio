@@ -15,90 +15,36 @@ import {
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DashboardOption } from '@/features/dashboard/types/dashboard';
+import {
+  DASHBOARD_CHECKER_COLORS,
+  DASHBOARD_MONO_COLORS,
+  DASHBOARD_PASTEL_DAWN_COLORS,
+  DASHBOARD_PASTEL_MINT_COLORS,
+  DASHBOARD_PASTEL_SKY_COLORS,
+} from '@/shared/lib/colors';
 
 export const DEFAULT_BAR_PALETTE: DashboardBarPalette = 'pastel-sky';
 
 export const BAR_PALETTES: Record<DashboardBarPalette, { label: string; colors: string[] }> = {
   'pastel-sky': {
     label: 'Pastel sky',
-    colors: [
-      '#AEC6CF',
-      '#FFB7C5',
-      '#B5EAD7',
-      '#C9B1FF',
-      '#FFDAB9',
-      '#FDEEB0',
-      '#74B9E8',
-      '#FF8C7A',
-      '#78C9A2',
-      '#A886D8',
-      '#FFB347',
-      '#8AABBD',
-    ],
+    colors: [...DASHBOARD_PASTEL_SKY_COLORS],
   },
   'pastel-dawn': {
     label: 'Pastel dawn',
-    colors: [
-      '#FF8C7A',
-      '#74B9E8',
-      '#FFB347',
-      '#78C9A2',
-      '#F4A7A1',
-      '#A886D8',
-      '#FFDAB9',
-      '#8AABBD',
-      '#FDEEB0',
-      '#B5EAD7',
-      '#FFB7C5',
-      '#AEC6CF',
-    ],
+    colors: [...DASHBOARD_PASTEL_DAWN_COLORS],
   },
   'pastel-mint': {
     label: 'Pastel mint',
-    colors: [
-      '#6EE7B7',
-      '#67E8F9',
-      '#BEF264',
-      '#C4B5FD',
-      '#FDE68A',
-      '#FDBA74',
-      '#A7F3D0',
-      '#93C5FD',
-      '#F9A8D4',
-      '#86EFAC',
-      '#99F6E4',
-      '#FCA5A5',
-    ],
+    colors: [...DASHBOARD_PASTEL_MINT_COLORS],
   },
   mono: {
     label: 'Monochrome',
-    colors: [
-      '#0F172A',
-      '#1E293B',
-      '#334155',
-      '#475569',
-      '#64748B',
-      '#94A3B8',
-      '#CBD5E1',
-      '#E2E8F0',
-      '#111827',
-      '#1F2937',
-      '#6B7280',
-      '#9CA3AF',
-    ],
+    colors: [...DASHBOARD_MONO_COLORS],
   },
   checker: {
     label: 'Checkerboard',
-    colors: [
-      '#1E293B',
-      '#CBD5E1',
-      '#334155',
-      '#E2E8F0',
-      '#475569',
-      '#F1F5F9',
-      '#64748B',
-      '#94A3B8',
-    ],
+    colors: [...DASHBOARD_CHECKER_COLORS],
   },
 };
 

@@ -53,6 +53,7 @@ import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { getPersonMonogram } from '@/shared/domain/personName';
+import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
 /** Дополнительный отступ снизу у строки пользователя в режиме группировки по исполнителям (визуально больше расстояние между пользователями) */
 const ASSIGNEE_ROW_GAP = 20;
@@ -816,7 +817,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       milestones: sortedMilestones,
       visibleDayIndex,
       projectById,
-      defaultColor: '#94a3b8',
+      defaultColor: DEFAULT_NEUTRAL_COLOR,
     }),
     [projectById, sortedMilestones, visibleDayIndex],
   );
@@ -826,7 +827,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       milestonesByDate,
       visibleDayIndex,
       projectById,
-      defaultColor: '#94a3b8',
+      defaultColor: DEFAULT_NEUTRAL_COLOR,
     }),
     [milestonesByDate, projectById, visibleDayIndex],
   );
@@ -839,7 +840,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       <div className="max-h-44 space-y-1 overflow-y-auto pr-1">
         {dayMilestones.map((milestone) => {
           const project = projectById.get(milestone.projectId);
-          const color = project?.color ?? '#94a3b8';
+          const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
           const dotColor = hexToRgba(color, 0.8) ?? color;
           return (
             <div key={milestone.id} className="flex items-center gap-2">
@@ -868,7 +869,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       <DropdownMenuLabel>{t`Milestones`}</DropdownMenuLabel>
       {dayMilestones.map((milestone) => {
         const project = projectById.get(milestone.projectId);
-        const color = project?.color ?? '#94a3b8';
+        const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
         const dotColor = hexToRgba(color, 0.8) ?? color;
         return (
           <DropdownMenuItem
@@ -1170,7 +1171,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                         const dayIndex = visibleDayIndex.get(milestone.date);
                         if (dayIndex === undefined) return null;
                         const project = projectById.get(milestone.projectId);
-                        const color = project?.color ?? '#94a3b8';
+                        const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
                         const dotColor = hexToRgba(color, 0.45) ?? color;
                         const dotBorder = hexToRgba(color, 0.8) ?? color;
                         const offset = milestoneOffsets.get(milestone.id) ?? 0;

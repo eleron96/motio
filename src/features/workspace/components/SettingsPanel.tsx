@@ -28,6 +28,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
+import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 
 interface SettingsPanelProps {
   open: boolean;
@@ -51,8 +52,6 @@ const autoResize = (element: HTMLTextAreaElement | null) => {
   element.style.height = 'auto';
   element.style.height = `${element.scrollHeight}px`;
 };
-
-const DEFAULT_STATUS_COLOR = '#94a3b8';
 
 const StatusNameInput: React.FC<{
   value: string;
@@ -100,7 +99,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const [newTypeName, setNewTypeName] = useState('');
 
   const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState('#3b82f6');
+  const [newTagColor, setNewTagColor] = useState(DEFAULT_COLOR_PICKER_VALUE);
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
