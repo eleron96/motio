@@ -19,6 +19,12 @@ import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
 import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
+import {
+  DEFAULT_PAST_TASK_SORT,
+  shouldCollapseRepeatSeriesInTaskScope,
+  type PastTaskSort,
+  type TaskScope,
+} from '@/shared/domain/taskScope';
 import { fetchAssigneeTasks as fetchAssigneeTasksFromApi } from '@/infrastructure/members/memberTasksRepository';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import {
@@ -115,10 +121,10 @@ const MembersPage = () => {
   const [memberGroupBy, setMemberGroupBy] = useState<'none' | 'group'>('none');
   const [statusFilterIds, setStatusFilterIds] = useState<string[]>([]);
   const [projectFilterIds, setProjectFilterIds] = useState<string[]>([]);
-  const [taskScope, setTaskScope] = useState<'current' | 'past'>('current');
+  const [taskScope, setTaskScope] = useState<TaskScope>('current');
   const [pastFromDate, setPastFromDate] = useState('');
   const [pastToDate, setPastToDate] = useState('');
-  const [pastSort, setPastSort] = useState<'start_desc' | 'start_asc' | 'end_desc' | 'end_asc' | 'title_asc' | 'title_desc'>('end_desc');
+  const [pastSort, setPastSort] = useState<PastTaskSort>(DEFAULT_PAST_TASK_SORT);
   const [pageIndex, setPageIndex] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
@@ -592,7 +598,7 @@ const MembersPage = () => {
   }, [assigneeTasks, selectedTaskId]);
 
   const displayTaskRows = useMemo<DisplayTaskRow[]>(() => {
-    if (taskScope !== 'current') {
+    if (!shouldCollapseRepeatSeriesInTaskScope(taskScope)) {
       return assigneeTasks.map((task) => ({
         key: task.id,
         task,

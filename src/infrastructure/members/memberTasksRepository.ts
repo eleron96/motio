@@ -3,9 +3,7 @@ import { Task } from '@/features/planner/types/planner';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { isAbortError, withAbortSignal } from '@/shared/lib/latestAsyncRequest';
 import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
-
-type PastSort = 'start_desc' | 'start_asc' | 'end_desc' | 'end_asc' | 'title_asc' | 'title_desc';
-type TaskScope = 'current' | 'past';
+import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 
 type FetchAssigneeTasksParams = {
   workspaceId: string;
@@ -13,7 +11,7 @@ type FetchAssigneeTasksParams = {
   taskScope: TaskScope;
   pastFromDate: string;
   pastToDate: string;
-  pastSort: PastSort;
+  pastSort: PastTaskSort;
   statusFilterIds: string[];
   projectFilterIds: string[];
   search: string;

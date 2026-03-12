@@ -11,9 +11,11 @@ import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { Assignee, Customer, Milestone, Project, Status, Task } from '@/features/planner/types/planner';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
+import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 type DisplayTaskRow = {
@@ -30,6 +32,8 @@ type ProjectsMainPanelProps = {
   mode: 'projects' | 'milestones' | 'customers';
   selectedProject: Project | null;
   customerById: Map<string, Customer>;
+  taskScope: TaskScope;
+  onChangeTaskScope: (scope: TaskScope) => void;
   search: string;
   onSearchChange: (value: string) => void;
   statusFilterLabel: string;
@@ -41,12 +45,24 @@ type ProjectsMainPanelProps = {
   assigneeOptions: Assignee[];
   assigneeFilterIds: string[];
   onToggleAssignee: (assigneeId: string) => void;
+  pastFromDate: string;
+  onPastFromDateChange: (value: string) => void;
+  pastToDate: string;
+  onPastToDateChange: (value: string) => void;
+  pastSort: PastTaskSort;
+  onPastSortChange: (value: PastTaskSort) => void;
   onClearFilters: () => void;
   selectedProjectId: string | null;
   onRefreshTasks: () => void;
   tasksLoading: boolean;
   tasksError: string;
   displayTaskRows: DisplayTaskRow[];
+  taskScopePageSize: number;
+  displayTotalCount: number;
+  pageIndex: number;
+  totalPages: number;
+  onPrevPage: () => void;
+  onNextPage: () => void;
   statusById: Map<string, Status>;
   assigneeById: Map<string, Assignee>;
   onSelectTask: (taskId: string) => void;
@@ -69,6 +85,8 @@ export const ProjectsMainPanel = ({
   mode,
   selectedProject,
   customerById,
+  taskScope,
+  onChangeTaskScope,
   search,
   onSearchChange,
   statusFilterLabel,
@@ -80,12 +98,24 @@ export const ProjectsMainPanel = ({
   assigneeOptions,
   assigneeFilterIds,
   onToggleAssignee,
+  pastFromDate,
+  onPastFromDateChange,
+  pastToDate,
+  onPastToDateChange,
+  pastSort,
+  onPastSortChange,
   onClearFilters,
   selectedProjectId,
   onRefreshTasks,
   tasksLoading,
   tasksError,
   displayTaskRows,
+  taskScopePageSize,
+  displayTotalCount,
+  pageIndex,
+  totalPages,
+  onPrevPage,
+  onNextPage,
   statusById,
   assigneeById,
   onSelectTask,
@@ -120,18 +150,42 @@ export const ProjectsMainPanel = ({
             <div className="flex flex-1 flex-col overflow-hidden">
               <div className={`border-b border-border ${sectionPadding}`}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">
-                        {formatProjectLabel(selectedProject.name, selectedProject.code)}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">
+                          {formatProjectLabel(selectedProject.name, selectedProject.code)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {customerById.get(selectedProject.customerId ?? '')?.name ?? t`No customer`}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {customerById.get(selectedProject.customerId ?? '')?.name ?? t`No customer`}
-                      </div>
+                      {selectedProject.archived && (
+                        <Badge variant="secondary">{t`Archived`}</Badge>
+                      )}
                     </div>
-                    {selectedProject.archived && (
-                      <Badge variant="secondary">{t`Archived`}</Badge>
-                    )}
+                    <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onChangeTaskScope('current')}
+                        className={`h-7 px-3 text-xs rounded-md ${
+                          taskScope === 'current' ? 'bg-foreground text-background shadow-sm' : ''
+                        }`}
+                      >
+                        {t`Current`}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onChangeTaskScope('past')}
+                        className={`h-7 px-3 text-xs rounded-md ${
+                          taskScope === 'past' ? 'bg-foreground text-background shadow-sm' : ''
+                        }`}
+                      >
+                        {t`Past`}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -202,6 +256,36 @@ export const ProjectsMainPanel = ({
                       </ScrollArea>
                     </PopoverContent>
                   </Popover>
+
+                  {taskScope === 'past' && (
+                    <>
+                      <Input
+                        type="date"
+                        className="w-full sm:w-[160px]"
+                        value={pastFromDate}
+                        onChange={(event) => onPastFromDateChange(event.target.value)}
+                      />
+                      <Input
+                        type="date"
+                        className="w-full sm:w-[160px]"
+                        value={pastToDate}
+                        onChange={(event) => onPastToDateChange(event.target.value)}
+                      />
+                      <Select value={pastSort} onValueChange={(value) => onPastSortChange(value as PastTaskSort)}>
+                        <SelectTrigger className="w-full sm:w-[170px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="end_desc">{t`End date ↓`}</SelectItem>
+                          <SelectItem value="end_asc">{t`End date ↑`}</SelectItem>
+                          <SelectItem value="start_desc">{t`Start date ↓`}</SelectItem>
+                          <SelectItem value="start_asc">{t`Start date ↑`}</SelectItem>
+                          <SelectItem value="title_asc">{t`Title A–Z`}</SelectItem>
+                          <SelectItem value="title_desc">{t`Title Z–A`}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </>
+                  )}
 
                   <Button variant="ghost" className={isMobile ? 'w-full justify-center' : undefined} onClick={onClearFilters}>
                     {t`Clear filters`}
@@ -369,6 +453,35 @@ export const ProjectsMainPanel = ({
                           })}
                         </TableBody>
                       </Table>
+                    )}
+                    {taskScope === 'past' && displayTotalCount > taskScopePageSize && (
+                      <div className={`mt-4 text-xs text-muted-foreground ${isMobile ? 'space-y-2' : 'flex items-center justify-between'}`}>
+                        <span>
+                          {Math.min(displayTotalCount, (pageIndex - 1) * taskScopePageSize + 1)}–
+                          {Math.min(displayTotalCount, pageIndex * taskScopePageSize)} {t`of`} {displayTotalCount}
+                        </span>
+                        <div className={`flex items-center gap-2 ${isMobile ? 'justify-between' : ''}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onPrevPage}
+                            disabled={pageIndex === 1}
+                          >
+                            {t`Prev`}
+                          </Button>
+                          <span>
+                            {t`Page ${pageIndex} / ${totalPages}`}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onNextPage}
+                            disabled={pageIndex >= totalPages}
+                          >
+                            {t`Next`}
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </>
                 )}
