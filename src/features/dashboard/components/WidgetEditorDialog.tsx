@@ -22,7 +22,10 @@ import {
   DashboardMilestoneView,
   DashboardMilestoneCalendarMode,
 } from '@/features/dashboard/types/dashboard';
-import { filterDashboardAssigneeOptions } from '@/features/dashboard/lib/dashboardAssigneeOptions';
+import {
+  filterDashboardAssigneeOptions,
+  usesDashboardAssigneeGrouping,
+} from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { BAR_PALETTES, DEFAULT_BAR_PALETTE, createWidgetId } from '@/features/dashboard/lib/dashboardUtils';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
@@ -248,6 +251,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
 
   const showGroupBy = isChartType;
   const showTaskFilters = isTaskWidget;
+  const showAssigneeGroupingControls = showGroupBy && usesDashboardAssigneeGrouping(groupBy);
   const canSave = title.trim().length > 0;
 
   const orderedStatuses = useMemo(
@@ -328,7 +332,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
     }
     const assigneeOptions = filterDashboardAssigneeOptions({
       assignees: orderedAssignees,
-      includeDisabledAssignees,
+      includeDisabledAssignees: showAssigneeGroupingControls ? includeDisabledAssignees : true,
       selectedAssigneeId: selectedValue,
     });
     return [
@@ -346,6 +350,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
     const nextIsMilestone = normalizedType === 'milestone';
     const nextIsTaskWidget = normalizedType === 'kpi' || nextIsChartType;
     const normalizedGroupBy = nextIsChartType ? groupBy : 'none';
+    const usesAssigneeGrouping = usesDashboardAssigneeGrouping(normalizedGroupBy);
     const normalizedGroups = nextIsTaskWidget
       ? filterGroups
         .map((group) => ({
@@ -368,8 +373,8 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       milestoneCalendarMode: nextIsMilestone ? milestoneCalendarMode : undefined,
       statusFilter: initialWidget?.statusFilter ?? 'all',
       statusIds: initialWidget?.statusIds ?? [],
-      includeUnassigned: normalizedGroupBy === 'assignee' ? includeUnassigned : false,
-      includeDisabledAssignees: nextIsTaskWidget ? includeDisabledAssignees : false,
+      includeUnassigned: usesAssigneeGrouping ? includeUnassigned : false,
+      includeDisabledAssignees: nextIsTaskWidget && usesAssigneeGrouping ? includeDisabledAssignees : false,
       filterGroups: normalizedGroups,
     };
     onSave(nextWidget);
@@ -562,7 +567,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
             </div>
           )}
 
-          {showGroupBy && groupBy === 'assignee' && (
+          {showAssigneeGroupingControls && (
             <div className="flex items-center justify-between rounded-md border px-3 py-2">
               <div>
                 <div className="text-sm font-medium">{t`Include unassigned`}</div>
@@ -574,7 +579,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
             </div>
           )}
 
-          {showTaskFilters && (
+          {showAssigneeGroupingControls && (
             <div className="flex items-center justify-between rounded-md border px-3 py-2">
               <div>
                 <div className="text-sm font-medium">{t`Show disabled users`}</div>

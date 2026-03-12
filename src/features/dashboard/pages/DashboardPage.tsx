@@ -50,6 +50,7 @@ import {
   getViewportProfileForBreakpoint,
   type DashboardBreakpoint,
 } from '@/features/dashboard/lib/dashboardResponsive';
+import { resolveDashboardIncludeDisabledAssignees } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { buildTimeSeriesData, buildWidgetData, shouldUseAssigneeRows } from '@/features/dashboard/lib/dashboardUtils';
 import { DashboardWidgetCard } from '@/features/dashboard/components/DashboardWidgetCard';
 import { WidgetEditorDialog } from '@/features/dashboard/components/WidgetEditorDialog';
@@ -76,7 +77,7 @@ const isTimeSeriesWidget = (widget: DashboardWidget) => (
 );
 
 const getStatsVariantKey = (widget: DashboardWidget) => (
-  widget.includeDisabledAssignees ? 'includeDisabled' : 'activeOnly'
+  resolveDashboardIncludeDisabledAssignees(widget) ? 'includeDisabled' : 'activeOnly'
 );
 
 const DashboardPage = () => {
@@ -302,13 +303,13 @@ const DashboardPage = () => {
 
   const activeOnlyTaskWidgetPeriods = useMemo(() => (
     widgets
-      .filter((widget) => isTaskWidget(widget) && !widget.includeDisabledAssignees)
+      .filter((widget) => isTaskWidget(widget) && !resolveDashboardIncludeDisabledAssignees(widget))
       .map((widget) => widget.period)
   ), [widgets]);
 
   const includeDisabledTaskWidgetPeriods = useMemo(() => (
     widgets
-      .filter((widget) => isTaskWidget(widget) && widget.includeDisabledAssignees)
+      .filter((widget) => isTaskWidget(widget) && resolveDashboardIncludeDisabledAssignees(widget))
       .map((widget) => widget.period)
   ), [widgets]);
 
@@ -324,7 +325,7 @@ const DashboardPage = () => {
     Array.from(
       new Set(
         widgets
-          .filter((widget) => isTimeSeriesWidget(widget) && !widget.includeDisabledAssignees)
+          .filter((widget) => isTimeSeriesWidget(widget) && !resolveDashboardIncludeDisabledAssignees(widget))
           .map((widget) => widget.period),
       ),
     )
@@ -336,7 +337,7 @@ const DashboardPage = () => {
     Array.from(
       new Set(
         widgets
-          .filter((widget) => isTimeSeriesWidget(widget) && widget.includeDisabledAssignees)
+          .filter((widget) => isTimeSeriesWidget(widget) && resolveDashboardIncludeDisabledAssignees(widget))
           .map((widget) => widget.period),
       ),
     )

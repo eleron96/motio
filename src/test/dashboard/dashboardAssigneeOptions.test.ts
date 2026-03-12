@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { filterDashboardAssigneeOptions } from '@/features/dashboard/lib/dashboardAssigneeOptions';
+import {
+  filterDashboardAssigneeOptions,
+  resolveDashboardIncludeDisabledAssignees,
+  usesDashboardAssigneeGrouping,
+} from '@/features/dashboard/lib/dashboardAssigneeOptions';
 
 describe('filterDashboardAssigneeOptions', () => {
   const assignees = [
@@ -32,5 +36,23 @@ describe('filterDashboardAssigneeOptions', () => {
       assignees,
       includeDisabledAssignees: true,
     })).toEqual(assignees);
+  });
+
+  it('treats only By user widgets as assignee grouping widgets', () => {
+    expect(usesDashboardAssigneeGrouping('assignee')).toBe(true);
+    expect(usesDashboardAssigneeGrouping('project')).toBe(false);
+    expect(usesDashboardAssigneeGrouping('none')).toBe(false);
+  });
+
+  it('includes disabled users by default outside By user grouping', () => {
+    expect(resolveDashboardIncludeDisabledAssignees({
+      groupBy: 'project',
+      includeDisabledAssignees: false,
+    })).toBe(true);
+
+    expect(resolveDashboardIncludeDisabledAssignees({
+      groupBy: 'assignee',
+      includeDisabledAssignees: false,
+    })).toBe(false);
   });
 });

@@ -1,10 +1,26 @@
-import { DashboardAssigneeOption } from '@/features/dashboard/types/dashboard';
+import {
+  DashboardAssigneeOption,
+  DashboardGroupBy,
+  DashboardWidget,
+} from '@/features/dashboard/types/dashboard';
+
+type DashboardDisabledAssigneeScope = Pick<DashboardWidget, 'groupBy' | 'includeDisabledAssignees'>;
 
 type FilterDashboardAssigneeOptionsParams = {
   assignees: DashboardAssigneeOption[];
   includeDisabledAssignees: boolean;
   selectedAssigneeId?: string;
 };
+
+export const usesDashboardAssigneeGrouping = (groupBy?: DashboardGroupBy) => groupBy === 'assignee';
+
+export const resolveDashboardIncludeDisabledAssignees = (
+  widget: DashboardDisabledAssigneeScope,
+) => (
+  usesDashboardAssigneeGrouping(widget.groupBy)
+    ? Boolean(widget.includeDisabledAssignees)
+    : true
+);
 
 export const filterDashboardAssigneeOptions = ({
   assignees,
