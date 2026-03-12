@@ -22,6 +22,6 @@ Then:
 - `src/features/dashboard/lib/dashboardAssigneeOptions.ts`
 - `src/features/dashboard/pages/DashboardPage.tsx`
 - `src/features/dashboard/store/dashboardStore.ts`
-- `infra/supabase/migrations/0054_add_dashboard_disabled_assignee_stats.sql`
+- `infra/supabase/migrations/0055_add_dashboard_disabled_assignee_stats.sql`
 - `src/test/dashboard/dashboardAssigneeOptions.test.ts`
 - `src/test/dashboard/widgetEditorDialog.test.tsx`
