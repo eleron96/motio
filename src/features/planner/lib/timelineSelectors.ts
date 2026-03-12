@@ -1,6 +1,7 @@
 import { Assignee, Filters, GroupMode, MemberGroupAssignment, Project, Task } from '@/features/planner/types/planner';
 import { TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
+import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
 export type TimelineGroupItem = {
   id: string;
@@ -259,7 +260,7 @@ export const buildTimelineDisplayRows = ({
     rows.push({
       id: 'unassigned',
       name: groupMode === 'assignee' ? labels.unassigned : labels.noProject,
-      color: '#94a3b8',
+      color: DEFAULT_NEUTRAL_COLOR,
       tasks: tasksByRow.unassigned ?? [],
       height: rowHeights.unassigned || minRowHeight,
     });

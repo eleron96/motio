@@ -44,6 +44,7 @@ import {
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
+import { DEFAULT_PROJECT_COLOR } from '@/shared/lib/colors';
 
 type DisplayTaskRow = {
   key: string;
@@ -93,11 +94,11 @@ const ProjectsPage = () => {
   const [projectSettingsTarget, setProjectSettingsTarget] = useState<Project | null>(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectCode, setNewProjectCode] = useState('');
-  const [newProjectColor, setNewProjectColor] = useState('#3b82f6');
+  const [newProjectColor, setNewProjectColor] = useState(DEFAULT_PROJECT_COLOR);
   const [newProjectCustomerId, setNewProjectCustomerId] = useState<string | null>(null);
   const [projectSettingsName, setProjectSettingsName] = useState('');
   const [projectSettingsCode, setProjectSettingsCode] = useState('');
-  const [projectSettingsColor, setProjectSettingsColor] = useState('#3b82f6');
+  const [projectSettingsColor, setProjectSettingsColor] = useState(DEFAULT_PROJECT_COLOR);
   const [projectSettingsCustomerId, setProjectSettingsCustomerId] = useState<string | null>(null);
   const [projectSettingsConfirmOpen, setProjectSettingsConfirmOpen] = useState(false);
   const [newCustomerName, setNewCustomerName] = useState('');
@@ -506,7 +507,7 @@ const ProjectsPage = () => {
   const resetCreateProjectForm = useCallback(() => {
     setNewProjectName('');
     setNewProjectCode('');
-    setNewProjectColor('#3b82f6');
+    setNewProjectColor(DEFAULT_PROJECT_COLOR);
     setNewProjectCustomerId(null);
     setEditingCustomerId(null);
     setEditingCustomerName('');
@@ -676,7 +677,7 @@ const ProjectsPage = () => {
   const createProjectHasUnsavedChanges = useMemo(() => (
     newProjectName.trim().length > 0
     || newProjectCode.trim().length > 0
-    || newProjectColor !== '#3b82f6'
+    || newProjectColor !== DEFAULT_PROJECT_COLOR
     || newProjectCustomerId !== null
   ), [newProjectCode, newProjectColor, newProjectCustomerId, newProjectName]);
 

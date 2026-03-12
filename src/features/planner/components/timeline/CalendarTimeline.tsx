@@ -20,6 +20,7 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
+import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { buildAssigneeGroupMap, selectFilteredTasks } from '@/features/planner/lib/timelineSelectors';
 import {
@@ -329,10 +330,10 @@ export const CalendarTimeline: React.FC = () => {
                             const singleMilestone = milestonesForDay.length === 1 ? milestonesForDay[0] : null;
                             const singleMilestoneColor = singleMilestone
                               ? (hexToRgba(
-                                projectById.get(singleMilestone.projectId)?.color ?? '#94a3b8',
+                                projectById.get(singleMilestone.projectId)?.color ?? DEFAULT_NEUTRAL_COLOR,
                                 0.8,
-                              ) ?? (projectById.get(singleMilestone.projectId)?.color ?? '#94a3b8'))
-                              : '#94a3b8';
+                              ) ?? (projectById.get(singleMilestone.projectId)?.color ?? DEFAULT_NEUTRAL_COLOR))
+                              : DEFAULT_NEUTRAL_COLOR;
 
                             return (
                               <div
@@ -373,7 +374,7 @@ export const CalendarTimeline: React.FC = () => {
                                                 <span className="pointer-events-none absolute bottom-0.5 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-0.5">
                                                   {milestonesForDay.map((milestone) => {
                                                     const project = projectById.get(milestone.projectId);
-                                                    const color = project?.color ?? '#94a3b8';
+                                                    const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
                                                     const dotColor = hexToRgba(color, 0.8) ?? color;
                                                     return (
                                                       <span
@@ -390,7 +391,7 @@ export const CalendarTimeline: React.FC = () => {
                                               <DropdownMenuLabel>{t`Milestones`}</DropdownMenuLabel>
                                               {milestonesForDay.map((milestone) => {
                                                 const project = projectById.get(milestone.projectId);
-                                                const color = project?.color ?? '#94a3b8';
+                                                const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
                                                 const dotColor = hexToRgba(color, 0.8) ?? color;
                                                 return (
                                                   <DropdownMenuItem
@@ -474,7 +475,7 @@ export const CalendarTimeline: React.FC = () => {
                                             <div className="mt-1 space-y-1">
                                               {milestonesForDay.map((milestone) => {
                                                 const project = projectById.get(milestone.projectId);
-                                                const color = project?.color ?? '#94a3b8';
+                                                const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
                                                 const dotColor = hexToRgba(color, 0.8) ?? color;
                                                 return (
                                                   <div key={milestone.id} className="flex items-center gap-2">

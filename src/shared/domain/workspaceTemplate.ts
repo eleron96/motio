@@ -1,4 +1,5 @@
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
+import { DEFAULT_STATUS_COLOR, DEFAULT_TAG_COLOR } from '@/shared/lib/colors';
 
 export type WorkspaceTemplateStatus = {
   name: string;
@@ -41,9 +42,6 @@ type TagLike = {
   name: string;
   color: string;
 };
-
-const DEFAULT_STATUS_COLOR = '#94a3b8';
-const DEFAULT_TAG_COLOR = '#94a3b8';
 
 const normalizeTemplateStatuses = (value: unknown): WorkspaceTemplateStatus[] => {
   if (!Array.isArray(value)) return [];

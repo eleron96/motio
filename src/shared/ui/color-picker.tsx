@@ -2,11 +2,7 @@ import React from 'react';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { cn } from '@/shared/lib/classNames';
-
-const PRESET_COLORS = [
-  '#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899',
-  '#ef4444', '#14b8a6', '#6366f1', '#f97316', '#84cc16',
-];
+import { PROJECT_PRESET_COLORS } from '@/shared/lib/colors';
 
 interface ColorPickerProps {
   value: string;
@@ -30,7 +26,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, disab
       </PopoverTrigger>
       <PopoverContent className="w-auto p-3" align="end">
         <div className="flex flex-wrap gap-2 max-w-[180px]">
-          {PRESET_COLORS.map(color => (
+          {PROJECT_PRESET_COLORS.map(color => (
             <button
               key={color}
               type="button"

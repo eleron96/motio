@@ -23,8 +23,7 @@ import { Checkbox } from '@/shared/ui/checkbox';
 import { buildWorkspaceTemplateFromCatalog, type WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
 import { t } from '@lingui/macro';
-
-const DEFAULT_STATUS_COLOR = '#94a3b8';
+import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 
 export const WorkspaceSwitcher: React.FC = () => {
   const {
@@ -55,7 +54,7 @@ export const WorkspaceSwitcher: React.FC = () => {
   const [newTemplateStatusEmoji, setNewTemplateStatusEmoji] = useState('');
   const [newTemplateTypeName, setNewTemplateTypeName] = useState('');
   const [newTemplateTagName, setNewTemplateTagName] = useState('');
-  const [newTemplateTagColor, setNewTemplateTagColor] = useState('#3b82f6');
+  const [newTemplateTagColor, setNewTemplateTagColor] = useState(DEFAULT_COLOR_PICKER_VALUE);
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const canCreateWorkspace = workspaces.length < 5;
