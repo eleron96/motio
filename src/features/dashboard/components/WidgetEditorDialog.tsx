@@ -7,6 +7,7 @@ import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Switch } from '@/shared/ui/switch';
 import {
+  DashboardAssigneeOption,
   DashboardGroupBy,
   DashboardFilterField,
   DashboardFilterGroup,
@@ -21,6 +22,7 @@ import {
   DashboardMilestoneView,
   DashboardMilestoneCalendarMode,
 } from '@/features/dashboard/types/dashboard';
+import { filterDashboardAssigneeOptions } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { BAR_PALETTES, DEFAULT_BAR_PALETTE, createWidgetId } from '@/features/dashboard/lib/dashboardUtils';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
@@ -31,7 +33,7 @@ interface WidgetEditorDialogProps {
   onOpenChange: (open: boolean) => void;
   statuses: DashboardStatus[];
   projects: DashboardOption[];
-  assignees: DashboardOption[];
+  assignees: DashboardAssigneeOption[];
   groups: DashboardOption[];
   initialWidget?: DashboardWidget | null;
   onSave: (widget: DashboardWidget) => void;
@@ -114,6 +116,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   const [groupBy, setGroupBy] = useState<DashboardGroupBy>('none');
   const [period, setPeriod] = useState<DashboardPeriod>('week');
   const [includeUnassigned, setIncludeUnassigned] = useState(true);
+  const [includeDisabledAssignees, setIncludeDisabledAssignees] = useState(false);
   const [size, setSize] = useState<'small' | 'medium' | 'large'>('small');
   const [barPalette, setBarPalette] = useState<DashboardBarPalette>(DEFAULT_BAR_PALETTE);
   const [showLegend, setShowLegend] = useState(true);
@@ -192,6 +195,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       setGroupBy(initialWidget.groupBy ?? 'none');
       setPeriod(initialWidget.period);
       setIncludeUnassigned(Boolean(initialWidget.includeUnassigned));
+      setIncludeDisabledAssignees(Boolean(initialWidget.includeDisabledAssignees));
       setSize(initialWidget.size ?? 'small');
       setBarPalette(initialWidget.barPalette ?? DEFAULT_BAR_PALETTE);
       setShowLegend(initialWidget.showLegend ?? true);
@@ -209,6 +213,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
     setGroupBy('none');
     setPeriod('week');
     setIncludeUnassigned(true);
+    setIncludeDisabledAssignees(false);
     setSize('small');
     setBarPalette(DEFAULT_BAR_PALETTE);
     setShowLegend(true);
@@ -305,7 +310,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
     }));
   };
 
-  const getRuleOptions = (field: DashboardFilterField) => {
+  const getRuleOptions = (field: DashboardFilterField, selectedValue?: string) => {
     if (field === 'project') {
       return orderedProjects.map((project) => ({
         ...project,
@@ -321,9 +326,14 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
         name: formatStatusLabel(status.name, status.emoji),
       }));
     }
+    const assigneeOptions = filterDashboardAssigneeOptions({
+      assignees: orderedAssignees,
+      includeDisabledAssignees,
+      selectedAssigneeId: selectedValue,
+    });
     return [
       { id: UNASSIGNED_FILTER_VALUE, name: t`Unassigned` },
-      ...orderedAssignees,
+      ...assigneeOptions,
     ];
   };
 
@@ -359,6 +369,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       statusFilter: initialWidget?.statusFilter ?? 'all',
       statusIds: initialWidget?.statusIds ?? [],
       includeUnassigned: normalizedGroupBy === 'assignee' ? includeUnassigned : false,
+      includeDisabledAssignees: nextIsTaskWidget ? includeDisabledAssignees : false,
       filterGroups: normalizedGroups,
     };
     onSave(nextWidget);
@@ -564,6 +575,22 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
           )}
 
           {showTaskFilters && (
+            <div className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">{t`Show disabled users`}</div>
+                <div className="text-xs text-muted-foreground">
+                  {t`Include disabled users in filters, totals, and legends.`}
+                </div>
+              </div>
+              <Switch
+                checked={includeDisabledAssignees}
+                onCheckedChange={setIncludeDisabledAssignees}
+                aria-label={t`Show disabled users`}
+              />
+            </div>
+          )}
+
+          {showTaskFilters && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Label>{t`Advanced filters`}</Label>
@@ -611,7 +638,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
                     <div className="text-xs text-muted-foreground">{t`No rules yet.`}</div>
                   )}
                   {group.rules.map((rule) => {
-                    const options = getRuleOptions(rule.field);
+                    const options = getRuleOptions(rule.field, rule.value);
                     return (
                       <div
                         key={rule.id}

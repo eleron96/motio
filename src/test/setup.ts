@@ -51,3 +51,25 @@ if (!hasValidLocalStorage()) {
     value: createMemoryStorage(),
   });
 }
+
+const htmlElementProto = window.HTMLElement.prototype as HTMLElement & {
+  hasPointerCapture?: (pointerId: number) => boolean;
+  setPointerCapture?: (pointerId: number) => void;
+  releasePointerCapture?: (pointerId: number) => void;
+};
+
+if (typeof htmlElementProto.hasPointerCapture !== "function") {
+  htmlElementProto.hasPointerCapture = () => false;
+}
+
+if (typeof htmlElementProto.setPointerCapture !== "function") {
+  htmlElementProto.setPointerCapture = () => {};
+}
+
+if (typeof htmlElementProto.releasePointerCapture !== "function") {
+  htmlElementProto.releasePointerCapture = () => {};
+}
+
+if (typeof htmlElementProto.scrollIntoView !== "function") {
+  htmlElementProto.scrollIntoView = () => {};
+}

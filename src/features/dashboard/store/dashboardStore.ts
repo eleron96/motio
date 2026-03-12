@@ -3,6 +3,7 @@ import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { getStatusEmoji, splitStatusLabel } from '@/shared/lib/statusLabels';
 import {
+  DashboardAssigneeOption,
   DashboardLayouts,
   DashboardLayoutItem,
   DashboardPeriod,
@@ -33,6 +34,10 @@ type DashboardStatsState = {
   lastLoaded: number | null;
 };
 
+type DashboardStatsVariantKey = 'activeOnly' | 'includeDisabled';
+
+type DashboardStatsVariants = Record<DashboardStatsVariantKey, DashboardStatsState>;
+
 type DashboardState = {
   dashboards: DashboardSummary[];
   dashboardsWorkspaceId: string | null;
@@ -41,7 +46,7 @@ type DashboardState = {
   layouts: DashboardLayouts;
   statuses: DashboardStatus[];
   projects: DashboardOption[];
-  assignees: DashboardOption[];
+  assignees: DashboardAssigneeOption[];
   groups: DashboardOption[];
   assigneeGroupMap: Record<string, string | null>;
   milestones: DashboardMilestone[];
@@ -49,7 +54,7 @@ type DashboardState = {
   saving: boolean;
   error: string | null;
   dirty: boolean;
-  statsByPeriod: Record<DashboardPeriod, DashboardStatsState>;
+  statsByPeriod: Record<DashboardPeriod, DashboardStatsVariants>;
   loadDashboards: (workspaceId: string) => Promise<void>;
   setCurrentDashboardId: (id: string | null) => void;
   loadDashboard: (workspaceId: string, dashboardId: string | null) => Promise<void>;
@@ -64,7 +69,12 @@ type DashboardState = {
   setLayouts: (layouts: DashboardLayouts) => void;
   loadFilterOptions: (workspaceId: string) => Promise<void>;
   loadMilestones: (workspaceId: string) => Promise<void>;
-  loadStats: (workspaceId: string, period: DashboardPeriod, includeSeries?: boolean) => Promise<void>;
+  loadStats: (
+    workspaceId: string,
+    period: DashboardPeriod,
+    includeSeries?: boolean,
+    includeDisabledAssignees?: boolean,
+  ) => Promise<void>;
 };
 
 const SIZE_PRESETS: Record<DashboardWidgetSize, { w: number; h: number }> = {
@@ -312,6 +322,7 @@ const normalizeWidget = (widget: Partial<DashboardWidget>): DashboardWidget => {
     statusFilter: widget.statusFilter ?? 'all',
     statusIds: widget.statusIds ?? [],
     includeUnassigned: widget.includeUnassigned ?? true,
+    includeDisabledAssignees: widget.includeDisabledAssignees ?? false,
     filterGroups: widget.filterGroups ?? [],
   };
   return normalized;
@@ -502,6 +513,21 @@ const emptyStatsState: DashboardStatsState = {
   lastLoaded: null,
 };
 
+const createEmptyStatsVariants = (): DashboardStatsVariants => ({
+  activeOnly: { ...emptyStatsState },
+  includeDisabled: { ...emptyStatsState },
+});
+
+const createEmptyStatsByPeriod = (): Record<DashboardPeriod, DashboardStatsVariants> => ({
+  day: createEmptyStatsVariants(),
+  week: createEmptyStatsVariants(),
+  month: createEmptyStatsVariants(),
+});
+
+const getStatsVariantKey = (includeDisabledAssignees = false): DashboardStatsVariantKey => (
+  includeDisabledAssignees ? 'includeDisabled' : 'activeOnly'
+);
+
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   widgets: [],
   layouts: {},
@@ -515,11 +541,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   saving: false,
   error: null,
   dirty: false,
-  statsByPeriod: {
-    day: { ...emptyStatsState },
-    week: { ...emptyStatsState },
-    month: { ...emptyStatsState },
-  },
+  statsByPeriod: createEmptyStatsByPeriod(),
   dashboards: [],
   dashboardsWorkspaceId: null,
   currentDashboardId: null,
@@ -548,11 +570,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set({
       loading: true,
       error: null,
-      statsByPeriod: {
-        day: { ...emptyStatsState },
-        week: { ...emptyStatsState },
-        month: { ...emptyStatsState },
-      },
+      statsByPeriod: createEmptyStatsByPeriod(),
     });
 
     if (!dashboardId) {
@@ -704,11 +722,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     saving: false,
     error: null,
     dirty: false,
-    statsByPeriod: {
-      day: { ...emptyStatsState },
-      week: { ...emptyStatsState },
-      month: { ...emptyStatsState },
-    },
+    statsByPeriod: createEmptyStatsByPeriod(),
   }),
   addWidget: (widget) => set((state) => {
     const normalized = normalizeWidget(widget);
@@ -766,7 +780,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         .order('created_at', { ascending: true }),
       supabase
         .from('assignees')
-        .select('id, name, user_id')
+        .select('id, name, user_id, is_active')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: true }),
       supabase
@@ -821,6 +835,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       .map((row) => ({
         id: row.id as string,
         name: row.name as string,
+        isActive: row.is_active ?? true,
       }));
 
     const groups = (groupsRes.data ?? []).map((row) => ({
@@ -860,8 +875,9 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
     set({ milestones });
   },
-  loadStats: async (workspaceId, period, includeSeries = false) => {
-    const current = get().statsByPeriod[period];
+  loadStats: async (workspaceId, period, includeSeries = false, includeDisabledAssignees = false) => {
+    const variantKey = getStatsVariantKey(includeDisabledAssignees);
+    const current = get().statsByPeriod[period][variantKey];
     const now = Date.now();
     const hasFreshData = Boolean(current.lastLoaded) && now - (current.lastLoaded ?? 0) < STATS_CACHE_TTL_MS;
     const hasSeriesData = current.seriesRows.length > 0 || current.seriesRowsBase.length > 0;
@@ -870,7 +886,14 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set((state) => ({
       statsByPeriod: {
         ...state.statsByPeriod,
-        [period]: { ...state.statsByPeriod[period], loading: true, error: null },
+        [period]: {
+          ...state.statsByPeriod[period],
+          [variantKey]: {
+            ...state.statsByPeriod[period][variantKey],
+            loading: true,
+            error: null,
+          },
+        },
       },
     }));
     const { startDate, endDate } = getPeriodRange(period);
@@ -880,18 +903,21 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           p_workspace_id: workspaceId,
           p_start_date: startDate,
           p_end_date: endDate,
+          p_include_disabled_assignees: includeDisabledAssignees,
         }),
       supabase
         .rpc('dashboard_task_counts_base', {
           p_workspace_id: workspaceId,
           p_start_date: startDate,
           p_end_date: endDate,
+          p_include_disabled_assignees: includeDisabledAssignees,
         }),
       includeSeries
         ? supabase.rpc('dashboard_task_time_series', {
           p_workspace_id: workspaceId,
           p_start_date: startDate,
           p_end_date: endDate,
+          p_include_disabled_assignees: includeDisabledAssignees,
         })
         : Promise.resolve({ data: [], error: null }),
       includeSeries
@@ -899,6 +925,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           p_workspace_id: workspaceId,
           p_start_date: startDate,
           p_end_date: endDate,
+          p_include_disabled_assignees: includeDisabledAssignees,
         })
         : Promise.resolve({ data: [], error: null }),
     ]);
@@ -908,12 +935,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           ...state.statsByPeriod,
           [period]: {
             ...state.statsByPeriod[period],
-            loading: false,
-            error: aggregateRes.error?.message
-              || aggregateBaseRes.error?.message
-              || seriesRes.error?.message
-              || seriesBaseRes.error?.message
-              || 'Failed to load stats.',
+            [variantKey]: {
+              ...state.statsByPeriod[period][variantKey],
+              loading: false,
+              error: aggregateRes.error?.message
+                || aggregateBaseRes.error?.message
+                || seriesRes.error?.message
+                || seriesBaseRes.error?.message
+                || 'Failed to load stats.',
+            },
           },
         },
       }));
@@ -939,13 +969,16 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       statsByPeriod: {
         ...state.statsByPeriod,
         [period]: {
-          rows,
-          rowsBase,
-          seriesRows,
-          seriesRowsBase,
-          loading: false,
-          error: null,
-          lastLoaded: Date.now(),
+          ...state.statsByPeriod[period],
+          [variantKey]: {
+            rows,
+            rowsBase,
+            seriesRows,
+            seriesRowsBase,
+            loading: false,
+            error: null,
+            lastLoaded: Date.now(),
+          },
         },
       },
     }));
