@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
+import { RepeatSettingsFields } from '@/features/planner/components/RepeatSettingsFields';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -34,7 +35,6 @@ import { Status } from '@/features/planner/types/planner';
 import { toast } from 'sonner';
 import {
   buildCreateRepeatsOptions,
-  formatRepeatCountInputValue,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
@@ -238,6 +238,19 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatUntil(getDefaultRepeatUntil(startDate));
     setRepeatCount(4);
     setRepeatError('');
+  };
+
+  const handleRepeatUntilChange = (value: string) => {
+    markChanged();
+    repeatUntilAutoRef.current = false;
+    setRepeatUntil(value);
+  };
+
+  const handleRepeatCountInputChange = (rawValue: string) => {
+    markChanged();
+    const nextRepeatCount = parseRepeatCountInput(rawValue);
+    if (nextRepeatCount === null) return;
+    setRepeatCount(nextRepeatCount);
   };
 
   const requestClose = () => {
@@ -686,84 +699,18 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
               </div>
             </div>
             {repeatOpen && (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Select
-                      value={repeatFrequency}
-                      onValueChange={(value) => handleRepeatFrequencyChange(value as typeof repeatFrequency)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t`Repeat`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">{t`Does not repeat`}</SelectItem>
-                        <SelectItem value="daily">{t`Daily`}</SelectItem>
-                        <SelectItem value="weekly">{t`Weekly`}</SelectItem>
-                        <SelectItem value="biweekly">{t`Biweekly (every 2 weeks)`}</SelectItem>
-                        <SelectItem value="monthly">{t`Monthly`}</SelectItem>
-                        <SelectItem value="yearly">{t`Yearly`}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[11px] text-muted-foreground">{t`Repeat type`}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <Select
-                      value={repeatEnds}
-                      onValueChange={(value) => handleRepeatEndsChange(value as typeof repeatEnds)}
-                      disabled={repeatFrequency === 'none'}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t`Ends`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="never">{t`Never`}</SelectItem>
-                        <SelectItem value="on">{t`Until date`}</SelectItem>
-                        <SelectItem value="after">{t`Count`}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[11px] text-muted-foreground">{t`Repeat limit`}</p>
-                  </div>
-                </div>
-                {repeatFrequency !== 'none' && repeatEnds === 'on' && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="new-repeat-until" className="text-xs text-muted-foreground">{t`End date`}</Label>
-                    <Input
-                      id="new-repeat-until"
-                      type="date"
-                      value={repeatUntil}
-                      onChange={(e) => {
-                        markChanged();
-                        repeatUntilAutoRef.current = false;
-                        setRepeatUntil(e.target.value);
-                      }}
-                    />
-                    <p className="text-[11px] text-muted-foreground">{t`Repeats until the selected date.`}</p>
-                  </div>
-                )}
-                {repeatFrequency !== 'none' && repeatEnds === 'after' && (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="new-repeat-count" className="text-xs text-muted-foreground">{t`Occurrences`}</Label>
-                    <Input
-                      id="new-repeat-count"
-                      type="number"
-                      min={1}
-                      step={1}
-                      value={formatRepeatCountInputValue(repeatCount)}
-                      onChange={(e) => {
-                        markChanged();
-                        const nextRepeatCount = parseRepeatCountInput(e.target.value);
-                        if (nextRepeatCount === null) return;
-                        setRepeatCount(nextRepeatCount);
-                      }}
-                    />
-                    <p className="text-[11px] text-muted-foreground">{t`Creates the specified number of repeats.`}</p>
-                  </div>
-                )}
-                {repeatError && (
-                  <div className="text-xs text-destructive">{repeatError}</div>
-                )}
-              </>
+              <RepeatSettingsFields
+                count={repeatCount}
+                ends={repeatEnds}
+                error={repeatError}
+                frequency={repeatFrequency}
+                idPrefix="new"
+                onCountInputChange={handleRepeatCountInputChange}
+                onEndsChange={handleRepeatEndsChange}
+                onFrequencyChange={handleRepeatFrequencyChange}
+                onUntilChange={handleRepeatUntilChange}
+                until={repeatUntil}
+              />
             )}
           </div>
           
