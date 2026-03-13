@@ -12,6 +12,7 @@ import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
@@ -142,28 +143,20 @@ export const MemberTasksPanel = ({
                     <Badge variant="secondary">{t`Disabled`}</Badge>
                   )}
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                <SegmentedControl surface="filled">
+                  <SegmentedControlItem
+                    active={taskScope === 'current'}
                     onClick={() => onChangeTaskScope('current')}
-                    className={`h-7 px-3 text-xs rounded-md ${
-                      taskScope === 'current' ? 'bg-foreground text-background shadow-sm' : ''
-                    }`}
                   >
                     {t`Current`}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  </SegmentedControlItem>
+                  <SegmentedControlItem
+                    active={taskScope === 'past'}
                     onClick={() => onChangeTaskScope('past')}
-                    className={`h-7 px-3 text-xs rounded-md ${
-                      taskScope === 'past' ? 'bg-foreground text-background shadow-sm' : ''
-                    }`}
                   >
                     {t`Past`}
-                  </Button>
-                </div>
+                  </SegmentedControlItem>
+                </SegmentedControl>
               </div>
               <div className="text-xs text-muted-foreground">
                 {memberTaskCountsDate ? t`Tasks from today` : t`Tasks count loading...`}

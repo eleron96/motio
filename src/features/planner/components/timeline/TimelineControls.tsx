@@ -15,6 +15,7 @@ import { cn } from '@/shared/lib/classNames';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 
 export const TimelineControls: React.FC = () => {
   const locale = useLocaleStore((state) => state.locale);
@@ -99,71 +100,53 @@ export const TimelineControls: React.FC = () => {
       
       <div className="flex items-center gap-3">
         {/* View mode toggle */}
-        <div className="flex items-center bg-muted rounded-lg p-0.5">
-          <Button
-            variant="ghost"
-            size="sm"
+        <SegmentedControl surface="compact">
+          <SegmentedControlItem
+            active={viewMode === 'day'}
+            activeClassName="bg-background shadow-sm"
             onClick={() => setViewMode('day')}
-            className={cn(
-              'h-7 px-3 text-xs rounded-md',
-              viewMode === 'day' && 'bg-background shadow-sm'
-            )}
           >
             {t`Day`}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+          </SegmentedControlItem>
+          <SegmentedControlItem
+            active={viewMode === 'week'}
+            activeClassName="bg-background shadow-sm"
             onClick={() => setViewMode('week')}
-            className={cn(
-              'h-7 px-3 text-xs rounded-md',
-              viewMode === 'week' && 'bg-background shadow-sm'
-            )}
           >
             {t`Week`}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+          </SegmentedControlItem>
+          <SegmentedControlItem
+            active={viewMode === 'calendar'}
+            activeClassName="bg-background shadow-sm"
             onClick={() => setViewMode('calendar')}
-            className={cn(
-              'h-7 px-3 text-xs rounded-md',
-              viewMode === 'calendar' && 'bg-background shadow-sm'
-            )}
           >
             {t`Calendar`}
-          </Button>
-        </div>
+          </SegmentedControlItem>
+        </SegmentedControl>
         
         {/* Group mode toggle */}
-        <div className="flex items-center bg-muted rounded-lg p-0.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setGroupMode('assignee')}
+        <SegmentedControl surface="compact">
+          <SegmentedControlItem
+            active={groupMode === 'assignee'}
+            activeClassName="bg-background shadow-sm"
+            className="gap-1.5"
             disabled={viewMode === 'calendar'}
-            className={cn(
-              'h-7 px-3 text-xs rounded-md gap-1.5',
-              groupMode === 'assignee' && 'bg-background shadow-sm'
-            )}
+            onClick={() => setGroupMode('assignee')}
           >
             <Users className="h-3.5 w-3.5" />
             {t`People`}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setGroupMode('project')}
+          </SegmentedControlItem>
+          <SegmentedControlItem
+            active={groupMode === 'project'}
+            activeClassName="bg-background shadow-sm"
+            className="gap-1.5"
             disabled={viewMode === 'calendar'}
-            className={cn(
-              'h-7 px-3 text-xs rounded-md gap-1.5',
-              groupMode === 'project' && 'bg-background shadow-sm'
-            )}
+            onClick={() => setGroupMode('project')}
           >
             <FolderKanban className="h-3.5 w-3.5" />
             {t`Projects`}
-          </Button>
-        </div>
+          </SegmentedControlItem>
+        </SegmentedControl>
 
         <div
           className="flex items-center gap-2 text-[11px] text-muted-foreground/70 select-none"
