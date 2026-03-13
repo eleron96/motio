@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
+import { RepeatSettingsFields } from '@/features/planner/components/RepeatSettingsFields';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
@@ -24,7 +25,6 @@ import { format, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 import {
   buildCreateRepeatsOptions,
-  formatRepeatCountInputValue,
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
@@ -338,6 +338,17 @@ export const TaskDetailPanel: React.FC = () => {
     if (!nextUntil) return;
     repeatUntilAutoRef.current = true;
     setRepeatUntil(nextUntil);
+  };
+
+  const handleRepeatUntilChange = (value: string) => {
+    repeatUntilAutoRef.current = false;
+    setRepeatUntil(value);
+  };
+
+  const handleRepeatCountInputChange = (rawValue: string) => {
+    const nextRepeatCount = parseRepeatCountInput(rawValue);
+    if (nextRepeatCount === null) return;
+    setRepeatCount(nextRepeatCount);
   };
 
   const isDirty = useMemo(() => {
@@ -984,93 +995,22 @@ export const TaskDetailPanel: React.FC = () => {
 
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">{t`Repeat`}</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Select
-                      value={repeatFrequency}
-                      onValueChange={(value) => handleRepeatFrequencyChange(value as typeof repeatFrequency)}
-                      disabled={isReadOnly}
-                    >
-                      <SelectTrigger className="h-8 text-sm">
-                        <SelectValue placeholder={t`Repeat`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">{t`Does not repeat`}</SelectItem>
-                        <SelectItem value="daily">{t`Daily`}</SelectItem>
-                        <SelectItem value="weekly">{t`Weekly`}</SelectItem>
-                        <SelectItem value="biweekly">{t`Biweekly (every 2 weeks)`}</SelectItem>
-                        <SelectItem value="monthly">{t`Monthly`}</SelectItem>
-                        <SelectItem value="yearly">{t`Yearly`}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[11px] text-muted-foreground">{t`Repeat type`}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <Select
-                      value={repeatEnds}
-                      onValueChange={(value) => handleRepeatEndsChange(value as typeof repeatEnds)}
-                      disabled={isReadOnly || repeatFrequency === 'none'}
-                    >
-                      <SelectTrigger className="h-8 text-sm">
-                        <SelectValue placeholder={t`Ends`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="never">{t`Never`}</SelectItem>
-                        <SelectItem value="on">{t`Until date`}</SelectItem>
-                        <SelectItem value="after">{t`Count`}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-[11px] text-muted-foreground">{t`Repeat limit`}</p>
-                  </div>
-                </div>
-                {repeatFrequency !== 'none' && repeatEnds === 'on' && (
-                  <div className="space-y-1">
-                    <Label htmlFor="repeat-until" className="text-xs text-muted-foreground">{t`End date`}</Label>
-                    <Input
-                      id="repeat-until"
-                      type="date"
-                      value={repeatUntil}
-                      onChange={(e) => {
-                        repeatUntilAutoRef.current = false;
-                        setRepeatUntil(e.target.value);
-                      }}
-                      disabled={isReadOnly}
-                      className="h-8 text-sm"
-                    />
-                    <p className="text-[11px] text-muted-foreground">{t`Repeats until the selected date.`}</p>
-                  </div>
-                )}
-                {repeatFrequency !== 'none' && repeatEnds === 'after' && (
-                  <div className="space-y-1">
-                    <Label htmlFor="repeat-count" className="text-xs text-muted-foreground">{t`Occurrences`}</Label>
-                    <Input
-                      id="repeat-count"
-                      type="number"
-                      min={1}
-                      step={1}
-                      value={formatRepeatCountInputValue(repeatCount)}
-                      onChange={(e) => {
-                        const nextRepeatCount = parseRepeatCountInput(e.target.value);
-                        if (nextRepeatCount === null) return;
-                        setRepeatCount(nextRepeatCount);
-                      }}
-                      disabled={isReadOnly}
-                      className="h-8 text-sm"
-                    />
-                    <p className="text-[11px] text-muted-foreground">{t`Creates the specified number of repeats.`}</p>
-                  </div>
-                )}
-                {repeatFrequency !== 'none' && repeatEnds === 'never' && (
-                  <p className="text-[11px] text-muted-foreground">
-                    {t`Creates repeats for the next 12 months.`}
-                  </p>
-                )}
-                {repeatError && (
-                  <div className="text-xs text-destructive">{repeatError}</div>
-                )}
-                {repeatNotice && (
-                  <div className="text-xs text-emerald-600">{repeatNotice}</div>
-                )}
+                <RepeatSettingsFields
+                  compact
+                  count={repeatCount}
+                  disabled={isReadOnly}
+                  ends={repeatEnds}
+                  error={repeatError}
+                  frequency={repeatFrequency}
+                  idPrefix="detail"
+                  notice={repeatNotice}
+                  onCountInputChange={handleRepeatCountInputChange}
+                  onEndsChange={handleRepeatEndsChange}
+                  onFrequencyChange={handleRepeatFrequencyChange}
+                  onUntilChange={handleRepeatUntilChange}
+                  showNeverHint
+                  until={repeatUntil}
+                />
               </div>
 
               <div className="space-y-1">

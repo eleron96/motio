@@ -3,20 +3,15 @@ import { createPortal } from 'react-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { Task, TaskPriority } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
-import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
+import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
+import { getTaskBarAppearance } from '@/features/planner/lib/taskBarColors';
 import { Ban, MessageSquare, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import {
-  DEFAULT_NEUTRAL_COLOR,
-  TASK_PRIORITY_COLORS,
-  hexToRgba,
-  isDarkHexColor,
-} from '@/shared/lib/colors';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -52,12 +47,6 @@ interface TaskBarProps {
   canEdit: boolean;
   rowAssigneeId?: string | null;
 }
-
-const priorityStyles: Record<TaskPriority, { className: string; color: string }> = {
-  low: { className: 'text-emerald-600', color: TASK_PRIORITY_COLORS.low },
-  medium: { className: 'text-amber-500', color: TASK_PRIORITY_COLORS.medium },
-  high: { className: 'text-red-600', color: TASK_PRIORITY_COLORS.high },
-};
 
 const TaskBarBase: React.FC<TaskBarProps> = ({
   task,
@@ -135,13 +124,6 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     medium: t`Medium priority`,
     high: t`High priority`,
   };
-  const priorityMeta = task.priority
-    ? { ...priorityStyles[task.priority], label: priorityLabels[task.priority] }
-    : null;
-  const isCancelled = status
-    ? (status.isCancelled
-      ?? ['отменена', 'cancelled', 'canceled'].includes(stripStatusEmoji(status.name).trim().toLowerCase()))
-    : false;
   const isRepeating = Boolean(task.repeatId);
   const hasFutureRepeats = isRepeating
     ? tasks.some((item) => item.repeatId === task.repeatId && item.startDate > task.startDate)
@@ -149,27 +131,15 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const noProjectDisabled = groupMode === 'project';
   
   const fallbackProjectColor = projects.length === 1 ? projects[0]?.color : undefined;
-  const baseBgColor = project?.color || fallbackProjectColor || DEFAULT_NEUTRAL_COLOR;
-  const isFinalStatus = Boolean(status?.isFinal);
-  const isFinalStyle = isFinalStatus && !isCancelled;
-  const bgColor = isFinalStyle ? '#ffffff' : baseBgColor;
-  const isDarkBackground = isDarkHexColor(bgColor);
-  const baseTextColor = isDarkBackground ? '#f8fafc' : '#14181F';
-  const textColor = isFinalStyle ? '#64748b' : baseTextColor;
-  const secondaryTextColor = isFinalStyle
-    ? 'rgba(100,116,139,0.85)'
-    : (isDarkBackground ? 'rgba(248,250,252,0.8)' : 'rgba(15,23,42,0.7)');
-  const priorityBadgeStyle = priorityMeta
-    ? {
-        backgroundColor: '#ffffff',
-        borderColor: priorityMeta.color,
-        boxShadow: task.priority === 'high'
-          ? `0 0 0 1px ${priorityMeta.color}, 0 0 8px ${hexToRgba(priorityMeta.color, 0.45) ?? priorityMeta.color}`
-          : `0 0 0 1px ${priorityMeta.color}`,
-      }
-    : undefined;
-  const prioritySymbol = task.priority === 'high' ? '‼' : '!';
-  const isCompleted = isFinalStatus || isCancelled;
+  const appearance = useMemo(() => getTaskBarAppearance({
+    fallbackProjectColor,
+    priority: task.priority,
+    projectColor: project?.color,
+    status,
+  }), [fallbackProjectColor, project?.color, status, task.priority]);
+  const priorityMeta = task.priority && appearance.priorityVisual
+    ? { ...appearance.priorityVisual, label: priorityLabels[task.priority] }
+    : null;
   const showTooltip = isHovering && !isDragging && !isResizing;
   
   // Calculate vertical position based on lane
@@ -336,15 +306,15 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             isResizing && 'z-50',
             isSelected && 'ring-2 ring-primary ring-offset-1',
             isHighlighted && 'task-highlight z-40',
-            isCancelled && 'opacity-60 saturate-50'
+            appearance.isCancelled && 'opacity-60 saturate-50'
           )}
           style={{
             left: visualLeft,
             top: topPosition,
             width: Math.max(visualWidth, dayWidth - 4),
             height: TASK_HEIGHT,
-            backgroundColor: bgColor,
-            border: isFinalStyle ? '1px solid #24342B' : 'none',
+            backgroundColor: appearance.backgroundColor,
+            border: appearance.border,
           }}
         >
           {/* Left resize handle */}
@@ -361,13 +331,13 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                   {status.emoji}
                 </span>
               )}
-              {isCancelled && (
+              {appearance.isCancelled && (
                 <Ban className="h-3 w-3 text-red-500" aria-label={t`Cancelled`} title={t`Cancelled`} />
               )}
               {isRepeating && (
                 <RotateCw
                   className="h-3 w-3 shrink-0 opacity-80"
-                  style={{ color: textColor }}
+                  style={{ color: appearance.textColor }}
                   aria-label={t`Repeat`}
                   title={t`Repeat`}
                 />
@@ -375,18 +345,18 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
               {priorityMeta && (
                 <span
                   className="inline-flex h-4 w-4 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
-                  style={priorityBadgeStyle}
+                  style={priorityMeta.badgeStyle}
                   title={priorityMeta.label}
                   aria-label={priorityMeta.label}
                 >
                   <span className={cn('text-[11px] font-black leading-none priority-blink', priorityMeta.className)}>
-                    {prioritySymbol}
+                    {priorityMeta.symbol}
                   </span>
                 </span>
               )}
               <span
-                className={cn('task-label text-sm font-semibold leading-tight truncate', isCompleted && 'line-through')}
-                style={{ color: textColor }}
+                className={cn('task-label text-sm font-semibold leading-tight truncate', appearance.isCompleted && 'line-through')}
+                style={{ color: appearance.textColor }}
               >
                 {task.title}
               </span>
@@ -394,14 +364,14 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             <div className="flex items-center gap-1.5 min-w-0">
               <span
                 className="text-[11px] leading-tight truncate"
-                style={{ color: secondaryTextColor }}
+                style={{ color: appearance.secondaryTextColor }}
               >
                 {project ? formatProjectLabel(project.name, project.code) : t`No project`}
               </span>
               {commentCount > 0 && (
                 <span
                   className="flex shrink-0 items-center gap-0.5 text-[9px] leading-none opacity-70"
-                  style={{ color: secondaryTextColor }}
+                  style={{ color: appearance.secondaryTextColor }}
                 >
                   <MessageSquare className="h-2.5 w-2.5" />
                   {commentCount}
