@@ -1,14 +1,42 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useMatch, useResolvedPath } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { getAppNavigationItems } from '@/features/workspace/lib/appNavigation';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 
 interface WorkspaceNavProps {
   orientation?: 'horizontal' | 'vertical';
   className?: string;
   onNavigate?: () => void;
 }
+
+type WorkspaceNavItemProps = {
+  label: React.ReactNode;
+  onNavigate?: () => void;
+  orientation: 'horizontal' | 'vertical';
+  to: string;
+  end?: boolean;
+};
+
+const WorkspaceNavItem = ({ end, label, onNavigate, orientation, to }: WorkspaceNavItemProps) => {
+  const resolvedPath = useResolvedPath(to);
+  const isActive = Boolean(useMatch({ end, path: resolvedPath.pathname }));
+
+  return (
+    <SegmentedControlItem
+      asChild
+      active={isActive}
+      fullWidth={orientation === 'vertical'}
+      inactiveClassName="text-muted-foreground hover:text-foreground"
+      size="sm"
+    >
+      <NavLink to={to} end={end} onClick={onNavigate}>
+        {label}
+      </NavLink>
+    </SegmentedControlItem>
+  );
+};
 
 export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
   orientation = 'horizontal',
@@ -17,27 +45,23 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
 }) => (
   <nav
     aria-label={t`Workspace sections`}
-    className={cn(
-      orientation === 'horizontal'
-        ? 'flex items-center gap-1 rounded-lg bg-muted/40 p-1'
-        : 'flex flex-col gap-1',
-      className,
-    )}
+    className={cn(orientation === 'vertical' && 'w-full', className)}
   >
-    {getAppNavigationItems().map((item) => (
-      <NavLink
-        key={item.to}
-        to={item.to}
-        end={item.end}
-        onClick={onNavigate}
-        className={({ isActive }) => cn(
-          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-          orientation === 'vertical' && 'w-full',
-          isActive ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',
-        )}
-      >
-        {item.label}
-      </NavLink>
-    ))}
+    <SegmentedControl
+      orientation={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
+      surface={orientation === 'horizontal' ? 'subtle' : 'none'}
+      className={cn(orientation === 'vertical' && 'w-full')}
+    >
+      {getAppNavigationItems().map((item) => (
+        <WorkspaceNavItem
+          key={item.to}
+          label={item.label}
+          orientation={orientation}
+          onNavigate={onNavigate}
+          to={item.to}
+          end={item.end}
+        />
+      ))}
+    </SegmentedControl>
   </nav>
 );

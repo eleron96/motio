@@ -8,6 +8,8 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
+import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Customer, Milestone, Project } from '@/features/planner/types/planner';
@@ -147,23 +149,13 @@ export const ProjectsSidebar = ({
     return (
       <ContextMenu key={project.id}>
         <ContextMenuTrigger asChild>
-          <div
-            role="button"
-            tabIndex={0}
+          <SelectableListItem
+            selected={selectedProjectId === project.id}
             onClick={() => onSelectProject(project.id)}
             onDoubleClick={() => {
               if (!canEdit) return;
               onOpenProjectSettings(project);
             }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                onSelectProject(project.id);
-              }
-            }}
-            className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-              selectedProjectId === project.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-            }`}
           >
             <div className="flex items-center gap-2 min-w-0">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: project.color }} />
@@ -180,11 +172,11 @@ export const ProjectsSidebar = ({
                   <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                 )}
                 {showArchivedBadge && (
-                  <Badge variant="secondary" className="text-[10px]">{t`Archived`}</Badge>
+                  <Badge variant="secondary" size="xs">{t`Archived`}</Badge>
                 )}
               </div>
             </div>
-          </div>
+          </SelectableListItem>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem onSelect={() => onToggleTrackedProject(project.id, !isTracked)}>
@@ -256,23 +248,13 @@ export const ProjectsSidebar = ({
     return (
       <ContextMenu key={milestone.id}>
         <ContextMenuTrigger asChild>
-          <div
-            role="button"
-            tabIndex={0}
+          <SelectableListItem
+            selected={selectedMilestoneId === milestone.id}
             onClick={() => onSelectMilestone(milestone.id)}
             onDoubleClick={() => {
               if (!canEdit) return;
               onOpenMilestoneSettings(milestone);
             }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                onSelectMilestone(milestone.id);
-              }
-            }}
-            className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-              selectedMilestoneId === milestone.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-            }`}
           >
             <div className="flex items-start gap-2 min-w-0">
               <CalendarDays className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
@@ -295,11 +277,11 @@ export const ProjectsSidebar = ({
                   <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
                 )}
                 {project?.archived && (
-                  <Badge variant="secondary" className="text-[10px]">{t`Archived`}</Badge>
+                  <Badge variant="secondary" size="xs">{t`Archived`}</Badge>
                 )}
               </div>
             </div>
-          </div>
+          </SelectableListItem>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem disabled={!canEdit} onSelect={() => onOpenMilestoneSettings(milestone)}>
@@ -351,32 +333,26 @@ export const ProjectsSidebar = ({
   return (
     <aside className="h-full min-h-0 min-w-0 bg-card flex flex-col">
       <div className="px-4 py-3 border-b border-border">
-        <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
-          <Button
-            variant="ghost"
-            size="sm"
+        <SegmentedControl surface="filled">
+          <SegmentedControlItem
+            active={mode === 'projects'}
             onClick={() => onModeChange('projects')}
-            className={`h-7 px-3 text-xs rounded-md ${mode === 'projects' ? 'bg-foreground text-background shadow-sm' : ''}`}
           >
             {t`Projects`}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+          </SegmentedControlItem>
+          <SegmentedControlItem
+            active={mode === 'milestones'}
             onClick={() => onModeChange('milestones')}
-            className={`h-7 px-3 text-xs rounded-md ${mode === 'milestones' ? 'bg-foreground text-background shadow-sm' : ''}`}
           >
             {t`Milestones`}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+          </SegmentedControlItem>
+          <SegmentedControlItem
+            active={mode === 'customers'}
             onClick={() => onModeChange('customers')}
-            className={`h-7 px-3 text-xs rounded-md ${mode === 'customers' ? 'bg-foreground text-background shadow-sm' : ''}`}
           >
             {t`Customers`}
-          </Button>
-        </div>
+          </SegmentedControlItem>
+        </SegmentedControl>
       </div>
 
       {mode === 'customers' && (
@@ -421,20 +397,11 @@ export const ProjectsSidebar = ({
                   return (
                     <ContextMenu key={customer.id}>
                       <ContextMenuTrigger asChild>
-                        <div
-                          role="button"
-                          tabIndex={0}
+                        <SelectableListItem
+                          selected={isSelected}
+                          className="flex items-center gap-3"
                           onClick={() => onSelectCustomer(customer.id)}
                           onContextMenu={() => onSelectCustomer(customer.id)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault();
-                              onSelectCustomer(customer.id);
-                            }
-                          }}
-                          className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
-                            isSelected ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-                          }`}
                         >
                           <div className="min-w-0 flex-1">
                             <div className="text-sm font-medium leading-snug whitespace-normal break-words [overflow-wrap:anywhere] line-clamp-2">
@@ -444,7 +411,7 @@ export const ProjectsSidebar = ({
                               {t`${projectCount} projects`}
                             </div>
                           </div>
-                        </div>
+                        </SelectableListItem>
                       </ContextMenuTrigger>
                       <ContextMenuContent>
                         <ContextMenuItem

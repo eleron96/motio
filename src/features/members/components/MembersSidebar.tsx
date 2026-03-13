@@ -7,6 +7,8 @@ import { Button } from '@/shared/ui/button';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/shared/ui/context-menu';
 import { Input } from '@/shared/ui/input';
 import { ScrollArea } from '@/shared/ui/scroll-area';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
+import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { cn } from '@/shared/lib/classNames';
 
@@ -115,43 +117,28 @@ export const MembersSidebar = ({
   return (
     <aside className={cn('w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col', className)}>
       <div className="px-4 py-3 border-b border-border">
-        <div className="inline-flex items-center gap-2 rounded-lg bg-muted/60 p-1">
-          <Button
-            variant="ghost"
-            size="sm"
+        <SegmentedControl surface="filled">
+          <SegmentedControlItem
+            active={mode === 'tasks'}
             onClick={() => onModeChange('tasks')}
-            className={cn(
-              'h-7 px-3 text-xs rounded-md',
-              mode === 'tasks' && 'bg-foreground text-background shadow-sm'
-            )}
           >
             {t`People`}
-          </Button>
+          </SegmentedControlItem>
           {isAdmin && (
-            <Button
-              variant="ghost"
-              size="sm"
+            <SegmentedControlItem
+              active={mode === 'access'}
               onClick={() => onModeChange('access')}
-              className={cn(
-                'h-7 px-3 text-xs rounded-md',
-                mode === 'access' && 'bg-foreground text-background shadow-sm'
-              )}
             >
               {t`Access`}
-            </Button>
+            </SegmentedControlItem>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
+          <SegmentedControlItem
+            active={mode === 'groups'}
             onClick={() => onModeChange('groups')}
-            className={cn(
-              'h-7 px-3 text-xs rounded-md',
-              mode === 'groups' && 'bg-foreground text-background shadow-sm'
-            )}
           >
             {t`Groups`}
-          </Button>
-        </div>
+          </SegmentedControlItem>
+        </SegmentedControl>
       </div>
 
       {mode === 'tasks' && (
@@ -218,25 +205,22 @@ export const MembersSidebar = ({
                           ? (memberTaskCounts[assignee.id] ?? 0)
                           : null;
                         return (
-                          <button
+                          <SelectableListItem
                             key={assignee.id}
-                            type="button"
+                            selected={selectedAssigneeId === assignee.id}
                             onClick={() => onSelectAssignee(assignee.id)}
-                            className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                              selectedAssigneeId === assignee.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-                            }`}
                           >
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium leading-snug break-words line-clamp-2">
                                 {assignee.name}
                               </span>
                               {count !== null && (
-                                <Badge variant="secondary" className="ml-auto text-[10px]">
+                                <Badge variant="secondary" size="xs" className="ml-auto">
                                   {count}
                                 </Badge>
                               )}
                             </div>
-                          </button>
+                          </SelectableListItem>
                         );
                       })}
                     </div>
@@ -264,26 +248,23 @@ export const MembersSidebar = ({
                           ? (memberTaskCounts[assignee.id] ?? 0)
                           : null;
                         return (
-                          <button
+                          <SelectableListItem
                             key={assignee.id}
-                            type="button"
+                            selected={selectedAssigneeId === assignee.id}
                             onClick={() => onSelectAssignee(assignee.id)}
-                            className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                              selectedAssigneeId === assignee.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-                            }`}
                           >
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium leading-snug break-words line-clamp-2">
                                 {assignee.name}
                               </span>
-                              <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
+                              <Badge variant="secondary" size="xs">{t`Disabled`}</Badge>
                               {count !== null && (
-                                <Badge variant="secondary" className="ml-auto text-[10px]">
+                                <Badge variant="secondary" size="xs" className="ml-auto">
                                   {count}
                                 </Badge>
                               )}
                             </div>
-                          </button>
+                          </SelectableListItem>
                         );
                       })}
                     </div>
@@ -315,20 +296,17 @@ export const MembersSidebar = ({
                   label: t`History`,
                 },
               ].map((item) => (
-                <button
+                <SelectableListItem
                   key={item.value}
-                  type="button"
+                  selected={accessTab === item.value}
+                  size="lg"
                   onClick={() => onAccessTabChange(item.value)}
-                  className={`box-border w-full rounded-lg border px-3 py-3 text-left transition-colors ${
-                    accessTab === item.value
-                      ? 'border-foreground/60 bg-muted/60'
-                      : 'border-border hover:bg-muted/40'
-                  }`}
+                  className="box-border"
                 >
                   <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                     <span className="min-w-0 text-sm font-medium">{item.label}</span>
                     {typeof item.count === 'number' && (
-                      <Badge variant="secondary" className="h-5 min-w-6 justify-center px-1.5 text-[10px] tabular-nums">
+                      <Badge variant="secondary" size="xs" className="h-5 min-w-6 justify-center px-1.5 tabular-nums">
                         {item.count}
                       </Badge>
                     )}
@@ -336,7 +314,7 @@ export const MembersSidebar = ({
                       <span className="h-5 w-6" aria-hidden="true" />
                     )}
                   </div>
-                </button>
+                </SelectableListItem>
               ))}
             </div>
 
@@ -394,16 +372,13 @@ export const MembersSidebar = ({
                 {sortedGroups.map((group) => (
                   <ContextMenu key={group.id}>
                     <ContextMenuTrigger asChild>
-                      <button
-                        type="button"
+                      <SelectableListItem
+                        selected={selectedGroupId === group.id}
                         onClick={() => onSelectGroup(group.id)}
                         onContextMenu={() => onSelectGroup(group.id)}
-                        className={`w-full rounded-lg border px-3 py-2 text-left transition-colors ${
-                          selectedGroupId === group.id ? 'border-foreground/60 bg-muted/60' : 'border-border hover:bg-muted/40'
-                        }`}
                       >
                         <div className="text-sm font-medium leading-snug break-words line-clamp-2">{group.name}</div>
-                      </button>
+                      </SelectableListItem>
                     </ContextMenuTrigger>
                     <ContextMenuContent>
                       <ContextMenuItem
