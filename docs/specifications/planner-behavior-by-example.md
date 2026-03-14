@@ -259,7 +259,31 @@ Then:
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
 - `src/test/shared/personName.test.ts`
 
-## Scenario 15: Project tasks panel separates current and past scopes
+## Scenario 15: Timeline sidebar width can be resized and persists per workspace
+
+Given:
+- пользователь открыт в timeline (`day`/`week`) режиме;
+- левая sidebar колонка с пользователями или проектами показывает resize handle;
+- для текущего пользователя и workspace может существовать сохраненная ширина.
+
+When:
+- пользователь тянет resize handle влево или вправо;
+- либо открывает planner повторно в том же workspace.
+
+Then:
+- ширина sidebar изменяется в пределах допустимого min/max;
+- новое значение сохраняется отдельно для пары `userId + workspaceId`;
+- повторное открытие planner восстанавливает последнюю сохраненную ширину;
+- double-click по handle сбрасывает ширину к auto-layout.
+
+Покрытие:
+- `src/features/planner/pages/PlannerPage.tsx`
+- `src/features/planner/components/timeline/TimelineGrid.tsx`
+- `src/features/planner/lib/timelineSidebarWidthStorage.ts`
+- `src/test/planner/PlannerPage.timelineSidebarWidth.test.tsx`
+- `src/test/planner/timelineSidebarWidthStorage.test.ts`
+
+## Scenario 16: Project tasks panel separates current and past scopes
 
 Given:
 - пользователь открыт на странице `Projects`;
@@ -285,7 +309,7 @@ Then:
 - `src/test/projects/projectTasksRepository.test.ts`
 - `src/test/shared/taskScope.test.ts`
 
-## Scenario 15: Timeline sidebar and task grid share one vertical scroll surface
+## Scenario 17: Timeline sidebar and task grid share one vertical scroll surface
 
 Given:
 - пользователь открыт в planner timeline (`day` или `week`);
@@ -304,7 +328,7 @@ Then:
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
 - `src/test/planner/timelineGrid.scrollSurface.test.tsx`
 
-## Scenario 16: Task comment save uses the signed-in author and keeps the draft on failure
+## Scenario 18: Task comment save uses the signed-in author and keeps the draft on failure
 
 Given:
 - пользователь открыл детали задачи и ввел комментарий;
@@ -325,7 +349,7 @@ Then:
 - `src/features/planner/lib/taskCommentEditorHtml.ts`
 - `src/test/planner/taskCommentEditorHtml.test.ts`
 
-## Scenario 17: Task comment soft delete is allowed for the author and workspace admin
+## Scenario 19: Task comment soft delete is allowed for the author and workspace admin
 
 Given:
 - у задачи есть существующий комментарий;
@@ -345,7 +369,7 @@ Then:
 - `infra/supabase/migrations/0052_fix_task_comment_soft_delete_policy.sql`
 - `infra/supabase/migrations/0053_add_soft_delete_task_comment_rpc.sql`
 
-## Scenario 18: Timeline comment badge updates immediately and stays live-synced
+## Scenario 20: Timeline comment badge updates immediately and stays live-synced
 
 Given:
 - у задачи на timeline есть badge с количеством комментариев;
@@ -370,7 +394,7 @@ Then:
 - `src/test/planner/usePlannerLiveSync.test.tsx`
 - `src/test/shared/taskCommentCount.test.ts`
 
-## Scenario 19: Comment mentions target workspace members, not only assignees
+## Scenario 21: Comment mentions target workspace members, not only assignees
 
 Given:
 - пользователь открыл комментарии задачи;
@@ -400,7 +424,7 @@ Then:
 - `src/test/planner/taskCommentMentions.test.tsx`
 - `src/test/shared/taskCommentMentionCandidates.test.ts`
 
-## Scenario 20: Comment mention notifications stay distinct from task assignment notifications
+## Scenario 22: Comment mention notifications stay distinct from task assignment notifications
 
 Given:
 - пользователь отметил участника через `@mention` в комментарии задачи;
@@ -420,7 +444,7 @@ Then:
 - `infra/supabase/functions/notifications/index.ts`
 - `src/features/auth/components/InviteNotifications.tsx`
 
-## Scenario 21: New tasks default to "No project" unless opened from project context
+## Scenario 23: New tasks default to "No project" unless opened from project context
 
 Given:
 - пользователь открывает обычный диалог создания задачи без project-context;
@@ -440,7 +464,7 @@ Then:
 - `src/test/planner/addTaskDialog.test.tsx`
 - `src/test/planner/taskFormRules.test.ts`
 
-## Scenario 22: Timeline sidebar width survives locale switch and page remount
+## Scenario 24: Timeline sidebar width survives locale switch and page remount
 
 Given:
 - пользователь изменил ширину левой колонки имен на timeline;
@@ -460,7 +484,7 @@ Then:
 - `src/features/planner/lib/timelineSidebarWidthStorage.ts`
 - `src/test/planner/timelineSidebarWidthStorage.test.ts`
 
-## Scenario 23: Comment counters stay in sync across clients after realtime comment events
+## Scenario 25: Comment counters stay in sync across clients after realtime comment events
 
 Given:
 - два пользователя открыли planner в одном workspace;
