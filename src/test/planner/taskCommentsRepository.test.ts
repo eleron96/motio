@@ -17,7 +17,11 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
   },
 }));
 
-import { deleteTaskComment, fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
+import {
+  deleteTaskComment,
+  fetchTaskCommentCounts,
+  fetchTaskComments,
+} from '@/infrastructure/tasks/taskCommentsRepository';
 import { TASK_COMMENT_QUERY_BATCH_SIZE } from '@/shared/domain/taskCommentCount';
 
 describe('taskCommentsRepository', () => {
@@ -96,6 +100,114 @@ describe('taskCommentsRepository', () => {
         ...Object.fromEntries(taskIds.map((taskId) => [taskId, 0])),
         'task-0': 1,
         [`task-${TASK_COMMENT_QUERY_BATCH_SIZE}`]: 1,
+      },
+    });
+  });
+
+  it('loads comments through the explicit author profile foreign key relation', async () => {
+    const taskCommentSelectCalls: string[] = [];
+    const profileSelectCalls: string[] = [];
+    const queriedProfileIds: string[][] = [];
+
+    supabaseMocks.from.mockImplementation((table: string) => {
+      if (table === 'task_comments') {
+        return {
+          select: (query: string) => {
+            taskCommentSelectCalls.push(query);
+            return {
+              eq: () => ({
+                eq: () => ({
+                  is: () => ({
+                    order: () => ({
+                      limit: () => Promise.resolve({
+                        data: [
+                          {
+                            id: 'comment-1',
+                            task_id: 'task-1',
+                            author_id: 'user-1',
+                            author_display_name_snapshot: 'Snapshot User',
+                            content: '<p>Hello</p>',
+                            mentioned_user_ids: ['user-2'],
+                            created_at: '2026-03-14T10:00:00.000Z',
+                            updated_at: '2026-03-14T10:00:00.000Z',
+                            deleted_at: null,
+                          },
+                          {
+                            id: 'comment-2',
+                            task_id: 'task-1',
+                            author_id: 'user-2',
+                            author_display_name_snapshot: 'Missing Profile User',
+                            content: '<p>Fallback</p>',
+                            mentioned_user_ids: [],
+                            created_at: '2026-03-14T10:01:00.000Z',
+                            updated_at: '2026-03-14T10:01:00.000Z',
+                            deleted_at: null,
+                          },
+                        ],
+                        error: null,
+                      }),
+                    }),
+                  }),
+                }),
+              }),
+            };
+          },
+        };
+      }
+
+      if (table === 'profiles') {
+        return {
+          select: (query: string) => {
+            profileSelectCalls.push(query);
+            return {
+              in: (_field: string, ids: string[]) => {
+                queriedProfileIds.push(ids);
+                return Promise.resolve({
+                  data: [{ id: 'user-1', display_name: 'Live User' }],
+                  error: null,
+                });
+              },
+            };
+          },
+        };
+      }
+
+      throw new Error(`Unexpected table: ${table}`);
+    });
+
+    const result = await fetchTaskComments('ws-1', 'task-1');
+
+    expect(taskCommentSelectCalls).toHaveLength(1);
+    expect(taskCommentSelectCalls[0]).not.toContain('profiles');
+    expect(profileSelectCalls).toEqual(['id, display_name']);
+    expect(queriedProfileIds).toEqual([['user-1', 'user-2']]);
+    expect(result).toEqual({
+      data: {
+        comments: [
+          {
+            id: 'comment-1',
+            taskId: 'task-1',
+            authorId: 'user-1',
+            authorDisplayName: 'Live User',
+            content: '<p>Hello</p>',
+            mentionedUserIds: ['user-2'],
+            createdAt: '2026-03-14T10:00:00.000Z',
+            updatedAt: '2026-03-14T10:00:00.000Z',
+            isEdited: false,
+          },
+          {
+            id: 'comment-2',
+            taskId: 'task-1',
+            authorId: 'user-2',
+            authorDisplayName: 'Missing Profile User',
+            content: '<p>Fallback</p>',
+            mentionedUserIds: [],
+            createdAt: '2026-03-14T10:01:00.000Z',
+            updatedAt: '2026-03-14T10:01:00.000Z',
+            isEdited: false,
+          },
+        ],
+        nextCursor: null,
       },
     });
   });
