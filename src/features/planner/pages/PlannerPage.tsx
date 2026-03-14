@@ -18,6 +18,7 @@ import { Navigate } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import {
+  clampTimelineSidebarWidth,
   getTimelineSidebarWidthStorageKey,
   readTimelineSidebarWidth,
   writeTimelineSidebarWidth,
