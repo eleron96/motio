@@ -22,99 +22,99 @@ motio.nikog.net {
     redir /admin/master/console /admin/master/console/ 302
 
     handle /resources* {
-      reverse_proxy host.docker.internal:8081
+      reverse_proxy keycloak:8080
     }
 
     handle /realms* {
-      reverse_proxy host.docker.internal:8081
+      reverse_proxy keycloak:8080
     }
 
     handle /admin* {
-      reverse_proxy host.docker.internal:8081
+      reverse_proxy keycloak:8080
     }
 
     handle /js* {
-      reverse_proxy host.docker.internal:8081
+      reverse_proxy keycloak:8080
     }
 
     handle /.well-known* {
-      reverse_proxy host.docker.internal:8081
+      reverse_proxy keycloak:8080
     }
 
     handle /health {
-      reverse_proxy host.docker.internal:8080
+      reverse_proxy gateway:8080
     }
 
     handle /auth/v1* {
-      reverse_proxy host.docker.internal:8080
+      reverse_proxy gateway:8080
     }
 
     handle /auth* {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /rest/v1* {
-      reverse_proxy host.docker.internal:8080
+      reverse_proxy gateway:8080
     }
 
     handle /realtime/v1* {
-      reverse_proxy host.docker.internal:8080
+      reverse_proxy gateway:8080
     }
 
     handle /storage/v1* {
-      reverse_proxy host.docker.internal:8080
+      reverse_proxy gateway:8080
     }
 
     handle /functions/v1* {
-      reverse_proxy host.docker.internal:8080
+      reverse_proxy gateway:8080
     }
 
     handle /backup* {
-      reverse_proxy host.docker.internal:8080
+      reverse_proxy gateway:8080
     }
 
     handle /assets* {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /branding* {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /favicon* {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /logo.png {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /placeholder.svg {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /robots.txt {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /sitemap.xml {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /invite* {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle /app* {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle / {
-      reverse_proxy host.docker.internal:5174
+      reverse_proxy web:80
     }
 
     handle {
-      reverse_proxy host.docker.internal:5173
+      reverse_proxy oauth2-proxy:4180
     }
   }
 }

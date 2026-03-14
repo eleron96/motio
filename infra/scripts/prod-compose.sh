@@ -35,8 +35,20 @@ fi
 
 infra/scripts/check-prod-secrets.sh "$env_file"
 
+if [[ ! -x "infra/scripts/check-internal-port-binds.sh" ]]; then
+  echo "Missing executable infra/scripts/check-internal-port-binds.sh" >&2
+  exit 1
+fi
+
+infra/scripts/check-internal-port-binds.sh --env-file "$env_file" "$compose_file"
+
 if [[ ! -x "infra/scripts/keycloak-ensure-client-secret.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-ensure-client-secret.sh" >&2
+  exit 1
+fi
+
+if [[ ! -x "infra/scripts/keycloak-ensure-client-urls.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-client-urls.sh" >&2
   exit 1
 fi
 
@@ -47,6 +59,11 @@ fi
 
 if [[ ! -x "infra/scripts/keycloak-ensure-realm-branding.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-ensure-realm-branding.sh" >&2
+  exit 1
+fi
+
+if [[ ! -x "infra/scripts/keycloak-ensure-realm-frontend-url.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-realm-frontend-url.sh" >&2
   exit 1
 fi
 
@@ -320,8 +337,10 @@ docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycl
 docker compose -f "$compose_file" --env-file "$env_file" up -d --force-recreate --no-deps functions
 
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
+infra/scripts/keycloak-ensure-client-urls.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-ssl-required.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-branding.sh "$env_file"
+infra/scripts/keycloak-ensure-realm-frontend-url.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-session-policy.sh "$env_file"
 
 if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" == "true" ]]; then

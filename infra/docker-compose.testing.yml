@@ -1,0 +1,76 @@
+# Testing environment overrides.
+# Applied on top of docker-compose.prod.yml to reduce resource limits
+# for the 1 CPU / 2 GB RAM test server.
+#
+# Usage: docker compose -f docker-compose.prod.yml -f docker-compose.testing.yml ...
+
+services:
+  db:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.9'
+
+  keycloak-db:
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+
+  keycloak:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.9'
+
+  auth:
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+
+  rest:
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+
+  realtime:
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  functions:
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  backup:
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  gateway:
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.25'
+
+  web:
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.25'
