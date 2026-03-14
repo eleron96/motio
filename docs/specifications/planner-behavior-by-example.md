@@ -459,3 +459,21 @@ Then:
 - `src/features/planner/pages/PlannerPage.tsx`
 - `src/features/planner/lib/timelineSidebarWidthStorage.ts`
 - `src/test/planner/timelineSidebarWidthStorage.test.ts`
+
+## Scenario 23: Comment counters stay in sync across clients after realtime comment events
+
+Given:
+- два пользователя открыли planner в одном workspace;
+- один из них добавляет или удаляет комментарий у задачи.
+
+When:
+- `usePlannerLiveSync` получает realtime событие по `public.task_comments`.
+
+Then:
+- второй клиент не теряет соединение realtime из-за конфигурации publication;
+- для измененной задачи запрашивается обновленный comment count;
+- badge комментариев на timeline синхронизируется без ручного refresh страницы.
+
+Покрытие:
+- `src/features/planner/hooks/usePlannerLiveSync.ts`
+- `src/test/planner/usePlannerLiveSync.test.tsx`
