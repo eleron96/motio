@@ -11,6 +11,15 @@ import {
 // ---------------------------------------------------------------------------
 
 const COMMENT_PAGE_SIZE = 20;
+const TASK_COMMENT_SELECT = `id,
+       task_id,
+       author_id,
+       author_display_name_snapshot,
+       content,
+       mentioned_user_ids,
+       created_at,
+       updated_at,
+       deleted_at`;
 
 // Maximum plain-text length enforced on the client (DB stores sanitized HTML
 // which is longer, but we cap the text representation at 1000 chars).
@@ -89,6 +98,11 @@ interface CommentRow {
   deleted_at: string | null;
 }
 
+interface CommentAuthorProfileRow {
+  id: string;
+  display_name: string | null;
+}
+
 const mapCommentRow = (row: CommentRow): TaskComment => {
   const createdMs = new Date(row.created_at).getTime();
   const updatedMs = new Date(row.updated_at).getTime();
@@ -106,6 +120,37 @@ const mapCommentRow = (row: CommentRow): TaskComment => {
     updatedAt: row.updated_at,
     isEdited: updatedMs - createdMs > 1000,
   };
+};
+
+const loadCommentAuthorDisplayNames = async (
+  authorIds: string[],
+): Promise<Map<string, string | null>> => {
+  const uniqueAuthorIds = Array.from(new Set(authorIds.filter(Boolean)));
+  if (uniqueAuthorIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name')
+    .in('id', uniqueAuthorIds);
+
+  if (error) {
+    return new Map();
+  }
+
+  return new Map(
+    ((data ?? []) as CommentAuthorProfileRow[]).map((row) => [row.id, row.display_name ?? null]),
+  );
+};
+
+const mapCommentRows = async (rows: CommentRow[]): Promise<TaskComment[]> => {
+  const authorDisplayNames = await loadCommentAuthorDisplayNames(rows.map((row) => row.author_id));
+
+  return rows.map((row) => mapCommentRow({
+    ...row,
+    author_display_name: authorDisplayNames.get(row.author_id) ?? null,
+  }));
 };
 
 // ---------------------------------------------------------------------------
@@ -132,18 +177,7 @@ export const fetchTaskComments = async (
   // Supabase PostgREST supports embedded resource selects for FK relations.
   let query = supabase
     .from('task_comments')
-    .select(
-      `id,
-       task_id,
-       author_id,
-       author_display_name_snapshot,
-       content,
-       mentioned_user_ids,
-       created_at,
-       updated_at,
-       deleted_at,
-       profiles:author_id ( display_name )`,
-    )
+    .select(TASK_COMMENT_SELECT)
     .eq('workspace_id', workspaceId)
     .eq('task_id', taskId)
     .is('deleted_at', null)
@@ -161,19 +195,12 @@ export const fetchTaskComments = async (
 
   if (error) return { error: error.message };
 
-  const rows = (data ?? []) as Array<
-    CommentRow & { profiles: { display_name: string | null } | null }
-  >;
+  const rows = (data ?? []) as CommentRow[];
 
   const hasMore = rows.length > limit;
   const pageRows = hasMore ? rows.slice(0, limit) : rows;
 
-  const comments = pageRows.map((row) =>
-    mapCommentRow({
-      ...row,
-      author_display_name: row.profiles?.display_name ?? null,
-    }),
-  );
+  const comments = await mapCommentRows(pageRows);
 
   return {
     data: {
@@ -211,32 +238,16 @@ export const createTaskComment = async (
       content: sanitized,
       mentioned_user_ids: mentionedUserIds,
     })
-    .select(
-      `id,
-       task_id,
-       author_id,
-       author_display_name_snapshot,
-       content,
-       mentioned_user_ids,
-       created_at,
-       updated_at,
-       deleted_at,
-       profiles:author_id ( display_name )`,
-    )
+    .select(TASK_COMMENT_SELECT)
     .maybeSingle();
 
   if (error) return { error: error.message };
   if (!data) return { error: 'No data returned' };
 
-  const row = data as CommentRow & {
-    profiles: { display_name: string | null } | null;
-  };
+  const [comment] = await mapCommentRows([data as CommentRow]);
 
   return {
-    data: mapCommentRow({
-      ...row,
-      author_display_name: row.profiles?.display_name ?? null,
-    }),
+    data: comment,
   };
 };
 
@@ -261,32 +272,16 @@ export const updateTaskComment = async (
     .eq('id', commentId)
     .eq('workspace_id', workspaceId)
     .is('deleted_at', null)
-    .select(
-      `id,
-       task_id,
-       author_id,
-       author_display_name_snapshot,
-       content,
-       mentioned_user_ids,
-       created_at,
-       updated_at,
-       deleted_at,
-       profiles:author_id ( display_name )`,
-    )
+    .select(TASK_COMMENT_SELECT)
     .maybeSingle();
 
   if (error) return { error: error.message };
   if (!data) return { error: 'Comment not found or no permission.' };
 
-  const row = data as CommentRow & {
-    profiles: { display_name: string | null } | null;
-  };
+  const [comment] = await mapCommentRows([data as CommentRow]);
 
   return {
-    data: mapCommentRow({
-      ...row,
-      author_display_name: row.profiles?.display_name ?? null,
-    }),
+    data: comment,
   };
 };
 

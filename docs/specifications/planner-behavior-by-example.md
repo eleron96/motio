@@ -349,7 +349,26 @@ Then:
 - `src/features/planner/lib/taskCommentEditorHtml.ts`
 - `src/test/planner/taskCommentEditorHtml.test.ts`
 
-## Scenario 19: Task comment soft delete is allowed for the author and workspace admin
+## Scenario 19: Task comment thread loads with live author names and snapshot fallback
+
+Given:
+- у задачи есть существующие комментарии;
+- часть авторов комментариев видима через `public.profiles`, а часть может быть недоступна из-за schema drift или отсутствующего профиля.
+
+When:
+- пользователь открывает детали задачи или догружает старые комментарии.
+
+Then:
+- repository не зависит от PostgREST embedded relation для загрузки авторов комментариев;
+- тред комментариев загружается без ошибки schema-cache relation даже при проблемах со связью `task_comments -> profiles`;
+- UI показывает актуальный `profiles.display_name`, а при отсутствии профиля откатывается к `author_display_name_snapshot`.
+
+Покрытие:
+- `src/infrastructure/tasks/taskCommentsRepository.ts`
+- `src/features/planner/components/TaskCommentSection.tsx`
+- `src/test/planner/taskCommentsRepository.test.ts`
+
+## Scenario 20: Task comment soft delete is allowed for the author and workspace admin
 
 Given:
 - у задачи есть существующий комментарий;
@@ -369,7 +388,7 @@ Then:
 - `infra/supabase/migrations/0052_fix_task_comment_soft_delete_policy.sql`
 - `infra/supabase/migrations/0053_add_soft_delete_task_comment_rpc.sql`
 
-## Scenario 20: Timeline comment badge updates immediately and stays live-synced
+## Scenario 21: Timeline comment badge updates immediately and stays live-synced
 
 Given:
 - у задачи на timeline есть badge с количеством комментариев;
@@ -394,7 +413,7 @@ Then:
 - `src/test/planner/usePlannerLiveSync.test.tsx`
 - `src/test/shared/taskCommentCount.test.ts`
 
-## Scenario 21: Comment mentions target workspace members, not only assignees
+## Scenario 22: Comment mentions target workspace members, not only assignees
 
 Given:
 - пользователь открыл комментарии задачи;
@@ -424,7 +443,7 @@ Then:
 - `src/test/planner/taskCommentMentions.test.tsx`
 - `src/test/shared/taskCommentMentionCandidates.test.ts`
 
-## Scenario 22: Comment mention notifications stay distinct from task assignment notifications
+## Scenario 23: Comment mention notifications stay distinct from task assignment notifications
 
 Given:
 - пользователь отметил участника через `@mention` в комментарии задачи;
@@ -444,7 +463,7 @@ Then:
 - `infra/supabase/functions/notifications/index.ts`
 - `src/features/auth/components/InviteNotifications.tsx`
 
-## Scenario 23: New tasks default to "No project" unless opened from project context
+## Scenario 24: New tasks default to "No project" unless opened from project context
 
 Given:
 - пользователь открывает обычный диалог создания задачи без project-context;
@@ -464,7 +483,7 @@ Then:
 - `src/test/planner/addTaskDialog.test.tsx`
 - `src/test/planner/taskFormRules.test.ts`
 
-## Scenario 24: Timeline sidebar width survives locale switch and page remount
+## Scenario 25: Timeline sidebar width survives locale switch and page remount
 
 Given:
 - пользователь изменил ширину левой колонки имен на timeline;
@@ -484,7 +503,7 @@ Then:
 - `src/features/planner/lib/timelineSidebarWidthStorage.ts`
 - `src/test/planner/timelineSidebarWidthStorage.test.ts`
 
-## Scenario 25: Comment counters stay in sync across clients after realtime comment events
+## Scenario 26: Comment counters stay in sync across clients after realtime comment events
 
 Given:
 - два пользователя открыли planner в одном workspace;
