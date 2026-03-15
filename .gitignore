@@ -9,6 +9,7 @@ lerna-debug.log*
 
 # Do not track deployment runtime/release logs.
 infra/releases.log
+!infra/testing-releases.log
 
 bun.lockb
 date-fns-*.tgz

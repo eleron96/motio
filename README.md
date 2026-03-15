@@ -141,6 +141,19 @@ NEXT_VERSION=0.3.0 make deploy-remote
 - передаёт `NEXT_VERSION`, если он задан локально,
 - подтягивает обратно `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md` и `infra/releases.log` в локальный репозиторий.
 
+Tracked release на testing:
+
+```bash
+make release-testing MSG="feat(...): ..." RU="..." EN="..." [TYPE=changed] [NEXT_VERSION=0.3.0]
+```
+
+`make release-testing`:
+- локально повышает `VERSION`,
+- переносит `Unreleased` в `CHANGELOG.md` и `CHANGELOG.en.md`,
+- пишет историю тестовых релизов в `infra/testing-releases.log`,
+- коммитит и пушит release-артефакты,
+- после этого запускает безопасный `make deploy-testing` без касания production.
+
 ## Keycloak Realm-as-Code (безопасный старт)
 
 Рекомендуемый порядок без влияния на пользователей:

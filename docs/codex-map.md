@@ -115,9 +115,11 @@
 4. Remote deploy:
 - `make deploy-remote`
 - или `make release MSG="..." RU="..." EN="..." [TYPE=changed]`
+- для testing tracked release: `make release-testing MSG="..." RU="..." EN="..." [TYPE=changed]`
 
 5. Для агента при явной команде пользователя "сделай деплой":
 - по умолчанию запускать `make deploy-remote`
+- для test/staging c version bump и changelog использовать `make release-testing`
 - не добавлять локальные pre-check шаги сверх этого, если пользователь не просил их отдельно
 - расширять диагностику только если сам `make deploy-remote` завершился ошибкой
 
