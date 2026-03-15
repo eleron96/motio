@@ -234,7 +234,26 @@ Then:
 - `src/features/auth/pages/AuthPage.tsx`
 - `src/test/auth/authPage.forceLogin.test.tsx`
 
-## Scenario 12: Keycloak login screens keep Motio styling and home exit action
+## Scenario 12: Account settings shows localized latest release notes for the current version
+
+Given:
+- пользователь открыл `Account settings`;
+- в нижней части диалога видна кнопка с текущей версией приложения.
+
+When:
+- пользователь нажимает на номер версии.
+
+Then:
+- открывается диалог `Последние изменения` / `Latest changes` в зависимости от locale;
+- в заголовке отображается текущая версия приложения;
+- список изменений подхватывается из актуальной release entry changelog, а не остается на заглушке `Нет зафиксированных изменений.` / `No documented changes.`
+
+Покрытие:
+- `src/features/auth/components/AccountSettingsDialog.tsx`
+- `src/shared/lib/releaseNotes.ts`
+- `src/test/shared/releaseNotes.test.ts`
+
+## Scenario 13: Keycloak login screens keep Motio styling and home exit action
 
 Given:
 - пользователь находится на Keycloak-экранах входа (`Sign in to your account`);
@@ -255,7 +274,7 @@ Then:
 - `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
 - `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
 
-## Scenario 13: "Account already exists" linking screens follow Motio visual style
+## Scenario 14: "Account already exists" linking screens follow Motio visual style
 
 Given:
 - пользователь входит через внешний IdP (например Google), а email уже существует в realm;
@@ -279,7 +298,7 @@ Then:
 - `infra/keycloak/themes/timeline/login/messages/messages_en.properties`
 - `infra/keycloak/themes/timeline/login/messages/messages_ru.properties`
 
-## Scenario 14: Keycloak login screens follow the browser color-scheme favicon
+## Scenario 15: Keycloak login screens follow the browser color-scheme favicon
 
 Given:
 - пользователь открывает `/auth` и попадает на Keycloak-hosted экран входа;

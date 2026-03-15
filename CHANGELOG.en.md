@@ -9,7 +9,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [0.3.24] - 2026-03-15
 ### Changed
-- No documented changes.
+- Added a morning Daily brief with urgent tasks and upcoming milestones that appears after 9 AM and does not reopen again the same day.
+- Fixed timeline left sidebar resizing so the people column can be dragged again and the chosen width is preserved.
+- Fixed comment loading and live counters so task threads open without author lookup errors and comment updates stay in sync across clients.
 
 ## [0.3.23] - 2026-03-15
 ### Changed
