@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.24] - 2026-03-15
+### Changed
+- No documented changes.
+
 ## [0.3.23] - 2026-03-15
 ### Changed
 - No documented changes.
