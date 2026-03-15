@@ -84,7 +84,7 @@
 
 Не обходить скрипт `infra/scripts/prod-compose.sh` ручными шагами.
 
-## 5.4. Remote deploy
+## 5.4. Remote deploy (production)
 
 1. Основной путь: `make deploy-remote`.
 2. Релизный путь (changelog + deploy + sync):
@@ -92,13 +92,50 @@
 3. Синхронизация release-артефактов при необходимости:
 - `make release-sync`
 
-## 5.4.1. Правило для агента при явной команде "сделай деплой"
+## 5.4.2. Remote deploy (testing)
 
-1. Если пользователь явно просит выполнить deploy, агент по умолчанию должен запускать `make deploy-remote`.
-2. Не выполнять дополнительные локальные pre-check команды (`make check-prod-secrets`, `make audit-migrations`, `make up-prod`, повторные `lint/test`), если пользователь отдельно этого не просил.
-3. Исключение: если `make deploy-remote` сам завершился ошибкой или явно требует дополнительной диагностики, агент может запускать только те проверки, которые нужны для разбора конкретного сбоя.
-4. После `make deploy-remote` выполнить краткий post-deploy минимум: доступность приложения, auth flow и проверка логов/health endpoints.
-5. Не подменять `make deploy-remote` ручной последовательностью `rsync`/`ssh` команд.
+Тестовый контур полностью изолирован от production.
+
+| | Production | Testing |
+|---|---|---|
+| Сервер | `94.141.162.237` | `46.149.69.61` |
+| Домен | `motio.nikog.net` | `test.motio.nikog.net` |
+| Путь | `/opt/new_toggl` | `/opt/motio-test` |
+| Deploy | `make deploy-remote` | `make deploy-testing` |
+| Compose | `prod-compose.sh` | `test-compose.sh` |
+| Caddy | `Caddyfile` | `Caddyfile.testing` |
+| Release | version bump + changelog | version bump + changelog |
+
+1. Deploy на тестовый: `make deploy-testing`.
+2. Скрипт `deploy-testing.sh` **жёстко блокирует** деплой на prod IP.
+3. Тестовый контур **также выполняет** `make release` с version bump и changelog перед деплоем — работа над улучшениями должна отражаться в истории версий.
+4. `.env` на тестовом сервере полностью отдельный — все секреты свои.
+5. **Никогда** не использовать `make deploy-remote` для тестового сервера и наоборот.
+
+## 5.4.3. Правило для агента при явной команде "сделай деплой"
+
+1. Если пользователь явно просит выполнить deploy (без уточнения контура), агент по умолчанию должен запускать `make deploy-remote` (production).
+2. Если пользователь явно просит деплой на тестовый / test / staging, агент должен: сначала выполнить `make release`, затем `make deploy-testing`.
+3. Не выполнять дополнительные локальные pre-check команды (`make check-prod-secrets`, `make audit-migrations`, `make up-prod`, повторные `lint/test`), если пользователь отдельно этого не просил.
+4. Исключение: если deploy сам завершился ошибкой или явно требует дополнительной диагностики, агент может запускать только те проверки, которые нужны для разбора конкретного сбоя.
+5. После deploy выполнить краткий post-deploy минимум: доступность приложения, auth flow и проверка логов/health endpoints.
+6. Не подменять `make deploy-remote` / `make deploy-testing` ручной последовательностью `rsync`/`ssh` команд.
+
+## 5.4.4. Release notes для пользователей (обязательно при `make release`)
+
+Перед выполнением `make release` агент обязан составить пользовательские release notes:
+
+1. Получить список коммитов с последнего тега: `git log $(git describe --tags --abbrev=0)..HEAD --oneline`.
+2. Отфильтровать только те, что влияют на пользователя:
+   - Включать: `feat(*)`, `fix(*)` затрагивающие UI, поведение, данные пользователя.
+   - Исключать: `chore`, `refactor`, `test`, `docs`, `infra`, `ci`, внутренние технические fix (миграции индексов, конфиги, docker, nginx).
+3. Сформулировать кратко на русском (`RU=`) и английском (`EN=`) — с точки зрения пользователя, не разработчика.
+   - ❌ "refactor(planner): extract repeat fields" → не включать
+   - ❌ "chore(infra): harden routing" → не включать
+   - ✅ "feat(daily-brief): добавлено утреннее окно с задачами и вехами" → включать
+   - ✅ "fix(planner): исправлена синхронизация комментариев в реальном времени" → включать
+4. Передать итоговый текст в `make release MSG="..." RU="..." EN="..."`.
+5. Если пользовательских изменений нет — всё равно выполнить `make release` с кратким техническим описанием, пометив `[internal]`.
 
 ## 5.5. Post-deploy минимум
 

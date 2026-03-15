@@ -164,3 +164,22 @@ Then:
 - `public/favicon-theme-dark.png`
 - `public/logo.png`
 - `src/test/smoke/faviconAssets.test.ts`
+
+## Scenario 10: Public app shell metadata is host-agnostic before client hydration
+
+Given:
+- один и тот же frontend build может быть поднят на production или testing домене;
+- браузер или crawler читает сырой `index.html` до выполнения клиентского JavaScript.
+
+When:
+- открывается публичный `/`.
+
+Then:
+- статический app shell не содержит хардкод `https://motio.nikog.net` в `canonical`, `og:url`, `og:image` и `twitter:image`;
+- базовые SEO/preview ссылки остаются относительными и не уводят testing-контур на production host;
+- после hydration `usePageSeo` может дополнительно нормализовать canonical URL до текущего `window.location.origin`.
+
+Покрытие:
+- `index.html`
+- `src/shared/lib/seo/usePageSeo.ts`
+- `src/test/smoke/faviconAssets.test.ts`

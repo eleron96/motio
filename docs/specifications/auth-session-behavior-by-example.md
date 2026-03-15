@@ -38,6 +38,27 @@ Then:
 - `infra/scripts/prod-compose.sh`
 - `infra/keycloak/realm/timeline-realm.prod.json`
 
+## Scenario 2a: Each deploy rewrites Keycloak client URLs to the current environment domain
+
+Given:
+- production и testing контуры используют один baseline realm import;
+- в `.env` каждого контура заданы собственные `SITE_URL`, `APP_URL`, `GOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI` и `OAUTH2_PROXY_REDIRECT_URL`.
+
+When:
+- запускается `prod-compose` или `test-compose` workflow.
+
+Then:
+- Keycloak managed client получает `rootUrl` и `baseUrl` из текущего окружения, а не из чужого baseline;
+- `redirectUris`, `webOrigins` и `post.logout.redirect.uris` пересобираются из текущего `.env`;
+- realm `frontendUrl` тоже синхронизируется из текущего окружения, поэтому login form submit и `login-actions/authenticate` остаются на том же домене;
+- testing login/logout остаются на `test.motio.nikog.net` и не уводят пользователя на `motio.nikog.net`.
+
+Покрытие:
+- `infra/scripts/keycloak-ensure-client-urls.sh`
+- `infra/scripts/keycloak-ensure-realm-frontend-url.sh`
+- `infra/scripts/prod-compose.sh`
+- `infra/scripts/test-compose.sh`
+
 ## Scenario 3: OAuth2 logout chains through Keycloak end-session via oauth2-proxy backend logout
 
 Given:
