@@ -208,3 +208,4 @@
 2026-03-15T14:56:05Z | 0.3.23 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-145521.dump | No documented changes.
 2026-03-15T15:17:58Z | 0.3.24 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-151714.dump | No documented changes.
 2026-03-15T15:29:27Z | 0.3.25 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-152847.dump | No documented changes.
+2026-03-15T15:32:12Z | 0.3.26 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-153132.dump | Added a morning Daily brief and fixed timeline sidebar resizing plus comment loading with live counters.

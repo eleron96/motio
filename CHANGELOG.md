@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.26] - 2026-03-15
 ### Changed
 - Добавлено утреннее окно Daily brief, а также исправлены изменение ширины левой колонки таймлайна и загрузка комментариев с live-счетчиками.
 
