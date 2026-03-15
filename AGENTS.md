@@ -104,26 +104,27 @@
 | Deploy | `make deploy-remote` | `make deploy-testing` |
 | Compose | `prod-compose.sh` | `test-compose.sh` |
 | Caddy | `Caddyfile` | `Caddyfile.testing` |
-| Release | version bump + changelog | version bump + changelog |
+| Release | `make release` | `make release-testing` |
 
 1. Deploy на тестовый: `make deploy-testing`.
 2. Скрипт `deploy-testing.sh` **жёстко блокирует** деплой на prod IP.
-3. Тестовый контур **также выполняет** `make release` с version bump и changelog перед деплоем — работа над улучшениями должна отражаться в истории версий.
-4. `.env` на тестовом сервере полностью отдельный — все секреты свои.
-5. **Никогда** не использовать `make deploy-remote` для тестового сервера и наоборот.
+3. Для тестового tracked release использовать отдельный путь `make release-testing MSG="..." RU="..." EN="..." [TYPE=changed] [NEXT_VERSION=X.Y.Z]`.
+4. `make release-testing` повышает `VERSION`, переносит записи из `Unreleased` в `CHANGELOG.md/CHANGELOG.en.md`, пишет историю в `infra/testing-releases.log` и только потом выполняет `make deploy-testing`.
+5. `.env` на тестовом сервере полностью отдельный — все секреты свои.
+6. **Никогда** не использовать `make deploy-remote` для тестового сервера и наоборот.
 
 ## 5.4.3. Правило для агента при явной команде "сделай деплой"
 
 1. Если пользователь явно просит выполнить deploy (без уточнения контура), агент по умолчанию должен запускать `make deploy-remote` (production).
-2. Если пользователь явно просит деплой на тестовый / test / staging, агент должен: сначала выполнить `make release`, затем `make deploy-testing`.
+2. Если пользователь явно просит деплой на тестовый / test / staging и нужно зафиксировать версию/историю изменений, агент должен запускать `make release-testing`.
 3. Не выполнять дополнительные локальные pre-check команды (`make check-prod-secrets`, `make audit-migrations`, `make up-prod`, повторные `lint/test`), если пользователь отдельно этого не просил.
 4. Исключение: если deploy сам завершился ошибкой или явно требует дополнительной диагностики, агент может запускать только те проверки, которые нужны для разбора конкретного сбоя.
 5. После deploy выполнить краткий post-deploy минимум: доступность приложения, auth flow и проверка логов/health endpoints.
 6. Не подменять `make deploy-remote` / `make deploy-testing` ручной последовательностью `rsync`/`ssh` команд.
 
-## 5.4.4. Release notes для пользователей (обязательно при `make release`)
+## 5.4.4. Release notes для пользователей (обязательно при `make release` и `make release-testing`)
 
-Перед выполнением `make release` агент обязан составить пользовательские release notes:
+Перед выполнением `make release` или `make release-testing` агент обязан составить пользовательские release notes:
 
 1. Получить список коммитов с последнего тега: `git log $(git describe --tags --abbrev=0)..HEAD --oneline`.
 2. Отфильтровать только те, что влияют на пользователя:
@@ -134,8 +135,8 @@
    - ❌ "chore(infra): harden routing" → не включать
    - ✅ "feat(daily-brief): добавлено утреннее окно с задачами и вехами" → включать
    - ✅ "fix(planner): исправлена синхронизация комментариев в реальном времени" → включать
-4. Передать итоговый текст в `make release MSG="..." RU="..." EN="..."`.
-5. Если пользовательских изменений нет — всё равно выполнить `make release` с кратким техническим описанием, пометив `[internal]`.
+4. Передать итоговый текст в `make release ...` или `make release-testing ...`.
+5. Если пользовательских изменений нет — всё равно выполнить release-команду с кратким техническим описанием, пометив `[internal]`.
 
 ## 5.5. Post-deploy минимум
 

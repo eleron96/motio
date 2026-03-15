@@ -8,7 +8,8 @@ set -euo pipefail
 # Differences from deploy-remote.sh:
 #   - Hardcoded to test host only (no fallback to prod IP)
 #   - Calls test-compose.sh instead of prod-compose.sh
-#   - Does NOT sync VERSION / CHANGELOG / releases.log back
+#   - Does NOT rotate VERSION / CHANGELOG itself; tracked test releases are handled by release-testing.sh
+#   - Does NOT sync VERSION / CHANGELOG / release logs back
 #   - Syncs Caddyfile.testing instead of Caddyfile
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -76,7 +77,7 @@ else
   echo "Skipping firewall hardening (set RUN_FIREWALL_HARDEN=1 to enforce)."
 fi
 
-# NOTE: We intentionally do NOT sync VERSION/CHANGELOG/releases.log back.
-# The testing server has no release lifecycle.
+# NOTE: We intentionally do NOT sync VERSION/CHANGELOG/release logs back.
+# Testing release artifacts are prepared locally by release-testing.sh.
 
 echo "Testing deployment finished."
