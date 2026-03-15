@@ -53,14 +53,24 @@ psql_query() {
 xml_ids_file="$(mktemp)"
 schema_ids_file="$(mktemp)"
 dbcl_ids_file="$(mktemp)"
+xml_files_file="$(mktemp)"
+repo_files_file="$(mktemp)"
 cleanup() {
-  rm -f "$xml_ids_file" "$schema_ids_file" "$dbcl_ids_file"
+  rm -f "$xml_ids_file" "$schema_ids_file" "$dbcl_ids_file" "$xml_files_file" "$repo_files_file"
 }
 trap cleanup EXIT
 
 rg -o '<changeSet id="[^"]+"' "$changelog_file" \
   | sed -E 's#<changeSet id="([^"]+)"#\1#' \
   | sort -u > "$xml_ids_file"
+
+rg -o '<sqlFile path="\.\./migrations/[^"]+"' "$changelog_file" \
+  | sed -E 's#<sqlFile path="\.\./migrations/([^"]+)"#\1#' \
+  | sort -u > "$xml_files_file"
+
+rg --files infra/supabase/migrations -g '*.sql' \
+  | xargs -n1 basename \
+  | sort -u > "$repo_files_file"
 
 schema_exists="$(psql_query "select to_regclass('public.schema_migrations') is not null;")"
 dbcl_exists="$(psql_query "select to_regclass('public.databasechangelog') is not null;")"
@@ -106,3 +116,19 @@ comm -13 "$xml_ids_file" "$schema_ids_file" || true
 echo
 echo "EXTRA_IN_DATABASECHANGELOG:"
 comm -13 "$xml_ids_file" "$dbcl_ids_file" || true
+
+echo
+echo "MISSING_IN_CHANGELOG_XML:"
+missing_in_changelog="$(comm -23 "$repo_files_file" "$xml_files_file" || true)"
+printf "%s\n" "$missing_in_changelog"
+
+echo
+echo "MISSING_MIGRATION_FILE:"
+missing_migration_file="$(comm -13 "$repo_files_file" "$xml_files_file" || true)"
+printf "%s\n" "$missing_migration_file"
+
+if [[ -n "$missing_in_changelog" || -n "$missing_migration_file" ]]; then
+  echo
+  echo "Migration audit failed: changelog-master.xml and infra/supabase/migrations are out of sync." >&2
+  exit 1
+fi
