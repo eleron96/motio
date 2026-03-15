@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Added a morning Daily brief and fixed timeline sidebar resizing plus comment loading with live counters.
+
+## [0.3.25] - 2026-03-15
+### Changed
+- No documented changes.
+
 ## [0.3.24] - 2026-03-15
 ### Changed
 - Added a morning Daily brief with urgent tasks and upcoming milestones that appears after 9 AM and does not reopen again the same day.
