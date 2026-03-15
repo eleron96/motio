@@ -362,7 +362,7 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${POSTGRES_DB}
-      DB_USER: ${POSTGRES_USER}
+      DB_USER: ${MIGRATION_DB_USER:-supabase_admin}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       MIGRATION_CHANGELOG_FILE: liquibase/changelog-master.xml
       LIQUIBASE_LOG_LEVEL: ${LIQUIBASE_LOG_LEVEL:-info}
