@@ -54,6 +54,7 @@ import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/h
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
+import { UserAvatar } from '@/shared/ui/UserAvatar';
 
 /** Дополнительный отступ снизу у строки пользователя в режиме группировки по исполнителям (визуально больше расстояние между пользователями) */
 const ASSIGNEE_ROW_GAP = 20;
@@ -131,6 +132,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
+  const members = useAuthStore((state) => state.members);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const filteredAssignees = useFilteredAssignees(assignees);
   const activeFilteredAssignees = useMemo(
@@ -921,6 +923,14 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const milestoneHeaderRowHeight = HEADER_HEIGHT - milestoneHeaderRowTop;
   const getSidebarRowMonogram = useCallback((rowName: string) => getPersonMonogram(rowName, 'U'), []);
 
+  /** Returns avatarUrl + userId for an assignee row (only meaningful in assignee groupMode). */
+  const getAssigneeAvatarInfo = useCallback((rowId: string): { avatarUrl: string | null; userId: string } => {
+    const assignee = assignees.find((a) => a.id === rowId);
+    const userId = assignee?.userId ?? rowId;
+    const member = members.find((m) => m.userId === userId);
+    return { avatarUrl: member?.avatarUrl ?? null, userId };
+  }, [assignees, members]);
+
   return (
     <div className={cn(
       'relative flex flex-col h-full overflow-hidden bg-background',
@@ -1238,25 +1248,44 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                         />
                       )}
                       {isMobileAssigneeTimeline ? (
-                        <span
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted text-[10px] font-semibold uppercase tracking-[0.04em] text-foreground"
-                          title={row.name}
-                          aria-label={row.name}
-                        >
-                          {getSidebarRowMonogram(row.name)}
-                        </span>
+                        // Mobile assignee mode: show only avatar (photo or monogram),
+                        // with initials overlay so the person is identifiable from a photo.
+                        <UserAvatar
+                          size="sm"
+                          initials={getSidebarRowMonogram(row.name)}
+                          avatarUrl={groupMode === 'assignee' ? getAssigneeAvatarInfo(row.id).avatarUrl : null}
+                          colorSeed={groupMode === 'assignee' ? getAssigneeAvatarInfo(row.id).userId : row.id}
+                          showInitialsOverlay
+                          className="border border-border flex-shrink-0"
+                        />
                       ) : (
-                        <span
-                          className={cn(
-                            'min-w-0 font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere]',
-                            isMobile && groupMode === 'assignee'
-                              ? 'text-xs leading-5 line-clamp-1'
-                              : 'text-sm leading-snug line-clamp-2',
-                          )}
-                          title={row.name}
-                        >
-                          {row.name}
-                        </span>
+                        <>
+                          {/* Desktop assignee sidebar: small avatar + name */}
+                          {groupMode === 'assignee' && row.id !== 'unassigned' && (() => {
+                            const { avatarUrl, userId } = getAssigneeAvatarInfo(row.id);
+                            return (
+                              <UserAvatar
+                                size="xs"
+                                initials={getSidebarRowMonogram(row.name)}
+                                avatarUrl={avatarUrl}
+                                colorSeed={userId}
+                                showInitialsOverlay
+                                className="flex-shrink-0"
+                              />
+                            );
+                          })()}
+                          <span
+                            className={cn(
+                              'min-w-0 font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere]',
+                              isMobile && groupMode === 'assignee'
+                                ? 'text-xs leading-5 line-clamp-1'
+                                : 'text-sm leading-snug line-clamp-2',
+                            )}
+                            title={row.name}
+                          >
+                            {row.name}
+                          </span>
+                        </>
                       )}
                     </div>
                     {groupMode === 'project' && (

@@ -19,6 +19,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { APP_VERSION, getLatestReleaseNotes } from '@/shared/lib/releaseNotes';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
+import { AvatarWithEditButton } from './AvatarWithEditButton';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
@@ -27,7 +28,7 @@ interface AccountSettingsDialogProps {
 }
 
 export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ open, onOpenChange }) => {
-  const { user, updateDisplayName, updateLocale, signOut } = useAuthStore();
+  const { user, updateDisplayName, updateLocale, updateAvatarUrl, profileAvatarUrl, signOut } = useAuthStore();
   const locale = useLocaleStore((state) => state.locale);
   const setLocale = useLocaleStore((state) => state.setLocale);
   const [displayName, setDisplayName] = useState('');
@@ -163,9 +164,15 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
           </SheetHeader>
 
           <div className="mt-6 flex flex-1 flex-col items-center space-y-4 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted text-lg font-semibold text-foreground">
-              {initials}
-            </div>
+            {user && (
+              <AvatarWithEditButton
+                userId={user.id}
+                avatarUrl={profileAvatarUrl ?? null}
+                initials={initials}
+                onAvatarChange={(url) => updateAvatarUrl(url)}
+                disabled={loading}
+              />
+            )}
 
             <div className="w-full max-w-xs space-y-2">
               {isEditingName ? (

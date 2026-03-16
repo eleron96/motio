@@ -330,7 +330,7 @@ until docker compose -f "$compose_file" --env-file "$env_file" exec -T \
   sleep 2
 done
 
-docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup realtime gateway
+docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache between releases.
 # Plain restart keeps the writable layer and can preserve outdated import graphs.
@@ -427,11 +427,15 @@ fi
 
 # Reload gateway config gracefully to avoid brief 502s during deploy.
 # (A hard restart drops :8080 for a moment, and edge proxies will return 502.)
+# Show nginx -t output so config errors are visible in deploy logs.
+# If test fails, force-recreate the gateway so it starts fresh with the new config.
 if docker compose -f "$compose_file" --env-file "$env_file" ps -q gateway >/dev/null 2>&1; then
-  if docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -t >/dev/null 2>&1; then
-    docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -s reload >/dev/null 2>&1 || true
+  if docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -t 2>&1; then
+    docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -s reload 2>&1 || true
+    echo "Gateway nginx config reloaded."
   else
-    echo "Warning: gateway nginx config test failed; skipping reload." >&2
+    echo "Warning: gateway nginx config test failed; force-recreating gateway." >&2
+    docker compose -f "$compose_file" --env-file "$env_file" up -d --force-recreate --no-deps gateway
   fi
 fi
 

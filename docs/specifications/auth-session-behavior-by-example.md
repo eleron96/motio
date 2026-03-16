@@ -321,3 +321,24 @@ Then:
 - `infra/keycloak/themes/timeline/login/resources/js/login.v4.js`
 - `public/favicon.ico`
 - `src/test/smoke/faviconAssets.test.ts`
+
+## Scenario 16: Account avatar uploads go through Storage API instead of gateway fallback text
+
+Given:
+- пользователь открыт в `Account settings`;
+- выбран новый файл аватара для загрузки.
+
+When:
+- frontend отправляет запросы в `/storage/v1/object/...` для загрузки или чтения bucket metadata.
+
+Then:
+- gateway проксирует `/storage/v1/*` в Storage API, а не в общий text fallback;
+- browser получает JSON-ответы Storage API и не падает на `Unexpected token 'S'`;
+- сценарий работает одинаково в production и testing контурах после обычного deploy workflow.
+
+Покрытие:
+- `infra/supabase/nginx.conf`
+- `infra/scripts/deploy-remote.sh`
+- `infra/scripts/deploy-testing.sh`
+- `src/shared/lib/avatarStorage.ts`
+- `src/features/auth/components/AvatarEditModal.tsx`
