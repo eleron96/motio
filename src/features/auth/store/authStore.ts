@@ -1278,6 +1278,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return {};
   },
   updateAvatarUrl: (url) => {
-    set({ profileAvatarUrl: url });
+    const currentUserId = get().user?.id;
+    // Also update the matching member in the members array so that
+    // timeline and other places that read members[x].avatarUrl reflect
+    // the change immediately without a page refresh.
+    const updatedMembers = currentUserId
+      ? get().members.map((m) =>
+          m.userId === currentUserId ? { ...m, avatarUrl: url } : m,
+        )
+      : get().members;
+    set({ profileAvatarUrl: url, members: updatedMembers });
   },
 }));

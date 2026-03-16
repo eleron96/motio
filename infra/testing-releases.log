@@ -4,3 +4,4 @@
 2026-03-16T13:35:23Z | 0.3.29 | 301247d | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed daily brief toggle labels missing Russian translations
 2026-03-16T18:11:16Z | 0.3.32 | 33014d1 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Profile photo upload; member monograms and avatars on timeline
 2026-03-16T18:27:22Z | 0.3.33 | 235e878 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed profile photo display; improved initials overlay strip on avatars
+2026-03-16T18:37:36Z | 0.3.34 | a8c25b5 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed initials overlay on photos; avatar updates on timeline without page reload

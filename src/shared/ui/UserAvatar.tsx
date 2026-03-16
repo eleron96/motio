@@ -60,7 +60,10 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   const hasPhoto = Boolean(avatarUrl);
 
   return (
-    <Avatar className={cn(sizeClasses[size], 'relative', className)}>
+    // key forces Radix Avatar to remount when the URL changes so that the
+    // internal imageLoadingStatus resets — without this, removing AvatarImage
+    // from the DOM leaves status === 'loaded' and AvatarFallback never renders.
+    <Avatar key={avatarUrl ?? 'no-photo'} className={cn(sizeClasses[size], 'relative', className)}>
       {hasPhoto && (
         <AvatarImage
           src={avatarUrl!}
@@ -80,7 +83,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         <span
           aria-hidden
           className={cn(
-            'pointer-events-none absolute bottom-0 left-0 right-0 flex items-end justify-center pb-[2px]',
+            'pointer-events-none absolute bottom-0 left-0 right-0 z-10 flex items-end justify-center pb-[2px]',
             'bg-gradient-to-t from-black/60 to-transparent',
             overlayHeight[size],
             overlayTextSize[size],
