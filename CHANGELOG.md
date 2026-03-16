@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.41] - 2026-03-16
 ### Fixed
 - Переход из страницы участников к задаче в таймлайне теперь сбрасывает старый выбор и прокручивает нужную карточку в центр.
 
