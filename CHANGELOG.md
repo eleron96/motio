@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.28] - 2026-03-16
+### Changed
+- Исправлена регистрация миграции preferences в Liquibase
+
 ## [0.3.27] - 2026-03-16
 ### Added
 - Добавлена возможность отключить ежедневный дайджест задач в настройках аккаунта
