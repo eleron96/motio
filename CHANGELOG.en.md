@@ -7,6 +7,18 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.32] - 2026-03-16
+### Changed
+- Profile photo upload; member monograms and avatars on timeline
+
+## [0.3.31] - 2026-03-16
+### Changed
+- No documented changes.
+
+## [0.3.30] - 2026-03-16
+### Changed
+- No documented changes.
+
 ## [0.3.29] - 2026-03-16
 ### Changed
 - Fixed daily brief toggle labels missing Russian translations

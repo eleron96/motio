@@ -180,8 +180,8 @@ msgstr "Access"
 msgid "Access denied"
 msgstr "Access denied"
 
-#: src/features/auth/components/AccountBadgeButton.tsx:25
-#: src/features/auth/components/AccountSettingsDialog.tsx:159
+#: src/features/auth/components/AccountBadgeButton.tsx:27
+#: src/features/auth/components/AccountSettingsDialog.tsx:160
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:142
 msgid "Account settings"
 msgstr "Account settings"
@@ -259,7 +259,7 @@ msgstr "Add tasks & dates"
 msgid "Add widget"
 msgstr "Add widget"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:179
+#: src/features/auth/components/AccountSettingsDialog.tsx:186
 msgid "Add your name"
 msgstr "Add your name"
 
@@ -431,7 +431,7 @@ msgstr "Calendar (month)"
 msgid "Calendar range"
 msgstr "Calendar range"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:200
+#: src/features/auth/components/AccountSettingsDialog.tsx:207
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:733
 #: src/features/dashboard/pages/DashboardPage.tsx:928
 #: src/features/dashboard/pages/DashboardPage.tsx:959
@@ -519,6 +519,10 @@ msgstr "Clear"
 #: src/features/projects/components/ProjectsMainPanel.tsx:284
 msgid "Clear filters"
 msgstr "Clear filters"
+
+#: src/features/auth/components/AvatarEditModal.tsx:150
+msgid "Clear photo"
+msgstr "Clear photo"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:164
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:153
@@ -713,7 +717,7 @@ msgstr "Customers"
 msgid "Daily"
 msgstr "Daily"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:246
+#: src/features/auth/components/AccountSettingsDialog.tsx:253
 msgid "Daily brief"
 msgstr "Daily brief"
 
@@ -950,6 +954,10 @@ msgstr "Does not repeat"
 msgid "Done"
 msgstr "Done"
 
+#: src/features/auth/components/AvatarEditModal.tsx:125
+msgid "Drag & drop or click to select a photo"
+msgstr "Drag & drop or click to select a photo"
+
 #: src/features/planner/components/RichTextEditor.tsx:761
 msgid "Drag and drop image files into the description area."
 msgstr "Drag and drop image files into the description area."
@@ -974,9 +982,14 @@ msgstr "Edit"
 msgid "Edit milestone"
 msgstr "Edit milestone"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:218
+#: src/features/auth/components/AccountSettingsDialog.tsx:225
 msgid "Edit name"
 msgstr "Edit name"
+
+#: src/features/auth/components/AvatarEditModal.tsx:97
+#: src/features/auth/components/AvatarWithEditButton.tsx:41
+msgid "Edit photo"
+msgstr "Edit photo"
 
 #: src/features/projects/components/ProjectsDialogs.tsx:421
 msgid "Edit project"
@@ -1389,7 +1402,7 @@ msgstr "Keep holding the widget header..."
 msgid "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:229
+#: src/features/auth/components/AccountSettingsDialog.tsx:236
 #: src/features/auth/pages/AuthPage.tsx:177
 msgid "Language"
 msgstr "Language"
@@ -1517,7 +1530,7 @@ msgstr "Manage workspace members, roles, and invitations."
 msgid "Manage workspace settings, statuses, task types, and tags."
 msgstr "Manage workspace settings, statuses, task types, and tags."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:161
+#: src/features/auth/components/AccountSettingsDialog.tsx:162
 msgid "Manage your profile and account preferences."
 msgstr "Manage your profile and account preferences."
 
@@ -2170,6 +2183,10 @@ msgstr "Pie chart (Donut)"
 msgid "Place tasks on the timeline. Assign them to people and projects."
 msgstr "Place tasks on the timeline. Assign them to people and projects."
 
+#: src/features/auth/components/AvatarEditModal.tsx:38
+msgid "Please select an image file."
+msgstr "Please select an image file."
+
 #: src/features/members/components/MemberTasksPanel.tsx:481
 #: src/features/projects/components/ProjectsMainPanel.tsx:463
 msgid "Prev"
@@ -2341,7 +2358,7 @@ msgstr "Role"
 #~ msgid "Sat"
 #~ msgstr "Sat"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:185
+#: src/features/auth/components/AccountSettingsDialog.tsx:192
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:736
 #: src/features/dashboard/pages/DashboardPage.tsx:970
 #: src/features/members/pages/MembersPage.tsx:960
@@ -2359,7 +2376,7 @@ msgstr "Save"
 msgid "Save template"
 msgstr "Save template"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:263
+#: src/features/auth/components/AccountSettingsDialog.tsx:270
 msgid "Saved."
 msgstr "Saved."
 
@@ -2490,7 +2507,7 @@ msgstr "Select country"
 msgid "Select dashboard"
 msgstr "Select dashboard"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:232
+#: src/features/auth/components/AccountSettingsDialog.tsx:239
 #: src/features/auth/pages/AuthPage.tsx:180
 msgid "Select language"
 msgstr "Select language"
@@ -2555,7 +2572,7 @@ msgstr "Sent invites"
 msgid "Set up your team workspace in seconds. No credit card needed."
 msgstr "Set up your team workspace in seconds. No credit card needed."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:255
+#: src/features/auth/components/AccountSettingsDialog.tsx:262
 msgid "Show daily task summary each morning"
 msgstr "Show daily task summary each morning"
 
@@ -2590,7 +2607,7 @@ msgid "Sign in required"
 msgstr "Sign in required"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:392
-#: src/features/auth/components/AccountSettingsDialog.tsx:271
+#: src/features/auth/components/AccountSettingsDialog.tsx:278
 #: src/features/marketing/pages/LandingPage.tsx:376
 msgid "Sign out"
 msgstr "Sign out"
@@ -2988,8 +3005,8 @@ msgstr "Unknown project"
 msgid "unknown role"
 msgstr "unknown role"
 
-#: src/features/auth/components/AccountBadgeButton.tsx:16
-#: src/features/auth/components/AccountSettingsDialog.tsx:87
+#: src/features/auth/components/AccountBadgeButton.tsx:18
+#: src/features/auth/components/AccountSettingsDialog.tsx:88
 #: src/features/auth/components/InviteNotifications.tsx:712
 #: src/features/auth/components/InviteNotifications.tsx:804
 #: src/features/planner/components/timeline/TaskBar.tsx:116
@@ -3040,6 +3057,10 @@ msgstr "Update milestone details."
 #: src/features/dashboard/pages/DashboardPage.tsx:942
 msgid "Update the current dashboard name."
 msgstr "Update the current dashboard name."
+
+#: src/features/auth/components/AvatarEditModal.tsx:99
+msgid "Upload or remove your profile photo."
+msgstr "Upload or remove your profile photo."
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx:63
 msgid "Urgent tasks"
