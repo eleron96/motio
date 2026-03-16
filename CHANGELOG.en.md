@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.36] - 2026-03-16
 ### Changed
 - Profile photo upload; member avatars on timeline; daily brief toggle in account settings
 
