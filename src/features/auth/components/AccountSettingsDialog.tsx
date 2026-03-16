@@ -14,6 +14,7 @@ import {
 import { Pencil } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { supabase } from '@/shared/lib/supabaseClient';
+import { Switch } from '@/shared/ui/switch';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { APP_VERSION, getLatestReleaseNotes } from '@/shared/lib/releaseNotes';
@@ -37,6 +38,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [saved, setSaved] = useState(false);
   const [localeSaving, setLocaleSaving] = useState(false);
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
+  const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
+  const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
     if (!open || !user) return;
@@ -48,7 +51,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setSaved(false);
       const { data, error } = await supabase
         .from('profiles')
-        .select('display_name')
+        .select('display_name, preferences')
         .eq('id', user.id)
         .single();
 
@@ -62,6 +65,11 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setDisplayName(nextDisplayName);
       setInitialDisplayName(nextDisplayName);
       setIsEditingName(!nextDisplayName.trim());
+
+      const prefs = (data?.preferences ?? {}) as Record<string, unknown>;
+      setCurrentPrefs(prefs);
+      setDailyBriefEnabled(prefs.daily_brief_enabled !== false);
+
       setLoading(false);
     };
 
@@ -117,6 +125,29 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     if (result.error) {
       setError(result.error);
       setLocale(previousLocale);
+    }
+  };
+
+  const handleDailyBriefToggle = async (checked: boolean) => {
+    if (!user) return;
+    const previousEnabled = dailyBriefEnabled;
+    const previousPrefs = currentPrefs;
+
+    // Optimistic update — переключается мгновенно
+    setDailyBriefEnabled(checked);
+    const updatedPrefs = { ...currentPrefs, daily_brief_enabled: checked };
+    setCurrentPrefs(updatedPrefs);
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ preferences: updatedPrefs })
+      .eq('id', user.id);
+
+    if (updateError) {
+      // Откат при ошибке
+      setDailyBriefEnabled(previousEnabled);
+      setCurrentPrefs(previousPrefs);
+      setError(updateError.message);
     }
   };
 
@@ -208,6 +239,21 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="w-full max-w-xs space-y-2 text-left">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="daily-brief-toggle">{t`Daily brief`}</Label>
+                <Switch
+                  id="daily-brief-toggle"
+                  checked={dailyBriefEnabled}
+                  onCheckedChange={handleDailyBriefToggle}
+                  disabled={!user || loading}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t`Show daily task summary each morning`}
+              </p>
             </div>
 
             {error && (

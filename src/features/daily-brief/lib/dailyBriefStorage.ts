@@ -15,13 +15,27 @@ const setLocalShownDate = (userId: string, date: string): void =>
 
 // --- Supabase (sync layer) ---
 
-export const fetchRemoteShownDate = async (userId: string): Promise<string | null> => {
+interface RemoteState {
+  shownDate: string | null;
+  /** Берём из preferences.daily_brief_enabled; по умолчанию true */
+  enabled: boolean;
+}
+
+const fetchRemoteState = async (userId: string): Promise<RemoteState> => {
   const { data } = await supabase
     .from('profiles')
-    .select('daily_brief_shown_date')
+    .select('daily_brief_shown_date, preferences')
     .eq('id', userId)
     .single();
-  return (data?.daily_brief_shown_date as string | null) ?? null;
+
+  const prefs = (data?.preferences ?? {}) as Record<string, unknown>;
+  // Если поле отсутствует — считаем включённым (обратная совместимость)
+  const enabled = prefs.daily_brief_enabled !== false;
+
+  return {
+    shownDate: (data?.daily_brief_shown_date as string | null) ?? null,
+    enabled,
+  };
 };
 
 export const updateRemoteShownDate = async (userId: string, date: string): Promise<void> => {
@@ -58,6 +72,7 @@ export const isLocallyShownToday = (userId: string): boolean => {
 /**
  * Full check: fast local first, then Supabase if local says "not shown".
  * Returns true if modal should be shown.
+ * Проверяет и дату, и настройку daily_brief_enabled одним запросом.
  */
 export const shouldShowNow = async (userId: string): Promise<boolean> => {
   const now = new Date();
@@ -65,13 +80,16 @@ export const shouldShowNow = async (userId: string): Promise<boolean> => {
 
   const today = toLocalDateString(now);
 
-  // Быстрый путь: localStorage уже знает
+  // Быстрый путь: localStorage уже знает — лишних запросов к Supabase не делаем
   if (getLocalShownDate(userId) === today) return false;
 
-  // Медленный путь: проверить другие устройства через Supabase
-  const remoteDate = await fetchRemoteShownDate(userId);
+  // Медленный путь: один запрос к Supabase — проверяем и дату, и настройку
+  const { shownDate, enabled } = await fetchRemoteState(userId);
 
-  if (remoteDate === today) {
+  // Пользователь отключил функцию в настройках
+  if (!enabled) return false;
+
+  if (shownDate === today) {
     // Синхронизируем локальный кэш — на этом устройстве тоже не показываем
     setLocalShownDate(userId, today);
     return false;
