@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Opening a task in the timeline from the members page now clears stale selection and scrolls the target card into view.
+
 ## [0.3.40] - 2026-03-16
 ### Changed
 - Milestone dialog now uses the same project search and picker as task forms.

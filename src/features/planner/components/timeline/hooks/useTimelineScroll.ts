@@ -255,7 +255,9 @@ export function useTimelineScroll({
         const effectiveViewportWidth = viewportWidth || Math.max(0, container.clientWidth - sidebarViewportWidth);
         const viewportCenter = sidebarViewportWidth + effectiveViewportWidth / 2;
         const targetLeft = Math.max(0, taskCenter - viewportCenter);
-        container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+        const taskCenterY = taskRect.top - containerRect.top + container.scrollTop + taskRect.height / 2;
+        const targetTop = Math.max(0, taskCenterY - container.clientHeight / 2);
+        container.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' });
         return;
       }
       if (attempts >= 30) return;

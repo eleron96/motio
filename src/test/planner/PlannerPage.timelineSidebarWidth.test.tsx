@@ -47,6 +47,9 @@ const { plannerState, authState } = vi.hoisted(() => ({
     currentWorkspaceId: 'workspace-1',
     currentWorkspaceRole: 'admin',
     isSuperAdmin: false,
+    fetchMembers: vi.fn(),
+    membersLoading: false,
+    membersWorkspaceId: null,
   },
 }));
 
