@@ -6,3 +6,4 @@
 2026-03-16T18:27:22Z | 0.3.33 | 235e878 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed profile photo display; improved initials overlay strip on avatars
 2026-03-16T18:37:36Z | 0.3.34 | a8c25b5 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed initials overlay on photos; avatar updates on timeline without page reload
 2026-03-16T18:52:20Z | 0.3.35 | 4614e7d | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Member avatars on timeline now load on page open without requiring a task to be opened first
+2026-03-16T19:11:32Z | 0.3.37 | 6677fa2 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed square overlay mask on avatar in mobile timeline view
