@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.33] - 2026-03-16
+### Changed
+- Fixed profile photo display; improved initials overlay strip on avatars
+
 ## [0.3.32] - 2026-03-16
 ### Changed
 - Profile photo upload; member monograms and avatars on timeline
