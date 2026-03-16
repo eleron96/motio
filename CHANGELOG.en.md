@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Profile photo upload; member avatars on timeline; daily brief toggle in account settings
+
 ## [0.3.35] - 2026-03-16
 ### Changed
 - Member avatars on timeline now load on page open without requiring a task to be opened first
