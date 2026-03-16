@@ -521,3 +521,25 @@ Then:
 Покрытие:
 - `src/features/planner/hooks/usePlannerLiveSync.ts`
 - `src/test/planner/usePlannerLiveSync.test.tsx`
+
+## Scenario 27: Opening a member task in timeline resets stale planner selection and centers the task
+
+Given:
+- пользователь открыл детали задачи на странице участников;
+- в planner ранее была выбрана другая задача в detail panel;
+- нужная задача существует на week timeline вне текущего вертикального viewport.
+
+When:
+- пользователь нажимает `Go to task` из members task dialog.
+
+Then:
+- старый `planner.selectedTaskId` сбрасывается перед переходом;
+- target-задача становится `highlightedTaskId`;
+- planner переключается в `week` и получает `currentDate`/`scrollTargetDate` даты задачи;
+- timeline автоскролл центрирует highlighted task и по горизонтали, и по вертикали.
+
+Покрытие:
+- `src/features/members/pages/MembersPage.tsx`
+- `src/features/planner/components/timeline/hooks/useTimelineScroll.ts`
+- `src/test/members/membersPage.openTimeline.test.tsx`
+- `src/test/planner/useTimelineScroll.test.tsx`

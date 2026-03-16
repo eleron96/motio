@@ -97,6 +97,7 @@ const MembersPage = () => {
     deleteMemberGroup,
     deleteTasks,
     setHighlightedTaskId,
+    setPlannerSelectedTaskId,
     setViewMode,
     setCurrentDate,
     requestScrollToDate,
@@ -119,6 +120,7 @@ const MembersPage = () => {
     deleteMemberGroup: state.deleteMemberGroup,
     deleteTasks: state.deleteTasks,
     setHighlightedTaskId: state.setHighlightedTaskId,
+    setPlannerSelectedTaskId: state.setSelectedTaskId,
     setViewMode: state.setViewMode,
     setCurrentDate: state.setCurrentDate,
     requestScrollToDate: state.requestScrollToDate,
@@ -478,6 +480,7 @@ const MembersPage = () => {
   const handleOpenTaskInTimeline = useCallback(() => {
     if (!selectedTask) return;
     const timelineTask = pickNearestRepeatTaskFromToday(selectedTask, assigneeTasks);
+    setPlannerSelectedTaskId(null);
     setHighlightedTaskId(timelineTask.id);
     clearFilters();
     if (user?.id && typeof window !== 'undefined') {
@@ -495,6 +498,7 @@ const MembersPage = () => {
     requestScrollToDate,
     selectedTask,
     setHighlightedTaskId,
+    setPlannerSelectedTaskId,
     setCurrentDate,
     setSelectedTaskId,
     setViewMode,
