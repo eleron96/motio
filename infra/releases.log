@@ -212,3 +212,4 @@
 2026-03-16T16:51:28Z | 0.3.30 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-165050.dump | No documented changes.
 2026-03-16T16:58:58Z | 0.3.31 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-165819.dump | No documented changes.
 2026-03-16T19:02:33Z | 0.3.36 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-190138.dump | Profile photo upload; member avatars on timeline; daily brief toggle in account settings
+2026-03-16T19:19:03Z | 0.3.38 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-191809.dump | Fixed square overlay mask on avatar in mobile timeline view
