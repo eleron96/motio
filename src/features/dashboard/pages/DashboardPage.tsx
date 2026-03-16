@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ResponsiveGridLayout, cloneLayout, useContainerWidth } from 'react-grid-layout';
 import type { Layout, Layouts } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -52,7 +52,9 @@ import {
 } from '@/features/dashboard/lib/dashboardResponsive';
 import { resolveDashboardIncludeDisabledAssignees } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { buildTimeSeriesData, buildWidgetData, shouldUseAssigneeRows } from '@/features/dashboard/lib/dashboardUtils';
-import { DashboardWidgetCard } from '@/features/dashboard/components/DashboardWidgetCard';
+const DashboardWidgetCard = lazy(() =>
+  import('@/features/dashboard/components/DashboardWidgetCard').then((m) => ({ default: m.DashboardWidgetCard }))
+);
 import { WidgetEditorDialog } from '@/features/dashboard/components/WidgetEditorDialog';
 import { DashboardLayouts, DashboardWidget } from '@/features/dashboard/types/dashboard';
 import { Navigate } from 'react-router-dom';
@@ -660,6 +662,7 @@ const DashboardPage = () => {
     const widgetWithSize = { ...widget, size: effectiveSize };
     const widgetNode = (
       <div className="h-full w-full" onContextMenu={handleDashboardContextMenu}>
+        <Suspense fallback={<div className="h-full w-full animate-pulse rounded-lg bg-muted" />}>
         <DashboardWidgetCard
           widget={widgetWithSize}
           data={data}
@@ -678,6 +681,7 @@ const DashboardPage = () => {
           onDragHandleTouchEnd={handleWidgetDragHoldEnd}
           onEdit={() => handleEditWidget(widget)}
         />
+        </Suspense>
       </div>
     );
 
