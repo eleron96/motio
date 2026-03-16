@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Milestone dialog now uses the same project search and picker as task forms.
+
 ## [0.3.39] - 2026-03-16
 ### Changed
 - Redeploy to testing server

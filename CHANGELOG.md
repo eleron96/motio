@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- В диалоге milestone выбор проекта теперь использует тот же поиск и список, что и в форме задач.
+
 ## [0.3.39] - 2026-03-16
 ### Changed
 - Переразвёртывание на тестовый сервер
