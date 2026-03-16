@@ -12,13 +12,21 @@ const sizeClasses: Record<AvatarSize, string> = {
   lg: 'h-20 w-20 text-lg',
 };
 
-// Height of the initials overlay strip as a fraction of the circle diameter.
-// Kept small so the photo is still the main focus.
+// Text size inside the initials overlay strip.
 const overlayTextSize: Record<AvatarSize, string> = {
-  xs: 'text-[7px] leading-[10px]',
-  sm: 'text-[8px] leading-[11px]',
-  md: 'text-[9px] leading-[12px]',
-  lg: 'text-xs leading-4',
+  xs: 'text-[7px] leading-none',
+  sm: 'text-[8px] leading-none',
+  md: 'text-[9px] leading-none',
+  lg: 'text-xs leading-none',
+};
+
+// Height of the gradient strip — tall enough that the gradient is visible
+// above the text, yet small enough not to obscure the photo.
+const overlayHeight: Record<AvatarSize, string> = {
+  xs: 'h-[10px]',
+  sm: 'h-[12px]',
+  md: 'h-[13px]',
+  lg: 'h-[28px]',
 };
 
 interface UserAvatarProps {
@@ -73,9 +81,10 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
           aria-hidden
           className={cn(
             'pointer-events-none absolute bottom-0 left-0 right-0 flex items-end justify-center pb-[2px]',
-            'bg-gradient-to-t from-black/55 to-transparent',
+            'bg-gradient-to-t from-black/60 to-transparent',
+            overlayHeight[size],
             overlayTextSize[size],
-            'font-semibold tracking-wide text-white',
+            'font-semibold tracking-wide text-white drop-shadow-sm',
           )}
         >
           {initials}
