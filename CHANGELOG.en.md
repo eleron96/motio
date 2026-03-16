@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.39] - 2026-03-16
+### Changed
+- Redeploy to testing server
+
 ## [0.3.38] - 2026-03-16
 ### Changed
 - Fixed square overlay mask on avatar in mobile timeline view
