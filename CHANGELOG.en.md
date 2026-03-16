@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.35] - 2026-03-16
+### Changed
+- Member avatars on timeline now load on page open without requiring a task to be opened first
+
 ## [0.3.34] - 2026-03-16
 ### Changed
 - Fixed initials overlay on photos; avatar updates on timeline without page reload
