@@ -18,25 +18,15 @@ import { MembersSidebar } from '@/features/members/components/MembersSidebar';
 import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
-import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
-import {
-  DEFAULT_PAST_TASK_SORT,
-  shouldCollapseRepeatSeriesInTaskScope,
-  type PastTaskSort,
-  type TaskScope,
-} from '@/shared/domain/taskScope';
 import { fetchAssigneeTasks as fetchAssigneeTasksFromApi } from '@/infrastructure/members/memberTasksRepository';
-import type { RepeatCadence } from '@/shared/domain/repeatSeries';
-import {
-  buildGroupIdByUserId,
-  buildGroupNameById,
-  buildMemberGroups,
-  filterAndSortByName,
-  splitAssigneesByActivity,
-} from '@/features/members/lib/memberSelectors';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
+import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
+import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
+import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
+import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
+import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
 
 type MemberGroup = {
   id: string;
@@ -50,52 +40,7 @@ type GroupMember = {
   displayName: string | null;
 };
 
-type DisplayTaskRow = {
-  key: string;
-  task: Task;
-  taskIds: string[];
-  repeatMeta: {
-    cadence: RepeatCadence;
-    remaining: number;
-    total: number;
-  } | null;
-};
-
 type AccessTab = 'active' | 'disabled' | 'history';
-
-const countTaskUnits = (tasks: Task[]) => {
-  const units = new Set<string>();
-  tasks.forEach((task) => {
-    units.add(task.repeatId ? `r:${task.repeatId}` : `t:${task.id}`);
-  });
-  return units.size;
-};
-
-const pickNearestRepeatTaskFromToday = (task: Task, tasks: Task[]) => {
-  if (!task.repeatId) return task;
-
-  const series = tasks.filter((item) => item.repeatId === task.repeatId);
-  if (series.length === 0) return task;
-
-  const todayTime = parseISO(format(new Date(), 'yyyy-MM-dd')).getTime();
-  return series.reduce((best, candidate) => {
-    const bestDiff = parseISO(best.startDate).getTime() - todayTime;
-    const candidateDiff = parseISO(candidate.startDate).getTime() - todayTime;
-
-    const bestDistance = Math.abs(bestDiff);
-    const candidateDistance = Math.abs(candidateDiff);
-    if (candidateDistance < bestDistance) return candidate;
-    if (candidateDistance > bestDistance) return best;
-
-    const bestIsFutureOrToday = bestDiff >= 0;
-    const candidateIsFutureOrToday = candidateDiff >= 0;
-    if (candidateIsFutureOrToday && !bestIsFutureOrToday) return candidate;
-    if (!candidateIsFutureOrToday && bestIsFutureOrToday) return best;
-
-    // If distance is equal, move toward the earlier timeline item for deterministic navigation.
-    return parseISO(candidate.startDate) < parseISO(best.startDate) ? candidate : best;
-  });
-};
 
 const MembersPage = () => {
   usePageSeo({
@@ -116,33 +61,18 @@ const MembersPage = () => {
   const [tasksLoading, setTasksLoading] = useState(false);
   const [tasksError, setTasksError] = useState('');
   const [search, setSearch] = useState('');
-  const [memberSearch, setMemberSearch] = useState('');
-  const [memberSort, setMemberSort] = useState<'asc' | 'desc'>('asc');
-  const [memberGroupBy, setMemberGroupBy] = useState<'none' | 'group'>('none');
-  const [statusFilterIds, setStatusFilterIds] = useState<string[]>([]);
   const [projectFilterIds, setProjectFilterIds] = useState<string[]>([]);
-  const [taskScope, setTaskScope] = useState<TaskScope>('current');
-  const [pastFromDate, setPastFromDate] = useState('');
-  const [pastToDate, setPastToDate] = useState('');
-  const [pastSort, setPastSort] = useState<PastTaskSort>(DEFAULT_PAST_TASK_SORT);
-  const [pageIndex, setPageIndex] = useState(1);
+  const {
+    taskScope, setTaskScope,
+    pastFromDate, setPastFromDate,
+    pastToDate, setPastToDate,
+    pastSort, setPastSort,
+    pageIndex, setPageIndex,
+    statusFilterIds, setStatusFilterIds,
+  } = useTaskScopeFilter();
   const [totalCount, setTotalCount] = useState(0);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [groups, setGroups] = useState<MemberGroup[]>([]);
-  const [groupsLoading, setGroupsLoading] = useState(false);
-  const [groupsError, setGroupsError] = useState('');
-  const [groupSort, setGroupSort] = useState<'asc' | 'desc'>('asc');
-  const [groupSearch, setGroupSearch] = useState('');
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
-  const [groupMembersLoading, setGroupMembersLoading] = useState(false);
-  const [groupMembersError, setGroupMembersError] = useState('');
-  const [newGroupName, setNewGroupName] = useState('');
-  const [creatingGroup, setCreatingGroup] = useState(false);
-  const [groupActionLoading, setGroupActionLoading] = useState(false);
-  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
-  const [editingGroupName, setEditingGroupName] = useState('');
   const [memberTaskCounts, setMemberTaskCounts] = useState<Record<string, number>>({});
   const [memberTaskCountsDate, setMemberTaskCountsDate] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -216,21 +146,13 @@ const MembersPage = () => {
     editor: t`Editor`,
     viewer: t`Viewer`,
   };
-  const memberSortLabel = memberSort === 'asc' ? t`A-Z` : t`Z-A`;
-  const groupSortLabel = groupSort === 'asc' ? t`A-Z` : t`Z-A`;
   const navigate = useNavigate();
   const modeStorageKey = currentWorkspaceId
     ? `members-mode-${currentWorkspaceId}`
     : user?.id
     ? `members-mode-user-${user.id}`
     : 'members-mode';
-  const tasksViewPrefsStorageKey = currentWorkspaceId
-    ? `members-tasks-view-prefs-${currentWorkspaceId}`
-    : user?.id
-    ? `members-tasks-view-prefs-user-${user.id}`
-    : 'members-tasks-view-prefs';
   const modeHydratedRef = useRef(false);
-  const tasksViewPrefsHydratedRef = useRef(false);
   const assigneeTasksRequestRef = useRef(createLatestAsyncRequest());
 
   useEffect(() => {
@@ -277,83 +199,66 @@ const MembersPage = () => {
     window.localStorage.setItem(modeStorageKey, mode);
   }, [mode, modeStorageKey]);
 
-  useEffect(() => {
-    tasksViewPrefsHydratedRef.current = false;
-    if (typeof window === 'undefined') return;
-    const saved = window.localStorage.getItem(tasksViewPrefsStorageKey);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as Partial<{
-          memberSort: 'asc' | 'desc';
-          memberGroupBy: 'none' | 'group';
-        }>;
-        if (parsed.memberSort === 'asc' || parsed.memberSort === 'desc') {
-          setMemberSort(parsed.memberSort);
-        }
-        if (parsed.memberGroupBy === 'none' || parsed.memberGroupBy === 'group') {
-          setMemberGroupBy(parsed.memberGroupBy);
-        }
-      } catch {
-        // Ignore invalid localStorage payload and keep defaults.
-      }
-    }
-    tasksViewPrefsHydratedRef.current = true;
-  }, [tasksViewPrefsStorageKey]);
+  const {
+    groups,
+    groupsLoading,
+    groupsError,
+    groupSort,
+    setGroupSort,
+    groupSearch,
+    setGroupSearch,
+    selectedGroupId,
+    setSelectedGroupId,
+    groupMembers,
+    groupMembersLoading,
+    groupMembersError,
+    newGroupName,
+    setNewGroupName,
+    creatingGroup,
+    setCreatingGroup,
+    groupActionLoading,
+    editingGroupId,
+    setEditingGroupId,
+    editingGroupName,
+    setEditingGroupName,
+    selectedGroup,
+    sortedGroups,
+    handleCreateGroup,
+    handleStartEditGroup,
+    handleSaveGroupName,
+    handleDeleteGroup,
+  } = useMemberGroups({
+    currentWorkspaceId,
+    isAdmin,
+    fetchMemberGroups,
+    fetchGroupMembers,
+    createMemberGroup,
+    updateMemberGroup,
+    deleteMemberGroup,
+    mode,
+  });
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!tasksViewPrefsHydratedRef.current) return;
-    window.localStorage.setItem(tasksViewPrefsStorageKey, JSON.stringify({
-      memberSort,
-      memberGroupBy,
-    }));
-  }, [memberGroupBy, memberSort, tasksViewPrefsStorageKey]);
+  const {
+    memberSearch,
+    setMemberSearch,
+    memberSort,
+    setMemberSort,
+    memberGroupBy,
+    setMemberGroupBy,
+    activeMemberGroups,
+    disabledMemberGroups,
+    activeVisibleAssignees,
+    disabledVisibleAssignees,
+  } = useMembersFilter({
+    assignees,
+    memberGroupAssignments,
+    groups,
+    currentWorkspaceId,
+    userId: user?.id,
+  });
 
-  const { active: activeAssignees, disabled: disabledAssignees } = useMemo(
-    () => splitAssigneesByActivity(assignees),
-    [assignees],
-  );
-  const groupNameById = useMemo(
-    () => buildGroupNameById(groups),
-    [groups],
-  );
-  const groupIdByUserId = useMemo(
-    () => buildGroupIdByUserId(memberGroupAssignments),
-    [memberGroupAssignments],
-  );
-
-  const activeMemberGroups = useMemo(
-    () => buildMemberGroups({
-      assignees: activeAssignees,
-      memberSearch,
-      memberSort,
-      memberGroupBy,
-      groupIdByUserId,
-      groupNameById,
-      noGroupLabel: t`No group`,
-    }),
-    [activeAssignees, groupIdByUserId, groupNameById, memberGroupBy, memberSearch, memberSort],
-  );
-  const disabledMemberGroups = useMemo(
-    () => buildMemberGroups({
-      assignees: disabledAssignees,
-      memberSearch,
-      memberSort,
-      memberGroupBy,
-      groupIdByUserId,
-      groupNameById,
-      noGroupLabel: t`No group`,
-    }),
-    [disabledAssignees, groupIdByUserId, groupNameById, memberGroupBy, memberSearch, memberSort],
-  );
-  const activeVisibleAssignees = useMemo(
-    () => activeMemberGroups.flatMap((group) => group.members),
-    [activeMemberGroups],
-  );
-  const disabledVisibleAssignees = useMemo(
-    () => disabledMemberGroups.flatMap((group) => group.members),
-    [disabledMemberGroups],
-  );
+  const memberSortLabel = memberSort === 'asc' ? t`A-Z` : t`Z-A`;
+  const groupSortLabel = groupSort === 'asc' ? t`A-Z` : t`Z-A`;
 
   useEffect(() => {
     const list = tab === 'active' ? activeVisibleAssignees : disabledVisibleAssignees;
@@ -371,17 +276,12 @@ const MembersPage = () => {
     [assignees, selectedAssigneeId],
   );
 
-  const statusById = useMemo(
-    () => new Map(statuses.map((status) => [status.id, status])),
-    [statuses],
-  );
+  const { statusById, assigneeById, taskTypeById, tagById } = usePlannerLookupMaps({
+    statuses, assignees, taskTypes, tags,
+  });
   const projectById = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
     [projects],
-  );
-  const assigneeById = useMemo(
-    () => new Map(assignees.map((assignee) => [assignee.id, assignee])),
-    [assignees],
   );
   const assigneeByUserId = useMemo(() => {
     const map = new Map<string, typeof assignees[number]>();
@@ -392,14 +292,6 @@ const MembersPage = () => {
     });
     return map;
   }, [assignees]);
-  const taskTypeById = useMemo(
-    () => new Map(taskTypes.map((type) => [type.id, type])),
-    [taskTypes],
-  );
-  const tagById = useMemo(
-    () => new Map(tags.map((tag) => [tag.id, tag])),
-    [tags],
-  );
 
   const assigneeProjectIds = useMemo(() => {
     const ids = new Set<string>();
@@ -413,10 +305,6 @@ const MembersPage = () => {
     () => [...projects].sort((a, b) => a.name.localeCompare(b.name)),
     [projects],
   );
-  const sortedGroups = useMemo(
-    () => filterAndSortByName(groups, groupSearch, groupSort),
-    [groupSearch, groupSort, groups],
-  );
   const activeAccessCount = useMemo(
     () => members.filter((member) => assigneeByUserId.get(member.userId)?.isActive ?? true).length,
     [assigneeByUserId, members],
@@ -424,11 +312,6 @@ const MembersPage = () => {
   const disabledAccessCount = useMemo(
     () => members.filter((member) => !(assigneeByUserId.get(member.userId)?.isActive ?? true)).length,
     [assigneeByUserId, members],
-  );
-
-  const selectedGroup = useMemo(
-    () => groups.find((group) => group.id === selectedGroupId) ?? null,
-    [groups, selectedGroupId],
   );
 
   const refreshMemberTaskCounts = useCallback(async () => {
@@ -448,74 +331,10 @@ const MembersPage = () => {
     setMemberTaskCountsDate(result.date);
   }, [currentWorkspaceId, fetchAssigneeTaskCounts]);
 
-  const fetchGroups = useCallback(async () => {
-    if (!currentWorkspaceId) return;
-    setGroupsLoading(true);
-    setGroupsError('');
-    const result = await fetchMemberGroups(currentWorkspaceId);
-    if (result.error) {
-      setGroupsError(result.error);
-      setGroupsLoading(false);
-      return;
-    }
-
-    setGroups(result.groups);
-    setGroupsLoading(false);
-  }, [currentWorkspaceId, fetchMemberGroups]);
-
-  const fetchSelectedGroupMembers = useCallback(async (groupId: string) => {
-    if (!currentWorkspaceId) return;
-    setGroupMembersLoading(true);
-    setGroupMembersError('');
-    const result = await fetchGroupMembers(currentWorkspaceId, groupId);
-    if (result.error) {
-      setGroupMembersError(result.error);
-      setGroupMembersLoading(false);
-      return;
-    }
-    setGroupMembers(result.members.map((member) => ({
-      ...member,
-      email: member.email || t`unknown`,
-    })));
-    setGroupMembersLoading(false);
-  }, [currentWorkspaceId, fetchGroupMembers]);
-
-  useEffect(() => {
-    if (currentWorkspaceId) {
-      fetchGroups();
-    }
-  }, [currentWorkspaceId, fetchGroups]);
-
-  useEffect(() => {
-    if (groups.length === 0) {
-      setSelectedGroupId(null);
-      return;
-    }
-    if (!selectedGroupId || !groups.some((group) => group.id === selectedGroupId)) {
-      setSelectedGroupId(groups[0].id);
-    }
-  }, [groups, selectedGroupId]);
-
-  useEffect(() => {
-    if (mode !== 'groups') return;
-    if (!selectedGroupId) {
-      setGroupMembers([]);
-      return;
-    }
-    fetchSelectedGroupMembers(selectedGroupId);
-  }, [fetchSelectedGroupMembers, mode, selectedGroupId]);
-
   useEffect(() => {
     if (mode !== 'tasks' || !currentWorkspaceId) return;
     void refreshMemberTaskCounts();
   }, [currentWorkspaceId, mode, refreshMemberTaskCounts]);
-
-  useEffect(() => {
-    if (!selectedGroupId || selectedGroupId !== editingGroupId) {
-      setEditingGroupId(null);
-      setEditingGroupName('');
-    }
-  }, [editingGroupId, selectedGroupId]);
 
   const fetchAssigneeTasks = useCallback(async (assigneeId: string) => {
     if (!currentWorkspaceId) return;
@@ -597,29 +416,7 @@ const MembersPage = () => {
     }
   }, [assigneeTasks, selectedTaskId]);
 
-  const displayTaskRows = useMemo<DisplayTaskRow[]>(() => {
-    if (!shouldCollapseRepeatSeriesInTaskScope(taskScope)) {
-      return assigneeTasks.map((task) => ({
-        key: task.id,
-        task,
-        taskIds: [task.id],
-        repeatMeta: null,
-      }));
-    }
-
-    return buildRepeatSeriesRows(assigneeTasks).map((row) => ({
-      key: row.key,
-      task: row.task,
-      taskIds: row.taskIds,
-      repeatMeta: row.repeatMeta
-        ? {
-          cadence: row.repeatMeta.cadence,
-          remaining: row.repeatMeta.remaining,
-          total: row.repeatMeta.total,
-        }
-        : null,
-    }));
-  }, [assigneeTasks, taskScope]);
+  const displayTaskRows = useDisplayTaskRows(assigneeTasks, taskScope);
 
   const visibleTaskIds = useMemo(
     () => displayTaskRows.flatMap((row) => row.taskIds),
@@ -774,74 +571,6 @@ const MembersPage = () => {
     await refreshMemberTaskCounts();
     setTasksLoading(false);
   }, [deleteTasks, refreshMemberTaskCounts, selectedCount, selectedTaskIds, tasksLoading]);
-
-  const handleCreateGroup = useCallback(async () => {
-    if (!currentWorkspaceId || !isAdmin) return;
-    const trimmedName = newGroupName.trim();
-    if (!trimmedName) return;
-    setGroupActionLoading(true);
-    setGroupsError('');
-    const result = await createMemberGroup(currentWorkspaceId, trimmedName);
-    if (result.error) {
-      setGroupsError(result.error);
-      setGroupActionLoading(false);
-      return;
-    }
-
-    setNewGroupName('');
-    setCreatingGroup(false);
-    await fetchGroups();
-    if (result.groupId) {
-      setSelectedGroupId(result.groupId);
-    }
-    setGroupActionLoading(false);
-  }, [createMemberGroup, currentWorkspaceId, fetchGroups, isAdmin, newGroupName]);
-
-  const handleStartEditGroup = useCallback((group: MemberGroup) => {
-    setEditingGroupId(group.id);
-    setEditingGroupName(group.name);
-  }, []);
-
-  const handleSaveGroupName = useCallback(async () => {
-    if (!currentWorkspaceId || !editingGroupId || !isAdmin) return;
-    const trimmedName = editingGroupName.trim();
-    if (!trimmedName) return;
-    setGroupActionLoading(true);
-    setGroupsError('');
-    const result = await updateMemberGroup(currentWorkspaceId, editingGroupId, trimmedName);
-    if (result.error) {
-      setGroupsError(result.error);
-      setGroupActionLoading(false);
-      return;
-    }
-
-    await fetchGroups();
-    setEditingGroupId(null);
-    setEditingGroupName('');
-    setGroupActionLoading(false);
-  }, [currentWorkspaceId, editingGroupId, editingGroupName, fetchGroups, isAdmin, updateMemberGroup]);
-
-  const handleDeleteGroup = useCallback(async (group?: MemberGroup) => {
-    if (!currentWorkspaceId || !isAdmin) return;
-    const targetGroupId = group?.id ?? selectedGroupId;
-    if (!targetGroupId) return;
-    if (typeof window !== 'undefined') {
-      const groupName = group?.name ?? selectedGroup?.name ?? 'this group';
-      const confirmed = window.confirm(`Delete "${groupName}"?`);
-      if (!confirmed) return;
-    }
-    setGroupActionLoading(true);
-    setGroupsError('');
-    const result = await deleteMemberGroup(currentWorkspaceId, targetGroupId);
-    if (result.error) {
-      setGroupsError(result.error);
-      setGroupActionLoading(false);
-      return;
-    }
-
-    await fetchGroups();
-    setGroupActionLoading(false);
-  }, [currentWorkspaceId, deleteMemberGroup, fetchGroups, isAdmin, selectedGroup?.name, selectedGroupId]);
 
   const handleGroupMemberClick = useCallback((userId: string) => {
     const assignee = assigneeByUserId.get(userId);

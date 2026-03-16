@@ -14,9 +14,8 @@ import {
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Milestone } from '@/features/planner/types/planner';
 import { format, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
@@ -191,34 +190,17 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
           </div>
           <div className="space-y-2">
             <Label>{t`Project`}</Label>
-            <Select
+            <TaskProjectSelect
               value={projectId}
+              projects={projectOptions}
+              noProjectDisabled
+              showArchivedBadge
+              disabled={!canEdit || !hasProjects}
               onValueChange={(value) => {
                 setProjectId(value);
                 setHasChanges(true);
               }}
-              disabled={!canEdit || !hasProjects}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={hasProjects ? t`Select project` : t`No project`} />
-              </SelectTrigger>
-              <SelectContent>
-                {projectOptions.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: project.color }}
-                      />
-                      {formatProjectLabel(project.name, project.code)}
-                      {project.archived && (
-                        <span className="ml-1 text-[10px] text-muted-foreground">({t`Archived`})</span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </div>
         </div>
 

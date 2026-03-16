@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatSettingsFields } from '@/features/planner/components/RepeatSettingsFields';
@@ -8,8 +8,12 @@ import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/compone
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
-import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
-import { TaskCommentSection } from '@/features/planner/components/TaskCommentSection';
+const LazyRichTextEditor = lazy(() =>
+  import('@/features/planner/components/RichTextEditor').then((m) => ({ default: m.RichTextEditor }))
+);
+const LazyTaskCommentSection = lazy(() =>
+  import('@/features/planner/components/TaskCommentSection').then((m) => ({ default: m.TaskCommentSection }))
+);
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -705,22 +709,28 @@ export const TaskDetailPanel: React.FC = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="description">{t`Description`}</Label>
-                <RichTextEditor
-                  id="description"
-                  value={draftDescription}
-                  workspaceId={currentWorkspaceId}
-                  onChange={(value) => {
-                    const nextDescription = value || '';
-                    descriptionDraftRef.current = nextDescription;
-                    setDraftDescription(nextDescription);
-                  }}
-                  onBlur={() => {
-                    requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
-                  }}
-                  placeholder={t`Add a description...`}
-                  disabled={isReadOnly}
-                  className="max-h-[45vh] overflow-y-auto pr-2"
-                />
+                <Suspense fallback={
+                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                    {t`Loading editor...`}
+                  </div>
+                }>
+                  <LazyRichTextEditor
+                    id="description"
+                    value={draftDescription}
+                    workspaceId={currentWorkspaceId}
+                    onChange={(value) => {
+                      const nextDescription = value || '';
+                      descriptionDraftRef.current = nextDescription;
+                      setDraftDescription(nextDescription);
+                    }}
+                    onBlur={() => {
+                      requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
+                    }}
+                    placeholder={t`Add a description...`}
+                    disabled={isReadOnly}
+                    className="max-h-[45vh] overflow-y-auto pr-2"
+                  />
+                </Suspense>
               </div>
 
               {!subtasksOpen ? (
@@ -815,11 +825,15 @@ export const TaskDetailPanel: React.FC = () => {
               {/* ── Comments section */}
               {currentWorkspaceId && (
                 <div className="border-t border-border pt-3">
-                  <TaskCommentSection
-                    taskId={task.id}
-                    workspaceId={currentWorkspaceId}
-                    canEdit={canEdit}
-                  />
+                  <Suspense fallback={
+                    <div className="h-16 rounded-md bg-muted/30 animate-pulse" />
+                  }>
+                    <LazyTaskCommentSection
+                      taskId={task.id}
+                      workspaceId={currentWorkspaceId}
+                      canEdit={canEdit}
+                    />
+                  </Suspense>
                 </div>
               )}
             </div>
