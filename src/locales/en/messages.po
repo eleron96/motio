@@ -181,7 +181,7 @@ msgid "Access denied"
 msgstr "Access denied"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:25
-#: src/features/auth/components/AccountSettingsDialog.tsx:128
+#: src/features/auth/components/AccountSettingsDialog.tsx:159
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:142
 msgid "Account settings"
 msgstr "Account settings"
@@ -259,7 +259,7 @@ msgstr "Add tasks & dates"
 msgid "Add widget"
 msgstr "Add widget"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:148
+#: src/features/auth/components/AccountSettingsDialog.tsx:179
 msgid "Add your name"
 msgstr "Add your name"
 
@@ -431,7 +431,7 @@ msgstr "Calendar (month)"
 msgid "Calendar range"
 msgstr "Calendar range"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:169
+#: src/features/auth/components/AccountSettingsDialog.tsx:200
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:733
 #: src/features/dashboard/pages/DashboardPage.tsx:928
 #: src/features/dashboard/pages/DashboardPage.tsx:959
@@ -713,6 +713,10 @@ msgstr "Customers"
 msgid "Daily"
 msgstr "Daily"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx:246
+msgid "Daily brief"
+msgstr "Daily brief"
+
 #: src/shared/lib/repeatLabels.ts:7
 msgid "Daily recurring"
 msgstr "Daily recurring"
@@ -970,7 +974,7 @@ msgstr "Edit"
 msgid "Edit milestone"
 msgstr "Edit milestone"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:187
+#: src/features/auth/components/AccountSettingsDialog.tsx:218
 msgid "Edit name"
 msgstr "Edit name"
 
@@ -1226,7 +1230,7 @@ msgstr "Go to timeline"
 #~ msgid "Good morning, {0}!"
 #~ msgstr "Good morning, {0}!"
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:51
+#: src/features/daily-brief/components/DailyBriefModal.tsx:52
 msgid "Good morning, {displayName}!"
 msgstr "Good morning, {displayName}!"
 
@@ -1385,7 +1389,7 @@ msgstr "Keep holding the widget header..."
 msgid "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:198
+#: src/features/auth/components/AccountSettingsDialog.tsx:229
 #: src/features/auth/pages/AuthPage.tsx:177
 msgid "Language"
 msgstr "Language"
@@ -1513,7 +1517,7 @@ msgstr "Manage workspace members, roles, and invitations."
 msgid "Manage workspace settings, statuses, task types, and tags."
 msgstr "Manage workspace settings, statuses, task types, and tags."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:130
+#: src/features/auth/components/AccountSettingsDialog.tsx:161
 msgid "Manage your profile and account preferences."
 msgstr "Manage your profile and account preferences."
 
@@ -1591,7 +1595,7 @@ msgstr "Milestone name..."
 msgid "Milestones"
 msgstr "Milestones"
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:78
+#: src/features/daily-brief/components/DailyBriefModal.tsx:81
 msgid "Milestones in the next 7 days"
 msgstr "Milestones in the next 7 days"
 
@@ -2019,7 +2023,7 @@ msgstr "of"
 msgid "Off"
 msgstr "Off"
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:88
+#: src/features/daily-brief/components/DailyBriefModal.tsx:91
 msgid "OK"
 msgstr "OK"
 
@@ -2337,7 +2341,7 @@ msgstr "Role"
 #~ msgid "Sat"
 #~ msgstr "Sat"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:154
+#: src/features/auth/components/AccountSettingsDialog.tsx:185
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:736
 #: src/features/dashboard/pages/DashboardPage.tsx:970
 #: src/features/members/pages/MembersPage.tsx:960
@@ -2355,7 +2359,7 @@ msgstr "Save"
 msgid "Save template"
 msgstr "Save template"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:217
+#: src/features/auth/components/AccountSettingsDialog.tsx:263
 msgid "Saved."
 msgstr "Saved."
 
@@ -2486,7 +2490,7 @@ msgstr "Select country"
 msgid "Select dashboard"
 msgstr "Select dashboard"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:201
+#: src/features/auth/components/AccountSettingsDialog.tsx:232
 #: src/features/auth/pages/AuthPage.tsx:180
 msgid "Select language"
 msgstr "Select language"
@@ -2551,6 +2555,10 @@ msgstr "Sent invites"
 msgid "Set up your team workspace in seconds. No credit card needed."
 msgstr "Set up your team workspace in seconds. No credit card needed."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx:255
+msgid "Show daily task summary each morning"
+msgstr "Show daily task summary each morning"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:585
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:593
 msgid "Show disabled users"
@@ -2582,7 +2590,7 @@ msgid "Sign in required"
 msgstr "Sign in required"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:392
-#: src/features/auth/components/AccountSettingsDialog.tsx:225
+#: src/features/auth/components/AccountSettingsDialog.tsx:271
 #: src/features/marketing/pages/LandingPage.tsx:376
 msgid "Sign out"
 msgstr "Sign out"
@@ -2774,7 +2782,7 @@ msgstr "The selected task does not exist or was deleted."
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "The workspace and all its data will be deleted permanently."
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:39
+#: src/features/daily-brief/components/DailyBriefModal.tsx:40
 msgid "there"
 msgstr "there"
 
@@ -2981,7 +2989,7 @@ msgid "unknown role"
 msgstr "unknown role"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:16
-#: src/features/auth/components/AccountSettingsDialog.tsx:79
+#: src/features/auth/components/AccountSettingsDialog.tsx:87
 #: src/features/auth/components/InviteNotifications.tsx:712
 #: src/features/auth/components/InviteNotifications.tsx:804
 #: src/features/planner/components/timeline/TaskBar.tsx:116
@@ -3033,7 +3041,7 @@ msgstr "Update milestone details."
 msgid "Update the current dashboard name."
 msgstr "Update the current dashboard name."
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:60
+#: src/features/daily-brief/components/DailyBriefModal.tsx:63
 msgid "Urgent tasks"
 msgstr "Urgent tasks"
 

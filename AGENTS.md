@@ -57,6 +57,45 @@
 4. Тесты: unit на доменную логику + smoke/integration на поток.
 5. Спецификация: обновить `docs/specifications/*` для пользовательского сценария.
 
+## 4.1. Правила создания миграций БД
+
+При создании **каждой** новой миграции обязательно:
+
+1. Создать файл `infra/supabase/migrations/XXXX_название.sql`.
+2. **Сразу** добавить запись в `infra/supabase/liquibase/changelog-master.xml` по шаблону:
+   ```xml
+   <changeSet id="XXXX_название.sql" author="timeline" runInTransaction="true">
+     <preConditions onFail="MARK_RAN" onError="HALT">
+       <or>
+         <not>
+           <tableExists schemaName="public" tableName="schema_migrations"/>
+         </not>
+         <sqlCheck expectedResult="0">
+           select count(*) from public.schema_migrations where filename = 'XXXX_название.sql'
+         </sqlCheck>
+       </or>
+     </preConditions>
+     <sqlFile path="../migrations/XXXX_название.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+   </changeSet>
+   ```
+3. Без этой записи Liquibase не применит миграцию при деплое, колонка/таблица не появится в БД.
+
+## 4.2. Правила работы с переводами (Lingui)
+
+При добавлении **любого** нового `t\`...\`` или `<Trans>` в исходный код:
+
+1. Обязательно выполнить `npm run lingui:extract` — строки добавятся в `.po` файлы.
+2. Открыть `src/locales/ru/messages.po`, найти новые записи с пустым `msgstr ""` и заполнить перевод.
+3. Только после этого коммитить и деплоить — иначе вместо текста пользователь увидит хеш-идентификатор (например `OUca2h`).
+4. При деплое `lingui compile` запускается автоматически в Docker-сборке, но `.po` файлы должны содержать переводы **до** коммита.
+
+Проверка перед коммитом:
+```bash
+npm run lingui:extract
+# Убедиться что в выводе Missing = 0 для ru, или проверить вручную
+grep -n 'msgstr ""' src/locales/ru/messages.po
+```
+
 ## 5. Правила деплоя
 
 ## 5.1. Local dev

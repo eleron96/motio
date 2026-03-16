@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.29] - 2026-03-16
+### Changed
+- Исправлены подписи переключателя ежедневного дайджеста — теперь на русском
+
 ## [0.3.28] - 2026-03-16
 ### Changed
 - Исправлена регистрация миграции preferences в Liquibase
