@@ -112,6 +112,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const scrollRequestId = usePlannerStore((state) => state.scrollRequestId);
   const filters = usePlannerStore((state) => state.filters);
   const highlightedTaskId = usePlannerStore((state) => state.highlightedTaskId);
+  const highlightedTaskRowAssigneeId = usePlannerStore((state) => state.highlightedTaskRowAssigneeId);
   const timelineAttentionDate = usePlannerStore((state) => state.timelineAttentionDate);
   const setTimelineAttentionDate = usePlannerStore((state) => state.setTimelineAttentionDate);
   const markTimelineInteraction = usePlannerStore((state) => state.markTimelineInteraction);
@@ -204,6 +205,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     dayWidth,
     visibleDays,
     highlightedTaskId,
+    highlightedTaskRowAssigneeId,
     tasksLength: tasks.length,
     scrollTargetDate,
     scrollRequestId,

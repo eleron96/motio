@@ -215,3 +215,5 @@
 2026-03-16T19:19:03Z | 0.3.38 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-191809.dump | Fixed square overlay mask on avatar in mobile timeline view
 2026-03-16T22:04:40Z | 0.3.40 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-220351.dump | Milestone dialog now uses the same project search and picker as task forms.
 2026-03-16T22:24:14Z | 0.3.41 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-222326.dump | Opening a task in the timeline from the members page now clears stale selection and scrolls the target card into view.
+2026-03-16T22:38:44Z | 0.3.42 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-223754.dump | No documented changes.
+2026-03-17T13:12:53Z | 0.3.43 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260317-131152.dump | No documented changes.

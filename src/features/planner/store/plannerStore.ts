@@ -30,6 +30,7 @@ export const usePlannerStore = create<PlannerStore>()(
       filters: initialFilters,
       selectedTaskId: null,
       highlightedTaskId: null,
+      highlightedTaskRowAssigneeId: null,
       timelineAttentionDate: null,
       workspaceId: null,
       loading: false,
@@ -62,6 +63,7 @@ export const usePlannerStore = create<PlannerStore>()(
         tags: [],
         selectedTaskId: null,
         highlightedTaskId: null,
+        highlightedTaskRowAssigneeId: null,
         timelineAttentionDate: null,
         workspaceId: null,
         loading: false,
@@ -105,11 +107,15 @@ export const usePlannerStore = create<PlannerStore>()(
         const highlightedTaskId = state.highlightedTaskId && nextTasks.some((task) => task.id === state.highlightedTaskId)
           ? state.highlightedTaskId
           : null;
+        const highlightedTaskRowAssigneeId = highlightedTaskId
+          ? state.highlightedTaskRowAssigneeId
+          : null;
 
         return {
           tasks: nextTasks,
           selectedTaskId,
           highlightedTaskId,
+          highlightedTaskRowAssigneeId,
         };
       }),
 
@@ -131,6 +137,9 @@ export const usePlannerStore = create<PlannerStore>()(
           highlightedTaskId: state.highlightedTaskId && removed.has(state.highlightedTaskId)
             ? null
             : state.highlightedTaskId,
+          highlightedTaskRowAssigneeId: state.highlightedTaskId && removed.has(state.highlightedTaskId)
+            ? null
+            : state.highlightedTaskRowAssigneeId,
         };
       }),
 
@@ -211,7 +220,14 @@ export const usePlannerStore = create<PlannerStore>()(
       })),
       clearFilters: () => set({ filters: initialFilters }),
       setSelectedTaskId: (id) => set({ selectedTaskId: id }),
-      setHighlightedTaskId: (id) => set({ highlightedTaskId: id }),
+      setHighlightedTaskId: (id) => set({
+        highlightedTaskId: id,
+        highlightedTaskRowAssigneeId: null,
+      }),
+      setHighlightedTaskTarget: (taskId, rowAssigneeId = null) => set({
+        highlightedTaskId: taskId,
+        highlightedTaskRowAssigneeId: taskId ? rowAssigneeId ?? null : null,
+      }),
     }),
     {
       name: 'planner-storage',

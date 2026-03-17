@@ -90,6 +90,7 @@ export const createWorkspaceActions = (
       workspaceId,
       selectedTaskId: null,
       highlightedTaskId: null,
+      highlightedTaskRowAssigneeId: null,
       dataRequestId: requestId,
       ...workspaceResetPatch,
     });

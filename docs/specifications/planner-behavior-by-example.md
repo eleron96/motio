@@ -534,9 +534,12 @@ When:
 
 Then:
 - старый `planner.selectedTaskId` сбрасывается перед переходом;
+- planner переключается в группировку по исполнителям, даже если ранее был открыт project-grouped timeline;
 - target-задача становится `highlightedTaskId`;
+- для highlighted task сохраняется `assigneeId` строки, из которой пользователь открыл задачу;
 - planner переключается в `week` и получает `currentDate`/`scrollTargetDate` даты задачи;
-- timeline автоскролл центрирует highlighted task и по горизонтали, и по вертикали.
+- timeline автоскролл центрирует highlighted task и по горизонтали, и по вертикали;
+- если у задачи несколько исполнителей, таймлайн выбирает именно строку того исполнителя, с которого был сделан переход из `/app/members`.
 
 Покрытие:
 - `src/features/members/pages/MembersPage.tsx`
