@@ -17,6 +17,7 @@ interface UseTimelineScrollOptions {
   dayWidth: number;
   visibleDays: Date[];
   highlightedTaskId: string | null;
+  highlightedTaskRowAssigneeId: string | null;
   /** Pass `tasks.length` so the hook retries scrolling when tasks load. */
   tasksLength: number;
   scrollTargetDate: string | null;
@@ -43,6 +44,7 @@ export function useTimelineScroll({
   dayWidth,
   visibleDays,
   highlightedTaskId,
+  highlightedTaskRowAssigneeId,
   tasksLength,
   scrollTargetDate,
   scrollRequestId,
@@ -247,7 +249,11 @@ export function useTimelineScroll({
 
     const scrollToHighlightedTask = () => {
       if (cancelled) return;
-      const taskElement = container.querySelector<HTMLElement>(`[data-task-id="${highlightedTaskId}"]`);
+      const taskSelector = highlightedTaskRowAssigneeId
+        ? `[data-task-id="${highlightedTaskId}"][data-row-assignee-id="${highlightedTaskRowAssigneeId}"]`
+        : `[data-task-id="${highlightedTaskId}"]`;
+      const taskElement = container.querySelector<HTMLElement>(taskSelector)
+        ?? container.querySelector<HTMLElement>(`[data-task-id="${highlightedTaskId}"]`);
       if (taskElement) {
         const containerRect = container.getBoundingClientRect();
         const taskRect = taskElement.getBoundingClientRect();
@@ -276,7 +282,7 @@ export function useTimelineScroll({
     };
   // tasksLength intentionally included so scroll retries when tasks load
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [highlightedTaskId, sidebarViewportWidth, tasksLength, viewMode, viewportWidth]);
+  }, [highlightedTaskId, highlightedTaskRowAssigneeId, sidebarViewportWidth, tasksLength, viewMode, viewportWidth]);
 
   return { scrollLeft, handleScroll, scrollToIndex };
 }

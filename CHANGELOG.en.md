@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.43] - 2026-03-17
+### Changed
+- No documented changes.
+
+## [0.3.42] - 2026-03-16
+### Changed
+- No documented changes.
+
 ## [0.3.41] - 2026-03-16
 ### Fixed
 - Opening a task in the timeline from the members page now clears stale selection and scrolls the target card into view.

@@ -167,6 +167,7 @@ export const createTaskActions = (
     const previousTasks = get().tasks;
     const previousSelectedTaskId = get().selectedTaskId;
     const previousHighlightedTaskId = get().highlightedTaskId;
+    const previousHighlightedTaskRowAssigneeId = get().highlightedTaskRowAssigneeId;
 
     // Optimistic remove: при ошибке восстанавливаем state, чтобы не потерять выбранную задачу.
     get().removeTasksByIds([id]);
@@ -183,6 +184,7 @@ export const createTaskActions = (
         tasks: previousTasks,
         selectedTaskId: previousSelectedTaskId,
         highlightedTaskId: previousHighlightedTaskId,
+        highlightedTaskRowAssigneeId: previousHighlightedTaskRowAssigneeId,
       });
     }
   },
@@ -195,6 +197,7 @@ export const createTaskActions = (
     const previousTasks = get().tasks;
     const previousSelectedTaskId = get().selectedTaskId;
     const previousHighlightedTaskId = get().highlightedTaskId;
+    const previousHighlightedTaskRowAssigneeId = get().highlightedTaskRowAssigneeId;
 
     get().removeTasksByIds(uniqueIds);
 
@@ -210,6 +213,7 @@ export const createTaskActions = (
         tasks: previousTasks,
         selectedTaskId: previousSelectedTaskId,
         highlightedTaskId: previousHighlightedTaskId,
+        highlightedTaskRowAssigneeId: previousHighlightedTaskRowAssigneeId,
       });
       return { error: error.message };
     }
@@ -420,6 +424,7 @@ export const createTaskActions = (
     const previousTasks = get().tasks;
     const previousSelectedTaskId = get().selectedTaskId;
     const previousHighlightedTaskId = get().highlightedTaskId;
+    const previousHighlightedTaskRowAssigneeId = get().highlightedTaskRowAssigneeId;
     const localSeriesIds = previousTasks
       .filter((item) => item.repeatId === repeatId && item.startDate >= fromDate)
       .map((item) => item.id);
@@ -441,6 +446,7 @@ export const createTaskActions = (
         tasks: previousTasks,
         selectedTaskId: previousSelectedTaskId,
         highlightedTaskId: previousHighlightedTaskId,
+        highlightedTaskRowAssigneeId: previousHighlightedTaskRowAssigneeId,
       });
     }
   },

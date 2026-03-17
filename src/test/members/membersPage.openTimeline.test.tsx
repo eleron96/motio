@@ -106,7 +106,9 @@ const { plannerState, authState } = vi.hoisted(() => ({
     deleteMemberGroup: vi.fn(async () => ({ error: undefined })),
     deleteTasks: vi.fn(async () => ({ error: undefined })),
     setHighlightedTaskId: vi.fn(),
+    setHighlightedTaskTarget: vi.fn(),
     setSelectedTaskId: vi.fn(),
+    setGroupMode: vi.fn(),
     setViewMode: vi.fn(),
     setCurrentDate: vi.fn(),
     requestScrollToDate: vi.fn(),
@@ -179,7 +181,8 @@ describe('MembersPage open task in timeline', () => {
 
     await waitFor(() => {
       expect(plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
-      expect(plannerState.setHighlightedTaskId).toHaveBeenCalledWith('task-1');
+      expect(plannerState.setHighlightedTaskTarget).toHaveBeenCalledWith('task-1', 'assignee-1');
+      expect(plannerState.setGroupMode).toHaveBeenCalledWith('assignee');
       expect(plannerState.setViewMode).toHaveBeenCalledWith('week');
       expect(plannerState.setCurrentDate).toHaveBeenCalledWith('2026-03-20');
       expect(plannerState.requestScrollToDate).toHaveBeenCalledWith('2026-03-20');

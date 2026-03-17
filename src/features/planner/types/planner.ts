@@ -128,5 +128,6 @@ export interface PlannerState {
   filters: Filters;
   selectedTaskId: string | null;
   highlightedTaskId: string | null;
+  highlightedTaskRowAssigneeId: string | null;
   timelineAttentionDate: string | null;
 }

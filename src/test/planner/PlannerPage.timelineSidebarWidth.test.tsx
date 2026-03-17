@@ -40,6 +40,7 @@ const { plannerState, authState } = vi.hoisted(() => ({
     requestScrollToDate: vi.fn(),
     scrollTargetDate: null,
     highlightedTaskId: null,
+    highlightedTaskRowAssigneeId: null,
     setHighlightedTaskId: vi.fn(),
   },
   authState: {

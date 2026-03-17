@@ -138,6 +138,7 @@ export interface PlannerStore extends PlannerState {
   clearFilters: () => void;
   setSelectedTaskId: (id: string | null) => void;
   setHighlightedTaskId: (id: string | null) => void;
+  setHighlightedTaskTarget: (taskId: string | null, rowAssigneeId?: string | null) => void;
   setSyncHealthy: (healthy: boolean) => void;
 }
 

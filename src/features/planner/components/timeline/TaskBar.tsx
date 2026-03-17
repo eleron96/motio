@@ -284,6 +284,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
         <div
           ref={barRef}
           data-task-id={task.id}
+          data-row-assignee-id={rowAssigneeId ?? undefined}
           onMouseDown={(e) => handleMouseDown(e)}
           onMouseEnter={(e) => {
             setIsHovering(true);

@@ -21,7 +21,13 @@ const toDomRect = (rect: Partial<DOMRect>): DOMRect => ({
   toJSON: () => ({}),
 });
 
-const TimelineScrollHarness = ({ highlightedTaskId }: { highlightedTaskId: string | null }) => {
+const TimelineScrollHarness = ({
+  highlightedTaskId,
+  highlightedTaskRowAssigneeId,
+}: {
+  highlightedTaskId: string | null;
+  highlightedTaskRowAssigneeId: string | null;
+}) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useTimelineScroll({
@@ -34,6 +40,7 @@ const TimelineScrollHarness = ({ highlightedTaskId }: { highlightedTaskId: strin
     dayWidth: 40,
     visibleDays,
     highlightedTaskId,
+    highlightedTaskRowAssigneeId,
     tasksLength: 1,
     scrollTargetDate: null,
     scrollRequestId: 0,
@@ -45,19 +52,24 @@ const TimelineScrollHarness = ({ highlightedTaskId }: { highlightedTaskId: strin
 
   return (
     <div ref={scrollContainerRef} data-testid="timeline-scroll-container">
-      <div data-task-id="task-1" />
+      <div data-task-id="task-1" data-row-assignee-id="assignee-2" />
+      <div data-task-id="task-1" data-row-assignee-id="assignee-1" />
     </div>
   );
 };
 
 describe('useTimelineScroll', () => {
-  it('centers the highlighted task on both axes', async () => {
-    const { getByTestId, rerender } = render(<TimelineScrollHarness highlightedTaskId={null} />);
+  it('centers the highlighted task on both axes for the requested assignee row', async () => {
+    const { getByTestId, rerender } = render(
+      <TimelineScrollHarness highlightedTaskId={null} highlightedTaskRowAssigneeId={null} />,
+    );
 
     const container = getByTestId('timeline-scroll-container') as HTMLDivElement;
-    const task = container.querySelector<HTMLElement>('[data-task-id="task-1"]');
+    const task = container.querySelector<HTMLElement>('[data-task-id="task-1"][data-row-assignee-id="assignee-1"]');
+    const otherTask = container.querySelector<HTMLElement>('[data-task-id="task-1"][data-row-assignee-id="assignee-2"]');
 
     expect(task).not.toBeNull();
+    expect(otherTask).not.toBeNull();
 
     const scrollToMock = vi.fn();
 
@@ -76,6 +88,14 @@ describe('useTimelineScroll', () => {
       right: 700,
       bottom: 400,
     }));
+    vi.spyOn(otherTask!, 'getBoundingClientRect').mockReturnValue(toDomRect({
+      left: 120,
+      top: 180,
+      width: 100,
+      height: 40,
+      right: 220,
+      bottom: 220,
+    }));
     vi.spyOn(task!, 'getBoundingClientRect').mockReturnValue(toDomRect({
       left: 450,
       top: 260,
@@ -85,7 +105,7 @@ describe('useTimelineScroll', () => {
       bottom: 300,
     }));
 
-    rerender(<TimelineScrollHarness highlightedTaskId="task-1" />);
+    rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" />);
 
     await waitFor(() => {
       expect(scrollToMock).toHaveBeenCalledWith({

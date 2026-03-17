@@ -96,8 +96,9 @@ const MembersPage = () => {
     updateMemberGroup,
     deleteMemberGroup,
     deleteTasks,
-    setHighlightedTaskId,
+    setHighlightedTaskTarget,
     setPlannerSelectedTaskId,
+    setGroupMode,
     setViewMode,
     setCurrentDate,
     requestScrollToDate,
@@ -119,8 +120,9 @@ const MembersPage = () => {
     updateMemberGroup: state.updateMemberGroup,
     deleteMemberGroup: state.deleteMemberGroup,
     deleteTasks: state.deleteTasks,
-    setHighlightedTaskId: state.setHighlightedTaskId,
+    setHighlightedTaskTarget: state.setHighlightedTaskTarget,
     setPlannerSelectedTaskId: state.setSelectedTaskId,
+    setGroupMode: state.setGroupMode,
     setViewMode: state.setViewMode,
     setCurrentDate: state.setCurrentDate,
     requestScrollToDate: state.requestScrollToDate,
@@ -478,14 +480,15 @@ const MembersPage = () => {
     : t`${projectFilterIds.length} selected`;
 
   const handleOpenTaskInTimeline = useCallback(() => {
-    if (!selectedTask) return;
+    if (!selectedTask || !selectedAssigneeId) return;
     const timelineTask = pickNearestRepeatTaskFromToday(selectedTask, assigneeTasks);
     setPlannerSelectedTaskId(null);
-    setHighlightedTaskId(timelineTask.id);
+    setHighlightedTaskTarget(timelineTask.id, selectedAssigneeId);
     clearFilters();
     if (user?.id && typeof window !== 'undefined') {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
+    setGroupMode('assignee');
     setViewMode('week');
     setCurrentDate(timelineTask.startDate);
     requestScrollToDate(timelineTask.startDate);
@@ -496,8 +499,10 @@ const MembersPage = () => {
     clearFilters,
     navigate,
     requestScrollToDate,
+    selectedAssigneeId,
     selectedTask,
-    setHighlightedTaskId,
+    setGroupMode,
+    setHighlightedTaskTarget,
     setPlannerSelectedTaskId,
     setCurrentDate,
     setSelectedTaskId,
