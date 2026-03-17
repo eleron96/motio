@@ -15,7 +15,6 @@ export const useDailyBriefTrigger = (userId: string | null) => {
     try {
       const show = await shouldShowNow(userId);
       if (show) {
-        markShownToday(userId);
         setIsOpen(true);
       }
     } finally {
@@ -51,7 +50,10 @@ export const useDailyBriefTrigger = (userId: string | null) => {
     };
   }, [check]);
 
-  const dismiss = useCallback(() => setIsOpen(false), []);
+  const dismiss = useCallback(() => {
+    if (userId) markShownToday(userId);
+    setIsOpen(false);
+  }, [userId]);
 
   return { isOpen, dismiss };
 };
