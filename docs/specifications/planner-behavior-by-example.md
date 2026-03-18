@@ -561,9 +561,12 @@ Then:
 - timeline не применяет изменение сразу;
 - пользователь видит выбор области: только текущая задача, текущая и последующие, или вся серия;
 - после выбора обновляются только задачи в выбранной области;
+- каждая задача серии сохраняет свое относительное положение и сдвигается на ту же дельту, что и исходная задача;
 - обычные non-repeat задачи продолжают обновляться без дополнительного диалога.
 
 Покрытие:
 - `src/features/planner/components/RepeatTaskScopeDialog.tsx`
+- `src/shared/domain/repeatTaskMove.ts`
 - `src/features/planner/components/timeline/TaskBar.tsx`
+- `src/test/shared/repeatTaskMove.test.ts`
 - `src/test/planner/taskBar.repeatMove.test.tsx`

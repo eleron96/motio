@@ -9,6 +9,7 @@ import {
 } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
+import { buildShiftedRepeatTasks } from '@/shared/domain/repeatTaskMove';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -402,7 +403,115 @@ export const createTaskActions = (
   },
 
   moveTask: async (id, startDate, endDate, scope = 'single') => {
-    await get().updateTask(id, { startDate, endDate }, scope);
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return;
+
+    if (scope === 'single') {
+      await get().updateTask(id, { startDate, endDate }, 'single');
+      return;
+    }
+
+    let baseTask = get().tasks.find((task) => task.id === id) ?? null;
+    if (!baseTask) {
+      const { data: baseTaskData, error: baseTaskError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .single();
+      if (baseTaskError || !baseTaskData) {
+        console.error(baseTaskError);
+        return;
+      }
+      baseTask = mapTaskRow(baseTaskData as TaskRow);
+      set((state) => (
+        state.tasks.some((task) => task.id === baseTask!.id)
+          ? state
+          : { tasks: [...state.tasks, baseTask!] }
+      ));
+    }
+
+    if (!baseTask.repeatId) {
+      await get().updateTask(id, { startDate, endDate }, 'single');
+      return;
+    }
+
+    const applyUpdatedRows = (rows: TaskRow[]) => {
+      if (rows.length === 0) return;
+      const updatedById = new Map(rows.map((row) => [row.id, mapTaskRow(row)]));
+      set((state) => ({
+        tasks: state.tasks.map((task) => updatedById.get(task.id) ?? task),
+      }));
+    };
+
+    const seriesQuery = supabase
+      .from('tasks')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('repeat_id', baseTask.repeatId);
+
+    const { data: targetRows, error: targetRowsError } = await (scope === 'following'
+      ? seriesQuery.gte('start_date', baseTask.startDate)
+      : seriesQuery);
+
+    if (targetRowsError) {
+      console.error(targetRowsError);
+      return;
+    }
+
+    const seriesRows = (targetRows ?? []) as TaskRow[];
+    if (seriesRows.length === 0) return;
+
+    const shiftedTasks = buildShiftedRepeatTasks(
+      { startDate: baseTask.startDate, endDate: baseTask.endDate },
+      { startDate, endDate },
+      seriesRows.map((row) => ({
+        id: row.id,
+        startDate: row.start_date,
+        endDate: row.end_date,
+      })),
+    );
+
+    const updatedRows: TaskRow[] = [];
+
+    for (const shiftedTask of shiftedTasks) {
+      const { data: updatedRow, error: updateError } = await supabase
+        .from('tasks')
+        .update({
+          start_date: shiftedTask.startDate,
+          end_date: shiftedTask.endDate,
+        })
+        .eq('workspace_id', workspaceId)
+        .eq('id', shiftedTask.id)
+        .select('*')
+        .single();
+
+      if (updateError || !updatedRow) {
+        console.error(updateError);
+
+        const refreshQuery = supabase
+          .from('tasks')
+          .select('*')
+          .eq('workspace_id', workspaceId)
+          .eq('repeat_id', baseTask.repeatId);
+
+        const { data: refreshedRows, error: refreshError } = await (scope === 'following'
+          ? refreshQuery.gte('start_date', baseTask.startDate)
+          : refreshQuery);
+
+        if (refreshError) {
+          console.error(refreshError);
+          return;
+        }
+
+        applyUpdatedRows((refreshedRows ?? []) as TaskRow[]);
+        return;
+      }
+
+      updatedRows.push(updatedRow as TaskRow);
+    }
+
+    applyUpdatedRows(updatedRows);
   },
 
   reassignTask: async (id, assigneeId, projectId) => {
