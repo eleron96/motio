@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { Task, TaskPriority } from '@/features/planner/types/planner';
+import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
+import { RepeatTaskScopeDialog } from '@/features/planner/components/RepeatTaskScopeDialog';
 import { cn } from '@/shared/lib/classNames';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
@@ -48,6 +49,11 @@ interface TaskBarProps {
   rowAssigneeId?: string | null;
 }
 
+type PendingRepeatMove = {
+  endDate: string;
+  startDate: string;
+};
+
 const TaskBarBase: React.FC<TaskBarProps> = ({
   task,
   position,
@@ -88,6 +94,8 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteForRowAssigneeOnly, setDeleteForRowAssigneeOnly] = useState(false);
+  const [pendingRepeatMove, setPendingRepeatMove] = useState<PendingRepeatMove | null>(null);
+  const [repeatScopeOpen, setRepeatScopeOpen] = useState(false);
   
   const barRef = useRef<HTMLDivElement>(null);
   
@@ -177,6 +185,29 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     
     setDragOffset({ x: 0, startX: e.clientX });
   }, [canEdit]);
+
+  const requestMoveTask = useCallback((startDate: string, endDate: string) => {
+    if (!task.repeatId) {
+      void moveTask(task.id, startDate, endDate, 'single');
+      return;
+    }
+
+    setPendingRepeatMove({ startDate, endDate });
+    setRepeatScopeOpen(true);
+  }, [moveTask, task.id, task.repeatId]);
+
+  const applyPendingRepeatMove = useCallback(async (scope: RepeatTaskUpdateScope) => {
+    const pendingMove = pendingRepeatMove;
+    if (!pendingMove) return;
+    setPendingRepeatMove(null);
+    setRepeatScopeOpen(false);
+    await moveTask(task.id, pendingMove.startDate, pendingMove.endDate, scope);
+  }, [moveTask, pendingRepeatMove, task.id]);
+
+  const cancelPendingRepeatMove = useCallback(() => {
+    setPendingRepeatMove(null);
+    setRepeatScopeOpen(false);
+  }, []);
   
   useEffect(() => {
     if (!isDragging && !isResizing) return;
@@ -200,14 +231,14 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             isResizing,
             daysDelta
           );
-          moveTask(task.id, startDate, endDate);
+          requestMoveTask(startDate, endDate);
         } else {
           const { startDate, endDate } = calculateNewDates(
             task.startDate,
             task.endDate,
             daysDelta
           );
-          moveTask(task.id, startDate, endDate);
+          requestMoveTask(startDate, endDate);
         }
       }
       
@@ -238,8 +269,8 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     dragOffset.startX,
     dragOffset.x,
     dayWidth,
+    requestMoveTask,
     task,
-    moveTask,
     hasMoved,
     isHighlighted,
     setHighlightedTaskId,
@@ -551,6 +582,12 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <RepeatTaskScopeDialog
+        open={repeatScopeOpen}
+        onOpenChange={setRepeatScopeOpen}
+        onCancel={cancelPendingRepeatMove}
+        onApply={applyPendingRepeatMove}
+      />
     </ContextMenu>
   );
 };

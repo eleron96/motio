@@ -258,6 +258,7 @@ Then:
 Покрытие:
 - `src/shared/domain/personName.ts`
 - `src/features/planner/components/timeline/TimelineGrid.tsx`
+
 - `src/test/shared/personName.test.ts`
 
 ## Scenario 15: Timeline sidebar width can be resized and persists per workspace
@@ -546,3 +547,23 @@ Then:
 - `src/features/planner/components/timeline/hooks/useTimelineScroll.ts`
 - `src/test/members/membersPage.openTimeline.test.tsx`
 - `src/test/planner/useTimelineScroll.test.tsx`
+
+## Scenario 28: Timeline repeat move asks for scope before updating series
+
+Given:
+- на timeline отображается задача с `repeatId`;
+- пользователь тянет задачу на другую дату или растягивает ее диапазон.
+
+When:
+- interaction завершается (`drop` / `resize end`).
+
+Then:
+- timeline не применяет изменение сразу;
+- пользователь видит выбор области: только текущая задача, текущая и последующие, или вся серия;
+- после выбора обновляются только задачи в выбранной области;
+- обычные non-repeat задачи продолжают обновляться без дополнительного диалога.
+
+Покрытие:
+- `src/features/planner/components/RepeatTaskScopeDialog.tsx`
+- `src/features/planner/components/timeline/TaskBar.tsx`
+- `src/test/planner/taskBar.repeatMove.test.tsx`
