@@ -401,8 +401,8 @@ export const createTaskActions = (
     return { created: newTasks.length };
   },
 
-  moveTask: async (id, startDate, endDate) => {
-    await get().updateTask(id, { startDate, endDate });
+  moveTask: async (id, startDate, endDate, scope = 'single') => {
+    await get().updateTask(id, { startDate, endDate }, scope);
   },
 
   reassignTask: async (id, assigneeId, projectId) => {

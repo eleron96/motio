@@ -80,7 +80,7 @@ export interface PlannerStore extends PlannerState {
   deleteTasks: (ids: string[]) => Promise<{ error?: string }>;
   duplicateTask: (id: string) => Promise<void>;
   createRepeats: (id: string, options: { frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly'; ends: 'never' | 'on' | 'after'; untilDate?: string; count?: number }) => Promise<{ error?: string; created?: number }>;
-  moveTask: (id: string, startDate: string, endDate: string) => Promise<void>;
+  moveTask: (id: string, startDate: string, endDate: string, scope?: RepeatTaskUpdateScope) => Promise<void>;
   reassignTask: (id: string, assigneeId: string | null, projectId?: string | null) => Promise<void>;
   deleteTaskSeries: (repeatId: string, fromDate: string) => Promise<void>;
   removeAssigneeFromTask: (id: string, assigneeId: string, mode: 'single' | 'following') => Promise<void>;
