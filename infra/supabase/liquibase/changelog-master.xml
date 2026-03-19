@@ -852,4 +852,33 @@
     <sqlFile path="../migrations/0061_fix_avatars_bucket_public.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <!-- Uses CONCURRENTLY, must not be wrapped in a transaction. -->
+  <changeSet id="0062_add_sync_performance_indexes.sql" author="timeline" runInTransaction="false">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0062_add_sync_performance_indexes.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0062_add_sync_performance_indexes.sql" relativeToChangelogFile="true" splitStatements="true" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0063_add_task_comment_counts_rpc.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0063_add_task_comment_counts_rpc.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0063_add_task_comment_counts_rpc.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>
