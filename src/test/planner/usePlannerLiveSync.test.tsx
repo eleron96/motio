@@ -57,6 +57,7 @@ const supabaseMocks = vi.hoisted(() => {
 
   return {
     from: vi.fn(),
+    rpc: vi.fn(),
     channel: vi.fn(() => channelApi),
     removeChannel: vi.fn(),
     emitTaskUpsert: (taskId: string) => {
@@ -101,6 +102,7 @@ const supabaseMocks = vi.hoisted(() => {
 vi.mock('@/shared/lib/supabaseClient', () => ({
   supabase: {
     from: supabaseMocks.from,
+    rpc: supabaseMocks.rpc,
     channel: supabaseMocks.channel,
     removeChannel: supabaseMocks.removeChannel,
   },
@@ -108,7 +110,6 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
 
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { TASK_COMMENT_QUERY_BATCH_SIZE } from '@/shared/domain/taskCommentCount';
 
 const workspaceOne = 'ws-live-1';
 const workspaceTwo = 'ws-live-2';
@@ -146,12 +147,7 @@ type RealtimeHandlers = {
   milestoneFlush?: (ids: string[], ctx: QueryContext) => QueryResult<unknown[]>;
   milestoneDelta?: (ctx: QueryContext) => QueryResult<unknown[]>;
   milestoneIds?: (ctx: QueryContext) => QueryResult<Array<{ id: string }>>;
-  taskCommentRefresh?: (
-    ids: string[],
-    ctx: QueryContext,
-  ) => QueryResult<Array<{ task_id: string | null }>>;
   taskCommentDelta?: (
-    ids: string[],
     ctx: QueryContext,
   ) => QueryResult<Array<{ task_id: string | null; updated_at: string }>>;
 };
@@ -163,7 +159,6 @@ const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
   const milestoneFlush = handlers.milestoneFlush ?? (() => Promise.resolve(emptyResult));
   const milestoneDelta = handlers.milestoneDelta ?? (() => Promise.resolve(emptyResult));
   const milestoneIds = handlers.milestoneIds ?? (() => Promise.resolve(emptyResult));
-  const taskCommentRefresh = handlers.taskCommentRefresh ?? (() => Promise.resolve(emptyResult));
   const taskCommentDelta = handlers.taskCommentDelta ?? (() => Promise.resolve(emptyResult));
 
   return (table: string) => {
@@ -223,12 +218,9 @@ const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
           eq: (_field: string, workspaceId: string) => {
             const ctx: QueryContext = { workspaceId };
             return {
-              in: (_inField: string, ids: string[]) => ({
-                is: (_isField: string, _value: null) => taskCommentRefresh(ids, ctx),
-                gt: (_gtField: string, _since: string) => ({
-                  order: (_orderField: string, _opts: { ascending: boolean }) => ({
-                    limit: (_limit: number) => taskCommentDelta(ids, ctx),
-                  }),
+              gt: (_gtField: string, _since: string) => ({
+                order: (_orderField: string, _opts: { ascending: boolean }) => ({
+                  limit: (_limit: number) => taskCommentDelta(ctx),
                 }),
               }),
             };
@@ -267,6 +259,7 @@ describe('usePlannerLiveSync', () => {
     supabaseMocks.from.mockImplementation(createRealtimeFromMock({
       taskFlush: async () => ({ data: [taskRowFor(workspaceOne)], error: null }),
     }));
+    supabaseMocks.rpc.mockResolvedValue({ data: [], error: null });
   });
 
   afterEach(() => {
@@ -472,14 +465,11 @@ describe('usePlannerLiveSync', () => {
       workspaceId: workspaceOne,
     });
 
-    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
-      taskCommentRefresh: async (ids) => ({
-        data: ids.flatMap((id) => (id === 'task-1'
-          ? [{ task_id: id }, { task_id: id }]
-          : [])),
-        error: null,
-      }),
-    }));
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock());
+    supabaseMocks.rpc.mockResolvedValue({
+      data: [{ task_id: 'task-1', comment_count: 2 }],
+      error: null,
+    });
 
     const view = render(
       <LiveSyncProbe
@@ -501,10 +491,10 @@ describe('usePlannerLiveSync', () => {
     view.unmount();
   });
 
-  it('batches task comment reconcile queries when many visible tasks are loaded', async () => {
-    const taskCommentDeltaCalls: string[][] = [];
+  it('uses a single workspace-level delta query for task comments during reconcile', async () => {
+    let taskCommentDeltaCallCount = 0;
     const visibleTaskIds = Array.from(
-      { length: TASK_COMMENT_QUERY_BATCH_SIZE + 1 },
+      { length: 100 },
       (_, index) => `task-${index}`,
     );
 
@@ -523,8 +513,8 @@ describe('usePlannerLiveSync', () => {
       taskIds: async () => ({ data: visibleTaskIds.map((id) => ({ id })), error: null }),
       milestoneDelta: async () => emptyResult,
       milestoneIds: async () => emptyResult,
-      taskCommentDelta: async (ids) => {
-        taskCommentDeltaCalls.push(ids);
+      taskCommentDelta: async () => {
+        taskCommentDeltaCallCount += 1;
         return emptyResult;
       },
     }));
@@ -544,9 +534,7 @@ describe('usePlannerLiveSync', () => {
       await vi.advanceTimersByTimeAsync(INITIAL_RECONCILE_DELAY_MS + 50);
     });
 
-    expect(taskCommentDeltaCalls).toHaveLength(2);
-    expect(taskCommentDeltaCalls[0]).toHaveLength(TASK_COMMENT_QUERY_BATCH_SIZE);
-    expect(taskCommentDeltaCalls[1]).toEqual([`task-${TASK_COMMENT_QUERY_BATCH_SIZE}`]);
+    expect(taskCommentDeltaCallCount).toBe(1);
 
     view.unmount();
   });
