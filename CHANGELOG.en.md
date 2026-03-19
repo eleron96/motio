@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.45] - 2026-03-19
+### Changed
+- No documented changes.
+
 ## [0.3.44] - 2026-03-18
 ### Changed
 - Morning Daily brief and its disable toggle; profile photo upload and member avatars on the timeline; split current and past project tasks; fixes for timeline, comments, and repeat tasks, including change-scope selection and correct relative series shifting.
