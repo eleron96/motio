@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.47] - 2026-03-20
+### Changed
+- Timeline holiday data now loads more reliably through a backend proxy, and drag scrolling is smoother on long ranges.
+
 ## [0.3.46] - 2026-03-20
 ### Changed
 - Improved planner timeline period controls with a smoother month label and a date picker.
