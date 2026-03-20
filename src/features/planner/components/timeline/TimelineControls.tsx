@@ -1,32 +1,108 @@
 import React from 'react';
+import { CaptionProps, useNavigation } from 'react-day-picker';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
+import { Calendar as CalendarComponent } from '@/shared/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import {
+  ChevronLeft,
+  ChevronRight,
   Calendar,
   Users,
   FolderKanban,
 } from 'lucide-react';
 import { format, parseISO, addDays, subDays, addWeeks, subWeeks } from '@/features/planner/lib/dateUtils';
-import { addMonths, subMonths } from 'date-fns';
+import { addMonths, setMonth, setYear, subMonths } from 'date-fns';
 import { cn } from '@/shared/lib/classNames';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 
+function CalendarCaption({ displayMonth }: CaptionProps) {
+  const { goToMonth } = useNavigation();
+  const locale = useLocaleStore((state) => state.locale);
+  const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
+
+  const [yearInput, setYearInput] = React.useState(String(displayMonth.getFullYear()));
+
+  React.useEffect(() => {
+    setYearInput(String(displayMonth.getFullYear()));
+  }, [displayMonth]);
+
+  const commitYear = () => {
+    const y = parseInt(yearInput, 10);
+    if (!isNaN(y) && y >= 1900 && y <= 2100) {
+      goToMonth(setYear(displayMonth, y));
+    } else {
+      setYearInput(String(displayMonth.getFullYear()));
+    }
+  };
+
+  const monthOptions = Array.from({ length: 12 }, (_, i) => ({
+    value: i,
+    label: format(setMonth(displayMonth, i), 'LLLL', { locale: dateLocale }),
+  }));
+
+  return (
+    <div className="flex items-center justify-between px-1">
+      <button
+        type="button"
+        onClick={() => goToMonth(subMonths(displayMonth, 1))}
+        className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-input bg-transparent opacity-50 hover:opacity-100 transition-opacity"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+
+      <div className="flex items-center gap-1 text-sm font-medium">
+        {/* Month select */}
+        <div className="relative">
+          <select
+            value={displayMonth.getMonth()}
+            onChange={(e) => goToMonth(setMonth(displayMonth, Number(e.target.value)))}
+            className="appearance-none capitalize cursor-pointer rounded px-1.5 py-0.5 pr-4 hover:bg-accent transition-colors bg-transparent focus:outline-none focus:ring-1 focus:ring-primary text-sm font-medium"
+          >
+            {monthOptions.map((m) => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+          </select>
+          <ChevronRight className="pointer-events-none absolute right-0.5 top-1/2 -translate-y-1/2 h-3 w-3 rotate-90 opacity-50" />
+        </div>
+
+        {/* Year input */}
+        <input
+          type="number"
+          value={yearInput}
+          onChange={(e) => setYearInput(e.target.value)}
+          onBlur={commitYear}
+          onKeyDown={(e) => e.key === 'Enter' && commitYear()}
+          className="w-[3.2rem] text-center bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none transition-colors text-sm font-medium [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+      </div>
+
+      <button
+        type="button"
+        onClick={() => goToMonth(addMonths(displayMonth, 1))}
+        className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-input bg-transparent opacity-50 hover:opacity-100 transition-opacity"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 export const TimelineControls: React.FC = () => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
-  const { 
-    viewMode, 
-    setViewMode, 
-    groupMode, 
-    setGroupMode, 
-    currentDate, 
+  const {
+    viewMode,
+    setViewMode,
+    groupMode,
+    setGroupMode,
+    currentDate,
     setCurrentDate,
+    visibleCenterDate,
     requestScrollToDate,
     filters,
     setFilters,
@@ -34,55 +110,75 @@ export const TimelineControls: React.FC = () => {
   const hideUnassignedId = 'hide-unassigned-toggle';
   const showUnassigned = !filters.hideUnassigned;
   const unassignedDisabled = viewMode === 'calendar' || groupMode === 'project';
-  
+
   const handlePrev = () => {
     const date = parseISO(currentDate);
-    const newDate = viewMode === 'day' 
-      ? subDays(date, 7) 
+    const newDate = viewMode === 'day'
+      ? subDays(date, 7)
       : viewMode === 'calendar'
       ? subMonths(date, 1)
       : subWeeks(date, 2);
     setCurrentDate(format(newDate, 'yyyy-MM-dd'));
   };
-  
+
   const handleNext = () => {
     const date = parseISO(currentDate);
-    const newDate = viewMode === 'day' 
-      ? addDays(date, 7) 
+    const newDate = viewMode === 'day'
+      ? addDays(date, 7)
       : viewMode === 'calendar'
       ? addMonths(date, 1)
       : addWeeks(date, 2);
     setCurrentDate(format(newDate, 'yyyy-MM-dd'));
   };
-  
+
+  const displayDate = parseISO(visibleCenterDate ?? currentDate);
+
+  const [calendarOpen, setCalendarOpen] = React.useState(false);
+  const [calendarMonth, setCalendarMonth] = React.useState(displayDate);
+
+  const handleOpenChange = (open: boolean) => {
+    setCalendarOpen(open);
+    if (open) {
+      setCalendarMonth(displayDate);
+    }
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (!date) return;
+    const dateStr = format(date, 'yyyy-MM-dd');
+    setCurrentDate(dateStr);
+    requestScrollToDate(dateStr);
+    setCalendarOpen(false);
+  };
+
   const handleToday = () => {
     const today = format(new Date(), 'yyyy-MM-dd');
     setCurrentDate(today);
     requestScrollToDate(today);
   };
-  
+
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
       <div className="flex items-center gap-3">
         {/* Navigation */}
         <div className="flex items-center gap-1">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="icon"
             onClick={handlePrev}
             className="h-8 w-8"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={handleToday}
             className="h-8 px-3 text-sm"
           >
             {t`Today`}
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="icon"
             onClick={handleNext}
             className="h-8 w-8"
@@ -90,45 +186,62 @@ export const TimelineControls: React.FC = () => {
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        
-        {/* Current date display */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <span>{format(parseISO(currentDate), 'MMMM yyyy', { locale: dateLocale })}</span>
-        </div>
+
+        {/* Current date display — opens calendar picker */}
+        <Popover open={calendarOpen} onOpenChange={handleOpenChange}>
+          <PopoverTrigger asChild>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
+              <Calendar className="h-4 w-4" />
+              <span
+                key={format(displayDate, 'MMMM yyyy', { locale: dateLocale })}
+                className="inline-block animate-in fade-in slide-in-from-bottom-1 duration-200"
+              >
+                {format(displayDate, 'MMMM yyyy', { locale: dateLocale })}
+              </span>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarComponent
+              mode="single"
+              selected={displayDate}
+              month={calendarMonth}
+              onMonthChange={setCalendarMonth}
+              onSelect={handleCalendarSelect}
+              locale={dateLocale}
+              components={{ Caption: CalendarCaption }}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
-      
+
       <div className="flex items-center gap-3">
         {/* View mode toggle */}
         <SegmentedControl surface="compact">
           <SegmentedControlItem
             active={viewMode === 'day'}
-            activeClassName="bg-background shadow-sm"
             onClick={() => setViewMode('day')}
           >
             {t`Day`}
           </SegmentedControlItem>
           <SegmentedControlItem
             active={viewMode === 'week'}
-            activeClassName="bg-background shadow-sm"
             onClick={() => setViewMode('week')}
           >
             {t`Week`}
           </SegmentedControlItem>
           <SegmentedControlItem
             active={viewMode === 'calendar'}
-            activeClassName="bg-background shadow-sm"
             onClick={() => setViewMode('calendar')}
           >
             {t`Calendar`}
           </SegmentedControlItem>
         </SegmentedControl>
-        
+
         {/* Group mode toggle */}
         <SegmentedControl surface="compact">
           <SegmentedControlItem
             active={groupMode === 'assignee'}
-            activeClassName="bg-background shadow-sm"
             className="gap-1.5"
             disabled={viewMode === 'calendar'}
             onClick={() => setGroupMode('assignee')}
@@ -138,7 +251,6 @@ export const TimelineControls: React.FC = () => {
           </SegmentedControlItem>
           <SegmentedControlItem
             active={groupMode === 'project'}
-            activeClassName="bg-background shadow-sm"
             className="gap-1.5"
             disabled={viewMode === 'calendar'}
             onClick={() => setGroupMode('project')}

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -116,6 +116,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const timelineAttentionDate = usePlannerStore((state) => state.timelineAttentionDate);
   const setTimelineAttentionDate = usePlannerStore((state) => state.setTimelineAttentionDate);
   const markTimelineInteraction = usePlannerStore((state) => state.markTimelineInteraction);
+  const setVisibleCenterDate = usePlannerStore((state) => state.setVisibleCenterDate);
   const user = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);
@@ -222,6 +223,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     const focusPx = scrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
     return Math.min(visibleDays.length - 1, Math.max(0, Math.floor(focusPx / dayWidth)));
   }, [scrollLeft, viewportWidth, dayWidth, visibleDays.length]);
+
+  useEffect(() => {
+    if (focusIndex >= 0 && focusIndex < visibleDays.length) {
+      setVisibleCenterDate(format(visibleDays[focusIndex], 'yyyy-MM-dd'));
+    }
+  }, [focusIndex, visibleDays, setVisibleCenterDate]);
 
   const showTodayButton = useMemo(() => {
     if (!viewportWidth || dayWidth === 0 || visibleDays.length === 0) return false;

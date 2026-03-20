@@ -43,6 +43,7 @@ export const usePlannerStore = create<PlannerStore>()(
       assigneeCountsWorkspaceId: null,
       scrollRequestId: 0,
       scrollTargetDate: null,
+      visibleCenterDate: null,
       timelineInteractingUntil: 0,
       syncHealthy: true,
 
@@ -199,6 +200,7 @@ export const usePlannerStore = create<PlannerStore>()(
       setViewMode: (mode) => set({ viewMode: mode }),
       setGroupMode: (mode) => set({ groupMode: mode }),
       setCurrentDate: (date) => set({ currentDate: date }),
+      setVisibleCenterDate: (date) => set({ visibleCenterDate: date }),
       requestScrollToDate: (date) => set((state) => ({
         scrollTargetDate: date,
         scrollRequestId: state.scrollRequestId + 1,
