@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.46] - 2026-03-20
+### Changed
+- В таймлайне planner улучшены переключатели периода: сглажен заголовок месяца и добавлен выбор даты.
+
 ## [0.3.45] - 2026-03-19
 ### Changed
 - Нет зафиксированных изменений.

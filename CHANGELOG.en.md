@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.46] - 2026-03-20
+### Changed
+- Improved planner timeline period controls with a smoother month label and a date picker.
+
 ## [0.3.45] - 2026-03-19
 ### Changed
 - No documented changes.
