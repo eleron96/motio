@@ -7,6 +7,9 @@ export const LEFT_CONTEXT_DAYS = 2;
 
 const EDGE_REANCHOR_COOLDOWN_MS = 450;
 
+/** Minimum interval (ms) between React state updates for scrollLeft during drag scrolling. */
+const DRAG_SCROLL_STATE_THROTTLE_MS = 150;
+
 interface UseTimelineScrollOptions {
   scrollContainerRef: React.RefObject<HTMLDivElement>;
   sidebarViewportWidth: number;
@@ -26,6 +29,7 @@ interface UseTimelineScrollOptions {
   scrollReanchorEdgeTriggerDays: number;
   setCurrentDate: (date: string) => void;
   markTimelineInteraction: (ms: number) => void;
+  isDragScrolling?: boolean;
 }
 
 interface UseTimelineScrollResult {
@@ -52,12 +56,14 @@ export function useTimelineScroll({
   scrollReanchorEdgeTriggerDays,
   setCurrentDate,
   markTimelineInteraction,
+  isDragScrolling = false,
 }: UseTimelineScrollOptions): UseTimelineScrollResult {
   const [scrollLeft, setScrollLeft] = useState(0);
 
   const lastRenderedFocusIndexRef = useRef(-1);
   const scrollSyncFrameRef = useRef<number | null>(null);
   const pendingScrollLeftRef = useRef<number | null>(null);
+  const lastDragStateUpdateRef = useRef(0);
 
   const scrollEndTimerRef = useRef<number | null>(null);
   const highlightedTaskScrollTimerRef = useRef<number | null>(null);
@@ -112,6 +118,18 @@ export function useTimelineScroll({
     if (nextFocusIndex >= 0) {
       lastRenderedFocusIndexRef.current = nextFocusIndex;
     }
+
+    // During drag scrolling, throttle React state updates to avoid re-rendering every frame.
+    // The DOM scrollLeft is already set directly by useDragScroll; we only need periodic
+    // state syncs so virtualization stays roughly correct.
+    if (isDragScrolling && shouldUpdateScrollState) {
+      const now = performance.now();
+      if (now - lastDragStateUpdateRef.current < DRAG_SCROLL_STATE_THROTTLE_MS) {
+        return;
+      }
+      lastDragStateUpdateRef.current = now;
+    }
+
     if (shouldUpdateScrollState && scrollSyncFrameRef.current === null) {
       scrollSyncFrameRef.current = window.requestAnimationFrame(() => {
         scrollSyncFrameRef.current = null;
@@ -167,7 +185,17 @@ export function useTimelineScroll({
         }
       }, 450);
     }
-  }, [currentDate, dayWidth, markTimelineInteraction, scrollContainerRef, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
+  }, [currentDate, dayWidth, isDragScrolling, markTimelineInteraction, scrollContainerRef, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
+
+  // Flush the latest scroll position into React state when drag scrolling ends
+  // so that virtualization catches up with the final position.
+  useEffect(() => {
+    if (isDragScrolling) return;
+    const pending = pendingScrollLeftRef.current;
+    if (pending !== null) {
+      setScrollLeft((prev) => (prev === pending ? prev : pending));
+    }
+  }, [isDragScrolling]);
 
   // Keep visibleDaysRef in sync for effects that read it
   useEffect(() => {
