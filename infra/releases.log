@@ -219,3 +219,4 @@
 2026-03-17T13:12:53Z | 0.3.43 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260317-131152.dump | No documented changes.
 2026-03-18T15:11:17Z | 0.3.44 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260318-151032.dump | Morning Daily brief and its disable toggle; profile photo upload and member avatars on the timeline; split current and past project tasks; fixes for timeline, comments, and repeat tasks, including change-scope selection and correct relative series shifting.
 2026-03-19T08:49:49Z | 0.3.45 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260319-084909.dump | No documented changes.
+2026-03-20T13:35:37Z | 0.3.46 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260320-133456.dump | Improved planner timeline period controls with a smoother month label and a date picker.
