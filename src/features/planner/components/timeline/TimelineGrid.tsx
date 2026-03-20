@@ -214,6 +214,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     scrollReanchorEdgeTriggerDays,
     setCurrentDate,
     markTimelineInteraction,
+    isDragScrolling,
   });
 
   // ─── Derived display values ────────────────────────────────────────────────
