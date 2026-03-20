@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.48] - 2026-03-20
+### Changed
+- Fixed task loading for large timeline ranges: the gateway no longer fails long `tasks` requests with 502 responses.
+
 ## [0.3.47] - 2026-03-20
 ### Changed
 - Timeline holiday data now loads more reliably through a backend proxy, and drag scrolling is smoother on long ranges.

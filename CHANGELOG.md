@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.48] - 2026-03-20
+### Changed
+- Исправлена загрузка задач в больших диапазонах таймлайна: gateway больше не роняет длинные `tasks` запросы с 502.
+
 ## [0.3.47] - 2026-03-20
 ### Changed
 - Таймлайн загружает праздничный календарь стабильнее через backend-proxy, а drag-scroll работает плавнее на длинных диапазонах.
