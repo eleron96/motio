@@ -48,6 +48,7 @@ export interface PlannerStore extends PlannerState {
   assigneeCountsWorkspaceId: string | null;
   scrollRequestId: number;
   scrollTargetDate: string | null;
+  visibleCenterDate: string | null;
   timelineInteractingUntil: number;
   syncHealthy: boolean;
   setWorkspaceId: (id: string | null) => void;
@@ -131,6 +132,7 @@ export interface PlannerStore extends PlannerState {
   setViewMode: (mode: ViewMode) => void;
   setGroupMode: (mode: GroupMode) => void;
   setCurrentDate: (date: string) => void;
+  setVisibleCenterDate: (date: string) => void;
   requestScrollToDate: (date: string) => void;
   setTimelineAttentionDate: (date: string | null) => void;
   setFilters: (filters: Partial<Filters>) => void;
