@@ -11,7 +11,7 @@ import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { createLatestAsyncRequest } from '@/shared/lib/latestAsyncRequest';
 import { addYears, format, parseISO } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { Plus, X, UserPlus } from 'lucide-react';
 import { Task } from '@/features/planner/types/planner';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
@@ -27,6 +27,7 @@ import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } fr
 import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
 import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
 import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 
 type MemberGroup = {
   id: string;
@@ -135,12 +136,14 @@ const MembersPage = () => {
     currentWorkspaceId,
     currentWorkspaceRole,
     isSuperAdmin,
+    assignMemberToGroup,
   } = useAuthStore(useShallow((state) => ({
     user: state.user,
     members: state.members,
     currentWorkspaceId: state.currentWorkspaceId,
     currentWorkspaceRole: state.currentWorkspaceRole,
     isSuperAdmin: state.isSuperAdmin,
+    assignMemberToGroup: state.updateMemberGroup,
   })));
 
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
@@ -231,6 +234,8 @@ const MembersPage = () => {
     handleStartEditGroup,
     handleSaveGroupName,
     handleDeleteGroup,
+    handleAddMemberToGroup,
+    handleRemoveMemberFromGroup,
   } = useMemberGroups({
     currentWorkspaceId,
     isAdmin,
@@ -239,6 +244,7 @@ const MembersPage = () => {
     createMemberGroup,
     updateMemberGroup,
     deleteMemberGroup,
+    assignMemberToGroup,
     mode,
   });
 
@@ -296,6 +302,30 @@ const MembersPage = () => {
     });
     return map;
   }, [assignees]);
+
+  const [addMemberPopoverOpen, setAddMemberPopoverOpen] = useState(false);
+  const [addMemberSearch, setAddMemberSearch] = useState('');
+
+  const availableMembers = useMemo(() => {
+    if (!selectedGroupId) return [];
+    const groupMemberUserIds = new Set(groupMembers.map((m) => m.userId));
+    return members
+      .filter((m) => !groupMemberUserIds.has(m.userId))
+      .map((m) => {
+        const assignee = assigneeByUserId.get(m.userId);
+        return {
+          userId: m.userId,
+          email: m.email,
+          displayName: assignee?.name ?? m.displayName ?? null,
+        };
+      })
+      .filter((m) => {
+        if (!addMemberSearch.trim()) return true;
+        const q = addMemberSearch.toLowerCase();
+        return (m.displayName?.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+      })
+      .sort((a, b) => (a.displayName ?? a.email).localeCompare(b.displayName ?? b.email));
+  }, [addMemberSearch, assigneeByUserId, groupMembers, members, selectedGroupId]);
 
   const assigneeProjectIds = useMemo(() => {
     const ids = new Set<string>();
@@ -710,7 +740,56 @@ const MembersPage = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-lg font-semibold">{selectedGroup.name}</div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-lg font-semibold">{selectedGroup.name}</div>
+                    {isAdmin && (
+                      <Popover open={addMemberPopoverOpen} onOpenChange={(open) => {
+                        setAddMemberPopoverOpen(open);
+                        if (!open) setAddMemberSearch('');
+                      }}>
+                        <PopoverTrigger asChild>
+                          <Button size="sm" variant="outline" className="gap-1.5" disabled={groupActionLoading}>
+                            <UserPlus className="h-4 w-4" />
+                            {t`Add member`}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[280px] p-2" align="start">
+                          <Input
+                            placeholder={t`Search members...`}
+                            value={addMemberSearch}
+                            onChange={(e) => setAddMemberSearch(e.target.value)}
+                            className="mb-2"
+                          />
+                          <div className="max-h-[200px] overflow-auto space-y-0.5">
+                            {availableMembers.length === 0 ? (
+                              <div className="text-sm text-muted-foreground px-2 py-1.5">
+                                {t`No available members.`}
+                              </div>
+                            ) : (
+                              availableMembers.map((m) => (
+                                <button
+                                  key={m.userId}
+                                  type="button"
+                                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors"
+                                  disabled={groupActionLoading}
+                                  onClick={() => {
+                                    void handleAddMemberToGroup(m.userId);
+                                    setAddMemberPopoverOpen(false);
+                                    setAddMemberSearch('');
+                                  }}
+                                >
+                                  <div className="font-medium truncate">{m.displayName || m.email}</div>
+                                  {m.displayName && (
+                                    <div className="text-xs text-muted-foreground truncate">{m.email}</div>
+                                  )}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -730,27 +809,43 @@ const MembersPage = () => {
                         const assignee = assigneeByUserId.get(member.userId);
                         const isActive = assignee?.isActive ?? true;
                         return (
-                          <button
+                          <div
                             key={member.userId}
-                            type="button"
-                            onClick={() => handleGroupMemberClick(member.userId)}
-                            className="w-full rounded-lg border px-3 py-2 text-left transition-colors hover:bg-muted/40"
+                            className="flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors hover:bg-muted/40"
                           >
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-sm font-medium leading-snug break-words line-clamp-2">
-                                {member.displayName || member.email}
-                              </span>
-                              {!isActive && (
-                                <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
-                              )}
-                              <Badge variant="outline" className="text-[10px]">
-                                {roleLabels[member.role] ?? member.role}
-                              </Badge>
-                            </div>
-                            <div className="text-xs text-muted-foreground leading-snug break-words line-clamp-2">
-                              {member.displayName ? member.email : t`View tasks`}
-                            </div>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => handleGroupMemberClick(member.userId)}
+                              className="flex-1 text-left min-w-0"
+                            >
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-sm font-medium leading-snug break-words line-clamp-2">
+                                  {member.displayName || member.email}
+                                </span>
+                                {!isActive && (
+                                  <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
+                                )}
+                                <Badge variant="outline" className="text-[10px]">
+                                  {roleLabels[member.role] ?? member.role}
+                                </Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground leading-snug break-words line-clamp-2">
+                                {member.displayName ? member.email : t`View tasks`}
+                              </div>
+                            </button>
+                            {isAdmin && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="shrink-0 h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                                disabled={groupActionLoading}
+                                onClick={() => void handleRemoveMemberFromGroup(member.userId)}
+                                title={t`Remove from group`}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         );
                       })}
                     </div>

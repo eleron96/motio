@@ -20,6 +20,7 @@ interface UseMemberGroupsInput {
   createMemberGroup: (workspaceId: string, name: string) => Promise<{ groupId?: string; error?: string }>;
   updateMemberGroup: (workspaceId: string, groupId: string, name: string) => Promise<{ error?: string }>;
   deleteMemberGroup: (workspaceId: string, groupId: string) => Promise<{ error?: string }>;
+  assignMemberToGroup: (userId: string, groupId: string | null) => Promise<{ error?: string }>;
   mode: string;
 }
 
@@ -31,6 +32,7 @@ export function useMemberGroups({
   createMemberGroup,
   updateMemberGroup,
   deleteMemberGroup,
+  assignMemberToGroup,
   mode,
 }: UseMemberGroupsInput) {
   const [groups, setGroups] = useState<MemberGroup[]>([]);
@@ -190,6 +192,34 @@ export function useMemberGroups({
     setGroupActionLoading(false);
   }, [currentWorkspaceId, deleteMemberGroup, fetchGroups, isAdmin, selectedGroup?.name, selectedGroupId]);
 
+  const handleAddMemberToGroup = useCallback(async (userId: string) => {
+    if (!currentWorkspaceId || !isAdmin || !selectedGroupId) return;
+    setGroupActionLoading(true);
+    setGroupsError('');
+    const result = await assignMemberToGroup(userId, selectedGroupId);
+    if (result.error) {
+      setGroupsError(result.error);
+      setGroupActionLoading(false);
+      return;
+    }
+    await fetchSelectedGroupMembers(selectedGroupId);
+    setGroupActionLoading(false);
+  }, [assignMemberToGroup, currentWorkspaceId, fetchSelectedGroupMembers, isAdmin, selectedGroupId]);
+
+  const handleRemoveMemberFromGroup = useCallback(async (userId: string) => {
+    if (!currentWorkspaceId || !isAdmin || !selectedGroupId) return;
+    setGroupActionLoading(true);
+    setGroupsError('');
+    const result = await assignMemberToGroup(userId, null);
+    if (result.error) {
+      setGroupsError(result.error);
+      setGroupActionLoading(false);
+      return;
+    }
+    await fetchSelectedGroupMembers(selectedGroupId);
+    setGroupActionLoading(false);
+  }, [assignMemberToGroup, currentWorkspaceId, fetchSelectedGroupMembers, isAdmin, selectedGroupId]);
+
   return {
     groups,
     groupsLoading,
@@ -218,5 +248,7 @@ export function useMemberGroups({
     handleStartEditGroup,
     handleSaveGroupName,
     handleDeleteGroup,
+    handleAddMemberToGroup,
+    handleRemoveMemberFromGroup,
   };
 }
