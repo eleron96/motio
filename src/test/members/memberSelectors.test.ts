@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Assignee } from '@/features/planner/types/planner';
 import {
+  buildAvailableGroupMembers,
   buildMemberGroups,
   filterAndSortByName,
   splitAssigneesByActivity,
@@ -63,5 +64,46 @@ describe('memberSelectors', () => {
     const filtered = filterAndSortByName(items, 'de', 'desc');
 
     expect(filtered.map((item) => item.id)).toEqual(['g2']);
+  });
+
+  it('hides disabled group candidates by default and tracks hidden matches', () => {
+    const result = buildAvailableGroupMembers({
+      members: [
+        { userId: 'u1', email: 'ann@example.com', displayName: 'Ann Workspace' },
+        { userId: 'u2', email: 'boris@example.com', displayName: 'Boris Workspace' },
+      ],
+      groupMembers: [],
+      assigneeByUserId: new Map<string, Assignee>([
+        ['u1', makeAssignee({ userId: 'u1', name: 'Ann Active', isActive: true })],
+        ['u2', makeAssignee({ userId: 'u2', name: 'Boris Disabled', isActive: false })],
+      ]),
+      search: 'boris',
+      includeDisabled: false,
+    });
+
+    expect(result.availableMembers).toEqual([]);
+    expect(result.hiddenDisabledCount).toBe(1);
+  });
+
+  it('shows disabled group candidates when explicitly enabled', () => {
+    const result = buildAvailableGroupMembers({
+      members: [
+        { userId: 'u1', email: 'ann@example.com', displayName: 'Ann Workspace' },
+        { userId: 'u2', email: 'boris@example.com', displayName: 'Boris Workspace' },
+        { userId: 'u3', email: 'nina@example.com', displayName: 'Nina Workspace' },
+      ],
+      groupMembers: [{ userId: 'u3' }],
+      assigneeByUserId: new Map<string, Assignee>([
+        ['u1', makeAssignee({ userId: 'u1', name: 'Ann Active', isActive: true })],
+        ['u2', makeAssignee({ userId: 'u2', name: 'Boris Disabled', isActive: false })],
+        ['u3', makeAssignee({ userId: 'u3', name: 'Nina Existing', isActive: true })],
+      ]),
+      search: '',
+      includeDisabled: true,
+    });
+
+    expect(result.availableMembers.map((member) => member.userId)).toEqual(['u1', 'u2']);
+    expect(result.availableMembers[1]?.isActive).toBe(false);
+    expect(result.hiddenDisabledCount).toBe(0);
   });
 });

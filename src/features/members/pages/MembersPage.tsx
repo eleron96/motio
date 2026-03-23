@@ -8,10 +8,9 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
 import { t } from '@lingui/macro';
-import { cn } from '@/shared/lib/classNames';
 import { createLatestAsyncRequest } from '@/shared/lib/latestAsyncRequest';
 import { addYears, format, parseISO } from 'date-fns';
-import { Plus, X, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Plus, X, UserPlus } from 'lucide-react';
 import { Task } from '@/features/planner/types/planner';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
@@ -27,19 +26,8 @@ import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } fr
 import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
 import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
 import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
+import { buildAvailableGroupMembers } from '@/features/members/lib/memberSelectors';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-
-type MemberGroup = {
-  id: string;
-  name: string;
-};
-
-type GroupMember = {
-  userId: string;
-  role: WorkspaceRole;
-  email: string;
-  displayName: string | null;
-};
 
 type AccessTab = 'active' | 'disabled' | 'history';
 
@@ -305,27 +293,41 @@ const MembersPage = () => {
 
   const [addMemberPopoverOpen, setAddMemberPopoverOpen] = useState(false);
   const [addMemberSearch, setAddMemberSearch] = useState('');
+  const [showDisabledAddMembers, setShowDisabledAddMembers] = useState(false);
 
-  const availableMembers = useMemo(() => {
-    if (!selectedGroupId) return [];
-    const groupMemberUserIds = new Set(groupMembers.map((m) => m.userId));
-    return members
-      .filter((m) => !groupMemberUserIds.has(m.userId))
-      .map((m) => {
-        const assignee = assigneeByUserId.get(m.userId);
-        return {
-          userId: m.userId,
-          email: m.email,
-          displayName: assignee?.name ?? m.displayName ?? null,
-        };
-      })
-      .filter((m) => {
-        if (!addMemberSearch.trim()) return true;
-        const q = addMemberSearch.toLowerCase();
-        return (m.displayName?.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
-      })
-      .sort((a, b) => (a.displayName ?? a.email).localeCompare(b.displayName ?? b.email));
-  }, [addMemberSearch, assigneeByUserId, groupMembers, members, selectedGroupId]);
+  const {
+    availableMembers,
+    hiddenDisabledCount,
+  } = useMemo(() => {
+    if (!selectedGroupId) {
+      return { availableMembers: [], hiddenDisabledCount: 0 };
+    }
+    return buildAvailableGroupMembers({
+      members,
+      groupMembers,
+      assigneeByUserId,
+      search: addMemberSearch,
+      includeDisabled: showDisabledAddMembers,
+    });
+  }, [addMemberSearch, assigneeByUserId, groupMembers, members, selectedGroupId, showDisabledAddMembers]);
+  const addMemberSearchQuery = addMemberSearch.trim();
+  const addMemberEmptyState = useMemo(() => {
+    if (availableMembers.length > 0) return null;
+    if (hiddenDisabledCount > 0) {
+      return {
+        title: addMemberSearchQuery
+          ? t`No active members match the search.`
+          : t`Only disabled people are available.`,
+        hint: t`Show disabled people to add them.`,
+      };
+    }
+    return {
+      title: addMemberSearchQuery
+        ? t`No members match the search.`
+        : t`No available members.`,
+      hint: null,
+    };
+  }, [addMemberSearchQuery, availableMembers.length, hiddenDisabledCount]);
 
   const assigneeProjectIds = useMemo(() => {
     const ids = new Set<string>();
@@ -745,7 +747,10 @@ const MembersPage = () => {
                     {isAdmin && (
                       <Popover open={addMemberPopoverOpen} onOpenChange={(open) => {
                         setAddMemberPopoverOpen(open);
-                        if (!open) setAddMemberSearch('');
+                        if (!open) {
+                          setAddMemberSearch('');
+                          setShowDisabledAddMembers(false);
+                        }
                       }}>
                         <PopoverTrigger asChild>
                           <Button size="sm" variant="outline" className="gap-1.5" disabled={groupActionLoading}>
@@ -754,16 +759,36 @@ const MembersPage = () => {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[280px] p-2" align="start">
-                          <Input
-                            placeholder={t`Search members...`}
-                            value={addMemberSearch}
-                            onChange={(e) => setAddMemberSearch(e.target.value)}
-                            className="mb-2"
-                          />
+                          <div className="mb-2 flex items-center gap-2">
+                            <Input
+                              placeholder={t`Search members...`}
+                              value={addMemberSearch}
+                              onChange={(e) => setAddMemberSearch(e.target.value)}
+                            />
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant={showDisabledAddMembers ? 'secondary' : 'ghost'}
+                              className="shrink-0"
+                              onClick={() => setShowDisabledAddMembers((current) => !current)}
+                              aria-pressed={showDisabledAddMembers}
+                              aria-label={showDisabledAddMembers ? t`Hide disabled people` : t`Show disabled people`}
+                              title={showDisabledAddMembers ? t`Hide disabled people` : t`Show disabled people`}
+                            >
+                              {showDisabledAddMembers ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
                           <div className="max-h-[200px] overflow-auto space-y-0.5">
-                            {availableMembers.length === 0 ? (
-                              <div className="text-sm text-muted-foreground px-2 py-1.5">
-                                {t`No available members.`}
+                            {addMemberEmptyState ? (
+                              <div className="space-y-1 px-2 py-1.5 text-sm text-muted-foreground">
+                                <div>{addMemberEmptyState.title}</div>
+                                {addMemberEmptyState.hint && (
+                                  <div className="text-xs">{addMemberEmptyState.hint}</div>
+                                )}
                               </div>
                             ) : (
                               availableMembers.map((m) => (
@@ -778,7 +803,12 @@ const MembersPage = () => {
                                     setAddMemberSearch('');
                                   }}
                                 >
-                                  <div className="font-medium truncate">{m.displayName || m.email}</div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="min-w-0 flex-1 font-medium truncate">{m.displayName || m.email}</div>
+                                    {!m.isActive && (
+                                      <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
+                                    )}
+                                  </div>
                                   {m.displayName && (
                                     <div className="text-xs text-muted-foreground truncate">{m.email}</div>
                                   )}
