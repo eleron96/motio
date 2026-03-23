@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.49] - 2026-03-23
+### Fixed
+- Fixed group deletion error in Team section
+
 ## [0.3.48] - 2026-03-20
 ### Changed
 - Fixed task loading for large timeline ranges: the gateway no longer fails long `tasks` requests with 502 responses.
