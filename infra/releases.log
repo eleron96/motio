@@ -223,3 +223,4 @@
 2026-03-20T14:47:53Z | 0.3.47 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260320-144714.dump | Timeline holiday data now loads more reliably through a backend proxy, and drag scrolling is smoother on long ranges.
 2026-03-20T14:52:50Z | 0.3.48 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260320-145210.dump | Fixed task loading for large timeline ranges: the gateway no longer fails long tasks requests with 502 responses.
 2026-03-23T09:34:48Z | 0.3.52 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-093406.dump | No documented changes.
+2026-03-23T10:09:09Z | 0.3.53 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-100828.dump | No documented changes.
