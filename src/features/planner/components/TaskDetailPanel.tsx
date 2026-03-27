@@ -67,9 +67,14 @@ const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
 };
 
 type PendingRepeatUpdate = {
+  closeAfterApply?: boolean;
+  kind: 'task-update' | 'repeat-config';
+  nextSignature?: string;
+  options?: ReturnType<typeof buildCreateRepeatsOptions>;
+  scopes?: RepeatTaskUpdateScope[];
   taskId: string;
-  updates: Partial<Task>;
-  resetDraftOnCancel: boolean;
+  updates?: Partial<Task>;
+  resetDraftOnCancel?: boolean;
 };
 
 const buildRepeatConfigSignature = (params: {
@@ -105,6 +110,17 @@ const inferRepeatFrequency = (series: Task[]): RepeatFrequency => {
   return 'none';
 };
 
+const resolveScopedRepeatCount = (params: {
+  repeatCount: number;
+  scope: Exclude<RepeatTaskUpdateScope, 'single'>;
+  selectedTaskStartDate: string;
+  series: Task[];
+}) => {
+  if (params.scope === 'all') return params.repeatCount;
+  if (params.repeatCount !== params.series.length) return params.repeatCount;
+  return params.series.filter((item) => item.startDate >= params.selectedTaskStartDate).length;
+};
+
 export const TaskDetailPanel: React.FC = () => {
   const { 
     selectedTaskId, 
@@ -123,6 +139,7 @@ export const TaskDetailPanel: React.FC = () => {
     deleteTaskSeries,
     duplicateTask,
     createRepeats,
+    updateRepeatSeries,
     fetchTaskSubtasks,
     createTaskSubtask,
     updateTaskSubtaskCompletion,
@@ -420,6 +437,24 @@ export const TaskDetailPanel: React.FC = () => {
       return true;
     }
 
+    if (task.repeatId) {
+      setPendingRepeatUpdate({
+        kind: 'repeat-config',
+        taskId: task.id,
+        options: buildCreateRepeatsOptions({
+          frequency: repeatFrequency,
+          ends: repeatEnds,
+          until: repeatUntil,
+          count: repeatCount,
+        }),
+        nextSignature,
+        closeAfterApply: true,
+        scopes: ['all', 'following'],
+      });
+      setRepeatScopeOpen(true);
+      return false;
+    }
+
     if (repeatInFlightRef.current) return false;
     repeatInFlightRef.current = true;
     setRepeatCreating(true);
@@ -484,6 +519,7 @@ export const TaskDetailPanel: React.FC = () => {
     if (!hasTaskUpdates(task, updates)) return;
     if (task.repeatId) {
       setPendingRepeatUpdate({
+        kind: 'task-update',
         taskId: task.id,
         updates,
         resetDraftOnCancel,
@@ -499,7 +535,50 @@ export const TaskDetailPanel: React.FC = () => {
     if (!pending) return;
     setPendingRepeatUpdate(null);
     setRepeatScopeOpen(false);
-    await updateTask(pending.taskId, pending.updates, scope);
+    if (pending.kind === 'task-update') {
+      await updateTask(pending.taskId, pending.updates ?? {}, scope);
+      return;
+    }
+    if (scope === 'single' || !task || !pending.options) return;
+    if (repeatInFlightRef.current) return;
+
+    repeatInFlightRef.current = true;
+    setRepeatCreating(true);
+    setRepeatError('');
+    setRepeatNotice('');
+
+    const series = tasks.filter((item) => item.repeatId === task.repeatId);
+    const result = await updateRepeatSeries(
+      pending.taskId,
+      pending.options.ends === 'after'
+        ? {
+          ...pending.options,
+          count: resolveScopedRepeatCount({
+            repeatCount: pending.options.count ?? repeatCount,
+            scope,
+            selectedTaskStartDate: task.startDate,
+            series,
+          }),
+        }
+        : pending.options,
+      scope,
+    );
+
+    repeatInFlightRef.current = false;
+    setRepeatCreating(false);
+
+    if (result.error) {
+      setRepeatError(result.error);
+      return;
+    }
+
+    if (pending.nextSignature) {
+      repeatConfigSnapshotRef.current = pending.nextSignature;
+    }
+    if (pending.closeAfterApply) {
+      setConfirmOpen(false);
+      setSelectedTaskId(null);
+    }
   };
 
   const cancelPendingRepeatUpdate = () => {
@@ -1106,6 +1185,7 @@ export const TaskDetailPanel: React.FC = () => {
         repeatCreating={repeatCreating}
         repeatScopeOpen={repeatScopeOpen}
         setRepeatScopeOpen={setRepeatScopeOpen}
+        repeatScopeOptions={pendingRepeatUpdate?.scopes}
         onCancelPendingRepeatUpdate={cancelPendingRepeatUpdate}
         onApplyPendingRepeatUpdate={applyPendingRepeatUpdate}
         deleteOpen={deleteOpen}

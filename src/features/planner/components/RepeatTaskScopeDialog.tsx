@@ -17,6 +17,7 @@ type RepeatTaskScopeDialogProps = {
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
   onApply: (scope: RepeatTaskUpdateScope) => Promise<void> | void;
+  scopes?: RepeatTaskUpdateScope[];
 };
 
 export const RepeatTaskScopeDialog = ({
@@ -24,6 +25,7 @@ export const RepeatTaskScopeDialog = ({
   onOpenChange,
   onCancel,
   onApply,
+  scopes = ['all', 'following', 'single'],
 }: RepeatTaskScopeDialogProps) => (
   <AlertDialog
     open={open}
@@ -47,30 +49,36 @@ export const RepeatTaskScopeDialog = ({
           {t`Cancel`}
         </AlertDialogCancel>
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <AlertDialogAction
-            className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
-            onClick={() => {
-              void onApply('all');
-            }}
-          >
-            {t`All tasks`}
-          </AlertDialogAction>
-          <AlertDialogAction
-            className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
-            onClick={() => {
-              void onApply('following');
-            }}
-          >
-            {t`This and following`}
-          </AlertDialogAction>
-          <AlertDialogAction
-            className="h-8 whitespace-nowrap px-2.5 text-xs"
-            onClick={() => {
-              void onApply('single');
-            }}
-          >
-            {t`Only this task`}
-          </AlertDialogAction>
+          {scopes.includes('all') && (
+            <AlertDialogAction
+              className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
+              onClick={() => {
+                void onApply('all');
+              }}
+            >
+              {t`All tasks`}
+            </AlertDialogAction>
+          )}
+          {scopes.includes('following') && (
+            <AlertDialogAction
+              className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
+              onClick={() => {
+                void onApply('following');
+              }}
+            >
+              {t`This and following`}
+            </AlertDialogAction>
+          )}
+          {scopes.includes('single') && (
+            <AlertDialogAction
+              className="h-8 whitespace-nowrap px-2.5 text-xs"
+              onClick={() => {
+                void onApply('single');
+              }}
+            >
+              {t`Only this task`}
+            </AlertDialogAction>
+          )}
         </div>
       </AlertDialogFooter>
     </AlertDialogContent>

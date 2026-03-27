@@ -570,3 +570,27 @@ Then:
 - `src/features/planner/components/timeline/TaskBar.tsx`
 - `src/test/shared/repeatTaskMove.test.ts`
 - `src/test/planner/taskBar.repeatMove.test.tsx`
+
+## Scenario 29: Task details repeat cadence change reuses repeat scope dialog and rebuilds following tasks
+
+Given:
+- пользователь открыл задачу из repeat-серии в detail panel;
+- у серии уже есть weekly-задачи на будущие даты.
+
+When:
+- пользователь меняет repeat cadence, например с weekly на biweekly;
+- нажимает `OK` и выбирает `This and following` или `All tasks`.
+
+Then:
+- detail panel использует уже существующий диалог выбора области изменений;
+- при выборе области текущая и будущие задачи серии пересчитываются по новому cadence;
+- прошлые задачи не меняются;
+- store не пытается просто дозалить новые повторы поверх старой weekly-сетки.
+
+Покрытие:
+- `src/features/planner/components/TaskDetailPanel.tsx`
+- `src/shared/domain/repeatSeriesRebuild.ts`
+- `src/features/planner/store/plannerStore.taskActions.ts`
+- `src/test/shared/repeatSeriesRebuild.test.ts`
+- `src/test/planner/taskDetailPanel.repeat.test.tsx`
+- `src/test/planner/plannerStore.updateRepeatSeries.test.ts`
