@@ -40,6 +40,7 @@ type TaskDetailAlertsProps = {
   repeatCreating: boolean;
   repeatScopeOpen: boolean;
   setRepeatScopeOpen: (open: boolean) => void;
+  repeatScopeOptions?: RepeatTaskUpdateScope[];
   onCancelPendingRepeatUpdate: () => void;
   onApplyPendingRepeatUpdate: (scope: RepeatTaskUpdateScope) => Promise<void> | void;
   deleteOpen: boolean;
@@ -60,6 +61,7 @@ export const TaskDetailAlerts = ({
   repeatCreating,
   repeatScopeOpen,
   setRepeatScopeOpen,
+  repeatScopeOptions,
   onCancelPendingRepeatUpdate,
   onApplyPendingRepeatUpdate,
   deleteOpen,
@@ -99,6 +101,7 @@ export const TaskDetailAlerts = ({
       onOpenChange={setRepeatScopeOpen}
       onCancel={onCancelPendingRepeatUpdate}
       onApply={onApplyPendingRepeatUpdate}
+      scopes={repeatScopeOptions}
     />
 
     <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>

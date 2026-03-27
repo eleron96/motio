@@ -10,6 +10,7 @@ import {
 import { supabase } from '@/shared/lib/supabaseClient';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { buildShiftedRepeatTasks } from '@/shared/domain/repeatTaskMove';
+import { buildRepeatSeriesRebuildPlan } from '@/shared/domain/repeatSeriesRebuild';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -32,6 +33,7 @@ type TaskActions = Pick<
   | 'deleteTasks'
   | 'duplicateTask'
   | 'createRepeats'
+  | 'updateRepeatSeries'
   | 'moveTask'
   | 'reassignTask'
   | 'deleteTaskSeries'
@@ -46,7 +48,56 @@ type TaskActions = Pick<
 export const createTaskActions = (
   set: PlannerSetState,
   get: PlannerGetState,
-): TaskActions => ({
+): TaskActions => {
+  const applyUpdatedRows = (rows: TaskRow[]) => {
+    if (rows.length === 0) return;
+    const updatedById = new Map(rows.map((row) => [row.id, mapTaskRow(row)]));
+    set((state) => ({
+      tasks: state.tasks.map((task) => updatedById.get(task.id) ?? task),
+    }));
+  };
+
+  const insertRepeatSeriesTasks = async (params: {
+    workspaceId: string;
+    repeatId: string;
+    sourceRow: TaskRow;
+    startEndDates: Array<{ startDate: string; endDate: string }>;
+  }) => {
+    if (params.startEndDates.length === 0) {
+      return { rows: [] as TaskRow[], error: undefined as string | undefined };
+    }
+
+    const assigneeIds = uniqueAssigneeIds(
+      normalizeAssigneeIds(params.sourceRow.assignee_ids, params.sourceRow.assignee_id),
+    );
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert(params.startEndDates.map(({ startDate, endDate }) => ({
+        workspace_id: params.workspaceId,
+        title: params.sourceRow.title,
+        project_id: params.sourceRow.project_id,
+        assignee_id: assigneeIds[0] ?? null,
+        assignee_ids: assigneeIds,
+        start_date: startDate,
+        end_date: endDate,
+        status_id: params.sourceRow.status_id,
+        type_id: params.sourceRow.type_id,
+        priority: params.sourceRow.priority,
+        tag_ids: params.sourceRow.tag_ids ?? [],
+        description: params.sourceRow.description,
+        repeat_id: params.repeatId,
+      })))
+      .select('*');
+
+    if (error) {
+      return { rows: [] as TaskRow[], error: error.message };
+    }
+
+    return { rows: ((data ?? []) as TaskRow[]), error: undefined as string | undefined };
+  };
+
+  return ({
   addTask: async (task) => {
     const workspaceId = get().workspaceId;
     if (!workspaceId) return null;
@@ -89,14 +140,6 @@ export const createTaskActions = (
 
     const payload = mapTaskUpdates(updates);
     if (Object.keys(payload).length === 0) return;
-
-    const applyUpdatedRows = (rows: TaskRow[]) => {
-      if (rows.length === 0) return;
-      const updatedById = new Map(rows.map((row) => [row.id, mapTaskRow(row)]));
-      set((state) => ({
-        tasks: state.tasks.map((task) => updatedById.get(task.id) ?? task),
-      }));
-    };
 
     let baseTask = get().tasks.find((task) => task.id === id) ?? null;
     if (!baseTask && scope !== 'single') {
@@ -402,6 +445,127 @@ export const createTaskActions = (
     return { created: newTasks.length };
   },
 
+  updateRepeatSeries: async (id, options, scope = 'following') => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    let baseTask = get().tasks.find((task) => task.id === id) ?? null;
+    if (!baseTask) {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .single();
+
+      if (error || !data) {
+        return { error: error?.message ?? 'Task not found.' };
+      }
+
+      baseTask = mapTaskRow(data as TaskRow);
+      set((state) => (
+        state.tasks.some((task) => task.id === baseTask!.id)
+          ? state
+          : { tasks: [...state.tasks, baseTask!] }
+      ));
+    }
+
+    if (!baseTask.repeatId) {
+      return { error: 'Task is not part of a repeat series.' };
+    }
+
+    const { data: seriesData, error: seriesError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('repeat_id', baseTask.repeatId);
+
+    if (seriesError) {
+      return { error: seriesError.message };
+    }
+
+    const seriesRows = ((seriesData ?? []) as TaskRow[])
+      .sort((left, right) => left.start_date.localeCompare(right.start_date) || left.id.localeCompare(right.id));
+    if (seriesRows.length === 0) {
+      return { error: 'Repeat series not found.' };
+    }
+
+    const anchorRow = scope === 'all'
+      ? seriesRows[0]
+      : seriesRows.find((row) => row.id === id);
+    if (!anchorRow) {
+      return { error: 'Task is not part of the loaded repeat series.' };
+    }
+
+    const plan = buildRepeatSeriesRebuildPlan({
+      anchorTaskId: anchorRow.id,
+      tasks: seriesRows.map((row) => ({
+        id: row.id,
+        startDate: row.start_date,
+        endDate: row.end_date,
+      })),
+      options,
+    });
+
+    const updatedRows: TaskRow[] = [];
+
+    for (const update of plan.updates) {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({
+          start_date: update.startDate,
+          end_date: update.endDate,
+        })
+        .eq('workspace_id', workspaceId)
+        .eq('id', update.id)
+        .select('*')
+        .single();
+
+      if (error || !data) {
+        return { error: error?.message ?? 'Failed to update repeat task.' };
+      }
+
+      updatedRows.push(data as TaskRow);
+    }
+
+    if (plan.deleteIds.length > 0) {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('workspace_id', workspaceId)
+        .in('id', plan.deleteIds);
+
+      if (error) {
+        return { error: error.message };
+      }
+
+      get().removeTasksByIds(plan.deleteIds);
+    }
+
+    const inserted = await insertRepeatSeriesTasks({
+      workspaceId,
+      repeatId: baseTask.repeatId,
+      sourceRow: anchorRow,
+      startEndDates: plan.create,
+    });
+    if (inserted.error) {
+      return { error: inserted.error };
+    }
+
+    applyUpdatedRows(updatedRows);
+    if (inserted.rows.length > 0) {
+      set((state) => ({
+        tasks: [...state.tasks, ...inserted.rows.map(mapTaskRow)],
+      }));
+    }
+
+    return {
+      updated: plan.updates.length,
+      deleted: plan.deleteIds.length,
+      created: inserted.rows.length,
+    };
+  },
+
   moveTask: async (id, startDate, endDate, scope = 'single') => {
     const workspaceId = get().workspaceId;
     if (!workspaceId) return;
@@ -435,14 +599,6 @@ export const createTaskActions = (
       await get().updateTask(id, { startDate, endDate }, 'single');
       return;
     }
-
-    const applyUpdatedRows = (rows: TaskRow[]) => {
-      if (rows.length === 0) return;
-      const updatedById = new Map(rows.map((row) => [row.id, mapTaskRow(row)]));
-      set((state) => ({
-        tasks: state.tasks.map((task) => updatedById.get(task.id) ?? task),
-      }));
-    };
 
     const seriesQuery = supabase
       .from('tasks')
@@ -753,3 +909,4 @@ export const createTaskActions = (
     return {};
   },
 });
+};
