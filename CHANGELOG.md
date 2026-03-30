@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.55] - 2026-03-30
+### Changed
+- [internal] Перенесено хранение изображений в комментариях задач из Postgres в Supabase Storage с обратной совместимостью для старых вложений.
+
 ## [0.3.54] - 2026-03-27
 ### Changed
 - Нет зафиксированных изменений.

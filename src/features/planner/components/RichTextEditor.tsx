@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify';
 import { Button } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/sonner';
 import { cn } from '@/shared/lib/classNames';
-import { supabase } from '@/shared/lib/supabaseClient';
+import { uploadTaskMedia } from '@/infrastructure/tasks/taskMediaRepository';
 import { t } from '@lingui/macro';
 
 interface RichTextEditorProps {
@@ -21,8 +21,6 @@ interface RichTextEditorProps {
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MIN_IMAGE_WIDTH = 120;
 const DEFAULT_IMAGE_SCALE = 0.7;
-
-const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 
 const hasRichTags = (value: string) => (
   /<\/?(b|strong|i|em|u|s|strike|ul|ol|li|blockquote|br|div|p|span|img)\b/i.test(value)
@@ -227,43 +225,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   }, [getDefaultImageWidth, restoreSelection, saveSelection, syncFromEditor]);
 
   const uploadTaskImage = useCallback(async (file: File) => {
-    const normalizedWorkspaceId = workspaceId?.trim() ?? '';
-    if (!normalizedWorkspaceId) {
-      throw new Error('Workspace is not selected.');
-    }
-
-    const supabaseUrl = trimTrailingSlash((import.meta.env.VITE_SUPABASE_URL ?? '').trim());
-    if (!supabaseUrl) {
-      throw new Error('Upload service is not configured.');
-    }
-
-    const { data } = await supabase.auth.getSession();
-    const accessToken = data.session?.access_token;
-    if (!accessToken) {
-      throw new Error('Not authenticated.');
-    }
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/task-media`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': file.type || 'application/octet-stream',
-        'X-Workspace-Id': normalizedWorkspaceId,
-        'X-File-Name': file.name,
-      },
-      body: file,
-    });
-
-    const payload = await response.json().catch(() => ({} as { error?: string; id?: string; token?: string }));
-    if (!response.ok) {
-      throw new Error(payload.error || `Failed to upload image (${response.status}).`);
-    }
-
-    if (typeof payload.id !== 'string' || typeof payload.token !== 'string') {
-      throw new Error('Upload response is invalid.');
-    }
-
-    return `${supabaseUrl}/functions/v1/task-media/${encodeURIComponent(payload.id)}?token=${encodeURIComponent(payload.token)}`;
+    return uploadTaskMedia(workspaceId?.trim() ?? '', file);
   }, [workspaceId]);
 
   const handleImageFile = useCallback(async (file: File) => {
