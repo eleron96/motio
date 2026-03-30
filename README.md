@@ -23,7 +23,7 @@ Motio — приложение для командного планирован�
   - кнопкой,
   - вставкой из буфера,
   - drag-and-drop в редактор.
-- Отдельное хранение task media (`public.task_media`) + квоты по пользователю и workspace.
+- Отдельное хранение task media: metadata и квоты в `public.task_media`, бинарники в private Supabase Storage bucket `task-media`.
 
 ## Важные правила текущей архитектуры
 
@@ -54,6 +54,7 @@ Motio — приложение для командного планирован�
 
 - Архитектурные границы frontend: `docs/architecture/frontend-boundaries.md`
 - Спецификации поведения (Specification by Example): `docs/specifications/planner-behavior-by-example.md`
+- Спецификация хранения task media: `docs/specifications/task-media-storage-behavior-by-example.md`
 
 ## Требования
 
@@ -313,9 +314,12 @@ npm run lingui:compile
   - загрузка бинарного image,
   - валидация membership,
   - квоты file/user/workspace,
-  - хранение в `public.task_media`.
+  - запись файла в private bucket `task-media`,
+  - запись metadata и квотных полей в `public.task_media`.
 - `GET /functions/v1/task-media/:id?token=...`
-  - отдача изображения по access token.
+  - валидация access token,
+  - редирект на short-lived signed Storage URL,
+  - fallback на legacy `bytea`, если строка ещё не мигрирована в Storage.
 - `POST /functions/v1/task-media/:id/revoke`
   - отзыв access token (owner файла или workspace admin).
 
@@ -328,10 +332,21 @@ npm run lingui:compile
 
 Что хранится:
 - в `tasks.description` хранится URL на `task-media` endpoint,
-- бинарные данные — в `public.task_media`.
+- metadata (`workspace_id`, `owner_id`, `byte_size`, `storage_path`, access token hash) — в `public.task_media`,
+- бинарные данные новых загрузок — в private bucket `task-media`.
 
 Текущий нюанс:
 - автоматический garbage collection не реализован (если удалить картинку из текста, запись в `task_media` не удаляется автоматически).
+
+Legacy migration:
+
+```bash
+node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
+```
+
+- скрипт переносит старые `task_media.content` в Storage,
+- после успешной загрузки записывает `storage_path` и очищает `content`,
+- после завершения переноса можно готовить отдельную финализирующую миграцию на удаление колонки `content`.
 
 ## Admin Console
 

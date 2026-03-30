@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.55] - 2026-03-30
+### Changed
+- [internal] Moved task comment image storage from Postgres to Supabase Storage with backward compatibility for legacy attachments.
+
 ## [0.3.54] - 2026-03-27
 ### Changed
 - No documented changes.
