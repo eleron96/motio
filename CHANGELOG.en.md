@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.56] - 2026-03-30
+### Fixed
+- Fixed task image uploads for files whose names contain Cyrillic or other non-Latin characters.
+
 ## [0.3.55] - 2026-03-30
 ### Changed
 - [internal] Moved task comment image storage from Postgres to Supabase Storage with backward compatibility for legacy attachments.

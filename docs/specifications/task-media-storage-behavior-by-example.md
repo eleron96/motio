@@ -23,6 +23,7 @@ When:
 Then:
 - the function uploads the binary into Storage bucket `task-media`,
 - the function inserts a row into `public.task_media` with `byte_size`, token metadata, and `storage_path`,
+- file names with Cyrillic or other non-ASCII characters are transmitted in an ASCII-safe header form and restored before metadata is saved,
 - the function returns `{ id, token, expiresAt, byteSize }`,
 - the editor stores the URL `/functions/v1/task-media/:id?token=...`.
 

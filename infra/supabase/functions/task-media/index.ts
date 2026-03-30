@@ -17,6 +17,7 @@ const TOKEN_TTL_SECONDS = parsePositiveInt(Deno.env.get("TASK_MEDIA_TOKEN_TTL_SE
 
 const STORAGE_BUCKET = "task-media";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour for signed download URLs
+const UTF8_HEADER_PREFIX = "utf8:";
 
 const allowedOrigin = (Deno.env.get("APP_URL") ?? "").replace(/\/+$/, "");
 
@@ -74,7 +75,18 @@ const constantTimeEqual = (left: string, right: string) => {
 };
 
 const sanitizeFileName = (value: string | null) => {
-  const raw = (value ?? "").trim();
+  const rawHeader = (value ?? "").trim();
+  if (!rawHeader) return null;
+
+  let raw = rawHeader;
+  if (rawHeader.startsWith(UTF8_HEADER_PREFIX)) {
+    try {
+      raw = decodeURIComponent(rawHeader.slice(UTF8_HEADER_PREFIX.length));
+    } catch (_error) {
+      raw = rawHeader.slice(UTF8_HEADER_PREFIX.length);
+    }
+  }
+
   if (!raw) return null;
   return raw.slice(0, 180);
 };
