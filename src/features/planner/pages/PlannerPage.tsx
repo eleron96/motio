@@ -142,6 +142,9 @@ const PlannerPage = () => {
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
+  const fetchMembers = useAuthStore((state) => state.fetchMembers);
+  const membersLoading = useAuthStore((state) => state.membersLoading);
+  const membersWorkspaceId = useAuthStore((state) => state.membersWorkspaceId);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const filtersHydratedRef = useRef(false);
   const timelineSidebarWidthHydratedRef = useRef(false);
@@ -168,6 +171,15 @@ const PlannerPage = () => {
     if (!currentWorkspaceId) return;
     void loadWorkspaceData(currentWorkspaceId);
   }, [currentWorkspaceId, currentDate, viewMode, loadWorkspaceData]);
+
+  // Load workspace members (with avatarUrl) as soon as the workspace is known.
+  // Without this, member avatars on the timeline are only visible after opening
+  // a task (which mounts TaskCommentSection that triggers fetchMembers).
+  useEffect(() => {
+    if (!currentWorkspaceId || membersLoading) return;
+    if (membersWorkspaceId === currentWorkspaceId) return;
+    void fetchMembers(currentWorkspaceId);
+  }, [currentWorkspaceId, fetchMembers, membersLoading, membersWorkspaceId]);
 
   useEffect(() => {
     if (centeredOnLoadRef.current) return;

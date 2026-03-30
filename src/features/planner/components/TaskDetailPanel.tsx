@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatSettingsFields } from '@/features/planner/components/RepeatSettingsFields';
@@ -8,8 +8,12 @@ import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/compone
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
-import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
-import { TaskCommentSection } from '@/features/planner/components/TaskCommentSection';
+const LazyRichTextEditor = lazy(() =>
+  import('@/features/planner/components/RichTextEditor').then((m) => ({ default: m.RichTextEditor }))
+);
+const LazyTaskCommentSection = lazy(() =>
+  import('@/features/planner/components/TaskCommentSection').then((m) => ({ default: m.TaskCommentSection }))
+);
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -63,9 +67,14 @@ const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
 };
 
 type PendingRepeatUpdate = {
+  closeAfterApply?: boolean;
+  kind: 'task-update' | 'repeat-config';
+  nextSignature?: string;
+  options?: ReturnType<typeof buildCreateRepeatsOptions>;
+  scopes?: RepeatTaskUpdateScope[];
   taskId: string;
-  updates: Partial<Task>;
-  resetDraftOnCancel: boolean;
+  updates?: Partial<Task>;
+  resetDraftOnCancel?: boolean;
 };
 
 const buildRepeatConfigSignature = (params: {
@@ -101,6 +110,17 @@ const inferRepeatFrequency = (series: Task[]): RepeatFrequency => {
   return 'none';
 };
 
+const resolveScopedRepeatCount = (params: {
+  repeatCount: number;
+  scope: Exclude<RepeatTaskUpdateScope, 'single'>;
+  selectedTaskStartDate: string;
+  series: Task[];
+}) => {
+  if (params.scope === 'all') return params.repeatCount;
+  if (params.repeatCount !== params.series.length) return params.repeatCount;
+  return params.series.filter((item) => item.startDate >= params.selectedTaskStartDate).length;
+};
+
 export const TaskDetailPanel: React.FC = () => {
   const { 
     selectedTaskId, 
@@ -119,6 +139,7 @@ export const TaskDetailPanel: React.FC = () => {
     deleteTaskSeries,
     duplicateTask,
     createRepeats,
+    updateRepeatSeries,
     fetchTaskSubtasks,
     createTaskSubtask,
     updateTaskSubtaskCompletion,
@@ -416,6 +437,24 @@ export const TaskDetailPanel: React.FC = () => {
       return true;
     }
 
+    if (task.repeatId) {
+      setPendingRepeatUpdate({
+        kind: 'repeat-config',
+        taskId: task.id,
+        options: buildCreateRepeatsOptions({
+          frequency: repeatFrequency,
+          ends: repeatEnds,
+          until: repeatUntil,
+          count: repeatCount,
+        }),
+        nextSignature,
+        closeAfterApply: true,
+        scopes: ['all', 'following'],
+      });
+      setRepeatScopeOpen(true);
+      return false;
+    }
+
     if (repeatInFlightRef.current) return false;
     repeatInFlightRef.current = true;
     setRepeatCreating(true);
@@ -480,6 +519,7 @@ export const TaskDetailPanel: React.FC = () => {
     if (!hasTaskUpdates(task, updates)) return;
     if (task.repeatId) {
       setPendingRepeatUpdate({
+        kind: 'task-update',
         taskId: task.id,
         updates,
         resetDraftOnCancel,
@@ -495,7 +535,50 @@ export const TaskDetailPanel: React.FC = () => {
     if (!pending) return;
     setPendingRepeatUpdate(null);
     setRepeatScopeOpen(false);
-    await updateTask(pending.taskId, pending.updates, scope);
+    if (pending.kind === 'task-update') {
+      await updateTask(pending.taskId, pending.updates ?? {}, scope);
+      return;
+    }
+    if (scope === 'single' || !task || !pending.options) return;
+    if (repeatInFlightRef.current) return;
+
+    repeatInFlightRef.current = true;
+    setRepeatCreating(true);
+    setRepeatError('');
+    setRepeatNotice('');
+
+    const series = tasks.filter((item) => item.repeatId === task.repeatId);
+    const result = await updateRepeatSeries(
+      pending.taskId,
+      pending.options.ends === 'after'
+        ? {
+          ...pending.options,
+          count: resolveScopedRepeatCount({
+            repeatCount: pending.options.count ?? repeatCount,
+            scope,
+            selectedTaskStartDate: task.startDate,
+            series,
+          }),
+        }
+        : pending.options,
+      scope,
+    );
+
+    repeatInFlightRef.current = false;
+    setRepeatCreating(false);
+
+    if (result.error) {
+      setRepeatError(result.error);
+      return;
+    }
+
+    if (pending.nextSignature) {
+      repeatConfigSnapshotRef.current = pending.nextSignature;
+    }
+    if (pending.closeAfterApply) {
+      setConfirmOpen(false);
+      setSelectedTaskId(null);
+    }
   };
 
   const cancelPendingRepeatUpdate = () => {
@@ -705,22 +788,28 @@ export const TaskDetailPanel: React.FC = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="description">{t`Description`}</Label>
-                <RichTextEditor
-                  id="description"
-                  value={draftDescription}
-                  workspaceId={currentWorkspaceId}
-                  onChange={(value) => {
-                    const nextDescription = value || '';
-                    descriptionDraftRef.current = nextDescription;
-                    setDraftDescription(nextDescription);
-                  }}
-                  onBlur={() => {
-                    requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
-                  }}
-                  placeholder={t`Add a description...`}
-                  disabled={isReadOnly}
-                  className="max-h-[45vh] overflow-y-auto pr-2"
-                />
+                <Suspense fallback={
+                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                    {t`Loading editor...`}
+                  </div>
+                }>
+                  <LazyRichTextEditor
+                    id="description"
+                    value={draftDescription}
+                    workspaceId={currentWorkspaceId}
+                    onChange={(value) => {
+                      const nextDescription = value || '';
+                      descriptionDraftRef.current = nextDescription;
+                      setDraftDescription(nextDescription);
+                    }}
+                    onBlur={() => {
+                      requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
+                    }}
+                    placeholder={t`Add a description...`}
+                    disabled={isReadOnly}
+                    className="max-h-[45vh] overflow-y-auto pr-2"
+                  />
+                </Suspense>
               </div>
 
               {!subtasksOpen ? (
@@ -815,11 +904,15 @@ export const TaskDetailPanel: React.FC = () => {
               {/* ── Comments section */}
               {currentWorkspaceId && (
                 <div className="border-t border-border pt-3">
-                  <TaskCommentSection
-                    taskId={task.id}
-                    workspaceId={currentWorkspaceId}
-                    canEdit={canEdit}
-                  />
+                  <Suspense fallback={
+                    <div className="h-16 rounded-md bg-muted/30 animate-pulse" />
+                  }>
+                    <LazyTaskCommentSection
+                      taskId={task.id}
+                      workspaceId={currentWorkspaceId}
+                      canEdit={canEdit}
+                    />
+                  </Suspense>
                 </div>
               )}
             </div>
@@ -1092,6 +1185,7 @@ export const TaskDetailPanel: React.FC = () => {
         repeatCreating={repeatCreating}
         repeatScopeOpen={repeatScopeOpen}
         setRepeatScopeOpen={setRepeatScopeOpen}
+        repeatScopeOptions={pendingRepeatUpdate?.scopes}
         onCancelPendingRepeatUpdate={cancelPendingRepeatUpdate}
         onApplyPendingRepeatUpdate={applyPendingRepeatUpdate}
         deleteOpen={deleteOpen}

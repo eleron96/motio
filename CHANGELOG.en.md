@@ -7,7 +7,149 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
-## [0.3.23] - 2026-03-14
+## [0.3.54] - 2026-03-27
+### Changed
+- No documented changes.
+
+## [0.3.53] - 2026-03-23
+### Changed
+- No documented changes.
+
+## [0.3.52] - 2026-03-23
+### Changed
+- No documented changes.
+
+## [0.3.51] - 2026-03-23
+### Added
+- Added ability to manage group members from Groups tab
+
+## [0.3.50] - 2026-03-23
+### Fixed
+- Fixed group deletion error in Team section
+
+## [0.3.49] - 2026-03-23
+### Fixed
+- Fixed group deletion error in Team section
+
+## [0.3.48] - 2026-03-20
+### Changed
+- Fixed task loading for large timeline ranges: the gateway no longer fails long `tasks` requests with 502 responses.
+
+## [0.3.47] - 2026-03-20
+### Changed
+- Timeline holiday data now loads more reliably through a backend proxy, and drag scrolling is smoother on long ranges.
+
+## [0.3.46] - 2026-03-20
+### Changed
+- Improved planner timeline period controls with a smoother month label and a date picker.
+
+## [0.3.45] - 2026-03-19
+### Changed
+- No documented changes.
+
+## [0.3.44] - 2026-03-18
+### Changed
+- Morning Daily brief and its disable toggle; profile photo upload and member avatars on the timeline; split current and past project tasks; fixes for timeline, comments, and repeat tasks, including change-scope selection and correct relative series shifting.
+
+## [0.3.43] - 2026-03-17
+### Changed
+- No documented changes.
+
+## [0.3.42] - 2026-03-16
+### Changed
+- No documented changes.
+
+## [0.3.41] - 2026-03-16
+### Fixed
+- Opening a task in the timeline from the members page now clears stale selection and scrolls the target card into view.
+
+## [0.3.40] - 2026-03-16
+### Changed
+- Milestone dialog now uses the same project search and picker as task forms.
+
+## [0.3.39] - 2026-03-16
+### Changed
+- Redeploy to testing server
+
+## [0.3.38] - 2026-03-16
+### Changed
+- Fixed square overlay mask on avatar in mobile timeline view
+
+## [0.3.37] - 2026-03-16
+### Changed
+- Fixed square overlay mask on avatar in mobile timeline view
+
+## [0.3.36] - 2026-03-16
+### Changed
+- Profile photo upload; member avatars on timeline; daily brief toggle in account settings
+
+## [0.3.35] - 2026-03-16
+### Changed
+- Member avatars on timeline now load on page open without requiring a task to be opened first
+
+## [0.3.34] - 2026-03-16
+### Changed
+- Fixed initials overlay on photos; avatar updates on timeline without page reload
+
+## [0.3.33] - 2026-03-16
+### Changed
+- Fixed profile photo display; improved initials overlay strip on avatars
+
+## [0.3.32] - 2026-03-16
+### Changed
+- Profile photo upload; member monograms and avatars on timeline
+
+## [0.3.31] - 2026-03-16
+### Changed
+- No documented changes.
+
+## [0.3.30] - 2026-03-16
+### Changed
+- No documented changes.
+
+## [0.3.29] - 2026-03-16
+### Changed
+- Fixed daily brief toggle labels missing Russian translations
+
+## [0.3.28] - 2026-03-16
+### Changed
+- Fixed migration 0058 registration in Liquibase changelog
+
+## [0.3.27] - 2026-03-16
+### Added
+- Added option to disable daily task brief in account settings
+
+## [0.3.26] - 2026-03-15
+### Changed
+- Added a morning Daily brief and fixed timeline sidebar resizing plus comment loading with live counters.
+
+## [0.3.25] - 2026-03-15
+### Changed
+- No documented changes.
+
+## [0.3.24] - 2026-03-15
+### Changed
+- Added a morning Daily brief with urgent tasks and upcoming milestones that appears after 9 AM and does not reopen again the same day.
+- Fixed timeline left sidebar resizing so the people column can be dragged again and the chosen width is preserved.
+- Fixed comment loading and live counters so task threads open without author lookup errors and comment updates stay in sync across clients.
+
+## [0.3.23] - 2026-03-15
+### Changed
+- No documented changes.
+
+## [0.3.22] - 2026-03-14
+### Changed
+- No documented changes.
+
+## [0.3.21] - 2026-03-14
+### Changed
+- No documented changes.
+
+## [0.3.20] - 2026-03-13
+### Changed
+- No documented changes.
+
+## [0.3.19] - 2026-03-13
 ### Changed
 - No documented changes.
 

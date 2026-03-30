@@ -1,6 +1,7 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) => (
@@ -79,6 +80,7 @@ const mocks = vi.hoisted(() => ({
     ],
     tasks: [] as Array<typeof baseTask>,
     trackedProjectIds: [] as string[],
+    updateRepeatSeries: vi.fn(async () => ({ created: 0, deleted: 0, updated: 1 })),
     updateTask: vi.fn(async () => ({})),
     updateTaskSubtaskCompletion: vi.fn(async () => ({})),
   },
@@ -98,6 +100,50 @@ vi.mock('@/features/auth/store/authStore', () => ({
 
 vi.mock('@/features/planner/hooks/useFilteredAssignees', () => ({
   useFilteredAssignees: (assignees: typeof mocks.plannerState.assignees) => assignees,
+}));
+
+vi.mock('@/features/planner/components/RepeatSettingsFields', () => ({
+  RepeatSettingsFields: ({
+    count,
+    ends,
+    frequency,
+    onFrequencyChange,
+    until,
+  }: {
+    count: number;
+    ends: 'never' | 'on' | 'after';
+    frequency: 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+    onFrequencyChange: (value: 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly') => void;
+    until: string;
+  }) => (
+    <div>
+      <span>
+        {{
+          none: 'Does not repeat',
+          daily: 'Daily',
+          weekly: 'Weekly',
+          biweekly: 'Biweekly (every 2 weeks)',
+          monthly: 'Monthly',
+          yearly: 'Yearly',
+        }[frequency]}
+      </span>
+      {frequency !== 'none' && ends === 'after' && (
+        <>
+          <span>Count</span>
+          <input aria-label="Occurrences" readOnly value={count} />
+        </>
+      )}
+      {frequency !== 'none' && ends === 'on' && (
+        <input aria-label="End date" readOnly value={until} />
+      )}
+      <button type="button" onClick={() => onFrequencyChange('weekly')}>
+        Set weekly
+      </button>
+      <button type="button" onClick={() => onFrequencyChange('biweekly')}>
+        Set biweekly
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('@/features/planner/components/TaskProjectSelect', () => ({
@@ -130,7 +176,35 @@ vi.mock('@/features/planner/components/TaskCommentSection', () => ({
 }));
 
 vi.mock('@/features/planner/components/TaskDetailDialogs', () => ({
-  TaskDetailAlerts: () => null,
+  TaskDetailAlerts: ({
+    onApplyPendingRepeatUpdate,
+    onSaveAndClose,
+    repeatScopeOpen,
+    repeatScopeOptions,
+  }: {
+    onApplyPendingRepeatUpdate: (scope: 'single' | 'following' | 'all') => Promise<void> | void;
+    onSaveAndClose: () => Promise<void> | void;
+    repeatScopeOpen: boolean;
+    repeatScopeOptions?: Array<'single' | 'following' | 'all'>;
+  }) => (
+    <div>
+      <button type="button" onClick={() => void onSaveAndClose()}>
+        Save
+      </button>
+      {repeatScopeOpen && (
+        <div>
+          <span data-testid="repeat-scope-options">{(repeatScopeOptions ?? []).join(',')}</span>
+          <button
+            type="button"
+            data-testid="apply-following"
+            onClick={() => void onApplyPendingRepeatUpdate('following')}
+          >
+            Apply following
+          </button>
+        </div>
+      )}
+    </div>
+  ),
   TaskNotFoundDialog: () => null,
 }));
 
@@ -159,7 +233,7 @@ describe('TaskDetailPanel repeat block', () => {
 
     expect(screen.getByText('Biweekly (every 2 weeks)')).toBeInTheDocument();
     expect(screen.getByText('Count')).toBeInTheDocument();
-    expect(screen.getByLabelText('Occurrences')).toHaveValue(2);
+    expect(screen.getByLabelText('Occurrences')).toHaveValue('2');
     expect(screen.queryByText('Creates repeats for the next 12 months.')).not.toBeInTheDocument();
   });
 
@@ -169,5 +243,35 @@ describe('TaskDetailPanel repeat block', () => {
     expect(screen.getByText('Does not repeat')).toBeInTheDocument();
     expect(screen.queryByLabelText('Occurrences')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('End date')).not.toBeInTheDocument();
+  });
+
+  it('routes repeat cadence changes through the existing scope dialog and rebuild action', async () => {
+    const user = userEvent.setup();
+    mocks.plannerState.tasks = [
+      { ...baseTask, repeatId: 'repeat-1', startDate: '2026-02-01', endDate: '2026-02-01' },
+      { ...baseTask, id: 'task-2', repeatId: 'repeat-1', startDate: '2026-02-08', endDate: '2026-02-08' },
+    ];
+
+    render(<TaskDetailPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Set biweekly' }));
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+
+    expect(mocks.plannerState.createRepeats).not.toHaveBeenCalled();
+    expect(screen.getByTestId('repeat-scope-options')).toHaveTextContent('all,following');
+
+    fireEvent.click(screen.getByTestId('apply-following'));
+
+    await waitFor(() => {
+      expect(mocks.plannerState.updateRepeatSeries).toHaveBeenCalledWith(
+        'task-1',
+        expect.objectContaining({
+          frequency: 'biweekly',
+          ends: 'after',
+          count: 2,
+        }),
+        'following',
+      );
+    });
   });
 });

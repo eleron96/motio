@@ -1,10 +1,6 @@
 import DOMPurify from 'dompurify';
 import { supabase } from '@/shared/lib/supabaseClient';
 import type { TaskComment } from '@/features/planner/types/planner';
-import {
-  batchTaskCommentTaskIds,
-  buildTaskCommentCounts,
-} from '@/shared/domain/taskCommentCount';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -325,29 +321,24 @@ export const fetchTaskCommentCounts = async (
   workspaceId: string,
   taskIds: string[],
 ): Promise<{ data: Record<string, number> } | { error: string }> => {
-  const taskIdBatches = batchTaskCommentTaskIds(taskIds);
-  if (taskIdBatches.length === 0) {
+  const uniqueTaskIds = Array.from(new Set(taskIds.filter(Boolean)));
+  if (uniqueTaskIds.length === 0) {
     return { data: {} };
   }
 
-  const batchResults = await Promise.all(taskIdBatches.map((taskIdBatch) => (
-    supabase
-      .from('task_comments')
-      .select('task_id')
-      .eq('workspace_id', workspaceId)
-      .in('task_id', taskIdBatch)
-      .is('deleted_at', null)
-  )));
+  const { data, error } = await supabase.rpc('task_comment_counts_batch', {
+    p_workspace_id: workspaceId,
+    p_task_ids: uniqueTaskIds,
+  });
 
-  const errorResult = batchResults.find((result) => result.error);
-  if (errorResult?.error) return { error: errorResult.error.message };
+  if (error) return { error: error.message };
 
-  const uniqueTaskIds = taskIdBatches.flat();
-  const commentTaskIds = batchResults.flatMap((result) => (
-    ((result.data ?? []) as Array<{ task_id: string | null }>).map((row) => row.task_id)
-  ));
+  const counts: Record<string, number> = Object.fromEntries(
+    uniqueTaskIds.map((id) => [id, 0]),
+  );
+  for (const row of (data ?? []) as Array<{ task_id: string; comment_count: number }>) {
+    counts[row.task_id] = Number(row.comment_count);
+  }
 
-  return {
-    data: buildTaskCommentCounts(uniqueTaskIds, commentTaskIds),
-  };
+  return { data: counts };
 };

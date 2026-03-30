@@ -65,6 +65,8 @@ const { plannerState, authState } = vi.hoisted(() => ({
     deleteMemberGroup: vi.fn(async () => ({ error: undefined })),
     deleteTasks: vi.fn(async () => ({ error: undefined })),
     setHighlightedTaskId: vi.fn(),
+    setHighlightedTaskTarget: vi.fn(),
+    setGroupMode: vi.fn(),
     setViewMode: vi.fn(),
     setCurrentDate: vi.fn(),
     requestScrollToDate: vi.fn(),

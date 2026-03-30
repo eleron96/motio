@@ -14,10 +14,27 @@ type GroupAssignmentRef = {
   groupId: string | null;
 };
 
+type WorkspaceMemberRef = {
+  userId: string;
+  email: string;
+  displayName: string | null;
+};
+
+type GroupMemberRef = {
+  userId: string;
+};
+
 export type MemberGroupBucket = {
   id: string;
   name: string | null;
   members: Assignee[];
+};
+
+export type AvailableGroupMember = {
+  userId: string;
+  email: string;
+  displayName: string | null;
+  isActive: boolean;
 };
 
 export const splitAssigneesByActivity = (assignees: Assignee[]) => ({
@@ -95,4 +112,49 @@ export const filterAndSortByName = <T extends { name: string }>(
     ? items.filter((item) => item.name.toLowerCase().includes(normalizedSearch))
     : items;
   return [...filtered].sort((left, right) => compareNames(left.name, right.name, sort));
+};
+
+export const buildAvailableGroupMembers = ({
+  members,
+  groupMembers,
+  assigneeByUserId,
+  search,
+  includeDisabled,
+}: {
+  members: WorkspaceMemberRef[];
+  groupMembers: GroupMemberRef[];
+  assigneeByUserId: Map<string, Assignee>;
+  search: string;
+  includeDisabled: boolean;
+}) => {
+  const groupMemberUserIds = new Set(groupMembers.map((member) => member.userId));
+  const normalizedSearch = search.trim().toLowerCase();
+  const matchedMembers = members
+    .filter((member) => !groupMemberUserIds.has(member.userId))
+    .map((member) => {
+      const assignee = assigneeByUserId.get(member.userId);
+      return {
+        userId: member.userId,
+        email: member.email,
+        displayName: assignee?.name ?? member.displayName ?? null,
+        isActive: assignee?.isActive ?? true,
+      } satisfies AvailableGroupMember;
+    })
+    .filter((member) => (
+      normalizedSearch.length === 0
+        || member.email.toLowerCase().includes(normalizedSearch)
+        || member.displayName?.toLowerCase().includes(normalizedSearch)
+    ))
+    .sort((left, right) => compareNames(left.displayName ?? left.email, right.displayName ?? right.email, 'asc'));
+
+  const hiddenDisabledCount = includeDisabled
+    ? 0
+    : matchedMembers.filter((member) => !member.isActive).length;
+
+  return {
+    availableMembers: includeDisabled
+      ? matchedMembers
+      : matchedMembers.filter((member) => member.isActive),
+    hiddenDisabledCount,
+  };
 };

@@ -201,4 +201,27 @@
 2026-03-12T14:10:31Z | 0.3.16 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260312-140952.dump | No documented changes.
 2026-03-12T15:17:06Z | 0.3.17 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260312-151614.dump | No documented changes.
 2026-03-12T16:28:27Z | 0.3.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260312-162727.dump | No documented changes.
-2026-03-14T17:38:32Z | 0.3.23 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260314-173748.dump | No documented changes.
+2026-03-13T14:24:25Z | 0.3.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260313-142346.dump | No documented changes.
+2026-03-13T15:11:30Z | 0.3.20 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260313-151051.dump | No documented changes.
+2026-03-14T14:33:32Z | 0.3.21 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260314-143254.dump | No documented changes.
+2026-03-14T14:40:54Z | 0.3.22 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260314-144016.dump | No documented changes.
+2026-03-15T14:56:05Z | 0.3.23 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-145521.dump | No documented changes.
+2026-03-15T15:17:58Z | 0.3.24 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-151714.dump | No documented changes.
+2026-03-15T15:29:27Z | 0.3.25 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-152847.dump | No documented changes.
+2026-03-15T15:32:12Z | 0.3.26 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260315-153132.dump | Added a morning Daily brief and fixed timeline sidebar resizing plus comment loading with live counters.
+2026-03-16T16:51:28Z | 0.3.30 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-165050.dump | No documented changes.
+2026-03-16T16:58:58Z | 0.3.31 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-165819.dump | No documented changes.
+2026-03-16T19:02:33Z | 0.3.36 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-190138.dump | Profile photo upload; member avatars on timeline; daily brief toggle in account settings
+2026-03-16T19:19:03Z | 0.3.38 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-191809.dump | Fixed square overlay mask on avatar in mobile timeline view
+2026-03-16T22:04:40Z | 0.3.40 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-220351.dump | Milestone dialog now uses the same project search and picker as task forms.
+2026-03-16T22:24:14Z | 0.3.41 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-222326.dump | Opening a task in the timeline from the members page now clears stale selection and scrolls the target card into view.
+2026-03-16T22:38:44Z | 0.3.42 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260316-223754.dump | No documented changes.
+2026-03-17T13:12:53Z | 0.3.43 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260317-131152.dump | No documented changes.
+2026-03-18T15:11:17Z | 0.3.44 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260318-151032.dump | Morning Daily brief and its disable toggle; profile photo upload and member avatars on the timeline; split current and past project tasks; fixes for timeline, comments, and repeat tasks, including change-scope selection and correct relative series shifting.
+2026-03-19T08:49:49Z | 0.3.45 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260319-084909.dump | No documented changes.
+2026-03-20T13:35:37Z | 0.3.46 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260320-133456.dump | Improved planner timeline period controls with a smoother month label and a date picker.
+2026-03-20T14:47:53Z | 0.3.47 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260320-144714.dump | Timeline holiday data now loads more reliably through a backend proxy, and drag scrolling is smoother on long ranges.
+2026-03-20T14:52:50Z | 0.3.48 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260320-145210.dump | Fixed task loading for large timeline ranges: the gateway no longer fails long tasks requests with 502 responses.
+2026-03-23T09:34:48Z | 0.3.52 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-093406.dump | No documented changes.
+2026-03-23T10:09:09Z | 0.3.53 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-100828.dump | No documented changes.
+2026-03-27T15:29:27Z | 0.3.54 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260327-152845.dump | No documented changes.
