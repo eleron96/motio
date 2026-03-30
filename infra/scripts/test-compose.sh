@@ -167,7 +167,7 @@ $compose_cmd exec -T db \
   psql -U supabase_admin -d "$POSTGRES_DB" -c "CREATE SCHEMA IF NOT EXISTS _realtime;" >/dev/null 2>&1
 
 # --- Start remaining services ---
-$compose_cmd up -d keycloak-db keycloak auth rest functions backup realtime gateway
+$compose_cmd up -d keycloak-db keycloak auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache.
 $compose_cmd up -d --force-recreate --no-deps functions
@@ -181,11 +181,15 @@ infra/scripts/keycloak-ensure-realm-frontend-url.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-session-policy.sh "$env_file"
 
 # --- Reload gateway config gracefully ---
+# Show nginx -t output so config errors are visible in deploy logs.
+# If test fails, force-recreate the gateway so it starts fresh with the new config.
 if $compose_cmd ps -q gateway >/dev/null 2>&1; then
-  if $compose_cmd exec -T gateway nginx -t >/dev/null 2>&1; then
-    $compose_cmd exec -T gateway nginx -s reload >/dev/null 2>&1 || true
+  if $compose_cmd exec -T gateway nginx -t 2>&1; then
+    $compose_cmd exec -T gateway nginx -s reload 2>&1 || true
+    echo "Gateway nginx config reloaded."
   else
-    echo "Warning: gateway nginx config test failed; skipping reload." >&2
+    echo "Warning: gateway nginx config test failed; force-recreating gateway." >&2
+    $compose_cmd up -d --force-recreate --no-deps gateway
   fi
 fi
 

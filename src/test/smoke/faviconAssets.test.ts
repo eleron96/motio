@@ -24,8 +24,10 @@ describe("brand asset routing", () => {
     expect(indexHtml).toContain('data-theme-favicon="active"');
     expect(indexHtml).toContain('data-theme-favicon="shortcut"');
     expect(indexHtml).toContain('rel="apple-touch-icon" href="/logo.png"');
-    expect(indexHtml).toContain('property="og:image" content="https://motio.nikog.net/logo.png"');
-    expect(indexHtml).toContain('name="twitter:image" content="https://motio.nikog.net/logo.png"');
+    expect(indexHtml).toContain('link rel="canonical" href="/"');
+    expect(indexHtml).toContain('property="og:url" content="/"');
+    expect(indexHtml).toContain('property="og:image" content="/logo.png"');
+    expect(indexHtml).toContain('name="twitter:image" content="/logo.png"');
   });
 
   it("keeps public and login theme favicon assets in sync", () => {

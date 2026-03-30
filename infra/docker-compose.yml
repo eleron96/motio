@@ -217,6 +217,31 @@ services:
     volumes:
       - ./backups:/backups
 
+  storage:
+    image: supabase/storage-api:v1.11.13
+    container_name: supabase-storage
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${SUPABASE_DB_URL}
+      FILE_SIZE_LIMIT: ${STORAGE_FILE_SIZE_LIMIT:-52428800}
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "false"
+    volumes:
+      - storage_data:/var/lib/storage
+
   gateway:
     image: nginx:1.27-alpine
     container_name: supabase-gateway
@@ -226,6 +251,7 @@ services:
       - rest
       - realtime
       - functions
+      - storage
       - backup
     ports:
       - "8080:8080"
@@ -334,3 +360,5 @@ volumes:
     name: keycloak_db_data
   web_node_modules:
     name: timeline_web_node_modules
+  storage_data:
+    name: supabase_storage_data

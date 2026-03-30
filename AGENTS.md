@@ -57,6 +57,45 @@
 4. Тесты: unit на доменную логику + smoke/integration на поток.
 5. Спецификация: обновить `docs/specifications/*` для пользовательского сценария.
 
+## 4.1. Правила создания миграций БД
+
+При создании **каждой** новой миграции обязательно:
+
+1. Создать файл `infra/supabase/migrations/XXXX_название.sql`.
+2. **Сразу** добавить запись в `infra/supabase/liquibase/changelog-master.xml` по шаблону:
+   ```xml
+   <changeSet id="XXXX_название.sql" author="timeline" runInTransaction="true">
+     <preConditions onFail="MARK_RAN" onError="HALT">
+       <or>
+         <not>
+           <tableExists schemaName="public" tableName="schema_migrations"/>
+         </not>
+         <sqlCheck expectedResult="0">
+           select count(*) from public.schema_migrations where filename = 'XXXX_название.sql'
+         </sqlCheck>
+       </or>
+     </preConditions>
+     <sqlFile path="../migrations/XXXX_название.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+   </changeSet>
+   ```
+3. Без этой записи Liquibase не применит миграцию при деплое, колонка/таблица не появится в БД.
+
+## 4.2. Правила работы с переводами (Lingui)
+
+При добавлении **любого** нового `t\`...\`` или `<Trans>` в исходный код:
+
+1. Обязательно выполнить `npm run lingui:extract` — строки добавятся в `.po` файлы.
+2. Открыть `src/locales/ru/messages.po`, найти новые записи с пустым `msgstr ""` и заполнить перевод.
+3. Только после этого коммитить и деплоить — иначе вместо текста пользователь увидит хеш-идентификатор (например `OUca2h`).
+4. При деплое `lingui compile` запускается автоматически в Docker-сборке, но `.po` файлы должны содержать переводы **до** коммита.
+
+Проверка перед коммитом:
+```bash
+npm run lingui:extract
+# Убедиться что в выводе Missing = 0 для ru, или проверить вручную
+grep -n 'msgstr ""' src/locales/ru/messages.po
+```
+
 ## 5. Правила деплоя
 
 ## 5.1. Local dev
@@ -84,7 +123,7 @@
 
 Не обходить скрипт `infra/scripts/prod-compose.sh` ручными шагами.
 
-## 5.4. Remote deploy
+## 5.4. Remote deploy (production)
 
 1. Основной путь: `make deploy-remote`.
 2. Релизный путь (changelog + deploy + sync):
@@ -92,13 +131,51 @@
 3. Синхронизация release-артефактов при необходимости:
 - `make release-sync`
 
-## 5.4.1. Правило для агента при явной команде "сделай деплой"
+## 5.4.2. Remote deploy (testing)
 
-1. Если пользователь явно просит выполнить deploy, агент по умолчанию должен запускать `make deploy-remote`.
-2. Не выполнять дополнительные локальные pre-check команды (`make check-prod-secrets`, `make audit-migrations`, `make up-prod`, повторные `lint/test`), если пользователь отдельно этого не просил.
-3. Исключение: если `make deploy-remote` сам завершился ошибкой или явно требует дополнительной диагностики, агент может запускать только те проверки, которые нужны для разбора конкретного сбоя.
-4. После `make deploy-remote` выполнить краткий post-deploy минимум: доступность приложения, auth flow и проверка логов/health endpoints.
-5. Не подменять `make deploy-remote` ручной последовательностью `rsync`/`ssh` команд.
+Тестовый контур полностью изолирован от production.
+
+| | Production | Testing |
+|---|---|---|
+| Сервер | `94.141.162.237` | `46.149.69.61` |
+| Домен | `motio.nikog.net` | `test.motio.nikog.net` |
+| Путь | `/opt/new_toggl` | `/opt/motio-test` |
+| Deploy | `make deploy-remote` | `make deploy-testing` |
+| Compose | `prod-compose.sh` | `test-compose.sh` |
+| Caddy | `Caddyfile` | `Caddyfile.testing` |
+| Release | `make release` | `make release-testing` |
+
+1. Deploy на тестовый: `make deploy-testing`.
+2. Скрипт `deploy-testing.sh` **жёстко блокирует** деплой на prod IP.
+3. Для тестового tracked release использовать отдельный путь `make release-testing MSG="..." RU="..." EN="..." [TYPE=changed] [NEXT_VERSION=X.Y.Z]`.
+4. `make release-testing` повышает `VERSION`, переносит записи из `Unreleased` в `CHANGELOG.md/CHANGELOG.en.md`, пишет историю в `infra/testing-releases.log` и только потом выполняет `make deploy-testing`.
+5. `.env` на тестовом сервере полностью отдельный — все секреты свои.
+6. **Никогда** не использовать `make deploy-remote` для тестового сервера и наоборот.
+
+## 5.4.3. Правило для агента при явной команде "сделай деплой"
+
+1. Если пользователь явно просит выполнить deploy (без уточнения контура), агент по умолчанию должен запускать `make deploy-remote` (production).
+2. Если пользователь явно просит деплой на тестовый / test / staging и нужно зафиксировать версию/историю изменений, агент должен запускать `make release-testing`.
+3. Не выполнять дополнительные локальные pre-check команды (`make check-prod-secrets`, `make audit-migrations`, `make up-prod`, повторные `lint/test`), если пользователь отдельно этого не просил.
+4. Исключение: если deploy сам завершился ошибкой или явно требует дополнительной диагностики, агент может запускать только те проверки, которые нужны для разбора конкретного сбоя.
+5. После deploy выполнить краткий post-deploy минимум: доступность приложения, auth flow и проверка логов/health endpoints.
+6. Не подменять `make deploy-remote` / `make deploy-testing` ручной последовательностью `rsync`/`ssh` команд.
+
+## 5.4.4. Release notes для пользователей (обязательно при `make release` и `make release-testing`)
+
+Перед выполнением `make release` или `make release-testing` агент обязан составить пользовательские release notes:
+
+1. Получить список коммитов с последнего тега: `git log $(git describe --tags --abbrev=0)..HEAD --oneline`.
+2. Отфильтровать только те, что влияют на пользователя:
+   - Включать: `feat(*)`, `fix(*)` затрагивающие UI, поведение, данные пользователя.
+   - Исключать: `chore`, `refactor`, `test`, `docs`, `infra`, `ci`, внутренние технические fix (миграции индексов, конфиги, docker, nginx).
+3. Сформулировать кратко на русском (`RU=`) и английском (`EN=`) — с точки зрения пользователя, не разработчика.
+   - ❌ "refactor(planner): extract repeat fields" → не включать
+   - ❌ "chore(infra): harden routing" → не включать
+   - ✅ "feat(daily-brief): добавлено утреннее окно с задачами и вехами" → включать
+   - ✅ "fix(planner): исправлена синхронизация комментариев в реальном времени" → включать
+4. Передать итоговый текст в `make release ...` или `make release-testing ...`.
+5. Если пользовательских изменений нет — всё равно выполнить release-команду с кратким техническим описанием, пометив `[internal]`.
 
 ## 5.5. Post-deploy минимум
 

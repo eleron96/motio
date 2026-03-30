@@ -44,6 +44,8 @@ Motio — приложение для командного планирован�
   - `nginx.conf` — gateway для `/auth/v1`, `/rest/v1`, `/functions/v1`, `/backup`.
 - `infra/keycloak/realm/timeline-realm.json` — dev realm.
 - `infra/keycloak/realm/timeline-realm.prod.json` — production baseline realm (создаётся из текущего прода через export-скрипт).
+- `infra/scripts/keycloak-ensure-client-urls.sh` — приводит Keycloak client URLs к текущему `.env`, чтобы prod/test не тянули чужой домен из baseline realm.
+- `infra/scripts/keycloak-ensure-realm-frontend-url.sh` — приводит realm `frontendUrl` к текущему домену, чтобы Keycloak login-actions не уезжали на другой host.
 - `infra/backup-service/` — сервис backup/restore.
 - `infra/scripts/dev-compose.sh` — локальный запуск полного контура.
 - `infra/scripts/prod-compose.sh` — production запуск с pre-migration backup.
@@ -139,6 +141,19 @@ NEXT_VERSION=0.3.0 make deploy-remote
 - передаёт `NEXT_VERSION`, если он задан локально,
 - подтягивает обратно `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md` и `infra/releases.log` в локальный репозиторий.
 
+Tracked release на testing:
+
+```bash
+make release-testing MSG="feat(...): ..." RU="..." EN="..." [TYPE=changed] [NEXT_VERSION=0.3.0]
+```
+
+`make release-testing`:
+- локально повышает `VERSION`,
+- переносит `Unreleased` в `CHANGELOG.md` и `CHANGELOG.en.md`,
+- пишет историю тестовых релизов в `infra/testing-releases.log`,
+- коммитит и пушит release-артефакты,
+- после этого запускает безопасный `make deploy-testing` без касания production.
+
 ## Keycloak Realm-as-Code (безопасный старт)
 
 Рекомендуемый порядок без влияния на пользователей:
@@ -159,6 +174,11 @@ infra/scripts/keycloak-realm-drift-audit.sh .env
 ```
 
 Режим по умолчанию в `up-prod`: audit-only (ничего не меняет в Keycloak).
+
+Важно:
+- baseline realm JSON хранит эталонный export, но client `rootUrl/baseUrl/redirectUris/webOrigins` дополнительно нормализуются из текущего `.env` через `infra/scripts/keycloak-ensure-client-urls.sh`;
+- realm `attributes.frontendUrl` тоже нормализуется из текущего `.env` через `infra/scripts/keycloak-ensure-realm-frontend-url.sh`;
+- это нужно, чтобы testing-контур оставался автономным даже если импортируется production baseline realm.
 
 ## Обязательные переменные для production
 
@@ -420,7 +440,9 @@ docker compose -f infra/docker-compose.prod.yml --env-file .env ps
 Проверь согласованность:
 - `OAUTH2_PROXY_CLIENT_ID`
 - `OAUTH2_PROXY_REDIRECT_URL`
-- redirect URIs клиента в managed realm файле (обычно `infra/keycloak/realm/timeline-realm.prod.json`)
+- `SITE_URL` / `APP_URL` / `GOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI` в `.env`
+- результат `infra/scripts/keycloak-ensure-client-urls.sh`, который синхронизирует redirect URIs в Keycloak после старта
+- результат `infra/scripts/keycloak-ensure-realm-frontend-url.sh`, который синхронизирует realm `frontendUrl` для login-actions/authenticate
 
 ### 7) `volume supabase_db_data declared as external, but could not be found`
 

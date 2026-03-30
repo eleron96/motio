@@ -1,5 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
+import { RepeatTaskUpdateScope } from '@/features/planner/types/planner';
+import { RepeatTaskScopeDialog } from '@/features/planner/components/RepeatTaskScopeDialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import {
   AlertDialog,
@@ -38,8 +40,9 @@ type TaskDetailAlertsProps = {
   repeatCreating: boolean;
   repeatScopeOpen: boolean;
   setRepeatScopeOpen: (open: boolean) => void;
+  repeatScopeOptions?: RepeatTaskUpdateScope[];
   onCancelPendingRepeatUpdate: () => void;
-  onApplyPendingRepeatUpdate: (scope: 'single' | 'following' | 'all') => Promise<void> | void;
+  onApplyPendingRepeatUpdate: (scope: RepeatTaskUpdateScope) => Promise<void> | void;
   deleteOpen: boolean;
   setDeleteOpen: (open: boolean) => void;
   isRepeating: boolean;
@@ -58,6 +61,7 @@ export const TaskDetailAlerts = ({
   repeatCreating,
   repeatScopeOpen,
   setRepeatScopeOpen,
+  repeatScopeOptions,
   onCancelPendingRepeatUpdate,
   onApplyPendingRepeatUpdate,
   deleteOpen,
@@ -92,56 +96,13 @@ export const TaskDetailAlerts = ({
       </AlertDialogContent>
     </AlertDialog>
 
-    <AlertDialog
+    <RepeatTaskScopeDialog
       open={repeatScopeOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          onCancelPendingRepeatUpdate();
-          return;
-        }
-        setRepeatScopeOpen(true);
-      }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t`Apply changes to repeating tasks?`}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {t`Choose where to apply this change.`}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex-row flex-wrap items-center justify-between gap-2 sm:justify-between sm:space-x-0">
-          <AlertDialogCancel className="mt-0 h-8 px-2.5 text-xs" onClick={onCancelPendingRepeatUpdate}>
-            {t`Cancel`}
-          </AlertDialogCancel>
-          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-            <AlertDialogAction
-              className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
-              onClick={() => {
-                void onApplyPendingRepeatUpdate('all');
-              }}
-            >
-              {t`All tasks`}
-            </AlertDialogAction>
-            <AlertDialogAction
-              className="h-8 whitespace-nowrap bg-muted px-2.5 text-xs text-foreground hover:bg-muted/80"
-              onClick={() => {
-                void onApplyPendingRepeatUpdate('following');
-              }}
-            >
-              {t`This and following`}
-            </AlertDialogAction>
-            <AlertDialogAction
-              className="h-8 whitespace-nowrap px-2.5 text-xs"
-              onClick={() => {
-                void onApplyPendingRepeatUpdate('single');
-              }}
-            >
-              {t`Only this task`}
-            </AlertDialogAction>
-          </div>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      onOpenChange={setRepeatScopeOpen}
+      onCancel={onCancelPendingRepeatUpdate}
+      onApply={onApplyPendingRepeatUpdate}
+      scopes={repeatScopeOptions}
+    />
 
     <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
       <AlertDialogContent>

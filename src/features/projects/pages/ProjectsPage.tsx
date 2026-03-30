@@ -9,6 +9,11 @@ import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPa
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
 import { useProjectsPageEffects } from '@/features/projects/hooks/useProjectsPageEffects';
 import { useProjectTasksQuery } from '@/features/projects/hooks/useProjectTasksQuery';
+import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
+import { useDisplayTaskRows } from '@/features/planner/hooks/useDisplayTaskRows';
+import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
+import { useProjectsFilter } from '@/features/projects/hooks/useProjectsFilter';
+import { useProjectSelection } from '@/features/projects/hooks/useProjectSelection';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
@@ -20,41 +25,18 @@ import {
   Plus,
 } from 'lucide-react';
 import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
-import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
-import { buildRepeatSeriesRows } from '@/shared/domain/repeatSeriesRows';
-import {
-  DEFAULT_PAST_TASK_SORT,
-  shouldCollapseRepeatSeriesInTaskScope,
-  type PastTaskSort,
-  type TaskScope,
-} from '@/shared/domain/taskScope';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import {
   buildCustomerProjectCounts,
-  buildGroupedMilestones,
-  filterAndSortMilestones,
   filterCustomersBySearch,
-  filterProjectsByCustomerAndSearch,
   groupProjectsForSidebar,
   sortCustomersByName,
-  splitMilestonesByDate,
 } from '@/features/projects/lib/projectsSelectors';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
 import { DEFAULT_PROJECT_COLOR } from '@/shared/lib/colors';
-
-type DisplayTaskRow = {
-  key: string;
-  task: Task;
-  repeatMeta: {
-    cadence: RepeatCadence;
-    remaining: number;
-    total: number;
-  } | null;
-};
 
 const ProjectsPage = () => {
   usePageSeo({
@@ -71,18 +53,17 @@ const ProjectsPage = () => {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
   const [search, setSearch] = useState('');
-  const [projectSearch, setProjectSearch] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
-  const [statusFilterIds, setStatusFilterIds] = useState<string[]>([]);
   const [assigneeFilterIds, setAssigneeFilterIds] = useState<string[]>([]);
-  const [taskScope, setTaskScope] = useState<TaskScope>('current');
-  const [pastFromDate, setPastFromDate] = useState('');
-  const [pastToDate, setPastToDate] = useState('');
-  const [pastSort, setPastSort] = useState<PastTaskSort>(DEFAULT_PAST_TASK_SORT);
-  const [pageIndex, setPageIndex] = useState(1);
-  const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
+  const {
+    taskScope, setTaskScope,
+    pastFromDate, setPastFromDate,
+    pastToDate, setPastToDate,
+    pastSort, setPastSort,
+    pageIndex, setPageIndex,
+    statusFilterIds, setStatusFilterIds,
+  } = useTaskScopeFilter();
   const [mode, setMode] = useState<'projects' | 'milestones' | 'customers'>('projects');
-  const [milestoneSearch, setMilestoneSearch] = useState('');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
@@ -233,11 +214,7 @@ const ProjectsPage = () => {
     () => filterCustomersBySearch(sortedCustomers, customerSearch),
     [customerSearch, sortedCustomers],
   );
-
-  const selectedProject = useMemo(
-    () => projects.find((project) => project.id === selectedProjectId) ?? null,
-    [projects, selectedProjectId],
-  );
+  const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
 
   useEffect(() => {
     setPageIndex(1);
@@ -264,22 +241,9 @@ const ProjectsPage = () => {
     pageSize,
   });
 
-  const statusById = useMemo(
-    () => new Map(statuses.map((status) => [status.id, status])),
-    [statuses],
-  );
-  const assigneeById = useMemo(
-    () => new Map(assignees.map((assignee) => [assignee.id, assignee])),
-    [assignees],
-  );
-  const taskTypeById = useMemo(
-    () => new Map(taskTypes.map((type) => [type.id, type])),
-    [taskTypes],
-  );
-  const tagById = useMemo(
-    () => new Map(tags.map((tag) => [tag.id, tag])),
-    [tags],
-  );
+  const { statusById, assigneeById, taskTypeById, tagById } = usePlannerLookupMaps({
+    statuses, assignees, taskTypes, tags,
+  });
 
   const projectAssigneeIds = useMemo(
     () => new Set<string>([...availableAssigneeIds, ...assigneeFilterIds]),
@@ -298,102 +262,62 @@ const ProjectsPage = () => {
     [projects],
   );
 
-  const filteredActiveProjects = useMemo(
-    () => filterProjectsByCustomerAndSearch(activeProjects, customerFilterIds, projectSearch),
-    [activeProjects, customerFilterIds, projectSearch],
-  );
+  const {
+    projectSearch,
+    setProjectSearch,
+    customerFilterIds,
+    setCustomerFilterIds,
+    milestoneSearch,
+    setMilestoneSearch,
+    filteredActiveProjects,
+    filteredArchivedProjects,
+    visibleMilestones,
+    groupedMilestones,
+    milestoneGroupLabel,
+    handleCycleMilestoneGroup,
+  } = useProjectsFilter({
+    activeProjects,
+    archivedProjects,
+    milestones,
+    projects,
+    sortedCustomers,
+    trackedProjectIds,
+    trackedProjectIdSet,
+    projectById,
+    customerById,
+    nameSort,
+    milestoneTab,
+    milestoneGroupBy,
+    setMilestoneGroupBy,
+    dateLocale,
+  });
 
-  const filteredArchivedProjects = useMemo(
-    () => filterProjectsByCustomerAndSearch(archivedProjects, customerFilterIds, projectSearch),
-    [archivedProjects, customerFilterIds, projectSearch],
-  );
-
-  const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
-  const todayMilestoneKey = format(new Date(), 'yyyy-MM-dd');
-
-  const filteredMilestones = useMemo(
-    () => filterAndSortMilestones({
-      milestones,
-      projectById,
-      customerById,
-      trackedProjectIdSet,
-      milestoneSearch,
-      nameSort,
-    }),
-    [customerById, milestoneSearch, milestones, nameSort, projectById, trackedProjectIdSet],
-  );
-  const { active: filteredActiveMilestones, past: filteredPastMilestones } = useMemo(
-    () => splitMilestonesByDate(filteredMilestones, todayMilestoneKey),
-    [filteredMilestones, todayMilestoneKey],
-  );
-  const visibleMilestones = milestoneTab === 'active' ? filteredActiveMilestones : filteredPastMilestones;
-  const groupedMilestones = useMemo(
-    () => buildGroupedMilestones({
-      visibleMilestones,
-      milestoneGroupBy,
-      projectById,
-      projects,
-      sortedCustomers,
-      trackedProjectIds,
-      nameSort,
-      dateLocale,
-      labels: {
-        unknownProject: t`Unknown project`,
-        noCustomer: t`No customer`,
-      },
-    }),
-    [dateLocale, milestoneGroupBy, nameSort, projectById, projects, sortedCustomers, trackedProjectIds, visibleMilestones],
-  );
-  const selectedMilestone = useMemo(
-    () => milestones.find((milestone) => milestone.id === selectedMilestoneId) ?? null,
-    [milestones, selectedMilestoneId],
-  );
-  const selectedMilestoneProject = useMemo(
-    () => (selectedMilestone ? projectById.get(selectedMilestone.projectId) ?? null : null),
-    [projectById, selectedMilestone],
-  );
-  const selectedMilestoneCustomer = useMemo(() => (
-    selectedMilestoneProject?.customerId ? customerById.get(selectedMilestoneProject.customerId) ?? null : null
-  ), [customerById, selectedMilestoneProject?.customerId]);
-  const milestoneGroupLabel = useMemo(() => {
-    if (milestoneGroupBy === 'project') return t`Project`;
-    if (milestoneGroupBy === 'customer') return t`Customer`;
-    return t`Month`;
-  }, [milestoneGroupBy]);
-
-  const selectedTask = useMemo(
-    () => projectTasks.find((task) => task.id === selectedTaskId) ?? null,
-    [projectTasks, selectedTaskId],
-  );
-
-  const selectedTaskProject = useMemo(
-    () => projects.find((project) => project.id === selectedTask?.projectId) ?? null,
-    [projects, selectedTask?.projectId],
-  );
-  const selectedCustomer = useMemo(
-    () => (selectedCustomerId ? customerById.get(selectedCustomerId) ?? null : null),
-    [customerById, selectedCustomerId],
-  );
-  const selectedCustomerProjects = useMemo(() => {
-    if (!selectedCustomerId) return [];
-    return sortProjectsByTracking(
-      projects.filter((project) => project.customerId === selectedCustomerId),
-      trackedProjectIds,
-    );
-  }, [projects, selectedCustomerId, trackedProjectIds]);
-  const selectedTaskCustomer = useMemo(() => (
-    selectedTaskProject?.customerId ? customerById.get(selectedTaskProject.customerId) ?? null : null
-  ), [customerById, selectedTaskProject?.customerId]);
-
-  const selectedTaskTags = useMemo(() => (
-    selectedTask?.tagIds.map((tagId) => tagById.get(tagId)).filter(Boolean) ?? []
-  ), [selectedTask?.tagIds, tagById]);
-
-  const selectedTaskDescription = useMemo(() => {
-    if (!selectedTask?.description) return '';
-    if (!hasRichTags(selectedTask.description)) return selectedTask.description;
-    return sanitizeTaskDescription(selectedTask.description);
-  }, [selectedTask?.description]);
+  const {
+    selectedProject,
+    selectedMilestone,
+    selectedMilestoneProject,
+    selectedMilestoneCustomer,
+    selectedTask,
+    selectedTaskProject,
+    selectedTaskCustomer,
+    selectedTaskTags,
+    selectedTaskDescription,
+    selectedCustomer,
+    selectedCustomerProjects,
+  } = useProjectSelection({
+    projects,
+    milestones,
+    customers,
+    projectTasks,
+    selectedProjectId,
+    selectedMilestoneId,
+    selectedCustomerId,
+    selectedTaskId,
+    projectById,
+    customerById,
+    tagById,
+    trackedProjectIds,
+  });
 
   const navigate = useNavigate();
 
@@ -421,27 +345,7 @@ const ProjectsPage = () => {
     user?.id,
   ]);
 
-  const displayTaskRows = useMemo<DisplayTaskRow[]>(() => {
-    if (!shouldCollapseRepeatSeriesInTaskScope(taskScope)) {
-      return projectTasks.map((task) => ({
-        key: task.id,
-        task,
-        repeatMeta: null,
-      }));
-    }
-
-    return buildRepeatSeriesRows(projectTasks).map((row) => ({
-      key: row.key,
-      task: row.task,
-      repeatMeta: row.repeatMeta
-        ? {
-          cadence: row.repeatMeta.cadence,
-          remaining: row.repeatMeta.remaining,
-          total: row.repeatMeta.total,
-        }
-        : null,
-    }));
-  }, [projectTasks, taskScope]);
+  const displayTaskRows = useDisplayTaskRows(projectTasks, taskScope);
 
   const totalPages = taskScope === 'past'
     ? Math.max(1, Math.ceil(totalCount / pageSize))
@@ -718,14 +622,6 @@ const ProjectsPage = () => {
   const formatMilestoneDate = useCallback((date: string) => (
     format(parseISO(date), 'dd MMM yyyy', { locale: dateLocale })
   ), [dateLocale]);
-
-  const handleCycleMilestoneGroup = useCallback(() => {
-    setMilestoneGroupBy((current) => {
-      if (current === 'project') return 'customer';
-      if (current === 'customer') return 'month';
-      return 'project';
-    });
-  }, [setMilestoneGroupBy]);
 
   const handleOpenProjectFromMilestone = useCallback((milestone: Milestone) => {
     const project = projectById.get(milestone.projectId);

@@ -35,10 +35,7 @@ interface SettingsPanelProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface HolidayCountryOption {
-  countryCode: string;
-  name: string;
-}
+import { fetchHolidayCountries, type HolidayCountryOption } from '@/infrastructure/holidays/holidayApi';
 
 const SectionCard: React.FC<{ title?: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
@@ -139,13 +136,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     const loadHolidayCountries = async () => {
       setHolidayCountryLoading(true);
       try {
-        const response = await fetch('https://date.nager.at/api/v3/AvailableCountries', {
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to load countries: ${response.status}`);
-        }
-        const data = await response.json() as Array<{ countryCode?: string; name?: string }>;
+        const data = await fetchHolidayCountries(controller.signal);
         if (!active) return;
         const normalized = data
           .map((item) => ({

@@ -36,6 +36,7 @@ interface WorkspaceMember {
   displayName: string | null;
   role: WorkspaceRole;
   groupId: string | null;
+  avatarUrl: string | null;
 }
 
 interface WorkspaceMemberRow {
@@ -48,7 +49,7 @@ interface WorkspaceMemberProfileRow {
   user_id: string;
   role: WorkspaceRole;
   group_id: string | null;
-  profiles: { email: string; display_name: string | null } | null;
+  profiles: { email: string; display_name: string | null; avatar_url: string | null } | null;
 }
 
 type SentInviteStatus = 'pending' | 'accepted' | 'declined' | 'canceled' | 'expired';
@@ -131,6 +132,7 @@ interface AuthState {
   membersLoading: boolean;
   profileDisplayName: string | null;
   profileLocale: Locale | null;
+  profileAvatarUrl: string | null;
   isSuperAdmin: boolean;
   superAdminLoading: boolean;
   adminUsers: AdminUser[];
@@ -194,6 +196,7 @@ interface AuthState {
   removeMember: (userId: string) => Promise<{ error?: string }>;
   updateDisplayName: (displayName: string) => Promise<{ error?: string }>;
   updateLocale: (locale: Locale) => Promise<{ error?: string }>;
+  updateAvatarUrl: (url: string | null) => void;
 }
 
 const getWorkspaceStorageKey = (userId: string) => `current-workspace-${userId}`;
@@ -253,7 +256,7 @@ const fetchWorkspaceMemberSnapshot = async (
 ) => {
   const { data, error } = await supabase
     .from('workspace_members')
-    .select('user_id, role, group_id, profiles(email, display_name)')
+    .select('user_id, role, group_id, profiles(email, display_name, avatar_url)')
     .eq('workspace_id', workspaceId)
     .eq('user_id', userId)
     .maybeSingle();
@@ -270,6 +273,7 @@ const fetchWorkspaceMemberSnapshot = async (
       groupId: row.group_id ?? null,
       email: row.profiles?.email ?? 'unknown',
       displayName: row.profiles?.display_name ?? null,
+      avatarUrl: row.profiles?.avatar_url ?? null,
     },
   };
 };
@@ -345,6 +349,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   membersLoading: false,
   profileDisplayName: null,
   profileLocale: null,
+  profileAvatarUrl: null,
   isSuperAdmin: false,
   superAdminLoading: false,
   adminUsers: [],
@@ -369,6 +374,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       membersLoading: false,
       profileDisplayName: null,
       profileLocale: null,
+      profileAvatarUrl: null,
       isSuperAdmin: false,
       superAdminLoading: Boolean(user),
     });
@@ -804,7 +810,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, locale')
+      .select('display_name, locale, avatar_url')
       .eq('id', user.id)
       .single();
 
@@ -821,6 +827,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       profileDisplayName: displayName ? displayName : null,
       profileLocale: nextLocale,
+      profileAvatarUrl: (data?.avatar_url as string | null) ?? null,
     });
 
     if (pendingLocale) {
@@ -946,7 +953,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('workspace_members')
-      .select('user_id, role, group_id, profiles(email, display_name)')
+      .select('user_id, role, group_id, profiles(email, display_name, avatar_url)')
       .eq('workspace_id', targetWorkspaceId)
       .order('created_at', { ascending: true });
 
@@ -968,6 +975,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email: row.profiles?.email ?? 'unknown',
       displayName: row.profiles?.display_name ?? null,
       groupId: row.group_id ?? null,
+      avatarUrl: row.profiles?.avatar_url ?? null,
     }));
 
     if (get().currentWorkspaceId !== targetWorkspaceId) return;
@@ -1268,5 +1276,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({ profileLocale: locale });
     return {};
+  },
+  updateAvatarUrl: (url) => {
+    const currentUserId = get().user?.id;
+    // Also update the matching member in the members array so that
+    // timeline and other places that read members[x].avatarUrl reflect
+    // the change immediately without a page refresh.
+    const updatedMembers = currentUserId
+      ? get().members.map((m) =>
+          m.userId === currentUserId ? { ...m, avatarUrl: url } : m,
+        )
+      : get().members;
+    set({ profileAvatarUrl: url, members: updatedMembers });
   },
 }));

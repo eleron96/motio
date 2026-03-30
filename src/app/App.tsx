@@ -1,5 +1,6 @@
 import { Toaster } from "@/shared/ui/toaster";
 import { Toaster as Sonner } from "@/shared/ui/sonner";
+import { DailyBriefController } from "@/features/daily-brief";
 import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -34,6 +35,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <AuthProvider>
+            <DailyBriefController />
             <BrowserRouter
               future={{
                 v7_startTransition: true,

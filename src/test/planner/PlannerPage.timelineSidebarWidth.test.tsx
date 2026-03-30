@@ -40,6 +40,7 @@ const { plannerState, authState } = vi.hoisted(() => ({
     requestScrollToDate: vi.fn(),
     scrollTargetDate: null,
     highlightedTaskId: null,
+    highlightedTaskRowAssigneeId: null,
     setHighlightedTaskId: vi.fn(),
   },
   authState: {
@@ -47,6 +48,9 @@ const { plannerState, authState } = vi.hoisted(() => ({
     currentWorkspaceId: 'workspace-1',
     currentWorkspaceRole: 'admin',
     isSuperAdmin: false,
+    fetchMembers: vi.fn(),
+    membersLoading: false,
+    membersWorkspaceId: null,
   },
 }));
 

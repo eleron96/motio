@@ -90,6 +90,7 @@ export const createWorkspaceActions = (
       workspaceId,
       selectedTaskId: null,
       highlightedTaskId: null,
+      highlightedTaskRowAssigneeId: null,
       dataRequestId: requestId,
       ...workspaceResetPatch,
     });
@@ -596,6 +597,15 @@ export const createWorkspaceActions = (
 
   deleteMemberGroup: async (workspaceId, groupId) => {
     const currentGroup = get().memberGroups.find((group) => group.id === groupId) ?? null;
+
+    // Clear group_id on affected members before deleting the group (safety net
+    // in case the DB-level ON DELETE SET NULL (group_id) clause is not yet applied).
+    await supabase
+      .from('workspace_members')
+      .update({ group_id: null })
+      .eq('workspace_id', workspaceId)
+      .eq('group_id', groupId);
+
     const { error } = await supabase
       .from('member_groups')
       .delete()

@@ -54,6 +54,14 @@ if [[ "${keycloak_theme_changed}" == "true" ]]; then
   ssh "$host" "cd '${remote_dir}' && docker compose -f infra/docker-compose.prod.yml --env-file .env up -d --force-recreate --no-deps keycloak"
 fi
 
+ssh "$host" "cd '${remote_dir}' && if docker compose -f infra/docker-compose.prod.yml --env-file .env ps -q gateway >/dev/null 2>&1; then \
+  host_hash=\$(sha1sum '${remote_dir}/infra/supabase/nginx.conf' | awk '{print \$1}'); \
+  container_hash=\$(docker exec infra-gateway-1 sha1sum /etc/nginx/nginx.conf 2>/dev/null | awk '{print \$1}' || true); \
+  if [ -z \"\$container_hash\" ] || [ \"\$host_hash\" != \"\$container_hash\" ]; then \
+    docker compose -f infra/docker-compose.prod.yml --env-file .env up -d --force-recreate --no-deps gateway >/dev/null && echo 'Gateway container recreated (nginx.conf updated).'; \
+  fi; \
+fi"
+
 ssh "$host" "cd '${remote_dir}' && bash infra/scripts/ensure-caddy-network-access.sh"
 
 ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then \

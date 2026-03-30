@@ -48,6 +48,7 @@ export interface PlannerStore extends PlannerState {
   assigneeCountsWorkspaceId: string | null;
   scrollRequestId: number;
   scrollTargetDate: string | null;
+  visibleCenterDate: string | null;
   timelineInteractingUntil: number;
   syncHealthy: boolean;
   setWorkspaceId: (id: string | null) => void;
@@ -80,7 +81,8 @@ export interface PlannerStore extends PlannerState {
   deleteTasks: (ids: string[]) => Promise<{ error?: string }>;
   duplicateTask: (id: string) => Promise<void>;
   createRepeats: (id: string, options: { frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly'; ends: 'never' | 'on' | 'after'; untilDate?: string; count?: number }) => Promise<{ error?: string; created?: number }>;
-  moveTask: (id: string, startDate: string, endDate: string) => Promise<void>;
+  updateRepeatSeries: (id: string, options: { frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly'; ends: 'never' | 'on' | 'after'; untilDate?: string; count?: number }, scope?: Exclude<RepeatTaskUpdateScope, 'single'>) => Promise<{ error?: string; created?: number; deleted?: number; updated?: number }>;
+  moveTask: (id: string, startDate: string, endDate: string, scope?: RepeatTaskUpdateScope) => Promise<void>;
   reassignTask: (id: string, assigneeId: string | null, projectId?: string | null) => Promise<void>;
   deleteTaskSeries: (repeatId: string, fromDate: string) => Promise<void>;
   removeAssigneeFromTask: (id: string, assigneeId: string, mode: 'single' | 'following') => Promise<void>;
@@ -131,6 +133,7 @@ export interface PlannerStore extends PlannerState {
   setViewMode: (mode: ViewMode) => void;
   setGroupMode: (mode: GroupMode) => void;
   setCurrentDate: (date: string) => void;
+  setVisibleCenterDate: (date: string) => void;
   requestScrollToDate: (date: string) => void;
   setTimelineAttentionDate: (date: string | null) => void;
   setFilters: (filters: Partial<Filters>) => void;
@@ -138,6 +141,7 @@ export interface PlannerStore extends PlannerState {
   clearFilters: () => void;
   setSelectedTaskId: (id: string | null) => void;
   setHighlightedTaskId: (id: string | null) => void;
+  setHighlightedTaskTarget: (taskId: string | null, rowAssigneeId?: string | null) => void;
   setSyncHealthy: (healthy: boolean) => void;
 }
 

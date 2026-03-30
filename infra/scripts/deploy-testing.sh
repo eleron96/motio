@@ -8,7 +8,8 @@ set -euo pipefail
 # Differences from deploy-remote.sh:
 #   - Hardcoded to test host only (no fallback to prod IP)
 #   - Calls test-compose.sh instead of prod-compose.sh
-#   - Does NOT sync VERSION / CHANGELOG / releases.log back
+#   - Does NOT rotate VERSION / CHANGELOG itself; tracked test releases are handled by release-testing.sh
+#   - Does NOT sync VERSION / CHANGELOG / release logs back
 #   - Syncs Caddyfile.testing instead of Caddyfile
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -64,6 +65,14 @@ if [[ "${keycloak_theme_changed}" == "true" ]]; then
   ssh "$host" "cd '${remote_dir}' && docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.testing.yml --env-file .env up -d --force-recreate --no-deps keycloak"
 fi
 
+ssh "$host" "cd '${remote_dir}' && if docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.testing.yml --env-file .env ps -q gateway >/dev/null 2>&1; then \
+  host_hash=\$(sha1sum '${remote_dir}/infra/supabase/nginx.conf' | awk '{print \$1}'); \
+  container_hash=\$(docker exec infra-gateway-1 sha1sum /etc/nginx/nginx.conf 2>/dev/null | awk '{print \$1}' || true); \
+  if [ -z \"\$container_hash\" ] || [ \"\$host_hash\" != \"\$container_hash\" ]; then \
+    docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.testing.yml --env-file .env up -d --force-recreate --no-deps gateway >/dev/null && echo 'Gateway container recreated (nginx.conf updated).'; \
+  fi; \
+fi"
+
 ssh "$host" "cd '${remote_dir}' && bash infra/scripts/ensure-caddy-network-access.sh"
 
 ssh "$host" "if docker ps --format '{{.Names}}' | grep -qx 'motio-caddy'; then \
@@ -76,7 +85,7 @@ else
   echo "Skipping firewall hardening (set RUN_FIREWALL_HARDEN=1 to enforce)."
 fi
 
-# NOTE: We intentionally do NOT sync VERSION/CHANGELOG/releases.log back.
-# The testing server has no release lifecycle.
+# NOTE: We intentionally do NOT sync VERSION/CHANGELOG/release logs back.
+# Testing release artifacts are prepared locally by release-testing.sh.
 
 echo "Testing deployment finished."
