@@ -1,6 +1,13 @@
 import { supabase } from '@/shared/lib/supabaseClient';
 
 const trimTrailingSlash = (v: string) => v.replace(/\/+$/, '');
+const UTF8_HEADER_PREFIX = 'utf8:';
+
+const encodeFileNameHeader = (fileName: string) => {
+  const normalized = fileName.trim();
+  if (!normalized) return '';
+  return `${UTF8_HEADER_PREFIX}${encodeURIComponent(normalized)}`;
+};
 
 /**
  * Uploads an image file to the task-media Supabase Function.
@@ -26,7 +33,7 @@ export const uploadTaskMedia = async (workspaceId: string, file: File): Promise<
       Authorization: `Bearer ${token}`,
       'Content-Type': file.type || 'application/octet-stream',
       'X-Workspace-Id': wsId,
-      'X-File-Name': file.name,
+      'X-File-Name': encodeFileNameHeader(file.name),
     },
     body: file,
   });

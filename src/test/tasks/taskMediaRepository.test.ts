@@ -54,11 +54,41 @@ describe('taskMediaRepository', () => {
           Authorization: 'Bearer session-token',
           'Content-Type': 'image/png',
           'X-Workspace-Id': 'ws-1',
-          'X-File-Name': 'photo.png',
+          'X-File-Name': 'utf8:photo.png',
         }),
       }),
     );
     expect(url).toBe('https://example.supabase.co/functions/v1/task-media/media-1?token=download-token');
+  });
+
+  it('encodes non-ascii file names before sending them as headers', async () => {
+    authMocks.getSession.mockResolvedValue({
+      data: {
+        session: {
+          access_token: 'session-token',
+        },
+      },
+    });
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 'media-2', token: 'download-token' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const file = new File(['image'], 'фото.png', { type: 'image/png' });
+    await uploadTaskMedia('ws-1', file);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://example.supabase.co/functions/v1/task-media',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-File-Name': 'utf8:%D1%84%D0%BE%D1%82%D0%BE.png',
+        }),
+      }),
+    );
   });
 
   it('throws the backend error message when upload fails', async () => {
