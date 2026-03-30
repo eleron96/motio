@@ -28,6 +28,7 @@ dist-ssr
 .supabase-functions.log
 .supabase-functions.env
 infra/backups/
+docs/
 
 # Editor directories and files
 .vscode/*
