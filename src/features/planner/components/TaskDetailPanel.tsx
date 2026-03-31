@@ -23,39 +23,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/shared/ui/badge';
 import { AlertTriangle, ChevronDown, CircleDot, Layers, Plus, RotateCw, Trash2, User, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
-import { RepeatTaskUpdateScope, Task, TaskPriority, TaskSubtask } from '@/features/planner/types/planner';
+import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { format, parseISO } from 'date-fns';
+import { useTaskRepeatConfig, PendingRepeatUpdate } from '@/features/planner/hooks/useTaskRepeatConfig';
+import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
+import { useTaskDrafts } from '@/features/planner/hooks/useTaskDrafts';
+import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
+import { format } from 'date-fns';
 import { t } from '@lingui/macro';
 import {
   buildCreateRepeatsOptions,
-  getAutoRepeatUntilOnEndsChange,
-  getAutoRepeatUntilOnFrequencyChange,
-  getDefaultRepeatUntil,
-  parseRepeatCountInput,
+  resolveRepeatValidationMessage,
   RepeatEnds,
   RepeatFrequency,
-  resolveRepeatValidationMessage,
-  shouldAutoSyncRepeatUntil,
 } from '@/features/planner/lib/taskFormRules';
-
-const areArraysEqual = (left: string[], right: string[]) => {
-  if (left.length !== right.length) return false;
-  return left.every((value, index) => value === right[index]);
-};
-
-const areTasksEqual = (left: Task, right: Task) => (
-  left.title === right.title &&
-  left.projectId === right.projectId &&
-  areArraysEqual(left.assigneeIds, right.assigneeIds) &&
-  left.statusId === right.statusId &&
-  left.typeId === right.typeId &&
-  left.priority === right.priority &&
-  left.startDate === right.startDate &&
-  left.endDate === right.endDate &&
-  left.description === right.description &&
-  areArraysEqual(left.tagIds, right.tagIds)
-);
 
 const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
@@ -66,25 +47,6 @@ const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
   );
 };
 
-type PendingRepeatUpdate = {
-  closeAfterApply?: boolean;
-  kind: 'task-update' | 'repeat-config';
-  nextSignature?: string;
-  options?: ReturnType<typeof buildCreateRepeatsOptions>;
-  scopes?: RepeatTaskUpdateScope[];
-  taskId: string;
-  updates?: Partial<Task>;
-  resetDraftOnCancel?: boolean;
-};
-
-const buildRepeatConfigSignature = (params: {
-  frequency: RepeatFrequency;
-  ends: RepeatEnds;
-  until: string;
-  count: number;
-}) => (
-  `${params.frequency}|${params.ends}|${params.ends === 'on' ? params.until : ''}|${params.ends === 'after' ? params.count : ''}`
-);
 
 const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
   Object.entries(updates).some(([key, value]) => {
@@ -96,19 +58,6 @@ const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
   })
 );
 
-const inferRepeatFrequency = (series: Task[]): RepeatFrequency => {
-  if (series.length < 2) return 'none';
-  const sorted = [...series].sort((left, right) => left.startDate.localeCompare(right.startDate));
-  const firstDate = parseISO(sorted[0].startDate);
-  const secondDate = parseISO(sorted[1].startDate);
-  const dayDiff = Math.abs(Math.round((secondDate.getTime() - firstDate.getTime()) / 86400000));
-  if (dayDiff === 1) return 'daily';
-  if (dayDiff === 7) return 'weekly';
-  if (dayDiff === 14) return 'biweekly';
-  if (dayDiff >= 28 && dayDiff <= 31) return 'monthly';
-  if (dayDiff >= 364 && dayDiff <= 366) return 'yearly';
-  return 'none';
-};
 
 const resolveScopedRepeatCount = (params: {
   repeatCount: number;
@@ -162,35 +111,20 @@ export const TaskDetailPanel: React.FC = () => {
     [customers],
   );
 
-  const originalTaskRef = useRef<Task | null>(null);
-  const repeatInFlightRef = useRef(false);
-  const repeatUntilAutoRef = useRef(true);
-  const repeatConfigSnapshotRef = useRef('');
-  const titleDraftRef = useRef('');
-  const descriptionDraftRef = useRef('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [repeatFrequency, setRepeatFrequency] = useState<RepeatFrequency>('none');
-  const [repeatEnds, setRepeatEnds] = useState<RepeatEnds>('never');
-  const [repeatUntil, setRepeatUntil] = useState('');
-  const [repeatCount, setRepeatCount] = useState(4);
-  const [repeatError, setRepeatError] = useState('');
-  const [repeatNotice, setRepeatNotice] = useState('');
-  const [repeatCreating, setRepeatCreating] = useState(false);
-  const [repeatScopeOpen, setRepeatScopeOpen] = useState(false);
-  const [pendingRepeatUpdate, setPendingRepeatUpdate] = useState<PendingRepeatUpdate | null>(null);
-  const [draftTitle, setDraftTitle] = useState('');
-  const [draftDescription, setDraftDescription] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [subtasksOpen, setSubtasksOpen] = useState(false);
-  const [subtasksLoading, setSubtasksLoading] = useState(false);
-  const [subtasksSaving, setSubtasksSaving] = useState(false);
-  const [subtasksError, setSubtasksError] = useState('');
-  const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const subtaskInputRef = useRef<HTMLInputElement | null>(null);
-  
+
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
+
+  const {
+    originalTaskRef,
+    titleDraftRef,
+    descriptionDraftRef,
+    draftTitle, setDraftTitle,
+    draftDescription, setDraftDescription,
+    isDirty,
+  } = useTaskDrafts({ task, selectedTaskId });
   const currentProject = useMemo(
     () => projects.find((project) => project.id === task?.projectId),
     [projects, task?.projectId],
@@ -211,179 +145,47 @@ export const TaskDetailPanel: React.FC = () => {
   }, [filteredAssignees, task]);
   const noProjectDisabled = groupMode === 'project';
 
-  useEffect(() => {
-    if (!selectedTaskId) {
-      originalTaskRef.current = null;
-      return;
-    }
-    if (originalTaskRef.current?.id === selectedTaskId) return;
-    if (task) {
-      originalTaskRef.current = {
-        ...task,
-        assigneeIds: [...task.assigneeIds],
-        tagIds: [...task.tagIds],
-      };
-    }
-  }, [selectedTaskId, task]);
+  const {
+    repeatFrequency, setRepeatFrequency,
+    repeatEnds, setRepeatEnds,
+    repeatUntil, setRepeatUntil,
+    repeatCount, setRepeatCount,
+    repeatError, setRepeatError,
+    repeatNotice, setRepeatNotice,
+    repeatCreating, setRepeatCreating,
+    repeatScopeOpen, setRepeatScopeOpen,
+    pendingRepeatUpdate, setPendingRepeatUpdate,
+    repeatInFlightRef,
+    repeatUntilAutoRef,
+    repeatConfigDirty,
+    handleRepeatFrequencyChange,
+    handleRepeatEndsChange,
+    handleRepeatUntilChange,
+    handleRepeatCountInputChange,
+  } = useTaskRepeatConfig({ task: task ?? null, tasks, selectedTaskId });
 
-  useEffect(() => {
-    if (!task) {
-      titleDraftRef.current = '';
-      descriptionDraftRef.current = '';
-      setDraftTitle('');
-      setDraftDescription('');
-      return;
-    }
-    titleDraftRef.current = task.title;
-    setDraftTitle(task.title);
-    const nextDescription = task.description || '';
-    descriptionDraftRef.current = nextDescription;
-    setDraftDescription(nextDescription);
-  }, [task]);
-
-  useEffect(() => {
-    setSubtasksOpen(false);
-    setSubtasks([]);
-    setNewSubtaskTitle('');
-    setSubtasksError('');
-    setSubtasksLoading(false);
-    setSubtasksSaving(false);
-    if (!taskId || !currentWorkspaceId) return;
-    let active = true;
-
-    const loadSubtasks = async () => {
-      setSubtasksLoading(true);
-      setSubtasksError('');
-      const result = await fetchTaskSubtasks(currentWorkspaceId, taskId);
-
-      if (!active) return;
-      if (result.error) {
-        setSubtasksError(result.error);
-        setSubtasks([]);
-        setSubtasksLoading(false);
-        return;
-      }
-
-      setSubtasks(result.subtasks);
-      setSubtasksOpen(result.subtasks.length > 0);
-      setSubtasksLoading(false);
-    };
-
-    void loadSubtasks();
-    return () => {
-      active = false;
-    };
-  }, [currentWorkspaceId, fetchTaskSubtasks, taskId]);
-
-  useEffect(() => {
-    if (!task) return;
-    const defaultRepeatUntil = getDefaultRepeatUntil(task.startDate);
-    const series = task.repeatId
-      ? tasks.filter((item) => item.repeatId === task.repeatId)
-      : [];
-    const inferredFrequency = task.repeatId ? inferRepeatFrequency(series) : 'none';
-    const lastSeriesDate = series.length > 0
-      ? [...series].sort((left, right) => left.startDate.localeCompare(right.startDate))[series.length - 1].startDate
-      : null;
-
-    let nextFrequency: RepeatFrequency = 'none';
-    let nextEnds: RepeatEnds = 'never';
-    let nextCount = 4;
-    let nextUntil = defaultRepeatUntil;
-
-    if (task.repeatId && inferredFrequency !== 'none') {
-      nextFrequency = inferredFrequency;
-      if (series.length > 1) {
-        nextEnds = 'after';
-        nextCount = series.length;
-      } else {
-        nextEnds = 'never';
-        nextCount = 4;
-      }
-      nextUntil = lastSeriesDate ?? defaultRepeatUntil;
-    }
-
-    setRepeatFrequency(nextFrequency);
-    setRepeatEnds(nextEnds);
-    setRepeatCount(nextCount);
-    setRepeatUntil(nextUntil);
-    repeatConfigSnapshotRef.current = buildRepeatConfigSignature({
-      frequency: nextFrequency,
-      ends: nextEnds,
-      until: nextUntil,
-      count: nextCount,
-    });
-
-    repeatUntilAutoRef.current = true;
-    setRepeatError('');
-    setRepeatNotice('');
-    setRepeatCreating(false);
-  }, [task, tasks]);
-
-  useEffect(() => {
-    if (selectedTaskId) return;
-    setRepeatScopeOpen(false);
-    setPendingRepeatUpdate(null);
-  }, [selectedTaskId]);
-
-  useEffect(() => {
-    if (!task) return;
-    if (!shouldAutoSyncRepeatUntil({
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      auto: repeatUntilAutoRef.current,
-    })) return;
-    setRepeatUntil(getDefaultRepeatUntil(task.startDate));
-  }, [repeatEnds, repeatFrequency, task]);
-
-  const handleRepeatFrequencyChange = (value: typeof repeatFrequency) => {
-    setRepeatFrequency(value);
-    if (!task) return;
-    const nextUntil = getAutoRepeatUntilOnFrequencyChange({
-      nextFrequency: value,
-      currentEnds: repeatEnds,
-      baseDate: task.startDate,
-    });
-    if (!nextUntil) return;
-    repeatUntilAutoRef.current = true;
-    setRepeatUntil(nextUntil);
-  };
-
-  const handleRepeatEndsChange = (value: typeof repeatEnds) => {
-    setRepeatEnds(value);
-    if (!task) return;
-    const nextUntil = getAutoRepeatUntilOnEndsChange({
-      nextEnds: value,
-      baseDate: task.startDate,
-    });
-    if (!nextUntil) return;
-    repeatUntilAutoRef.current = true;
-    setRepeatUntil(nextUntil);
-  };
-
-  const handleRepeatUntilChange = (value: string) => {
-    repeatUntilAutoRef.current = false;
-    setRepeatUntil(value);
-  };
-
-  const handleRepeatCountInputChange = (rawValue: string) => {
-    const nextRepeatCount = parseRepeatCountInput(rawValue);
-    if (nextRepeatCount === null) return;
-    setRepeatCount(nextRepeatCount);
-  };
-
-  const isDirty = useMemo(() => {
-    if (!task || !originalTaskRef.current) return false;
-    return !areTasksEqual(originalTaskRef.current, task);
-  }, [task]);
-  const repeatConfigDirty = useMemo(() => (
-    buildRepeatConfigSignature({
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      until: repeatUntil,
-      count: repeatCount,
-    }) !== repeatConfigSnapshotRef.current
-  ), [repeatCount, repeatEnds, repeatFrequency, repeatUntil]);
+  const {
+    subtasksOpen, setSubtasksOpen,
+    subtasksLoading,
+    subtasksSaving,
+    subtasksError, setSubtasksError,
+    subtasks,
+    newSubtaskTitle, setNewSubtaskTitle,
+    completedSubtasksCount,
+    subtaskInputRef,
+    handleOpenSubtasks,
+    handleAddSubtask,
+    handleToggleSubtask,
+    handleDeleteSubtask,
+  } = useTaskSubtasks({
+    taskId,
+    currentWorkspaceId,
+    canEdit,
+    fetchTaskSubtasks,
+    createTaskSubtask,
+    updateTaskSubtaskCompletion,
+    deleteTaskSubtask,
+  });
 
   const assigneeLabel = useMemo(() => {
     if (!task || task.assigneeIds.length === 0) return t`Unassigned`;
@@ -393,11 +195,6 @@ export const TaskDetailPanel: React.FC = () => {
     if (selected.length === 1 && task.assigneeIds.length === 1) return selected[0];
     return t`${task.assigneeIds.length} assignees`;
   }, [filteredAssignees, task]);
-  const completedSubtasksCount = useMemo(
-    () => subtasks.reduce((total, subtask) => total + (subtask.isDone ? 1 : 0), 0),
-    [subtasks],
-  );
-
   const requestClose = () => {
     if (!isDirty && !repeatConfigDirty) {
       setSelectedTaskId(null);
@@ -635,89 +432,6 @@ export const TaskDetailPanel: React.FC = () => {
     setDeleteOpen(false);
   };
 
-  const handleOpenSubtasks = () => {
-    setSubtasksOpen(true);
-    setSubtasksError('');
-    if (typeof window !== 'undefined') {
-      window.requestAnimationFrame(() => {
-        subtaskInputRef.current?.focus();
-      });
-    }
-  };
-
-  const handleAddSubtask = async () => {
-    if (!task || !currentWorkspaceId || !canEdit) return;
-    const title = newSubtaskTitle.trim();
-    if (!title) return;
-
-    const nextPosition = subtasks.length > 0
-      ? Math.max(...subtasks.map((item) => item.position)) + 1
-      : 0;
-
-    setSubtasksSaving(true);
-    setSubtasksError('');
-
-    const result = await createTaskSubtask(currentWorkspaceId, task.id, title, nextPosition);
-    if (result.error || !result.subtask) {
-      setSubtasksError(result.error ?? t`Failed to add subtask.`);
-      setSubtasksSaving(false);
-      return;
-    }
-
-    const createdSubtask = result.subtask;
-    setSubtasks((current) => [...current, createdSubtask]);
-    setNewSubtaskTitle('');
-    setSubtasksSaving(false);
-    subtaskInputRef.current?.focus();
-  };
-
-  const handleToggleSubtask = async (subtaskId: string, isDone: boolean) => {
-    if (!task || !currentWorkspaceId || !canEdit) return;
-    const previous = subtasks.find((item) => item.id === subtaskId);
-    if (!previous) return;
-
-    const nextDoneAt = isDone ? new Date().toISOString() : null;
-    setSubtasksError('');
-    setSubtasks((current) => current.map((item) => (
-      item.id === subtaskId
-        ? { ...item, isDone, doneAt: nextDoneAt }
-        : item
-    )));
-
-    const result = await updateTaskSubtaskCompletion(
-      currentWorkspaceId,
-      task.id,
-      subtaskId,
-      isDone,
-      nextDoneAt,
-    );
-    if (result.error) {
-      setSubtasks((current) => current.map((item) => (
-        item.id === subtaskId
-          ? { ...item, isDone: previous.isDone, doneAt: previous.doneAt }
-          : item
-      )));
-      setSubtasksError(result.error);
-    }
-  };
-
-  const handleDeleteSubtask = async (subtaskId: string) => {
-    if (!task || !currentWorkspaceId || !canEdit) return;
-    const previous = subtasks.find((item) => item.id === subtaskId);
-    if (!previous) return;
-
-    setSubtasksError('');
-    setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
-
-    const result = await deleteTaskSubtask(currentWorkspaceId, task.id, subtaskId);
-    if (result.error) {
-      setSubtasks((current) => (
-        [...current, previous].sort((left, right) => left.position - right.position)
-      ));
-      setSubtasksError(result.error || t`Failed to delete subtask.`);
-    }
-  };
-
   return (
     <>
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
@@ -812,94 +526,22 @@ export const TaskDetailPanel: React.FC = () => {
                 </Suspense>
               </div>
 
-              {!subtasksOpen ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-8 w-fit gap-1.5 text-xs"
-                  onClick={handleOpenSubtasks}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  {t`Add subtask`}
-                </Button>
-              ) : (
-                <div className="space-y-3 rounded-md border p-3">
-                  <div className="text-xs text-muted-foreground">
-                    {t`Completed`}: <span className="font-medium text-foreground">{completedSubtasksCount}</span>/{subtasks.length}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Input
-                      ref={subtaskInputRef}
-                      value={newSubtaskTitle}
-                      onChange={(event) => setNewSubtaskTitle(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key !== 'Enter') return;
-                        event.preventDefault();
-                        void handleAddSubtask();
-                      }}
-                      placeholder={t`Subtask title`}
-                      disabled={isReadOnly || subtasksSaving}
-                      className="h-8 text-sm"
-                    />
-                    <Button
-                      type="button"
-                      className="h-8 px-3 text-xs"
-                      onClick={() => void handleAddSubtask()}
-                      disabled={isReadOnly || subtasksSaving || !newSubtaskTitle.trim()}
-                    >
-                      {t`Add`}
-                    </Button>
-                  </div>
-
-                  {subtasksError && (
-                    <div className="text-xs text-destructive">{subtasksError}</div>
-                  )}
-
-                  {subtasksLoading ? (
-                    <div className="text-xs text-muted-foreground">{t`Loading...`}</div>
-                  ) : subtasks.length === 0 ? (
-                    <div className="text-xs text-muted-foreground">{t`No subtasks yet.`}</div>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {subtasks.map((subtask) => (
-                        <div
-                          key={subtask.id}
-                          className="flex items-start gap-2 rounded-md border px-2.5 py-2"
-                        >
-                          <Checkbox
-                            checked={subtask.isDone}
-                            onCheckedChange={(value) => {
-                              if (value === 'indeterminate') return;
-                              void handleToggleSubtask(subtask.id, value === true);
-                            }}
-                            disabled={isReadOnly}
-                          />
-                          <span
-                            className={cn(
-                              'flex-1 text-sm leading-snug text-foreground',
-                              subtask.isDone && 'line-through text-muted-foreground',
-                            )}
-                          >
-                            {subtask.title}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 shrink-0"
-                            onClick={() => void handleDeleteSubtask(subtask.id)}
-                            disabled={isReadOnly}
-                            aria-label={t`Remove subtask`}
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <SubtasksSection
+                isReadOnly={isReadOnly}
+                subtasksOpen={subtasksOpen}
+                subtasksLoading={subtasksLoading}
+                subtasksSaving={subtasksSaving}
+                subtasksError={subtasksError}
+                subtasks={subtasks}
+                newSubtaskTitle={newSubtaskTitle}
+                completedSubtasksCount={completedSubtasksCount}
+                subtaskInputRef={subtaskInputRef}
+                onOpen={handleOpenSubtasks}
+                onNewTitleChange={setNewSubtaskTitle}
+                onAdd={() => void handleAddSubtask()}
+                onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
+                onDelete={(id) => void handleDeleteSubtask(id)}
+              />
 
               {/* ── Comments section */}
               {currentWorkspaceId && (

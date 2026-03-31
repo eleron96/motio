@@ -14,6 +14,10 @@ import { useDisplayTaskRows } from '@/features/planner/hooks/useDisplayTaskRows'
 import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
 import { useProjectsFilter } from '@/features/projects/hooks/useProjectsFilter';
 import { useProjectSelection } from '@/features/projects/hooks/useProjectSelection';
+import { useMilestoneActions } from '@/features/projects/hooks/useMilestoneActions';
+import { useProjectMutations } from '@/features/projects/hooks/useProjectMutations';
+import { useCustomerActions } from '@/features/projects/hooks/useCustomerActions';
+import { useProjectCreateForm } from '@/features/projects/hooks/useProjectCreateForm';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
@@ -36,7 +40,6 @@ import {
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
-import { DEFAULT_PROJECT_COLOR } from '@/shared/lib/colors';
 
 const ProjectsPage = () => {
   usePageSeo({
@@ -66,35 +69,6 @@ const ProjectsPage = () => {
   const [mode, setMode] = useState<'projects' | 'milestones' | 'customers'>('projects');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
-  const [createProjectOpen, setCreateProjectOpen] = useState(false);
-  const [createProjectConfirmOpen, setCreateProjectConfirmOpen] = useState(false);
-  const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
-  const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
-  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
-  const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
-  const [projectSettingsTarget, setProjectSettingsTarget] = useState<Project | null>(null);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectCode, setNewProjectCode] = useState('');
-  const [newProjectColor, setNewProjectColor] = useState(DEFAULT_PROJECT_COLOR);
-  const [newProjectCustomerId, setNewProjectCustomerId] = useState<string | null>(null);
-  const [projectSettingsName, setProjectSettingsName] = useState('');
-  const [projectSettingsCode, setProjectSettingsCode] = useState('');
-  const [projectSettingsColor, setProjectSettingsColor] = useState(DEFAULT_PROJECT_COLOR);
-  const [projectSettingsCustomerId, setProjectSettingsCustomerId] = useState<string | null>(null);
-  const [projectSettingsConfirmOpen, setProjectSettingsConfirmOpen] = useState(false);
-  const [newCustomerName, setNewCustomerName] = useState('');
-  const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
-  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
-  const [editingCustomerName, setEditingCustomerName] = useState('');
-  const [editingCustomerOriginalName, setEditingCustomerOriginalName] = useState('');
-  const [renameCustomerOpen, setRenameCustomerOpen] = useState(false);
-  const [renameCustomerConfirmOpen, setRenameCustomerConfirmOpen] = useState(false);
-  const [deleteProjectTarget, setDeleteProjectTarget] = useState<Project | null>(null);
-  const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
-  const [deleteMilestoneTarget, setDeleteMilestoneTarget] = useState<Milestone | null>(null);
-  const [deleteMilestoneOpen, setDeleteMilestoneOpen] = useState(false);
-  const [deleteCustomerTarget, setDeleteCustomerTarget] = useState<Customer | null>(null);
-  const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const pageSize = 100;
@@ -181,6 +155,70 @@ const ProjectsPage = () => {
       loadWorkspaceData(currentWorkspaceId);
     }
   }, [currentWorkspaceId, loadWorkspaceData]);
+
+  const {
+    projectSettingsOpen, setProjectSettingsOpen,
+    projectSettingsTarget, setProjectSettingsTarget,
+    projectSettingsName, setProjectSettingsName,
+    projectSettingsCode, setProjectSettingsCode,
+    projectSettingsColor, setProjectSettingsColor,
+    projectSettingsCustomerId, setProjectSettingsCustomerId,
+    projectSettingsConfirmOpen, setProjectSettingsConfirmOpen,
+    deleteProjectTarget, setDeleteProjectTarget,
+    deleteProjectOpen, setDeleteProjectOpen,
+    openProjectSettings,
+    handleSaveProjectSettings,
+    requestCloseProjectSettings,
+    requestDeleteProject,
+    handleConfirmDeleteProject,
+    handleToggleProjectArchived,
+  } = useProjectMutations({ canEdit, updateProject, deleteProject, setMutationError });
+
+  const {
+    newCustomerName, setNewCustomerName,
+    createCustomerOpen, setCreateCustomerOpen,
+    editingCustomerId, setEditingCustomerId,
+    editingCustomerName, setEditingCustomerName,
+    editingCustomerOriginalName,
+    renameCustomerOpen, setRenameCustomerOpen,
+    renameCustomerConfirmOpen, setRenameCustomerConfirmOpen,
+    deleteCustomerTarget, setDeleteCustomerTarget,
+    deleteCustomerOpen, setDeleteCustomerOpen,
+    createCustomerByName,
+    handleAddCustomerFromTab,
+    startCustomerEdit,
+    cancelCustomerEdit,
+    handleRenameCustomer,
+    requestCloseRenameCustomer,
+    requestDeleteCustomer,
+    handleConfirmDeleteCustomer,
+  } = useCustomerActions({
+    canEdit,
+    customers,
+    selectedCustomerId,
+    setSelectedCustomerId,
+    addCustomer,
+    updateCustomer,
+    deleteCustomer,
+    setMutationError,
+  });
+
+  const {
+    createProjectOpen, setCreateProjectOpen,
+    createProjectConfirmOpen, setCreateProjectConfirmOpen,
+    newProjectName, setNewProjectName,
+    newProjectCode, setNewProjectCode,
+    newProjectColor, setNewProjectColor,
+    newProjectCustomerId, setNewProjectCustomerId,
+    resetCreateProjectForm,
+    handleCreateProject,
+    requestCloseCreateProject,
+  } = useProjectCreateForm({
+    canEdit,
+    addProject,
+    setEditingCustomerId,
+    setEditingCustomerName,
+  });
 
   const activeProjects = useMemo(
     () => sortProjectsByTracking(
@@ -321,6 +359,28 @@ const ProjectsPage = () => {
 
   const navigate = useNavigate();
 
+  const {
+    editingMilestone,
+    milestoneDialogOpen,
+    milestoneDialogDate,
+    deleteMilestoneTarget,
+    deleteMilestoneOpen,
+    setDeleteMilestoneOpen,
+    setDeleteMilestoneTarget,
+    handleOpenCreateMilestone,
+    handleOpenMilestoneSettings,
+    handleMilestoneDialogOpenChange,
+    requestDeleteMilestone,
+    handleConfirmDeleteMilestone,
+  } = useMilestoneActions({
+    canEdit,
+    selectedMilestone,
+    selectedMilestoneId,
+    setSelectedMilestoneId,
+    deleteMilestone,
+    setMutationError,
+  });
+
   const handleOpenTaskInTimeline = useCallback(() => {
     if (!selectedTask) return;
     setHighlightedTaskId(selectedTask.id);
@@ -408,217 +468,6 @@ const ProjectsPage = () => {
     setStatusFilterIds(targetIds);
   };
 
-  const resetCreateProjectForm = useCallback(() => {
-    setNewProjectName('');
-    setNewProjectCode('');
-    setNewProjectColor(DEFAULT_PROJECT_COLOR);
-    setNewProjectCustomerId(null);
-    setEditingCustomerId(null);
-    setEditingCustomerName('');
-  }, []);
-
-  const handleCreateProject = useCallback(async () => {
-    if (!canEdit || !newProjectName.trim()) return;
-    await addProject({
-      name: newProjectName.trim(),
-      code: newProjectCode.trim() ? newProjectCode.trim() : null,
-      color: newProjectColor,
-      archived: false,
-      customerId: newProjectCustomerId,
-    });
-    setCreateProjectOpen(false);
-    resetCreateProjectForm();
-  }, [
-    addProject,
-    canEdit,
-    newProjectCode,
-    newProjectColor,
-    newProjectCustomerId,
-    newProjectName,
-    resetCreateProjectForm,
-  ]);
-
-  const createCustomerByName = useCallback(async (name: string) => {
-    const trimmed = name.trim();
-    if (!canEdit || !trimmed) return null;
-    const normalized = trimmed.toLowerCase();
-    const existing = customers.find((customer) => customer.name.trim().toLowerCase() === normalized);
-    if (existing) return existing;
-    return addCustomer({ name: trimmed });
-  }, [addCustomer, canEdit, customers]);
-
-  const handleAddCustomerFromTab = useCallback(async () => {
-    if (!newCustomerName.trim()) return;
-    const created = await createCustomerByName(newCustomerName);
-    if (created) {
-      setSelectedCustomerId(created.id);
-    }
-    setNewCustomerName('');
-    setCreateCustomerOpen(false);
-  }, [createCustomerByName, newCustomerName]);
-
-  const startCustomerEdit = useCallback((customerId: string, customerName: string) => {
-    if (!canEdit) return;
-    setEditingCustomerId(customerId);
-    setEditingCustomerName(customerName);
-    setEditingCustomerOriginalName(customerName);
-    setRenameCustomerOpen(true);
-  }, [canEdit]);
-
-  const commitCustomerEdit = useCallback(async (customerId: string) => {
-    if (!canEdit) return;
-    const nextName = editingCustomerName.trim();
-    if (!nextName) {
-      setEditingCustomerId(null);
-      setEditingCustomerName('');
-      setEditingCustomerOriginalName('');
-      return;
-    }
-    setMutationError('');
-    const result = await updateCustomer(customerId, { name: nextName });
-    if (result?.error) {
-      setMutationError(result.error);
-      return;
-    }
-    setEditingCustomerId(null);
-    setEditingCustomerName('');
-    setEditingCustomerOriginalName('');
-  }, [canEdit, editingCustomerName, updateCustomer]);
-
-  const cancelCustomerEdit = useCallback(() => {
-    setEditingCustomerId(null);
-    setEditingCustomerName('');
-    setEditingCustomerOriginalName('');
-  }, []);
-  const handleRenameCustomer = useCallback(async () => {
-    if (!editingCustomerId) return;
-    await commitCustomerEdit(editingCustomerId);
-    setRenameCustomerOpen(false);
-  }, [commitCustomerEdit, editingCustomerId]);
-  const requestCloseRenameCustomer = useCallback(() => {
-    if (
-      editingCustomerId
-      && editingCustomerName.trim()
-      && editingCustomerName.trim() !== editingCustomerOriginalName.trim()
-    ) {
-      setRenameCustomerConfirmOpen(true);
-      return;
-    }
-    setRenameCustomerOpen(false);
-    cancelCustomerEdit();
-  }, [cancelCustomerEdit, editingCustomerId, editingCustomerName, editingCustomerOriginalName]);
-
-  const openProjectSettings = useCallback((project: Project) => {
-    if (!canEdit) return;
-    setProjectSettingsTarget(project);
-    setProjectSettingsName(project.name);
-    setProjectSettingsCode(project.code ?? '');
-    setProjectSettingsColor(project.color);
-    setProjectSettingsCustomerId(project.customerId ?? null);
-    setProjectSettingsOpen(true);
-  }, [canEdit]);
-
-  const handleSaveProjectSettings = useCallback(async () => {
-    if (!canEdit || !projectSettingsTarget) return;
-    const nextName = projectSettingsName.trim();
-    if (!nextName) return;
-    const nextCode = projectSettingsCode.trim();
-    const normalizedCode = nextCode ? nextCode : null;
-    const updates: Partial<Project> = {};
-    if (nextName !== projectSettingsTarget.name) updates.name = nextName;
-    if ((projectSettingsTarget.code ?? null) !== normalizedCode) updates.code = normalizedCode;
-    if (projectSettingsColor !== projectSettingsTarget.color) updates.color = projectSettingsColor;
-    if (projectSettingsCustomerId !== projectSettingsTarget.customerId) {
-      updates.customerId = projectSettingsCustomerId;
-    }
-    if (Object.keys(updates).length > 0) {
-      setMutationError('');
-      const result = await updateProject(projectSettingsTarget.id, updates);
-      if (result?.error) {
-        setMutationError(result.error);
-        return;
-      }
-    }
-    setProjectSettingsOpen(false);
-  }, [
-    canEdit,
-    projectSettingsCode,
-    projectSettingsColor,
-    projectSettingsCustomerId,
-    projectSettingsName,
-    projectSettingsTarget,
-    updateProject,
-  ]);
-
-  const projectSettingsHasUnsavedChanges = useMemo(() => {
-    if (!projectSettingsTarget) return false;
-    const nextName = projectSettingsName.trim();
-    const nextCode = projectSettingsCode.trim();
-    const normalizedCode = nextCode ? nextCode : null;
-
-    if (nextName !== projectSettingsTarget.name.trim()) return true;
-    if ((projectSettingsTarget.code ?? null) !== normalizedCode) return true;
-    if (projectSettingsColor !== projectSettingsTarget.color) return true;
-    if (projectSettingsCustomerId !== projectSettingsTarget.customerId) return true;
-
-    return false;
-  }, [
-    projectSettingsCode,
-    projectSettingsColor,
-    projectSettingsCustomerId,
-    projectSettingsName,
-    projectSettingsTarget,
-  ]);
-
-  const requestCloseProjectSettings = useCallback(() => {
-    if (projectSettingsHasUnsavedChanges) {
-      setProjectSettingsConfirmOpen(true);
-      return;
-    }
-    setProjectSettingsOpen(false);
-  }, [projectSettingsHasUnsavedChanges]);
-
-  const createProjectHasUnsavedChanges = useMemo(() => (
-    newProjectName.trim().length > 0
-    || newProjectCode.trim().length > 0
-    || newProjectColor !== DEFAULT_PROJECT_COLOR
-    || newProjectCustomerId !== null
-  ), [newProjectCode, newProjectColor, newProjectCustomerId, newProjectName]);
-
-  const requestCloseCreateProject = useCallback(() => {
-    if (createProjectHasUnsavedChanges) {
-      setCreateProjectConfirmOpen(true);
-      return;
-    }
-    setCreateProjectOpen(false);
-  }, [createProjectHasUnsavedChanges]);
-
-  const requestDeleteProject = useCallback((project: Project) => {
-    if (!canEdit) return;
-    setDeleteProjectTarget(project);
-    setDeleteProjectOpen(true);
-  }, [canEdit]);
-
-  const handleConfirmDeleteProject = useCallback(async () => {
-    if (!deleteProjectTarget) return;
-    setMutationError('');
-    const result = await deleteProject(deleteProjectTarget.id);
-    if (result?.error) {
-      setMutationError(result.error);
-      return;
-    }
-    setDeleteProjectOpen(false);
-    setDeleteProjectTarget(null);
-  }, [deleteProject, deleteProjectTarget]);
-
-  const handleToggleProjectArchived = useCallback(async (project: Project) => {
-    setMutationError('');
-    const result = await updateProject(project.id, { archived: !project.archived });
-    if (result?.error) {
-      setMutationError(result.error);
-    }
-  }, [updateProject]);
-
   const formatMilestoneDate = useCallback((date: string) => (
     format(parseISO(date), 'dd MMM yyyy', { locale: dateLocale })
   ), [dateLocale]);
@@ -631,67 +480,11 @@ const ProjectsPage = () => {
     setSelectedProjectId(project.id);
   }, [projectById]);
 
-  const handleOpenCreateMilestone = useCallback(() => {
-    setEditingMilestone(null);
-    setMilestoneDialogDate(selectedMilestone?.date ?? format(new Date(), 'yyyy-MM-dd'));
-    setMilestoneDialogOpen(true);
-  }, [selectedMilestone?.date]);
-
-  const handleOpenMilestoneSettings = useCallback((milestone: Milestone) => {
-    setEditingMilestone(milestone);
-    setMilestoneDialogDate(null);
-    setMilestoneDialogOpen(true);
+  const handleOpenProjectFromCustomer = useCallback((project: Project) => {
+    setMode('projects');
+    setTab(project.archived ? 'archived' : 'active');
+    setSelectedProjectId(project.id);
   }, []);
-
-  const handleMilestoneDialogOpenChange = useCallback((open: boolean) => {
-    setMilestoneDialogOpen(open);
-    if (!open) {
-      setEditingMilestone(null);
-      setMilestoneDialogDate(null);
-    }
-  }, []);
-
-  const requestDeleteMilestone = useCallback((milestone: Milestone) => {
-    if (!canEdit) return;
-    setDeleteMilestoneTarget(milestone);
-    setDeleteMilestoneOpen(true);
-  }, [canEdit]);
-
-  const handleConfirmDeleteMilestone = useCallback(async () => {
-    if (!deleteMilestoneTarget) return;
-    setMutationError('');
-    const result = await deleteMilestone(deleteMilestoneTarget.id);
-    if (result?.error) {
-      setMutationError(result.error);
-      return;
-    }
-    if (selectedMilestoneId === deleteMilestoneTarget.id) {
-      setSelectedMilestoneId(null);
-    }
-    setDeleteMilestoneOpen(false);
-    setDeleteMilestoneTarget(null);
-  }, [deleteMilestone, deleteMilestoneTarget, selectedMilestoneId]);
-
-  const requestDeleteCustomer = useCallback((customer: Customer) => {
-    if (!canEdit) return;
-    setDeleteCustomerTarget(customer);
-    setDeleteCustomerOpen(true);
-  }, [canEdit]);
-
-  const handleConfirmDeleteCustomer = useCallback(async () => {
-    if (!deleteCustomerTarget) return;
-    setMutationError('');
-    const result = await deleteCustomer(deleteCustomerTarget.id);
-    if (result?.error) {
-      setMutationError(result.error);
-      return;
-    }
-    if (selectedCustomerId === deleteCustomerTarget.id) {
-      setSelectedCustomerId(null);
-    }
-    setDeleteCustomerOpen(false);
-    setDeleteCustomerTarget(null);
-  }, [deleteCustomer, deleteCustomerTarget, selectedCustomerId]);
 
   useProjectsPageEffects({
     tab,
@@ -734,12 +527,6 @@ const ProjectsPage = () => {
     ),
     [groupByCustomer, sortedCustomers, trackedProjectIds],
   );
-
-  const handleOpenProjectFromCustomer = useCallback((project: Project) => {
-    setMode('projects');
-    setTab(project.archived ? 'archived' : 'active');
-    setSelectedProjectId(project.id);
-  }, []);
 
   const mobileSheetLabel = mode === 'milestones'
     ? t`Milestones`

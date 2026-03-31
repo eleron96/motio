@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
+import { toPublicTaskMediaUrl } from "../_shared/taskMediaPublicUrl.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -372,7 +373,11 @@ const handleDownload = async (req: Request, mediaId: string) => {
       .createSignedUrl(data.storage_path, SIGNED_URL_TTL_SECONDS);
 
     if (!signedUrlError && signedUrlData?.signedUrl) {
-      return Response.redirect(signedUrlData.signedUrl, 302);
+      const publicSignedUrl = toPublicTaskMediaUrl(signedUrlData.signedUrl, {
+        publicBaseUrl: allowedOrigin,
+        requestUrl: req.url,
+      });
+      return Response.redirect(publicSignedUrl, 302);
     }
 
     if (typeof data.content !== "string") {

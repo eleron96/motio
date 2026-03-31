@@ -225,3 +225,5 @@
 2026-03-23T09:34:48Z | 0.3.52 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-093406.dump | No documented changes.
 2026-03-23T10:09:09Z | 0.3.53 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-100828.dump | No documented changes.
 2026-03-27T15:29:27Z | 0.3.54 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260327-152845.dump | No documented changes.
+2026-03-30T15:26:45Z | 0.3.57 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260330-152603.dump | No documented changes.
+2026-03-30T15:35:26Z | 0.3.58 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260330-153443.dump | No documented changes.

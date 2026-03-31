@@ -1,33 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { TimelineHeader } from './TimelineHeader';
 import { TimelineRow } from './TimelineRow';
-import { TaskBar } from './TaskBar';
 import { MilestoneDialog } from './MilestoneDialog';
 import { MilestoneLayer } from './MilestoneLayer';
-import { getVisibleDays, getDayWidth, getTaskPosition, SIDEBAR_WIDTH, HEADER_HEIGHT, MIN_ROW_HEIGHT, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
-import { Milestone, ViewMode } from '@/features/planner/types/planner';
+import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH, HEADER_HEIGHT } from '@/features/planner/lib/dateUtils';
+import { ViewMode } from '@/features/planner/types/planner';
 import {
   buildAssigneeGroupMap,
-  buildTimelineDisplayRows,
-  calculateTimelineRowHeights,
-  groupTasksByTimelineRow,
   resolveCurrentUserAssigneeId,
-  selectFilteredTasks,
-  selectTimelineGroupItems,
-  selectVisibleAssignees,
 } from '@/features/planner/lib/timelineSelectors';
-import {
-  buildMilestoneTooltipCells,
-  buildVisibleDayIndexMap,
-  buildVisibleMilestoneLines,
-  calculateMilestoneOffsets,
-  filterMilestonesByProjects,
-  groupMilestonesByDate,
-  sortMilestonesByDateAndTitle,
-} from '@/features/planner/lib/timelineMilestoneSelectors';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
@@ -39,15 +23,14 @@ import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { getPersonMonogram } from '@/shared/domain/personName';
-import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { useDragScroll } from './hooks/useDragScroll';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useTimelineViewport } from './hooks/useTimelineViewport';
 import { useTimelineScroll, LEFT_CONTEXT_DAYS } from './hooks/useTimelineScroll';
+import { useMilestoneDisplay } from './hooks/useMilestoneDisplay';
+import { useTaskDisplayRows } from './hooks/useTaskDisplayRows';
+import { TimelineSidebarRow } from './TimelineSidebarRow';
 
-/** Extra bottom gap on assignee rows in assignee grouping mode */
-const ASSIGNEE_ROW_GAP = 20;
 const SCROLL_REANCHOR_MIN_SHIFT_DAYS: Record<ViewMode, number> = {
   day: 3,
   week: 10,
@@ -242,199 +225,54 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     return todayEnd <= viewportStart || todayStart >= viewportEnd;
   }, [dayWidth, scrollLeft, todayKey, viewportWidth, visibleDays]);
 
-  // ─── Milestone state ───────────────────────────────────────────────────────
+  // ─── Milestone state, selectors, and handlers ─────────────────────────────
 
-  const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
-  const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
-  const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
-  const [milestoneLine, setMilestoneLine] = useState<{
-    date: string;
-    color: string;
-    visible: boolean;
-  } | null>(null);
-  const milestoneRowHeight = 24;
-
-  const projectById = useMemo(
-    () => new Map(projects.map((project) => [project.id, project])),
-    [projects],
-  );
-
-  const filteredMilestones = useMemo(
-    () => filterMilestonesByProjects(milestones, filters.projectIds),
-    [milestones, filters.projectIds],
-  );
-
-  const sortedMilestones = useMemo(
-    () => sortMilestonesByDateAndTitle(filteredMilestones),
-    [filteredMilestones],
-  );
-
-  const visibleDayIndex = useMemo(
-    () => buildVisibleDayIndexMap(visibleDays),
-    [visibleDays],
-  );
-
-  const milestonesByDate = useMemo(
-    () => groupMilestonesByDate(sortedMilestones),
-    [sortedMilestones],
-  );
-
-  const milestoneOffsets = useMemo(
-    () => calculateMilestoneOffsets(milestonesByDate),
-    [milestonesByDate],
-  );
-
-  const visibleMilestoneLines = useMemo(
-    () => buildVisibleMilestoneLines({
-      milestones: sortedMilestones,
-      visibleDayIndex,
-      projectById,
-      defaultColor: DEFAULT_NEUTRAL_COLOR,
-    }),
-    [projectById, sortedMilestones, visibleDayIndex],
-  );
-
-  const milestoneTooltipCells = useMemo(
-    () => buildMilestoneTooltipCells({
-      milestonesByDate,
-      visibleDayIndex,
-      projectById,
-      defaultColor: DEFAULT_NEUTRAL_COLOR,
-    }),
-    [milestonesByDate, projectById, visibleDayIndex],
-  );
-
-  const milestoneDotRadius = 5;
-  const milestoneLineTop = HEADER_HEIGHT + milestoneRowHeight / 2 + milestoneDotRadius;
-  const milestoneLineHeight = `calc(100% - ${milestoneLineTop}px)`;
-  const milestoneLineWidth = 3;
-  const milestoneLineHoverWidth = 4;
-  const milestoneHeaderRowTop = 40;
-  const milestoneHeaderRowHeight = HEADER_HEIGHT - milestoneHeaderRowTop;
-
-  // ─── Milestone handlers ────────────────────────────────────────────────────
-
-  const handleMilestoneDialogChange = useCallback((open: boolean) => {
-    setMilestoneDialogOpen(open);
-    if (!open) {
-      setMilestoneDialogDate(null);
-      setEditingMilestone(null);
-    }
-  }, []);
-
-  const handleCreateMilestone = useCallback((date: string) => {
-    setEditingMilestone(null);
-    setMilestoneDialogDate(date);
-    setMilestoneDialogOpen(true);
-  }, []);
-
-  const handleEditMilestone = useCallback((milestone: Milestone) => {
-    setEditingMilestone(milestone);
-    setMilestoneDialogDate(null);
-    setMilestoneDialogOpen(true);
-  }, []);
-
-  const handleMilestoneHover = useCallback((date: string, color: string) => {
-    setMilestoneLine({ date, color, visible: true });
-  }, []);
-
-  const handleMilestoneHoverEnd = useCallback(() => {
-    setMilestoneLine(null);
-  }, []);
+  const {
+    milestoneDialogOpen,
+    milestoneDialogDate,
+    editingMilestone,
+    milestoneLine,
+    projectById,
+    sortedMilestones,
+    visibleDayIndex,
+    milestonesByDate,
+    milestoneOffsets,
+    visibleMilestoneLines,
+    milestoneTooltipCells,
+    milestoneRowHeight,
+    milestoneLineTop,
+    milestoneLineHeight,
+    milestoneLineWidth,
+    milestoneLineHoverWidth,
+    milestoneHeaderRowTop,
+    milestoneHeaderRowHeight,
+    handleMilestoneDialogChange,
+    handleCreateMilestone,
+    handleEditMilestone,
+    handleMilestoneHover,
+    handleMilestoneHoverEnd,
+  } = useMilestoneDisplay({
+    milestones,
+    filterProjectIds: filters.projectIds,
+    visibleDays,
+    projects,
+  });
 
   // ─── Task display ──────────────────────────────────────────────────────────
 
-  const filteredTasks = useMemo(
-    () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
-    [tasks, filters, assigneeGroupMap, assignees],
-  );
-
-  const visibleAssignees = useMemo(
-    () => selectVisibleAssignees({
-      groupMode,
-      filteredAssignees: activeFilteredAssignees,
-      filters,
-      assigneeGroupMap,
-    }),
-    [activeFilteredAssignees, assigneeGroupMap, filters, groupMode],
-  );
-
-  const groupItems = useMemo(
-    () => selectTimelineGroupItems({
-      groupMode,
-      visibleAssignees,
-      projects,
-      myAssigneeId,
-    }),
-    [groupMode, visibleAssignees, projects, myAssigneeId],
-  );
-
-  const tasksByRow = useMemo(
-    () => groupTasksByTimelineRow({
-      filteredTasks,
-      groupItems,
-      groupMode,
-    }),
-    [filteredTasks, groupItems, groupMode],
-  );
-
-  const rowHeights = useMemo(
-    () => calculateTimelineRowHeights(tasksByRow, {
-      minRowHeight: MIN_ROW_HEIGHT,
-      taskHeight: TASK_HEIGHT,
-      taskGap: TASK_GAP,
-    }),
-    [tasksByRow],
-  );
-
-  const displayRows = useMemo(
-    () => buildTimelineDisplayRows({
-      groupItems,
-      tasksByRow,
-      rowHeights,
-      groupMode,
-      assigneeFilterCount: filters.assigneeIds.length,
-      hideUnassigned: filters.hideUnassigned,
-      labels: {
-        unassigned: t`Unassigned`,
-        noProject: t`No project`,
-      },
-      minRowHeight: MIN_ROW_HEIGHT,
-      assigneeRowGap: ASSIGNEE_ROW_GAP,
-    }),
-    [filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, rowHeights, tasksByRow],
-  );
-
-  const rowTaskElementsById = useMemo(() => {
-    const elementsByRowId = new Map<string, React.ReactNode[]>();
-    displayRows.forEach((row) => {
-      const rowAssigneeId = groupMode === 'assignee' && row.id !== 'unassigned' ? row.id : null;
-      const taskElements: React.ReactNode[] = [];
-      row.tasks.forEach((task) => {
-        const position = getTaskPosition(
-          task.startDate,
-          task.endDate,
-          visibleDays,
-          dayWidth,
-        );
-        if (!position) return;
-        taskElements.push(
-          <TaskBar
-            key={task.id}
-            task={task}
-            position={position}
-            dayWidth={dayWidth}
-            visibleDays={visibleDays}
-            lane={task.lane}
-            canEdit={canEdit}
-            rowAssigneeId={rowAssigneeId}
-          />,
-        );
-      });
-      elementsByRowId.set(row.id, taskElements);
-    });
-    return elementsByRowId;
-  }, [canEdit, dayWidth, displayRows, groupMode, visibleDays]);
+  const { displayRows, rowTaskElementsById } = useTaskDisplayRows({
+    tasks,
+    filters,
+    assignees,
+    activeFilteredAssignees,
+    projects,
+    groupMode,
+    myAssigneeId,
+    assigneeGroupMap,
+    visibleDays,
+    dayWidth,
+    canEdit,
+  });
 
   // ─── Other handlers ────────────────────────────────────────────────────────
 
@@ -604,73 +442,15 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
             {/* Timeline rows */}
             {displayRows.map((row, rowIndex) => (
               <div key={row.id} className="flex">
-                <div
-                  data-testid={`timeline-sidebar-row-${row.id}`}
-                  data-timeline-sidebar="row"
-                  className="sticky left-0 z-10 flex-shrink-0 border-r border-border bg-timeline-header"
-                  style={{ width: resolvedSidebarWidth, height: row.height }}
-                >
-                  <div
-                    className={cn(
-                      'flex h-full items-center gap-2 border-b border-border transition-colors box-border hover:bg-timeline-row-hover',
-                      isMobileAssigneeTimeline ? 'justify-center px-1.5' : isMobile ? 'px-3' : 'px-4',
-                    )}
-                  >
-                    <div className={cn(
-                      'min-w-0 flex flex-1 items-center gap-3',
-                      isMobileAssigneeTimeline && 'justify-center',
-                    )}>
-                      {row.color && (
-                        <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: row.color }}
-                        />
-                      )}
-                      {isMobileAssigneeTimeline ? (
-                        <UserAvatar
-                          size="sm"
-                          initials={getSidebarRowMonogram(row.name)}
-                          avatarUrl={groupMode === 'assignee' ? getAssigneeAvatarInfo(row.id).avatarUrl : null}
-                          colorSeed={groupMode === 'assignee' ? getAssigneeAvatarInfo(row.id).userId : row.id}
-                          showInitialsOverlay
-                          className="border border-border flex-shrink-0"
-                        />
-                      ) : (
-                        <>
-                          {groupMode === 'assignee' && row.id !== 'unassigned' && (() => {
-                            const { avatarUrl, userId } = getAssigneeAvatarInfo(row.id);
-                            return (
-                              <UserAvatar
-                                size="xs"
-                                initials={getSidebarRowMonogram(row.name)}
-                                avatarUrl={avatarUrl}
-                                colorSeed={userId}
-                                showInitialsOverlay
-                                className="flex-shrink-0"
-                              />
-                            );
-                          })()}
-                          <span
-                            className={cn(
-                              'min-w-0 font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere]',
-                              isMobile && groupMode === 'assignee'
-                                ? 'text-xs leading-5 line-clamp-1'
-                                : 'text-sm leading-snug line-clamp-2',
-                            )}
-                            title={row.name}
-                          >
-                            {row.name}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    {groupMode === 'project' && (
-                      <span className="shrink-0 pl-2 text-xs text-muted-foreground">
-                        {row.tasks.length}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <TimelineSidebarRow
+                  row={row}
+                  width={resolvedSidebarWidth}
+                  isMobile={isMobile}
+                  isMobileAssigneeTimeline={isMobileAssigneeTimeline}
+                  groupMode={groupMode}
+                  getMonogram={getSidebarRowMonogram}
+                  getAvatarInfo={getAssigneeAvatarInfo}
+                />
                 <div
                   data-testid={`timeline-task-row-${row.id}`}
                   className="relative flex-shrink-0"
