@@ -12,7 +12,7 @@ export interface Task {
   typeId: string;
   priority: TaskPriority | null;
   tagIds: string[];
-  description: string | null;
+  description: string | null | undefined;
   repeatId: string | null;
 }
 

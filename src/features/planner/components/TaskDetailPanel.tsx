@@ -25,7 +25,7 @@ import { AlertTriangle, ChevronDown, CircleDot, Layers, Plus, RotateCw, Trash2, 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useTaskRepeatConfig, PendingRepeatUpdate } from '@/features/planner/hooks/useTaskRepeatConfig';
+import { useTaskRepeatConfig, PendingRepeatUpdate, buildRepeatConfigSignature } from '@/features/planner/hooks/useTaskRepeatConfig';
 import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
 import { useTaskDrafts } from '@/features/planner/hooks/useTaskDrafts';
 import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
@@ -71,16 +71,16 @@ const resolveScopedRepeatCount = (params: {
 };
 
 export const TaskDetailPanel: React.FC = () => {
-  const { 
-    selectedTaskId, 
-    setSelectedTaskId, 
-    tasks, 
-    projects, 
+  const {
+    selectedTaskId,
+    setSelectedTaskId,
+    tasks,
+    projects,
     trackedProjectIds,
     customers,
-    assignees, 
-    statuses, 
-    taskTypes, 
+    assignees,
+    statuses,
+    taskTypes,
     tags,
     groupMode,
     updateTask,
@@ -93,6 +93,7 @@ export const TaskDetailPanel: React.FC = () => {
     createTaskSubtask,
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
+    fetchTaskDescription,
   } = usePlannerStore();
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
@@ -116,6 +117,13 @@ export const TaskDetailPanel: React.FC = () => {
 
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
+  const descriptionLoading = task !== undefined && task.description === undefined;
+
+  useEffect(() => {
+    if (descriptionLoading && taskId) {
+      fetchTaskDescription(taskId);
+    }
+  }, [descriptionLoading, taskId, fetchTaskDescription]);
 
   const {
     originalTaskRef,
@@ -502,28 +510,32 @@ export const TaskDetailPanel: React.FC = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="description">{t`Description`}</Label>
-                <Suspense fallback={
-                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                    {t`Loading editor...`}
-                  </div>
-                }>
-                  <LazyRichTextEditor
-                    id="description"
-                    value={draftDescription}
-                    workspaceId={currentWorkspaceId}
-                    onChange={(value) => {
-                      const nextDescription = value || '';
-                      descriptionDraftRef.current = nextDescription;
-                      setDraftDescription(nextDescription);
-                    }}
-                    onBlur={() => {
-                      requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
-                    }}
-                    placeholder={t`Add a description...`}
-                    disabled={isReadOnly}
-                    className="max-h-[45vh] overflow-y-auto pr-2"
-                  />
-                </Suspense>
+                {descriptionLoading ? (
+                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground animate-pulse" />
+                ) : (
+                  <Suspense fallback={
+                    <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                      {t`Loading editor...`}
+                    </div>
+                  }>
+                    <LazyRichTextEditor
+                      id="description"
+                      value={draftDescription}
+                      workspaceId={currentWorkspaceId}
+                      onChange={(value) => {
+                        const nextDescription = value || '';
+                        descriptionDraftRef.current = nextDescription;
+                        setDraftDescription(nextDescription);
+                      }}
+                      onBlur={() => {
+                        requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
+                      }}
+                      placeholder={t`Add a description...`}
+                      disabled={isReadOnly}
+                      className="max-h-[45vh] overflow-y-auto pr-2"
+                    />
+                  </Suspense>
+                )}
               </div>
 
               <SubtasksSection

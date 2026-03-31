@@ -15,7 +15,8 @@ const areTasksEqual = (left: Task, right: Task) => (
   left.priority === right.priority &&
   left.startDate === right.startDate &&
   left.endDate === right.endDate &&
-  left.description === right.description &&
+  // Skip description comparison while it is being lazy-loaded.
+  (left.description === undefined || right.description === undefined || left.description === right.description) &&
   areArraysEqual(left.tagIds, right.tagIds)
 );
 
@@ -50,7 +51,13 @@ export const useTaskDrafts = ({
       originalTaskRef.current = null;
       return;
     }
-    if (originalTaskRef.current?.id === selectedTaskId) return;
+    if (originalTaskRef.current?.id === selectedTaskId) {
+      // Backfill description in originalRef when it was initially undefined (lazy-loaded).
+      if (originalTaskRef.current.description === undefined && task?.description !== undefined) {
+        originalTaskRef.current = { ...originalTaskRef.current, description: task.description };
+      }
+      return;
+    }
     if (task) {
       originalTaskRef.current = {
         ...task,
