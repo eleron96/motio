@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.3.58] - 2026-03-30
+### Changed
+- No documented changes.
+
+## [0.3.57] - 2026-03-30
+### Changed
+- No documented changes.
+
 ## [0.3.56] - 2026-03-30
 ### Fixed
 - Fixed task image uploads for files whose names contain Cyrillic or other non-Latin characters.

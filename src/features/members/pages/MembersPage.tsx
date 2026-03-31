@@ -1,33 +1,30 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Badge } from '@/shared/ui/badge';
 import { t } from '@lingui/macro';
-import { createLatestAsyncRequest } from '@/shared/lib/latestAsyncRequest';
-import { addYears, format, parseISO } from 'date-fns';
-import { Eye, EyeOff, Plus, X, UserPlus } from 'lucide-react';
-import { Task } from '@/features/planner/types/planner';
+import { format } from 'date-fns';
+import { Plus } from 'lucide-react';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
 import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
+import { MembersGroupPanel } from '@/features/members/components/MembersGroupPanel';
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
-import { fetchAssigneeTasks as fetchAssigneeTasksFromApi } from '@/infrastructure/members/memberTasksRepository';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
 import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
 import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
+import { Task } from '@/features/planner/types/planner';
 import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
 import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
 import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
-import { buildAvailableGroupMembers } from '@/features/members/lib/memberSelectors';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { useMembersPageMode } from '@/features/members/hooks/useMembersPageMode';
+import { useMemberTaskFetcher } from '@/features/members/hooks/useMemberTaskFetcher';
 
 type AccessTab = 'active' | 'disabled' | 'history';
 
@@ -46,9 +43,6 @@ const MembersPage = () => {
   const [accessTab, setAccessTab] = useState<AccessTab>('active');
   const [accessSearch, setAccessSearch] = useState('');
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
-  const [assigneeTasks, setAssigneeTasks] = useState<Task[]>([]);
-  const [tasksLoading, setTasksLoading] = useState(false);
-  const [tasksError, setTasksError] = useState('');
   const [search, setSearch] = useState('');
   const [projectFilterIds, setProjectFilterIds] = useState<string[]>([]);
   const {
@@ -59,11 +53,8 @@ const MembersPage = () => {
     pageIndex, setPageIndex,
     statusFilterIds, setStatusFilterIds,
   } = useTaskScopeFilter();
-  const [totalCount, setTotalCount] = useState(0);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [memberTaskCounts, setMemberTaskCounts] = useState<Record<string, number>>({});
-  const [memberTaskCountsDate, setMemberTaskCountsDate] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const pageSize = 100;
   const isMobile = useIsMobile();
@@ -142,13 +133,6 @@ const MembersPage = () => {
     viewer: t`Viewer`,
   };
   const navigate = useNavigate();
-  const modeStorageKey = currentWorkspaceId
-    ? `members-mode-${currentWorkspaceId}`
-    : user?.id
-    ? `members-mode-user-${user.id}`
-    : 'members-mode';
-  const modeHydratedRef = useRef(false);
-  const assigneeTasksRequestRef = useRef(createLatestAsyncRequest());
 
   useEffect(() => {
     if (currentWorkspaceId) {
@@ -156,43 +140,13 @@ const MembersPage = () => {
     }
   }, [currentWorkspaceId, loadWorkspaceData]);
 
-  useEffect(() => {
-    const taskRequest = assigneeTasksRequestRef.current;
-    return () => {
-      taskRequest.cancel();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (currentWorkspaceId) return;
-    setMemberTaskCounts({});
-    setMemberTaskCountsDate(null);
-  }, [currentWorkspaceId]);
-
-  useEffect(() => {
-    modeHydratedRef.current = false;
-    if (typeof window === 'undefined') return;
-    const saved = window.localStorage.getItem(modeStorageKey);
-    if (saved === 'tasks' || saved === 'groups' || (saved === 'access' && isAdmin)) {
-      setMode(saved);
-    } else if (saved === 'access' && !isAdmin) {
-      setMode('tasks');
-    }
-    modeHydratedRef.current = true;
-  }, [isAdmin, modeStorageKey]);
-
-  useEffect(() => {
-    if (mode !== 'access') return;
-    if (!isAdmin) {
-      setMode('tasks');
-    }
-  }, [isAdmin, mode]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!modeHydratedRef.current) return;
-    window.localStorage.setItem(modeStorageKey, mode);
-  }, [mode, modeStorageKey]);
+  useMembersPageMode({
+    mode,
+    setMode,
+    currentWorkspaceId,
+    userId: user?.id,
+    isAdmin,
+  });
 
   const {
     groups,
@@ -291,43 +245,6 @@ const MembersPage = () => {
     return map;
   }, [assignees]);
 
-  const [addMemberPopoverOpen, setAddMemberPopoverOpen] = useState(false);
-  const [addMemberSearch, setAddMemberSearch] = useState('');
-  const [showDisabledAddMembers, setShowDisabledAddMembers] = useState(false);
-
-  const {
-    availableMembers,
-    hiddenDisabledCount,
-  } = useMemo(() => {
-    if (!selectedGroupId) {
-      return { availableMembers: [], hiddenDisabledCount: 0 };
-    }
-    return buildAvailableGroupMembers({
-      members,
-      groupMembers,
-      assigneeByUserId,
-      search: addMemberSearch,
-      includeDisabled: showDisabledAddMembers,
-    });
-  }, [addMemberSearch, assigneeByUserId, groupMembers, members, selectedGroupId, showDisabledAddMembers]);
-  const addMemberSearchQuery = addMemberSearch.trim();
-  const addMemberEmptyState = useMemo(() => {
-    if (availableMembers.length > 0) return null;
-    if (hiddenDisabledCount > 0) {
-      return {
-        title: addMemberSearchQuery
-          ? t`No active members match the search.`
-          : t`Only disabled people are available.`,
-        hint: t`Show disabled people to add them.`,
-      };
-    }
-    return {
-      title: addMemberSearchQuery
-        ? t`No members match the search.`
-        : t`No available members.`,
-      hint: null,
-    };
-  }, [addMemberSearchQuery, availableMembers.length, hiddenDisabledCount]);
 
   const assigneeProjectIds = useMemo(() => {
     const ids = new Set<string>();
@@ -350,96 +267,34 @@ const MembersPage = () => {
     [assigneeByUserId, members],
   );
 
-  const refreshMemberTaskCounts = useCallback(async () => {
-    if (!currentWorkspaceId) return;
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const countsEnd = format(addYears(parseISO(today), 10), 'yyyy-MM-dd');
-    const result = await fetchAssigneeTaskCounts({
-      workspaceId: currentWorkspaceId,
-      startDate: today,
-      endDate: countsEnd,
-    });
-    if (result.error) {
-      console.error(result.error);
-      return;
-    }
-    setMemberTaskCounts(result.counts);
-    setMemberTaskCountsDate(result.date);
-  }, [currentWorkspaceId, fetchAssigneeTaskCounts]);
-
-  useEffect(() => {
-    if (mode !== 'tasks' || !currentWorkspaceId) return;
-    void refreshMemberTaskCounts();
-  }, [currentWorkspaceId, mode, refreshMemberTaskCounts]);
-
-  const fetchAssigneeTasks = useCallback(async (assigneeId: string) => {
-    if (!currentWorkspaceId) return;
-    const request = assigneeTasksRequestRef.current.next();
-    setTasksLoading(true);
-    setTasksError('');
-    try {
-      const result = await fetchAssigneeTasksFromApi({
-        workspaceId: currentWorkspaceId,
-        assigneeId,
-        taskScope,
-        pastFromDate,
-        pastToDate,
-        pastSort,
-        statusFilterIds,
-        projectFilterIds,
-        search,
-        pageIndex,
-        pageSize,
-        signal: request.signal,
-      });
-
-      if (!assigneeTasksRequestRef.current.isCurrent(request.requestId)) {
-        return;
-      }
-      if (!result) {
-        setTasksLoading(false);
-        return;
-      }
-
-      const mapped = result.tasks;
-      setAssigneeTasks(mapped);
-      setTotalCount(result.totalCount);
-      if (
-        taskScope === 'current'
-        && statusFilterIds.length === 0
-        && projectFilterIds.length === 0
-        && !search.trim()
-      ) {
-        setMemberTaskCounts((current) => ({
-          ...current,
-          [assigneeId]: countTaskUnits(mapped),
-        }));
-        if (!memberTaskCountsDate) {
-          setMemberTaskCountsDate(format(new Date(), 'yyyy-MM-dd'));
-        }
-      }
-      setTasksLoading(false);
-    } catch (error) {
-      if (!assigneeTasksRequestRef.current.isCurrent(request.requestId)) {
-        return;
-      }
-      const message = error instanceof Error ? error.message : t`Failed to load tasks.`;
-      setTasksError(message);
-      setTasksLoading(false);
-    }
-  }, [currentWorkspaceId, memberTaskCountsDate, pageIndex, pageSize, projectFilterIds, search, statusFilterIds, taskScope, pastFromDate, pastToDate, pastSort]);
-
-  useEffect(() => {
-    if (!selectedAssigneeId) {
-      assigneeTasksRequestRef.current.cancel();
-      setTasksLoading(false);
-      setTasksError('');
-      setAssigneeTasks([]);
-      setTotalCount(0);
-      return;
-    }
-    void fetchAssigneeTasks(selectedAssigneeId);
-  }, [fetchAssigneeTasks, selectedAssigneeId]);
+  const {
+    assigneeTasks,
+    setAssigneeTasks,
+    tasksLoading,
+    setTasksLoading,
+    tasksError,
+    setTasksError,
+    totalCount,
+    setTotalCount,
+    memberTaskCounts,
+    memberTaskCountsDate,
+    fetchAssigneeTasks,
+    refreshMemberTaskCounts,
+  } = useMemberTaskFetcher({
+    currentWorkspaceId,
+    selectedAssigneeId,
+    mode,
+    taskScope,
+    pastFromDate,
+    pastToDate,
+    pastSort,
+    statusFilterIds,
+    projectFilterIds,
+    search,
+    pageIndex,
+    pageSize,
+    fetchAssigneeTaskCounts,
+  });
 
   useEffect(() => {
     setSelectedTaskIds(new Set());
@@ -704,187 +559,27 @@ const MembersPage = () => {
       )}
 
       {mode === 'groups' && (
-        <div className={`flex-1 overflow-auto ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}>
-          {!selectedGroup && (
-            <div className="text-sm text-muted-foreground">
-              {t`Select a group to see members.`}
-            </div>
-          )}
-
-          {selectedGroup && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {editingGroupId === selectedGroup.id ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Input
-                      className="w-full sm:w-[240px]"
-                      value={editingGroupName}
-                      onChange={(event) => setEditingGroupName(event.target.value)}
-                      disabled={!isAdmin || groupActionLoading}
-                    />
-                    <Button
-                      size="sm"
-                      onClick={handleSaveGroupName}
-                      disabled={!isAdmin || groupActionLoading || !editingGroupName.trim()}
-                    >
-                      {t`Save`}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditingGroupId(null);
-                        setEditingGroupName('');
-                      }}
-                      disabled={groupActionLoading}
-                    >
-                      {t`Cancel`}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <div className="text-lg font-semibold">{selectedGroup.name}</div>
-                    {isAdmin && (
-                      <Popover open={addMemberPopoverOpen} onOpenChange={(open) => {
-                        setAddMemberPopoverOpen(open);
-                        if (!open) {
-                          setAddMemberSearch('');
-                          setShowDisabledAddMembers(false);
-                        }
-                      }}>
-                        <PopoverTrigger asChild>
-                          <Button size="sm" variant="outline" className="gap-1.5" disabled={groupActionLoading}>
-                            <UserPlus className="h-4 w-4" />
-                            {t`Add member`}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[280px] p-2" align="start">
-                          <div className="mb-2 flex items-center gap-2">
-                            <Input
-                              placeholder={t`Search members...`}
-                              value={addMemberSearch}
-                              onChange={(e) => setAddMemberSearch(e.target.value)}
-                            />
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant={showDisabledAddMembers ? 'secondary' : 'ghost'}
-                              className="shrink-0"
-                              onClick={() => setShowDisabledAddMembers((current) => !current)}
-                              aria-pressed={showDisabledAddMembers}
-                              aria-label={showDisabledAddMembers ? t`Hide disabled people` : t`Show disabled people`}
-                              title={showDisabledAddMembers ? t`Hide disabled people` : t`Show disabled people`}
-                            >
-                              {showDisabledAddMembers ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                          <div className="max-h-[200px] overflow-auto space-y-0.5">
-                            {addMemberEmptyState ? (
-                              <div className="space-y-1 px-2 py-1.5 text-sm text-muted-foreground">
-                                <div>{addMemberEmptyState.title}</div>
-                                {addMemberEmptyState.hint && (
-                                  <div className="text-xs">{addMemberEmptyState.hint}</div>
-                                )}
-                              </div>
-                            ) : (
-                              availableMembers.map((m) => (
-                                <button
-                                  key={m.userId}
-                                  type="button"
-                                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors"
-                                  disabled={groupActionLoading}
-                                  onClick={() => {
-                                    void handleAddMemberToGroup(m.userId);
-                                    setAddMemberPopoverOpen(false);
-                                    setAddMemberSearch('');
-                                  }}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <div className="min-w-0 flex-1 font-medium truncate">{m.displayName || m.email}</div>
-                                    {!m.isActive && (
-                                      <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
-                                    )}
-                                  </div>
-                                  {m.displayName && (
-                                    <div className="text-xs text-muted-foreground truncate">{m.email}</div>
-                                  )}
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {groupMembersLoading && (
-                <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
-              )}
-              {!groupMembersLoading && groupMembersError && (
-                <div className="text-sm text-destructive">{groupMembersError}</div>
-              )}
-              {!groupMembersLoading && !groupMembersError && (
-                <>
-                  {groupMembers.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">{t`No members in this group.`}</div>
-                  ) : (
-                    <div className="space-y-2">
-                      {groupMembers.map((member) => {
-                        const assignee = assigneeByUserId.get(member.userId);
-                        const isActive = assignee?.isActive ?? true;
-                        return (
-                          <div
-                            key={member.userId}
-                            className="flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors hover:bg-muted/40"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleGroupMemberClick(member.userId)}
-                              className="flex-1 text-left min-w-0"
-                            >
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm font-medium leading-snug break-words line-clamp-2">
-                                  {member.displayName || member.email}
-                                </span>
-                                {!isActive && (
-                                  <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
-                                )}
-                                <Badge variant="outline" className="text-[10px]">
-                                  {roleLabels[member.role] ?? member.role}
-                                </Badge>
-                              </div>
-                              <div className="text-xs text-muted-foreground leading-snug break-words line-clamp-2">
-                                {member.displayName ? member.email : t`View tasks`}
-                              </div>
-                            </button>
-                            {isAdmin && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="shrink-0 h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                                disabled={groupActionLoading}
-                                onClick={() => void handleRemoveMemberFromGroup(member.userId)}
-                                title={t`Remove from group`}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        <MembersGroupPanel
+          isMobile={isMobile}
+          isAdmin={isAdmin}
+          roleLabels={roleLabels}
+          selectedGroup={selectedGroup}
+          selectedGroupId={selectedGroupId}
+          editingGroupId={editingGroupId}
+          editingGroupName={editingGroupName}
+          onEditingGroupNameChange={setEditingGroupName}
+          onCancelEdit={() => { setEditingGroupId(null); setEditingGroupName(''); }}
+          onSaveGroupName={handleSaveGroupName}
+          groupActionLoading={groupActionLoading}
+          groupMembers={groupMembers}
+          groupMembersLoading={groupMembersLoading}
+          groupMembersError={groupMembersError}
+          members={members}
+          assigneeByUserId={assigneeByUserId}
+          onAddMember={handleAddMemberToGroup}
+          onRemoveMember={handleRemoveMemberFromGroup}
+          onGroupMemberClick={handleGroupMemberClick}
+        />
       )}
 
       {mode === 'tasks' && (

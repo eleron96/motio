@@ -39,7 +39,7 @@ When:
 Then:
 - the function validates the access token,
 - the function updates `last_accessed_at`,
-- the function redirects to a short-lived signed Storage URL,
+- the function redirects to a short-lived signed Storage URL on the public app origin, not to an internal Docker hostname,
 - Postgres is not used to stream the binary payload.
 
 ## Scenario 3: Downloading a legacy image before migration
