@@ -909,4 +909,19 @@
     <sqlFile path="../migrations/0066_migrate_task_media_to_storage.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <!-- Uses CONCURRENTLY, must not be wrapped in a transaction. -->
+  <changeSet id="0067_add_tasks_composite_date_range_index.sql" author="timeline" runInTransaction="false">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0067_add_tasks_composite_date_range_index.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0067_add_tasks_composite_date_range_index.sql" relativeToChangelogFile="true" splitStatements="true" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>

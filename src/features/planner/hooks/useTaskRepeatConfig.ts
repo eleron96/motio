@@ -23,7 +23,7 @@ export type PendingRepeatUpdate = {
   resetDraftOnCancel?: boolean;
 };
 
-const buildRepeatConfigSignature = (params: {
+export const buildRepeatConfigSignature = (params: {
   frequency: RepeatFrequency;
   ends: RepeatEnds;
   until: string;

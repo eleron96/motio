@@ -97,6 +97,7 @@ export interface PlannerStore extends PlannerState {
     doneAt: string | null,
   ) => Promise<MutationResult>;
   deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
+  fetchTaskDescription: (taskId: string) => Promise<void>;
 
   addProject: (project: Omit<Project, 'id'>) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<MutationResult>;

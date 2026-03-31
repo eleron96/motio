@@ -12,7 +12,7 @@ export type TaskMappedRow = {
   type_id: string;
   priority: string | null;
   tag_ids: string[] | null;
-  description: string | null;
+  description: string | null | undefined;
   repeat_id: string | null;
 };
 

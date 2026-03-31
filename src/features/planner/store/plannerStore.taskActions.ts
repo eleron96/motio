@@ -43,6 +43,7 @@ type TaskActions = Pick<
   | 'createTaskSubtasks'
   | 'updateTaskSubtaskCompletion'
   | 'deleteTaskSubtask'
+  | 'fetchTaskDescription'
 >;
 
 export const createTaskActions = (
@@ -85,7 +86,7 @@ export const createTaskActions = (
         type_id: params.sourceRow.type_id,
         priority: params.sourceRow.priority,
         tag_ids: params.sourceRow.tag_ids ?? [],
-        description: params.sourceRow.description,
+        description: params.sourceRow.description ?? null,
         repeat_id: params.repeatId,
       })))
       .select('*');
@@ -265,6 +266,27 @@ export const createTaskActions = (
     return {};
   },
 
+  fetchTaskDescription: async (taskId) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return;
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('id, description')
+      .eq('id', taskId)
+      .eq('workspace_id', workspaceId)
+      .single();
+
+    if (error || !data) return;
+
+    const row = data as { id: string; description: string | null };
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === row.id ? { ...task, description: row.description } : task,
+      ),
+    }));
+  },
+
   duplicateTask: async (id) => {
     const task = get().tasks.find((item) => item.id === id);
     if (!task) return;
@@ -285,7 +307,7 @@ export const createTaskActions = (
       typeId: task.typeId,
       priority: task.priority,
       tagIds: [...task.tagIds],
-      description: task.description,
+      description: task.description ?? null,
       repeatId: null,
     });
   },
@@ -420,7 +442,7 @@ export const createTaskActions = (
         type_id: task.typeId,
         priority: task.priority,
         tag_ids: [...task.tagIds],
-        description: task.description,
+        description: task.description ?? null,
         repeat_id: repeatId,
       });
     }
