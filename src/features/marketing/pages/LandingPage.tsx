@@ -5,7 +5,6 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { Button } from '@/shared/ui/button';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
-import { trackGoogleEvent } from '@/shared/lib/analytics/googleTag';
 import logoMotio from '@/shared/assets/branding/logo-motio.png';
 
 // ── static animation data (outside component) ──────────────────────────────
@@ -356,7 +355,7 @@ const LandingPage = () => {
               className="rounded-md px-2 py-1 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
               aria-label="Switch language"
             >
-              {locale === 'en' ? 'RU' : 'EN'}
+              {locale.toUpperCase()}
             </button>
 
             {!loading && user ? (
@@ -381,7 +380,6 @@ const LandingPage = () => {
                 asChild
                 variant="outline"
                 size="sm"
-                onClick={() => trackGoogleEvent('login_cta_click', { placement: 'header' })}
               >
                 <Link to="/app">{t`Sign in`}</Link>
               </Button>
@@ -415,7 +413,6 @@ const LandingPage = () => {
             <Button
               asChild
               size="lg"
-              onClick={() => trackGoogleEvent('start_free_click', { placement: 'hero' })}
             >
               <Link to="/app">{t`Start for free →`}</Link>
             </Button>
@@ -596,7 +593,6 @@ const LandingPage = () => {
                 asChild
                 className="bg-white text-slate-900 hover:bg-slate-100"
                 size="lg"
-                onClick={() => trackGoogleEvent('start_free_click', { placement: 'cta_bottom' })}
               >
                 <Link to="/app">{t`Get started for free →`}</Link>
               </Button>
@@ -609,7 +605,16 @@ const LandingPage = () => {
       {/* ── FOOTER ── */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-0.5 px-4 py-3 text-[11px] leading-tight text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
-          <p>© {currentYear} Motio. {t`Team planning workspace.`}</p>
+          <p>
+            © {currentYear} Motio. {t`Team planning workspace.`}
+            {' · '}
+            <Link
+              to="/privacy"
+              className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+            >
+              {t`Privacy Policy`}
+            </Link>
+          </p>
           <p>
             <Trans>
               Designed and developed by{' '}

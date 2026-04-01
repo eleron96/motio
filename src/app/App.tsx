@@ -11,12 +11,12 @@ import { AuthProvider } from "@/features/auth/providers/AuthProvider";
 import { ProtectedRoute } from "@/app/ProtectedRoute";
 import { i18n } from "@/shared/lib/i18n";
 import { useLocaleStore } from "@/shared/store/localeStore";
-import { RouteAnalytics } from "@/app/RouteAnalytics";
 import { PageErrorBoundary } from "@/app/PageErrorBoundary";
 
 const queryClient = new QueryClient();
 
 const LandingPage = lazy(() => import("@/features/marketing/pages/LandingPage"));
+const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
 const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
 const InvitePage = lazy(() => import("@/features/auth/pages/InvitePage"));
 const AdminUsersPage = lazy(() => import("@/features/admin/pages/AdminUsersPage"));
@@ -42,7 +42,6 @@ const App = () => {
                 v7_relativeSplatPath: true,
               }}
             >
-              <RouteAnalytics />
               <PageErrorBoundary>
                 <Suspense
                   fallback={(
@@ -53,6 +52,7 @@ const App = () => {
                 >
                   <Routes>
                   <Route path="/" element={<LandingPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/invite/:inviteToken" element={<InvitePage />} />
                   <Route

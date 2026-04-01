@@ -668,3 +668,22 @@ button.select-auth-box-parent {
     margin-bottom: 12px;
   }
 }
+
+.timeline-privacy-consent {
+  margin-top: 12px;
+  padding: 0 4px;
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.timeline-privacy-consent a {
+  color: #6b7280;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.timeline-privacy-consent a:hover {
+  color: #374151;
+}
