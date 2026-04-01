@@ -226,6 +226,7 @@ export const useTaskRepeatConfig = ({
     setPendingRepeatUpdate,
     repeatInFlightRef,
     repeatUntilAutoRef,
+    repeatConfigSnapshotRef,
     repeatConfigDirty,
     handleRepeatFrequencyChange,
     handleRepeatEndsChange,

@@ -245,28 +245,6 @@ const MembersPage = () => {
     return map;
   }, [assignees]);
 
-
-  const assigneeProjectIds = useMemo(() => {
-    const ids = new Set<string>();
-    assigneeTasks.forEach((task) => {
-      if (task.projectId) ids.add(task.projectId);
-    });
-    return ids;
-  }, [assigneeTasks]);
-
-  const projectOptions = useMemo(
-    () => [...projects].sort((a, b) => a.name.localeCompare(b.name)),
-    [projects],
-  );
-  const activeAccessCount = useMemo(
-    () => members.filter((member) => assigneeByUserId.get(member.userId)?.isActive ?? true).length,
-    [assigneeByUserId, members],
-  );
-  const disabledAccessCount = useMemo(
-    () => members.filter((member) => !(assigneeByUserId.get(member.userId)?.isActive ?? true)).length,
-    [assigneeByUserId, members],
-  );
-
   const {
     assigneeTasks,
     setAssigneeTasks,
@@ -295,6 +273,27 @@ const MembersPage = () => {
     pageSize,
     fetchAssigneeTaskCounts,
   });
+
+  const assigneeProjectIds = useMemo(() => {
+    const ids = new Set<string>();
+    assigneeTasks.forEach((task) => {
+      if (task.projectId) ids.add(task.projectId);
+    });
+    return ids;
+  }, [assigneeTasks]);
+
+  const projectOptions = useMemo(
+    () => [...projects].sort((a, b) => a.name.localeCompare(b.name)),
+    [projects],
+  );
+  const activeAccessCount = useMemo(
+    () => members.filter((member) => assigneeByUserId.get(member.userId)?.isActive ?? true).length,
+    [assigneeByUserId, members],
+  );
+  const disabledAccessCount = useMemo(
+    () => members.filter((member) => !(assigneeByUserId.get(member.userId)?.isActive ?? true)).length,
+    [assigneeByUserId, members],
+  );
 
   useEffect(() => {
     setSelectedTaskIds(new Set());
