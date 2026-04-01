@@ -27,7 +27,7 @@ import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/ty
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useTaskRepeatConfig, PendingRepeatUpdate, buildRepeatConfigSignature } from '@/features/planner/hooks/useTaskRepeatConfig';
 import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
-import { useTaskDrafts } from '@/features/planner/hooks/useTaskDrafts';
+import { useTaskDrafts, areArraysEqual } from '@/features/planner/hooks/useTaskDrafts';
 import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
 import { format } from 'date-fns';
 import { t } from '@lingui/macro';
@@ -165,6 +165,7 @@ export const TaskDetailPanel: React.FC = () => {
     pendingRepeatUpdate, setPendingRepeatUpdate,
     repeatInFlightRef,
     repeatUntilAutoRef,
+    repeatConfigSnapshotRef,
     repeatConfigDirty,
     handleRepeatFrequencyChange,
     handleRepeatEndsChange,
@@ -296,6 +297,18 @@ export const TaskDetailPanel: React.FC = () => {
 
   const handleSaveAndClose = async () => {
     if (repeatScopeOpen || pendingRepeatUpdate) return;
+    // Flush unsaved description draft before closing.
+    // onBlur of the rich-text editor is the normal save path, but it can be
+    // skipped (React event batching) when the user clicks OK without first
+    // moving focus away from the editor.
+    // Guard: only flush when description has already been lazy-loaded
+    // (undefined means "not yet fetched" — flushing null would corrupt the DB).
+    if (canEdit && task && task.description !== undefined) {
+      const pendingDescription = descriptionDraftRef.current || null;
+      if (hasTaskUpdates(task, { description: pendingDescription })) {
+        void updateTask(task.id, { description: pendingDescription }, 'single');
+      }
+    }
     const repeatsSynced = await syncRepeatsOnSave();
     if (!repeatsSynced) return;
     setConfirmOpen(false);

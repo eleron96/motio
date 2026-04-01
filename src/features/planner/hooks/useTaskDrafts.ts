@@ -1,7 +1,7 @@
 import { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import { Task } from '@/features/planner/types/planner';
 
-const areArraysEqual = (left: string[], right: string[]) => {
+export const areArraysEqual = (left: string[], right: string[]) => {
   if (left.length !== right.length) return false;
   return left.every((value, index) => value === right[index]);
 };
