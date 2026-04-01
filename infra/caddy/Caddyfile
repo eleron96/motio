@@ -105,6 +105,10 @@ motio.nikog.net {
       reverse_proxy web:80
     }
 
+    handle /privacy* {
+      reverse_proxy web:80
+    }
+
     handle /app* {
       reverse_proxy web:80
     }

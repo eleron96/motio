@@ -225,7 +225,6 @@ make check-prod-secrets-remote
 - `OAUTH2_PROXY_*` — проксирование входа на фронт (`localhost:5173`).
 - `OAUTH2_PROXY_BACKEND_LOGOUT_URL` — URL Keycloak end-session с `id_token_hint={id_token}` для provider logout без user prompt.
 - `OAUTH2_PROXY_WHITELIST_DOMAINS` — allowlist доменов для `rd` redirect после `/oauth2/sign_out`.
-- `VITE_GA_MEASUREMENT_ID` — GA4 Measurement ID для Google tag (например `G-XXXXXXXXXX`).
 
 ### Supabase / DB
 
