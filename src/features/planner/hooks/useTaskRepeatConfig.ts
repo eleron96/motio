@@ -41,7 +41,8 @@ const inferRepeatFrequency = (series: Task[]): RepeatFrequency => {
   if (dayDiff === 1) return 'daily';
   if (dayDiff === 7) return 'weekly';
   if (dayDiff === 14) return 'biweekly';
-  if (dayDiff >= 28 && dayDiff <= 31) return 'monthly';
+  if (dayDiff === 28) return 'fourweekly';
+  if (dayDiff >= 29 && dayDiff <= 31) return 'monthly';
   if (dayDiff >= 364 && dayDiff <= 366) return 'yearly';
   return 'none';
 };

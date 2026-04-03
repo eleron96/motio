@@ -117,7 +117,7 @@ msgstr ""
 msgid "{projectCount} projects"
 msgstr "{projectCount} проектов"
 
-#: src/shared/lib/repeatLabels.ts:20
+#: src/shared/lib/repeatLabels.ts:22
 msgid "{remaining} more"
 msgstr "ещё {remaining}"
 
@@ -596,7 +596,7 @@ msgstr ""
 #~ msgid "Copy this link if the email did not send:"
 #~ msgstr "Скопируйте эту ссылку, если письмо не пришло:"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:87
+#: src/features/planner/components/RepeatSettingsFields.tsx:88
 msgid "Count"
 msgstr "Количество"
 
@@ -678,11 +678,11 @@ msgstr "Создать воркспейс"
 msgid "Created {0} tasks."
 msgstr "Создано {0} задач."
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:127
+#: src/features/planner/components/RepeatSettingsFields.tsx:128
 msgid "Creates repeats for the next 12 months."
 msgstr "Создает повторы на следующие 12 месяцев."
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:122
+#: src/features/planner/components/RepeatSettingsFields.tsx:123
 msgid "Creates the specified number of repeats."
 msgstr "Создает указанное количество повторов."
 
@@ -1045,7 +1045,7 @@ msgid "Enable member"
 msgstr "Включить участника"
 
 #: src/features/planner/components/AddTaskDialog.tsx:678
-#: src/features/planner/components/RepeatSettingsFields.tsx:96
+#: src/features/planner/components/RepeatSettingsFields.tsx:97
 msgid "End date"
 msgstr "Дата окончания"
 
@@ -1063,7 +1063,7 @@ msgstr "Дата окончания ↑"
 msgid "End date ↓"
 msgstr "Дата окончания ↓"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:82
+#: src/features/planner/components/RepeatSettingsFields.tsx:83
 msgid "Ends"
 msgstr "Окончание"
 
@@ -1106,6 +1106,14 @@ msgstr "Равно"
 #: src/features/admin/pages/AdminUsersPage.tsx:738
 msgid "Error"
 msgstr "Ошибка"
+
+#: src/features/planner/components/RepeatSettingsFields.tsx:68
+msgid "Every 4 weeks"
+msgstr "Каждые 4 недели"
+
+#: src/shared/lib/repeatLabels.ts:11
+msgid "Every 4 weeks recurring"
+msgstr "Повторение каждые 4 недели"
 
 #: src/features/marketing/pages/LandingPage.tsx:568
 msgid "Everyone sees the same picture. Plan together, ship together."
@@ -1426,7 +1434,7 @@ msgstr "KPI-виджеты, столбчатые и area-графики, кру�
 msgid "Language"
 msgstr "Язык"
 
-#: src/shared/lib/repeatLabels.ts:20
+#: src/shared/lib/repeatLabels.ts:22
 msgid "Last in series"
 msgstr "Последняя в серии"
 
@@ -1653,11 +1661,11 @@ msgstr "Месяц"
 msgid "Month from current week"
 msgstr "Месяц от текущей недели"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:68
+#: src/features/planner/components/RepeatSettingsFields.tsx:69
 msgid "Monthly"
 msgstr "Ежемесячно"
 
-#: src/shared/lib/repeatLabels.ts:11
+#: src/shared/lib/repeatLabels.ts:13
 msgid "Monthly recurring"
 msgstr "Ежемесячный повтор"
 
@@ -1693,7 +1701,7 @@ msgstr "name@example.com"
 #~ msgid "Navigate between workspace sections and account tools."
 #~ msgstr "Переключайтесь между разделами рабочего пространства и инструментами аккаунта."
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:85
+#: src/features/planner/components/RepeatSettingsFields.tsx:86
 msgid "Never"
 msgstr "Никогда"
 
@@ -2054,7 +2062,7 @@ msgstr "Не отслеживается"
 msgid "Notifications"
 msgstr "Уведомления"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:111
+#: src/features/planner/components/RepeatSettingsFields.tsx:112
 msgid "Occurrences"
 msgstr "Количество"
 
@@ -2286,7 +2294,7 @@ msgstr "Только чтение"
 msgid "Ready to bring clarity to your team?"
 msgstr "Готовы навести порядок в команде?"
 
-#: src/shared/lib/repeatLabels.ts:15
+#: src/shared/lib/repeatLabels.ts:17
 msgid "Recurring"
 msgstr "Повтор"
 
@@ -2351,15 +2359,15 @@ msgstr "Переименовать дашборд"
 msgid "Repeat"
 msgstr "Повтор"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:90
+#: src/features/planner/components/RepeatSettingsFields.tsx:91
 msgid "Repeat limit"
 msgstr "Ограничение повтора"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:72
+#: src/features/planner/components/RepeatSettingsFields.tsx:73
 msgid "Repeat type"
 msgstr "Тип повтора"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:105
+#: src/features/planner/components/RepeatSettingsFields.tsx:106
 msgid "Repeats until the selected date."
 msgstr "Повторяется до выбранной даты."
 
@@ -2379,7 +2387,7 @@ msgstr "Восстановить"
 #~ msgid "Retry automatic sign in"
 #~ msgstr ""
 
-#: src/app/PageErrorBoundary.tsx:68
+#: src/app/PageErrorBoundary.tsx:70
 msgid "Return to Home"
 msgstr "Вернуться на главную"
 
@@ -2667,7 +2675,7 @@ msgstr "Выйти"
 msgid "Signed in"
 msgstr "Вы вошли"
 
-#: src/app/PageErrorBoundary.tsx:50
+#: src/app/PageErrorBoundary.tsx:52
 msgid "Something went wrong"
 msgstr ""
 
@@ -2981,7 +2989,7 @@ msgstr "Отслеживаемый проект"
 msgid "Tracking"
 msgstr "Отслеживание"
 
-#: src/app/PageErrorBoundary.tsx:62
+#: src/app/PageErrorBoundary.tsx:64
 msgid "Try again"
 msgstr ""
 
@@ -3081,7 +3089,7 @@ msgstr "Группа без названия"
 msgid "Unsaved changes"
 msgstr "Несохраненные изменения"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:86
+#: src/features/planner/components/RepeatSettingsFields.tsx:87
 msgid "Until date"
 msgstr "До даты"
 
@@ -3263,11 +3271,11 @@ msgstr "Шаблон рабочего пространства"
 msgid "Workspaces"
 msgstr "Рабочие пространства"
 
-#: src/features/planner/components/RepeatSettingsFields.tsx:69
+#: src/features/planner/components/RepeatSettingsFields.tsx:70
 msgid "Yearly"
 msgstr "Ежегодно"
 
-#: src/shared/lib/repeatLabels.ts:13
+#: src/shared/lib/repeatLabels.ts:15
 msgid "Yearly recurring"
 msgstr "Ежегодный повтор"
 
