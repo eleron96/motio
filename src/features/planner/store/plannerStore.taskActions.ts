@@ -391,6 +391,8 @@ export const createTaskActions = (
           return addWeeks(date, step);
         case 'biweekly':
           return addWeeks(date, step * 2);
+        case 'fourweekly':
+          return addWeeks(date, step * 4);
         case 'monthly':
           return addMonths(date, step);
         case 'yearly':
