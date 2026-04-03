@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
+import { captureException } from "../_shared/sentryCapture.ts";
 import { handler as adminHandler } from "../admin/index.ts";
 import { handler as holidaysHandler } from "../holidays/index.ts";
 import { handler as inboxHandler } from "../inbox/index.ts";
@@ -21,11 +22,19 @@ const handlers: Record<string, (req: Request) => Promise<Response>> = {
   "task-media": taskMediaHandler,
 };
 
-serve((req) => {
+serve(async (req) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/+/, "");
   const [name] = path.split("/");
   const handler = name ? handlers[name] : undefined;
   if (!handler) return jsonNotFound();
-  return handler(req);
+  try {
+    return await handler(req);
+  } catch (err) {
+    captureException(err, { tags: { function: name } });
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 });

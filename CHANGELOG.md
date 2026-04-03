@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Включён трекинг транзакций (performance monitoring) в GlitchTip
+
+## [0.3.68] - 2026-04-03
+### Changed
+- Нет зафиксированных изменений.
+
 ## [0.3.67] - 2026-04-01
 ### Changed
 - Нет зафиксированных изменений.

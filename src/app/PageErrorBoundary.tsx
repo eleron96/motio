@@ -1,5 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
+import { Sentry } from '@/shared/lib/sentry';
 
 interface PageErrorBoundaryState {
   hasError: boolean;
@@ -37,6 +38,7 @@ export class PageErrorBoundary extends React.Component<
   componentDidCatch(error: unknown, info: React.ErrorInfo): void {
     // eslint-disable-next-line no-console
     console.error('[PageErrorBoundary]', error, info.componentStack);
+    Sentry.captureException(error, { contexts: { react: { componentStack: info.componentStack } } });
   }
 
   handleReset = () => {
