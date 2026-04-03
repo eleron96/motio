@@ -238,3 +238,7 @@
 2026-04-01T18:28:01Z | 0.3.67 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260401-182713.dump | No documented changes.
 2026-04-03T09:16:45Z | 0.3.68 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-091547.dump | No documented changes.
 2026-04-03T09:33:35Z | 0.3.69 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-093252.dump | Enable transaction tracing in GlitchTip (tracesSampleRate 20%)
+2026-04-03T09:42:39Z | 0.3.70 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-094156.dump | No documented changes.
+2026-04-03T14:35:51Z | 0.3.71 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-143508.dump | No documented changes.
+2026-04-03T14:51:33Z | 0.3.72 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-145051.dump | No documented changes.
+2026-04-03T14:56:21Z | 0.3.73 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-145538.dump | No documented changes.
