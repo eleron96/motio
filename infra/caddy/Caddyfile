@@ -1,3 +1,7 @@
+errors.motio.nikog.net {
+  reverse_proxy glitchtip-web:8000
+}
+
 monitor.motio.nikog.net {
   reverse_proxy beszel:8090
 }

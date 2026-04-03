@@ -1,0 +1,97 @@
+services:
+  glitchtip-postgres:
+    image: postgres:15-alpine
+    container_name: glitchtip-postgres
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD}
+    volumes:
+      - glitchtip_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip -d glitchtip"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - glitchtip-internal
+
+  glitchtip-redis:
+    image: redis:7-alpine
+    container_name: glitchtip-redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.25'
+    networks:
+      - glitchtip-internal
+
+  glitchtip-web:
+    image: glitchtip/glitchtip
+    container_name: glitchtip-web
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+          cpus: '0.5'
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres/glitchtip
+      REDIS_URL: redis://glitchtip-redis:6379
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
+      GLITCHTIP_DOMAIN: https://errors.motio.nikog.net
+      DEFAULT_FROM_EMAIL: ${GLITCHTIP_FROM_EMAIL}
+      EMAIL_URL: ${GLITCHTIP_EMAIL_URL}
+      CELERY_WORKER_CONCURRENCY: 2
+    networks:
+      - glitchtip-internal
+      - motio-glitchtip
+
+  glitchtip-worker:
+    image: glitchtip/glitchtip
+    container_name: glitchtip-worker
+    restart: unless-stopped
+    command: ./bin/run-celery-with-beat.sh
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    depends_on:
+      glitchtip-postgres:
+        condition: service_healthy
+      glitchtip-redis:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-postgres/glitchtip
+      REDIS_URL: redis://glitchtip-redis:6379
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
+      GLITCHTIP_DOMAIN: https://errors.motio.nikog.net
+      DEFAULT_FROM_EMAIL: ${GLITCHTIP_FROM_EMAIL}
+      EMAIL_URL: ${GLITCHTIP_EMAIL_URL}
+    networks:
+      - glitchtip-internal
+
+networks:
+  glitchtip-internal:
+    name: glitchtip-internal
+  motio-glitchtip:
+    name: motio-glitchtip
+    external: true
+
+volumes:
+  glitchtip_db:
+    name: glitchtip_db

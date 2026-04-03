@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
@@ -19,6 +20,12 @@ export default defineConfig(({ mode }) => ({
       },
     }),
     mode === "development" && componentTagger(),
+    mode === "production" && process.env.SENTRY_AUTH_TOKEN && sentryVitePlugin({
+      org: process.env.SENTRY_ORG || "motio",
+      project: process.env.SENTRY_PROJECT || "motio-frontend",
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      url: process.env.SENTRY_URL || "https://errors.motio.nikog.net",
+    }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -26,6 +33,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {

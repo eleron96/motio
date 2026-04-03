@@ -222,6 +222,7 @@ services:
       TASK_MEDIA_USER_QUOTA_BYTES: ${TASK_MEDIA_USER_QUOTA_BYTES:-209715200}
       TASK_MEDIA_WORKSPACE_QUOTA_BYTES: ${TASK_MEDIA_WORKSPACE_QUOTA_BYTES:-2147483648}
       TASK_MEDIA_TOKEN_TTL_SECONDS: ${TASK_MEDIA_TOKEN_TTL_SECONDS:-604800}
+      GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
     command: ["start", "--main-service", "/home/deno/functions/main", "--port", "9000"]
@@ -317,6 +318,7 @@ services:
         VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-timeline-supabase}
         VITE_OAUTH2_PROXY_ENABLED: ${VITE_OAUTH2_PROXY_ENABLED:-true}
         VITE_OAUTH2_PROXY_SIGN_OUT_PATH: ${VITE_OAUTH2_PROXY_SIGN_OUT_PATH:-/oauth2/sign_out}
+        VITE_GLITCHTIP_DSN: ${VITE_GLITCHTIP_DSN:-}
     deploy:
       resources:
         limits:

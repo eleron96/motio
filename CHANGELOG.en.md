@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Enable transaction tracing in GlitchTip (tracesSampleRate 20%)
+
+## [0.3.68] - 2026-04-03
+### Changed
+- No documented changes.
+
 ## [0.3.67] - 2026-04-01
 ### Changed
 - No documented changes.
