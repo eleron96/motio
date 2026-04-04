@@ -61,6 +61,7 @@ import { Navigate } from 'react-router-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
+import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 const MOBILE_DRAG_HOLD_MS = 420;
 const MOBILE_DRAG_MOVE_TOLERANCE_PX = 10;
@@ -162,6 +163,12 @@ const DashboardPage = () => {
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
+
+  useOnboardingTour({
+    pageId: 'dashboard',
+    canEdit,
+  });
+
   const loadWorkspaceData = usePlannerStore((state) => state.loadWorkspaceData);
   const dashboardStorageKey = currentWorkspaceId
     ? `dashboard-current-${currentWorkspaceId}`
@@ -714,6 +721,7 @@ const DashboardPage = () => {
   const dashboardCanvas = (
     <div
       ref={containerRef}
+      data-tour="dashboard-canvas"
       className={cn('flex-1 overflow-auto', isTouchReorderMode && 'dashboard-mobile-interactions')}
       style={{
         padding: `${currentGridSettings.containerPadding[1]}px ${currentGridSettings.containerPadding[0]}px`,
@@ -863,7 +871,13 @@ const DashboardPage = () => {
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       <WorkspacePageHeader
         primaryAction={canEdit ? (
-          <Button size="sm" className="gap-2" onClick={handleAddWidget} disabled={!canAddWidget}>
+          <Button
+            data-tour="dashboard-add-widget"
+            size="sm"
+            className="gap-2"
+            onClick={handleAddWidget}
+            disabled={!canAddWidget}
+          >
             <Plus className="h-4 w-4" />
             {t`Widget`}
           </Button>

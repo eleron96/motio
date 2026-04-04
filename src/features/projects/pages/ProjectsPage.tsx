@@ -40,6 +40,7 @@ import {
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
+import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 const ProjectsPage = () => {
   usePageSeo({
@@ -355,6 +356,12 @@ const ProjectsPage = () => {
     customerById,
     tagById,
     trackedProjectIds,
+  });
+
+  useOnboardingTour({
+    pageId: 'projects',
+    canEdit,
+    hasProjectAssigneeTarget: Boolean(selectedProject),
   });
 
   const navigate = useNavigate();
@@ -699,6 +706,7 @@ const ProjectsPage = () => {
       <WorkspacePageHeader
         primaryAction={mode === 'customers' ? (
           <Button
+            data-tour="projects-primary-action"
             onClick={() => setCreateCustomerOpen(true)}
             size="sm"
             className="gap-2"
@@ -709,6 +717,7 @@ const ProjectsPage = () => {
           </Button>
         ) : mode === 'milestones' ? (
           <Button
+            data-tour="projects-primary-action"
             onClick={handleOpenCreateMilestone}
             size="sm"
             className="gap-2"
@@ -719,6 +728,7 @@ const ProjectsPage = () => {
           </Button>
         ) : (
           <Button
+            data-tour="projects-primary-action"
             onClick={() => setCreateProjectOpen(true)}
             size="sm"
             className="gap-2"

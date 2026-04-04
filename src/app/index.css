@@ -496,3 +496,47 @@
 .timeline-drag-scroll-active .milestone-cell {
   pointer-events: none !important;
 }
+
+/* Onboarding tour (driver.js) */
+.motio-tour-popover {
+  --driver-overlay-opacity: 0.7;
+  font-family: var(--font-sans);
+}
+
+.motio-tour-popover .driver-popover-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.motio-tour-popover .driver-popover-description {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.motio-tour-popover .driver-popover-navigation-btns button {
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+}
+
+.motio-tour-popover .motio-tour-skip-btn {
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+  margin-right: auto;
+}
+
+.motio-tour-popover .driver-popover-next-btn {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.motio-tour-popover .driver-popover-prev-btn {
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .motio-tour-popover .driver-popover {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}

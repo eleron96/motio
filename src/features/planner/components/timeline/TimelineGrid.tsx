@@ -356,6 +356,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         <div
           ref={scrollContainerRef}
           data-testid="timeline-scroll-container"
+          data-tour="timeline-grid"
           data-timeline-scroll-owner="vertical"
           className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}`}
           onScroll={handleScroll}
