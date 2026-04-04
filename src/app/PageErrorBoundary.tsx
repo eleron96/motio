@@ -1,10 +1,16 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { Sentry } from '@/shared/lib/sentry';
+import {
+  isRecoverableImportError,
+  reloadCurrentPage,
+  reloadForRecoverableImportError,
+} from '@/shared/lib/recoverableImportError';
 
 interface PageErrorBoundaryState {
   hasError: boolean;
   errorMessage: string;
+  isRecoverableImportError: boolean;
 }
 
 interface PageErrorBoundaryProps {
@@ -18,7 +24,11 @@ interface PageErrorBoundaryProps {
  * recovery UI instead of a blank screen. Placed around the <Suspense> block
  * in App.tsx so every lazy-loaded page is covered.
  *
- * "Try again" resets state so React re-renders the subtree.
+ * If a lazy chunk went stale after deploy, trigger a single hard reload in
+ * this tab instead of keeping the user on a broken app shell.
+ *
+ * "Try again" resets state so React re-renders the subtree for normal render
+ * errors and performs a hard reload for stale lazy chunks.
  * "Return to Home" navigates via a hard redirect (safe even after a crash).
  */
 export class PageErrorBoundary extends React.Component<
@@ -27,22 +37,32 @@ export class PageErrorBoundary extends React.Component<
 > {
   constructor(props: PageErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, errorMessage: '' };
+    this.state = { hasError: false, errorMessage: '', isRecoverableImportError: false };
   }
 
   static getDerivedStateFromError(error: unknown): PageErrorBoundaryState {
+    const recoverableImportError = isRecoverableImportError(error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return { hasError: true, errorMessage };
+    return {
+      hasError: true,
+      errorMessage: recoverableImportError ? '' : errorMessage,
+      isRecoverableImportError: recoverableImportError,
+    };
   }
 
   componentDidCatch(error: unknown, info: React.ErrorInfo): void {
-    // eslint-disable-next-line no-console
     console.error('[PageErrorBoundary]', error, info.componentStack);
     Sentry.captureException(error, { contexts: { react: { componentStack: info.componentStack } } });
+    reloadForRecoverableImportError(error);
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, errorMessage: '' });
+    if (this.state.isRecoverableImportError) {
+      reloadCurrentPage();
+      return;
+    }
+
+    this.setState({ hasError: false, errorMessage: '', isRecoverableImportError: false });
   };
 
   render() {
