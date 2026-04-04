@@ -180,6 +180,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
     return (
       <button
         type="button"
+        data-tour="filter-toggle"
         onClick={onToggle}
         aria-label={t`Expand filters`}
         className="w-12 border-r border-border bg-card flex flex-col h-full transition-all duration-200 cursor-pointer"

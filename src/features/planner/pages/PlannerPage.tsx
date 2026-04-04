@@ -23,6 +23,7 @@ import {
   readTimelineSidebarWidth,
   writeTimelineSidebarWidth,
 } from '@/features/planner/lib/timelineSidebarWidthStorage';
+import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 type AddTaskDefaults = {
   startDate: string;
@@ -146,6 +147,11 @@ const PlannerPage = () => {
   const membersLoading = useAuthStore((state) => state.membersLoading);
   const membersWorkspaceId = useAuthStore((state) => state.membersWorkspaceId);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
+
+  useOnboardingTour({
+    pageId: 'planner',
+    canEdit,
+  });
   const filtersHydratedRef = useRef(false);
   const timelineSidebarWidthHydratedRef = useRef(false);
   const centeredOnLoadRef = useRef(false);
@@ -327,6 +333,7 @@ const PlannerPage = () => {
       <WorkspacePageHeader
         primaryAction={(
           <Button
+            data-tour="add-task-btn"
             onClick={() => {
               setAddTaskDefaults(null);
               setShowAddTask(true);

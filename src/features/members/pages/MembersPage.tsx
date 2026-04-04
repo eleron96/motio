@@ -25,6 +25,7 @@ import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
 import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
 import { useMembersPageMode } from '@/features/members/hooks/useMembersPageMode';
 import { useMemberTaskFetcher } from '@/features/members/hooks/useMemberTaskFetcher';
+import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 type AccessTab = 'active' | 'disabled' | 'history';
 
@@ -127,6 +128,16 @@ const MembersPage = () => {
 
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const isAdmin = currentWorkspaceRole === 'admin';
+  const prepareMembersAccess = useCallback(() => {
+    setMode('access');
+  }, []);
+
+  useOnboardingTour({
+    pageId: 'members',
+    isAdmin,
+    prepareMembersAccess,
+  });
+
   const roleLabels: Record<WorkspaceRole, string> = {
     admin: t`Admin`,
     editor: t`Editor`,

@@ -523,7 +523,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
           </div>
           <Popover open={inviteOpen} onOpenChange={setInviteOpen}>
             <PopoverTrigger asChild>
-              <Button variant="secondary" disabled={!isAdmin}>
+              <Button data-tour="members-add-member" variant="secondary" disabled={!isAdmin}>
                 {t`Add member`}
               </Button>
             </PopoverTrigger>
