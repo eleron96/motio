@@ -317,6 +317,10 @@ export const createOnboardingTour = ({
     steps,
     onPopoverRender: (popover) => {
       createSkipButton(popover, dismissTour);
+      // Ensure the popover is always wide enough to fit all footer buttons.
+      // driver.js sets width via inline styles which override CSS rules.
+      popover.wrapper.style.minWidth = 'fit-content';
+      popover.wrapper.style.width = 'fit-content';
     },
     onDestroyed: () => {
       const action = destroyAction;
