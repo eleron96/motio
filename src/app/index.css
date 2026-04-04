@@ -509,10 +509,10 @@
   border-radius: 1rem;
   box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.18), 0 2px 8px -2px rgba(0, 0, 0, 0.10);
   color: hsl(var(--card-foreground));
-  max-width: calc(100vw - 2rem);
-  min-width: fit-content;
+  max-width: calc(100vw - 2rem) !important;
+  min-width: fit-content !important;
   padding: 1.5rem 1.5rem 1.25rem;
-  width: auto;
+  width: fit-content !important;
 }
 
 /* Arrow */
