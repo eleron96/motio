@@ -45,18 +45,31 @@ const createDriverDouble = (): DriverDouble & Record<string, ReturnType<typeof v
   highlight: vi.fn(),
 });
 
-const createPopoverDom = () => ({
-  wrapper: document.createElement('div'),
-  arrow: document.createElement('div'),
-  title: document.createElement('div'),
-  description: document.createElement('div'),
-  footer: document.createElement('div'),
-  progress: document.createElement('span'),
-  previousButton: document.createElement('button'),
-  nextButton: document.createElement('button'),
-  closeButton: document.createElement('button'),
-  footerButtons: document.createElement('div'),
-});
+const createPopoverDom = () => {
+  const footer = document.createElement('div');
+  const progress = document.createElement('span');
+  const footerButtons = document.createElement('div');
+  const previousButton = document.createElement('button');
+  const nextButton = document.createElement('button');
+
+  footerButtons.appendChild(previousButton);
+  footerButtons.appendChild(nextButton);
+  footer.appendChild(progress);
+  footer.appendChild(footerButtons);
+
+  return {
+    wrapper: document.createElement('div'),
+    arrow: document.createElement('div'),
+    title: document.createElement('div'),
+    description: document.createElement('div'),
+    footer,
+    progress,
+    previousButton,
+    nextButton,
+    closeButton: document.createElement('button'),
+    footerButtons,
+  };
+};
 
 describe('createOnboardingTour', () => {
   let capturedConfig: Record<string, unknown>;
@@ -86,8 +99,9 @@ describe('createOnboardingTour', () => {
     const popover = createPopoverDom();
     (capturedConfig.onPopoverRender as ((popoverDom: typeof popover) => void) | undefined)?.(popover);
 
-    const skipButton = popover.footerButtons.querySelector<HTMLButtonElement>('.motio-tour-skip-btn');
+    const skipButton = popover.footer.querySelector<HTMLButtonElement>('.motio-tour-skip-btn');
     expect(skipButton?.textContent).toBe('Skip');
+    expect(skipButton?.getAttribute('aria-label')).toBe('Skip');
 
     skipButton?.click();
     expect(driverDouble.destroy).toHaveBeenCalledTimes(1);
@@ -121,6 +135,7 @@ describe('createOnboardingTour', () => {
   it('opens Team access before moving to the add member step', () => {
     vi.useFakeTimers();
     const prepareMembersAccess = vi.fn();
+    document.body.innerHTML = '<button data-tour="members-add-member">Add member</button>';
 
     createOnboardingTour({
       pageId: 'members',
@@ -143,7 +158,7 @@ describe('createOnboardingTour', () => {
     );
 
     expect(prepareMembersAccess).toHaveBeenCalledTimes(1);
-    vi.advanceTimersByTime(250);
+    vi.advanceTimersByTime(100);
     expect(driverDouble.moveNext).toHaveBeenCalledTimes(1);
   });
 });
