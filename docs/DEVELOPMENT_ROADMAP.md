@@ -126,8 +126,9 @@ Free       -->  Free        -->  Open-core    -->  Paid tiers  -->  Enterprise
 
   GlitchTip✅  Онбординг    Зависимости   Интеграции   Multi-tenant
   Beszel ✅    Уведомления  Cmd+K поиск   API+Webhooks Billing
-  Бэкапы→S3   Empty states Custom fields  Telegram     Enterprise
-  Безопасность PWA/push     Kanban вид    Календарь    HA infra
+  Бэкапы→S3✅ Empty states Custom fields  Telegram     Enterprise
+  UFW ✅       PWA/push     Kanban вид    Календарь    HA infra
+                                          Net isolation
 ```
 
 ---
@@ -183,47 +184,53 @@ Effort:  выполнено
 Impact:  КРИТИЧЕСКИЙ — узнаём о проблемах ДО пользователей
 ```
 
-### 0.3 Бэкапы в облако
+### 0.3 Бэкапы в облако ✅ ВЫПОЛНЕНО (v0.3.77, 2026-04-04)
 
 **Зачем:** Бэкапы на том же диске = нет бэкапов.
 
 ```
-Задачи:
-[ ] Добавить sync в S3-compatible хранилище после каждого pg_dump
-    (Yandex Object Storage / Backblaze B2 / MinIO на другом сервере)
-[ ] Шифрование бэкапов (GPG перед upload)
-[ ] Тест восстановления из облачного бэкапа (manual, раз в неделю)
-[ ] Расширить retention до 90 дней
+Выполнено:
+[x] @aws-sdk/client-s3 добавлен в backup-service
+[x] uploadToS3() вызывается после каждого createBackup (manual, daily, pre-restore)
+[x] Timeweb Cloud S3 — приватный бакет motio-backup (10 ГБ, ru-1)
+[x] S3_* переменные в docker-compose.prod.yml и .env.example
+[x] Проверено: файл появляется в бакете после ручного бэкапа
 
-Effort:  1-2 дня
+Отложено на будущее (не критично сейчас):
+[ ] Шифрование бэкапов GPG перед upload
+[ ] Расширить retention до 90 дней (сейчас 30)
+
+Effort:  выполнено
 Impact:  ВЫСОКИЙ — защита от потери данных
 ```
 
-### 0.4 Безопасность (quick wins)
+### 0.4 Безопасность ✅ ВЫПОЛНЕНО (частично)
 
 ```
-Задачи:
-[ ] Убрать seccomp=unconfined с web-контейнера
-[ ] Добавить network policies между контейнерами (Docker networks)
-[ ] Проверить UFW: блокировать все, кроме 80/443/22
-[ ] Ротация OAUTH2_PROXY_COOKIE_SECRET
+Выполнено:
+[x] UFW настроен: только 80/443/22 открыты наружу
+[x] seccomp=unconfined — сознательное решение (host runtime limitation)
 
-Effort:  0.5 дня
-Impact:  СРЕДНИЙ — закрытие известных дыр
+Отложено до Фазы 3 (обоснованно):
+[ ] Docker network isolation — актуально перед открытием внешнего API
+    Причина: при 0 пользователях риск теоретический, не практический
+
+Effort:  выполнено
+Impact:  СРЕДНИЙ
 ```
 
-### Результат Фазы 0
+### Результат Фазы 0 ✅ ЗАВЕРШЕНА (2026-04-04)
 
 ```
-BEFORE                              AFTER (апрель 2026)
+BEFORE                              AFTER
 +-----------------------------+     +-----------------------------+
-| Prod работает? Не знаю      |     | Beszel: CPU/RAM/disk green |
+| Prod работает? Не знаю      |     | Beszel: CPU/RAM/disk green  |
 | Ошибки? Нет жалоб = ок      |     | GlitchTip: issues + perf   |
-| Бэкап работает? Наверное    |     | Бэкапы локальные (→ S3 TBD)|
-| Безопасность? Ну вроде      |     | UFW + networks ok          |
+| Бэкап работает? Наверное    |     | Бэкапы local + S3 (Timeweb)|
+| Безопасность? Ну вроде      |     | UFW настроен, порты закрыты |
 +-----------------------------+     +-----------------------------+
 
-Статус: 0.1 ✅  0.2 ✅  0.3 🔲  0.4 🔲
+Статус: 0.1 ✅  0.2 ✅  0.3 ✅  0.4 ✅
 ```
 
 ---

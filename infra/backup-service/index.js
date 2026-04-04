@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const dns = require('dns/promises');
-const { createWriteStream } = require('fs');
+const { createWriteStream, createReadStream } = require('fs');
 const fs = require('fs/promises');
 const { Transform } = require('stream');
 const { pipeline } = require('stream/promises');
@@ -10,6 +10,7 @@ const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const cron = require('node-cron');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
 const execFileAsync = promisify(execFile);
 
@@ -36,6 +37,38 @@ const BACKUP_RETENTION_COUNT = (() => {
   const parsed = Number.parseInt(process.env.BACKUP_RETENTION_COUNT || '30', 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
 })();
+
+const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
+const S3_REGION = process.env.S3_REGION || 'us-east-1';
+const S3_BUCKET = process.env.S3_BUCKET || '';
+const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || '';
+const S3_SECRET_KEY = process.env.S3_SECRET_KEY || '';
+
+const s3Enabled = Boolean(S3_ENDPOINT && S3_BUCKET && S3_ACCESS_KEY && S3_SECRET_KEY);
+
+const s3 = s3Enabled
+  ? new S3Client({
+      endpoint: S3_ENDPOINT,
+      region: S3_REGION,
+      credentials: { accessKeyId: S3_ACCESS_KEY, secretAccessKey: S3_SECRET_KEY },
+      forcePathStyle: true,
+    })
+  : null;
+
+const uploadToS3 = async (filePath, fileName) => {
+  if (!s3) return;
+  try {
+    const fileStream = createReadStream(filePath);
+    await s3.send(new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: fileName,
+      Body: fileStream,
+    }));
+    console.log(`S3 upload ok: ${fileName}`);
+  } catch (error) {
+    console.error(`S3 upload failed for ${fileName}:`, error.message || error);
+  }
+};
 
 if (!DB_URL) {
   console.error('Missing SUPABASE_DB_URL');
@@ -257,6 +290,7 @@ const createBackup = async (type, options = {}) => {
   if (shouldPrune) {
     await pruneBackups([name]);
   }
+  await uploadToS3(filePath, name);
   return {
     ...toBackupEntry(name, stat),
     type,

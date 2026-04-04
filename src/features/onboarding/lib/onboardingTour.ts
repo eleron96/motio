@@ -19,6 +19,23 @@ type TourDestroyAction =
   | { type: 'complete' }
   | null;
 
+const MEMBERS_ADD_MEMBER_SELECTOR = '[data-tour="members-add-member"]';
+
+const moveToNextStepWhenReady = (
+  driverInstance: Driver,
+  selector: string,
+  attemptsLeft = 12,
+) => {
+  if (document.querySelector(selector) || attemptsLeft <= 0) {
+    driverInstance.moveNext();
+    return;
+  }
+
+  window.setTimeout(() => {
+    moveToNextStepWhenReady(driverInstance, selector, attemptsLeft - 1);
+  }, 100);
+};
+
 const buildPlannerSteps = (advanceToNextPage: (nextPage: OnboardingPageId) => void): DriveStep[] => [
   {
     popover: {
@@ -172,9 +189,7 @@ const buildMembersSteps = (
 
   const openAccessModeAndContinue: DriverHook = (_element, _step, { driver: driverInstance }) => {
     prepareMembersAccess?.();
-    window.setTimeout(() => {
-      driverInstance.moveNext();
-    }, 250);
+    moveToNextStepWhenReady(driverInstance, MEMBERS_ADD_MEMBER_SELECTOR);
   };
 
   return [
@@ -210,16 +225,17 @@ const buildMembersSteps = (
 };
 
 const createSkipButton = (popover: PopoverDOM, handleDismiss: () => void) => {
-  let skipButton = popover.footerButtons.querySelector<HTMLButtonElement>('.motio-tour-skip-btn');
+  let skipButton = popover.footer.querySelector<HTMLButtonElement>('.motio-tour-skip-btn');
 
   if (!skipButton) {
     skipButton = document.createElement('button');
     skipButton.type = 'button';
     skipButton.className = 'motio-tour-skip-btn';
-    popover.footerButtons.prepend(skipButton);
+    popover.footer.insertBefore(skipButton, popover.progress);
   }
 
   skipButton.textContent = String(t`Skip`);
+  skipButton.setAttribute('aria-label', String(t`Skip`));
   skipButton.onclick = () => handleDismiss();
 };
 

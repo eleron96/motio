@@ -74,6 +74,10 @@ export const useOnboardingTour = ({
       const pendingPage = readPendingPage();
       if (pendingPage && pendingPage !== pageId) return;
 
+      if (pageId === 'members' && isAdminRef.current) {
+        prepareMembersAccessRef.current?.();
+      }
+
       const markCompleted = async () => {
         clearPendingPage();
         await updateProfilePreferences(user.id, {
