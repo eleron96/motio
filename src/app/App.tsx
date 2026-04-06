@@ -4,6 +4,7 @@ import { DailyBriefController } from "@/features/daily-brief";
 import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { withSentryReactRouterV6Routing } from "@sentry/react";
 import { I18nProvider } from "@lingui/react";
 import { Suspense, lazy } from "react";
 import NotFoundPage from "@/app/NotFoundPage";
@@ -24,6 +25,8 @@ const PlannerPage = lazy(() => import("@/features/planner/pages/PlannerPage"));
 const DashboardPage = lazy(() => import("@/features/dashboard/pages/DashboardPage"));
 const ProjectsPage = lazy(() => import("@/features/projects/pages/ProjectsPage"));
 const MembersPage = lazy(() => import("@/features/members/pages/MembersPage"));
+
+const SentryRoutes = withSentryReactRouterV6Routing(Routes);
 
 const App = () => {
   const locale = useLocaleStore((state) => state.locale);
@@ -50,7 +53,7 @@ const App = () => {
                     </div>
                   )}
                 >
-                  <Routes>
+                  <SentryRoutes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/auth" element={<AuthPage />} />
@@ -101,7 +104,7 @@ const App = () => {
                   <Route path="/members" element={<Navigate to="/app/members" replace />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFoundPage />} />
-                  </Routes>
+                  </SentryRoutes>
                 </Suspense>
               </PageErrorBoundary>
             </BrowserRouter>
