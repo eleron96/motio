@@ -18,6 +18,7 @@ const queryClient = new QueryClient();
 
 const LandingPage = lazy(() => import("@/features/marketing/pages/LandingPage"));
 const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
+const TermsPage = lazy(() => import("@/features/legal/pages/TermsPage"));
 const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
 const InvitePage = lazy(() => import("@/features/auth/pages/InvitePage"));
 const AdminUsersPage = lazy(() => import("@/features/admin/pages/AdminUsersPage"));
@@ -56,6 +57,7 @@ const App = () => {
                   <SentryRoutes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/invite/:inviteToken" element={<InvitePage />} />
                   <Route

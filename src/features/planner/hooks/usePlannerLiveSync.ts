@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/shared/lib/supabaseClient';
+import { toast } from 'sonner';
+import { t } from '@lingui/macro';
 import { Milestone, TaskPriority, ViewMode } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 
@@ -151,6 +153,7 @@ export const usePlannerLiveSync = (
     let fallbackFailureCount = 0;
     let channelHealthy = true;
     let hasSubscribedOnce = false;
+    let disconnectTimer: ReturnType<typeof setTimeout> | null = null;
     const rangeRef: LoadedRange = loadedRange;
     const workspaceRef = workspaceId;
 
@@ -627,6 +630,16 @@ export const usePlannerLiveSync = (
       .subscribe((status) => {
         if (!active) return;
         if (status === 'SUBSCRIBED') {
+          if (disconnectTimer) {
+            clearTimeout(disconnectTimer);
+            disconnectTimer = null;
+          } else if (!channelHealthy) {
+            toast.success(t`Соединение восстановлено`, {
+              id: 'sync-status',
+              position: 'bottom-right',
+              duration: 3000,
+            });
+          }
           channelHealthy = true;
           usePlannerStore.getState().setSyncHealthy(true);
           resetFallbackFailures();
@@ -650,6 +663,16 @@ export const usePlannerLiveSync = (
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           channelHealthy = false;
           usePlannerStore.getState().setSyncHealthy(false);
+          if (!disconnectTimer) {
+            disconnectTimer = setTimeout(() => {
+              disconnectTimer = null;
+              toast.error(t`Нет соединения`, {
+                id: 'sync-status',
+                position: 'bottom-right',
+                duration: Infinity,
+              });
+            }, 5000);
+          }
           clearInitialReconcileTimer();
           growFallbackFailures();
           requestReconcile('channel');
@@ -679,6 +702,10 @@ export const usePlannerLiveSync = (
       clearFlushTimer();
       clearFallbackTimer();
       clearInitialReconcileTimer();
+      if (disconnectTimer) {
+        clearTimeout(disconnectTimer);
+        disconnectTimer = null;
+      }
       if (typeof window !== 'undefined') {
         window.removeEventListener('focus', handleVisibilityOrFocus);
         window.removeEventListener('pageshow', handleVisibilityOrFocus);
