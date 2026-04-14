@@ -238,7 +238,7 @@ msgstr "Add a comment or update..."
 msgid "Add a description..."
 msgstr "Add a description..."
 
-#: src/features/onboarding/lib/onboardingTour.ts:77
+#: src/features/onboarding/lib/onboardingTour.ts:94
 msgid "Add a widget"
 msgstr "Add a widget"
 
@@ -323,8 +323,8 @@ msgstr "All current data will be lost."
 msgid "All projects"
 msgstr "All projects"
 
-#: src/features/onboarding/lib/onboardingTour.ts:163
-#: src/features/onboarding/lib/onboardingTour.ts:202
+#: src/features/onboarding/lib/onboardingTour.ts:180
+#: src/features/onboarding/lib/onboardingTour.ts:217
 msgid "All set!"
 msgstr "All set!"
 
@@ -406,22 +406,22 @@ msgstr "Authentication error"
 msgid "Authentication failed."
 msgstr "Authentication failed."
 
-#: src/features/onboarding/lib/onboardingTour.ts:37
-#: src/features/onboarding/lib/onboardingTour.ts:46
-#: src/features/onboarding/lib/onboardingTour.ts:55
+#: src/features/onboarding/lib/onboardingTour.ts:54
 #: src/features/onboarding/lib/onboardingTour.ts:63
-#: src/features/onboarding/lib/onboardingTour.ts:82
-#: src/features/onboarding/lib/onboardingTour.ts:91
+#: src/features/onboarding/lib/onboardingTour.ts:72
+#: src/features/onboarding/lib/onboardingTour.ts:80
 #: src/features/onboarding/lib/onboardingTour.ts:99
-#: src/features/onboarding/lib/onboardingTour.ts:119
-#: src/features/onboarding/lib/onboardingTour.ts:130
-#: src/features/onboarding/lib/onboardingTour.ts:138
-#: src/features/onboarding/lib/onboardingTour.ts:158
-#: src/features/onboarding/lib/onboardingTour.ts:165
-#: src/features/onboarding/lib/onboardingTour.ts:187
-#: src/features/onboarding/lib/onboardingTour.ts:197
-#: src/features/onboarding/lib/onboardingTour.ts:204
-#: src/features/onboarding/lib/onboardingTour.ts:301
+#: src/features/onboarding/lib/onboardingTour.ts:108
+#: src/features/onboarding/lib/onboardingTour.ts:116
+#: src/features/onboarding/lib/onboardingTour.ts:136
+#: src/features/onboarding/lib/onboardingTour.ts:147
+#: src/features/onboarding/lib/onboardingTour.ts:155
+#: src/features/onboarding/lib/onboardingTour.ts:175
+#: src/features/onboarding/lib/onboardingTour.ts:182
+#: src/features/onboarding/lib/onboardingTour.ts:202
+#: src/features/onboarding/lib/onboardingTour.ts:212
+#: src/features/onboarding/lib/onboardingTour.ts:219
+#: src/features/onboarding/lib/onboardingTour.ts:316
 msgid "Back"
 msgstr "Back"
 
@@ -561,7 +561,7 @@ msgstr "Clear filters"
 msgid "Clear photo"
 msgstr "Clear photo"
 
-#: src/features/onboarding/lib/onboardingTour.ts:44
+#: src/features/onboarding/lib/onboardingTour.ts:61
 msgid "Click this button or double-click a date on the timeline to open the task form."
 msgstr "Click this button or double-click a date on the timeline to open the task form."
 
@@ -624,7 +624,7 @@ msgstr "Configure widget type, display style, and filters."
 #~ msgid "Confirm password"
 #~ msgstr "Confirm password"
 
-#: src/features/onboarding/lib/onboardingTour.ts:299
+#: src/features/onboarding/lib/onboardingTour.ts:314
 msgid "Continue"
 msgstr "Continue"
 
@@ -684,11 +684,11 @@ msgstr "Create a new milestone for the selected date."
 msgid "Create a new project and assign customer, code, and color."
 msgstr "Create a new project and assign customer, code, and color."
 
-#: src/features/onboarding/lib/onboardingTour.ts:116
+#: src/features/onboarding/lib/onboardingTour.ts:133
 msgid "Create a new project here, then group tasks and milestones inside it."
 msgstr "Create a new project here, then group tasks and milestones inside it."
 
-#: src/features/onboarding/lib/onboardingTour.ts:43
+#: src/features/onboarding/lib/onboardingTour.ts:60
 msgid "Create a task"
 msgstr "Create a task"
 
@@ -791,12 +791,12 @@ msgid "Danger zone"
 msgstr "Danger zone"
 
 #: src/features/marketing/pages/LandingPage.tsx:515
-#: src/features/onboarding/lib/onboardingTour.ts:61
+#: src/features/onboarding/lib/onboardingTour.ts:78
 #: src/features/workspace/lib/appNavigation.ts:17
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: src/features/onboarding/lib/onboardingTour.ts:88
+#: src/features/onboarding/lib/onboardingTour.ts:105
 msgid "Dashboard canvas"
 msgstr "Dashboard canvas"
 
@@ -955,7 +955,7 @@ msgstr "Deleting a workspace is permanent. Type the workspace name to enable del
 msgid "Description"
 msgstr "Description"
 
-#: src/features/marketing/pages/LandingPage.tsx:619
+#: src/features/marketing/pages/LandingPage.tsx:626
 msgid "Designed and developed by <0>NIKO G.</0>"
 msgstr "Designed and developed by <0>NIKO G.</0>"
 
@@ -1081,7 +1081,7 @@ msgstr "editor"
 msgid "Editor"
 msgstr "Editor"
 
-#: src/features/onboarding/lib/onboardingTour.ts:80
+#: src/features/onboarding/lib/onboardingTour.ts:97
 msgid "Editors and admins add widgets here to build the dashboard."
 msgstr "Editors and admins add widgets here to build the dashboard."
 
@@ -1257,7 +1257,7 @@ msgstr "Filter customers"
 msgid "Filter settings"
 msgstr "Filter settings"
 
-#: src/features/onboarding/lib/onboardingTour.ts:53
+#: src/features/onboarding/lib/onboardingTour.ts:70
 msgid "Filter tasks by project, people, groups, statuses and tags."
 msgstr "Filter tasks by project, people, groups, statuses and tags."
 
@@ -1278,7 +1278,7 @@ msgstr "Filter: {0}"
 msgid "Filter: {projectQuery}"
 msgstr "Filter: {projectQuery}"
 
-#: src/features/onboarding/lib/onboardingTour.ts:52
+#: src/features/onboarding/lib/onboardingTour.ts:69
 #: src/features/planner/components/FilterPanel.tsx:233
 msgid "Filters"
 msgstr "Filters"
@@ -1297,9 +1297,9 @@ msgstr "Final status"
 msgid "Find or add customer..."
 msgstr "Find or add customer..."
 
-#: src/features/onboarding/lib/onboardingTour.ts:166
-#: src/features/onboarding/lib/onboardingTour.ts:205
-#: src/features/onboarding/lib/onboardingTour.ts:299
+#: src/features/onboarding/lib/onboardingTour.ts:183
+#: src/features/onboarding/lib/onboardingTour.ts:220
+#: src/features/onboarding/lib/onboardingTour.ts:314
 msgid "Finish"
 msgstr "Finish"
 
@@ -1388,7 +1388,7 @@ msgstr "Group tasks by project, set milestones, and track progress without switc
 msgid "Groups"
 msgstr "Groups"
 
-#: src/features/onboarding/lib/onboardingTour.ts:35
+#: src/features/onboarding/lib/onboardingTour.ts:52
 msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
 msgstr "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
 
@@ -1481,7 +1481,7 @@ msgstr "Invite created"
 msgid "Invite people and share access."
 msgstr "Invite people and share access."
 
-#: src/features/onboarding/lib/onboardingTour.ts:194
+#: src/features/onboarding/lib/onboardingTour.ts:209
 msgid "Invite teammates"
 msgstr "Invite teammates"
 
@@ -1535,7 +1535,7 @@ msgstr "Language"
 msgid "Last in series"
 msgstr "Last in series"
 
-#: src/features/onboarding/lib/onboardingTour.ts:26
+#: src/features/onboarding/lib/onboardingTour.ts:43
 msgid "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
 msgstr "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
 
@@ -1850,7 +1850,7 @@ msgstr "New milestone"
 #~ msgid "New password for"
 #~ msgstr "New password for"
 
-#: src/features/onboarding/lib/onboardingTour.ts:114
+#: src/features/onboarding/lib/onboardingTour.ts:131
 #: src/features/projects/components/ProjectsDialogs.tsx:331
 #: src/features/projects/pages/ProjectsPage.tsx:738
 msgid "New project"
@@ -1877,26 +1877,26 @@ msgid "New widget"
 msgstr "New widget"
 
 #: src/features/members/components/MemberTasksPanel.tsx:492
-#: src/features/onboarding/lib/onboardingTour.ts:36
-#: src/features/onboarding/lib/onboardingTour.ts:45
-#: src/features/onboarding/lib/onboardingTour.ts:54
-#: src/features/onboarding/lib/onboardingTour.ts:81
-#: src/features/onboarding/lib/onboardingTour.ts:90
-#: src/features/onboarding/lib/onboardingTour.ts:118
-#: src/features/onboarding/lib/onboardingTour.ts:129
-#: src/features/onboarding/lib/onboardingTour.ts:157
-#: src/features/onboarding/lib/onboardingTour.ts:186
-#: src/features/onboarding/lib/onboardingTour.ts:196
-#: src/features/onboarding/lib/onboardingTour.ts:300
+#: src/features/onboarding/lib/onboardingTour.ts:53
+#: src/features/onboarding/lib/onboardingTour.ts:62
+#: src/features/onboarding/lib/onboardingTour.ts:71
+#: src/features/onboarding/lib/onboardingTour.ts:98
+#: src/features/onboarding/lib/onboardingTour.ts:107
+#: src/features/onboarding/lib/onboardingTour.ts:135
+#: src/features/onboarding/lib/onboardingTour.ts:146
+#: src/features/onboarding/lib/onboardingTour.ts:174
+#: src/features/onboarding/lib/onboardingTour.ts:201
+#: src/features/onboarding/lib/onboardingTour.ts:211
+#: src/features/onboarding/lib/onboardingTour.ts:315
 #: src/features/projects/components/ProjectsMainPanel.tsx:478
 msgid "Next"
 msgstr "Next"
 
-#: src/features/onboarding/lib/onboardingTour.ts:98
+#: src/features/onboarding/lib/onboardingTour.ts:115
 msgid "Next, we'll open Projects to show where project details, tasks and assignees are visible."
 msgstr "Next, we'll open Projects to show where project details, tasks and assignees are visible."
 
-#: src/features/onboarding/lib/onboardingTour.ts:62
+#: src/features/onboarding/lib/onboardingTour.ts:79
 msgid "Next, we'll open the dashboard and show where widgets are added and arranged."
 msgstr "Next, we'll open the dashboard and show where widgets are added and arranged."
 
@@ -2254,11 +2254,11 @@ msgstr "Only this task"
 msgid "Open"
 msgstr "Open"
 
-#: src/features/onboarding/lib/onboardingTour.ts:128
+#: src/features/onboarding/lib/onboardingTour.ts:145
 msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
 msgstr "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
 
-#: src/features/onboarding/lib/onboardingTour.ts:64
+#: src/features/onboarding/lib/onboardingTour.ts:81
 msgid "Open dashboard"
 msgstr "Open dashboard"
 
@@ -2279,11 +2279,11 @@ msgstr "Open navigation menu"
 msgid "Open project"
 msgstr "Open project"
 
-#: src/features/onboarding/lib/onboardingTour.ts:100
+#: src/features/onboarding/lib/onboardingTour.ts:117
 msgid "Open projects"
 msgstr "Open projects"
 
-#: src/features/onboarding/lib/onboardingTour.ts:139
+#: src/features/onboarding/lib/onboardingTour.ts:156
 msgid "Open team"
 msgstr "Open team"
 
@@ -2363,11 +2363,11 @@ msgstr "People"
 msgid "People access"
 msgstr "People access"
 
-#: src/features/onboarding/lib/onboardingTour.ts:155
+#: src/features/onboarding/lib/onboardingTour.ts:172
 msgid "People and groups"
 msgstr "People and groups"
 
-#: src/features/onboarding/lib/onboardingTour.ts:125
+#: src/features/onboarding/lib/onboardingTour.ts:142
 msgid "People on a project"
 msgstr "People on a project"
 
@@ -2431,8 +2431,8 @@ msgstr "Project name"
 msgid "Project not found."
 msgstr "Project not found."
 
-#: src/features/onboarding/lib/onboardingTour.ts:97
 #: src/features/onboarding/lib/onboardingTour.ts:114
+#: src/features/onboarding/lib/onboardingTour.ts:131
 #: src/features/planner/components/FilterPanel.tsx:259
 #: src/features/planner/components/timeline/TimelineControls.tsx:259
 #: src/features/projects/components/ProjectsSidebar.tsx:341
@@ -2550,7 +2550,7 @@ msgstr "Restore"
 #~ msgid "Retry automatic sign in"
 #~ msgstr "Retry automatic sign in"
 
-#: src/app/PageErrorBoundary.tsx:70
+#: src/app/PageErrorBoundary.tsx:90
 msgid "Return to Home"
 msgstr "Return to Home"
 
@@ -2842,15 +2842,16 @@ msgstr "Sign out"
 msgid "Signed in"
 msgstr "Signed in"
 
-#: src/features/onboarding/lib/onboardingTour.ts:222
+#: src/features/onboarding/lib/onboardingTour.ts:237
+#: src/features/onboarding/lib/onboardingTour.ts:238
 msgid "Skip"
 msgstr "Skip"
 
-#: src/app/PageErrorBoundary.tsx:52
+#: src/app/PageErrorBoundary.tsx:72
 msgid "Something went wrong"
 msgstr "Something went wrong"
 
-#: src/features/onboarding/lib/onboardingTour.ts:27
+#: src/features/onboarding/lib/onboardingTour.ts:44
 msgid "Start"
 msgstr "Start"
 
@@ -2985,8 +2986,8 @@ msgstr "Tasks from today"
 msgid "Team"
 msgstr "Team"
 
-#: src/features/onboarding/lib/onboardingTour.ts:136
-#: src/features/onboarding/lib/onboardingTour.ts:184
+#: src/features/onboarding/lib/onboardingTour.ts:153
+#: src/features/onboarding/lib/onboardingTour.ts:199
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:502
 msgid "Team access"
 msgstr "Team access"
@@ -3014,6 +3015,10 @@ msgstr "Template is used for all new workspaces."
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:261
 msgid "Template saved."
 msgstr "Template saved."
+
+#: src/features/marketing/pages/LandingPage.tsx:622
+msgid "Terms of Service"
+msgstr "Terms of Service"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:68
 msgid "Text value"
@@ -3051,7 +3056,7 @@ msgstr "This and following"
 msgid "This comment will be permanently removed and cannot be recovered."
 msgstr "This comment will be permanently removed and cannot be recovered."
 
-#: src/features/onboarding/lib/onboardingTour.ts:127
+#: src/features/onboarding/lib/onboardingTour.ts:144
 msgid "This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks."
 msgstr "This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks."
 
@@ -3063,7 +3068,7 @@ msgstr "this customer"
 msgid "this dashboard"
 msgstr "this dashboard"
 
-#: src/features/onboarding/lib/onboardingTour.ts:117
+#: src/features/onboarding/lib/onboardingTour.ts:134
 msgid "This is where your workspace projects are listed and reviewed."
 msgstr "This is where your workspace projects are listed and reviewed."
 
@@ -3079,7 +3084,7 @@ msgstr "This month"
 msgid "this project"
 msgstr "this project"
 
-#: src/features/onboarding/lib/onboardingTour.ts:185
+#: src/features/onboarding/lib/onboardingTour.ts:200
 msgid "This section contains invitations, roles and workspace access for your team."
 msgstr "This section contains invitations, roles and workspace access for your team."
 
@@ -3182,7 +3187,7 @@ msgstr "Tracked project"
 msgid "Tracking"
 msgstr "Tracking"
 
-#: src/app/PageErrorBoundary.tsx:64
+#: src/app/PageErrorBoundary.tsx:84
 msgid "Try again"
 msgstr "Try again"
 
@@ -3326,7 +3331,7 @@ msgstr "Use current workspace"
 msgid "Use ISO code (for example RU, US, DE)."
 msgstr "Use ISO code (for example RU, US, DE)."
 
-#: src/features/onboarding/lib/onboardingTour.ts:156
+#: src/features/onboarding/lib/onboardingTour.ts:173
 msgid "Use Team to browse people, groups and task ownership inside the workspace."
 msgstr "Use Team to browse people, groups and task ownership inside the workspace."
 
@@ -3334,11 +3339,11 @@ msgstr "Use Team to browse people, groups and task ownership inside the workspac
 msgid "Use the Widget button to add your first widget."
 msgstr "Use the Widget button to add your first widget."
 
-#: src/features/onboarding/lib/onboardingTour.ts:79
+#: src/features/onboarding/lib/onboardingTour.ts:96
 msgid "Use this button to add KPI, chart and milestone widgets to the dashboard."
 msgstr "Use this button to add KPI, chart and milestone widgets to the dashboard."
 
-#: src/features/onboarding/lib/onboardingTour.ts:195
+#: src/features/onboarding/lib/onboardingTour.ts:210
 msgid "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 msgstr "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 
@@ -3389,7 +3394,7 @@ msgstr "Visual timeline"
 #~ msgid "We sent a password reset link to your email."
 #~ msgstr "We sent a password reset link to your email."
 
-#: src/features/onboarding/lib/onboardingTour.ts:137
+#: src/features/onboarding/lib/onboardingTour.ts:154
 msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."
 msgstr "We'll open Team next so you can see where invitations, roles and workspace access are managed."
 
@@ -3414,7 +3419,7 @@ msgstr "Weekly recurring"
 #~ msgid "Welcome"
 #~ msgstr "Welcome"
 
-#: src/features/onboarding/lib/onboardingTour.ts:25
+#: src/features/onboarding/lib/onboardingTour.ts:42
 msgid "Welcome to Motio!"
 msgstr "Welcome to Motio!"
 
@@ -3426,7 +3431,7 @@ msgstr "Why Motio"
 msgid "Widget"
 msgstr "Widget"
 
-#: src/features/onboarding/lib/onboardingTour.ts:77
+#: src/features/onboarding/lib/onboardingTour.ts:94
 msgid "Widgets"
 msgstr "Widgets"
 
@@ -3539,11 +3544,11 @@ msgstr "You have view access and cannot manage members."
 msgid "You need to sign in again before adding comments."
 msgstr "You need to sign in again before adding comments."
 
-#: src/features/onboarding/lib/onboardingTour.ts:203
+#: src/features/onboarding/lib/onboardingTour.ts:218
 msgid "You now know where to create work, track progress and add people across Motio."
 msgstr "You now know where to create work, track progress and add people across Motio."
 
-#: src/features/onboarding/lib/onboardingTour.ts:164
+#: src/features/onboarding/lib/onboardingTour.ts:181
 msgid "You now know where to find timelines, dashboards, projects and team members in Motio."
 msgstr "You now know where to find timelines, dashboards, projects and team members in Motio."
 
@@ -3568,11 +3573,11 @@ msgstr "Your sign-in session expired. Please continue with Keycloak again."
 msgid "Your team's progress, always in view"
 msgstr "Your team's progress, always in view"
 
-#: src/features/onboarding/lib/onboardingTour.ts:34
+#: src/features/onboarding/lib/onboardingTour.ts:51
 msgid "Your timeline"
 msgstr "Your timeline"
 
-#: src/features/onboarding/lib/onboardingTour.ts:89
+#: src/features/onboarding/lib/onboardingTour.ts:106
 msgid "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
 msgstr "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
 
@@ -3581,6 +3586,14 @@ msgstr "Your widgets live here. Resize and rearrange them to monitor workload, d
 #: src/features/projects/pages/ProjectsPage.tsx:436
 msgid "Z-A"
 msgstr "Z-A"
+
+#: src/features/planner/hooks/usePlannerLiveSync.ts:669
+msgid "Нет соединения"
+msgstr "No connection"
+
+#: src/features/planner/hooks/usePlannerLiveSync.ts:637
+msgid "Соединение восстановлено"
+msgstr "Connection restored"
 
 #: src/features/auth/pages/InvitePage.tsx:29
 msgid "Я соглашаюсь с <0>Политикой конфиденциальности</0>"

@@ -614,6 +614,13 @@ const LandingPage = () => {
             >
               {t`Privacy Policy`}
             </Link>
+            {' · '}
+            <Link
+              to="/terms"
+              className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+            >
+              {t`Terms of Service`}
+            </Link>
           </p>
           <p>
             <Trans>
