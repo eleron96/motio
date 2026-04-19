@@ -59,3 +59,32 @@ fi
 backup_size_bytes="$(wc -c < "$backup_path" | tr -d '[:space:]')"
 echo "Keycloak DB backup created: ${backup_path} (${backup_size_bytes} bytes)"
 
+# Upload to S3 (best-effort). Matches the scheme used by backup-service for Postgres dumps.
+# Skips silently when S3 is not configured, so local/dev flows are unaffected.
+s3_endpoint="$(get_env_value S3_ENDPOINT)"
+s3_region="$(get_env_value S3_REGION)"
+s3_bucket="$(get_env_value S3_BUCKET)"
+s3_access_key="$(get_env_value S3_ACCESS_KEY)"
+s3_secret_key="$(get_env_value S3_SECRET_KEY)"
+s3_region="${s3_region:-us-east-1}"
+
+if [[ -n "$s3_endpoint" && -n "$s3_bucket" && -n "$s3_access_key" && -n "$s3_secret_key" ]]; then
+  backup_filename="$(basename "$backup_path")"
+  backup_abs_path="$(cd "$(dirname "$backup_path")" && pwd)/$backup_filename"
+  # Use official aws-cli image so we don't depend on host-installed aws.
+  if docker run --rm \
+      -e AWS_ACCESS_KEY_ID="$s3_access_key" \
+      -e AWS_SECRET_ACCESS_KEY="$s3_secret_key" \
+      -e AWS_DEFAULT_REGION="$s3_region" \
+      -v "$backup_abs_path":"/src/$backup_filename":ro \
+      amazon/aws-cli:latest \
+      s3 cp "/src/$backup_filename" "s3://${s3_bucket}/keycloak/${backup_filename}" \
+      --endpoint-url "$s3_endpoint" >/dev/null 2>&1; then
+    echo "Keycloak DB backup uploaded to s3://${s3_bucket}/keycloak/${backup_filename}"
+  else
+    echo "Warning: Keycloak DB backup S3 upload failed; local copy kept at ${backup_path}" >&2
+  fi
+else
+  echo "S3 not fully configured (S3_ENDPOINT/S3_BUCKET/S3_ACCESS_KEY/S3_SECRET_KEY); skipping Keycloak S3 upload."
+fi
+

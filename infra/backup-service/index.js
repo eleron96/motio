@@ -16,6 +16,11 @@ const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.BACKUP_PORT || 7000);
 const BACKUP_DIR = process.env.BACKUP_DIR || '/backups';
+const STORAGE_BLOBS_DIR = process.env.STORAGE_BLOBS_DIR || '';
+const STORAGE_BACKUP_RETENTION_COUNT = (() => {
+  const parsed = Number.parseInt(process.env.STORAGE_BACKUP_RETENTION_COUNT || '14', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 14;
+})();
 const DB_URL = process.env.SUPABASE_DB_URL || '';
 const GOTRUE_DB_DATABASE_URL = process.env.GOTRUE_DB_DATABASE_URL || '';
 const BACKUP_RESTORE_DB_URL = process.env.BACKUP_RESTORE_DB_URL || '';
@@ -294,6 +299,87 @@ const createBackup = async (type, options = {}) => {
   return {
     ...toBackupEntry(name, stat),
     type,
+  };
+};
+
+const isSafeStorageBackupName = (name) => /^[a-z0-9._-]+$/i.test(name) && name.endsWith('.tar.gz');
+
+const pruneStorageBackups = async (protectedNames = []) => {
+  const protectedSet = new Set(protectedNames);
+  await fs.mkdir(BACKUP_DIR, { recursive: true });
+  const entries = await fs.readdir(BACKUP_DIR);
+  const storageFiles = await Promise.all(
+    entries
+      .filter((name) => isSafeStorageBackupName(name) && name.startsWith('storage-'))
+      .map(async (name) => {
+        const fullPath = path.join(BACKUP_DIR, name);
+        const stat = await fs.stat(fullPath);
+        return { name, fullPath, mtimeMs: stat.mtimeMs };
+      }),
+  );
+  storageFiles.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  let kept = 0;
+  for (const file of storageFiles) {
+    if (protectedSet.has(file.name)) {
+      kept += 1;
+      continue;
+    }
+    if (kept < STORAGE_BACKUP_RETENTION_COUNT) {
+      kept += 1;
+      continue;
+    }
+    await fs.unlink(file.fullPath).catch(() => {});
+  }
+};
+
+const createStorageBackup = async () => {
+  if (!STORAGE_BLOBS_DIR) {
+    throw new Error('STORAGE_BLOBS_DIR is not configured; storage backups disabled.');
+  }
+  try {
+    const stat = await fs.stat(STORAGE_BLOBS_DIR);
+    if (!stat.isDirectory()) {
+      throw new Error(`STORAGE_BLOBS_DIR is not a directory: ${STORAGE_BLOBS_DIR}`);
+    }
+  } catch (error) {
+    throw new Error(`STORAGE_BLOBS_DIR inaccessible (${STORAGE_BLOBS_DIR}): ${error.message || error}`);
+  }
+
+  await fs.mkdir(BACKUP_DIR, { recursive: true });
+  const name = `storage-${buildTimestamp()}.tar.gz`;
+  const filePath = path.join(BACKUP_DIR, name);
+
+  // tar cz everything inside STORAGE_BLOBS_DIR. Use -C to keep archive paths relative.
+  await execFileAsync('tar', [
+    '--create',
+    '--gzip',
+    '--file', filePath,
+    '--directory', STORAGE_BLOBS_DIR,
+    '.',
+  ]);
+
+  const stat = await fs.stat(filePath);
+  if (stat.size === 0) {
+    await fs.unlink(filePath).catch(() => {});
+    throw new Error('Storage archive is empty after tar.');
+  }
+
+  // Sanity check: tar -t should list entries without error.
+  try {
+    await execFileAsync('tar', ['--list', '--file', filePath], { maxBuffer: 64 * 1024 * 1024 });
+  } catch (validationError) {
+    await fs.unlink(filePath).catch(() => {});
+    throw new Error(`Storage archive validation failed: ${validationError.message || validationError}`);
+  }
+
+  await pruneStorageBackups([name]);
+  await uploadToS3(filePath, name);
+
+  return {
+    name,
+    type: 'storage',
+    createdAt: stat.mtime.toISOString(),
+    size: stat.size,
   };
 };
 
@@ -595,6 +681,26 @@ app.post('/backups/:name/restore', requireSuperAdmin, async (req, res) => {
   }
 });
 
+app.post('/storage-backups', requireSuperAdmin, async (_req, res) => {
+  if (!STORAGE_BLOBS_DIR) {
+    res.status(501).json({ error: 'Storage backups are not configured (STORAGE_BLOBS_DIR missing).' });
+    return;
+  }
+  if (activeJob) {
+    res.status(409).json({ error: `Backup job already running: ${activeJob}` });
+    return;
+  }
+  activeJob = 'manual-storage-backup';
+  try {
+    const backup = await createStorageBackup();
+    res.json({ backup });
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Failed to create storage backup.' });
+  } finally {
+    activeJob = null;
+  }
+});
+
 cron.schedule(BACKUP_CRON, async () => {
   if (activeJob) return;
   activeJob = 'daily-backup';
@@ -604,6 +710,24 @@ cron.schedule(BACKUP_CRON, async () => {
     console.error('Daily backup failed:', error.message || error);
   } finally {
     activeJob = null;
+  }
+
+  // Storage blobs backup runs right after the DB dump.
+  // We accept a brief window where freshly uploaded files may appear in DB after
+  // the pg_dump but before the tar starts — those files will still be on disk
+  // in the next daily archive, so the only risk is orphan blobs (files without
+  // a corresponding DB row), which is strictly safer than dangling DB references.
+  if (STORAGE_BLOBS_DIR) {
+    if (activeJob) return;
+    activeJob = 'daily-storage-backup';
+    try {
+      const backup = await createStorageBackup();
+      console.log(`Storage backup ok: ${backup.name} (${backup.size} bytes)`);
+    } catch (error) {
+      console.error('Daily storage backup failed:', error.message || error);
+    } finally {
+      activeJob = null;
+    }
   }
 });
 

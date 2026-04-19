@@ -252,6 +252,8 @@ services:
       BACKUP_SCHEMAS: ${BACKUP_SCHEMAS:-public,auth,storage}
       BACKUP_MAX_UPLOAD_MB: ${BACKUP_MAX_UPLOAD_MB:-1024}
       BACKUP_CORS_ORIGIN: ${BACKUP_CORS_ORIGIN:-http://localhost:5173}
+      STORAGE_BLOBS_DIR: /storage-blobs
+      STORAGE_BACKUP_RETENTION_COUNT: ${STORAGE_BACKUP_RETENTION_COUNT:-14}
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_REGION: ${S3_REGION:-ru-1}
       S3_BUCKET: ${S3_BUCKET:-}
@@ -259,6 +261,9 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY:-}
     volumes:
       - ./backups:/backups
+      # Read-only mount so backup-service can tar+upload task-media blobs to S3.
+      # Same volume is mounted rw into the storage service above.
+      - storage_data:/storage-blobs:ro
 
   storage:
     image: supabase/storage-api:v1.11.13
