@@ -1,8 +1,13 @@
-export type InboxNotificationType = "task_assigned" | "comment_mention";
+export type InboxNotificationType =
+  | "task_assigned"
+  | "comment_mention"
+  | "export_ready"
+  | "export_failed";
 
 export interface InboxNotificationRow {
   id: string;
-  workspace_id: string;
+  // Account-level notifications (`export_ready` / `export_failed`) are not tied to a workspace.
+  workspace_id: string | null;
   actor_user_id: string | null;
   type: string;
   task_id: string | null;
@@ -27,7 +32,8 @@ export interface InboxTaskState {
 export interface InboxTaskNotification {
   id: string;
   type: InboxNotificationType;
-  workspaceId: string;
+  // Null for account-level notifications (e.g. data export lifecycle events).
+  workspaceId: string | null;
   workspaceName: string;
   actorUserId: string | null;
   actorDisplayName: string | null;
@@ -42,8 +48,17 @@ export interface InboxTaskNotification {
   readAt: string | null;
 }
 
+const KNOWN_TYPES: ReadonlySet<InboxNotificationType> = new Set([
+  "task_assigned",
+  "comment_mention",
+  "export_ready",
+  "export_failed",
+]);
+
 const toNotificationType = (value: string): InboxNotificationType => (
-  value === "comment_mention" ? "comment_mention" : "task_assigned"
+  KNOWN_TYPES.has(value as InboxNotificationType)
+    ? (value as InboxNotificationType)
+    : "task_assigned"
 );
 
 export const mapInboxTaskNotifications = (
@@ -59,12 +74,16 @@ export const mapInboxTaskNotifications = (
     ? tasks.get(row.task_id)
     : undefined;
   const type = toNotificationType(row.type);
+  const isExportType = type === "export_ready" || type === "export_failed";
+  const workspaceName = row.workspace_id
+    ? workspaceNames.get(row.workspace_id) ?? "Workspace"
+    : "";
 
   return {
     id: row.id,
     type,
     workspaceId: row.workspace_id,
-    workspaceName: workspaceNames.get(row.workspace_id) ?? "Workspace",
+    workspaceName,
     actorUserId: row.actor_user_id,
     actorDisplayName: actorProfile?.displayName ?? null,
     actorEmail: actorProfile?.email ?? null,
@@ -73,7 +92,10 @@ export const mapInboxTaskNotifications = (
     taskStartDate: taskState?.startDate ?? row.task_start_date_snapshot ?? null,
     taskExists: Boolean(taskState),
     commentId: type === "comment_mention" ? row.comment_id ?? null : null,
-    commentPreview: type === "comment_mention" ? row.comment_preview ?? null : null,
+    // `comment_preview` is reused for the export_ready / export_failed human-readable body.
+    commentPreview: type === "comment_mention" || isExportType
+      ? row.comment_preview ?? null
+      : null,
     createdAt: row.created_at,
     readAt: row.read_at,
   };

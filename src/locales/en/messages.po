@@ -172,7 +172,7 @@ msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words.
 msgid "A-Z"
 msgstr "A-Z"
 
-#: src/features/auth/components/InviteNotifications.tsx:818
+#: src/features/auth/components/InviteNotifications.tsx:877
 msgid "Accept"
 msgstr "Accept"
 
@@ -184,7 +184,7 @@ msgstr "Accept & Join"
 msgid "Accept the invitation to join your team workspace."
 msgstr "Accept the invitation to join your team workspace."
 
-#: src/features/auth/components/InviteNotifications.tsx:199
+#: src/features/auth/components/InviteNotifications.tsx:213
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:360
 msgid "Accepted"
 msgstr "Accepted"
@@ -304,7 +304,7 @@ msgstr "Add your name"
 msgid "admin"
 msgstr "admin"
 
-#: src/features/auth/components/InviteNotifications.tsx:108
+#: src/features/auth/components/InviteNotifications.tsx:122
 #: src/features/members/pages/MembersPage.tsx:142
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:490
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:593
@@ -411,7 +411,7 @@ msgstr "Area chart"
 msgid "Assign project"
 msgstr "Assign project"
 
-#: src/features/auth/components/InviteNotifications.tsx:730
+#: src/features/auth/components/InviteNotifications.tsx:752
 msgid "assigned you to task"
 msgstr "assigned you to task"
 
@@ -869,10 +869,18 @@ msgstr "Dashboard settings"
 msgid "Dashboards"
 msgstr "Dashboards"
 
+#: src/features/auth/components/InviteNotifications.tsx:751
+msgid "Data export failed"
+msgstr "Data export failed"
+
 #. placeholder {0}: status?.errorMessage ?? t`unknown error`
 #: src/features/auth/components/DataExportButton.tsx:64
 msgid "Data export failed: {0}"
 msgstr "Data export failed: {0}"
+
+#: src/features/auth/components/InviteNotifications.tsx:749
+msgid "Data export ready"
+msgstr "Data export ready"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:159
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:174
@@ -892,17 +900,17 @@ msgstr "Dates"
 msgid "Day"
 msgstr "Day"
 
-#: src/features/auth/components/InviteNotifications.tsx:827
+#: src/features/auth/components/InviteNotifications.tsx:886
 msgid "Decline"
 msgstr "Decline"
 
-#: src/features/auth/components/InviteNotifications.tsx:199
+#: src/features/auth/components/InviteNotifications.tsx:213
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:361
 msgid "Declined"
 msgstr "Declined"
 
-#: src/features/auth/components/InviteNotifications.tsx:767
-#: src/features/auth/components/InviteNotifications.tsx:770
+#: src/features/auth/components/InviteNotifications.tsx:798
+#: src/features/auth/components/InviteNotifications.tsx:801
 #: src/features/dashboard/pages/DashboardPage.tsx:1013
 #: src/features/members/components/MembersSidebar.tsx:401
 #: src/features/planner/components/TaskCommentItem.tsx:158
@@ -934,7 +942,7 @@ msgstr "Delete account — confirm"
 msgid "Delete account — review workspaces"
 msgstr "Delete account — review workspaces"
 
-#: src/features/auth/components/InviteNotifications.tsx:707
+#: src/features/auth/components/InviteNotifications.tsx:734
 msgid "Delete all"
 msgstr "Delete all"
 
@@ -1166,7 +1174,7 @@ msgstr "Edit widget"
 msgid "editor"
 msgstr "editor"
 
-#: src/features/auth/components/InviteNotifications.tsx:109
+#: src/features/auth/components/InviteNotifications.tsx:123
 #: src/features/members/pages/MembersPage.tsx:143
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:489
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:592
@@ -1445,7 +1453,7 @@ msgstr "General"
 msgid "Get started for free →"
 msgstr "Get started for free →"
 
-#: src/features/auth/components/InviteNotifications.tsx:788
+#: src/features/auth/components/InviteNotifications.tsx:846
 #: src/features/members/components/TaskDetailsDialog.tsx:161
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:150
 msgid "Go to task"
@@ -1606,7 +1614,7 @@ msgstr "Invite people and share access."
 msgid "Invite teammates"
 msgstr "Invite teammates"
 
-#: src/features/auth/components/InviteNotifications.tsx:200
+#: src/features/auth/components/InviteNotifications.tsx:214
 msgid "Invite update"
 msgstr "Invite update"
 
@@ -1614,11 +1622,11 @@ msgstr "Invite update"
 msgid "Invite your team"
 msgstr "Invite your team"
 
-#: src/features/auth/components/InviteNotifications.tsx:810
+#: src/features/auth/components/InviteNotifications.tsx:869
 msgid "Invited by"
 msgstr "Invited by"
 
-#: src/features/auth/components/InviteNotifications.tsx:802
+#: src/features/auth/components/InviteNotifications.tsx:861
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
 msgid "Invites"
 msgstr "Invites"
@@ -1698,7 +1706,7 @@ msgstr "Loading backups..."
 msgid "Loading dashboard..."
 msgstr "Loading dashboard..."
 
-#: src/features/auth/components/InviteNotifications.tsx:679
+#: src/features/auth/components/InviteNotifications.tsx:706
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:736
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:663
 msgid "Loading data..."
@@ -1805,14 +1813,14 @@ msgstr "Manage your profile and account preferences."
 #~ msgid "Manage your projects, assign customers and set milestones."
 #~ msgstr "Manage your projects, assign customers and set milestones."
 
-#: src/features/auth/components/InviteNotifications.tsx:697
-#: src/features/auth/components/InviteNotifications.tsx:747
-#: src/features/auth/components/InviteNotifications.tsx:751
+#: src/features/auth/components/InviteNotifications.tsx:724
+#: src/features/auth/components/InviteNotifications.tsx:778
+#: src/features/auth/components/InviteNotifications.tsx:782
 msgid "Mark as read"
 msgstr "Mark as read"
 
-#: src/features/auth/components/InviteNotifications.tsx:747
-#: src/features/auth/components/InviteNotifications.tsx:751
+#: src/features/auth/components/InviteNotifications.tsx:778
+#: src/features/auth/components/InviteNotifications.tsx:782
 msgid "Mark as unread"
 msgstr "Mark as unread"
 
@@ -1854,7 +1862,7 @@ msgstr "Members"
 msgid "Mention a person"
 msgstr "Mention a person"
 
-#: src/features/auth/components/InviteNotifications.tsx:729
+#: src/features/auth/components/InviteNotifications.tsx:747
 msgid "mentioned you in a comment"
 msgstr "mentioned you in a comment"
 
@@ -2235,7 +2243,7 @@ msgstr "No milestones yet."
 msgid "No new repeats were needed."
 msgstr "No new repeats were needed."
 
-#: src/features/auth/components/InviteNotifications.tsx:681
+#: src/features/auth/components/InviteNotifications.tsx:708
 msgid "No notifications."
 msgstr "No notifications."
 
@@ -2356,8 +2364,8 @@ msgstr "Not equals"
 msgid "Not tracked"
 msgstr "Not tracked"
 
-#: src/features/auth/components/InviteNotifications.tsx:666
-#: src/features/auth/components/InviteNotifications.tsx:676
+#: src/features/auth/components/InviteNotifications.tsx:693
+#: src/features/auth/components/InviteNotifications.tsx:703
 #: src/features/marketing/pages/LandingPage.tsx:466
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:149
 msgid "Notifications"
@@ -2425,6 +2433,10 @@ msgstr "Open"
 #: src/features/onboarding/lib/onboardingTour.ts:145
 msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
 msgstr "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
+
+#: src/features/auth/components/InviteNotifications.tsx:825
+msgid "Open Account settings to download the file."
+msgstr "Open Account settings to download the file."
 
 #: src/features/onboarding/lib/onboardingTour.ts:81
 msgid "Open dashboard"
@@ -2777,7 +2789,7 @@ msgstr "Revoke"
 msgid "Right-click to add your first widget."
 msgstr "Right-click to add your first widget."
 
-#: src/features/auth/components/InviteNotifications.tsx:809
+#: src/features/auth/components/InviteNotifications.tsx:868
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:585
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:726
 msgid "Role"
@@ -3171,8 +3183,8 @@ msgstr "Task"
 msgid "Task details"
 msgstr "Task details"
 
-#: src/features/auth/components/InviteNotifications.tsx:615
-#: src/features/auth/components/InviteNotifications.tsx:788
+#: src/features/auth/components/InviteNotifications.tsx:642
+#: src/features/auth/components/InviteNotifications.tsx:846
 #: src/features/members/components/TaskDetailsDialog.tsx:50
 #: src/features/planner/components/TaskDetailDialogs.tsx:26
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:50
@@ -3184,7 +3196,7 @@ msgstr "Task not found."
 msgid "Task types"
 msgstr "Task types"
 
-#: src/features/auth/components/InviteNotifications.tsx:687
+#: src/features/auth/components/InviteNotifications.tsx:714
 msgid "Task updates"
 msgstr "Task updates"
 
@@ -3434,6 +3446,10 @@ msgstr "Tracking"
 msgid "Try again"
 msgstr "Try again"
 
+#: src/features/auth/components/InviteNotifications.tsx:826
+msgid "Try again from Account settings."
+msgstr "Try again from Account settings."
+
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:76
 #~ msgid "Tue"
 #~ msgstr "Tue"
@@ -3520,8 +3536,8 @@ msgstr "unknown role"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:18
 #: src/features/auth/components/AccountSettingsDialog.tsx:93
-#: src/features/auth/components/InviteNotifications.tsx:712
-#: src/features/auth/components/InviteNotifications.tsx:804
+#: src/features/auth/components/InviteNotifications.tsx:739
+#: src/features/auth/components/InviteNotifications.tsx:863
 #: src/features/planner/components/timeline/TaskBar.tsx:124
 #: src/shared/lib/workspaceMemberActivity.ts:27
 msgid "Unknown user"
@@ -3640,7 +3656,7 @@ msgstr "View tasks"
 msgid "viewer"
 msgstr "viewer"
 
-#: src/features/auth/components/InviteNotifications.tsx:110
+#: src/features/auth/components/InviteNotifications.tsx:124
 #: src/features/members/pages/MembersPage.tsx:144
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:488
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:591
@@ -3713,7 +3729,7 @@ msgstr "Workspace"
 #~ msgid "Workspace access"
 #~ msgstr "Workspace access"
 
-#: src/features/auth/components/InviteNotifications.tsx:500
+#: src/features/auth/components/InviteNotifications.tsx:514
 #: src/features/auth/pages/InvitePage.tsx:99
 msgid "Workspace joined"
 msgstr "Workspace joined"
@@ -3834,7 +3850,7 @@ msgstr "You now know where to create work, track progress and add people across 
 msgid "You now know where to find timelines, dashboards, projects and team members in Motio."
 msgstr "You now know where to find timelines, dashboards, projects and team members in Motio."
 
-#: src/features/auth/components/InviteNotifications.tsx:503
+#: src/features/auth/components/InviteNotifications.tsx:517
 #: src/features/auth/pages/InvitePage.tsx:100
 msgid "You were added to a new workspace."
 msgstr "You were added to a new workspace."
@@ -3856,9 +3872,17 @@ msgstr "Your account is scheduled for deletion"
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Your account will be scheduled for deletion in {0} days."
 
+#: src/features/auth/components/InviteNotifications.tsx:811
+msgid "Your data export failed."
+msgstr "Your data export failed."
+
 #: src/features/auth/components/DataExportButton.tsx:62
 msgid "Your data export is ready to download."
 msgstr "Your data export is ready to download."
+
+#: src/features/auth/components/InviteNotifications.tsx:810
+msgid "Your data export is ready."
+msgstr "Your data export is ready."
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:277
 msgid "Your display name stays visible in historical comments:"

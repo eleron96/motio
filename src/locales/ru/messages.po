@@ -172,7 +172,7 @@ msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зар�
 msgid "A-Z"
 msgstr "А-Я"
 
-#: src/features/auth/components/InviteNotifications.tsx:818
+#: src/features/auth/components/InviteNotifications.tsx:877
 msgid "Accept"
 msgstr "Принять"
 
@@ -184,7 +184,7 @@ msgstr "Принять и войти"
 msgid "Accept the invitation to join your team workspace."
 msgstr "Примите приглашение, чтобы присоединиться к рабочему пространству."
 
-#: src/features/auth/components/InviteNotifications.tsx:199
+#: src/features/auth/components/InviteNotifications.tsx:213
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:360
 msgid "Accepted"
 msgstr "Принято"
@@ -304,7 +304,7 @@ msgstr "Добавьте имя"
 msgid "admin"
 msgstr "администратор"
 
-#: src/features/auth/components/InviteNotifications.tsx:108
+#: src/features/auth/components/InviteNotifications.tsx:122
 #: src/features/members/pages/MembersPage.tsx:142
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:490
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:593
@@ -411,7 +411,7 @@ msgstr "Площадная диаграмма"
 msgid "Assign project"
 msgstr "Назначить проект"
 
-#: src/features/auth/components/InviteNotifications.tsx:730
+#: src/features/auth/components/InviteNotifications.tsx:752
 msgid "assigned you to task"
 msgstr "назначил(а) вас на задачу"
 
@@ -869,10 +869,18 @@ msgstr "Настройки дашборда"
 msgid "Dashboards"
 msgstr "Дашборды"
 
+#: src/features/auth/components/InviteNotifications.tsx:751
+msgid "Data export failed"
+msgstr "Экспорт данных не удался"
+
 #. placeholder {0}: status?.errorMessage ?? t`unknown error`
 #: src/features/auth/components/DataExportButton.tsx:64
 msgid "Data export failed: {0}"
 msgstr "Экспорт данных завершился с ошибкой: {0}"
+
+#: src/features/auth/components/InviteNotifications.tsx:749
+msgid "Data export ready"
+msgstr "Экспорт данных готов"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:159
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:174
@@ -892,17 +900,17 @@ msgstr "Даты"
 msgid "Day"
 msgstr "День"
 
-#: src/features/auth/components/InviteNotifications.tsx:827
+#: src/features/auth/components/InviteNotifications.tsx:886
 msgid "Decline"
 msgstr "Отклонить"
 
-#: src/features/auth/components/InviteNotifications.tsx:199
+#: src/features/auth/components/InviteNotifications.tsx:213
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:361
 msgid "Declined"
 msgstr "Отклонено"
 
-#: src/features/auth/components/InviteNotifications.tsx:767
-#: src/features/auth/components/InviteNotifications.tsx:770
+#: src/features/auth/components/InviteNotifications.tsx:798
+#: src/features/auth/components/InviteNotifications.tsx:801
 #: src/features/dashboard/pages/DashboardPage.tsx:1013
 #: src/features/members/components/MembersSidebar.tsx:401
 #: src/features/planner/components/TaskCommentItem.tsx:158
@@ -934,7 +942,7 @@ msgstr "Удаление аккаунта — подтверждение"
 msgid "Delete account — review workspaces"
 msgstr "Удаление аккаунта — проверка рабочих пространств"
 
-#: src/features/auth/components/InviteNotifications.tsx:707
+#: src/features/auth/components/InviteNotifications.tsx:734
 msgid "Delete all"
 msgstr "Удалить все"
 
@@ -1166,7 +1174,7 @@ msgstr "Редактировать виджет"
 msgid "editor"
 msgstr "редактор"
 
-#: src/features/auth/components/InviteNotifications.tsx:109
+#: src/features/auth/components/InviteNotifications.tsx:123
 #: src/features/members/pages/MembersPage.tsx:143
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:489
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:592
@@ -1445,7 +1453,7 @@ msgstr "Общие"
 msgid "Get started for free →"
 msgstr "Начать бесплатно →"
 
-#: src/features/auth/components/InviteNotifications.tsx:788
+#: src/features/auth/components/InviteNotifications.tsx:846
 #: src/features/members/components/TaskDetailsDialog.tsx:161
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:150
 msgid "Go to task"
@@ -1606,7 +1614,7 @@ msgstr "Приглашайте людей и делитесь доступом."
 msgid "Invite teammates"
 msgstr "Пригласите коллег"
 
-#: src/features/auth/components/InviteNotifications.tsx:200
+#: src/features/auth/components/InviteNotifications.tsx:214
 msgid "Invite update"
 msgstr "Обновление приглашения"
 
@@ -1614,11 +1622,11 @@ msgstr "Обновление приглашения"
 msgid "Invite your team"
 msgstr "Пригласить команду"
 
-#: src/features/auth/components/InviteNotifications.tsx:810
+#: src/features/auth/components/InviteNotifications.tsx:869
 msgid "Invited by"
 msgstr "Пригласил"
 
-#: src/features/auth/components/InviteNotifications.tsx:802
+#: src/features/auth/components/InviteNotifications.tsx:861
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
 msgid "Invites"
 msgstr "Приглашения"
@@ -1698,7 +1706,7 @@ msgstr "Загрузка бэкапов..."
 msgid "Loading dashboard..."
 msgstr "Загрузка дашборда..."
 
-#: src/features/auth/components/InviteNotifications.tsx:679
+#: src/features/auth/components/InviteNotifications.tsx:706
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:736
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:663
 msgid "Loading data..."
@@ -1805,14 +1813,14 @@ msgstr "Управляйте своим профилем и настройкам
 #~ msgid "Manage your projects, assign customers and set milestones."
 #~ msgstr "Управляй проектами, привязывай заказчиков и устанавливай вехи."
 
-#: src/features/auth/components/InviteNotifications.tsx:697
-#: src/features/auth/components/InviteNotifications.tsx:747
-#: src/features/auth/components/InviteNotifications.tsx:751
+#: src/features/auth/components/InviteNotifications.tsx:724
+#: src/features/auth/components/InviteNotifications.tsx:778
+#: src/features/auth/components/InviteNotifications.tsx:782
 msgid "Mark as read"
 msgstr "Отметить как прочитанное"
 
-#: src/features/auth/components/InviteNotifications.tsx:747
-#: src/features/auth/components/InviteNotifications.tsx:751
+#: src/features/auth/components/InviteNotifications.tsx:778
+#: src/features/auth/components/InviteNotifications.tsx:782
 msgid "Mark as unread"
 msgstr "Отметить как непрочитанное"
 
@@ -1854,7 +1862,7 @@ msgstr "Участники"
 msgid "Mention a person"
 msgstr "Упомянуть человека"
 
-#: src/features/auth/components/InviteNotifications.tsx:729
+#: src/features/auth/components/InviteNotifications.tsx:747
 msgid "mentioned you in a comment"
 msgstr "упомянул(а) вас в комментарии"
 
@@ -2235,7 +2243,7 @@ msgstr "Вех пока нет."
 msgid "No new repeats were needed."
 msgstr "Новые повторы не требуются."
 
-#: src/features/auth/components/InviteNotifications.tsx:681
+#: src/features/auth/components/InviteNotifications.tsx:708
 msgid "No notifications."
 msgstr "Нет уведомлений."
 
@@ -2356,8 +2364,8 @@ msgstr "Не равно"
 msgid "Not tracked"
 msgstr "Не отслеживается"
 
-#: src/features/auth/components/InviteNotifications.tsx:666
-#: src/features/auth/components/InviteNotifications.tsx:676
+#: src/features/auth/components/InviteNotifications.tsx:693
+#: src/features/auth/components/InviteNotifications.tsx:703
 #: src/features/marketing/pages/LandingPage.tsx:466
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:149
 msgid "Notifications"
@@ -2425,6 +2433,10 @@ msgstr "Открытые"
 #: src/features/onboarding/lib/onboardingTour.ts:145
 msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
 msgstr "Откройте здесь проект, чтобы увидеть его задачи и исполнителей. Люди появляются в проекте, когда их назначают на задачи этого проекта."
+
+#: src/features/auth/components/InviteNotifications.tsx:825
+msgid "Open Account settings to download the file."
+msgstr "Откройте Настройки аккаунта, чтобы скачать файл."
 
 #: src/features/onboarding/lib/onboardingTour.ts:81
 msgid "Open dashboard"
@@ -2777,7 +2789,7 @@ msgstr "Отозвать"
 msgid "Right-click to add your first widget."
 msgstr "Щелкните правой кнопкой, чтобы добавить первый виджет."
 
-#: src/features/auth/components/InviteNotifications.tsx:809
+#: src/features/auth/components/InviteNotifications.tsx:868
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:585
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:726
 msgid "Role"
@@ -3171,8 +3183,8 @@ msgstr "Задача"
 msgid "Task details"
 msgstr "Детали задачи"
 
-#: src/features/auth/components/InviteNotifications.tsx:615
-#: src/features/auth/components/InviteNotifications.tsx:788
+#: src/features/auth/components/InviteNotifications.tsx:642
+#: src/features/auth/components/InviteNotifications.tsx:846
 #: src/features/members/components/TaskDetailsDialog.tsx:50
 #: src/features/planner/components/TaskDetailDialogs.tsx:26
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:50
@@ -3184,7 +3196,7 @@ msgstr "Задача не найдена."
 msgid "Task types"
 msgstr "Типы задач"
 
-#: src/features/auth/components/InviteNotifications.tsx:687
+#: src/features/auth/components/InviteNotifications.tsx:714
 msgid "Task updates"
 msgstr "Обновления задач"
 
@@ -3434,6 +3446,10 @@ msgstr "Отслеживание"
 msgid "Try again"
 msgstr "Попробовать снова"
 
+#: src/features/auth/components/InviteNotifications.tsx:826
+msgid "Try again from Account settings."
+msgstr "Попробуйте снова в Настройках аккаунта."
+
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:76
 #~ msgid "Tue"
 #~ msgstr "Вт"
@@ -3520,8 +3536,8 @@ msgstr "неизвестная роль"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:18
 #: src/features/auth/components/AccountSettingsDialog.tsx:93
-#: src/features/auth/components/InviteNotifications.tsx:712
-#: src/features/auth/components/InviteNotifications.tsx:804
+#: src/features/auth/components/InviteNotifications.tsx:739
+#: src/features/auth/components/InviteNotifications.tsx:863
 #: src/features/planner/components/timeline/TaskBar.tsx:124
 #: src/shared/lib/workspaceMemberActivity.ts:27
 msgid "Unknown user"
@@ -3640,7 +3656,7 @@ msgstr "Просмотреть задачи"
 msgid "viewer"
 msgstr "наблюдатель"
 
-#: src/features/auth/components/InviteNotifications.tsx:110
+#: src/features/auth/components/InviteNotifications.tsx:124
 #: src/features/members/pages/MembersPage.tsx:144
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:488
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:591
@@ -3713,7 +3729,7 @@ msgstr "Рабочее пространство"
 #~ msgid "Workspace access"
 #~ msgstr "Доступ рабочего пространства"
 
-#: src/features/auth/components/InviteNotifications.tsx:500
+#: src/features/auth/components/InviteNotifications.tsx:514
 #: src/features/auth/pages/InvitePage.tsx:99
 msgid "Workspace joined"
 msgstr "Вы добавлены в рабочее пространство"
@@ -3834,7 +3850,7 @@ msgstr "Теперь вы знаете, где создавать задачи, 
 msgid "You now know where to find timelines, dashboards, projects and team members in Motio."
 msgstr "Теперь вы знаете, где в Motio находятся таймлайн, дашборды, проекты и участники команды."
 
-#: src/features/auth/components/InviteNotifications.tsx:503
+#: src/features/auth/components/InviteNotifications.tsx:517
 #: src/features/auth/pages/InvitePage.tsx:100
 msgid "You were added to a new workspace."
 msgstr "Вы добавлены в новое рабочее пространство."
@@ -3856,9 +3872,17 @@ msgstr "Ваш аккаунт запланирован к удалению"
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Ваш аккаунт будет запланирован к удалению через {0} дн."
 
+#: src/features/auth/components/InviteNotifications.tsx:811
+msgid "Your data export failed."
+msgstr "Ваш экспорт данных завершился с ошибкой."
+
 #: src/features/auth/components/DataExportButton.tsx:62
 msgid "Your data export is ready to download."
 msgstr "Экспорт данных готов к скачиванию."
+
+#: src/features/auth/components/InviteNotifications.tsx:810
+msgid "Your data export is ready."
+msgstr "Ваш экспорт данных готов."
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:277
 msgid "Your display name stays visible in historical comments:"
