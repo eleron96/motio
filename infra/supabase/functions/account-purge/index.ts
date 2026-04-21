@@ -196,7 +196,7 @@ const purgeCandidate = async (
   }
 };
 
-serve(async (req) => {
+export const handler = async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -272,4 +272,8 @@ serve(async (req) => {
     keycloakEnabled: keycloakForPurge !== null,
     details,
   });
-});
+};
+
+if (import.meta.main) {
+  serve(handler);
+}
