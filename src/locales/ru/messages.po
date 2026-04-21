@@ -25,7 +25,7 @@ msgstr "(отключен)"
 msgid "(edited)"
 msgstr "(изменено)"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:279
+#: src/features/auth/components/DeleteAccountWizard.tsx:277
 msgid "(no name set)"
 msgstr "(имя не задано)"
 
@@ -196,7 +196,7 @@ msgstr "Нет доступа"
 msgid "Account deletion is permanent. We will ask you to confirm your email."
 msgstr "Удаление аккаунта необратимо. Мы попросим подтвердить email."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:145
+#: src/features/auth/components/DeleteAccountWizard.tsx:143
 msgid "Account deletion scheduled"
 msgstr "Удаление аккаунта запланировано"
 
@@ -311,9 +311,9 @@ msgstr "Администратор"
 msgid "Advanced filters"
 msgstr "Расширенные фильтры"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:271
+#: src/features/auth/components/DeleteAccountWizard.tsx:269
 msgid "After the grace period, all data (comments, tasks, profile) will be anonymized and cannot be recovered."
-msgstr "После окончания льготного периода все данные (комментарии, задачи, профиль) будут обезличены и не подлежат восстановлению."
+msgstr "После окончания периода восстановления все данные (комментарии, задачи, профиль) будут обезличены и не подлежат восстановлению."
 
 #: src/features/members/components/MemberTasksPanel.tsx:183
 #: src/features/projects/components/ProjectsMainPanel.tsx:202
@@ -421,7 +421,7 @@ msgstr "Ошибка аутентификации"
 msgid "Authentication failed."
 msgstr "Ошибка аутентификации."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:308
+#: src/features/auth/components/DeleteAccountWizard.tsx:296
 #: src/features/onboarding/lib/onboardingTour.ts:54
 #: src/features/onboarding/lib/onboardingTour.ts:63
 #: src/features/onboarding/lib/onboardingTour.ts:72
@@ -482,7 +482,7 @@ msgstr "Диапазон календаря"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:1112
 #: src/features/auth/components/AccountSettingsDialog.tsx:252
-#: src/features/auth/components/DeleteAccountWizard.tsx:250
+#: src/features/auth/components/DeleteAccountWizard.tsx:248
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:733
 #: src/features/dashboard/pages/DashboardPage.tsx:946
 #: src/features/dashboard/pages/DashboardPage.tsx:977
@@ -526,10 +526,6 @@ msgstr "Отменен"
 msgid "Cancelled status"
 msgstr "Отмененный статус"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:287
-msgid "Change name"
-msgstr "Изменить имя"
-
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:69
 msgid "Chart"
 msgstr "График"
@@ -559,11 +555,11 @@ msgstr "Проверяем приглашение..."
 msgid "Choose a customer to see their projects."
 msgstr "Выберите клиента, чтобы увидеть его проекты."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:148
+#: src/features/auth/components/DeleteAccountWizard.tsx:146
 msgid "Choose an heir for workspaces where you are the sole admin."
 msgstr "Выберите преемника для рабочих пространств, где вы — единственный администратор."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:210
+#: src/features/auth/components/DeleteAccountWizard.tsx:208
 msgid "Choose an option"
 msgstr "Выберите вариант"
 
@@ -589,7 +585,7 @@ msgstr "Удалить фото"
 msgid "Click this button or double-click a date on the timeline to open the task form."
 msgstr "Нажмите эту кнопку или дважды кликните по дате на таймлайне, чтобы открыть форму задачи."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:329
+#: src/features/auth/components/DeleteAccountWizard.tsx:317
 #: src/features/members/components/TaskDetailsDialog.tsx:164
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:153
 msgid "Close"
@@ -637,7 +633,7 @@ msgstr "Тренд выполнения"
 msgid "Configure widget type, display style, and filters."
 msgstr "Настройте тип виджета, стиль отображения и фильтры."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:257
+#: src/features/auth/components/DeleteAccountWizard.tsx:255
 #: src/features/onboarding/lib/onboardingTour.ts:314
 msgid "Continue"
 msgstr "Продолжить"
@@ -890,15 +886,15 @@ msgstr "Отклонено"
 msgid "Delete"
 msgstr "Удалить"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:316
+#: src/features/auth/components/DeleteAccountWizard.tsx:304
 msgid "Delete account"
 msgstr "Удалить аккаунт"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:144
+#: src/features/auth/components/DeleteAccountWizard.tsx:142
 msgid "Delete account — confirm"
 msgstr "Удаление аккаунта — подтверждение"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:143
+#: src/features/auth/components/DeleteAccountWizard.tsx:141
 msgid "Delete account — review workspaces"
 msgstr "Удаление аккаунта — проверка рабочих пространств"
 
@@ -972,7 +968,7 @@ msgstr "Удалить текущую"
 msgid "Delete this & following"
 msgstr "Удалить текущую и следующие"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:222
+#: src/features/auth/components/DeleteAccountWizard.tsx:220
 msgid "Delete this workspace"
 msgstr "Удалить это рабочее пространство"
 
@@ -996,7 +992,7 @@ msgstr "Удалённый аккаунт"
 msgid "Deleting a workspace is permanent. Type the workspace name to enable deletion."
 msgstr "Удаление рабочего пространства необратимо. Введите его имя, чтобы включить удаление."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:316
+#: src/features/auth/components/DeleteAccountWizard.tsx:304
 msgid "Deleting…"
 msgstr "Удаление…"
 
@@ -1090,7 +1086,7 @@ msgstr "Перетащите изображения в область описа
 msgid "Duplicate task"
 msgstr "Дублировать задачу"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:270
+#: src/features/auth/components/DeleteAccountWizard.tsx:268
 msgid "During this period, you can sign in to restore the account."
 msgstr "В течение этого периода вы можете войти, чтобы восстановить аккаунт."
 
@@ -1653,7 +1649,7 @@ msgstr "Загрузка воркспейса..."
 msgid "Loading workspaces..."
 msgstr "Загрузка воркспейсов..."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:156
+#: src/features/auth/components/DeleteAccountWizard.tsx:154
 msgid "Loading your workspaces…"
 msgstr "Загружаем ваши рабочие пространства…"
 
@@ -1862,7 +1858,7 @@ msgid "New milestone"
 msgstr "Новая веха"
 
 #. placeholder {0}: workspace.candidates.find((c) => c.user_id === decision.newOwnerId)?.display_name ?? decision.newOwnerId
-#: src/features/auth/components/DeleteAccountWizard.tsx:228
+#: src/features/auth/components/DeleteAccountWizard.tsx:226
 msgid "New owner: {0}"
 msgstr "Новый владелец: {0}"
 
@@ -2167,7 +2163,7 @@ msgstr "Срочных задач нет. Отличная работа!"
 msgid "No widgets yet."
 msgstr "Пока нет виджетов."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:170
+#: src/features/auth/components/DeleteAccountWizard.tsx:168
 msgid "No workspaces need your attention — you can continue."
 msgstr "Рабочие пространства не требуют вашего внимания — можно продолжать."
 
@@ -3026,9 +3022,9 @@ msgstr "Воркспейс и все его данные будут удален
 msgid "there"
 msgstr "там"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:149
+#: src/features/auth/components/DeleteAccountWizard.tsx:147
 msgid "This action is irreversible after the grace period. Read carefully."
-msgstr "После окончания льготного периода это действие необратимо. Внимательно прочитайте."
+msgstr "После окончания периода восстановления это действие необратимо. Внимательно прочитайте."
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx:69
 msgid "This and following"
@@ -3191,7 +3187,7 @@ msgstr "Попробуйте снова в Настройках аккаунта
 msgid "Type"
 msgstr "Тип"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:294
+#: src/features/auth/components/DeleteAccountWizard.tsx:282
 msgid "Type the phrase to confirm:"
 msgstr "Введите фразу для подтверждения:"
 
@@ -3411,7 +3407,7 @@ msgstr "Еженедельный повтор"
 msgid "Welcome to Motio!"
 msgstr "Добро пожаловать в Motio!"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:187
+#: src/features/auth/components/DeleteAccountWizard.tsx:185
 msgid "Who takes over?"
 msgstr "Кто возьмёт на себя?"
 
@@ -3481,7 +3477,7 @@ msgstr "Шаблон рабочего пространства"
 msgid "Workspaces"
 msgstr "Рабочие пространства"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:239
+#: src/features/auth/components/DeleteAccountWizard.tsx:237
 msgid "Workspaces you will simply leave:"
 msgstr "Рабочие пространства, которые вы просто покинете:"
 
@@ -3493,7 +3489,7 @@ msgstr "Ежегодно"
 msgid "Yearly recurring"
 msgstr "Ежегодный повтор"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:175
+#: src/features/auth/components/DeleteAccountWizard.tsx:173
 msgid "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 msgstr "Вы единственный администратор в этих рабочих пространствах. Выберите преемника или удалите рабочее пространство."
 
@@ -3506,7 +3502,7 @@ msgstr "Новый экспорт можно запросить через {0}."
 msgid "You cannot remove yourself."
 msgstr "Вы не можете удалить себя."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:150
+#: src/features/auth/components/DeleteAccountWizard.tsx:148
 msgid "You have 30 days to restore your account before it is permanently purged."
 msgstr "У вас есть 30 дней, чтобы восстановить аккаунт до его окончательного удаления."
 
@@ -3554,7 +3550,7 @@ msgstr "Вы добавлены в новое рабочее пространс�
 msgid "You've been invited to Motio"
 msgstr "Вас пригласили в Motio"
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:325
+#: src/features/auth/components/DeleteAccountWizard.tsx:313
 msgid "Your account is now pending deletion. You will be redirected to the restore screen the next time you sign in."
 msgstr "Ваш аккаунт ожидает удаления. При следующем входе вы будете перенаправлены на экран восстановления."
 
@@ -3563,7 +3559,7 @@ msgid "Your account is scheduled for deletion"
 msgstr "Ваш аккаунт запланирован к удалению"
 
 #. placeholder {0}: preview.purgeDelayDays
-#: src/features/auth/components/DeleteAccountWizard.tsx:269
+#: src/features/auth/components/DeleteAccountWizard.tsx:267
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Ваш аккаунт будет запланирован к удалению через {0} дн."
 
@@ -3579,7 +3575,7 @@ msgstr "Экспорт данных готов к скачиванию."
 msgid "Your data export is ready."
 msgstr "Ваш экспорт данных готов."
 
-#: src/features/auth/components/DeleteAccountWizard.tsx:277
+#: src/features/auth/components/DeleteAccountWizard.tsx:275
 msgid "Your display name stays visible in historical comments:"
 msgstr "Ваше отображаемое имя останется видимым в старых комментариях:"
 

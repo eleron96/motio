@@ -200,32 +200,6 @@ describe('DeleteAccountWizard', () => {
     });
   });
 
-  it('exposes the display-name edit shortcut when callback provided', async () => {
-    mocks.previewAccountDeletion.mockResolvedValue({
-      data: {
-        workspacesRequiringAction: [],
-        workspacesAutoHandled: [],
-        pendingInvitesCount: 0,
-        purgeDelayDays: 30,
-      },
-    });
-    const onEdit = vi.fn();
-    const user = userEvent.setup();
-
-    render(
-      <DeleteAccountWizard open onOpenChange={() => {}} onEditDisplayName={onEdit} />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled();
-    });
-    await user.click(screen.getByRole('button', { name: 'Continue' }));
-
-    const changeButton = await screen.findByRole('button', { name: 'Change name' });
-    await user.click(changeButton);
-    expect(onEdit).toHaveBeenCalledTimes(1);
-  });
-
   it('uses the Russian phrase when locale is ru', async () => {
     mocks.state.locale = 'ru';
     mocks.previewAccountDeletion.mockResolvedValue({
