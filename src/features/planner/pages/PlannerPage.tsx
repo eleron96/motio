@@ -7,7 +7,7 @@ import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { Button } from '@/shared/ui/button';
-import { Plus } from 'lucide-react';
+import { Filter, Plus } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
@@ -24,6 +24,7 @@ import {
   writeTimelineSidebarWidth,
 } from '@/features/planner/lib/timelineSidebarWidthStorage';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 type AddTaskDefaults = {
   startDate: string;
@@ -112,6 +113,7 @@ const PlannerPage = () => {
 
   const [filterCollapsed, setFilterCollapsed] = useState(true);
   const [filterWidth, setFilterWidth] = useState(320);
+  const isMobile = useIsMobile();
   const [timelineSidebarWidth, setTimelineSidebarWidth] = useState<number | null | undefined>(undefined);
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
@@ -366,27 +368,58 @@ const PlannerPage = () => {
       )}
       
       {/* Main content */}
-      <div className="flex flex-1 overflow-hidden min-h-0">
-        {/* Filter sidebar */}
-        <div
-          className="relative flex-shrink-0 h-full"
-          style={filterCollapsed ? undefined : { width: filterWidth }}
-        >
-          <FilterPanel
-            collapsed={filterCollapsed}
-            onToggle={() => setFilterCollapsed(!filterCollapsed)}
-          />
-          {!filterCollapsed && (
-            <div
-              role="separator"
-              aria-orientation="vertical"
-              aria-label={t`Resize filters`}
-              className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-border/70"
-              onMouseDown={handleFilterResizeStart}
+      <div className="relative flex flex-1 overflow-hidden min-h-0">
+        {/* Filter sidebar — in-flow on desktop, floating overlay on mobile */}
+        {isMobile ? (
+          <>
+            {filterCollapsed ? (
+              <button
+                type="button"
+                aria-label={t`Expand filters`}
+                data-tour="filter-toggle"
+                onClick={() => setFilterCollapsed(false)}
+                className="absolute bottom-4 right-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
+              >
+                <Filter className="h-5 w-5 text-muted-foreground" />
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  aria-label={t`Collapse filters`}
+                  className="absolute inset-0 z-20 bg-black/30"
+                  onClick={() => setFilterCollapsed(true)}
+                />
+                <div className="absolute top-0 left-0 h-full z-30 w-[min(85vw,320px)] shadow-xl">
+                  <FilterPanel
+                    collapsed={false}
+                    onToggle={() => setFilterCollapsed(true)}
+                  />
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div
+            className="relative flex-shrink-0 h-full"
+            style={filterCollapsed ? undefined : { width: filterWidth }}
+          >
+            <FilterPanel
+              collapsed={filterCollapsed}
+              onToggle={() => setFilterCollapsed(!filterCollapsed)}
             />
-          )}
-        </div>
-        
+            {!filterCollapsed && (
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                aria-label={t`Resize filters`}
+                className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent transition-colors hover:bg-border/70"
+                onMouseDown={handleFilterResizeStart}
+              />
+            )}
+          </div>
+        )}
+
         {/* Timeline area */}
         <PlannerTimelineArea
           viewMode={viewMode}

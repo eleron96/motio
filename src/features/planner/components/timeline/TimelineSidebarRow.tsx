@@ -3,6 +3,7 @@ import { GroupMode } from '@/features/planner/types/planner';
 import { TimelineDisplayRow } from '@/features/planner/lib/timelineSelectors';
 import { cn } from '@/shared/lib/classNames';
 import { UserAvatar, AvatarSize } from '@/shared/ui/UserAvatar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 
 interface TimelineSidebarRowProps {
   row: TimelineDisplayRow;
@@ -16,6 +17,7 @@ interface TimelineSidebarRowProps {
 }
 
 export const ASSIGNEE_AVATAR_TIER_BREAKPOINTS = {
+  compact: 80,
   medium: 140,
   wide: 220,
 } as const;
@@ -29,7 +31,8 @@ export const resolveAssigneeAvatarSize = (sidebarWidth: number): AvatarSize => {
 export const resolveAssigneeMinRowHeight = (sidebarWidth: number): number => {
   if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.wide) return 104;
   if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.medium) return 92;
-  return 76;
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.compact) return 76;
+  return 60;
 };
 
 export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
@@ -50,24 +53,57 @@ export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
     <div
       data-testid={`timeline-sidebar-row-${row.id}`}
       data-timeline-sidebar="row"
-      className="sticky left-0 z-10 flex-shrink-0 border-r border-border bg-timeline-header"
+      className={cn(
+        'sticky left-0 z-10 flex-shrink-0',
+        isMobileAssigneeTimeline
+          ? 'bg-transparent pointer-events-none'
+          : 'border-r border-border bg-timeline-header',
+      )}
       style={{ width, height: row.height }}
     >
       <div
         className={cn(
-          'flex h-full border-b border-border transition-colors box-border hover:bg-timeline-row-hover',
-          isAssignee
-            ? cn(
-                'flex-col items-center justify-center gap-1 py-2',
-                isMobileAssigneeTimeline ? 'px-1.5' : isMobile ? 'px-2' : 'px-3',
-              )
+          'flex h-full box-border transition-colors',
+          isMobileAssigneeTimeline
+            ? 'items-center justify-center'
             : cn(
-                'items-center gap-2',
-                isMobile ? 'px-3' : 'px-4',
+                'border-b border-border hover:bg-timeline-row-hover',
+                isAssignee
+                  ? cn('flex-col items-center justify-center gap-1 py-2', isMobile ? 'px-2' : 'px-3')
+                  : cn('items-center gap-2', isMobile ? 'px-3' : 'px-4'),
               ),
         )}
       >
-        {isAssignee ? (
+        {isMobileAssigneeTimeline ? (
+          showAssigneeAvatar ? (
+            (() => {
+              const { avatarUrl, userId } = getAvatarInfo(row.id);
+              return (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={row.name}
+                      className="pointer-events-auto rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                    >
+                      <UserAvatar
+                        size="sm"
+                        initials={getMonogram(row.name)}
+                        avatarUrl={avatarUrl}
+                        colorSeed={userId}
+                        showInitialsOverlay
+                        className="shadow-sm ring-1 ring-border/60"
+                      />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="center" className="w-auto max-w-[70vw] px-3 py-2 text-sm font-medium">
+                    {row.name}
+                  </PopoverContent>
+                </Popover>
+              );
+            })()
+          ) : null
+        ) : isAssignee ? (
           <>
             {showAssigneeAvatar ? (() => {
               const { avatarUrl, userId } = getAvatarInfo(row.id);
@@ -108,7 +144,7 @@ export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
             </span>
           </div>
         )}
-        {groupMode === 'project' && (
+        {!isMobileAssigneeTimeline && groupMode === 'project' && (
           <span className="shrink-0 pl-2 text-xs text-muted-foreground">
             {row.tasks.length}
           </span>
