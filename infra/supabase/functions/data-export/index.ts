@@ -22,9 +22,29 @@ import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supa
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+// `SUPABASE_URL` внутри контейнера = `http://gateway:8080` (внутренний хост, недоступный
+// браузеру). Для внешних ссылок (signed download URL) используем APP_URL — публичный
+// хост, через который юзер заходит. Caddy прокидывает /storage/v1/* на тот же gateway.
+const publicAppUrl = Deno.env.get("APP_URL") ?? "";
 
 const EXPORT_BUCKET = "user-exports";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 час. Пока TTL файла в БД — 24ч.
+
+// Переписывает host в signed URL c internal (`http://gateway:8080`) на публичный
+// APP_URL, чтобы линк был кликабельным из браузера. Если APP_URL не задан или
+// URL не парсится — возвращаем оригинал (лучше нерабочая ссылка, чем 500).
+const rewriteSignedUrlHost = (signedUrl: string): string => {
+  if (!publicAppUrl) return signedUrl;
+  try {
+    const parsed = new URL(signedUrl);
+    const publicBase = new URL(publicAppUrl);
+    parsed.protocol = publicBase.protocol;
+    parsed.host = publicBase.host;
+    return parsed.toString();
+  } catch {
+    return signedUrl;
+  }
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -183,7 +203,7 @@ const handleStatus = async (req: Request): Promise<Response> => {
       .from(EXPORT_BUCKET)
       .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS);
     if (!signError && signed?.signedUrl) {
-      downloadUrl = signed.signedUrl;
+      downloadUrl = rewriteSignedUrlHost(signed.signedUrl);
     }
   }
 

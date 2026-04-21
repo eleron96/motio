@@ -37,8 +37,9 @@ type SentInviteSummary = {
 
 type TaskNotification = {
   id: string;
-  type: 'task_assigned' | 'comment_mention';
-  workspaceId: string;
+  type: 'task_assigned' | 'comment_mention' | 'export_ready' | 'export_failed';
+  // Null for account-level notifications (data export lifecycle).
+  workspaceId: string | null;
   workspaceName: string;
   actorUserId: string | null;
   actorDisplayName: string | null;
@@ -52,6 +53,17 @@ type TaskNotification = {
   createdAt: string;
   readAt: string | null;
 };
+
+const NOTIFICATION_TYPES: ReadonlySet<TaskNotification['type']> = new Set([
+  'task_assigned',
+  'comment_mention',
+  'export_ready',
+  'export_failed',
+]);
+
+const isExportNotification = (notification: Pick<TaskNotification, 'type'>) => (
+  notification.type === 'export_ready' || notification.type === 'export_failed'
+);
 
 const isPendingInvite = (value: unknown): value is PendingInvite => {
   if (!value || typeof value !== 'object') return false;
@@ -91,8 +103,10 @@ const isTaskNotification = (value: unknown): value is TaskNotification => {
   const candidate = value as Partial<TaskNotification>;
   return (
     typeof candidate.id === 'string'
-    && (candidate.type === 'task_assigned' || candidate.type === 'comment_mention')
-    && typeof candidate.workspaceId === 'string'
+    && typeof candidate.type === 'string'
+    && NOTIFICATION_TYPES.has(candidate.type as TaskNotification['type'])
+    // workspaceId is string for workspace-scoped types and null for export_* types.
+    && (typeof candidate.workspaceId === 'string' || candidate.workspaceId === null)
     && typeof candidate.workspaceName === 'string'
     && typeof candidate.taskTitle === 'string'
     && typeof candidate.createdAt === 'string'
@@ -603,7 +617,20 @@ export const InviteNotifications: React.FC = () => {
   }, [bulkTaskActionBusy, taskNotifications]);
 
   const handleOpenTaskNotification = useCallback(async (notification: TaskNotification) => {
-    if (openingNotificationId || !notification.taskId) return;
+    if (openingNotificationId) return;
+    // Export lifecycle notifications are informational only — the actual download link
+    // lives on the Data Export button inside Account Settings. Clicking them just marks
+    // the row as read without navigation.
+    if (isExportNotification(notification)) {
+      if (!notification.readAt) {
+        setOpeningNotificationId(notification.id);
+        await updateTaskNotification(notification.id, 'markRead');
+        setOpeningNotificationId(null);
+      }
+      return;
+    }
+
+    if (!notification.taskId || !notification.workspaceId) return;
 
     setOpeningNotificationId(notification.id);
 
@@ -714,6 +741,15 @@ export const InviteNotifications: React.FC = () => {
                     const isBusy = bulkTaskActionBusy || busyNotificationId === notification.id || openingNotificationId === notification.id;
                     const dateLabel = formatNotificationDate(notification.createdAt);
                     const markAsUnread = !isUnread;
+                    const isExport = isExportNotification(notification);
+
+                    const headerNode = notification.type === 'comment_mention'
+                      ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
+                      : notification.type === 'export_ready'
+                        ? <>{t`Data export ready`}</>
+                        : notification.type === 'export_failed'
+                          ? <>{t`Data export failed`}</>
+                          : <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>;
 
                     return (
                       <div
@@ -724,12 +760,7 @@ export const InviteNotifications: React.FC = () => {
                         )}
                       >
                         <div className="mb-2 flex items-start justify-between gap-2">
-                          <p className="text-xs text-muted-foreground">
-                            {notification.type === 'comment_mention'
-                              ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
-                              : <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>
-                            }
-                          </p>
+                          <p className="text-xs text-muted-foreground">{headerNode}</p>
                           <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -772,25 +803,53 @@ export const InviteNotifications: React.FC = () => {
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          className="w-full text-left"
-                          onClick={() => void handleOpenTaskNotification(notification)}
-                          disabled={isBusy}
-                        >
-                          <div className="text-sm font-medium">{notification.taskTitle}</div>
-                          {notification.type === 'comment_mention' && notification.commentPreview && (
-                            <div className="mt-1 truncate text-xs text-muted-foreground italic">
-                              "{notification.commentPreview}"
+                        {isExport ? (
+                          <div className="w-full text-left">
+                            <div className="text-sm font-medium">
+                              {notification.type === 'export_ready'
+                                ? t`Your data export is ready.`
+                                : t`Your data export failed.`}
                             </div>
-                          )}
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            {notification.taskExists ? t`Go to task` : t`Task not found.`}
+                            {notification.commentPreview && (
+                              <div className={cn(
+                                'mt-1 text-xs',
+                                notification.type === 'export_failed'
+                                  ? 'text-destructive'
+                                  : 'text-muted-foreground',
+                              )}>
+                                {notification.commentPreview}
+                              </div>
+                            )}
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {notification.type === 'export_ready'
+                                ? t`Open Account settings to download the file.`
+                                : t`Try again from Account settings.`}
+                            </div>
+                            {dateLabel && (
+                              <div className="mt-1 text-[11px] text-muted-foreground">{dateLabel}</div>
+                            )}
                           </div>
-                          {dateLabel && (
-                            <div className="mt-1 text-[11px] text-muted-foreground">{dateLabel}</div>
-                          )}
-                        </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="w-full text-left"
+                            onClick={() => void handleOpenTaskNotification(notification)}
+                            disabled={isBusy}
+                          >
+                            <div className="text-sm font-medium">{notification.taskTitle}</div>
+                            {notification.type === 'comment_mention' && notification.commentPreview && (
+                              <div className="mt-1 truncate text-xs text-muted-foreground italic">
+                                "{notification.commentPreview}"
+                              </div>
+                            )}
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {notification.taskExists ? t`Go to task` : t`Task not found.`}
+                            </div>
+                            {dateLabel && (
+                              <div className="mt-1 text-[11px] text-muted-foreground">{dateLabel}</div>
+                            )}
+                          </button>
+                        )}
                       </div>
                     );
                   })}
