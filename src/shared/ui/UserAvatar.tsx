@@ -3,12 +3,14 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
 import { cn } from '@/shared/lib/classNames';
 
-export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg';
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'xl' | '2xl' | 'lg';
 
 const sizeClasses: Record<AvatarSize, string> = {
   xs: 'h-6 w-6 text-[10px]',
   sm: 'h-8 w-8 text-xs',
   md: 'h-9 w-9 text-xs',
+  xl: 'h-11 w-11 text-sm',
+  '2xl': 'h-14 w-14 text-base',
   lg: 'h-20 w-20 text-lg',
 };
 
@@ -17,6 +19,8 @@ const overlayTextSize: Record<AvatarSize, string> = {
   xs: 'text-[7px] leading-none',
   sm: 'text-[8px] leading-none',
   md: 'text-[9px] leading-none',
+  xl: 'text-[10px] leading-none',
+  '2xl': 'text-[11px] leading-none',
   lg: 'text-xs leading-none',
 };
 
@@ -26,6 +30,8 @@ const overlayHeight: Record<AvatarSize, string> = {
   xs: 'h-[10px]',
   sm: 'h-[12px]',
   md: 'h-[13px]',
+  xl: 'h-[16px]',
+  '2xl': 'h-[20px]',
   lg: 'h-[28px]',
 };
 

@@ -2,29 +2,49 @@ import React from 'react';
 import { GroupMode } from '@/features/planner/types/planner';
 import { TimelineDisplayRow } from '@/features/planner/lib/timelineSelectors';
 import { cn } from '@/shared/lib/classNames';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { UserAvatar, AvatarSize } from '@/shared/ui/UserAvatar';
 
 interface TimelineSidebarRowProps {
   row: TimelineDisplayRow;
   width: string;
   isMobile: boolean;
   isMobileAssigneeTimeline: boolean;
+  sidebarViewportWidth: number;
   groupMode: GroupMode;
   getMonogram: (name: string) => string;
   getAvatarInfo: (id: string) => { avatarUrl: string | null; userId: string };
 }
+
+export const ASSIGNEE_AVATAR_TIER_BREAKPOINTS = {
+  medium: 140,
+  wide: 220,
+} as const;
+
+export const resolveAssigneeAvatarSize = (sidebarWidth: number): AvatarSize => {
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.wide) return '2xl';
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.medium) return 'xl';
+  return 'sm';
+};
+
+export const resolveAssigneeMinRowHeight = (sidebarWidth: number): number => {
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.wide) return 104;
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.medium) return 92;
+  return 76;
+};
 
 export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
   row,
   width,
   isMobile,
   isMobileAssigneeTimeline,
+  sidebarViewportWidth,
   groupMode,
   getMonogram,
   getAvatarInfo,
 }) => {
   const isAssignee = groupMode === 'assignee';
   const showAssigneeAvatar = isAssignee && row.id !== 'unassigned';
+  const avatarSize: AvatarSize = resolveAssigneeAvatarSize(sidebarViewportWidth);
 
   return (
     <div
@@ -53,7 +73,7 @@ export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
               const { avatarUrl, userId } = getAvatarInfo(row.id);
               return (
                 <UserAvatar
-                  size="xs"
+                  size={avatarSize}
                   initials={getMonogram(row.name)}
                   avatarUrl={avatarUrl}
                   colorSeed={userId}
