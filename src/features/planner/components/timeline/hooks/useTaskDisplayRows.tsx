@@ -13,6 +13,7 @@ import { getTaskPosition, MIN_ROW_HEIGHT, TASK_HEIGHT, TASK_GAP } from '@/featur
 import { TaskBar } from '../TaskBar';
 
 const ASSIGNEE_ROW_GAP = 20;
+const ASSIGNEE_MIN_ROW_HEIGHT = 80;
 
 interface UseTaskDisplayRowsParams {
   tasks: Task[];
@@ -75,13 +76,17 @@ export const useTaskDisplayRows = ({
     [filteredTasks, groupItems, groupMode],
   );
 
+  const effectiveMinRowHeight = groupMode === 'assignee'
+    ? Math.max(MIN_ROW_HEIGHT, ASSIGNEE_MIN_ROW_HEIGHT)
+    : MIN_ROW_HEIGHT;
+
   const rowHeights = useMemo(
     () => calculateTimelineRowHeights(tasksByRow, {
-      minRowHeight: MIN_ROW_HEIGHT,
+      minRowHeight: effectiveMinRowHeight,
       taskHeight: TASK_HEIGHT,
       taskGap: TASK_GAP,
     }),
-    [tasksByRow],
+    [tasksByRow, effectiveMinRowHeight],
   );
 
   const displayRows = useMemo(
@@ -96,10 +101,10 @@ export const useTaskDisplayRows = ({
         unassigned: t`Unassigned`,
         noProject: t`No project`,
       },
-      minRowHeight: MIN_ROW_HEIGHT,
+      minRowHeight: effectiveMinRowHeight,
       assigneeRowGap: ASSIGNEE_ROW_GAP,
     }),
-    [filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, rowHeights, tasksByRow],
+    [effectiveMinRowHeight, filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, rowHeights, tasksByRow],
   );
 
   const rowTaskElementsById = useMemo(() => {
