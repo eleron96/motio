@@ -117,7 +117,7 @@ msgstr "{actor} updated workspace access."
 msgid "{customersCount} customers"
 msgstr "{customersCount} customers"
 
-#: src/features/auth/components/DataExportButton.tsx:15
+#: src/features/auth/components/DataExportButton.tsx:16
 msgid "{minutes} minutes"
 msgstr "{minutes} minutes"
 
@@ -869,6 +869,11 @@ msgstr "Dashboard settings"
 msgid "Dashboards"
 msgstr "Dashboards"
 
+#. placeholder {0}: status?.errorMessage ?? t`unknown error`
+#: src/features/auth/components/DataExportButton.tsx:64
+msgid "Data export failed: {0}"
+msgstr "Data export failed: {0}"
+
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:159
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:174
 #: src/features/projects/components/ProjectsMainPanel.tsx:550
@@ -1100,7 +1105,7 @@ msgstr "Does not repeat"
 msgid "Done"
 msgstr "Done"
 
-#: src/features/auth/components/DataExportButton.tsx:75
+#: src/features/auth/components/DataExportButton.tsx:93
 msgid "Download export"
 msgstr "Download export"
 
@@ -1284,7 +1289,7 @@ msgstr "Expand filters"
 msgid "Expired"
 msgstr "Expired"
 
-#: src/features/auth/components/DataExportButton.tsx:92
+#: src/features/auth/components/DataExportButton.tsx:110
 msgid "Export my data"
 msgstr "Export my data"
 
@@ -1652,7 +1657,7 @@ msgid "Language"
 msgstr "Language"
 
 #. placeholder {0}: status.errorMessage ?? t`unknown error`
-#: src/features/auth/components/DataExportButton.tsx:105
+#: src/features/auth/components/DataExportButton.tsx:123
 msgid "Last export failed: {0}"
 msgstr "Last export failed: {0}"
 
@@ -2551,7 +2556,7 @@ msgstr "Place tasks on the timeline. Assign them to people and projects."
 msgid "Please select an image file."
 msgstr "Please select an image file."
 
-#: src/features/auth/components/DataExportButton.tsx:89
+#: src/features/auth/components/DataExportButton.tsx:107
 msgid "Preparing your data…"
 msgstr "Preparing your data…"
 
@@ -3250,7 +3255,7 @@ msgstr "Text value"
 msgid "The database will be replaced with backup {name}."
 msgstr "The database will be replaced with backup {name}."
 
-#: src/features/auth/components/DataExportButton.tsx:99
+#: src/features/auth/components/DataExportButton.tsx:117
 msgid "The previous export file has expired. Request it again."
 msgstr "The previous export file has expired. Request it again."
 
@@ -3469,7 +3474,7 @@ msgstr "Types"
 msgid "Unassigned"
 msgstr "Unassigned"
 
-#: src/features/auth/components/DataExportButton.tsx:15
+#: src/features/auth/components/DataExportButton.tsx:16
 msgid "under a minute"
 msgstr "under a minute"
 
@@ -3493,7 +3498,8 @@ msgstr "unknown"
 msgid "Unknown"
 msgstr "Unknown"
 
-#: src/features/auth/components/DataExportButton.tsx:105
+#: src/features/auth/components/DataExportButton.tsx:64
+#: src/features/auth/components/DataExportButton.tsx:123
 msgid "unknown error"
 msgstr "unknown error"
 
@@ -3773,7 +3779,7 @@ msgid "You are the sole admin in these workspaces. Pick an heir or delete the wo
 msgstr "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 
 #. placeholder {0}: formatRetryAfter(retryAfter)
-#: src/features/auth/components/DataExportButton.tsx:114
+#: src/features/auth/components/DataExportButton.tsx:132
 msgid "You can request a new export in {0}."
 msgstr "You can request a new export in {0}."
 
@@ -3849,6 +3855,10 @@ msgstr "Your account is scheduled for deletion"
 #: src/features/auth/components/DeleteAccountWizard.tsx:269
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Your account will be scheduled for deletion in {0} days."
+
+#: src/features/auth/components/DataExportButton.tsx:62
+msgid "Your data export is ready to download."
+msgstr "Your data export is ready to download."
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:277
 msgid "Your display name stays visible in historical comments:"

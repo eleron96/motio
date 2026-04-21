@@ -44,93 +44,22 @@ const collectExportPayload = async (
   client: SupabaseClient,
   userId: string,
 ): Promise<Record<string, unknown>> => {
-  const { data: profile, error: profileError } = await client
-    .from("profiles")
-    .select("id, email, display_name, locale, avatar_url, created_at, preferences, status, status_changed_at, purge_after")
-    .eq("id", userId)
-    .maybeSingle();
+  // Весь payload собирается одним SECURITY DEFINER-вызовом, потому что `service_role`
+  // в этом деплое имеет гранты не на все таблицы (см. миграцию 0077) — прямые SELECT
+  // через PostgREST падают с `permission denied`.
+  const { data, error } = await client.rpc("_collect_data_export_payload", {
+    p_user_id: userId,
+  });
 
-  if (profileError) {
-    throw new Error(`profile select failed: ${profileError.message}`);
+  if (error) {
+    throw new Error(`collect payload failed: ${error.message}`);
   }
 
-  const { data: memberships, error: membershipsError } = await client
-    .from("workspace_members")
-    .select("workspace_id, role, created_at, workspaces(id, name, holiday_country, owner_id, created_at)")
-    .eq("user_id", userId);
-
-  if (membershipsError) {
-    throw new Error(`workspace_members select failed: ${membershipsError.message}`);
+  if (!data || typeof data !== "object") {
+    throw new Error("collect payload returned empty response");
   }
 
-  const workspaceIds = (memberships ?? [])
-    .map((m) => (m as { workspace_id: string }).workspace_id)
-    .filter((id): id is string => typeof id === "string");
-
-  // Задачи связаны с юзером через public.assignees (assignees.user_id = userId).
-  // Одна запись assignees на (workspace_id, user_id); задача может ссылаться через
-  // единичный assignee_id (legacy) или через assignee_ids[] (multi-assign).
-  const { data: assigneeRows, error: assigneeError } = await client
-    .from("assignees")
-    .select("id")
-    .eq("user_id", userId);
-  if (assigneeError) {
-    throw new Error(`assignees select failed: ${assigneeError.message}`);
-  }
-  const assigneeIds = (assigneeRows ?? [])
-    .map((row) => (row as { id: string | null }).id)
-    .filter((id): id is string => typeof id === "string" && id.length > 0);
-
-  const [tasks, comments, activity, notifications] = await Promise.all([
-    (async () => {
-      if (workspaceIds.length === 0 || assigneeIds.length === 0) return [];
-      const idsCsv = assigneeIds.join(",");
-      const idsBrace = `{${assigneeIds.join(",")}}`;
-      const { data, error } = await client
-        .from("tasks")
-        .select("id, workspace_id, title, description, priority, start_date, end_date, assignee_id, assignee_ids, created_at, updated_at")
-        .in("workspace_id", workspaceIds)
-        .or(`assignee_id.in.(${idsCsv}),assignee_ids.ov.${idsBrace}`);
-      if (error) throw new Error(`tasks select failed: ${error.message}`);
-      return data ?? [];
-    })(),
-    (async () => {
-      const { data, error } = await client
-        .from("task_comments")
-        .select("id, task_id, workspace_id, content, mentioned_user_ids, created_at, updated_at, deleted_at")
-        .eq("author_id", userId);
-      if (error) throw new Error(`task_comments select failed: ${error.message}`);
-      return data ?? [];
-    })(),
-    (async () => {
-      const { data, error } = await client
-        .from("workspace_member_activity")
-        .select("id, workspace_id, action, actor_label, target_label, target_email, details, created_at")
-        .eq("actor_user_id", userId);
-      if (error) throw new Error(`workspace_member_activity select failed: ${error.message}`);
-      return data ?? [];
-    })(),
-    (async () => {
-      const { data, error } = await client
-        .from("user_notifications")
-        .select("id, workspace_id, type, task_id, task_title_snapshot, task_start_date_snapshot, created_at, read_at")
-        .eq("recipient_user_id", userId)
-        .is("deleted_at", null);
-      if (error) throw new Error(`user_notifications select failed: ${error.message}`);
-      return data ?? [];
-    })(),
-  ]);
-
-  return {
-    exportVersion: 1,
-    generatedAt: new Date().toISOString(),
-    profile: profile ?? null,
-    workspaces: memberships ?? [],
-    tasks,
-    taskComments: comments,
-    workspaceActivity: activity,
-    notifications,
-  };
+  return data as Record<string, unknown>;
 };
 
 const handleGenerate = async (req: Request): Promise<Response> => {
