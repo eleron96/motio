@@ -47,9 +47,9 @@ const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
 const TIMELINE_MOBILE_PROJECT_SIDEBAR_MIN_WIDTH = 120;
 const TIMELINE_MOBILE_PROJECT_SIDEBAR_MAX_WIDTH = 164;
 const TIMELINE_MOBILE_PROJECT_SIDEBAR_AUTO_MAX_WIDTH = 152;
-const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MIN_WIDTH = 76;
-const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MAX_WIDTH = 104;
-const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_AUTO_MAX_WIDTH = 96;
+const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MIN_WIDTH = 48;
+const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MAX_WIDTH = 64;
+const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_AUTO_MAX_WIDTH = 56;
 
 interface TimelineGridProps {
   onCreateTask?: (payload: {
@@ -137,7 +137,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     : TIMELINE_SIDEBAR_AUTO_MAX_WIDTH;
   const resolvedSidebarWidth = typeof sidebarWidth === 'number' && Number.isFinite(sidebarWidth)
     ? `${clampTimelineSidebarWidth(sidebarWidth, sidebarMinWidth, sidebarMaxWidth)}px`
-    : `clamp(${sidebarMinWidth}px, ${isMobileAssigneeTimeline ? '22vw' : isMobile ? '38vw' : '26vw'}, ${sidebarAutoMaxWidth}px)`;
+    : `clamp(${sidebarMinWidth}px, ${isMobileAssigneeTimeline ? '14vw' : isMobile ? '38vw' : '26vw'}, ${sidebarAutoMaxWidth}px)`;
 
   const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode), [currentDate, viewMode]);
   const visibleHolidayYears = useMemo(
