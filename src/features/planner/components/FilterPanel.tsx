@@ -29,18 +29,20 @@ interface FilterSectionProps {
   defaultOpen?: boolean;
   collapsed?: boolean;
   disabled?: boolean;
+  compact?: boolean;
 }
 
-const FilterSection: React.FC<FilterSectionProps> = ({ 
-  title, 
-  icon, 
-  children, 
+const FilterSection: React.FC<FilterSectionProps> = ({
+  title,
+  icon,
+  children,
   defaultOpen = true,
   collapsed = false,
   disabled = false,
+  compact = false,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+
   if (collapsed) {
     return (
       <div className={`p-2 flex justify-center ${disabled ? 'opacity-60' : ''}`}>
@@ -48,14 +50,17 @@ const FilterSection: React.FC<FilterSectionProps> = ({
       </div>
     );
   }
-  
+
+  const headerPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
+  const bodyPadding = compact ? 'px-3 pb-2 space-y-1' : 'px-4 pb-3 space-y-2';
+
   return (
     <div className="border-b border-border last:border-b-0">
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`flex items-center gap-2 w-full px-4 py-3 transition-colors text-left ${
+        className={`flex items-center gap-2 w-full ${headerPadding} transition-colors text-left ${
           disabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent'
         }`}
       >
@@ -68,7 +73,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         )}
       </button>
       {isOpen && (
-        <div className="px-4 pb-3 space-y-2">
+        <div className={bodyPadding}>
           {children}
         </div>
       )}
@@ -79,11 +84,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({
 interface FilterPanelProps {
   collapsed: boolean;
   onToggle: () => void;
+  compact?: boolean;
 }
 
 const normalizeQuery = (value: string) => value.trim().toLowerCase();
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle }) => {
+export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, compact = false }) => {
   const { 
     projects, 
     trackedProjectIds,
@@ -227,7 +233,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
   
   return (
     <div className="w-full border-r border-border bg-card flex flex-col h-full transition-all duration-200">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className={`flex items-center justify-between border-b border-border ${compact ? 'px-3 py-2' : 'px-4 py-3'}`}>
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4" />
           <span className="font-semibold text-sm">{t`Filters`}</span>
@@ -255,10 +261,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
       </div>
       
       <ScrollArea className="flex-1">
-        <FilterSection 
-          title={t`Projects`} 
+        <FilterSection
+          title={t`Projects`}
           icon={<FolderKanban className="w-4 h-4 text-muted-foreground" />}
           defaultOpen={false}
+          compact={compact}
         >
           <Input
             className="h-7 text-xs"
@@ -300,11 +307,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
           )}
         </FilterSection>
         
-        <FilterSection 
-          title={t`People`} 
+        <FilterSection
+          title={t`People`}
           icon={<Users className="w-4 h-4 text-muted-foreground" />}
           defaultOpen={false}
           disabled={isCalendarView}
+          compact={compact}
         >
           <Input
             className="h-7 text-xs"
@@ -341,11 +349,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
           )}
         </FilterSection>
 
-        <FilterSection 
-          title={t`Groups`} 
+        <FilterSection
+          title={t`Groups`}
           icon={<UsersRound className="w-4 h-4 text-muted-foreground" />}
           defaultOpen={false}
           disabled={isCalendarView}
+          compact={compact}
         >
           <Input
             className="h-7 text-xs"
@@ -377,11 +386,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
           ))}
         </FilterSection>
         
-        <FilterSection 
-          title={t`Status`} 
+        <FilterSection
+          title={t`Status`}
           icon={<CircleDot className="w-4 h-4 text-muted-foreground" />}
           defaultOpen={false}
           disabled={isCalendarView}
+          compact={compact}
         >
           <Input
             className="h-7 text-xs"
@@ -410,11 +420,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
           ))}
         </FilterSection>
         
-        <FilterSection 
-          title={t`Type`} 
+        <FilterSection
+          title={t`Type`}
           icon={<Layers className="w-4 h-4 text-muted-foreground" />}
           defaultOpen={false}
           disabled={isCalendarView}
+          compact={compact}
         >
           <Input
             className="h-7 text-xs"
@@ -443,11 +454,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle })
           ))}
         </FilterSection>
         
-        <FilterSection 
-          title={t`Tags`} 
+        <FilterSection
+          title={t`Tags`}
           icon={<Tag className="w-4 h-4 text-muted-foreground" />}
           defaultOpen={false}
           disabled={isCalendarView}
+          compact={compact}
         >
           <Input
             className="h-7 text-xs"
