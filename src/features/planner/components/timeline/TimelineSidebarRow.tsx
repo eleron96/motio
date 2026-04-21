@@ -54,10 +54,7 @@ export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
       data-testid={`timeline-sidebar-row-${row.id}`}
       data-timeline-sidebar="row"
       className={cn(
-        'sticky left-0 z-10 flex-shrink-0',
-        isMobileAssigneeTimeline
-          ? 'bg-transparent pointer-events-none'
-          : 'border-r border-border bg-timeline-header',
+        'sticky left-0 z-10 flex-shrink-0 border-r border-border bg-timeline-header',
       )}
       style={{ width, height: row.height }}
     >
@@ -84,7 +81,7 @@ export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
                     <button
                       type="button"
                       aria-label={row.name}
-                      className="pointer-events-auto rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                      className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                     >
                       <UserAvatar
                         size="sm"

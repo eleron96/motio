@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { isWeekend, shouldApplyHolidayHatch } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
@@ -41,14 +41,20 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   onDateClick,
 }) => {
   const [contextDate, setContextDate] = useState<string | null>(null);
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const tapStartRef = useRef<{ x: number; y: number } | null>(null);
 
-  const getDateFromEvent = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const offsetX = event.clientX - rect.left;
+  const getDateAtClientX = useCallback((element: Element, clientX: number) => {
+    const rect = element.getBoundingClientRect();
+    const offsetX = clientX - rect.left;
     const index = Math.floor(offsetX / dayWidth);
     if (index < 0 || index >= visibleDays.length) return null;
     return format(visibleDays[index], 'yyyy-MM-dd');
   }, [dayWidth, visibleDays]);
+
+  const getDateFromEvent = useCallback((event: React.MouseEvent<HTMLDivElement>) => (
+    getDateAtClientX(event.currentTarget, event.clientX)
+  ), [getDateAtClientX]);
 
   const handleDoubleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (!canEdit || !onCreateTask) return;
@@ -70,6 +76,45 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
     setContextDate(date);
   }, [getDateFromEvent]);
 
+  // Mobile Safari/Chrome often suppress `onDoubleClick` for touch input, so
+  // we detect double-tap manually: two taps within 300ms, close in space, with
+  // no significant movement between touchstart and touchend (which would be a
+  // scroll gesture, not a tap).
+  const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    tapStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    const start = tapStartRef.current;
+    tapStartRef.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+    if (Math.abs(touch.clientX - start.x) > 10 || Math.abs(touch.clientY - start.y) > 10) {
+      lastTapRef.current = null;
+      return;
+    }
+    const now = Date.now();
+    const prev = lastTapRef.current;
+    if (
+      canEdit
+      && onCreateTask
+      && prev
+      && now - prev.time < 300
+      && Math.abs(prev.x - touch.clientX) < 40
+      && Math.abs(prev.y - touch.clientY) < 40
+    ) {
+      lastTapRef.current = null;
+      const date = getDateAtClientX(event.currentTarget, touch.clientX);
+      if (!date) return;
+      event.preventDefault();
+      onCreateTask(date, rowId);
+      return;
+    }
+    lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
+  }, [canEdit, getDateAtClientX, onCreateTask, rowId]);
+
   return (
     <div 
       className="relative border-b border-border box-border"
@@ -80,9 +125,12 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
         <ContextMenuTrigger asChild>
           <div
             className="absolute inset-0 flex"
+            style={{ touchAction: 'manipulation' }}
             onClick={handleClick}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             {visibleDays.map((day, index) => {
               const dayKey = format(day, 'yyyy-MM-dd');
