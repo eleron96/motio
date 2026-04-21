@@ -158,8 +158,8 @@ export const TimelineControls: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 px-2 py-2 md:gap-x-3 md:px-4 md:py-3 border-b border-border bg-card">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:gap-x-3">
         {/* Navigation */}
         <div className="flex items-center gap-1">
           <Button
@@ -167,13 +167,14 @@ export const TimelineControls: React.FC = () => {
             size="icon"
             onClick={handlePrev}
             className="h-8 w-8"
+            aria-label={t`Previous`}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
             onClick={handleToday}
-            className="h-8 px-3 text-sm"
+            className="h-8 px-2 text-sm md:px-3"
           >
             {t`Today`}
           </Button>
@@ -182,6 +183,7 @@ export const TimelineControls: React.FC = () => {
             size="icon"
             onClick={handleNext}
             className="h-8 w-8"
+            aria-label={t`Next`}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -190,13 +192,14 @@ export const TimelineControls: React.FC = () => {
         {/* Current date display — opens calendar picker */}
         <Popover open={calendarOpen} onOpenChange={handleOpenChange}>
           <PopoverTrigger asChild>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
-              <Calendar className="h-4 w-4" />
+            <div className="flex items-center gap-1.5 md:gap-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
+              <Calendar className="h-4 w-4 flex-shrink-0" />
               <span
-                key={format(displayDate, 'MMMM yyyy', { locale: dateLocale })}
+                key={format(displayDate, 'MMM yyyy', { locale: dateLocale })}
                 className="inline-block animate-in fade-in slide-in-from-bottom-1 duration-200"
               >
-                {format(displayDate, 'MMMM yyyy', { locale: dateLocale })}
+                <span className="md:hidden">{format(displayDate, 'MMM yyyy', { locale: dateLocale })}</span>
+                <span className="hidden md:inline">{format(displayDate, 'MMMM yyyy', { locale: dateLocale })}</span>
               </span>
             </div>
           </PopoverTrigger>
@@ -215,7 +218,7 @@ export const TimelineControls: React.FC = () => {
         </Popover>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:gap-x-3">
         {/* View mode toggle */}
         <SegmentedControl surface="compact">
           <SegmentedControlItem
@@ -233,8 +236,10 @@ export const TimelineControls: React.FC = () => {
           <SegmentedControlItem
             active={viewMode === 'calendar'}
             onClick={() => setViewMode('calendar')}
+            aria-label={t`Calendar`}
           >
-            {t`Calendar`}
+            <Calendar className="h-3.5 w-3.5 md:hidden" />
+            <span className="hidden md:inline">{t`Calendar`}</span>
           </SegmentedControlItem>
         </SegmentedControl>
 
@@ -245,18 +250,20 @@ export const TimelineControls: React.FC = () => {
             className="gap-1.5"
             disabled={viewMode === 'calendar'}
             onClick={() => setGroupMode('assignee')}
+            aria-label={t`People`}
           >
             <Users className="h-3.5 w-3.5" />
-            {t`People`}
+            <span className="hidden md:inline">{t`People`}</span>
           </SegmentedControlItem>
           <SegmentedControlItem
             active={groupMode === 'project'}
             className="gap-1.5"
             disabled={viewMode === 'calendar'}
             onClick={() => setGroupMode('project')}
+            aria-label={t`Projects`}
           >
             <FolderKanban className="h-3.5 w-3.5" />
-            {t`Projects`}
+            <span className="hidden md:inline">{t`Projects`}</span>
           </SegmentedControlItem>
         </SegmentedControl>
 
@@ -274,7 +281,7 @@ export const TimelineControls: React.FC = () => {
           />
           <label
             htmlFor={hideUnassignedId}
-            className={cn('cursor-pointer', unassignedDisabled && 'opacity-60 cursor-not-allowed')}
+            className={cn('cursor-pointer hidden sm:inline', unassignedDisabled && 'opacity-60 cursor-not-allowed')}
           >
             {t`Unassigned`}
           </label>
