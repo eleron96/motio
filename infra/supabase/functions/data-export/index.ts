@@ -56,7 +56,7 @@ const collectExportPayload = async (
 
   const { data: memberships, error: membershipsError } = await client
     .from("workspace_members")
-    .select("workspace_id, role, joined_at, workspaces(id, name, description, timezone)")
+    .select("workspace_id, role, created_at, workspaces(id, name, holiday_country, owner_id, created_at)")
     .eq("user_id", userId);
 
   if (membershipsError) {
@@ -67,15 +67,30 @@ const collectExportPayload = async (
     .map((m) => (m as { workspace_id: string }).workspace_id)
     .filter((id): id is string => typeof id === "string");
 
+  // Задачи связаны с юзером через public.assignees (assignees.user_id = userId).
+  // Одна запись assignees на (workspace_id, user_id); задача может ссылаться через
+  // единичный assignee_id (legacy) или через assignee_ids[] (multi-assign).
+  const { data: assigneeRows, error: assigneeError } = await client
+    .from("assignees")
+    .select("id")
+    .eq("user_id", userId);
+  if (assigneeError) {
+    throw new Error(`assignees select failed: ${assigneeError.message}`);
+  }
+  const assigneeIds = (assigneeRows ?? [])
+    .map((row) => (row as { id: string | null }).id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+
   const [tasks, comments, activity, notifications] = await Promise.all([
     (async () => {
-      if (workspaceIds.length === 0) return [];
-      // Экспортируем задачи, где юзер — исполнитель (единственный или в массиве).
+      if (workspaceIds.length === 0 || assigneeIds.length === 0) return [];
+      const idsCsv = assigneeIds.join(",");
+      const idsBrace = `{${assigneeIds.join(",")}}`;
       const { data, error } = await client
         .from("tasks")
         .select("id, workspace_id, title, description, priority, start_date, end_date, assignee_id, assignee_ids, created_at, updated_at")
         .in("workspace_id", workspaceIds)
-        .or(`assignee_id.eq.${userId},assignee_ids.cs.{${userId}}`);
+        .or(`assignee_id.in.(${idsCsv}),assignee_ids.ov.${idsBrace}`);
       if (error) throw new Error(`tasks select failed: ${error.message}`);
       return data ?? [];
     })(),
@@ -98,7 +113,7 @@ const collectExportPayload = async (
     (async () => {
       const { data, error } = await client
         .from("user_notifications")
-        .select("id, workspace_id, type, task_id, task_title_snapshot, task_start_date_snapshot, comment_id, comment_preview, created_at, read_at")
+        .select("id, workspace_id, type, task_id, task_title_snapshot, task_start_date_snapshot, created_at, read_at")
         .eq("recipient_user_id", userId)
         .is("deleted_at", null);
       if (error) throw new Error(`user_notifications select failed: ${error.message}`);
