@@ -135,6 +135,7 @@ const PlannerPage = () => {
   const clearFilterCriteria = usePlannerStore((state) => state.clearFilterCriteria);
   const clearFilters = usePlannerStore((state) => state.clearFilters);
   const viewMode = usePlannerStore((state) => state.viewMode);
+  const groupMode = usePlannerStore((state) => state.groupMode);
   const currentDate = usePlannerStore((state) => state.currentDate);
   const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
   const requestScrollToDate = usePlannerStore((state) => state.requestScrollToDate);
@@ -378,7 +379,14 @@ const PlannerPage = () => {
                 aria-label={t`Expand filters`}
                 data-tour="filter-toggle"
                 onClick={() => setFilterCollapsed(false)}
-                className="absolute top-4 right-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
+                style={{
+                  left: `calc(${
+                    groupMode === 'assignee'
+                      ? 'clamp(48px, 14vw, 56px)'
+                      : 'clamp(120px, 38vw, 152px)'
+                  } + 12px)`,
+                }}
+                className="absolute bottom-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
               >
                 <Filter className="h-5 w-5 text-muted-foreground" />
               </button>
