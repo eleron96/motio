@@ -255,7 +255,7 @@ const handleStatus = async (req: Request): Promise<Response> => {
   });
 };
 
-serve(async (req) => {
+export const handler = async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -288,4 +288,8 @@ serve(async (req) => {
   }
 
   return jsonResponse({ error: `Unknown action: ${action}` }, 400);
-});
+};
+
+if (import.meta.main) {
+  serve(handler);
+}
