@@ -18,6 +18,9 @@
 //     - status:   Authorization: Bearer <user JWT>
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+// JSZip — собираем ZIP-архив в памяти (Deno std не имеет ZIP-encoder из коробки;
+// gzip/deflate есть, но не контейнер ZIP с центральным каталогом).
+import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -64,7 +67,15 @@ const jsonResponse = (body: Record<string, unknown>, status = 200) =>
   });
 
 const buildExportPath = (userId: string, requestId: string) =>
-  `${userId}/${requestId}.json`;
+  `${userId}/${requestId}.zip`;
+
+// Имя файла внутри архива — выводится в file picker и в распакованной папке.
+const buildArchiveEntryName = (requestId: string) =>
+  `motio-export-${requestId}.json`;
+
+// Имя, которое браузер предложит при скачивании (Content-Disposition).
+const buildDownloadFileName = (requestId: string) =>
+  `motio-export-${requestId.slice(0, 8)}.zip`;
 
 const collectExportPayload = async (
   client: SupabaseClient,
@@ -118,11 +129,22 @@ const handleGenerate = async (req: Request): Promise<Response> => {
     const payload = await collectExportPayload(supabaseAdmin, userId);
     const storagePath = buildExportPath(userId, requestId);
 
-    const body = new TextEncoder().encode(JSON.stringify(payload));
+    // Собираем ZIP в памяти. `pretty-print` JSON (2 пробела отступа) — чуть крупнее,
+    // но человеку без jq уже читаемо. DEFLATE level 6 — стандартный баланс
+    // скорость/степень сжатия (JSON жмётся в 5–10×).
+    const jsonString = JSON.stringify(payload, null, 2);
+    const zip = new JSZip();
+    zip.file(buildArchiveEntryName(requestId), jsonString);
+    const body = await zip.generateAsync({
+      type: "uint8array",
+      compression: "DEFLATE",
+      compressionOptions: { level: 6 },
+    });
+
     const { error: uploadError } = await supabaseAdmin.storage
       .from(EXPORT_BUCKET)
       .upload(storagePath, body, {
-        contentType: "application/json",
+        contentType: "application/zip",
         upsert: true,
       });
 
@@ -205,9 +227,15 @@ const handleStatus = async (req: Request): Promise<Response> => {
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false },
     });
+    // `download: <filename>` заставляет Supabase Storage добавить
+    // `Content-Disposition: attachment; filename=…` — браузер сразу предложит сохранить
+    // файл с человекочитаемым именем вместо хеш-id.
+    const downloadName = buildDownloadFileName(row.id);
     const { data: signed, error: signError } = await supabaseAdmin.storage
       .from(EXPORT_BUCKET)
-      .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS);
+      .createSignedUrl(row.file_path, SIGNED_URL_TTL_SECONDS, {
+        download: downloadName,
+      });
     if (!signError && signed?.signedUrl) {
       downloadUrl = rewriteSignedUrlHost(signed.signedUrl);
     }
