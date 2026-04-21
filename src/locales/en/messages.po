@@ -1113,7 +1113,7 @@ msgstr "Does not repeat"
 msgid "Done"
 msgstr "Done"
 
-#: src/features/auth/components/DataExportButton.tsx:93
+#: src/features/auth/components/DataExportButton.tsx:97
 msgid "Download export"
 msgstr "Download export"
 
@@ -1297,7 +1297,7 @@ msgstr "Expand filters"
 msgid "Expired"
 msgstr "Expired"
 
-#: src/features/auth/components/DataExportButton.tsx:110
+#: src/features/auth/components/DataExportButton.tsx:129
 msgid "Export my data"
 msgstr "Export my data"
 
@@ -1443,6 +1443,10 @@ msgstr "General"
 #: src/features/planner/components/TaskDetailPanel.tsx:801
 #~ msgid "Generate"
 #~ msgstr "Generate"
+
+#: src/features/auth/components/DataExportButton.tsx:106
+msgid "Generate a new export"
+msgstr "Generate a new export"
 
 #: src/features/onboarding/lib/onboardingTour.ts:81
 #: src/features/onboarding/lib/onboardingTour.ts:95
@@ -1665,7 +1669,7 @@ msgid "Language"
 msgstr "Language"
 
 #. placeholder {0}: status.errorMessage ?? t`unknown error`
-#: src/features/auth/components/DataExportButton.tsx:123
+#: src/features/auth/components/DataExportButton.tsx:142
 msgid "Last export failed: {0}"
 msgstr "Last export failed: {0}"
 
@@ -2568,7 +2572,7 @@ msgstr "Place tasks on the timeline. Assign them to people and projects."
 msgid "Please select an image file."
 msgstr "Please select an image file."
 
-#: src/features/auth/components/DataExportButton.tsx:107
+#: src/features/auth/components/DataExportButton.tsx:126
 msgid "Preparing your data…"
 msgstr "Preparing your data…"
 
@@ -2663,6 +2667,7 @@ msgstr "Ready to bring clarity to your team?"
 msgid "Recurring"
 msgstr "Recurring"
 
+#: src/features/auth/components/DataExportButton.tsx:111
 #: src/features/members/components/MemberTasksPanel.tsx:273
 #: src/features/projects/components/ProjectsMainPanel.tsx:298
 msgid "Refresh"
@@ -3267,7 +3272,7 @@ msgstr "Text value"
 msgid "The database will be replaced with backup {name}."
 msgstr "The database will be replaced with backup {name}."
 
-#: src/features/auth/components/DataExportButton.tsx:117
+#: src/features/auth/components/DataExportButton.tsx:136
 msgid "The previous export file has expired. Request it again."
 msgstr "The previous export file has expired. Request it again."
 
@@ -3515,7 +3520,7 @@ msgid "Unknown"
 msgstr "Unknown"
 
 #: src/features/auth/components/DataExportButton.tsx:64
-#: src/features/auth/components/DataExportButton.tsx:123
+#: src/features/auth/components/DataExportButton.tsx:142
 msgid "unknown error"
 msgstr "unknown error"
 
@@ -3795,7 +3800,7 @@ msgid "You are the sole admin in these workspaces. Pick an heir or delete the wo
 msgstr "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 
 #. placeholder {0}: formatRetryAfter(retryAfter)
-#: src/features/auth/components/DataExportButton.tsx:132
+#: src/features/auth/components/DataExportButton.tsx:151
 msgid "You can request a new export in {0}."
 msgstr "You can request a new export in {0}."
 
