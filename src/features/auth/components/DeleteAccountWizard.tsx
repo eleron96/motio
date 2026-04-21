@@ -53,13 +53,11 @@ const buildTransfers = (
 export interface DeleteAccountWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEditDisplayName?: () => void;
 }
 
 export const DeleteAccountWizard: React.FC<DeleteAccountWizardProps> = ({
   open,
   onOpenChange,
-  onEditDisplayName,
 }) => {
   const previewAccountDeletion = useAuthStore((state) => state.previewAccountDeletion);
   const requestAccountDeletion = useAuthStore((state) => state.requestAccountDeletion);
@@ -275,18 +273,8 @@ export const DeleteAccountWizard: React.FC<DeleteAccountWizardProps> = ({
 
             <div className="rounded-md border p-3">
               <div className="text-xs text-muted-foreground">{t`Your display name stays visible in historical comments:`}</div>
-              <div className="mt-1 flex items-center justify-between">
+              <div className="mt-1">
                 <span className="font-medium">{profileDisplayName ?? user?.email ?? t`(no name set)`}</span>
-                {onEditDisplayName && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={onEditDisplayName}
-                  >
-                    {t`Change name`}
-                  </Button>
-                )}
               </div>
             </div>
 

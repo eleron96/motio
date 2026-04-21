@@ -394,11 +394,6 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
         <DeleteAccountWizard
           open={deleteWizardOpen}
           onOpenChange={setDeleteWizardOpen}
-          onEditDisplayName={() => {
-            setDeleteWizardOpen(false);
-            setActiveTab('profile');
-            setIsEditingName(true);
-          }}
         />
       )}
 
