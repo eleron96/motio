@@ -147,7 +147,7 @@ describe('taskCommentsRepository', () => {
               in: (_field: string, ids: string[]) => {
                 queriedProfileIds.push(ids);
                 return Promise.resolve({
-                  data: [{ id: 'user-1', display_name: 'Live User' }],
+                  data: [{ id: 'user-1', display_name: 'Live User', status: 'ACTIVE' }],
                   error: null,
                 });
               },
@@ -163,7 +163,7 @@ describe('taskCommentsRepository', () => {
 
     expect(taskCommentSelectCalls).toHaveLength(1);
     expect(taskCommentSelectCalls[0]).not.toContain('profiles');
-    expect(profileSelectCalls).toEqual(['id, display_name']);
+    expect(profileSelectCalls).toEqual(['id, display_name, status']);
     expect(queriedProfileIds).toEqual([['user-1', 'user-2']]);
     expect(result).toEqual({
       data: {
@@ -173,6 +173,7 @@ describe('taskCommentsRepository', () => {
             taskId: 'task-1',
             authorId: 'user-1',
             authorDisplayName: 'Live User',
+            authorStatus: 'ACTIVE',
             content: '<p>Hello</p>',
             mentionedUserIds: ['user-2'],
             createdAt: '2026-03-14T10:00:00.000Z',
@@ -184,6 +185,7 @@ describe('taskCommentsRepository', () => {
             taskId: 'task-1',
             authorId: 'user-2',
             authorDisplayName: 'Missing Profile User',
+            authorStatus: 'ACTIVE',
             content: '<p>Fallback</p>',
             mentionedUserIds: [],
             createdAt: '2026-03-14T10:01:00.000Z',

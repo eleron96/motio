@@ -20,6 +20,9 @@ import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { APP_VERSION, getLatestReleaseNotes } from '@/shared/lib/releaseNotes';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { AvatarWithEditButton } from './AvatarWithEditButton';
+import { DeleteAccountWizard } from './DeleteAccountWizard';
+import { DataExportButton } from './DataExportButton';
+import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
@@ -39,6 +42,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [saved, setSaved] = useState(false);
   const [localeSaving, setLocaleSaving] = useState(false);
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
+  const [deleteWizardOpen, setDeleteWizardOpen] = useState(false);
+  const accountDeletionEnabled = isAccountDeletionEnabled();
   const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
 
@@ -278,6 +283,20 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
               {t`Sign out`}
             </Button>
 
+            {accountDeletionEnabled && (
+              <div className="w-full max-w-xs space-y-2 border-t pt-4">
+                <DataExportButton />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setDeleteWizardOpen(true)}
+                  disabled={!user || loading}
+                >
+                  {t`Delete my account`}
+                </Button>
+              </div>
+            )}
           </div>
           <div className="mt-auto space-y-2 pt-4 text-center text-[11px] text-muted-foreground">
             <button
@@ -301,6 +320,17 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
           </div>
         </SheetContent>
       </Sheet>
+
+      {accountDeletionEnabled && (
+        <DeleteAccountWizard
+          open={deleteWizardOpen}
+          onOpenChange={setDeleteWizardOpen}
+          onEditDisplayName={() => {
+            setDeleteWizardOpen(false);
+            setIsEditingName(true);
+          }}
+        />
+      )}
 
       <Dialog open={releaseNotesOpen} onOpenChange={setReleaseNotesOpen}>
         <DialogContent className="w-[95vw] max-w-xl">

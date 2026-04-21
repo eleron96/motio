@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/shared/lib/supabaseClient';
+import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { isSupportedLocale, type Locale } from '@/shared/lib/locale';
 import { clearPendingLocale, getPendingLocale } from '@/features/auth/lib/pendingLocale';
@@ -22,6 +23,51 @@ import {
 
 export type WorkspaceRole = 'viewer' | 'editor' | 'admin';
 
+export type AccountStatus = 'ACTIVE' | 'PENDING_DELETION' | 'PURGED';
+
+export interface DeletionPreviewWorkspace {
+  id: string;
+  name: string;
+  candidates: Array<{ user_id: string; display_name: string | null; role: WorkspaceRole }>;
+}
+
+export interface DeletionPreviewAutoHandled {
+  id: string;
+  name: string;
+}
+
+export interface DeletionPreview {
+  workspacesRequiringAction: DeletionPreviewWorkspace[];
+  workspacesAutoHandled: DeletionPreviewAutoHandled[];
+  pendingInvitesCount: number;
+  purgeDelayDays: number;
+}
+
+export interface DeletionTransfer {
+  workspace_id: string;
+  action: 'transfer' | 'delete';
+  new_owner_id?: string;
+}
+
+export type DataExportStatusValue =
+  | 'none'
+  | 'pending'
+  | 'processing'
+  | 'ready'
+  | 'failed'
+  | 'expired';
+
+export interface DataExportStatusRow {
+  hasRequest: boolean;
+  id: string | null;
+  status: DataExportStatusValue;
+  createdAt: string | null;
+  readyAt: string | null;
+  expiresAt: string | null;
+  errorMessage: string | null;
+  downloadUrl: string | null;
+}
+
 interface WorkspaceSummary {
   id: string;
   name: string;
@@ -37,6 +83,7 @@ interface WorkspaceMember {
   role: WorkspaceRole;
   groupId: string | null;
   avatarUrl: string | null;
+  status: AccountStatus;
 }
 
 interface WorkspaceMemberRow {
@@ -49,7 +96,12 @@ interface WorkspaceMemberProfileRow {
   user_id: string;
   role: WorkspaceRole;
   group_id: string | null;
-  profiles: { email: string; display_name: string | null; avatar_url: string | null } | null;
+  profiles: {
+    email: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    status: AccountStatus | null;
+  } | null;
 }
 
 type SentInviteStatus = 'pending' | 'accepted' | 'declined' | 'canceled' | 'expired';
@@ -133,6 +185,8 @@ interface AuthState {
   profileDisplayName: string | null;
   profileLocale: Locale | null;
   profileAvatarUrl: string | null;
+  profileStatus: AccountStatus;
+  profilePurgeAfter: string | null;
   isSuperAdmin: boolean;
   superAdminLoading: boolean;
   adminUsers: AdminUser[];
@@ -197,6 +251,18 @@ interface AuthState {
   updateDisplayName: (displayName: string) => Promise<{ error?: string }>;
   updateLocale: (locale: Locale) => Promise<{ error?: string }>;
   updateAvatarUrl: (url: string | null) => void;
+  previewAccountDeletion: () => Promise<{ data?: DeletionPreview; error?: string }>;
+  requestAccountDeletion: (
+    transfers: DeletionTransfer[],
+    confirmationPhrase: string,
+  ) => Promise<{ data?: { purge_after: string }; error?: string }>;
+  cancelAccountDeletion: () => Promise<{ error?: string }>;
+  requestDataExport: () => Promise<{ data?: { request_id: string }; error?: string; retryAfter?: number }>;
+  getDataExportStatus: () => Promise<{ data?: DataExportStatusRow; error?: string }>;
+  renamePurgedProfile: (targetUserId: string, newName: string) => Promise<{ error?: string }>;
+  adminForcePurgeAccount: (
+    targetUserId: string,
+  ) => Promise<{ data?: { user_id: string; purge_after: string; forced_by: string }; error?: string }>;
 }
 
 const getWorkspaceStorageKey = (userId: string) => `current-workspace-${userId}`;
@@ -350,6 +416,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profileDisplayName: null,
   profileLocale: null,
   profileAvatarUrl: null,
+  profileStatus: 'ACTIVE',
+  profilePurgeAfter: null,
   isSuperAdmin: false,
   superAdminLoading: false,
   adminUsers: [],
@@ -375,6 +443,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profileDisplayName: null,
       profileLocale: null,
       profileAvatarUrl: null,
+      profileStatus: 'ACTIVE',
+      profilePurgeAfter: null,
       isSuperAdmin: false,
       superAdminLoading: Boolean(user),
     });
@@ -810,7 +880,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, locale, avatar_url')
+      .select('display_name, locale, avatar_url, status, purge_after')
       .eq('id', user.id)
       .single();
 
@@ -823,11 +893,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const profileLocale = isSupportedLocale(data?.locale) ? data.locale : null;
     const pendingLocale = getPendingLocale();
     const nextLocale = pendingLocale ?? profileLocale;
+    const rawStatus = (data?.status as string | null) ?? 'ACTIVE';
+    const profileStatus: AccountStatus = (
+      rawStatus === 'PENDING_DELETION' || rawStatus === 'PURGED' ? rawStatus : 'ACTIVE'
+    );
 
     set({
       profileDisplayName: displayName ? displayName : null,
       profileLocale: nextLocale,
       profileAvatarUrl: (data?.avatar_url as string | null) ?? null,
+      profileStatus,
+      profilePurgeAfter: (data?.purge_after as string | null) ?? null,
     });
 
     if (pendingLocale) {
@@ -953,7 +1029,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('workspace_members')
-      .select('user_id, role, group_id, profiles(email, display_name, avatar_url)')
+      .select('user_id, role, group_id, profiles(email, display_name, avatar_url, status)')
       .eq('workspace_id', targetWorkspaceId)
       .order('created_at', { ascending: true });
 
@@ -976,6 +1052,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       displayName: row.profiles?.display_name ?? null,
       groupId: row.group_id ?? null,
       avatarUrl: row.profiles?.avatar_url ?? null,
+      status: row.profiles?.status ?? 'ACTIVE',
     }));
 
     if (get().currentWorkspaceId !== targetWorkspaceId) return;
@@ -1288,5 +1365,90 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         )
       : get().members;
     set({ profileAvatarUrl: url, members: updatedMembers });
+  },
+  previewAccountDeletion: async () => {
+    const { data, error } = await supabase.rpc('preview_account_deletion');
+    if (error) return { error: error.message };
+    return { data: data as DeletionPreview };
+  },
+  requestAccountDeletion: async (transfers, confirmationPhrase) => {
+    const { data, error } = await supabase.rpc('request_account_deletion', {
+      p_transfers: transfers,
+      p_confirmation_phrase: confirmationPhrase,
+    });
+    if (error) return { error: error.message };
+    const row = data as { purge_after: string } | null;
+    if (row?.purge_after) {
+      set({ profileStatus: 'PENDING_DELETION', profilePurgeAfter: row.purge_after });
+    }
+    return { data: row ?? undefined };
+  },
+  cancelAccountDeletion: async () => {
+    const { error } = await supabase.rpc('cancel_account_deletion');
+    if (error) return { error: error.message };
+    set({ profileStatus: 'ACTIVE', profilePurgeAfter: null });
+    return {};
+  },
+  requestDataExport: async () => {
+    const { data, error } = await supabase.rpc('request_data_export');
+    if (error) {
+      // Parse "data export rate limit: retry_after=Ns" (see migration 0074:414).
+      const match = /retry_after=(\d+)/.exec(error.message);
+      const retryAfter = match ? Number(match[1]) : undefined;
+      return { error: error.message, retryAfter };
+    }
+    return { data: data as { request_id: string } };
+  },
+  getDataExportStatus: async () => {
+    // Call the data-export edge function (action=status). It proxies
+    // get_data_export_status and additionally issues a signed download URL
+    // when the request is ready — we can't sign from the browser client.
+    const { data, error, response } = await supabase.functions.invoke('data-export', {
+      body: { action: 'status' },
+    });
+    if (error) {
+      const message = await parseInvokeError(error, response);
+      return { error: message };
+    }
+    const raw = (data ?? {}) as Record<string, unknown>;
+    const status = (raw.status as DataExportStatusValue | undefined) ?? 'none';
+    const row: DataExportStatusRow = {
+      hasRequest: Boolean(raw.hasRequest),
+      id: (raw.requestId as string | null) ?? null,
+      status,
+      createdAt: (raw.createdAt as string | null) ?? null,
+      readyAt: (raw.readyAt as string | null) ?? null,
+      expiresAt: (raw.expiresAt as string | null) ?? null,
+      errorMessage: (raw.errorMessage as string | null) ?? null,
+      downloadUrl: (raw.downloadUrl as string | null) ?? null,
+    };
+    return { data: row };
+  },
+  renamePurgedProfile: async (targetUserId, newName) => {
+    const workspaceId = get().currentWorkspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+    if (!targetUserId) return { error: 'Target user id is required.' };
+    const { error } = await supabase.rpc('rename_purged_profile', {
+      p_target_user_id: targetUserId,
+      p_workspace_id: workspaceId,
+      p_new_name: newName,
+    });
+    if (error) return { error: error.message };
+    // Optimistically update local members list so the change appears without a refetch.
+    const members = get().members.map((member) => (
+      member.userId === targetUserId
+        ? { ...member, displayName: newName.trim() }
+        : member
+    ));
+    set({ members });
+    return {};
+  },
+  adminForcePurgeAccount: async (targetUserId) => {
+    if (!targetUserId) return { error: 'Target user id is required.' };
+    const { data, error } = await supabase.rpc('admin_force_purge_account', {
+      target_user_id: targetUserId,
+    });
+    if (error) return { error: error.message };
+    return { data: data as { user_id: string; purge_after: string; forced_by: string } };
   },
 }));

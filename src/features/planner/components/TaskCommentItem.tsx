@@ -97,7 +97,13 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
       <div className="min-w-0 flex-1">
         {/* Header */}
         <div className="mb-0.5 flex flex-wrap items-baseline gap-1.5">
-          <span className="text-sm font-medium leading-none">
+          <span
+            className={
+              comment.authorStatus === 'PURGED'
+                ? 'text-sm font-medium leading-none italic text-muted-foreground'
+                : 'text-sm font-medium leading-none'
+            }
+          >
             {comment.authorDisplayName}
           </span>
           <span className="text-[10px] text-muted-foreground">{timeAgo}</span>

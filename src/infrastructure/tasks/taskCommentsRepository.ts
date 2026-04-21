@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify';
 import { supabase } from '@/shared/lib/supabaseClient';
-import type { TaskComment } from '@/features/planner/types/planner';
+import type { CommentAuthorStatus, TaskComment } from '@/features/planner/types/planner';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -86,6 +86,7 @@ interface CommentRow {
   task_id: string;
   author_id: string;
   author_display_name: string | null;
+  author_status: CommentAuthorStatus | null;
   author_display_name_snapshot: string;
   content: string;
   mentioned_user_ids: string[];
@@ -97,7 +98,13 @@ interface CommentRow {
 interface CommentAuthorProfileRow {
   id: string;
   display_name: string | null;
+  status: CommentAuthorStatus | null;
 }
+
+const normalizeAuthorStatus = (value: unknown): CommentAuthorStatus => {
+  if (value === 'PENDING_DELETION' || value === 'PURGED') return value;
+  return 'ACTIVE';
+};
 
 const mapCommentRow = (row: CommentRow): TaskComment => {
   const createdMs = new Date(row.created_at).getTime();
@@ -110,6 +117,7 @@ const mapCommentRow = (row: CommentRow): TaskComment => {
     // the user's account has been deleted.
     authorDisplayName:
       row.author_display_name ?? row.author_display_name_snapshot,
+    authorStatus: normalizeAuthorStatus(row.author_status),
     content: row.content,
     mentionedUserIds: row.mentioned_user_ids ?? [],
     createdAt: row.created_at,
@@ -118,9 +126,14 @@ const mapCommentRow = (row: CommentRow): TaskComment => {
   };
 };
 
-const loadCommentAuthorDisplayNames = async (
+interface CommentAuthorMeta {
+  displayName: string | null;
+  status: CommentAuthorStatus;
+}
+
+const loadCommentAuthorMeta = async (
   authorIds: string[],
-): Promise<Map<string, string | null>> => {
+): Promise<Map<string, CommentAuthorMeta>> => {
   const uniqueAuthorIds = Array.from(new Set(authorIds.filter(Boolean)));
   if (uniqueAuthorIds.length === 0) {
     return new Map();
@@ -128,7 +141,7 @@ const loadCommentAuthorDisplayNames = async (
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, display_name')
+    .select('id, display_name, status')
     .in('id', uniqueAuthorIds);
 
   if (error) {
@@ -136,17 +149,27 @@ const loadCommentAuthorDisplayNames = async (
   }
 
   return new Map(
-    ((data ?? []) as CommentAuthorProfileRow[]).map((row) => [row.id, row.display_name ?? null]),
+    ((data ?? []) as CommentAuthorProfileRow[]).map((row) => [
+      row.id,
+      {
+        displayName: row.display_name ?? null,
+        status: normalizeAuthorStatus(row.status),
+      },
+    ]),
   );
 };
 
 const mapCommentRows = async (rows: CommentRow[]): Promise<TaskComment[]> => {
-  const authorDisplayNames = await loadCommentAuthorDisplayNames(rows.map((row) => row.author_id));
+  const authorMeta = await loadCommentAuthorMeta(rows.map((row) => row.author_id));
 
-  return rows.map((row) => mapCommentRow({
-    ...row,
-    author_display_name: authorDisplayNames.get(row.author_id) ?? null,
-  }));
+  return rows.map((row) => {
+    const meta = authorMeta.get(row.author_id);
+    return mapCommentRow({
+      ...row,
+      author_display_name: meta?.displayName ?? null,
+      author_status: meta?.status ?? 'ACTIVE',
+    });
+  });
 };
 
 // ---------------------------------------------------------------------------
