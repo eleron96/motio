@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Download, Loader2 } from 'lucide-react';
+import { toast } from '@/shared/ui/sonner';
 import { Button } from '@/shared/ui/button';
 import { useAuthStore, type DataExportStatusRow } from '@/features/auth/store/authStore';
 
@@ -23,6 +24,9 @@ export const DataExportButton: React.FC<Props> = ({ className }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryAfter, setRetryAfter] = useState<number | null>(null);
+  // Предыдущий статус нужен, чтобы тост сработал ровно один раз при переходе
+  // pending|processing → ready|failed (без этого повторные polls триггерили бы дубликаты).
+  const previousStatusRef = useRef<string | null>(null);
 
   const pollStatus = React.useCallback(async () => {
     const result = await getDataExportStatus();
@@ -46,6 +50,20 @@ export const DataExportButton: React.FC<Props> = ({ className }) => {
     const id = window.setInterval(pollStatus, POLL_INTERVAL_MS);
     return () => window.clearInterval(id);
   }, [status, pollStatus]);
+
+  // Toast при смене статуса pending|processing → ready|failed.
+  useEffect(() => {
+    const current = status?.status ?? null;
+    const previous = previousStatusRef.current;
+    previousStatusRef.current = current;
+    if (!current || current === previous) return;
+    const wasInFlight = previous === 'pending' || previous === 'processing';
+    if (current === 'ready' && wasInFlight) {
+      toast.success(t`Your data export is ready to download.`);
+    } else if (current === 'failed' && wasInFlight) {
+      toast.error(t`Data export failed: ${status?.errorMessage ?? t`unknown error`}`);
+    }
+  }, [status]);
 
   const handleRequest = async () => {
     setLoading(true);

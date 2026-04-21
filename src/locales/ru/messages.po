@@ -117,7 +117,7 @@ msgstr "{actor}: доступ рабочего пространства обно
 msgid "{customersCount} customers"
 msgstr "Клиентов: {customersCount}"
 
-#: src/features/auth/components/DataExportButton.tsx:15
+#: src/features/auth/components/DataExportButton.tsx:16
 msgid "{minutes} minutes"
 msgstr "{minutes} мин."
 
@@ -869,6 +869,11 @@ msgstr "Настройки дашборда"
 msgid "Dashboards"
 msgstr "Дашборды"
 
+#. placeholder {0}: status?.errorMessage ?? t`unknown error`
+#: src/features/auth/components/DataExportButton.tsx:64
+msgid "Data export failed: {0}"
+msgstr "Экспорт данных завершился с ошибкой: {0}"
+
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:159
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:174
 #: src/features/projects/components/ProjectsMainPanel.tsx:550
@@ -1100,7 +1105,7 @@ msgstr "Не повторяется"
 msgid "Done"
 msgstr "Завершено"
 
-#: src/features/auth/components/DataExportButton.tsx:75
+#: src/features/auth/components/DataExportButton.tsx:93
 msgid "Download export"
 msgstr "Скачать экспорт"
 
@@ -1284,7 +1289,7 @@ msgstr "Развернуть фильтры"
 msgid "Expired"
 msgstr "Истекло"
 
-#: src/features/auth/components/DataExportButton.tsx:92
+#: src/features/auth/components/DataExportButton.tsx:110
 msgid "Export my data"
 msgstr "Экспортировать мои данные"
 
@@ -1652,7 +1657,7 @@ msgid "Language"
 msgstr "Язык"
 
 #. placeholder {0}: status.errorMessage ?? t`unknown error`
-#: src/features/auth/components/DataExportButton.tsx:105
+#: src/features/auth/components/DataExportButton.tsx:123
 msgid "Last export failed: {0}"
 msgstr "Последний экспорт завершился с ошибкой: {0}"
 
@@ -2551,7 +2556,7 @@ msgstr "Разместите задачи на таймлайне. Назнач�
 msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
 
-#: src/features/auth/components/DataExportButton.tsx:89
+#: src/features/auth/components/DataExportButton.tsx:107
 msgid "Preparing your data…"
 msgstr "Готовим ваши данные…"
 
@@ -3250,7 +3255,7 @@ msgstr "Текстовое значение"
 msgid "The database will be replaced with backup {name}."
 msgstr "База данных будет заменена содержимым бэкапа {name}."
 
-#: src/features/auth/components/DataExportButton.tsx:99
+#: src/features/auth/components/DataExportButton.tsx:117
 msgid "The previous export file has expired. Request it again."
 msgstr "Срок действия предыдущего файла экспорта истёк. Запросите его ещё раз."
 
@@ -3469,7 +3474,7 @@ msgstr "Типы"
 msgid "Unassigned"
 msgstr "Без назнач."
 
-#: src/features/auth/components/DataExportButton.tsx:15
+#: src/features/auth/components/DataExportButton.tsx:16
 msgid "under a minute"
 msgstr "меньше минуты"
 
@@ -3493,7 +3498,8 @@ msgstr "неизвестно"
 msgid "Unknown"
 msgstr "Неизвестно"
 
-#: src/features/auth/components/DataExportButton.tsx:105
+#: src/features/auth/components/DataExportButton.tsx:64
+#: src/features/auth/components/DataExportButton.tsx:123
 msgid "unknown error"
 msgstr "неизвестная ошибка"
 
@@ -3773,7 +3779,7 @@ msgid "You are the sole admin in these workspaces. Pick an heir or delete the wo
 msgstr "Вы единственный администратор в этих рабочих пространствах. Выберите преемника или удалите рабочее пространство."
 
 #. placeholder {0}: formatRetryAfter(retryAfter)
-#: src/features/auth/components/DataExportButton.tsx:114
+#: src/features/auth/components/DataExportButton.tsx:132
 msgid "You can request a new export in {0}."
 msgstr "Новый экспорт можно запросить через {0}."
 
@@ -3849,6 +3855,10 @@ msgstr "Ваш аккаунт запланирован к удалению"
 #: src/features/auth/components/DeleteAccountWizard.tsx:269
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Ваш аккаунт будет запланирован к удалению через {0} дн."
+
+#: src/features/auth/components/DataExportButton.tsx:62
+msgid "Your data export is ready to download."
+msgstr "Экспорт данных готов к скачиванию."
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:277
 msgid "Your display name stays visible in historical comments:"
