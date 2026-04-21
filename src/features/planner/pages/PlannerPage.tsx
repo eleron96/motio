@@ -378,7 +378,7 @@ const PlannerPage = () => {
                 aria-label={t`Expand filters`}
                 data-tour="filter-toggle"
                 onClick={() => setFilterCollapsed(false)}
-                className="absolute bottom-4 right-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
+                className="absolute top-4 right-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
               >
                 <Filter className="h-5 w-5 text-muted-foreground" />
               </button>
@@ -387,13 +387,14 @@ const PlannerPage = () => {
                 <button
                   type="button"
                   aria-label={t`Collapse filters`}
-                  className="absolute inset-0 z-20 bg-black/30"
+                  className="absolute inset-0 z-20 bg-black/40"
                   onClick={() => setFilterCollapsed(true)}
                 />
-                <div className="absolute top-0 left-0 h-full z-30 w-[min(85vw,320px)] shadow-xl">
+                <div className="absolute top-0 left-0 h-full z-30 w-[min(85vw,320px)] bg-background shadow-xl">
                   <FilterPanel
                     collapsed={false}
                     onToggle={() => setFilterCollapsed(true)}
+                    compact
                   />
                 </div>
               </>
