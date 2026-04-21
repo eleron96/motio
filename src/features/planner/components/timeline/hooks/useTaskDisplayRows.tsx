@@ -11,9 +11,9 @@ import {
 } from '@/features/planner/lib/timelineSelectors';
 import { getTaskPosition, MIN_ROW_HEIGHT, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
 import { TaskBar } from '../TaskBar';
+import { resolveAssigneeMinRowHeight } from '../TimelineSidebarRow';
 
 const ASSIGNEE_ROW_GAP = 20;
-const ASSIGNEE_MIN_ROW_HEIGHT = 80;
 
 interface UseTaskDisplayRowsParams {
   tasks: Task[];
@@ -27,6 +27,7 @@ interface UseTaskDisplayRowsParams {
   visibleDays: Date[];
   dayWidth: number;
   canEdit: boolean;
+  sidebarViewportWidth: number;
 }
 
 export const useTaskDisplayRows = ({
@@ -41,6 +42,7 @@ export const useTaskDisplayRows = ({
   visibleDays,
   dayWidth,
   canEdit,
+  sidebarViewportWidth,
 }: UseTaskDisplayRowsParams) => {
   const filteredTasks = useMemo(
     () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
@@ -77,7 +79,7 @@ export const useTaskDisplayRows = ({
   );
 
   const effectiveMinRowHeight = groupMode === 'assignee'
-    ? Math.max(MIN_ROW_HEIGHT, ASSIGNEE_MIN_ROW_HEIGHT)
+    ? Math.max(MIN_ROW_HEIGHT, resolveAssigneeMinRowHeight(sidebarViewportWidth))
     : MIN_ROW_HEIGHT;
 
   const rowHeights = useMemo(

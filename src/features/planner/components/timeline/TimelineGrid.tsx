@@ -272,6 +272,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     visibleDays,
     dayWidth,
     canEdit,
+    sidebarViewportWidth,
   });
 
   // ─── Other handlers ────────────────────────────────────────────────────────
@@ -448,6 +449,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   width={resolvedSidebarWidth}
                   isMobile={isMobile}
                   isMobileAssigneeTimeline={isMobileAssigneeTimeline}
+                  sidebarViewportWidth={sidebarViewportWidth}
                   groupMode={groupMode}
                   getMonogram={getSidebarRowMonogram}
                   getAvatarInfo={getAssigneeAvatarInfo}
