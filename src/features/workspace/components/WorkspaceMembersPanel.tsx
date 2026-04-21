@@ -10,11 +10,12 @@ import { Badge } from '@/shared/ui/badge';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronsUpDown, Pencil } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberActivity';
 import { formatWorkspaceMemberActivity } from '@/shared/lib/workspaceMemberActivity';
 import { matchesWorkspaceMemberSearch } from '@/shared/domain/workspaceMemberSearch';
+import { RenamePurgedDialog } from './RenamePurgedDialog';
 
 interface WorkspaceMembersPanelProps {
   active?: boolean;
@@ -61,6 +62,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     updateMemberRole,
     updateMemberGroup,
     removeMember,
+    renamePurgedProfile,
     currentWorkspaceId,
     currentWorkspaceRole,
   } = useAuthStore();
@@ -90,6 +92,9 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const [memberActivity, setMemberActivity] = useState<WorkspaceMemberActivityEntry[]>([]);
   const [memberActivityLoading, setMemberActivityLoading] = useState(false);
   const [memberActivityError, setMemberActivityError] = useState('');
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [renameTargetUserId, setRenameTargetUserId] = useState<string | null>(null);
+  const [renameTargetCurrentName, setRenameTargetCurrentName] = useState<string | null>(null);
 
   const isAdmin = currentWorkspaceRole === 'admin';
   const currentUserId = user?.id ?? null;
@@ -414,24 +419,62 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     void loadMemberActivity();
   };
 
+  const openRenamePurgedDialog = (member: typeof members[number]) => {
+    setRenameTargetUserId(member.userId);
+    setRenameTargetCurrentName(member.displayName);
+    setRenameDialogOpen(true);
+  };
+
+  const handleRenamePurgedSubmit = useCallback(async (userId: string, newName: string) => {
+    const result = await renamePurgedProfile(userId, newName);
+    if (result.error) {
+      return { error: result.error };
+    }
+    return {};
+  }, [renamePurgedProfile]);
+
   const renderMemberRow = (member: typeof members[number]) => {
     const isSelf = Boolean(currentUserId && member.userId === currentUserId);
     const assignee = assigneeByUserId.get(member.userId);
     const isActive = assignee?.isActive ?? true;
+    const isPurged = member.status === 'PURGED';
+    const canRenamePurged = isAdmin && isPurged;
 
     return (
       <div key={member.userId} className="grid items-center gap-3 rounded-md border px-3 py-3 md:grid-cols-[1fr,140px,180px,120px,90px]">
         <div className="min-w-0">
-          <div className="text-sm font-medium truncate">
+          <div className={cn('text-sm font-medium truncate', isPurged && 'italic text-muted-foreground')}>
             {member.email}
             {isSelf ? ` ${t`(you)`}` : ''}
           </div>
           {member.displayName && (
-            <div className="text-xs text-muted-foreground truncate">{member.displayName}</div>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={cn('text-xs text-muted-foreground truncate', isPurged && 'italic')}>
+                {member.displayName}
+              </div>
+              {canRenamePurged && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-1.5 text-muted-foreground hover:text-foreground"
+                  onClick={() => openRenamePurgedDialog(member)}
+                  aria-label={t`Rename deleted member`}
+                  data-testid={`rename-purged-button-${member.userId}`}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
           )}
-          {!isActive && (
-            <Badge variant="secondary" className="mt-1 text-[10px]">{t`Disabled`}</Badge>
-          )}
+          <div className="mt-1 flex flex-wrap gap-1">
+            {isPurged && (
+              <Badge variant="outline" className="text-[10px]">{t`Deleted account`}</Badge>
+            )}
+            {!isActive && !isPurged && (
+              <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
+            )}
+          </div>
         </div>
         <Select
           value={member.role}
@@ -770,6 +813,20 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
           )}
         </div>
       </div>
+
+      <RenamePurgedDialog
+        open={renameDialogOpen}
+        onOpenChange={(next) => {
+          setRenameDialogOpen(next);
+          if (!next) {
+            setRenameTargetUserId(null);
+            setRenameTargetCurrentName(null);
+          }
+        }}
+        userId={renameTargetUserId}
+        currentDisplayName={renameTargetCurrentName}
+        onSubmit={handleRenamePurgedSubmit}
+      />
     </div>
   );
 };

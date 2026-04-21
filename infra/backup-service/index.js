@@ -11,6 +11,13 @@ const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const cron = require('node-cron');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { captureException, captureMessage } = require('./glitchtipCapture');
+const {
+  tickAccountPurge,
+  tickDataExportWorker,
+  tickDataExportCleanup,
+  tickHealthCheck,
+} = require('./accountDeletionCron');
 
 const execFileAsync = promisify(execFile);
 
@@ -48,6 +55,20 @@ const S3_REGION = process.env.S3_REGION || 'us-east-1';
 const S3_BUCKET = process.env.S3_BUCKET || '';
 const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || '';
 const S3_SECRET_KEY = process.env.S3_SECRET_KEY || '';
+
+// Phase 5: account-deletion cron
+const SUPABASE_INTERNAL_URL = process.env.SUPABASE_INTERNAL_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const PURGE_CRON = process.env.PURGE_CRON || '0 4 * * *';
+const EXPORT_WORKER_CRON = process.env.EXPORT_WORKER_CRON || '*/5 * * * *';
+const EXPORT_CLEANUP_CRON = process.env.EXPORT_CLEANUP_CRON || '0 5 * * *';
+const ACCOUNT_DELETION_HEALTH_CRON = process.env.ACCOUNT_DELETION_HEALTH_CRON || '15 * * * *';
+const PURGE_CRON_ENABLED = (process.env.PURGE_CRON_ENABLED ?? 'true').toLowerCase() !== 'false';
+const ACCOUNT_DELETION_CRON_ENABLED = Boolean(SUPABASE_INTERNAL_URL && SUPABASE_SERVICE_ROLE_KEY);
+const EXPORT_CLEANUP_BATCH_LIMIT = (() => {
+  const parsed = Number.parseInt(process.env.EXPORT_CLEANUP_BATCH_LIMIT || '100', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 100;
+})();
 
 const s3Enabled = Boolean(S3_ENDPOINT && S3_BUCKET && S3_ACCESS_KEY && S3_SECRET_KEY);
 
@@ -730,6 +751,49 @@ cron.schedule(BACKUP_CRON, async () => {
     }
   }
 });
+
+// ─────────────────────────── Phase 5: account-deletion cron ───────────────────────────
+// Включается автоматически, если заданы SUPABASE_INTERNAL_URL + SUPABASE_SERVICE_ROLE_KEY.
+// Иначе — тихий no-op, чтобы локальный docker-compose без этих переменных продолжал работать.
+if (ACCOUNT_DELETION_CRON_ENABLED) {
+  const cronCtx = () => ({
+    supabaseUrl: SUPABASE_INTERNAL_URL,
+    serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
+    pool,
+    captureException,
+    captureMessage,
+    cronEnabled: PURGE_CRON_ENABLED,
+    exportCleanupBatchLimit: EXPORT_CLEANUP_BATCH_LIMIT,
+  });
+
+  cron.schedule(PURGE_CRON, async () => {
+    try { await tickAccountPurge(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(EXPORT_WORKER_CRON, async () => {
+    try { await tickDataExportWorker(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(EXPORT_CLEANUP_CRON, async () => {
+    try { await tickDataExportCleanup(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(ACCOUNT_DELETION_HEALTH_CRON, async () => {
+    try { await tickHealthCheck(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  console.log(
+    `Account-deletion cron enabled: purge=${PURGE_CRON} (${PURGE_CRON_ENABLED ? 'on' : 'off'}), `
+    + `export-worker=${EXPORT_WORKER_CRON}, export-cleanup=${EXPORT_CLEANUP_CRON}, `
+    + `health=${ACCOUNT_DELETION_HEALTH_CRON}`,
+  );
+} else {
+  console.log('Account-deletion cron disabled (SUPABASE_INTERNAL_URL / SUPABASE_SERVICE_ROLE_KEY not set).');
+}
 
 app.listen(PORT, () => {
   console.log(`Backup service listening on ${PORT}`);

@@ -21,11 +21,15 @@ msgstr ""
 msgid "(disabled)"
 msgstr "(отключен)"
 
-#: src/features/planner/components/TaskCommentItem.tsx:105
+#: src/features/planner/components/TaskCommentItem.tsx:111
 msgid "(edited)"
-msgstr ""
+msgstr "(изменено)"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:427
+#: src/features/auth/components/DeleteAccountWizard.tsx:279
+msgid "(no name set)"
+msgstr "(имя не задано)"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:448
 msgid "(you)"
 msgstr "(вы)"
 
@@ -111,7 +115,11 @@ msgstr "{actor}: доступ рабочего пространства обно
 
 #: src/features/projects/components/ProjectsMainPanel.tsx:589
 msgid "{customersCount} customers"
-msgstr ""
+msgstr "Клиентов: {customersCount}"
+
+#: src/features/auth/components/DataExportButton.tsx:15
+msgid "{minutes} minutes"
+msgstr "{minutes} мин."
 
 #: src/features/projects/components/ProjectsSidebar.tsx:411
 msgid "{projectCount} projects"
@@ -154,6 +162,10 @@ msgstr "🥧 Разбивка по статусам и нагрузке"
 msgid "1 comment"
 msgstr "1 комментарий"
 
+#: src/features/workspace/components/RenamePurgedDialog.tsx:121
+msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
+msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зарезервированных слов."
+
 #: src/features/members/pages/MembersPage.tsx:223
 #: src/features/members/pages/MembersPage.tsx:224
 #: src/features/projects/pages/ProjectsPage.tsx:436
@@ -173,7 +185,7 @@ msgid "Accept the invitation to join your team workspace."
 msgstr "Примите приглашение, чтобы присоединиться к рабочему пространству."
 
 #: src/features/auth/components/InviteNotifications.tsx:199
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:355
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:360
 msgid "Accepted"
 msgstr "Принято"
 
@@ -183,22 +195,34 @@ msgstr "Принято"
 msgid "Access"
 msgstr "Доступ"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:374
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:393
+#: src/features/admin/pages/AdminUsersPage.tsx:413
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:398
 msgid "Access denied"
 msgstr "Нет доступа"
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:145
+msgid "Account deletion scheduled"
+msgstr "Удаление аккаунта запланировано"
+
+#: src/shared/components/PendingDeletionBanner.tsx:38
+msgid "Account deletion scheduled — purge {purgeLabel}."
+msgstr "Удаление аккаунта запланировано — окончательное удаление {purgeLabel}."
+
+#: src/shared/components/PendingDeletionBanner.tsx:39
+msgid "Account deletion scheduled."
+msgstr "Удаление аккаунта запланировано."
+
 #: src/features/auth/components/AccountBadgeButton.tsx:27
-#: src/features/auth/components/AccountSettingsDialog.tsx:160
+#: src/features/auth/components/AccountSettingsDialog.tsx:165
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:142
 msgid "Account settings"
 msgstr "Настройки аккаунта"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:609
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:652
 msgid "Action failed"
 msgstr "Действие не выполнено"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:702
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:745
 msgid "Actions"
 msgstr "Действия"
 
@@ -210,14 +234,14 @@ msgstr "активен"
 #: src/features/members/components/MembersSidebar.tsx:189
 #: src/features/members/components/MembersSidebar.tsx:289
 #: src/features/projects/components/ProjectsSidebar.tsx:584
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:231
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:477
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:236
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:520
 msgid "Active"
 msgstr "Активен"
 
 #: src/features/members/pages/MembersPage.tsx:499
 msgid "Active people"
-msgstr ""
+msgstr "Активные участники"
 
 #: src/features/planner/components/AddTaskDialog.tsx:775
 #: src/features/planner/components/SubtasksSection.tsx:83
@@ -226,12 +250,12 @@ msgstr "Добавить"
 
 #: src/features/planner/components/TaskCommentSection.tsx:200
 msgid "Add a comment or update"
-msgstr ""
+msgstr "Добавьте комментарий или обновление"
 
 #: src/features/planner/components/CommentEditor.tsx:658
 #: src/features/planner/components/TaskCommentSection.tsx:231
 msgid "Add a comment or update..."
-msgstr ""
+msgstr "Добавьте комментарий или обновление..."
 
 #: src/features/planner/components/AddTaskDialog.tsx:735
 #: src/features/planner/components/TaskDetailPanel.tsx:546
@@ -247,7 +271,7 @@ msgid "Add group"
 msgstr "Добавить группу"
 
 #: src/features/members/components/MembersGroupPanel.tsx:145
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:527
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:570
 msgid "Add member"
 msgstr "Добавить участника"
 
@@ -260,7 +284,7 @@ msgstr "Добавить правило"
 msgid "Add subtask"
 msgstr "Добавить подзадачу"
 
-#: src/features/planner/pages/PlannerPage.tsx:346
+#: src/features/planner/pages/PlannerPage.tsx:349
 msgid "Add task"
 msgstr "Добавить задачу"
 
@@ -272,7 +296,7 @@ msgstr "Добавить задачи и даты"
 msgid "Add widget"
 msgstr "Добавить виджет"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:186
+#: src/features/auth/components/AccountSettingsDialog.tsx:191
 msgid "Add your name"
 msgstr "Добавьте имя"
 
@@ -282,8 +306,8 @@ msgstr "администратор"
 
 #: src/features/auth/components/InviteNotifications.tsx:108
 #: src/features/members/pages/MembersPage.tsx:142
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:447
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:550
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:490
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:593
 msgid "Admin"
 msgstr "Администратор"
 
@@ -295,6 +319,10 @@ msgstr "Расширенные фильтры"
 #: src/features/planner/components/TaskDetailPanel.tsx:748
 #~ msgid "After count"
 #~ msgstr "После количества"
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:271
+msgid "After the grace period, all data (comments, tasks, profile) will be anonymized and cannot be recovered."
+msgstr "После окончания льготного периода все данные (комментарии, задачи, профиль) будут обезличены и не подлежат восстановлению."
 
 #: src/features/members/components/MemberTasksPanel.tsx:183
 #: src/features/projects/components/ProjectsMainPanel.tsx:202
@@ -310,7 +338,7 @@ msgstr "Все исполнители"
 msgid "All changes saved"
 msgstr "Все изменения сохранены"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:1019
+#: src/features/admin/pages/AdminUsersPage.tsx:1137
 msgid "All current data will be lost."
 msgstr "Все текущие данные будут потеряны."
 
@@ -371,7 +399,7 @@ msgstr "Архивировать"
 msgid "Archived"
 msgstr "Архивирован"
 
-#: src/features/planner/components/FilterPanel.tsx:298
+#: src/features/planner/components/FilterPanel.tsx:305
 msgid "Archived projects are hidden from filters."
 msgstr "Архивные проекты скрыты в фильтрах."
 
@@ -404,8 +432,9 @@ msgstr "Ошибка аутентификации"
 #: src/features/auth/pages/AuthPage.tsx:55
 #: src/features/auth/pages/AuthPage.tsx:115
 msgid "Authentication failed."
-msgstr ""
+msgstr "Ошибка аутентификации."
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:308
 #: src/features/onboarding/lib/onboardingTour.ts:54
 #: src/features/onboarding/lib/onboardingTour.ts:63
 #: src/features/onboarding/lib/onboardingTour.ts:72
@@ -455,7 +484,8 @@ msgid "By user"
 msgstr "По пользователю"
 
 #: src/features/marketing/pages/LandingPage.tsx:434
-#: src/features/planner/components/timeline/TimelineControls.tsx:237
+#: src/features/planner/components/timeline/TimelineControls.tsx:240
+#: src/features/planner/components/timeline/TimelineControls.tsx:243
 msgid "Calendar"
 msgstr "Календарь"
 
@@ -467,7 +497,9 @@ msgstr "Календарь (месяц)"
 msgid "Calendar range"
 msgstr "Диапазон календаря"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:207
+#: src/features/admin/pages/AdminUsersPage.tsx:1112
+#: src/features/auth/components/AccountSettingsDialog.tsx:212
+#: src/features/auth/components/DeleteAccountWizard.tsx:250
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:733
 #: src/features/dashboard/pages/DashboardPage.tsx:946
 #: src/features/dashboard/pages/DashboardPage.tsx:977
@@ -477,7 +509,7 @@ msgstr "Диапазон календаря"
 #: src/features/planner/components/AddTaskDialog.tsx:841
 #: src/features/planner/components/CommentEditor.tsx:851
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx:49
-#: src/features/planner/components/TaskCommentItem.tsx:170
+#: src/features/planner/components/TaskCommentItem.tsx:176
 #: src/features/planner/components/TaskDetailDialogs.tsx:120
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:213
 #: src/features/planner/components/timeline/TaskBar.tsx:534
@@ -488,12 +520,13 @@ msgstr "Диапазон календаря"
 #: src/features/projects/components/ProjectsDialogs.tsx:558
 #: src/features/projects/components/ProjectsDialogs.tsx:581
 #: src/features/projects/components/ProjectsDialogs.tsx:604
+#: src/features/workspace/components/RenamePurgedDialog.tsx:144
 #: src/features/workspace/components/SettingsPanel.tsx:753
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:460
 msgid "Cancel"
 msgstr "Отмена"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:357
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:362
 msgid "Canceled"
 msgstr "Отменено"
 
@@ -509,6 +542,10 @@ msgstr "Отменен"
 #: src/features/workspace/components/SettingsPanel.tsx:626
 msgid "Cancelled status"
 msgstr "Отмененный статус"
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:287
+msgid "Change name"
+msgstr "Изменить имя"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:69
 msgid "Chart"
@@ -526,7 +563,7 @@ msgstr "Стиль графика"
 #~ msgid "Check your email to confirm your account."
 #~ msgstr "Проверьте почту, чтобы подтвердить аккаунт."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:594
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:637
 msgid "Check your inbox"
 msgstr "Проверьте почту"
 
@@ -543,11 +580,19 @@ msgstr "Проверяем приглашение..."
 msgid "Choose a customer to see their projects."
 msgstr "Выберите клиента, чтобы увидеть его проекты."
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:148
+msgid "Choose an heir for workspaces where you are the sole admin."
+msgstr "Выберите преемника для рабочих пространств, где вы — единственный администратор."
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:210
+msgid "Choose an option"
+msgstr "Выберите вариант"
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx:44
 msgid "Choose where to apply this change."
 msgstr "Выберите, к каким задачам применить это изменение."
 
-#: src/features/planner/components/FilterPanel.tsx:243
+#: src/features/planner/components/FilterPanel.tsx:249
 #: src/features/projects/components/ProjectsSidebar.tsx:529
 msgid "Clear"
 msgstr "Очистить"
@@ -569,6 +614,7 @@ msgstr "Нажмите эту кнопку или дважды кликните 
 #~ msgid "Click this button or double-click on a date in the timeline to open the task creation form."
 #~ msgstr "Нажми эту кнопку или дважды кликни на нужную дату в таймлайне — откроется форма создания задачи."
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:329
 #: src/features/members/components/TaskDetailsDialog.tsx:164
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:153
 msgid "Close"
@@ -585,14 +631,18 @@ msgstr "Закрытые"
 msgid "Code"
 msgstr "Код"
 
+#: src/features/planner/pages/PlannerPage.tsx:397
+msgid "Collapse filters"
+msgstr "Свернуть фильтры"
+
 #: src/features/projects/components/ProjectsDialogs.tsx:359
 #: src/features/projects/components/ProjectsDialogs.tsx:463
 msgid "Color"
 msgstr "Цвет"
 
-#: src/features/planner/components/TaskCommentItem.tsx:136
+#: src/features/planner/components/TaskCommentItem.tsx:142
 msgid "Comment actions"
-msgstr ""
+msgstr "Действия с комментарием"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:109
 #: src/features/planner/components/TaskCommentSection.tsx:153
@@ -610,7 +660,7 @@ msgstr "Тренд выполнения"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:396
 msgid "Configure widget type, display style, and filters."
-msgstr ""
+msgstr "Настройте тип виджета, стиль отображения и фильтры."
 
 #: src/features/onboarding/lib/onboardingTour.ts:72
 #~ msgid "Configure your workspace: statuses, task types, tags and team members."
@@ -624,17 +674,18 @@ msgstr ""
 #~ msgid "Confirm password"
 #~ msgstr "Подтвердите пароль"
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:257
 #: src/features/onboarding/lib/onboardingTour.ts:314
 msgid "Continue"
 msgstr "Продолжить"
 
 #: src/features/auth/pages/AuthPage.tsx:197
 msgid "Continue with Keycloak"
-msgstr ""
+msgstr "Продолжить через Keycloak"
 
 #: src/features/auth/pages/AuthPage.tsx:171
 msgid "Continue with Keycloak to access the workspace."
-msgstr ""
+msgstr "Продолжите через Keycloak для доступа к рабочему пространству."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:513
 #~ msgid "Copy this link if the email did not send:"
@@ -666,15 +717,15 @@ msgstr "Создать \"{normalizedQuery}\""
 
 #: src/features/projects/components/ProjectsDialogs.tsx:211
 msgid "Create a new customer for grouping projects."
-msgstr ""
+msgstr "Создайте нового клиента для группировки проектов."
 
 #: src/features/dashboard/pages/DashboardPage.tsx:929
 msgid "Create a new dashboard."
-msgstr ""
+msgstr "Создайте новую панель."
 
 #: src/features/members/components/MembersDialogs.tsx:77
 msgid "Create a new group for workspace members."
-msgstr ""
+msgstr "Создайте новую группу для участников рабочего пространства."
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:152
 msgid "Create a new milestone for the selected date."
@@ -682,7 +733,7 @@ msgstr "Создайте новую веху для выбранной даты.
 
 #: src/features/projects/components/ProjectsDialogs.tsx:333
 msgid "Create a new project and assign customer, code, and color."
-msgstr ""
+msgstr "Создайте проект и задайте клиента, код и цвет."
 
 #: src/features/onboarding/lib/onboardingTour.ts:133
 msgid "Create a new project here, then group tasks and milestones inside it."
@@ -715,7 +766,7 @@ msgid "Create project"
 msgstr "Создать проект"
 
 #: src/features/planner/components/AddTaskDialog.tsx:845
-#: src/features/planner/components/timeline/TimelineRow.tsx:117
+#: src/features/planner/components/timeline/TimelineRow.tsx:165
 msgid "Create task"
 msgstr "Создать задачу"
 
@@ -778,7 +829,7 @@ msgstr "Клиенты"
 msgid "Daily"
 msgstr "Ежедневно"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:253
+#: src/features/auth/components/AccountSettingsDialog.tsx:258
 msgid "Daily brief"
 msgstr "Ежедневный дайджест"
 
@@ -832,7 +883,7 @@ msgid "Dates"
 msgstr "Даты"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:63
-#: src/features/planner/components/timeline/TimelineControls.tsx:225
+#: src/features/planner/components/timeline/TimelineControls.tsx:229
 msgid "Day"
 msgstr "День"
 
@@ -841,7 +892,7 @@ msgid "Decline"
 msgstr "Отклонить"
 
 #: src/features/auth/components/InviteNotifications.tsx:199
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:356
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:361
 msgid "Declined"
 msgstr "Отклонено"
 
@@ -849,8 +900,8 @@ msgstr "Отклонено"
 #: src/features/auth/components/InviteNotifications.tsx:770
 #: src/features/dashboard/pages/DashboardPage.tsx:1013
 #: src/features/members/components/MembersSidebar.tsx:401
-#: src/features/planner/components/TaskCommentItem.tsx:152
-#: src/features/planner/components/TaskCommentItem.tsx:177
+#: src/features/planner/components/TaskCommentItem.tsx:158
+#: src/features/planner/components/TaskCommentItem.tsx:183
 #: src/features/planner/components/TaskDetailDialogs.tsx:150
 #: src/features/planner/components/TaskDetailPanel.tsx:815
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:222
@@ -866,13 +917,25 @@ msgstr "Отклонено"
 msgid "Delete"
 msgstr "Удалить"
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:316
+msgid "Delete account"
+msgstr "Удалить аккаунт"
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:144
+msgid "Delete account — confirm"
+msgstr "Удаление аккаунта — подтверждение"
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:143
+msgid "Delete account — review workspaces"
+msgstr "Удаление аккаунта — проверка рабочих пространств"
+
 #: src/features/auth/components/InviteNotifications.tsx:707
 msgid "Delete all"
 msgstr "Удалить все"
 
-#: src/features/planner/components/TaskCommentItem.tsx:163
+#: src/features/planner/components/TaskCommentItem.tsx:169
 msgid "Delete comment?"
-msgstr ""
+msgstr "Удалить комментарий?"
 
 #: src/features/projects/components/ProjectsDialogs.tsx:598
 msgid "Delete customer?"
@@ -889,6 +952,10 @@ msgstr "Удалить дашборд?"
 #: src/features/projects/components/ProjectsDialogs.tsx:575
 msgid "Delete milestone?"
 msgstr "Удалить веху?"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx:296
+msgid "Delete my account"
+msgstr "Удалить мой аккаунт"
 
 #: src/features/planner/components/TaskDetailDialogs.tsx:114
 #: src/features/planner/components/timeline/TaskBar.tsx:519
@@ -932,6 +999,10 @@ msgstr "Удалить текущую"
 msgid "Delete this & following"
 msgstr "Удалить текущую и следующие"
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:222
+msgid "Delete this workspace"
+msgstr "Удалить это рабочее пространство"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:729
 msgid "Delete widget"
 msgstr "Удалить виджет"
@@ -944,9 +1015,17 @@ msgstr "Удалить рабочее пространство"
 msgid "Delete workspace?"
 msgstr "Удалить рабочее пространство?"
 
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:472
+msgid "Deleted account"
+msgstr "Удалённый аккаунт"
+
 #: src/features/workspace/components/SettingsPanel.tsx:500
 msgid "Deleting a workspace is permanent. Type the workspace name to enable deletion."
 msgstr "Удаление рабочего пространства необратимо. Введите его имя, чтобы включить удаление."
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:316
+msgid "Deleting…"
+msgstr "Удаление…"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:145
 #: src/features/planner/components/AddTaskDialog.tsx:718
@@ -959,11 +1038,11 @@ msgstr "Описание"
 msgid "Designed and developed by <0>NIKO G.</0>"
 msgstr "Разработано <0>NIKO G.</0>"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:519
+#: src/features/admin/pages/AdminUsersPage.tsx:558
 msgid "Details"
 msgstr "Подробнее"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:474
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:517
 msgid "Disable member"
 msgstr "Отключить участника"
 
@@ -977,9 +1056,9 @@ msgstr "отключен"
 #: src/features/members/components/MembersSidebar.tsx:263
 #: src/features/members/components/MembersSidebar.tsx:294
 #: src/features/members/components/MemberTasksPanel.tsx:143
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:231
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:433
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:477
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:236
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:475
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:520
 msgid "Disabled"
 msgstr "Отключен"
 
@@ -987,7 +1066,7 @@ msgstr "Отключен"
 msgid "Disabled people"
 msgstr "Отключенные участники"
 
-#: src/features/planner/components/FilterPanel.tsx:339
+#: src/features/planner/components/FilterPanel.tsx:347
 msgid "Disabled people are hidden from filters."
 msgstr "Отключенные участники скрыты в фильтрах."
 
@@ -1006,7 +1085,7 @@ msgstr "Отменить задачу?"
 
 #: src/features/projects/pages/ProjectsPage.tsx:756
 msgid "Dismiss"
-msgstr ""
+msgstr "Закрыть"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:471
 msgid "Display style"
@@ -1021,6 +1100,10 @@ msgstr "Не повторяется"
 msgid "Done"
 msgstr "Завершено"
 
+#: src/features/auth/components/DataExportButton.tsx:75
+msgid "Download export"
+msgstr "Скачать экспорт"
+
 #: src/features/auth/components/AvatarEditModal.tsx:140
 msgid "Drag & drop or click to select a photo"
 msgstr "Перетащите или нажмите, чтобы выбрать фото"
@@ -1034,7 +1117,11 @@ msgstr "Перетащите изображения в область описа
 msgid "Duplicate task"
 msgstr "Дублировать задачу"
 
-#: src/features/planner/components/TaskCommentItem.tsx:144
+#: src/features/auth/components/DeleteAccountWizard.tsx:270
+msgid "During this period, you can sign in to restore the account."
+msgstr "В течение этого периода вы можете войти, чтобы восстановить аккаунт."
+
+#: src/features/planner/components/TaskCommentItem.tsx:150
 #: src/features/projects/components/ProjectsMainPanel.tsx:534
 #: src/features/projects/components/ProjectsSidebar.tsx:186
 #: src/features/projects/components/ProjectsSidebar.tsx:288
@@ -1049,7 +1136,7 @@ msgstr "Редактировать"
 msgid "Edit milestone"
 msgstr "Редактировать веху"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:225
+#: src/features/auth/components/AccountSettingsDialog.tsx:230
 msgid "Edit name"
 msgstr "Редактировать имя"
 
@@ -1064,7 +1151,7 @@ msgstr "Редактировать проект"
 
 #: src/features/projects/components/ProjectsDialogs.tsx:423
 msgid "Edit project details such as name, code, customer, and color."
-msgstr ""
+msgstr "Отредактируйте детали проекта: название, код, клиента и цвет."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:130
 msgid "Edit widget"
@@ -1076,8 +1163,8 @@ msgstr "редактор"
 
 #: src/features/auth/components/InviteNotifications.tsx:109
 #: src/features/members/pages/MembersPage.tsx:143
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:446
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:549
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:489
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:592
 msgid "Editor"
 msgstr "Редактор"
 
@@ -1085,7 +1172,7 @@ msgstr "Редактор"
 msgid "Editors and admins add widgets here to build the dashboard."
 msgstr "Редакторы и администраторы добавляют здесь виджеты, чтобы собрать дашборд."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:532
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:575
 msgid "Email"
 msgstr "Email"
 
@@ -1101,7 +1188,7 @@ msgstr "Email"
 msgid "Emoji"
 msgstr "Эмодзи"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:474
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:517
 msgid "Enable member"
 msgstr "Включить участника"
 
@@ -1127,6 +1214,10 @@ msgstr "Дата окончания ↓"
 #: src/features/planner/components/RepeatSettingsFields.tsx:83
 msgid "Ends"
 msgstr "Окончание"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:378
+msgid "Enter a valid user UUID."
+msgstr "Введите корректный UUID пользователя."
 
 #: src/features/projects/components/ProjectsDialogs.tsx:224
 #: src/features/projects/components/ProjectsDialogs.tsx:273
@@ -1160,11 +1251,11 @@ msgstr "Введите название рабочего пространств�
 msgid "Equals"
 msgstr "Равно"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:422
-#: src/features/admin/pages/AdminUsersPage.tsx:598
-#: src/features/admin/pages/AdminUsersPage.tsx:724
-#: src/features/admin/pages/AdminUsersPage.tsx:731
-#: src/features/admin/pages/AdminUsersPage.tsx:738
+#: src/features/admin/pages/AdminUsersPage.tsx:461
+#: src/features/admin/pages/AdminUsersPage.tsx:687
+#: src/features/admin/pages/AdminUsersPage.tsx:813
+#: src/features/admin/pages/AdminUsersPage.tsx:820
+#: src/features/admin/pages/AdminUsersPage.tsx:827
 msgid "Error"
 msgstr "Ошибка"
 
@@ -1184,18 +1275,23 @@ msgstr "Все видят одну картину. Планируйте вмес
 msgid "Everything your team needs to stay aligned"
 msgstr "Всё что нужно команде чтобы работать слаженно"
 
-#: src/features/planner/components/FilterPanel.tsx:185
+#: src/features/planner/components/FilterPanel.tsx:191
+#: src/features/planner/pages/PlannerPage.tsx:379
 msgid "Expand filters"
 msgstr "Развернуть фильтры"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:358
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:363
 msgid "Expired"
 msgstr "Истекло"
+
+#: src/features/auth/components/DataExportButton.tsx:92
+msgid "Export my data"
+msgstr "Экспортировать мои данные"
 
 #: src/features/planner/components/TaskCommentSection.tsx:112
 #: src/features/planner/components/TaskCommentSection.tsx:124
 msgid "Failed to add comment"
-msgstr ""
+msgstr "Не удалось добавить комментарий"
 
 #: src/features/planner/hooks/useTaskSubtasks.ts:114
 msgid "Failed to add subtask."
@@ -1211,7 +1307,7 @@ msgstr "Не удалось создать задачу."
 
 #: src/features/planner/components/TaskCommentItem.tsx:68
 msgid "Failed to delete comment"
-msgstr ""
+msgstr "Не удалось удалить комментарий"
 
 #: src/features/planner/hooks/useTaskSubtasks.ts:169
 msgid "Failed to delete subtask."
@@ -1220,16 +1316,16 @@ msgstr "Не удалось удалить подзадачу."
 #: src/features/planner/components/TaskCommentSection.tsx:83
 #: src/features/planner/components/TaskCommentSection.tsx:100
 msgid "Failed to load comments"
-msgstr ""
+msgstr "Не удалось загрузить комментарии"
 
 #: src/features/members/hooks/useMemberTaskFetcher.ts:154
 #: src/features/projects/hooks/useProjectTasksQuery.ts:85
 msgid "Failed to load tasks."
-msgstr ""
+msgstr "Не удалось загрузить задачи."
 
 #: src/features/planner/components/TaskCommentItem.tsx:78
 msgid "Failed to update comment"
-msgstr ""
+msgstr "Не удалось обновить комментарий"
 
 #: src/features/planner/components/CommentEditor.tsx:300
 #: src/features/planner/components/RichTextEditor.tsx:245
@@ -1245,7 +1341,7 @@ msgstr "Файл слишком большой"
 msgid "Fill out task fields and create a new task."
 msgstr "Заполните поля задачи и создайте новую задачу."
 
-#: src/features/planner/pages/PlannerPage.tsx:356
+#: src/features/planner/pages/PlannerPage.tsx:359
 msgid "Filter applied"
 msgstr "Применён фильтр"
 
@@ -1276,10 +1372,10 @@ msgstr "Фильтр: {0}"
 
 #: src/features/planner/components/TaskProjectSelect.tsx:66
 msgid "Filter: {projectQuery}"
-msgstr ""
+msgstr "Фильтр: {projectQuery}"
 
 #: src/features/onboarding/lib/onboardingTour.ts:69
-#: src/features/planner/components/FilterPanel.tsx:233
+#: src/features/planner/components/FilterPanel.tsx:239
 msgid "Filters"
 msgstr "Фильтры"
 
@@ -1302,6 +1398,22 @@ msgstr "Найти или добавить клиента..."
 #: src/features/onboarding/lib/onboardingTour.ts:314
 msgid "Finish"
 msgstr "Завершить"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:624
+msgid "Force purge account"
+msgstr "Досрочное удаление аккаунта"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:1106
+msgid "Force purge account?"
+msgstr "Удалить аккаунт досрочно?"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:653
+msgid "Force purge failed"
+msgstr "Досрочное удаление не удалось"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:659
+msgid "Force purge scheduled"
+msgstr "Досрочное удаление запланировано"
 
 #: src/features/auth/pages/AuthPage.tsx:292
 #~ msgid "Forgot password?"
@@ -1347,8 +1459,8 @@ msgid "Good morning, {displayName}!"
 msgstr "Доброе утро, {displayName}!"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:93
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:555
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:691
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:598
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:734
 msgid "Group"
 msgstr "Группа"
 
@@ -1384,7 +1496,7 @@ msgstr "Группируйте задачи по проектам, ставьт�
 
 #: src/features/members/components/MembersSidebar.tsx:142
 #: src/features/members/pages/MembersPage.tsx:492
-#: src/features/planner/components/FilterPanel.tsx:345
+#: src/features/planner/components/FilterPanel.tsx:353
 msgid "Groups"
 msgstr "Группы"
 
@@ -1463,13 +1575,17 @@ msgstr "Включить без исполнителя"
 
 #: src/features/planner/components/CommentEditor.tsx:608
 msgid "Insert image"
-msgstr ""
+msgstr "Вставить изображение"
+
+#: src/features/workspace/components/RenamePurgedDialog.tsx:48
+msgid "Invalid name."
+msgstr "Недопустимое имя."
 
 #: src/features/onboarding/lib/onboardingTour.ts:54
 #~ msgid "Invite colleagues by email — they will receive an invitation letter. Assign roles and create groups."
 #~ msgstr "Пригласи коллег по email — им придёт письмо с приглашением. Назначай роли и создавай группы."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:592
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:635
 msgid "Invite created"
 msgstr "Приглашение создано"
 
@@ -1477,7 +1593,7 @@ msgstr "Приглашение создано"
 #~ msgid "Invite link created"
 #~ msgstr "Ссылка-приглашение создана"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:521
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:564
 msgid "Invite people and share access."
 msgstr "Приглашайте людей и делитесь доступом."
 
@@ -1498,9 +1614,13 @@ msgid "Invited by"
 msgstr "Пригласил"
 
 #: src/features/auth/components/InviteNotifications.tsx:802
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:519
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
 msgid "Invites"
 msgstr "Приглашения"
+
+#: src/features/auth/components/AccountRestoreScreen.tsx:53
+msgid "It will be permanently purged {purgeLabel}."
+msgstr "Окончательное удаление произойдёт {purgeLabel}."
 
 #: src/features/marketing/pages/LandingPage.tsx:589
 msgid "Join teams already planning smarter with Motio."
@@ -1526,10 +1646,15 @@ msgstr "Продолжайте удерживать заголовок видж�
 msgid "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI-виджеты, столбчатые и area-графики, круговые диаграммы — стройте любой дашборд. Фильтрация по исполнителю, проекту или статусу."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:236
+#: src/features/auth/components/AccountSettingsDialog.tsx:241
 #: src/features/auth/pages/AuthPage.tsx:177
 msgid "Language"
 msgstr "Язык"
+
+#. placeholder {0}: status.errorMessage ?? t`unknown error`
+#: src/features/auth/components/DataExportButton.tsx:105
+msgid "Last export failed: {0}"
+msgstr "Последний экспорт завершился с ошибкой: {0}"
 
 #: src/shared/lib/repeatLabels.ts:22
 msgid "Last in series"
@@ -1553,14 +1678,14 @@ msgstr "Список"
 
 #: src/features/planner/components/TaskCommentSection.tsx:176
 msgid "Load older comments"
-msgstr ""
+msgstr "Загрузить более старые комментарии"
 
 #: src/features/workspace/components/SettingsPanel.tsx:414
 #: src/features/workspace/components/SettingsPanel.tsx:441
 msgid "Loading available countries..."
 msgstr "Загрузка списка стран..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx:744
+#: src/features/admin/pages/AdminUsersPage.tsx:833
 msgid "Loading backups..."
 msgstr "Загрузка бэкапов..."
 
@@ -1570,29 +1695,29 @@ msgstr "Загрузка дашборда..."
 
 #: src/features/auth/components/InviteNotifications.tsx:679
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:736
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:620
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:663
 msgid "Loading data..."
 msgstr "Загрузка данных..."
 
 #: src/features/planner/components/AddTaskDialog.tsx:723
 #: src/features/planner/components/TaskDetailPanel.tsx:531
 msgid "Loading editor..."
-msgstr ""
+msgstr "Загрузка редактора..."
 
 #: src/features/members/components/MembersSidebar.tsx:368
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:456
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:499
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:605
 msgid "Loading groups..."
 msgstr "Загрузка групп..."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:747
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:790
 msgid "Loading history..."
 msgstr "Загрузка истории..."
 
 #: src/features/members/components/MembersGroupPanel.tsx:214
 #: src/features/planner/components/CommentEditor.tsx:788
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:709
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:728
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:752
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:771
 msgid "Loading members..."
 msgstr "Загрузка участников..."
 
@@ -1609,22 +1734,26 @@ msgstr "Загрузка задач..."
 msgid "Loading template..."
 msgstr "Загрузка шаблона..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx:428
+#: src/features/admin/pages/AdminUsersPage.tsx:467
 msgid "Loading users..."
 msgstr "Загрузка пользователей..."
 
-#: src/features/planner/pages/PlannerPage.tsx:91
+#: src/features/planner/pages/PlannerPage.tsx:92
 msgid "Loading workspace..."
 msgstr "Загрузка воркспейса..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx:604
+#: src/features/admin/pages/AdminUsersPage.tsx:693
 msgid "Loading workspaces..."
 msgstr "Загрузка воркспейсов..."
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:156
+msgid "Loading your workspaces…"
+msgstr "Загружаем ваши рабочие пространства…"
 
 #: src/features/planner/components/SubtasksSection.tsx:92
 #: src/features/planner/components/TaskCommentSection.tsx:176
 msgid "Loading..."
-msgstr ""
+msgstr "Загрузка..."
 
 #: src/features/auth/pages/AuthPage.tsx:254
 #~ msgid "Login"
@@ -1647,25 +1776,25 @@ msgstr "Низкий приоритет"
 #~ msgid "Manage roles, groups, and status."
 #~ msgstr "Управляйте ролями, группами и статусом."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:504
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:547
 msgid "Manage team invites, roles, and access."
 msgstr "Управляйте приглашениями, ролями и доступом команды."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:663
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:706
 msgid "Manage team roles, groups, and status."
 msgstr "Управляйте ролями, группами и статусом участников."
 
 #: src/features/workspace/components/WorkspaceMembersSheet.tsx:18
 msgid "Manage workspace members, roles, and invitations."
-msgstr ""
+msgstr "Управляйте участниками, ролями и приглашениями рабочего пространства."
 
 #: src/features/workspace/components/SettingsPanel.tsx:318
 msgid "Manage workspace settings, statuses, task types, and tags."
-msgstr ""
+msgstr "Управляйте настройками рабочего пространства, статусами, типами задач и тегами."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:162
+#: src/features/auth/components/AccountSettingsDialog.tsx:167
 msgid "Manage your profile and account preferences."
-msgstr ""
+msgstr "Управляйте своим профилем и настройками аккаунта."
 
 #: src/features/onboarding/lib/onboardingTour.ts:45
 #~ msgid "Manage your projects, assign customers and set milestones."
@@ -1704,7 +1833,7 @@ msgstr "Средний"
 msgid "Medium priority"
 msgstr "Средний приоритет"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:675
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:718
 msgid "Member"
 msgstr "Участник"
 
@@ -1718,11 +1847,11 @@ msgstr "Участники"
 
 #: src/features/planner/components/CommentEditor.tsx:620
 msgid "Mention a person"
-msgstr ""
+msgstr "Упомянуть человека"
 
 #: src/features/auth/components/InviteNotifications.tsx:729
 msgid "mentioned you in a comment"
-msgstr ""
+msgstr "упомянул(а) вас в комментарии"
 
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:87
 msgid "Menu"
@@ -1802,7 +1931,27 @@ msgstr "Рабочее пространство моей команды"
 msgid "Name"
 msgstr "Название"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:536
+#: src/features/workspace/components/RenamePurgedDialog.tsx:36
+msgid "Name cannot be empty."
+msgstr "Имя не может быть пустым."
+
+#: src/features/workspace/components/RenamePurgedDialog.tsx:42
+msgid "Name cannot contain @."
+msgstr "Имя не может содержать @."
+
+#: src/features/workspace/components/RenamePurgedDialog.tsx:44
+msgid "Name cannot contain a URL."
+msgstr "Имя не может содержать URL."
+
+#: src/features/workspace/components/RenamePurgedDialog.tsx:38
+msgid "Name must be at least 2 characters."
+msgstr "Имя должно быть не короче 2 символов."
+
+#: src/features/workspace/components/RenamePurgedDialog.tsx:40
+msgid "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
+msgstr "Имя должно быть не длиннее {DISPLAY_NAME_MAX_LENGTH} символов."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:579
 msgid "name@example.com"
 msgstr "name@example.com"
 
@@ -1832,6 +1981,10 @@ msgstr "Новый клиент"
 msgid "New dashboard"
 msgstr "Новый дашборд"
 
+#: src/features/workspace/components/RenamePurgedDialog.tsx:106
+msgid "New display name"
+msgstr "Новое отображаемое имя"
+
 #: src/features/members/components/MembersDialogs.tsx:75
 #: src/features/members/pages/MembersPage.tsx:684
 msgid "New group"
@@ -1840,6 +1993,11 @@ msgstr "Новая группа"
 #: src/features/projects/pages/ProjectsPage.tsx:727
 msgid "New milestone"
 msgstr "Новая веха"
+
+#. placeholder {0}: workspace.candidates.find((c) => c.user_id === decision.newOwnerId)?.display_name ?? decision.newOwnerId
+#: src/features/auth/components/DeleteAccountWizard.tsx:228
+msgid "New owner: {0}"
+msgstr "Новый владелец: {0}"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:1083
 #: src/features/auth/pages/AuthPage.tsx:357
@@ -1888,6 +2046,7 @@ msgstr "Новый виджет"
 #: src/features/onboarding/lib/onboardingTour.ts:201
 #: src/features/onboarding/lib/onboardingTour.ts:211
 #: src/features/onboarding/lib/onboardingTour.ts:315
+#: src/features/planner/components/timeline/TimelineControls.tsx:187
 #: src/features/projects/components/ProjectsMainPanel.tsx:478
 msgid "Next"
 msgstr "Далее"
@@ -1909,15 +2068,15 @@ msgid "No active members match the search."
 msgstr "Поиск не нашел активных участников."
 
 #: src/features/members/components/MembersSidebar.tsx:195
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:712
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:755
 msgid "No active members."
 msgstr "Нет активных участников."
 
-#: src/features/planner/components/FilterPanel.tsx:320
+#: src/features/planner/components/FilterPanel.tsx:328
 msgid "No active people."
-msgstr ""
+msgstr "Нет активных участников."
 
-#: src/features/planner/components/FilterPanel.tsx:270
+#: src/features/planner/components/FilterPanel.tsx:277
 #: src/features/projects/components/ProjectsSidebar.tsx:590
 msgid "No active projects."
 msgstr "Нет активных проектов."
@@ -1946,9 +2105,9 @@ msgstr "Исполнителей пока нет."
 msgid "No available members."
 msgstr "Нет доступных участников."
 
-#: src/features/planner/components/FilterPanel.tsx:291
+#: src/features/planner/components/FilterPanel.tsx:298
 msgid "No code"
-msgstr ""
+msgstr "Без кода"
 
 #: src/features/workspace/components/SettingsPanel.tsx:414
 msgid "No countries found."
@@ -1995,53 +2154,53 @@ msgid "No description."
 msgstr "Нет описания."
 
 #: src/features/members/components/MembersSidebar.tsx:238
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:731
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:774
 msgid "No disabled members."
 msgstr "Нет отключенных участников."
 
 #: src/features/members/hooks/useMembersFilter.ts:99
 #: src/features/members/hooks/useMembersFilter.ts:112
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:227
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:456
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:459
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:565
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:232
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:499
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:502
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:605
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:608
 #: src/shared/lib/workspaceMemberActivity.ts:52
 #: src/shared/lib/workspaceMemberActivity.ts:53
 msgid "No group"
 msgstr "Без группы"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:577
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:620
 msgid "No groups created yet."
 msgstr "Группы еще не созданы."
 
 #: src/features/members/components/MembersSidebar.tsx:371
-#: src/features/planner/components/FilterPanel.tsx:358
+#: src/features/planner/components/FilterPanel.tsx:367
 msgid "No groups yet."
 msgstr "Групп пока нет."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:753
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:796
 msgid "No history yet."
 msgstr "История пока пуста."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:622
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:665
 msgid "No invites sent yet."
 msgstr "Отправленных приглашений пока нет."
 
-#: src/features/planner/components/FilterPanel.tsx:273
-#: src/features/planner/components/FilterPanel.tsx:317
-#: src/features/planner/components/FilterPanel.tsx:361
-#: src/features/planner/components/FilterPanel.tsx:394
-#: src/features/planner/components/FilterPanel.tsx:427
-#: src/features/planner/components/FilterPanel.tsx:460
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:715
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:734
+#: src/features/planner/components/FilterPanel.tsx:280
+#: src/features/planner/components/FilterPanel.tsx:325
+#: src/features/planner/components/FilterPanel.tsx:370
+#: src/features/planner/components/FilterPanel.tsx:404
+#: src/features/planner/components/FilterPanel.tsx:438
+#: src/features/planner/components/FilterPanel.tsx:472
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:758
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:777
 msgid "No matches."
-msgstr ""
+msgstr "Совпадений нет."
 
 #: src/features/planner/components/CommentEditor.tsx:790
 msgid "No members found"
-msgstr ""
+msgstr "Участники не найдены"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:531
 #~ msgid "No members found."
@@ -2099,7 +2258,7 @@ msgstr "Без приоритета"
 #: src/features/members/components/MemberTasksPanel.tsx:456
 #: src/features/members/components/TaskDetailsDialog.tsx:60
 #: src/features/planner/components/TaskProjectSelect.tsx:68
-#: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:97
+#: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:104
 #: src/features/planner/components/timeline/TaskBar.tsx:401
 #: src/features/planner/components/timeline/TaskBar.tsx:447
 #: src/features/planner/components/timeline/TaskBar.tsx:489
@@ -2166,7 +2325,11 @@ msgstr "Срочных задач нет. Отличная работа!"
 msgid "No widgets yet."
 msgstr "Пока нет виджетов."
 
-#: src/features/admin/pages/AdminUsersPage.tsx:867
+#: src/features/auth/components/DeleteAccountWizard.tsx:170
+msgid "No workspaces need your attention — you can continue."
+msgstr "Рабочие пространства не требуют вашего внимания — можно продолжать."
+
+#: src/features/admin/pages/AdminUsersPage.tsx:956
 msgid "No workspaces."
 msgstr "Нет воркспейсов."
 
@@ -2237,7 +2400,7 @@ msgstr "Доступны только отключенные участники.
 msgid "Only for {scopedAssigneeName}"
 msgstr "Только для {scopedAssigneeName}"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:377
+#: src/features/admin/pages/AdminUsersPage.tsx:416
 msgid "Only super admins can access this page."
 msgstr "Доступ к админке есть только у супер-администратора."
 
@@ -2323,7 +2486,7 @@ msgstr "Страница {pageIndex} / {totalPages}"
 
 #: src/features/auth/pages/AuthPage.tsx:201
 msgid "Passwords and account recovery are managed in Keycloak."
-msgstr ""
+msgstr "Пароли и восстановление аккаунта управляются в Keycloak."
 
 #: src/features/auth/pages/AuthPage.tsx:153
 #: src/features/auth/pages/AuthPage.tsx:191
@@ -2348,18 +2511,19 @@ msgstr "Пастельная мята"
 msgid "Pastel sky"
 msgstr "Пастельное небо"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:359
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:364
 msgid "Pending"
 msgstr "Ожидает"
 
 #: src/features/members/components/MembersSidebar.tsx:126
 #: src/features/members/pages/MembersPage.tsx:493
-#: src/features/planner/components/FilterPanel.tsx:304
-#: src/features/planner/components/timeline/TimelineControls.tsx:250
+#: src/features/planner/components/FilterPanel.tsx:311
+#: src/features/planner/components/timeline/TimelineControls.tsx:254
+#: src/features/planner/components/timeline/TimelineControls.tsx:257
 msgid "People"
 msgstr "Участники"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:661
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:704
 msgid "People access"
 msgstr "Участники"
 
@@ -2387,9 +2551,17 @@ msgstr "Разместите задачи на таймлайне. Назнач�
 msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
 
+#: src/features/auth/components/DataExportButton.tsx:89
+msgid "Preparing your data…"
+msgstr "Готовим ваши данные…"
+
 #: src/features/members/components/MemberTasksPanel.tsx:481
 #: src/features/projects/components/ProjectsMainPanel.tsx:467
 msgid "Prev"
+msgstr "Назад"
+
+#: src/features/planner/components/timeline/TimelineControls.tsx:171
+msgid "Previous"
 msgstr "Назад"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:105
@@ -2433,8 +2605,9 @@ msgstr "Проект не найден."
 
 #: src/features/onboarding/lib/onboardingTour.ts:114
 #: src/features/onboarding/lib/onboardingTour.ts:131
-#: src/features/planner/components/FilterPanel.tsx:259
-#: src/features/planner/components/timeline/TimelineControls.tsx:259
+#: src/features/planner/components/FilterPanel.tsx:265
+#: src/features/planner/components/timeline/TimelineControls.tsx:264
+#: src/features/planner/components/timeline/TimelineControls.tsx:267
 #: src/features/projects/components/ProjectsSidebar.tsx:341
 #: src/features/projects/pages/ProjectsPage.tsx:542
 #: src/features/workspace/lib/appNavigation.ts:21
@@ -2449,7 +2622,19 @@ msgstr "Проекты и вехи"
 #~ msgid "Projects and customers"
 #~ msgstr "Проекты и заказчики"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:511
+#: src/features/admin/pages/AdminUsersPage.tsx:1121
+msgid "Purge"
+msgstr "Удалить"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:648
+msgid "Purge now"
+msgstr "Удалить сейчас"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:665
+msgid "purge_after"
+msgstr "purge_after"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:554
 msgid "Read-only"
 msgstr "Только чтение"
 
@@ -2470,7 +2655,7 @@ msgstr "Обновить"
 #~ msgid "Register"
 #~ msgstr "Регистрация"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:491
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:534
 msgid "Remove"
 msgstr "Удалить"
 
@@ -2484,7 +2669,7 @@ msgstr "Убрать \"{scopedAssigneeName}\" из этой задачи или 
 
 #: src/features/members/components/MembersGroupPanel.tsx:260
 msgid "Remove from group"
-msgstr ""
+msgstr "Удалить из группы"
 
 #: src/features/planner/components/RichTextEditor.tsx:744
 msgid "Remove image"
@@ -2512,6 +2697,15 @@ msgstr "Переименовать клиента"
 msgid "Rename dashboard"
 msgstr "Переименовать дашборд"
 
+#: src/features/workspace/components/RenamePurgedDialog.tsx:98
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:462
+msgid "Rename deleted member"
+msgstr "Переименовать удалённого участника"
+
+#: src/features/workspace/components/RenamePurgedDialog.tsx:132
+msgid "Rename failed"
+msgstr "Не удалось переименовать"
+
 #: src/features/planner/components/AddTaskDialog.tsx:693
 #: src/features/planner/components/RepeatSettingsFields.tsx:61
 #: src/features/planner/components/TaskDetailPanel.tsx:498
@@ -2534,17 +2728,33 @@ msgstr "Тип повтора"
 msgid "Repeats until the selected date."
 msgstr "Повторяется до выбранной даты."
 
-#: src/features/planner/pages/PlannerPage.tsx:363
+#: src/features/workspace/components/RenamePurgedDialog.tsx:100
+msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
+msgstr "Заменить отображаемое имя удалённого аккаунта. Изменение применится везде, где упоминается этот пользователь."
+
+#: src/features/planner/pages/PlannerPage.tsx:366
 msgid "Reset"
 msgstr "Сброс"
 
-#: src/features/planner/pages/PlannerPage.tsx:383
+#: src/features/planner/pages/PlannerPage.tsx:424
 msgid "Resize filters"
-msgstr ""
+msgstr "Изменить размер фильтров"
 
 #: src/features/projects/components/ProjectsSidebar.tsx:192
 msgid "Restore"
 msgstr "Восстановить"
+
+#: src/shared/components/PendingDeletionBanner.tsx:47
+msgid "Restore account"
+msgstr "Восстановить аккаунт"
+
+#: src/features/auth/components/AccountRestoreScreen.tsx:65
+msgid "Restore my account"
+msgstr "Восстановить мой аккаунт"
+
+#: src/features/auth/components/AccountRestoreScreen.tsx:65
+msgid "Restoring…"
+msgstr "Восстановление…"
 
 #: src/features/auth/pages/AuthPage.tsx:176
 #~ msgid "Retry automatic sign in"
@@ -2554,17 +2764,17 @@ msgstr "Восстановить"
 msgid "Return to Home"
 msgstr "Вернуться на главную"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:648
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:691
 msgid "Revoke"
-msgstr ""
+msgstr "Отозвать"
 
 #: src/features/dashboard/pages/DashboardPage.tsx:830
 msgid "Right-click to add your first widget."
 msgstr "Щелкните правой кнопкой, чтобы добавить первый виджет."
 
 #: src/features/auth/components/InviteNotifications.tsx:809
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:542
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:683
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:585
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:726
 msgid "Role"
 msgstr "Роль"
 
@@ -2572,7 +2782,7 @@ msgstr "Роль"
 #~ msgid "Sat"
 #~ msgstr "Сб"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:192
+#: src/features/auth/components/AccountSettingsDialog.tsx:197
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:736
 #: src/features/dashboard/pages/DashboardPage.tsx:988
 #: src/features/members/components/MembersGroupPanel.tsx:120
@@ -2581,6 +2791,7 @@ msgstr "Роль"
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:230
 #: src/features/projects/components/ProjectsDialogs.tsx:288
 #: src/features/projects/components/ProjectsDialogs.tsx:487
+#: src/features/workspace/components/RenamePurgedDialog.tsx:147
 #: src/features/workspace/components/SettingsPanel.tsx:368
 #: src/features/workspace/components/SettingsPanel.tsx:457
 msgid "Save"
@@ -2590,11 +2801,12 @@ msgstr "Сохранить"
 msgid "Save template"
 msgstr "Сохранить шаблон"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:270
+#: src/features/auth/components/AccountSettingsDialog.tsx:275
 msgid "Saved."
 msgstr "Сохранено."
 
 #: src/features/dashboard/pages/DashboardPage.tsx:891
+#: src/features/workspace/components/RenamePurgedDialog.tsx:147
 msgid "Saving..."
 msgstr "Сохранение..."
 
@@ -2607,7 +2819,7 @@ msgid "Search customers..."
 msgstr "Поиск клиентов..."
 
 #: src/features/members/components/MembersSidebar.tsx:342
-#: src/features/planner/components/FilterPanel.tsx:352
+#: src/features/planner/components/FilterPanel.tsx:361
 msgid "Search groups..."
 msgstr "Поиск групп..."
 
@@ -2621,31 +2833,31 @@ msgstr "Поиск вех..."
 
 #: src/features/members/components/MembersSidebar.tsx:157
 #: src/features/members/components/MembersSidebar.tsx:327
-#: src/features/planner/components/FilterPanel.tsx:311
+#: src/features/planner/components/FilterPanel.tsx:319
 msgid "Search people..."
 msgstr "Поиск участников..."
 
-#: src/features/planner/components/FilterPanel.tsx:265
+#: src/features/planner/components/FilterPanel.tsx:272
 #: src/features/projects/components/ProjectsSidebar.tsx:509
 msgid "Search projects..."
 msgstr "Поиск проектов..."
 
-#: src/features/planner/components/FilterPanel.tsx:388
+#: src/features/planner/components/FilterPanel.tsx:398
 msgid "Search status..."
-msgstr ""
+msgstr "Поиск статуса..."
 
-#: src/features/planner/components/FilterPanel.tsx:454
+#: src/features/planner/components/FilterPanel.tsx:466
 msgid "Search tags..."
-msgstr ""
+msgstr "Поиск тегов..."
 
 #: src/features/members/components/MemberTasksPanel.tsx:171
 #: src/features/projects/components/ProjectsMainPanel.tsx:190
 msgid "Search tasks..."
 msgstr "Поиск задач..."
 
-#: src/features/planner/components/FilterPanel.tsx:421
+#: src/features/planner/components/FilterPanel.tsx:432
 msgid "Search types..."
-msgstr ""
+msgstr "Поиск типов..."
 
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:105
 msgid "Sections"
@@ -2662,7 +2874,7 @@ msgstr "Выберите клиента"
 
 #: src/features/members/pages/MembersPage.tsx:501
 msgid "Select a group"
-msgstr ""
+msgstr "Выберите группу"
 
 #: src/features/members/components/MembersGroupPanel.tsx:100
 msgid "Select a group to see members."
@@ -2678,7 +2890,7 @@ msgstr "Выберите участника"
 
 #: src/features/projects/pages/ProjectsPage.tsx:544
 msgid "Select a milestone"
-msgstr ""
+msgstr "Выберите веху"
 
 #: src/features/projects/components/ProjectsMainPanel.tsx:493
 msgid "Select a milestone to view details."
@@ -2721,7 +2933,7 @@ msgstr "Выберите страну"
 msgid "Select dashboard"
 msgstr "Выберите дашборд"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:239
+#: src/features/auth/components/AccountSettingsDialog.tsx:244
 #: src/features/auth/pages/AuthPage.tsx:180
 msgid "Select language"
 msgstr "Выберите язык"
@@ -2769,7 +2981,7 @@ msgstr "Выберите рабочее пространство"
 #~ msgid "Selected statuses"
 #~ msgstr "Выбранные статусы"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:581
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:624
 msgid "Send invite"
 msgstr "Отправить приглашение"
 
@@ -2777,7 +2989,7 @@ msgstr "Отправить приглашение"
 #~ msgid "Send reset link"
 #~ msgstr "Отправить ссылку"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:618
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:661
 msgid "Sent invites"
 msgstr "Отправленные приглашения"
 
@@ -2789,7 +3001,7 @@ msgstr "Настройте рабочее пространство за секу
 #~ msgid "Settings"
 #~ msgstr "Настройки"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:262
+#: src/features/auth/components/AccountSettingsDialog.tsx:267
 msgid "Show daily task summary each morning"
 msgstr "Показывать ежедневный дайджест задач по утрам"
 
@@ -2815,8 +3027,8 @@ msgstr "Показывать легенду"
 msgid "Show tasks without an assignee."
 msgstr "Показывать задачи без исполнителя."
 
-#: src/features/planner/components/timeline/TimelineControls.tsx:265
 #: src/features/planner/components/timeline/TimelineControls.tsx:273
+#: src/features/planner/components/timeline/TimelineControls.tsx:281
 msgid "Show unassigned"
 msgstr "Показывать без назначения"
 
@@ -2832,8 +3044,9 @@ msgstr "Войти"
 msgid "Sign in required"
 msgstr "Требуется вход"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:392
-#: src/features/auth/components/AccountSettingsDialog.tsx:278
+#: src/features/admin/pages/AdminUsersPage.tsx:431
+#: src/features/auth/components/AccountRestoreScreen.tsx:74
+#: src/features/auth/components/AccountSettingsDialog.tsx:283
 #: src/features/marketing/pages/LandingPage.tsx:375
 msgid "Sign out"
 msgstr "Выйти"
@@ -2842,14 +3055,23 @@ msgstr "Выйти"
 msgid "Signed in"
 msgstr "Вы вошли"
 
+#. placeholder {0}: profileDisplayName ?? user?.email ?? ''
+#: src/features/auth/components/AccountRestoreScreen.tsx:49
+msgid "Signed in as {0}"
+msgstr "Вы вошли как {0}"
+
 #: src/features/onboarding/lib/onboardingTour.ts:237
 #: src/features/onboarding/lib/onboardingTour.ts:238
 msgid "Skip"
 msgstr "Пропустить"
 
+#: src/features/admin/pages/AdminUsersPage.tsx:626
+msgid "Skip the 30-day grace period for a PENDING_DELETION account. The cron will pick the user on the next tick."
+msgstr "Пропустить 30-дневный буфер для аккаунта в PENDING_DELETION. Cron заберёт пользователя на ближайшем тике."
+
 #: src/app/PageErrorBoundary.tsx:72
 msgid "Something went wrong"
-msgstr ""
+msgstr "Что-то пошло не так"
 
 #: src/features/onboarding/lib/onboardingTour.ts:44
 msgid "Start"
@@ -2881,7 +3103,7 @@ msgstr "Начать бесплатно →"
 #: src/features/members/components/MemberTasksPanel.tsx:392
 #: src/features/members/components/TaskDetailsDialog.tsx:64
 #: src/features/planner/components/AddTaskDialog.tsx:606
-#: src/features/planner/components/FilterPanel.tsx:381
+#: src/features/planner/components/FilterPanel.tsx:390
 #: src/features/planner/components/TaskDetailPanel.tsx:650
 #: src/features/planner/components/TaskDetailPanel.tsx:653
 #: src/features/planner/components/timeline/TaskBar.tsx:424
@@ -2889,7 +3111,7 @@ msgstr "Начать бесплатно →"
 #: src/features/projects/components/ProjectsMainPanel.tsx:381
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:69
 #: src/features/workspace/components/SettingsPanel.tsx:556
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:699
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:742
 msgid "Status"
 msgstr "Статус"
 
@@ -2925,7 +3147,7 @@ msgstr "Название подзадачи"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:125
 #: src/features/planner/components/AddTaskDialog.tsx:807
-#: src/features/planner/components/FilterPanel.tsx:447
+#: src/features/planner/components/FilterPanel.tsx:458
 #: src/features/planner/components/TaskDetailPanel.tsx:777
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:114
 #: src/features/workspace/components/SettingsPanel.tsx:694
@@ -2988,7 +3210,7 @@ msgstr "Команда"
 
 #: src/features/onboarding/lib/onboardingTour.ts:153
 #: src/features/onboarding/lib/onboardingTour.ts:199
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:502
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:545
 msgid "Team access"
 msgstr "Доступ команды"
 
@@ -3024,9 +3246,13 @@ msgstr "Условия использования"
 msgid "Text value"
 msgstr "Текстовое значение"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:1014
+#: src/features/admin/pages/AdminUsersPage.tsx:1132
 msgid "The database will be replaced with backup {name}."
 msgstr "База данных будет заменена содержимым бэкапа {name}."
+
+#: src/features/auth/components/DataExportButton.tsx:99
+msgid "The previous export file has expired. Request it again."
+msgstr "Срок действия предыдущего файла экспорта истёк. Запросите его ещё раз."
 
 #: src/features/planner/components/TaskDetailDialogs.tsx:28
 msgid "The selected task does not exist or was deleted."
@@ -3040,21 +3266,25 @@ msgstr "Выбранная задача не существует или был�
 #~ msgid "The user will be deleted permanently. This action cannot be undone."
 #~ msgstr "Пользователь будет удалён навсегда. Это действие нельзя отменить."
 
-#: src/features/admin/pages/AdminUsersPage.tsx:933
+#: src/features/admin/pages/AdminUsersPage.tsx:1022
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "Воркспейс и все его данные будут удалены без возможности восстановления."
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx:40
 msgid "there"
-msgstr ""
+msgstr "там"
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:149
+msgid "This action is irreversible after the grace period. Read carefully."
+msgstr "После окончания льготного периода это действие необратимо. Внимательно прочитайте."
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx:69
 msgid "This and following"
 msgstr "Эта и последующие"
 
-#: src/features/planner/components/TaskCommentItem.tsx:165
+#: src/features/planner/components/TaskCommentItem.tsx:171
 msgid "This comment will be permanently removed and cannot be recovered."
-msgstr ""
+msgstr "Этот комментарий будет окончательно удалён и не подлежит восстановлению."
 
 #: src/features/onboarding/lib/onboardingTour.ts:144
 msgid "This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks."
@@ -3080,6 +3310,10 @@ msgstr "эту веху"
 msgid "This month"
 msgstr "Этот месяц"
 
+#: src/features/workspace/components/RenamePurgedDialog.tsx:46
+msgid "This name is reserved."
+msgstr "Это имя зарезервировано."
+
 #: src/features/projects/pages/ProjectsPage.tsx:522
 msgid "this project"
 msgstr "этот проект"
@@ -3100,7 +3334,7 @@ msgstr "Это навсегда удалит «{0}»."
 
 #: src/features/planner/components/TaskDetailDialogs.tsx:116
 msgid "This will permanently delete \"{taskTitle}\"."
-msgstr ""
+msgstr "Это окончательно удалит \\\"{taskTitle}\\\"."
 
 #. placeholder {0}: currentDashboard?.name ?? t`this dashboard`
 #: src/features/dashboard/pages/DashboardPage.tsx:1007
@@ -3118,6 +3352,10 @@ msgstr "Это удалит \"{deleteMilestoneLabel}\" с таймлайна п�
 #: src/features/projects/components/ProjectsDialogs.tsx:554
 msgid "This will remove \"{deleteProjectLabel}\". Tasks will remain, but the project will be cleared from them."
 msgstr "Это удалит «{deleteProjectLabel}». Задачи останутся, но проект будет удален из них."
+
+#: src/features/admin/pages/AdminUsersPage.tsx:1108
+msgid "This will schedule immediate purge for user {forcePurgeTrimmed}. The user must be in PENDING_DELETION. This action cannot be undone."
+msgstr "Для пользователя {forcePurgeTrimmed} будет запланирован немедленный purge. Аккаунт должен быть в PENDING_DELETION. Действие необратимо."
 
 #: src/features/workspace/components/SettingsPanel.tsx:749
 msgid "this workspace"
@@ -3150,8 +3388,8 @@ msgstr "Название Я–А"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx:17
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx:19
-#: src/features/planner/components/timeline/TimelineControls.tsx:178
-#: src/features/planner/components/timeline/TimelineGrid.tsx:501
+#: src/features/planner/components/timeline/TimelineControls.tsx:180
+#: src/features/planner/components/timeline/TimelineGrid.tsx:503
 msgid "Today"
 msgstr "Сегодня"
 
@@ -3189,7 +3427,7 @@ msgstr "Отслеживание"
 
 #: src/app/PageErrorBoundary.tsx:84
 msgid "Try again"
-msgstr ""
+msgstr "Попробовать снова"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:76
 #~ msgid "Tue"
@@ -3198,12 +3436,16 @@ msgstr ""
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:412
 #: src/features/members/components/TaskDetailsDialog.tsx:99
 #: src/features/planner/components/AddTaskDialog.tsx:626
-#: src/features/planner/components/FilterPanel.tsx:414
+#: src/features/planner/components/FilterPanel.tsx:424
 #: src/features/planner/components/TaskDetailPanel.tsx:680
 #: src/features/planner/components/TaskDetailPanel.tsx:683
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:104
 msgid "Type"
 msgstr "Тип"
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:294
+msgid "Type the phrase to confirm:"
+msgstr "Введите фразу для подтверждения:"
 
 #: src/features/planner/components/TaskProjectSelect.tsx:66
 msgid "Type to filter projects..."
@@ -3218,14 +3460,18 @@ msgstr "Типы"
 #: src/features/planner/components/AddTaskDialog.tsx:489
 #: src/features/planner/components/AddTaskDialog.tsx:579
 #: src/features/planner/components/TaskDetailPanel.tsx:200
-#: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:96
+#: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:103
 #: src/features/planner/components/timeline/TaskBar.tsx:126
-#: src/features/planner/components/timeline/TimelineControls.tsx:279
+#: src/features/planner/components/timeline/TimelineControls.tsx:287
 #: src/features/projects/components/ProjectsMainPanel.tsx:356
 #: src/features/projects/components/ProjectsMainPanel.tsx:429
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:83
 msgid "Unassigned"
 msgstr "Без назнач."
+
+#: src/features/auth/components/DataExportButton.tsx:15
+msgid "under a minute"
+msgstr "меньше минуты"
 
 #: src/features/marketing/pages/LandingPage.tsx:465
 msgid "Understand who is overloaded before it becomes a problem. Balance work across the team."
@@ -3242,10 +3488,14 @@ msgstr "неизвестно"
 #: src/features/projects/components/ProjectsMainPanel.tsx:424
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:76
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:106
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:230
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:626
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:235
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:669
 msgid "Unknown"
 msgstr "Неизвестно"
+
+#: src/features/auth/components/DataExportButton.tsx:105
+msgid "unknown error"
+msgstr "неизвестная ошибка"
 
 #: src/shared/lib/workspaceMemberActivity.ts:28
 msgid "Unknown member"
@@ -3263,7 +3513,7 @@ msgid "unknown role"
 msgstr "неизвестная роль"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:18
-#: src/features/auth/components/AccountSettingsDialog.tsx:88
+#: src/features/auth/components/AccountSettingsDialog.tsx:93
 #: src/features/auth/components/InviteNotifications.tsx:712
 #: src/features/auth/components/InviteNotifications.tsx:804
 #: src/features/planner/components/timeline/TaskBar.tsx:124
@@ -3295,13 +3545,13 @@ msgstr "До даты"
 msgid "Up and running in minutes"
 msgstr "Готово за несколько минут"
 
-#: src/features/planner/components/TaskCommentItem.tsx:118
+#: src/features/planner/components/TaskCommentItem.tsx:124
 msgid "Update"
-msgstr ""
+msgstr "Обновить"
 
 #: src/features/projects/components/ProjectsDialogs.tsx:260
 msgid "Update customer name."
-msgstr ""
+msgstr "Обновите название клиента."
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:151
 msgid "Update milestone details."
@@ -3313,7 +3563,7 @@ msgstr "Обновите данные вехи."
 
 #: src/features/dashboard/pages/DashboardPage.tsx:960
 msgid "Update the current dashboard name."
-msgstr ""
+msgstr "Обновите название текущей панели."
 
 #: src/features/auth/components/AvatarEditModal.tsx:114
 msgid "Upload or remove your profile photo."
@@ -3347,29 +3597,34 @@ msgstr "Используйте эту кнопку, чтобы добавить 
 msgid "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 msgstr "Используйте эту кнопку, чтобы добавить людей в рабочее пространство. После присоединения их можно назначать на задачи проекта."
 
+#: src/features/admin/pages/AdminUsersPage.tsx:662
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:92
 msgid "User"
 msgstr "Пользователь"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:857
+#: src/features/admin/pages/AdminUsersPage.tsx:632
+msgid "User UUID"
+msgstr "UUID пользователя"
+
+#: src/features/admin/pages/AdminUsersPage.tsx:946
 msgid "User workspaces"
 msgstr "Воркспейсы пользователя"
 
-#: src/features/admin/pages/AdminUsersPage.tsx:859
+#: src/features/admin/pages/AdminUsersPage.tsx:948
 msgid "View all workspaces where this user is a member."
-msgstr ""
+msgstr "Посмотрите все рабочие пространства, в которых состоит этот пользователь."
 
 #: src/features/planner/components/TaskDetailPanel.tsx:474
 msgid "View and edit task details."
-msgstr ""
+msgstr "Просмотр и редактирование деталей задачи."
 
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:46
 msgid "View task details linked to this project."
-msgstr ""
+msgstr "Просмотрите детали задач, связанных с этим проектом."
 
 #: src/features/members/components/TaskDetailsDialog.tsx:46
 msgid "View task details without leaving the members page."
-msgstr ""
+msgstr "Просмотрите детали задачи, не покидая страницу участников."
 
 #: src/features/members/components/MembersGroupPanel.tsx:250
 msgid "View tasks"
@@ -3381,8 +3636,8 @@ msgstr "наблюдатель"
 
 #: src/features/auth/components/InviteNotifications.tsx:110
 #: src/features/members/pages/MembersPage.tsx:144
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:445
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:548
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:488
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:591
 msgid "Viewer"
 msgstr "Просмотр"
 
@@ -3403,7 +3658,7 @@ msgstr "Следом откроем Team, чтобы показать, где у
 #~ msgstr "Ср"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:64
-#: src/features/planner/components/timeline/TimelineControls.tsx:231
+#: src/features/planner/components/timeline/TimelineControls.tsx:235
 msgid "Week"
 msgstr "Неделя"
 
@@ -3422,6 +3677,10 @@ msgstr "Еженедельный повтор"
 #: src/features/onboarding/lib/onboardingTour.ts:42
 msgid "Welcome to Motio!"
 msgstr "Добро пожаловать в Motio!"
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:187
+msgid "Who takes over?"
+msgstr "Кто возьмёт на себя?"
 
 #: src/features/marketing/pages/LandingPage.tsx:456
 msgid "Why Motio"
@@ -3493,6 +3752,10 @@ msgstr "Шаблон рабочего пространства"
 msgid "Workspaces"
 msgstr "Рабочие пространства"
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:239
+msgid "Workspaces you will simply leave:"
+msgstr "Рабочие пространства, которые вы просто покинете:"
+
 #: src/features/planner/components/RepeatSettingsFields.tsx:70
 msgid "Yearly"
 msgstr "Ежегодно"
@@ -3505,13 +3768,26 @@ msgstr "Ежегодный повтор"
 #~ msgid "You are not signed in."
 #~ msgstr "Вы не вошли в систему."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:397
+#: src/features/auth/components/DeleteAccountWizard.tsx:175
+msgid "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
+msgstr "Вы единственный администратор в этих рабочих пространствах. Выберите преемника или удалите рабочее пространство."
+
+#. placeholder {0}: formatRetryAfter(retryAfter)
+#: src/features/auth/components/DataExportButton.tsx:114
+msgid "You can request a new export in {0}."
+msgstr "Новый экспорт можно запросить через {0}."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:402
 msgid "You cannot remove yourself."
 msgstr "Вы не можете удалить себя."
 
 #: src/features/auth/pages/InvitePage.tsx:45
 #~ msgid "You do not have access to this workspace."
 #~ msgstr "У вас нет доступа к этому воркспейсу."
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:150
+msgid "You have 30 days to restore your account before it is permanently purged."
+msgstr "У вас есть 30 дней, чтобы восстановить аккаунт до его окончательного удаления."
 
 #: src/features/planner/components/AddTaskDialog.tsx:854
 msgid "You have unsaved changes. Close without creating the task?"
@@ -3532,7 +3808,7 @@ msgstr "У вас есть несохраненные изменения вех�
 msgid "You have view access and cannot edit this workspace."
 msgstr "У вас доступ только для просмотра, и вы не можете редактировать это рабочее пространство."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:512
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:555
 msgid "You have view access and cannot manage members."
 msgstr "У вас доступ только для просмотра, и вы не можете управлять участниками."
 
@@ -3542,7 +3818,7 @@ msgstr "У вас доступ только для просмотра, и вы �
 
 #: src/features/planner/components/TaskCommentSection.tsx:111
 msgid "You need to sign in again before adding comments."
-msgstr ""
+msgstr "Войдите снова, чтобы добавлять комментарии."
 
 #: src/features/onboarding/lib/onboardingTour.ts:218
 msgid "You now know where to create work, track progress and add people across Motio."
@@ -3561,9 +3837,26 @@ msgstr "Вы добавлены в новое рабочее пространс�
 msgid "You've been invited to Motio"
 msgstr "Вас пригласили в Motio"
 
+#: src/features/auth/components/DeleteAccountWizard.tsx:325
+msgid "Your account is now pending deletion. You will be redirected to the restore screen the next time you sign in."
+msgstr "Ваш аккаунт ожидает удаления. При следующем входе вы будете перенаправлены на экран восстановления."
+
+#: src/features/auth/components/AccountRestoreScreen.tsx:47
+msgid "Your account is scheduled for deletion"
+msgstr "Ваш аккаунт запланирован к удалению"
+
+#. placeholder {0}: preview.purgeDelayDays
+#: src/features/auth/components/DeleteAccountWizard.tsx:269
+msgid "Your account will be scheduled for deletion in {0} days."
+msgstr "Ваш аккаунт будет запланирован к удалению через {0} дн."
+
+#: src/features/auth/components/DeleteAccountWizard.tsx:277
+msgid "Your display name stays visible in historical comments:"
+msgstr "Ваше отображаемое имя останется видимым в старых комментариях:"
+
 #: src/features/auth/pages/AuthPage.tsx:50
 msgid "Your sign-in session expired. Please continue with Keycloak again."
-msgstr ""
+msgstr "Срок действия сессии истёк. Пожалуйста, войдите снова через Keycloak."
 
 #: src/features/onboarding/lib/onboardingTour.ts:53
 #~ msgid "Your team"
