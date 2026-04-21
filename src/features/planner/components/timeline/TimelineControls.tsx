@@ -159,9 +159,9 @@ export const TimelineControls: React.FC = () => {
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-y-2 gap-x-2 px-2 py-2 md:gap-x-3 md:px-4 md:py-3 border-b border-border bg-card">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:gap-x-3">
+      <div className="flex items-center gap-x-2 gap-y-1 md:gap-x-3 min-w-0 flex-1 md:flex-initial">
         {/* Navigation */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <Button
             variant="outline"
             size="icon"
