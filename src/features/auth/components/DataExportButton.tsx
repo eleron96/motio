@@ -87,12 +87,31 @@ export const DataExportButton: React.FC<Props> = ({ className }) => {
   return (
     <div className={className}>
       {isReady ? (
-        <Button asChild variant="outline" className="w-full">
-          <a href={status.downloadUrl ?? '#'} target="_blank" rel="noreferrer">
-            <Download className="mr-2 h-4 w-4" />
-            {t`Download export`}
-          </a>
-        </Button>
+        // Two side-by-side buttons when an export is ready: download the existing file
+        // OR generate a fresh one (subject to the server-side rate limit, which surfaces
+        // via `retryAfter`).
+        <div className="flex gap-2">
+          <Button asChild variant="outline" className="flex-1">
+            <a href={status.downloadUrl ?? '#'} target="_blank" rel="noreferrer">
+              <Download className="mr-2 h-4 w-4" />
+              {t`Download export`}
+            </a>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleRequest}
+            disabled={loading || isInFlight}
+            className="flex-1"
+            title={t`Generate a new export`}
+          >
+            {loading || isInFlight ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              t`Refresh`
+            )}
+          </Button>
+        </div>
       ) : (
         <Button
           type="button"

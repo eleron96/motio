@@ -38,8 +38,14 @@ const rewriteSignedUrlHost = (signedUrl: string): string => {
   try {
     const parsed = new URL(signedUrl);
     const publicBase = new URL(publicAppUrl);
+    // Replace each piece individually. Note: assigning `parsed.host` keeps the existing
+    // port when the new value omits one — that's why naive `host = publicBase.host` left
+    // `:8080` from the internal gateway URL bleeding through. Set hostname + port
+    // separately and use `publicBase.port` (empty string when default 80/443 is used,
+    // which clears the port on `parsed`).
     parsed.protocol = publicBase.protocol;
-    parsed.host = publicBase.host;
+    parsed.hostname = publicBase.hostname;
+    parsed.port = publicBase.port;
     return parsed.toString();
   } catch {
     return signedUrl;

@@ -1113,7 +1113,7 @@ msgstr "Не повторяется"
 msgid "Done"
 msgstr "Завершено"
 
-#: src/features/auth/components/DataExportButton.tsx:93
+#: src/features/auth/components/DataExportButton.tsx:97
 msgid "Download export"
 msgstr "Скачать экспорт"
 
@@ -1297,7 +1297,7 @@ msgstr "Развернуть фильтры"
 msgid "Expired"
 msgstr "Истекло"
 
-#: src/features/auth/components/DataExportButton.tsx:110
+#: src/features/auth/components/DataExportButton.tsx:129
 msgid "Export my data"
 msgstr "Экспортировать мои данные"
 
@@ -1443,6 +1443,10 @@ msgstr "Общие"
 #: src/features/planner/components/TaskDetailPanel.tsx:801
 #~ msgid "Generate"
 #~ msgstr "Сгенерировать"
+
+#: src/features/auth/components/DataExportButton.tsx:106
+msgid "Generate a new export"
+msgstr "Сформировать новый экспорт"
 
 #: src/features/onboarding/lib/onboardingTour.ts:81
 #: src/features/onboarding/lib/onboardingTour.ts:95
@@ -1665,7 +1669,7 @@ msgid "Language"
 msgstr "Язык"
 
 #. placeholder {0}: status.errorMessage ?? t`unknown error`
-#: src/features/auth/components/DataExportButton.tsx:123
+#: src/features/auth/components/DataExportButton.tsx:142
 msgid "Last export failed: {0}"
 msgstr "Последний экспорт завершился с ошибкой: {0}"
 
@@ -2568,7 +2572,7 @@ msgstr "Разместите задачи на таймлайне. Назнач�
 msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
 
-#: src/features/auth/components/DataExportButton.tsx:107
+#: src/features/auth/components/DataExportButton.tsx:126
 msgid "Preparing your data…"
 msgstr "Готовим ваши данные…"
 
@@ -2663,6 +2667,7 @@ msgstr "Готовы навести порядок в команде?"
 msgid "Recurring"
 msgstr "Повтор"
 
+#: src/features/auth/components/DataExportButton.tsx:111
 #: src/features/members/components/MemberTasksPanel.tsx:273
 #: src/features/projects/components/ProjectsMainPanel.tsx:298
 msgid "Refresh"
@@ -3267,7 +3272,7 @@ msgstr "Текстовое значение"
 msgid "The database will be replaced with backup {name}."
 msgstr "База данных будет заменена содержимым бэкапа {name}."
 
-#: src/features/auth/components/DataExportButton.tsx:117
+#: src/features/auth/components/DataExportButton.tsx:136
 msgid "The previous export file has expired. Request it again."
 msgstr "Срок действия предыдущего файла экспорта истёк. Запросите его ещё раз."
 
@@ -3515,7 +3520,7 @@ msgid "Unknown"
 msgstr "Неизвестно"
 
 #: src/features/auth/components/DataExportButton.tsx:64
-#: src/features/auth/components/DataExportButton.tsx:123
+#: src/features/auth/components/DataExportButton.tsx:142
 msgid "unknown error"
 msgstr "неизвестная ошибка"
 
@@ -3795,7 +3800,7 @@ msgid "You are the sole admin in these workspaces. Pick an heir or delete the wo
 msgstr "Вы единственный администратор в этих рабочих пространствах. Выберите преемника или удалите рабочее пространство."
 
 #. placeholder {0}: formatRetryAfter(retryAfter)
-#: src/features/auth/components/DataExportButton.tsx:132
+#: src/features/auth/components/DataExportButton.tsx:151
 msgid "You can request a new export in {0}."
 msgstr "Новый экспорт можно запросить через {0}."
 
