@@ -28,7 +28,6 @@ const WorkspaceNavItem = ({ end, label, onNavigate, orientation, to, dataTour }:
     <SegmentedControlItem
       asChild
       active={isActive}
-      fullWidth={orientation === 'vertical'}
       inactiveClassName="text-muted-foreground hover:text-foreground"
       size="sm"
     >
@@ -47,12 +46,12 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
   <nav
     data-tour="nav-bar"
     aria-label={t`Workspace sections`}
-    className={cn(orientation === 'vertical' && 'w-full', className)}
+    className={className}
   >
     <SegmentedControl
       orientation={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
       surface={orientation === 'horizontal' ? 'subtle' : 'none'}
-      className={cn(orientation === 'vertical' && 'w-full')}
+      className={cn(orientation === 'vertical' && '!items-start gap-1')}
     >
       {getAppNavigationItems().map((item) => (
         <WorkspaceNavItem

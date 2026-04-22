@@ -81,7 +81,7 @@ export const WorkspaceMobileMenu: React.FC<WorkspaceMobileMenuProps> = ({
         <SheetContent
           side="left"
           aria-describedby={undefined}
-          className="w-[18rem] overflow-y-auto px-4 py-5 sm:max-w-[18rem]"
+          className="w-[15rem] overflow-y-auto px-4 py-5 sm:max-w-[15rem]"
         >
           <SheetHeader className="pr-8 text-left">
             <SheetTitle>{t`Menu`}</SheetTitle>
