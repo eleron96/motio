@@ -343,7 +343,7 @@ export const CalendarTimeline: React.FC = () => {
                                 {isHoliday && (
                                   <div
                                     className={cn(
-                                      'pointer-events-none absolute inset-1 bg-rose-200/70',
+                                      'pointer-events-none absolute inset-x-1 top-0.5 h-7 bg-rose-200/70',
                                       holidayRadius
                                     )}
                                   />
