@@ -359,77 +359,98 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
         {milestoneTooltipCells.map((cell) => {
           const dayMilestones = cell.milestones;
           if (dayMilestones.length === 0) return null;
+          const hasMultiple = dayMilestones.length > 1;
           const visibleChips = dayMilestones.slice(0, MAX_VISIBLE_CHIPS);
           const overflowCount = dayMilestones.length - visibleChips.length;
           const cellLeft = cell.dayIndex * dayWidth;
-          const overflowMilestones = dayMilestones.slice(MAX_VISIBLE_CHIPS);
 
-          return (
+          const chips = visibleChips.map((milestone) => {
+            const project = projectById.get(milestone.projectId);
+            const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
+            const bg = hexToRgba(color, 0.18) ?? color;
+            const border = hexToRgba(color, 0.55) ?? color;
+            const chipButton = (
+              <button
+                type="button"
+                title={milestone.title}
+                className="milestone-chip pointer-events-auto flex w-full min-w-0 select-none items-center gap-1 rounded-sm border px-1 text-left text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+                style={{
+                  backgroundColor: bg,
+                  borderColor: border,
+                  height: 16,
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!hasMultiple) onEditMilestone(milestone);
+                }}
+                onMouseEnter={() => onHover(milestone.date, color)}
+                onMouseLeave={onHoverEnd}
+              >
+                <span
+                  aria-hidden="true"
+                  className="shrink-0 text-[10px] leading-none"
+                  style={{ color }}
+                >
+                  ◆
+                </span>
+                <span className="min-w-0 flex-1 truncate">{milestone.title}</span>
+              </button>
+            );
+
+            if (hasMultiple) {
+              // All chips trigger the same cell-level dropdown with every milestone.
+              return (
+                <DropdownMenuTrigger asChild key={milestone.id}>
+                  {chipButton}
+                </DropdownMenuTrigger>
+              );
+            }
+            return (
+              <ContextMenu key={milestone.id}>
+                <ContextMenuTrigger asChild>{chipButton}</ContextMenuTrigger>
+                {renderContextMenu(milestone.date)}
+              </ContextMenu>
+            );
+          });
+
+          const overflowButton = overflowCount > 0 && (
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label={t`Show ${overflowCount} more milestones`}
+                className="milestone-chip pointer-events-auto flex w-full select-none items-center justify-center rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+                style={{ height: 14 }}
+                onClick={(event) => event.stopPropagation()}
+                onMouseEnter={() => onHover(cell.date, cell.color)}
+                onMouseLeave={onHoverEnd}
+              >
+                +{overflowCount}
+              </button>
+            </DropdownMenuTrigger>
+          );
+
+          const chipsContainer = (
             <div
-              key={`milestone-chips-${cell.date}`}
               className="pointer-events-none absolute inset-y-0 flex flex-col items-stretch justify-start gap-0.5 px-1 py-0.5"
               style={{ left: cellLeft, width: dayWidth }}
             >
-              {visibleChips.map((milestone) => {
-                const project = projectById.get(milestone.projectId);
-                const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
-                const bg = hexToRgba(color, 0.18) ?? color;
-                const border = hexToRgba(color, 0.55) ?? color;
-                return (
-                  <ContextMenu key={milestone.id}>
-                    <ContextMenuTrigger asChild>
-                      <button
-                        type="button"
-                        title={milestone.title}
-                        className="milestone-chip pointer-events-auto flex w-full min-w-0 select-none items-center gap-1 rounded-sm border px-1 text-left text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
-                        style={{
-                          backgroundColor: bg,
-                          borderColor: border,
-                          height: 16,
-                        }}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onEditMilestone(milestone);
-                        }}
-                        onMouseEnter={() => onHover(milestone.date, color)}
-                        onMouseLeave={onHoverEnd}
-                      >
-                        <span
-                          aria-hidden="true"
-                          className="shrink-0 text-[10px] leading-none"
-                          style={{ color }}
-                        >
-                          ◆
-                        </span>
-                        <span className="min-w-0 flex-1 truncate">{milestone.title}</span>
-                      </button>
-                    </ContextMenuTrigger>
-                    {renderContextMenu(milestone.date)}
-                  </ContextMenu>
-                );
-              })}
-              {overflowCount > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      aria-label={t`Show ${overflowCount} more milestones`}
-                      className="milestone-chip pointer-events-auto flex w-full select-none items-center justify-center rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
-                      style={{ height: 14 }}
-                      onClick={(event) => event.stopPropagation()}
-                      onMouseEnter={() => onHover(cell.date, cell.color)}
-                      onMouseLeave={onHoverEnd}
-                    >
-                      +{overflowCount}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="w-72">
-                    {renderMenuItems(overflowMilestones, cell.date)}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+              {chips}
+              {overflowButton}
             </div>
           );
+
+          if (hasMultiple) {
+            return (
+              <DropdownMenu key={`milestone-chips-${cell.date}`}>
+                {chipsContainer}
+                <DropdownMenuContent align="center" className="w-72">
+                  {renderMenuItems(dayMilestones, cell.date)}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            );
+          }
+
+          return <React.Fragment key={`milestone-chips-${cell.date}`}>{chipsContainer}</React.Fragment>;
         })}
       </div>
     </>
