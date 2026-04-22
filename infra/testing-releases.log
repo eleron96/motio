@@ -13,3 +13,4 @@
 2026-03-23T09:25:31Z | 0.3.51 | d4cf1e6 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Added ability to manage group members from Groups tab
 2026-03-30T14:47:52Z | 0.3.55 | 3237d6f | nikogamsahurdia | MacBook-Pro-Niko | target=testing | [internal] Moved task comment image storage from Postgres to Supabase Storage with backward compatibility for legacy attachments.
 2026-03-30T15:05:56Z | 0.3.56 | b4507da | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed task image uploads for files whose names contain Cyrillic or other non-Latin characters.
+2026-04-22T19:40:12Z | 0.4.4 | e4474f3 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Timeline perf: scoped TaskBar store subscriptions, rAF-throttled hover tooltip, removed custom smooth-wheel scroll.
