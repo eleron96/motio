@@ -401,7 +401,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   style={{ width: resolvedSidebarWidth }}
                 >
                   <div className="flex-shrink-0 border-b border-border" style={{ height: HEADER_HEIGHT }} />
-                  <div className="flex-shrink-0 border-b border-border" style={{ height: milestoneRowHeight }} />
+                  <div
+                    className="flex flex-shrink-0 items-center border-b border-border px-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
+                    style={{ height: milestoneRowHeight }}
+                  >
+                    <span className="truncate">{t`Milestones`}</span>
+                  </div>
                 </div>
                 <div className="flex-shrink-0" style={{ width: totalWidth }}>
                   <MilestoneLayer
@@ -411,13 +416,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     milestoneHeaderRowTop={milestoneHeaderRowTop}
                     milestoneHeaderRowHeight={milestoneHeaderRowHeight}
                     milestoneTooltipCells={milestoneTooltipCells}
-                    sortedMilestones={sortedMilestones}
-                    milestonesByDate={milestonesByDate}
-                    milestoneOffsets={milestoneOffsets}
-                    visibleDayIndex={visibleDayIndex}
                     visibleDays={visibleDays}
                     projectById={projectById}
-                    milestoneLine={milestoneLine}
                     canEdit={canEdit}
                     dateLocale={dateLocale}
                     onEditMilestone={handleEditMilestone}

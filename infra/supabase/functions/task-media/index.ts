@@ -27,6 +27,7 @@ const { supabaseAdmin } = createSupabaseClients(supabaseUrl, serviceRoleKey);
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin || "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-workspace-id, x-file-name",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
 };
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -455,6 +456,61 @@ const handleRevoke = async (req: Request, mediaId: string) => {
 };
 
 // ---------------------------------------------------------------------------
+// Delete — removes Storage blob and task_media row (owner or workspace admin)
+// ---------------------------------------------------------------------------
+
+const handleDelete = async (req: Request, mediaId: string) => {
+  if (!supabaseUrl || !serviceRoleKey) {
+    return jsonResponse({ error: "Missing Supabase env vars" }, 500);
+  }
+
+  const authResult = await getAuthUser(req);
+  if ("error" in authResult) {
+    return jsonResponse({ error: authResult.error }, authResult.status ?? 401);
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("task_media")
+    .select("id, owner_id, workspace_id, storage_path")
+    .eq("id", mediaId)
+    .maybeSingle();
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+  if (!data) {
+    return jsonResponse({ success: true, alreadyDeleted: true });
+  }
+
+  if (data.owner_id !== authResult.user.id) {
+    const adminAccess = await ensureWorkspaceAdminAccess(data.workspace_id, authResult.user.id);
+    if ("error" in adminAccess) {
+      return jsonResponse({ error: adminAccess.error }, adminAccess.status ?? 403);
+    }
+  }
+
+  if (data.storage_path) {
+    const { error: storageError } = await supabaseAdmin.storage
+      .from(STORAGE_BUCKET)
+      .remove([data.storage_path]);
+    if (storageError) {
+      return jsonResponse({ error: `Storage delete failed: ${storageError.message}` }, 500);
+    }
+  }
+
+  const { error: deleteError } = await supabaseAdmin
+    .from("task_media")
+    .delete()
+    .eq("id", mediaId);
+
+  if (deleteError) {
+    return jsonResponse({ error: deleteError.message }, 400);
+  }
+
+  return jsonResponse({ success: true });
+};
+
+// ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
 
@@ -477,6 +533,10 @@ export const handler = async (req: Request) => {
 
   if (req.method === "POST" && mediaId && action === "revoke") {
     return handleRevoke(req, mediaId);
+  }
+
+  if (req.method === "DELETE" && mediaId && !action) {
+    return handleDelete(req, mediaId);
   }
 
   return jsonResponse({ error: "Method not allowed" }, 405);
