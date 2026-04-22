@@ -402,9 +402,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 >
                   <div className="flex-shrink-0 border-b border-border" style={{ height: HEADER_HEIGHT }} />
                   <div
-                    className="flex flex-shrink-0 items-center border-b border-border px-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
+                    className="flex flex-shrink-0 items-center justify-center gap-1.5 border-b border-border px-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
                     style={{ height: milestoneRowHeight }}
                   >
+                    <span aria-hidden="true" className="text-[11px] leading-none text-[hsl(16_58%_55%)]">◆</span>
                     <span className="truncate">{t`Milestones`}</span>
                   </div>
                 </div>
