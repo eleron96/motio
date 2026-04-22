@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.3] - 2026-04-22
 ### Added
 - Task-media garbage collection: images are now removed from Storage and `public.task_media` when they are deleted from a task description or when the parent task is deleted (previously they leaked).
 - `DELETE /functions/v1/task-media/:id` endpoint for the media owner or workspace admin.
@@ -16,6 +18,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 - Timeline milestones now render as project-colored chips with the title (max 2 per cell + +N overflow), and the milestone lane now has a localized Milestones label.
+
 ## [0.4.2] - 2026-04-22
 ### Changed
 - No documented changes.

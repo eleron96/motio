@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.3] - 2026-04-22
 ### Added
 - Garbage collection для task-media: при удалении картинки из описания задачи и при удалении самой задачи соответствующий файл теперь удаляется и из Storage, и из таблицы `public.task_media` (ранее оставался "мусором").
 - `DELETE /functions/v1/task-media/:id` эндпоинт для owner / workspace admin.
@@ -16,6 +18,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 - Веха в таймлайне теперь отображается как чип с названием и цветом проекта (максимум 2 в клетке, остальные — в +N), а строка вех подписана локализованным заголовком Вехи.
+
 ## [0.4.2] - 2026-04-22
 ### Changed
 - Нет зафиксированных изменений.
