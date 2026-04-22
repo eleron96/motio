@@ -66,25 +66,23 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
-  const {
-    tasks,
-    projects,
-    trackedProjectIds,
-    statuses,
-    taskTypes,
-    assignees,
-    moveTask,
-    updateTask,
-    removeAssigneeFromTask,
-    deleteTask,
-    deleteTaskSeries,
-    duplicateTask,
-    setSelectedTaskId,
-    selectedTaskId,
-    highlightedTaskId,
-    setHighlightedTaskId,
-    groupMode,
-  } = usePlannerStore();
+  const tasks = usePlannerStore((state) => state.tasks);
+  const projects = usePlannerStore((state) => state.projects);
+  const trackedProjectIds = usePlannerStore((state) => state.trackedProjectIds);
+  const statuses = usePlannerStore((state) => state.statuses);
+  const taskTypes = usePlannerStore((state) => state.taskTypes);
+  const assignees = usePlannerStore((state) => state.assignees);
+  const moveTask = usePlannerStore((state) => state.moveTask);
+  const updateTask = usePlannerStore((state) => state.updateTask);
+  const removeAssigneeFromTask = usePlannerStore((state) => state.removeAssigneeFromTask);
+  const deleteTask = usePlannerStore((state) => state.deleteTask);
+  const deleteTaskSeries = usePlannerStore((state) => state.deleteTaskSeries);
+  const duplicateTask = usePlannerStore((state) => state.duplicateTask);
+  const setSelectedTaskId = usePlannerStore((state) => state.setSelectedTaskId);
+  const selectedTaskId = usePlannerStore((state) => state.selectedTaskId);
+  const highlightedTaskId = usePlannerStore((state) => state.highlightedTaskId);
+  const setHighlightedTaskId = usePlannerStore((state) => state.setHighlightedTaskId);
+  const groupMode = usePlannerStore((state) => state.groupMode);
   const commentCount = usePlannerStore((state) => state.taskCommentCounts?.[task.id] ?? 0);
   
   const [isDragging, setIsDragging] = useState(false);
@@ -157,20 +155,37 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   // Calculate vertical position based on lane
   const topPosition = lane * (TASK_HEIGHT + TASK_GAP);
 
+  const tooltipRafRef = useRef<number | null>(null);
+  const tooltipPendingRef = useRef<{ clientX: number; clientY: number } | null>(null);
+
+  useEffect(() => () => {
+    if (tooltipRafRef.current !== null) {
+      cancelAnimationFrame(tooltipRafRef.current);
+      tooltipRafRef.current = null;
+    }
+  }, []);
+
   const updateTooltipPosition = useCallback((event: React.MouseEvent) => {
-    const offset = 14;
-    const tooltipWidth = 260;
-    const tooltipHeight = 180;
-    const { innerWidth, innerHeight } = window;
-    let x = event.clientX + offset;
-    let y = event.clientY + offset;
-    if (x + tooltipWidth > innerWidth) {
-      x = Math.max(8, event.clientX - tooltipWidth - offset);
-    }
-    if (y + tooltipHeight > innerHeight) {
-      y = Math.max(8, event.clientY - tooltipHeight - offset);
-    }
-    setTooltipPos({ x, y });
+    tooltipPendingRef.current = { clientX: event.clientX, clientY: event.clientY };
+    if (tooltipRafRef.current !== null) return;
+    tooltipRafRef.current = requestAnimationFrame(() => {
+      tooltipRafRef.current = null;
+      const pending = tooltipPendingRef.current;
+      if (!pending) return;
+      const offset = 14;
+      const tooltipWidth = 260;
+      const tooltipHeight = 180;
+      const { innerWidth, innerHeight } = window;
+      let x = pending.clientX + offset;
+      let y = pending.clientY + offset;
+      if (x + tooltipWidth > innerWidth) {
+        x = Math.max(8, pending.clientX - tooltipWidth - offset);
+      }
+      if (y + tooltipHeight > innerHeight) {
+        y = Math.max(8, pending.clientY - tooltipHeight - offset);
+      }
+      setTooltipPos({ x, y });
+    });
   }, []);
   
   const handleMouseDown = useCallback((e: React.MouseEvent, resize?: 'left' | 'right') => {
@@ -282,15 +297,26 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   ]);
 
   // Calculate visual position during drag
-  const visualLeft = isDragging || isResizing === 'left'
-    ? position.left + dragOffset.x
-    : position.left;
-    
-  const visualWidth = isResizing === 'left'
-    ? position.width - dragOffset.x
-    : isResizing === 'right'
-    ? position.width + dragOffset.x
-    : position.width;
+  const visualLeft = useMemo(() => (
+    isDragging || isResizing === 'left'
+      ? position.left + dragOffset.x
+      : position.left
+  ), [isDragging, isResizing, position.left, dragOffset.x]);
+
+  const visualWidth = useMemo(() => {
+    if (isResizing === 'left') return position.width - dragOffset.x;
+    if (isResizing === 'right') return position.width + dragOffset.x;
+    return position.width;
+  }, [isResizing, position.width, dragOffset.x]);
+
+  const barStyle = useMemo(() => ({
+    left: visualLeft,
+    top: topPosition,
+    width: Math.max(visualWidth, dayWidth - 4),
+    height: TASK_HEIGHT,
+    backgroundColor: appearance.backgroundColor,
+    border: appearance.border,
+  }), [visualLeft, topPosition, visualWidth, dayWidth, appearance.backgroundColor, appearance.border]);
 
   const handleStatusChange = (statusId: string) => {
     if (!canEdit || statusId === task.statusId) return;
@@ -368,14 +394,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             isHighlighted && 'task-highlight z-40',
             appearance.isCancelled && 'opacity-60 saturate-50'
           )}
-          style={{
-            left: visualLeft,
-            top: topPosition,
-            width: Math.max(visualWidth, dayWidth - 4),
-            height: TASK_HEIGHT,
-            backgroundColor: appearance.backgroundColor,
-            border: appearance.border,
-          }}
+          style={barStyle}
         >
           {/* Left resize handle */}
           <div

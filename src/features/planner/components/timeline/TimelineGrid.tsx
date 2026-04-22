@@ -24,7 +24,6 @@ import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/h
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { useDragScroll } from './hooks/useDragScroll';
-import { useSmoothWheelScroll } from './hooks/useSmoothWheelScroll';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useTimelineViewport } from './hooks/useTimelineViewport';
 import { useTimelineScroll, LEFT_CONTEXT_DAYS } from './hooks/useTimelineScroll';
@@ -165,8 +164,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   // ─── Custom hooks ─────────────────────────────────────────────────────────
 
   const { isDragScrolling, lastDragTimeRef, handleDragStart } = useDragScroll({ markTimelineInteraction });
-
-  useSmoothWheelScroll(scrollContainerRef);
 
   const { isSidebarResizing, handleSidebarResizeStart, handleSidebarResizeReset } = useSidebarResize({
     sidebarContainerRef,
