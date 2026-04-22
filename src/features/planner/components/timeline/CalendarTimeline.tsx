@@ -338,7 +338,7 @@ export const CalendarTimeline: React.FC = () => {
                             return (
                               <div
                                 key={key}
-                                className="relative flex h-9 w-9 items-center justify-center"
+                                className="relative flex h-11 w-9 flex-col items-center justify-start pt-0.5"
                               >
                                 {isHoliday && (
                                   <div
@@ -351,13 +351,13 @@ export const CalendarTimeline: React.FC = () => {
                                 {inMonth ? (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <div className="relative z-10 flex h-full w-full items-center justify-center">
+                                      <div className="relative z-10 flex w-full flex-col items-center gap-0.5">
                                         {hasMultipleMilestones ? (
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                               <button
                                                 type="button"
-                                                className="relative flex h-full w-full items-center justify-center rounded-md focus-visible:outline-none hover:bg-muted/40"
+                                                className="flex flex-col items-center gap-0.5 rounded-md focus-visible:outline-none hover:bg-muted/40"
                                                 onClick={(event) => event.stopPropagation()}
                                                 aria-label={t`Select milestone`}
                                               >
@@ -371,19 +371,22 @@ export const CalendarTimeline: React.FC = () => {
                                                 >
                                                   {format(day, 'd')}
                                                 </span>
-                                                <span className="pointer-events-none absolute bottom-0.5 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-0.5">
-                                                  {milestonesForDay.map((milestone) => {
+                                                <span className="pointer-events-none flex h-1.5 items-center justify-center gap-0.5">
+                                                  {milestonesForDay.slice(0, 4).map((milestone) => {
                                                     const project = projectById.get(milestone.projectId);
                                                     const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
                                                     const dotColor = hexToRgba(color, 0.8) ?? color;
                                                     return (
                                                       <span
                                                         key={milestone.id}
-                                                        className="h-2 w-2 rounded-full"
+                                                        className="h-1.5 w-1.5 rounded-full"
                                                         style={{ backgroundColor: dotColor }}
                                                       />
                                                     );
                                                   })}
+                                                  {milestonesForDay.length > 4 && (
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" />
+                                                  )}
                                                 </span>
                                               </button>
                                             </DropdownMenuTrigger>
@@ -433,11 +436,11 @@ export const CalendarTimeline: React.FC = () => {
                                             >
                                               {format(day, 'd')}
                                             </button>
-                                            {singleMilestone && (
-                                              <div className="absolute bottom-0.5 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-0.5">
+                                            <div className="flex h-1.5 items-center justify-center gap-0.5">
+                                              {singleMilestone && (
                                                 <button
                                                   type="button"
-                                                  className="inline-flex h-3 w-3 items-center justify-center rounded-full hover:scale-110 transition-transform"
+                                                  className="inline-flex h-1.5 w-1.5 items-center justify-center rounded-full hover:scale-150 transition-transform"
                                                   onClick={(event) => {
                                                     event.preventDefault();
                                                     event.stopPropagation();
@@ -451,12 +454,12 @@ export const CalendarTimeline: React.FC = () => {
                                                   aria-label={t`Edit milestone`}
                                                 >
                                                   <span
-                                                    className="h-2 w-2 rounded-full"
+                                                    className="h-1.5 w-1.5 rounded-full"
                                                     style={{ backgroundColor: singleMilestoneColor }}
                                                   />
                                                 </button>
-                                              </div>
-                                            )}
+                                              )}
+                                            </div>
                                           </>
                                         )}
                                       </div>
