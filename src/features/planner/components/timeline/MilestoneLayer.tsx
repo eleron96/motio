@@ -24,7 +24,7 @@ import { t } from '@lingui/macro';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
-const MAX_MILESTONE_ROWS = 3;
+const MAX_VISIBLE_CHIPS = 2;
 
 interface MilestoneLayerProps {
   /** Width of the full timeline grid (px), used on the row container. */
@@ -359,12 +359,10 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
         {milestoneTooltipCells.map((cell) => {
           const dayMilestones = cell.milestones;
           if (dayMilestones.length === 0) return null;
-          const hasOverflow = dayMilestones.length > MAX_MILESTONE_ROWS;
-          const visibleCount = hasOverflow ? MAX_MILESTONE_ROWS - 1 : dayMilestones.length;
-          const visibleChips = dayMilestones.slice(0, visibleCount);
+          const visibleChips = dayMilestones.slice(0, MAX_VISIBLE_CHIPS);
           const overflowCount = dayMilestones.length - visibleChips.length;
           const cellLeft = cell.dayIndex * dayWidth;
-          const overflowMilestones = dayMilestones.slice(visibleCount);
+          const overflowMilestones = dayMilestones.slice(MAX_VISIBLE_CHIPS);
 
           return (
             <div
@@ -383,7 +381,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                       <button
                         type="button"
                         title={milestone.title}
-                        className="milestone-chip pointer-events-auto flex w-full min-w-0 items-center gap-1 rounded-sm border px-1 text-left text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105"
+                        className="milestone-chip pointer-events-auto flex w-full min-w-0 select-none items-center gap-1 rounded-sm border px-1 text-left text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
                         style={{
                           backgroundColor: bg,
                           borderColor: border,
@@ -416,7 +414,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                     <button
                       type="button"
                       aria-label={t`Show ${overflowCount} more milestones`}
-                      className="milestone-chip pointer-events-auto flex w-full items-center justify-center rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80"
+                      className="milestone-chip pointer-events-auto flex w-full select-none items-center justify-center rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80 focus:outline-none focus-visible:outline-none focus-visible:ring-0"
                       style={{ height: 14 }}
                       onClick={(event) => event.stopPropagation()}
                       onMouseEnter={() => onHover(cell.date, cell.color)}
