@@ -368,11 +368,11 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                       <button
                         type="button"
                         title={milestone.title}
-                        className="milestone-chip pointer-events-auto min-w-0 w-full truncate rounded-sm border px-1 text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105"
+                        className="milestone-chip pointer-events-auto flex w-full min-w-0 items-center rounded-sm border px-1 text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105"
                         style={{
                           backgroundColor: bg,
                           borderColor: border,
-                          height: 15,
+                          height: 16,
                         }}
                         onClick={(event) => {
                           event.stopPropagation();
@@ -381,7 +381,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                         onMouseEnter={() => onHover(milestone.date, color)}
                         onMouseLeave={onHoverEnd}
                       >
-                        {milestone.title}
+                        <span className="min-w-0 flex-1 truncate">{milestone.title}</span>
                       </button>
                     </ContextMenuTrigger>
                     {renderContextMenu(milestone.date)}
@@ -394,8 +394,8 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                     <button
                       type="button"
                       aria-label={t`Show ${overflowCount} more milestones`}
-                      className="milestone-chip pointer-events-auto w-full rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80"
-                      style={{ height: 13 }}
+                      className="milestone-chip pointer-events-auto flex w-full items-center justify-center rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80"
+                      style={{ height: 14 }}
                       onClick={(event) => event.stopPropagation()}
                       onMouseEnter={() => onHover(cell.date, cell.color)}
                       onMouseLeave={onHoverEnd}
