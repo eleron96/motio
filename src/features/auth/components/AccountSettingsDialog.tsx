@@ -33,8 +33,11 @@ interface AccountSettingsDialogProps {
 
 // Shared trigger class — underline style (active tab gets a bottom border + primary color)
 // rather than the default filled pill, to match the handoff "Variant B" design.
+// On mobile we let tabs keep their natural width (left-aligned), on >=sm we stretch
+// them evenly across the sheet so the underline feels balanced.
 const TAB_TRIGGER_CLASS = [
-  'flex-1 gap-2 rounded-none border-b-2 border-transparent bg-transparent px-2 py-2.5',
+  'gap-2 rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5',
+  'sm:flex-1 sm:px-2',
   '-mb-px text-sm font-medium text-muted-foreground shadow-none',
   'data-[state=active]:border-primary data-[state=active]:bg-transparent',
   'data-[state=active]:text-primary data-[state=active]:shadow-none',
@@ -175,8 +178,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex h-full w-[420px] flex-col gap-0 p-0 sm:w-[480px]">
-          <SheetHeader className="px-6 pb-3 pt-6">
+        <SheetContent className="flex h-full w-full max-w-full flex-col gap-0 p-0 sm:w-[480px] sm:max-w-[480px]">
+          <SheetHeader className="px-6 pb-3 pt-6 text-left">
             <SheetTitle>{t`Account settings`}</SheetTitle>
             <SheetDescription className="sr-only">
               {t`Manage your profile and account preferences.`}
@@ -188,7 +191,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
             onValueChange={(v) => setActiveTab(v as typeof activeTab)}
             className="flex flex-1 flex-col overflow-hidden"
           >
-            <TabsList className="h-auto w-full justify-stretch rounded-none border-b bg-transparent p-0 px-5">
+            <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0 px-5 sm:justify-stretch">
               <TabsTrigger value="profile" className={TAB_TRIGGER_CLASS}>
                 <User className="h-4 w-4" />
                 {t`Profile`}
