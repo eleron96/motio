@@ -23,7 +23,7 @@ import { t } from '@lingui/macro';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
-const MAX_VISIBLE_MILESTONE_CHIPS = 2;
+const MAX_MILESTONE_ROWS = 2;
 
 interface MilestoneLayerProps {
   /** Width of the full timeline grid (px), used on the row container. */
@@ -346,10 +346,12 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
         {milestoneTooltipCells.map((cell) => {
           const dayMilestones = cell.milestones;
           if (dayMilestones.length === 0) return null;
-          const visibleChips = dayMilestones.slice(0, MAX_VISIBLE_MILESTONE_CHIPS);
+          const hasOverflow = dayMilestones.length > MAX_MILESTONE_ROWS;
+          const visibleCount = hasOverflow ? MAX_MILESTONE_ROWS - 1 : dayMilestones.length;
+          const visibleChips = dayMilestones.slice(0, visibleCount);
           const overflowCount = dayMilestones.length - visibleChips.length;
           const cellLeft = cell.dayIndex * dayWidth;
-          const overflowMilestones = dayMilestones.slice(MAX_VISIBLE_MILESTONE_CHIPS);
+          const overflowMilestones = dayMilestones.slice(visibleCount);
 
           return (
             <div
