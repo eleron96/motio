@@ -83,6 +83,7 @@ export function useProjectsFilter({
     () => buildGroupedMilestones({
       visibleMilestones,
       milestoneGroupBy,
+      milestoneTab,
       projectById,
       projects,
       sortedCustomers,
@@ -94,7 +95,7 @@ export function useProjectsFilter({
         noCustomer: t`No customer`,
       },
     }),
-    [dateLocale, milestoneGroupBy, nameSort, projectById, projects, sortedCustomers, trackedProjectIds, visibleMilestones],
+    [dateLocale, milestoneGroupBy, milestoneTab, nameSort, projectById, projects, sortedCustomers, trackedProjectIds, visibleMilestones],
   );
 
   const milestoneGroupLabel = useMemo(() => {
