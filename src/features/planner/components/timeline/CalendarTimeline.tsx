@@ -276,7 +276,7 @@ export const CalendarTimeline: React.FC = () => {
             {years.map(([year, yearMonths]) => (
               <div key={year} className="grid gap-4 md:grid-cols-[80px,1fr]">
                 <div className="text-lg font-semibold text-muted-foreground">{year}</div>
-                <div className="grid grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {yearMonths.map((month) => {
                     const monthKey = format(month, 'yyyy-MM');
                     const monthStart = startOfMonth(month);
