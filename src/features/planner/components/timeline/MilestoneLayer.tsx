@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import {
@@ -23,7 +24,7 @@ import { t } from '@lingui/macro';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
-const MAX_MILESTONE_ROWS = 2;
+const MAX_MILESTONE_ROWS = 3;
 
 interface MilestoneLayerProps {
   /** Width of the full timeline grid (px), used on the row container. */
@@ -129,7 +130,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
     </div>
   ), [canEdit, dateLocale, onCreateMilestone, onEditMilestone, projectById]);
 
-  const renderMenuItems = useCallback((dayMilestones: Milestone[]) => (
+  const renderMenuItems = useCallback((dayMilestones: Milestone[], date: string) => (
     <>
       <DropdownMenuLabel>{t`Milestones`}</DropdownMenuLabel>
       {dayMilestones.map((milestone) => {
@@ -159,8 +160,20 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
           </DropdownMenuItem>
         );
       })}
+      {canEdit && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => onCreateMilestone(date)}
+            className="gap-2"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>{t`Create milestone`}</span>
+          </DropdownMenuItem>
+        </>
+      )}
     </>
-  ), [onEditMilestone, projectById]);
+  ), [canEdit, onCreateMilestone, onEditMilestone, projectById]);
 
   const renderContextMenu = useCallback((date: string) => (
     <ContextMenuContent>
@@ -224,7 +237,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                     </HoverCardContent>
                   </HoverCard>
                   <DropdownMenuContent align="center" className="w-72">
-                    {renderMenuItems(cell.milestones)}
+                    {renderMenuItems(cell.milestones, cell.date)}
                   </DropdownMenuContent>
                 </DropdownMenu>
                 {renderContextMenu(cell.date)}
@@ -303,7 +316,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                     </HoverCardContent>
                   </HoverCard>
                   <DropdownMenuContent align="center" className="w-72">
-                    {renderMenuItems(cell.milestones)}
+                    {renderMenuItems(cell.milestones, cell.date)}
                   </DropdownMenuContent>
                 </DropdownMenu>
                 {renderContextMenu(cell.date)}
@@ -406,7 +419,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="center" className="w-72">
-                    {renderMenuItems(overflowMilestones)}
+                    {renderMenuItems(overflowMilestones, cell.date)}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
