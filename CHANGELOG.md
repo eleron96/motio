@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.7] - 2026-04-22
 ### Changed
 - Плашки задач на таймлайне теперь имеют небольшой отступ сверху от границы строки исполнителя — визуально не прилеплены к верхнему краю.
 
