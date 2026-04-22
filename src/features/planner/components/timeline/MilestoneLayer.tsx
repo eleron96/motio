@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Milestone, Project } from '@/features/planner/types/planner';
 import { TimelineMilestoneTooltipCell } from '@/features/planner/lib/timelineMilestoneSelectors';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/shared/ui/hover-card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,7 @@ import {
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { format, parseISO } from 'date-fns';
 import { Locale } from 'date-fns';
+import { Plus } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
@@ -81,7 +82,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
     event.stopPropagation();
   }, [canEdit, dayWidth, onCreateMilestone, visibleDays]);
 
-  const renderTooltipBody = useCallback((date: string, dayMilestones: Milestone[]) => (
+  const renderHoverBody = useCallback((date: string, dayMilestones: Milestone[]) => (
     <div className="space-y-1.5">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
         {format(parseISO(date), 'dd MMM yyyy', { locale: dateLocale })}
@@ -92,9 +93,14 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
           const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
           const dotColor = hexToRgba(color, 0.8) ?? color;
           return (
-            <div key={milestone.id} className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dotColor }} />
-              <div className="min-w-0">
+            <button
+              key={milestone.id}
+              type="button"
+              className="flex w-full items-center gap-2 rounded-sm px-1 py-0.5 text-left hover:bg-muted"
+              onClick={() => onEditMilestone(milestone)}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
+              <div className="min-w-0 flex-1">
                 <div className="truncate">{milestone.title}</div>
                 <div className="truncate text-[10px] text-muted-foreground">
                   {project
@@ -102,7 +108,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                     : t`Project`}
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -110,8 +116,18 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
         <span className="text-muted-foreground">{t`Total milestones`}</span>
         <span className="font-semibold">{dayMilestones.length}</span>
       </div>
+      {canEdit && (
+        <button
+          type="button"
+          className="flex w-full items-center gap-1.5 rounded-sm border border-dashed border-border px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+          onClick={() => onCreateMilestone(date)}
+        >
+          <Plus className="h-3 w-3" />
+          {t`Create milestone`}
+        </button>
+      )}
     </div>
-  ), [dateLocale, projectById]);
+  ), [canEdit, dateLocale, onCreateMilestone, onEditMilestone, projectById]);
 
   const renderMenuItems = useCallback((dayMilestones: Milestone[]) => (
     <>
@@ -160,95 +176,93 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
     </ContextMenuContent>
   ), [canEdit, onCreateMilestone]);
 
-  const tooltipContentClass = 'w-56 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-sm backdrop-blur';
+  const hoverContentClass = 'w-60 rounded-lg border border-border bg-card/95 px-3 py-2 text-xs text-foreground shadow-md backdrop-blur';
 
   return (
     <>
       {/* Calendar header row — children is <TimelineHeader>, milestone cells overlay it */}
       <div className="relative border-b border-border" style={{ width: totalWidth }}>
         {children}
-        <TooltipProvider delayDuration={180}>
-          {milestoneTooltipCells.map((cell) => {
-            const triggerStyle = {
-              left: cell.dayIndex * dayWidth,
-              width: dayWidth,
-              top: milestoneHeaderRowTop,
-              height: milestoneHeaderRowHeight,
-            };
-            const hasMultipleMilestones = cell.milestones.length > 1;
-            if (hasMultipleMilestones) {
-              return (
-                <ContextMenu key={`header-milestone-cell-${cell.date}`}>
-                  <DropdownMenu>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <ContextMenuTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              ref={(node) => {
-                                if (node) {
-                                  milestoneHeaderMenuTriggerRefs.current.set(cell.date, node);
-                                } else {
-                                  milestoneHeaderMenuTriggerRefs.current.delete(cell.date);
-                                }
-                              }}
-                              type="button"
-                              className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
-                              style={triggerStyle}
-                              onClick={(event) => event.stopPropagation()}
-                              onDoubleClick={(event) => event.stopPropagation()}
-                              onMouseEnter={() => onHover(cell.date, cell.color)}
-                              onMouseLeave={onHoverEnd}
-                              aria-label={t`Select milestone`}
-                            />
-                          </DropdownMenuTrigger>
-                        </ContextMenuTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" sideOffset={6} className={tooltipContentClass}>
-                        {renderTooltipBody(cell.date, cell.milestones)}
-                      </TooltipContent>
-                    </Tooltip>
-                    <DropdownMenuContent align="center" className="w-72">
-                      {renderMenuItems(cell.milestones)}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  {renderContextMenu(cell.date)}
-                </ContextMenu>
-              );
-            }
-
-            const singleMilestone = cell.milestones[0];
-            if (!singleMilestone) return null;
-
+        {milestoneTooltipCells.map((cell) => {
+          const triggerStyle = {
+            left: cell.dayIndex * dayWidth,
+            width: dayWidth,
+            top: milestoneHeaderRowTop,
+            height: milestoneHeaderRowHeight,
+          };
+          const hasMultipleMilestones = cell.milestones.length > 1;
+          if (hasMultipleMilestones) {
             return (
               <ContextMenu key={`header-milestone-cell-${cell.date}`}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <ContextMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
-                        style={triggerStyle}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onEditMilestone(singleMilestone);
-                        }}
-                        onDoubleClick={(event) => event.stopPropagation()}
-                        onMouseEnter={() => onHover(cell.date, cell.color)}
-                        onMouseLeave={onHoverEnd}
-                        aria-label={t`Edit milestone`}
-                      />
-                    </ContextMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" sideOffset={6} className={tooltipContentClass}>
-                    {renderTooltipBody(cell.date, cell.milestones)}
-                  </TooltipContent>
-                </Tooltip>
+                <DropdownMenu>
+                  <HoverCard openDelay={180} closeDelay={120}>
+                    <HoverCardTrigger asChild>
+                      <ContextMenuTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            ref={(node) => {
+                              if (node) {
+                                milestoneHeaderMenuTriggerRefs.current.set(cell.date, node);
+                              } else {
+                                milestoneHeaderMenuTriggerRefs.current.delete(cell.date);
+                              }
+                            }}
+                            type="button"
+                            className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                            style={triggerStyle}
+                            onClick={(event) => event.stopPropagation()}
+                            onDoubleClick={(event) => event.stopPropagation()}
+                            onMouseEnter={() => onHover(cell.date, cell.color)}
+                            onMouseLeave={onHoverEnd}
+                            aria-label={t`Select milestone`}
+                          />
+                        </DropdownMenuTrigger>
+                      </ContextMenuTrigger>
+                    </HoverCardTrigger>
+                    <HoverCardContent side="bottom" sideOffset={6} className={hoverContentClass}>
+                      {renderHoverBody(cell.date, cell.milestones)}
+                    </HoverCardContent>
+                  </HoverCard>
+                  <DropdownMenuContent align="center" className="w-72">
+                    {renderMenuItems(cell.milestones)}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 {renderContextMenu(cell.date)}
               </ContextMenu>
             );
-          })}
-        </TooltipProvider>
+          }
+
+          const singleMilestone = cell.milestones[0];
+          if (!singleMilestone) return null;
+
+          return (
+            <ContextMenu key={`header-milestone-cell-${cell.date}`}>
+              <HoverCard openDelay={180} closeDelay={120}>
+                <HoverCardTrigger asChild>
+                  <ContextMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="milestone-cell absolute z-10 cursor-pointer bg-transparent"
+                      style={triggerStyle}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onEditMilestone(singleMilestone);
+                      }}
+                      onDoubleClick={(event) => event.stopPropagation()}
+                      onMouseEnter={() => onHover(cell.date, cell.color)}
+                      onMouseLeave={onHoverEnd}
+                      aria-label={t`Edit milestone`}
+                    />
+                  </ContextMenuTrigger>
+                </HoverCardTrigger>
+                <HoverCardContent side="bottom" sideOffset={6} className={hoverContentClass}>
+                  {renderHoverBody(cell.date, cell.milestones)}
+                </HoverCardContent>
+              </HoverCard>
+              {renderContextMenu(cell.date)}
+            </ContextMenu>
+          );
+        })}
       </div>
 
       {/* Milestone row — bar with chips and interactive cells */}
@@ -257,148 +271,146 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
         style={{ width: totalWidth, height: milestoneRowHeight }}
         onDoubleClick={handleMilestoneRowDoubleClick}
       >
-        <TooltipProvider delayDuration={180}>
-          {milestoneTooltipCells.map((cell) => {
-            const triggerStyle = {
-              left: cell.dayIndex * dayWidth,
-              width: dayWidth,
-            };
-            const hasMultipleMilestones = cell.milestones.length > 1;
-            if (hasMultipleMilestones) {
-              return (
-                <ContextMenu key={`milestone-cell-${cell.date}`}>
-                  <DropdownMenu>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <ContextMenuTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
-                              style={triggerStyle}
-                              onClick={(event) => event.stopPropagation()}
-                              onDoubleClick={(event) => event.stopPropagation()}
-                              onMouseEnter={() => onHover(cell.date, cell.color)}
-                              onMouseLeave={onHoverEnd}
-                              aria-label={t`Select milestone`}
-                            />
-                          </DropdownMenuTrigger>
-                        </ContextMenuTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" sideOffset={6} className={tooltipContentClass}>
-                        {renderTooltipBody(cell.date, cell.milestones)}
-                      </TooltipContent>
-                    </Tooltip>
-                    <DropdownMenuContent align="center" className="w-72">
-                      {renderMenuItems(cell.milestones)}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  {renderContextMenu(cell.date)}
-                </ContextMenu>
-              );
-            }
-
-            const singleMilestone = cell.milestones[0];
-            if (!singleMilestone) return null;
-
+        {milestoneTooltipCells.map((cell) => {
+          const triggerStyle = {
+            left: cell.dayIndex * dayWidth,
+            width: dayWidth,
+          };
+          const hasMultipleMilestones = cell.milestones.length > 1;
+          if (hasMultipleMilestones) {
             return (
               <ContextMenu key={`milestone-cell-${cell.date}`}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <ContextMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
-                        style={triggerStyle}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onEditMilestone(singleMilestone);
-                        }}
-                        onDoubleClick={(event) => event.stopPropagation()}
-                        onMouseEnter={() => onHover(cell.date, cell.color)}
-                        onMouseLeave={onHoverEnd}
-                        aria-label={t`Edit milestone`}
-                      />
-                    </ContextMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" sideOffset={6} className={tooltipContentClass}>
-                    {renderTooltipBody(cell.date, cell.milestones)}
-                  </TooltipContent>
-                </Tooltip>
+                <DropdownMenu>
+                  <HoverCard openDelay={180} closeDelay={120}>
+                    <HoverCardTrigger asChild>
+                      <ContextMenuTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                            style={triggerStyle}
+                            onClick={(event) => event.stopPropagation()}
+                            onDoubleClick={(event) => event.stopPropagation()}
+                            onMouseEnter={() => onHover(cell.date, cell.color)}
+                            onMouseLeave={onHoverEnd}
+                            aria-label={t`Select milestone`}
+                          />
+                        </DropdownMenuTrigger>
+                      </ContextMenuTrigger>
+                    </HoverCardTrigger>
+                    <HoverCardContent side="bottom" sideOffset={6} className={hoverContentClass}>
+                      {renderHoverBody(cell.date, cell.milestones)}
+                    </HoverCardContent>
+                  </HoverCard>
+                  <DropdownMenuContent align="center" className="w-72">
+                    {renderMenuItems(cell.milestones)}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 {renderContextMenu(cell.date)}
               </ContextMenu>
             );
-          })}
+          }
 
-          {milestoneTooltipCells.map((cell) => {
-            const dayMilestones = cell.milestones;
-            if (dayMilestones.length === 0) return null;
-            const visibleChips = dayMilestones.slice(0, MAX_VISIBLE_MILESTONE_CHIPS);
-            const overflowCount = dayMilestones.length - visibleChips.length;
-            const cellLeft = cell.dayIndex * dayWidth;
-            const overflowMilestones = dayMilestones.slice(MAX_VISIBLE_MILESTONE_CHIPS);
+          const singleMilestone = cell.milestones[0];
+          if (!singleMilestone) return null;
 
-            return (
-              <div
-                key={`milestone-chips-${cell.date}`}
-                className="pointer-events-none absolute inset-y-0 flex items-center gap-1 px-1"
-                style={{ left: cellLeft, width: dayWidth }}
-              >
-                {visibleChips.map((milestone) => {
-                  const project = projectById.get(milestone.projectId);
-                  const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
-                  const bg = hexToRgba(color, 0.18) ?? color;
-                  const border = hexToRgba(color, 0.55) ?? color;
-                  return (
-                    <ContextMenu key={milestone.id}>
-                      <ContextMenuTrigger asChild>
-                        <button
-                          type="button"
-                          title={milestone.title}
-                          className="milestone-chip pointer-events-auto min-w-0 flex-1 truncate rounded-sm border px-1 text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105"
-                          style={{
-                            backgroundColor: bg,
-                            borderColor: border,
-                            height: Math.max(milestoneRowHeight - 8, 14),
-                          }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onEditMilestone(milestone);
-                          }}
-                          onMouseEnter={() => onHover(milestone.date, color)}
-                          onMouseLeave={onHoverEnd}
-                        >
-                          {milestone.title}
-                        </button>
-                      </ContextMenuTrigger>
-                      {renderContextMenu(milestone.date)}
-                    </ContextMenu>
-                  );
-                })}
-                {overflowCount > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+          return (
+            <ContextMenu key={`milestone-cell-${cell.date}`}>
+              <HoverCard openDelay={180} closeDelay={120}>
+                <HoverCardTrigger asChild>
+                  <ContextMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="milestone-cell absolute inset-y-0 cursor-pointer bg-transparent"
+                      style={triggerStyle}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onEditMilestone(singleMilestone);
+                      }}
+                      onDoubleClick={(event) => event.stopPropagation()}
+                      onMouseEnter={() => onHover(cell.date, cell.color)}
+                      onMouseLeave={onHoverEnd}
+                      aria-label={t`Edit milestone`}
+                    />
+                  </ContextMenuTrigger>
+                </HoverCardTrigger>
+                <HoverCardContent side="bottom" sideOffset={6} className={hoverContentClass}>
+                  {renderHoverBody(cell.date, cell.milestones)}
+                </HoverCardContent>
+              </HoverCard>
+              {renderContextMenu(cell.date)}
+            </ContextMenu>
+          );
+        })}
+
+        {milestoneTooltipCells.map((cell) => {
+          const dayMilestones = cell.milestones;
+          if (dayMilestones.length === 0) return null;
+          const visibleChips = dayMilestones.slice(0, MAX_VISIBLE_MILESTONE_CHIPS);
+          const overflowCount = dayMilestones.length - visibleChips.length;
+          const cellLeft = cell.dayIndex * dayWidth;
+          const overflowMilestones = dayMilestones.slice(MAX_VISIBLE_MILESTONE_CHIPS);
+
+          return (
+            <div
+              key={`milestone-chips-${cell.date}`}
+              className="pointer-events-none absolute inset-y-0 flex flex-col items-stretch justify-center gap-0.5 px-1 py-0.5"
+              style={{ left: cellLeft, width: dayWidth }}
+            >
+              {visibleChips.map((milestone) => {
+                const project = projectById.get(milestone.projectId);
+                const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
+                const bg = hexToRgba(color, 0.18) ?? color;
+                const border = hexToRgba(color, 0.55) ?? color;
+                return (
+                  <ContextMenu key={milestone.id}>
+                    <ContextMenuTrigger asChild>
                       <button
                         type="button"
-                        aria-label={t`Show ${overflowCount} more milestones`}
-                        className="milestone-chip pointer-events-auto shrink-0 rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80"
-                        style={{ height: Math.max(milestoneRowHeight - 8, 14) }}
-                        onClick={(event) => event.stopPropagation()}
-                        onMouseEnter={() => onHover(cell.date, cell.color)}
+                        title={milestone.title}
+                        className="milestone-chip pointer-events-auto min-w-0 w-full truncate rounded-sm border px-1 text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105"
+                        style={{
+                          backgroundColor: bg,
+                          borderColor: border,
+                          height: 15,
+                        }}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onEditMilestone(milestone);
+                        }}
+                        onMouseEnter={() => onHover(milestone.date, color)}
                         onMouseLeave={onHoverEnd}
                       >
-                        +{overflowCount}
+                        {milestone.title}
                       </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center" className="w-72">
-                      {renderMenuItems(overflowMilestones)}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-            );
-          })}
-        </TooltipProvider>
+                    </ContextMenuTrigger>
+                    {renderContextMenu(milestone.date)}
+                  </ContextMenu>
+                );
+              })}
+              {overflowCount > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={t`Show ${overflowCount} more milestones`}
+                      className="milestone-chip pointer-events-auto w-full rounded-sm border border-border bg-muted px-1 text-[10px] font-semibold leading-none text-muted-foreground hover:bg-muted/80"
+                      style={{ height: 13 }}
+                      onClick={(event) => event.stopPropagation()}
+                      onMouseEnter={() => onHover(cell.date, cell.color)}
+                      onMouseLeave={onHoverEnd}
+                    >
+                      +{overflowCount}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-72">
+                    {renderMenuItems(overflowMilestones)}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          );
+        })}
       </div>
     </>
   );

@@ -699,8 +699,9 @@ msgid "Create a task"
 msgstr "Создай задачу"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:148
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:158
-#: src/features/planner/components/timeline/TimelineHeader.tsx:164
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:126
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:174
+#: src/features/planner/components/timeline/TimelineHeader.tsx:167
 msgid "Create milestone"
 msgstr "Создать веху"
 
@@ -717,7 +718,7 @@ msgid "Create project"
 msgstr "Создать проект"
 
 #: src/features/planner/components/AddTaskDialog.tsx:845
-#: src/features/planner/components/timeline/TimelineRow.tsx:165
+#: src/features/planner/components/timeline/TimelineRow.tsx:168
 msgid "Create task"
 msgstr "Создать задачу"
 
@@ -1100,8 +1101,8 @@ msgstr "Редактировать"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:451
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:148
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:239
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:320
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:254
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:333
 msgid "Edit milestone"
 msgstr "Редактировать веху"
 
@@ -1747,8 +1748,8 @@ msgstr "Название вехи..."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:70
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:391
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:473
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:118
-#: src/features/planner/components/timeline/TimelineGrid.tsx:408
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:134
+#: src/features/planner/components/timeline/TimelineGrid.tsx:409
 #: src/features/projects/components/ProjectsSidebar.tsx:347
 #: src/features/projects/pages/ProjectsPage.tsx:539
 msgid "Milestones"
@@ -2392,8 +2393,8 @@ msgstr "Профиль"
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:410
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:491
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:192
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:102
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:137
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:108
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:153
 #: src/features/planner/components/timeline/TaskBar.tsx:443
 #: src/features/planner/components/timeline/TaskBar.tsx:488
 #: src/features/projects/components/ProjectsMainPanel.tsx:554
@@ -2724,8 +2725,8 @@ msgid "Select language"
 msgstr "Выберите язык"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:362
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:202
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:283
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:217
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:296
 msgid "Select milestone"
 msgstr "Выберите веху"
 
@@ -2774,7 +2775,7 @@ msgstr "Отправленные приглашения"
 msgid "Set up your team workspace in seconds. No credit card needed."
 msgstr "Настройте рабочее пространство за секунды."
 
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:383
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:396
 msgid "Show {overflowCount} more milestones"
 msgstr "Показать ещё {overflowCount} вех"
 
@@ -3138,7 +3139,7 @@ msgstr "Название Я–А"
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx:17
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx:19
 #: src/features/planner/components/timeline/TimelineControls.tsx:180
-#: src/features/planner/components/timeline/TimelineGrid.tsx:503
+#: src/features/planner/components/timeline/TimelineGrid.tsx:504
 msgid "Today"
 msgstr "Сегодня"
 
@@ -3154,7 +3155,7 @@ msgstr "Инструменты"
 msgid "Total"
 msgstr "Всего"
 
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:110
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:116
 msgid "Total milestones"
 msgstr "Всего вех"
 

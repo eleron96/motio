@@ -88,7 +88,7 @@ export const useMilestoneDisplay = ({
 
   // ─── Dimensions ─────────────────────────────────────────────────────────────
 
-  const milestoneRowHeight = 24;
+  const milestoneRowHeight = 40;
   const milestoneDotRadius = 5;
   const milestoneLineTop = HEADER_HEIGHT + milestoneRowHeight / 2 + milestoneDotRadius;
   const milestoneLineHeight = `calc(100% - ${milestoneLineTop}px)`;

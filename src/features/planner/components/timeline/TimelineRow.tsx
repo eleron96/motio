@@ -136,8 +136,10 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
               const dayKey = format(day, 'yyyy-MM-dd');
               const today = dayKey === todayKey;
               const weekend = isWeekend(day);
+              const nextDay = visibleDays[index + 1];
+              const adjacentWeekend = weekend && nextDay !== undefined && isWeekend(nextDay);
               const isHoliday = shouldApplyHolidayHatch(dayKey, weekend, holidayDates);
-              
+
               return (
                 <div
                   key={index}
@@ -145,6 +147,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
                   className={cn(
                     'h-full border-r border-timeline-grid transition-colors relative',
                     weekend && 'bg-timeline-weekend/50',
+                    adjacentWeekend && 'border-r-foreground/20',
                     isHoliday && 'holiday-hatch',
                     today && 'today-hatch'
                   )}
