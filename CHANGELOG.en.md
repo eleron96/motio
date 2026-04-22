@@ -6,7 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Task-media garbage collection: images are now removed from Storage and `public.task_media` when they are deleted from a task description or when the parent task is deleted (previously they leaked).
+- `DELETE /functions/v1/task-media/:id` endpoint for the media owner or workspace admin.
 
+### Fixed
+- Auto `location.reload()` when the browser hits `Failed to fetch dynamically imported module` — tabs opened before a deploy no longer break when they lazy-load a now-rotated chunk (guarded against reload loops via a 10-second cooldown).
+
+
+### Changed
+- Timeline milestones now render as project-colored chips with the title (max 2 per cell + +N overflow), and the milestone lane now has a localized Milestones label.
 ## [0.4.2] - 2026-04-22
 ### Changed
 - No documented changes.

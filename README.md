@@ -346,13 +346,17 @@ npm run lingui:compile    # скомпилировать .po → .js
 | `POST /functions/v1/task-media` | загрузка image; валидация membership + квоты; запись в private bucket `task-media` и metadata в `public.task_media` |
 | `GET /functions/v1/task-media/:id?token=…` | валидация токена, редирект на short-lived signed Storage URL; fallback на legacy `bytea` |
 | `POST /functions/v1/task-media/:id/revoke` | отзыв access token (owner или workspace admin) |
+| `DELETE /functions/v1/task-media/:id` | удаление blob из Storage + строки из `public.task_media` (owner или workspace admin) |
 
 **Хранение:**
 - `tasks.description` хранит URL на `task-media` endpoint;
 - metadata (`workspace_id`, `owner_id`, `byte_size`, `storage_path`, access token hash) — в `public.task_media`;
 - бинарные данные — в private bucket `task-media`.
 
-> ⚠️ Автоматический garbage collection не реализован — удаление картинки из текста не удаляет запись в `task_media`.
+**Garbage collection:**
+- при сохранении описания задачи фронт диффит `description` и удаляет пропавшие `task-media`;
+- при удалении задачи (single / bulk / series) все связанные картинки удаляются вместе с ней;
+- cleanup-вызовы fire-and-forget — сбой GC не блокирует основную операцию, задача остаётся консистентной.
 
 **Legacy migration (из `bytea` в Storage):**
 

@@ -192,7 +192,7 @@ msgstr "Доступ"
 msgid "Access denied"
 msgstr "Нет доступа"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:349
+#: src/features/auth/components/AccountSettingsDialog.tsx:352
 msgid "Account deletion is permanent. We will ask you to confirm your email."
 msgstr "Удаление аккаунта необратимо. Мы попросим подтвердить email."
 
@@ -209,7 +209,7 @@ msgid "Account deletion scheduled."
 msgstr "Удаление аккаунта запланировано."
 
 #: src/features/auth/components/AccountBadgeButton.tsx:27
-#: src/features/auth/components/AccountSettingsDialog.tsx:180
+#: src/features/auth/components/AccountSettingsDialog.tsx:183
 #: src/features/workspace/components/WorkspaceMobileMenu.tsx:142
 msgid "Account settings"
 msgstr "Настройки аккаунта"
@@ -292,7 +292,7 @@ msgstr "Добавить задачи и даты"
 msgid "Add widget"
 msgstr "Добавить виджет"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:231
+#: src/features/auth/components/AccountSettingsDialog.tsx:234
 msgid "Add your name"
 msgstr "Добавьте имя"
 
@@ -481,7 +481,7 @@ msgid "Calendar range"
 msgstr "Диапазон календаря"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:1112
-#: src/features/auth/components/AccountSettingsDialog.tsx:252
+#: src/features/auth/components/AccountSettingsDialog.tsx:255
 #: src/features/auth/components/DeleteAccountWizard.tsx:248
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:733
 #: src/features/dashboard/pages/DashboardPage.tsx:946
@@ -699,7 +699,7 @@ msgid "Create a task"
 msgstr "Создай задачу"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:148
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:166
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:158
 #: src/features/planner/components/timeline/TimelineHeader.tsx:164
 msgid "Create milestone"
 msgstr "Создать веху"
@@ -780,7 +780,7 @@ msgstr "Клиенты"
 msgid "Daily"
 msgstr "Ежедневно"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:317
+#: src/features/auth/components/AccountSettingsDialog.tsx:320
 msgid "Daily brief"
 msgstr "Ежедневный дайджест"
 
@@ -788,7 +788,7 @@ msgstr "Ежедневный дайджест"
 msgid "Daily recurring"
 msgstr "Ежедневный повтор"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:345
+#: src/features/auth/components/AccountSettingsDialog.tsx:348
 #: src/features/workspace/components/SettingsPanel.tsx:495
 msgid "Danger zone"
 msgstr "Опасная зона"
@@ -821,7 +821,7 @@ msgstr "Настройки дашборда"
 msgid "Dashboards"
 msgstr "Дашборды"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:203
+#: src/features/auth/components/AccountSettingsDialog.tsx:206
 msgid "Data"
 msgstr "Данные"
 
@@ -922,7 +922,7 @@ msgstr "Удалить дашборд?"
 msgid "Delete milestone?"
 msgstr "Удалить веху?"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:359
+#: src/features/auth/components/AccountSettingsDialog.tsx:362
 msgid "Delete my account"
 msgstr "Удалить мой аккаунт"
 
@@ -1100,12 +1100,12 @@ msgstr "Редактировать"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:451
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:148
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:247
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:328
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:239
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:320
 msgid "Edit milestone"
 msgstr "Редактировать веху"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:270
+#: src/features/auth/components/AccountSettingsDialog.tsx:273
 msgid "Edit name"
 msgstr "Редактировать имя"
 
@@ -1557,7 +1557,7 @@ msgstr "Продолжайте удерживать заголовок видж�
 msgid "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI-виджеты, столбчатые и area-графики, круговые диаграммы — стройте любой дашборд. Фильтрация по исполнителю, проекту или статусу."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:299
+#: src/features/auth/components/AccountSettingsDialog.tsx:302
 #: src/features/auth/pages/AuthPage.tsx:177
 msgid "Language"
 msgstr "Язык"
@@ -1683,7 +1683,7 @@ msgstr "Управляйте участниками, ролями и пригл�
 msgid "Manage workspace settings, statuses, task types, and tags."
 msgstr "Управляйте настройками рабочего пространства, статусами, типами задач и тегами."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:182
+#: src/features/auth/components/AccountSettingsDialog.tsx:185
 msgid "Manage your profile and account preferences."
 msgstr "Управляйте своим профилем и настройками аккаунта."
 
@@ -1747,7 +1747,8 @@ msgstr "Название вехи..."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:70
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:391
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:473
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:126
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:118
+#: src/features/planner/components/timeline/TimelineGrid.tsx:408
 #: src/features/projects/components/ProjectsSidebar.tsx:347
 #: src/features/projects/pages/ProjectsPage.tsx:539
 msgid "Milestones"
@@ -2350,7 +2351,7 @@ msgstr "Разместите задачи на таймлайне. Назнач�
 msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:198
+#: src/features/auth/components/AccountSettingsDialog.tsx:201
 msgid "Preferences"
 msgstr "Предпочтения"
 
@@ -2379,7 +2380,7 @@ msgstr "Приоритет"
 msgid "Privacy Policy"
 msgstr "Политика конфиденциальности"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:194
+#: src/features/auth/components/AccountSettingsDialog.tsx:197
 msgid "Profile"
 msgstr "Профиль"
 
@@ -2391,8 +2392,8 @@ msgstr "Профиль"
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:410
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:491
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:192
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:110
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:145
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:102
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:137
 #: src/features/planner/components/timeline/TaskBar.tsx:443
 #: src/features/planner/components/timeline/TaskBar.tsx:488
 #: src/features/projects/components/ProjectsMainPanel.tsx:554
@@ -2574,7 +2575,7 @@ msgstr "Щелкните правой кнопкой, чтобы добавит�
 msgid "Role"
 msgstr "Роль"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:237
+#: src/features/auth/components/AccountSettingsDialog.tsx:240
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:736
 #: src/features/dashboard/pages/DashboardPage.tsx:988
 #: src/features/members/components/MembersGroupPanel.tsx:120
@@ -2593,7 +2594,7 @@ msgstr "Сохранить"
 msgid "Save template"
 msgstr "Сохранить шаблон"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:281
+#: src/features/auth/components/AccountSettingsDialog.tsx:284
 msgid "Saved."
 msgstr "Сохранено."
 
@@ -2717,14 +2718,14 @@ msgstr "Выберите страну"
 msgid "Select dashboard"
 msgstr "Выберите дашборд"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:302
+#: src/features/auth/components/AccountSettingsDialog.tsx:305
 #: src/features/auth/pages/AuthPage.tsx:180
 msgid "Select language"
 msgstr "Выберите язык"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:362
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:210
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:291
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:202
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:283
 msgid "Select milestone"
 msgstr "Выберите веху"
 
@@ -2773,7 +2774,11 @@ msgstr "Отправленные приглашения"
 msgid "Set up your team workspace in seconds. No credit card needed."
 msgstr "Настройте рабочее пространство за секунды."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:327
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:383
+msgid "Show {overflowCount} more milestones"
+msgstr "Показать ещё {overflowCount} вех"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx:330
 msgid "Show daily task summary each morning"
 msgstr "Показывать ежедневный дайджест задач по утрам"
 
@@ -2814,7 +2819,7 @@ msgstr "Требуется вход"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:431
 #: src/features/auth/components/AccountRestoreScreen.tsx:74
-#: src/features/auth/components/AccountSettingsDialog.tsx:290
+#: src/features/auth/components/AccountSettingsDialog.tsx:293
 #: src/features/marketing/pages/LandingPage.tsx:375
 msgid "Sign out"
 msgstr "Выйти"
@@ -3149,7 +3154,7 @@ msgstr "Инструменты"
 msgid "Total"
 msgstr "Всего"
 
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:118
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:110
 msgid "Total milestones"
 msgstr "Всего вех"
 
@@ -3258,7 +3263,7 @@ msgid "unknown role"
 msgstr "неизвестная роль"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:18
-#: src/features/auth/components/AccountSettingsDialog.tsx:108
+#: src/features/auth/components/AccountSettingsDialog.tsx:111
 #: src/features/auth/components/InviteNotifications.tsx:739
 #: src/features/auth/components/InviteNotifications.tsx:863
 #: src/features/planner/components/timeline/TaskBar.tsx:124
@@ -3460,7 +3465,7 @@ msgstr "Название рабочего пространства"
 msgid "Workspace not selected."
 msgstr "Рабочее пространство не выбрано."
 
-#: src/features/workspace/components/WorkspaceNav.tsx:49
+#: src/features/workspace/components/WorkspaceNav.tsx:48
 msgid "Workspace sections"
 msgstr "Разделы рабочего пространства"
 

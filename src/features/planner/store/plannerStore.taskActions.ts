@@ -11,6 +11,11 @@ import { supabase } from '@/shared/lib/supabaseClient';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { buildShiftedRepeatTasks } from '@/shared/domain/repeatTaskMove';
 import { buildRepeatSeriesRebuildPlan } from '@/shared/domain/repeatSeriesRebuild';
+import {
+  diffRemovedTaskMediaIds,
+  extractTaskMediaIds,
+} from '@/shared/domain/taskMediaIds';
+import { deleteTaskMediaBatch } from '@/infrastructure/tasks/taskMediaRepository';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -56,6 +61,52 @@ export const createTaskActions = (
     set((state) => ({
       tasks: state.tasks.map((task) => updatedById.get(task.id) ?? task),
     }));
+  };
+
+  /**
+   * Fire-and-forget deletion of task-media blobs whose IDs are no longer
+   * referenced by any task in the current state. Called after DB mutations
+   * succeed. Never blocks the caller — media cleanup is best-effort GC.
+   */
+  const scheduleTaskMediaCleanup = (candidateMediaIds: string[]) => {
+    if (candidateMediaIds.length === 0) return;
+    const orphanIds = candidateMediaIds.filter((mediaId) => (
+      !get().tasks.some((task) => (
+        typeof task.description === 'string'
+          && extractTaskMediaIds(task.description).includes(mediaId)
+      ))
+    ));
+    if (orphanIds.length === 0) return;
+    void deleteTaskMediaBatch(orphanIds);
+  };
+
+  /**
+   * Fetch descriptions for the given task IDs and return every task-media
+   * ID referenced inside them. Used before bulk task deletion to know which
+   * media blobs to GC. Falls back to the in-memory store if the fetch fails.
+   */
+  const collectTaskMediaIdsForIds = async (
+    workspaceId: string,
+    taskIds: string[],
+  ): Promise<string[]> => {
+    if (taskIds.length === 0) return [];
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('description')
+      .eq('workspace_id', workspaceId)
+      .in('id', taskIds);
+
+    if (error) {
+      const fallback = get().tasks
+        .filter((task) => taskIds.includes(task.id))
+        .map((task) => (typeof task.description === 'string' ? task.description : null));
+      return Array.from(new Set(fallback.flatMap((html) => extractTaskMediaIds(html))));
+    }
+
+    const descriptions = ((data ?? []) as Array<{ description: string | null }>)
+      .map((row) => row.description);
+    return Array.from(new Set(descriptions.flatMap((html) => extractTaskMediaIds(html))));
   };
 
   const insertRepeatSeriesTasks = async (params: {
@@ -162,6 +213,13 @@ export const createTaskActions = (
       ));
     }
 
+    const removedMediaIds = (
+      Object.prototype.hasOwnProperty.call(updates, 'description')
+        && typeof baseTask?.description === 'string'
+    )
+      ? diffRemovedTaskMediaIds(baseTask.description, updates.description ?? null)
+      : [];
+
     const repeatScope = (scope !== 'single' && baseTask?.repeatId)
       ? scope
       : 'single';
@@ -183,6 +241,7 @@ export const createTaskActions = (
       }
 
       applyUpdatedRows((data ?? []) as TaskRow[]);
+      scheduleTaskMediaCleanup(removedMediaIds);
       return;
     }
 
@@ -203,6 +262,7 @@ export const createTaskActions = (
     set((state) => ({
       tasks: state.tasks.map((task) => (task.id === id ? updated : task)),
     }));
+    scheduleTaskMediaCleanup(removedMediaIds);
   },
 
   deleteTask: async (id) => {
@@ -214,8 +274,10 @@ export const createTaskActions = (
     const previousHighlightedTaskId = get().highlightedTaskId;
     const previousHighlightedTaskRowAssigneeId = get().highlightedTaskRowAssigneeId;
 
-    // Optimistic remove: при ошибке восстанавливаем state, чтобы не потерять выбранную задачу.
+    // Оптимистично снимаем задачу с UI; если DELETE упадёт, откатим стейт.
     get().removeTasksByIds([id]);
+
+    const mediaIds = await collectTaskMediaIdsForIds(workspaceId, [id]);
 
     const { error } = await supabase
       .from('tasks')
@@ -231,7 +293,10 @@ export const createTaskActions = (
         highlightedTaskId: previousHighlightedTaskId,
         highlightedTaskRowAssigneeId: previousHighlightedTaskRowAssigneeId,
       });
+      return;
     }
+
+    scheduleTaskMediaCleanup(mediaIds);
   },
 
   deleteTasks: async (ids) => {
@@ -245,6 +310,8 @@ export const createTaskActions = (
     const previousHighlightedTaskRowAssigneeId = get().highlightedTaskRowAssigneeId;
 
     get().removeTasksByIds(uniqueIds);
+
+    const mediaIds = await collectTaskMediaIdsForIds(workspaceId, uniqueIds);
 
     const { error } = await supabase
       .from('tasks')
@@ -263,6 +330,7 @@ export const createTaskActions = (
       return { error: error.message };
     }
 
+    scheduleTaskMediaCleanup(mediaIds);
     return {};
   },
 
@@ -722,6 +790,20 @@ export const createTaskActions = (
       get().removeTasksByIds(localSeriesIds);
     }
 
+    const { data: seriesRows, error: seriesLookupError } = await supabase
+      .from('tasks')
+      .select('id, description')
+      .eq('workspace_id', workspaceId)
+      .eq('repeat_id', repeatId)
+      .gte('start_date', fromDate);
+
+    const mediaIds = seriesLookupError
+      ? []
+      : Array.from(new Set(
+        ((seriesRows ?? []) as Array<{ description: string | null }>)
+          .flatMap((row) => extractTaskMediaIds(row.description)),
+      ));
+
     const { error } = await supabase
       .from('tasks')
       .delete()
@@ -737,7 +819,10 @@ export const createTaskActions = (
         highlightedTaskId: previousHighlightedTaskId,
         highlightedTaskRowAssigneeId: previousHighlightedTaskRowAssigneeId,
       });
+      return;
     }
+
+    scheduleTaskMediaCleanup(mediaIds);
   },
 
   removeAssigneeFromTask: async (id, assigneeId, mode) => {

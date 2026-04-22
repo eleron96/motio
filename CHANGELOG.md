@@ -6,7 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Garbage collection для task-media: при удалении картинки из описания задачи и при удалении самой задачи соответствующий файл теперь удаляется и из Storage, и из таблицы `public.task_media` (ранее оставался "мусором").
+- `DELETE /functions/v1/task-media/:id` эндпоинт для owner / workspace admin.
 
+### Fixed
+- Автоматический `location.reload()` при ошибке `Failed to fetch dynamically imported module` — старые вкладки, открытые до деплоя, больше не ломаются при попытке подгрузить уже ротированный chunk (с защитой от reload-петли на 10 секунд).
+
+
+### Changed
+- Веха в таймлайне теперь отображается как чип с названием и цветом проекта (максимум 2 в клетке, остальные — в +N), а строка вех подписана локализованным заголовком Вехи.
 ## [0.4.2] - 2026-04-22
 ### Changed
 - Нет зафиксированных изменений.

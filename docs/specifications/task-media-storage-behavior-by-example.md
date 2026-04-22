@@ -69,3 +69,48 @@ Then:
 - the row is updated with `storage_path`,
 - `content` is cleared to `null`,
 - `byte_size` remains unchanged, so quota calculations keep working through `get_media_usage_bytes`.
+
+## Scenario 5: Removing an image from a task description
+
+Given:
+- a task description references media id `m1`,
+- the same media id is not referenced by any other task the user can see.
+
+When:
+- the user edits the description to drop the image,
+- the planner store saves the new description via `updateTask`.
+
+Then:
+- after the DB update succeeds, the store diffs the old and new descriptions and collects `m1` as a removed id,
+- the store filters out ids that are still referenced by any task in the in-memory state (so duplicate embeds in sibling tasks survive),
+- it calls `DELETE /functions/v1/task-media/m1` fire-and-forget,
+- the edge function verifies the caller is either the owner or a workspace admin,
+- the binary is removed from Storage bucket `task-media` and the row is deleted from `public.task_media`,
+- if the cleanup request fails, the task save itself is not rolled back — the orphan is tolerated until a future scan.
+
+## Scenario 6: Deleting a task with embedded images
+
+Given:
+- a task carries two images (`m1`, `m2`),
+- `m2` is also referenced by a sibling task.
+
+When:
+- the user deletes the task via `deleteTask` / `deleteTasks` / `deleteTaskSeries`.
+
+Then:
+- the store fetches descriptions for the about-to-be-deleted rows *before* issuing the DELETE, so media ids remain recoverable even after the task rows are gone,
+- after the DB delete succeeds, the store schedules cleanup for the collected ids,
+- only ids no longer referenced by any remaining task are sent to `DELETE /functions/v1/task-media/:id` (so `m2` is kept, `m1` is deleted),
+- the edge function removes the blob and the row; failures are logged but do not resurrect the task.
+
+## Scenario 7: Unauthorized delete
+
+Given:
+- the caller is neither the media owner nor a workspace admin.
+
+When:
+- the client calls `DELETE /functions/v1/task-media/:id`.
+
+Then:
+- the function responds with `403 Forbidden`,
+- the Storage blob and the `public.task_media` row remain intact.
