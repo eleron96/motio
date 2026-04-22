@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
+
 ## [0.4.6] - 2026-04-22
 ### Changed
 - Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
