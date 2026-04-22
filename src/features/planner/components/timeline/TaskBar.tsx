@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/classNames';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
-import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
+import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP, ROW_TOP_PADDING } from '@/features/planner/lib/dateUtils';
 import { getTaskBarAppearance } from '@/features/planner/lib/taskBarColors';
 import { Ban, MessageSquare, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
@@ -153,7 +153,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const showTooltip = isHovering && !isDragging && !isResizing;
   
   // Calculate vertical position based on lane
-  const topPosition = lane * (TASK_HEIGHT + TASK_GAP);
+  const topPosition = ROW_TOP_PADDING + lane * (TASK_HEIGHT + TASK_GAP);
 
   const tooltipRafRef = useRef<number | null>(null);
   const tooltipPendingRef = useRef<{ clientX: number; clientY: number } | null>(null);
