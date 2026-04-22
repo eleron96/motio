@@ -383,7 +383,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                       <button
                         type="button"
                         title={milestone.title}
-                        className="milestone-chip pointer-events-auto flex w-full min-w-0 items-center rounded-sm border px-1 text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105"
+                        className="milestone-chip pointer-events-auto flex w-full min-w-0 items-center gap-1 rounded-sm border px-1 text-left text-[10px] font-medium leading-none text-foreground transition-colors hover:brightness-105"
                         style={{
                           backgroundColor: bg,
                           borderColor: border,
@@ -396,6 +396,13 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
                         onMouseEnter={() => onHover(milestone.date, color)}
                         onMouseLeave={onHoverEnd}
                       >
+                        <span
+                          aria-hidden="true"
+                          className="shrink-0 text-[10px] leading-none"
+                          style={{ color }}
+                        >
+                          ◆
+                        </span>
                         <span className="min-w-0 flex-1 truncate">{milestone.title}</span>
                       </button>
                     </ContextMenuTrigger>
