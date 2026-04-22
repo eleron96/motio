@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-04-22
+### Changed
+- Нет зафиксированных изменений.
+
 ## [0.4.0] - 2026-04-22
 ### Added
 - Удаление аккаунта с 30-дневным grace-периодом, экспорт данных и новый tabbed-вид настроек (Profile / Preferences / Data).

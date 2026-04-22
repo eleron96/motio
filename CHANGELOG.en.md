@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-04-22
+### Changed
+- No documented changes.
+
 ## [0.4.0] - 2026-04-22
 ### Added
 - Account deletion with a 30-day grace period, data export, and the new tabbed Account Settings layout (Profile / Preferences / Data).
