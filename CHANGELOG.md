@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-04-22
 ### Changed
 - Ускорение таймлайна: точечные подписки TaskBar на стор, rAF-троттл подсказок при наведении, убран кастомный плавный скролл колёсиком.
 
