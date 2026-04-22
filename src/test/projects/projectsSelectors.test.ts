@@ -77,6 +77,7 @@ describe('projectsSelectors', () => {
     const grouped = buildGroupedMilestones({
       visibleMilestones,
       milestoneGroupBy: 'customer',
+      milestoneTab: 'active',
       projectById: new Map(projects.map((project) => [project.id, project])),
       projects,
       sortedCustomers,
