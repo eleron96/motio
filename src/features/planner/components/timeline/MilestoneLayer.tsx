@@ -354,7 +354,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
           return (
             <div
               key={`milestone-chips-${cell.date}`}
-              className="pointer-events-none absolute inset-y-0 flex flex-col items-stretch justify-center gap-0.5 px-1 py-0.5"
+              className="pointer-events-none absolute inset-y-0 flex flex-col items-stretch justify-start gap-0.5 px-1 py-0.5"
               style={{ left: cellLeft, width: dayWidth }}
             >
               {visibleChips.map((milestone) => {
