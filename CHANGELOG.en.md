@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.9] - 2026-04-22
 ### Fixed
 - Fixed milestone list sorting: the 'Upcoming' tab now shows the soonest dates on top (April → May → July), and the 'Past' tab shows the most recent past dates first.
 
