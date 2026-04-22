@@ -259,3 +259,4 @@
 2026-04-22T13:22:48Z | 0.4.2 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-132159.dump | No documented changes.
 2026-04-22T19:23:17Z | 0.4.3 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-192235.dump | Task-media garbage collection: images are now removed from Storage and `public.task_media` when they are deleted from a task description or when the parent task is deleted (previously they leaked).
 2026-04-22T19:50:59Z | 0.4.5 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-195018.dump | Timeline perf: scoped TaskBar store subscriptions, rAF-throttled hover tooltip, removed custom smooth-wheel scroll.
+2026-04-22T20:24:54Z | 0.4.7 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-202413.dump | Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
