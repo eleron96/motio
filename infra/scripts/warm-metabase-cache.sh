@@ -4,7 +4,7 @@
 # (= 13:00 and 19:00 MSK). Cache TTL is 12h, so the two runs cover the day.
 #
 # Hits each card's /api/card/:id/query endpoint sequentially with a 2s gap
-# so the DB is not hit in parallel. Total runtime ≈ 50s for 21 cards.
+# so the DB is not hit in parallel. Total runtime ≈ 65s for 27 cards.
 #
 # Deploy steps:
 #   1. Put this script at /opt/new_toggl/scripts/warm-metabase-cache.sh
@@ -21,7 +21,7 @@
 set -euo pipefail
 KEY_FILE=/root/.metabase_api_key
 LOG=/var/log/metabase-warm.log
-CARDS="27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47"
+CARDS="27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53"
 
 if [ ! -r "$KEY_FILE" ]; then
   echo "$(date -u +%FT%TZ) FATAL: $KEY_FILE missing" >> "$LOG"
