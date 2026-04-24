@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.12] - 2026-04-24
+### Changed
+- Final landing CTA: 'Try Motio now' headline, updated testing-mode copy, 'Start now' button.
+
 ## [0.4.11] - 2026-04-24
 ### Changed
 - Rewrote the founder block in a personal voice — a real story about BIM and the 'who's working on what this week' problem. Removed the 'Read the manifesto' link.

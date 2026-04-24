@@ -1862,8 +1862,12 @@ msgstr "Motio вырос именно из этой скучной, но оче�
 #~ msgstr "Motio — простой воркспейс для планирования проектов, задач и нагрузки команды на визуальном таймлайне."
 
 #: src/features/marketing/pages/LandingPage.tsx:661
-msgid "Motio is in early access. We're inviting small teams who feel the same coordination pain. No metrics dashboards to game — just a working tool and an honest conversation."
-msgstr "Motio в early access. Открываем доступ небольшим командам, у которых та же боль с координацией. Без метрик ради метрик — рабочий инструмент и честный разговор."
+msgid "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
+msgstr "Motio сейчас в тестовом режиме, но уже открыт для использования. Мы постепенно даём доступ небольшим командам, которым нужно проще понимать, кто чем занят и как распределена работа."
+
+#: src/features/marketing/pages/LandingPage.tsx:661
+#~ msgid "Motio is in early access. We're inviting small teams who feel the same coordination pain. No metrics dashboards to game — just a working tool and an honest conversation."
+#~ msgstr "Motio в early access. Открываем доступ небольшим командам, у которых та же боль с координацией. Без метрик ради метрик — рабочий инструмент и честный разговор."
 
 #: src/features/marketing/pages/LandingPage.tsx:636
 #~ msgid "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
@@ -2379,8 +2383,8 @@ msgid "Open team"
 msgstr "Открыть команду"
 
 #: src/features/marketing/pages/LandingPage.tsx:658
-msgid "Open to a small group of teams"
-msgstr "Открыто для небольшой группы команд"
+#~ msgid "Open to a small group of teams"
+#~ msgstr "Открыто для небольшой группы команд"
 
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx:24
 msgid "Overdue by {diff}d"
@@ -2641,8 +2645,8 @@ msgid "Replace the display name of a deleted (purged) account. The change applie
 msgstr "Заменить отображаемое имя удалённого аккаунта. Изменение применится везде, где упоминается этот пользователь."
 
 #: src/features/marketing/pages/LandingPage.tsx:669
-msgid "Request access →"
-msgstr "Запросить доступ →"
+#~ msgid "Request access →"
+#~ msgstr "Запросить доступ →"
 
 #: src/features/planner/pages/PlannerPage.tsx:366
 msgid "Reset"
@@ -3000,6 +3004,10 @@ msgstr "Дата начала ↓"
 msgid "Start for free →"
 msgstr "Начать бесплатно →"
 
+#: src/features/marketing/pages/LandingPage.tsx:669
+msgid "Start now →"
+msgstr "Начни сейчас →"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:94
 #: src/features/members/components/MemberTasksPanel.tsx:392
 #: src/features/members/components/TaskDetailsDialog.tsx:64
@@ -3313,6 +3321,10 @@ msgstr "Попробовать снова"
 #: src/features/auth/components/InviteNotifications.tsx:826
 msgid "Try again from Account settings."
 msgstr "Попробуйте снова в Настройках аккаунта."
+
+#: src/features/marketing/pages/LandingPage.tsx:658
+msgid "Try Motio now"
+msgstr "Попробуйте Motio сейчас"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:412
 #: src/features/members/components/TaskDetailsDialog.tsx:99
