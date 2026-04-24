@@ -30,7 +30,7 @@ dist-ssr
 .supabase-functions.env
 infra/backups/
 docs/
-marketing/
+/marketing/
 
 # Editor directories and files
 .vscode/*
