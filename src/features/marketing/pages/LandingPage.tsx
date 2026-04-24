@@ -78,8 +78,8 @@ const LandingPage = () => {
   }, [setSignOutRedirectInProgress, signOutRedirectInProgress]);
 
   usePageSeo({
-    title: t`Motio - Team planning in one timeline`,
-    description: t`Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline.`,
+    title: t`Motio — One timeline for your whole team. 10 seconds per task.`,
+    description: t`Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory.`,
     canonicalPath: '/',
     robots: 'index, follow',
   });
@@ -463,7 +463,7 @@ const LandingPage = () => {
               { icon: '📅', bg: '#eff6ff', title: t`Visual timeline`,       body: t`See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly.` },
               { icon: '🗂️', bg: '#f0fdf4', title: t`Projects & milestones`,  body: t`Group tasks by project, set milestones, and track progress without switching tools.` },
               { icon: '👥', bg: '#fdf4ff', title: t`Team workload`,           body: t`Understand who is overloaded before it becomes a problem. Balance work across the team.` },
-              { icon: '🔔', bg: '#fff7ed', title: t`Notifications`,           body: t`Stay in the loop when tasks are assigned or updated. No more missed deadlines.` },
+              { icon: '☀️', bg: '#fff7ed', title: t`Daily Brief`,             body: t`Each morning starts with a short brief — what's on you today, which milestones are this week, where the team needs you. Before you open anything else.` },
             ] as const).map((card, i) => (
               <div
                 key={i}
@@ -555,6 +555,45 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* ── SELF-HOSTED / SSO ── */}
+        <section className="mx-auto w-full max-w-[1200px] px-4 pt-24 sm:px-6 lg:px-10">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 sm:px-12 sm:py-16">
+            <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-14">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  {t`Your infrastructure`}
+                </p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl" style={{ letterSpacing: '-0.5px' }}>
+                  {t`For teams that own their data`}
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-slate-500 sm:text-base">
+                  {t`Motio runs on your infrastructure. No "our cloud" lock-in, no data leaves your perimeter. Built for teams who need to answer "where does our data live?" before they can adopt anything.`}
+                </p>
+              </div>
+
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {([
+                  { icon: '🖥️', title: t`Self-hosted`,        body: t`Docker Compose. Postgres. Your servers, your rules.` },
+                  { icon: '🔐', title: t`SSO via Keycloak`,    body: t`Plug into your identity provider out of the box.` },
+                  { icon: '💾', title: t`Backup & restore`,    body: t`Full snapshot from the admin console. Restore in one command.` },
+                  { icon: '🚪', title: t`No SaaS lock-in`,     body: t`Open source schema. Export everything, leave anytime.` },
+                ] as const).map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4"
+                  >
+                    <span className="text-lg leading-none">{item.icon}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-500">{item.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
         {/* ── HOW IT WORKS ── */}
         <section className="mx-auto w-full max-w-[900px] px-4 pt-24 text-center sm:px-6 lg:px-10">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl" style={{ letterSpacing: '-0.5px' }}>
@@ -578,15 +617,50 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* ── WHY I BUILT THIS ── */}
+        <section className="mx-auto w-full max-w-[760px] px-4 pt-24 sm:px-6 lg:px-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            {t`Why I built this`}
+          </p>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl" style={{ letterSpacing: '-0.5px' }}>
+            {t`The tool I wanted to use`}
+          </h2>
+          <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-slate-600 sm:text-base">
+            <p>
+              {t`I'm Niko. I spent years coordinating projects across BIM teams, contractors and design groups — and I kept hitting the same wall. Existing tools showed me what people were doing. None showed me when, and together.`}
+            </p>
+            <p>
+              {t`Monday I'd open three tabs to answer one question: who's free this week. By Wednesday someone was overloaded and I found out at the retro. That's the boring problem Motio is built around.`}
+            </p>
+            <p>
+              {t`Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature.`}
+            </p>
+            <p>
+              {t`If "who's doing what this week" is a recurring question for your team, I'd like to talk.`}
+            </p>
+            <p className="text-slate-500">
+              <Trans>
+                — Niko ·{' '}
+                <Link
+                  to="/manifesto"
+                  className="font-medium text-slate-700 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-blue-600"
+                >
+                  Read the manifesto
+                </Link>
+              </Trans>
+            </p>
+          </div>
+        </section>
+
         {/* ── CTA BOTTOM ── */}
         <div className="mx-auto w-full max-w-[1200px] px-4 py-24 sm:px-6 lg:px-10">
           <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-8 py-16 text-center">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(99,102,241,0.15),transparent_70%)]" />
             <h2 className="relative text-2xl font-bold text-white sm:text-3xl lg:text-4xl" style={{ letterSpacing: '-0.5px' }}>
-              {t`Ready to bring clarity to your team?`}
+              {t`Open to a small group of teams`}
             </h2>
-            <p className="relative mt-3 text-base text-slate-400">
-              {t`Join teams already planning smarter with Motio.`}
+            <p className="relative mx-auto mt-4 max-w-xl text-base leading-relaxed text-slate-400">
+              {t`Motio is in early access. We're inviting small teams who feel the same coordination pain. No metrics dashboards to game — just a working tool and an honest conversation.`}
             </p>
             <div className="relative mt-8">
               <Button
@@ -594,7 +668,7 @@ const LandingPage = () => {
                 className="bg-white text-slate-900 hover:bg-slate-100"
                 size="lg"
               >
-                <Link to="/app">{t`Get started for free →`}</Link>
+                <Link to="/app">{t`Request access →`}</Link>
               </Button>
             </div>
           </div>
