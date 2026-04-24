@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.11] - 2026-04-24
+### Changed
+- Rewrote the founder block in a personal voice — a real story about BIM and the 'who's working on what this week' problem. Removed the 'Read the manifesto' link.
+
 ## [0.4.10] - 2026-04-24
 ### Changed
 - Landing page refresh: new positioning, self-hosted & SSO section, honest early-access CTA, founder intro block.
