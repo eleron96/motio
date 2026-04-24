@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.13] - 2026-04-24
+### Changed
+- No documented changes.
+
 ## [0.4.12] - 2026-04-24
 ### Changed
 - Final landing CTA: 'Try Motio now' headline, updated testing-mode copy, 'Start now' button.
