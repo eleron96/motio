@@ -261,3 +261,4 @@
 2026-04-22T19:50:59Z | 0.4.5 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-195018.dump | Timeline perf: scoped TaskBar store subscriptions, rAF-throttled hover tooltip, removed custom smooth-wheel scroll.
 2026-04-22T20:24:54Z | 0.4.7 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-202413.dump | Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
 2026-04-22T21:19:57Z | 0.4.9 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-211916.dump | Fixed milestone list sorting: the 'Upcoming' tab now shows the soonest dates on top (April → May → July), and the 'Past' tab shows the most recent past dates first.
+2026-04-24T11:49:50Z | 0.4.13 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260424-114902.dump | No documented changes.
