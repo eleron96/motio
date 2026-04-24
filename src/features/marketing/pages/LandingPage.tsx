@@ -627,27 +627,25 @@ const LandingPage = () => {
           </h2>
           <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-slate-600 sm:text-base">
             <p>
-              {t`I'm Niko. I spent years coordinating projects across BIM teams, contractors and design groups — and I kept hitting the same wall. Existing tools showed me what people were doing. None showed me when, and together.`}
+              {t`I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem.`}
             </p>
             <p>
-              {t`Monday I'd open three tabs to answer one question: who's free this week. By Wednesday someone was overloaded and I found out at the retro. That's the boring problem Motio is built around.`}
+              {t`Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week.`}
             </p>
             <p>
-              {t`Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature.`}
+              {t`On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late — at the retro, in a chat thread, or after a missed deadline.`}
             </p>
             <p>
-              {t`If "who's doing what this week" is a recurring question for your team, I'd like to talk.`}
+              {t`Motio grew out of exactly this boring but very real problem.`}
             </p>
-            <p className="text-slate-500">
-              <Trans>
-                — Niko ·{' '}
-                <Link
-                  to="/manifesto"
-                  className="font-medium text-slate-700 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-blue-600"
-                >
-                  Read the manifesto
-                </Link>
-              </Trans>
+            <p>
+              {t`It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what.`}
+            </p>
+            <p>
+              {t`Any task takes 10 seconds to add. Not because we forgot to ship more features — because that's the product's position.`}
+            </p>
+            <p>
+              {t`If the question "who's working on what this week" keeps coming up in your team, it's time to try Motio.`}
             </p>
           </div>
         </section>

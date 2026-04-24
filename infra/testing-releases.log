@@ -17,3 +17,4 @@
 2026-04-22T20:15:36Z | 0.4.6 | ec7e511 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
 2026-04-22T21:03:03Z | 0.4.8 | 1a9bce3 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed milestone list sorting: the 'Upcoming' tab now shows the soonest dates on top (April → May → July), and the 'Past' tab shows the most recent past dates first.
 2026-04-24T10:12:06Z | 0.4.10 | cc8189b | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Landing page refresh: new positioning, self-hosted & SSO section, honest early-access CTA, founder intro block.
+2026-04-24T10:31:19Z | 0.4.11 | eaad68e | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Rewrote the founder block in a personal voice — a real story about BIM and the 'who's working on what this week' problem. Removed the 'Read the manifesto' link.

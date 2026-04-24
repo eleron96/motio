@@ -14,8 +14,8 @@ msgstr ""
 "Plural-Forms: \n"
 
 #: src/features/marketing/pages/LandingPage.tsx:642
-msgid "— Niko · <0>Read the manifesto</0>"
-msgstr "— Niko · <0>Read the manifesto</0>"
+#~ msgid "— Niko · <0>Read the manifesto</0>"
+#~ msgstr "— Niko · <0>Read the manifesto</0>"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:86
 #: src/features/projects/components/ProjectsMainPanel.tsx:247
@@ -360,6 +360,10 @@ msgstr "All tasks"
 #: src/features/marketing/pages/LandingPage.tsx:487
 msgid "Analytics"
 msgstr "Analytics"
+
+#: src/features/marketing/pages/LandingPage.tsx:645
+msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features — because that's the product's position."
+msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more features — because that's the product's position."
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx:42
 msgid "Apply changes to repeating tasks?"
@@ -1017,7 +1021,7 @@ msgstr "Deleting…"
 msgid "Description"
 msgstr "Description"
 
-#: src/features/marketing/pages/LandingPage.tsx:700
+#: src/features/marketing/pages/LandingPage.tsx:698
 msgid "Designed and developed by <0>NIKO G.</0>"
 msgstr "Designed and developed by <0>NIKO G.</0>"
 
@@ -1511,12 +1515,20 @@ msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "I agree to the <0>Privacy Policy</0>"
 
 #: src/features/marketing/pages/LandingPage.tsx:630
-msgid "I'm Niko. I spent years coordinating projects across BIM teams, contractors and design groups — and I kept hitting the same wall. Existing tools showed me what people were doing. None showed me when, and together."
-msgstr "I'm Niko. I spent years coordinating projects across BIM teams, contractors and design groups — and I kept hitting the same wall. Existing tools showed me what people were doing. None showed me when, and together."
+msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
+msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
+
+#: src/features/marketing/pages/LandingPage.tsx:630
+#~ msgid "I'm Niko. I spent years coordinating projects across BIM teams, contractors and design groups — and I kept hitting the same wall. Existing tools showed me what people were doing. None showed me when, and together."
+#~ msgstr "I'm Niko. I spent years coordinating projects across BIM teams, contractors and design groups — and I kept hitting the same wall. Existing tools showed me what people were doing. None showed me when, and together."
 
 #: src/features/marketing/pages/LandingPage.tsx:639
-msgid "If \"who's doing what this week\" is a recurring question for your team, I'd like to talk."
-msgstr "If \"who's doing what this week\" is a recurring question for your team, I'd like to talk."
+#~ msgid "If \"who's doing what this week\" is a recurring question for your team, I'd like to talk."
+#~ msgstr "If \"who's doing what this week\" is a recurring question for your team, I'd like to talk."
+
+#: src/features/marketing/pages/LandingPage.tsx:648
+msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
+msgstr "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx:19
 msgid "In {diff} days"
@@ -1570,6 +1582,10 @@ msgstr "Invited by"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
 msgid "Invites"
 msgstr "Invites"
+
+#: src/features/marketing/pages/LandingPage.tsx:642
+msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
+msgstr "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
 
 #: src/features/auth/components/AccountRestoreScreen.tsx:53
 msgid "It will be permanently purged {purgeLabel}."
@@ -1801,8 +1817,8 @@ msgid "Mine"
 msgstr "Mine"
 
 #: src/features/marketing/pages/LandingPage.tsx:633
-msgid "Monday I'd open three tabs to answer one question: who's free this week. By Wednesday someone was overloaded and I found out at the retro. That's the boring problem Motio is built around."
-msgstr "Monday I'd open three tabs to answer one question: who's free this week. By Wednesday someone was overloaded and I found out at the retro. That's the boring problem Motio is built around."
+#~ msgid "Monday I'd open three tabs to answer one question: who's free this week. By Wednesday someone was overloaded and I found out at the retro. That's the boring problem Motio is built around."
+#~ msgstr "Monday I'd open three tabs to answer one question: who's free this week. By Wednesday someone was overloaded and I found out at the retro. That's the boring problem Motio is built around."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:82
 msgid "Monochrome"
@@ -1825,6 +1841,10 @@ msgstr "Monthly"
 msgid "Monthly recurring"
 msgstr "Monthly recurring"
 
+#: src/features/marketing/pages/LandingPage.tsx:633
+msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
+msgstr "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
+
 #: src/features/marketing/pages/LandingPage.tsx:81
 #~ msgid "Motio - Team planning in one timeline"
 #~ msgstr "Motio - Team planning in one timeline"
@@ -1833,17 +1853,21 @@ msgstr "Monthly recurring"
 msgid "Motio — One timeline for your whole team. 10 seconds per task."
 msgstr "Motio — One timeline for your whole team. 10 seconds per task."
 
+#: src/features/marketing/pages/LandingPage.tsx:639
+msgid "Motio grew out of exactly this boring but very real problem."
+msgstr "Motio grew out of exactly this boring but very real problem."
+
 #: src/features/marketing/pages/LandingPage.tsx:82
 #~ msgid "Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline."
 #~ msgstr "Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline."
 
-#: src/features/marketing/pages/LandingPage.tsx:663
+#: src/features/marketing/pages/LandingPage.tsx:661
 msgid "Motio is in early access. We're inviting small teams who feel the same coordination pain. No metrics dashboards to game — just a working tool and an honest conversation."
 msgstr "Motio is in early access. We're inviting small teams who feel the same coordination pain. No metrics dashboards to game — just a working tool and an honest conversation."
 
 #: src/features/marketing/pages/LandingPage.tsx:636
-msgid "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
-msgstr "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
+#~ msgid "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
+#~ msgstr "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
 
 #: src/features/marketing/pages/LandingPage.tsx:409
 msgid "Motio keeps tasks, projects and workload in one shared workspace — no chaos, no spreadsheets."
@@ -2284,6 +2308,10 @@ msgstr "OK"
 msgid "On"
 msgstr "On"
 
+#: src/features/marketing/pages/LandingPage.tsx:636
+msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late — at the retro, in a chat thread, or after a missed deadline."
+msgstr "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late — at the retro, in a chat thread, or after a missed deadline."
+
 #: src/features/marketing/pages/LandingPage.tsx:399
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "One <0>clear timeline</0><1/> for your whole team"
@@ -2350,7 +2378,7 @@ msgstr "Open source schema. Export everything, leave anytime."
 msgid "Open team"
 msgstr "Open team"
 
-#: src/features/marketing/pages/LandingPage.tsx:660
+#: src/features/marketing/pages/LandingPage.tsx:658
 msgid "Open to a small group of teams"
 msgstr "Open to a small group of teams"
 
@@ -2456,7 +2484,7 @@ msgstr "Previous"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/features/marketing/pages/LandingPage.tsx:689
+#: src/features/marketing/pages/LandingPage.tsx:687
 msgid "Privacy Policy"
 msgstr "Privacy Policy"
 
@@ -2612,7 +2640,7 @@ msgstr "Repeats until the selected date."
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 
-#: src/features/marketing/pages/LandingPage.tsx:671
+#: src/features/marketing/pages/LandingPage.tsx:669
 msgid "Request access →"
 msgstr "Request access →"
 
@@ -3075,7 +3103,7 @@ msgstr "Team"
 msgid "Team access"
 msgstr "Team access"
 
-#: src/features/marketing/pages/LandingPage.tsx:683
+#: src/features/marketing/pages/LandingPage.tsx:681
 msgid "Team planning workspace."
 msgstr "Team planning workspace."
 
@@ -3099,7 +3127,7 @@ msgstr "Template is used for all new workspaces."
 msgid "Template saved."
 msgstr "Template saved."
 
-#: src/features/marketing/pages/LandingPage.tsx:696
+#: src/features/marketing/pages/LandingPage.tsx:694
 msgid "Terms of Service"
 msgstr "Terms of Service"
 
