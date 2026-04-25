@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Bold, Italic, Underline, Strikethrough, List, ListOrdered, Quote, Image } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import { sanitizeTaskRichText } from '@/shared/lib/sanitizer';
 import { Button } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/sonner';
 import { cn } from '@/shared/lib/classNames';
@@ -30,32 +30,7 @@ const normalizePlainText = (text: string) => text.replace(/\u00a0/g, ' ');
 
 const isEmptyText = (text: string) => normalizePlainText(text).trim().length === 0;
 
-const sanitizeHtml = (value: string) => {
-  if (typeof window === 'undefined') return value;
-  return DOMPurify.sanitize(value, {
-    ALLOWED_TAGS: [
-      'b',
-      'strong',
-      'i',
-      'em',
-      'u',
-      's',
-      'strike',
-      'ul',
-      'ol',
-      'li',
-      'blockquote',
-      'br',
-      'div',
-      'p',
-      'span',
-      'img',
-    ],
-    ALLOWED_ATTR: ['src', 'alt', 'style', 'width', 'height'],
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|data:image\/)|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
-    ALLOWED_CSS_PROPERTIES: ['width', 'height'],
-  });
-};
+const sanitizeHtml = sanitizeTaskRichText;
 
 const sanitizeEditorHtml = (editor: HTMLDivElement) => {
   const clone = editor.cloneNode(true) as HTMLDivElement;

@@ -18,8 +18,8 @@ import {
   Underline,
   AtSign,
 } from 'lucide-react';
-import DOMPurify from 'dompurify';
 import { t } from '@lingui/macro';
+import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
@@ -125,20 +125,7 @@ const extractEditorValue = (editor: HTMLDivElement): string => {
     const img = wrapper.querySelector('img');
     if (img) wrapper.replaceWith(img); else wrapper.remove();
   });
-  const html = DOMPurify.sanitize(normalizeTaskCommentEditorHtml(clone.innerHTML), {
-    ALLOWED_TAGS: [
-      'b', 'strong', 'i', 'em', 'u', 's', 'strike',
-      'ul', 'ol', 'li', 'blockquote',
-      'br', 'div', 'p', 'span', 'img',
-    ],
-    ALLOWED_ATTR: [
-      'src', 'alt', 'style', 'width', 'height',
-      'class', 'data-mention-user-id', 'data-mention-name', 'contenteditable',
-    ],
-    ALLOWED_URI_REGEXP:
-      /^(?:(?:https?|mailto|data:image\/)|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
-    ALLOWED_CSS_PROPERTIES: ['width', 'height'],
-  });
+  const html = sanitizeCommentRichText(normalizeTaskCommentEditorHtml(clone.innerHTML));
   const text = editor.innerText ?? '';
   const hasImages = /<img\b/i.test(html);
   if (!hasImages && isEmpty(text)) return '';
