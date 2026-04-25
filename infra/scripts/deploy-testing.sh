@@ -33,6 +33,7 @@ rsync_output="$(
     --exclude 'dist' \
     --exclude '.env' \
     --exclude 'docs/' \
+    --exclude 'infra/seeds/' \
     --exclude 'infra/backups' \
     --exclude 'infra/caddy/Caddyfile' \
     --exclude 'infra/caddy/Caddyfile.testing' \
