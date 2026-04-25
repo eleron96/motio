@@ -1092,4 +1092,18 @@
     <sqlFile path="../migrations/0078_improve_data_export_payload.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <changeSet id="0079_restrict_invite_reads_to_admins.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0079_restrict_invite_reads_to_admins.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0079_restrict_invite_reads_to_admins.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>
