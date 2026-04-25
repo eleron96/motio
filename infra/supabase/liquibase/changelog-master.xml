@@ -881,6 +881,20 @@
     <sqlFile path="../migrations/0063_add_task_comment_counts_rpc.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <changeSet id="0064_fix_member_group_fk_set_null.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0064_fix_member_group_fk_set_null.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0064_fix_member_group_fk_set_null.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
   <changeSet id="0065_add_media_usage_bytes_rpc.sql" author="timeline" runInTransaction="true">
     <preConditions onFail="MARK_RAN" onError="HALT">
       <or>
