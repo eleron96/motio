@@ -520,23 +520,29 @@ docker compose -f "$compose_file" --env-file "$env_file" run --rm migrate
 if command -v curl >/dev/null 2>&1; then
   bootstrap_url="http://localhost:8080/functions/v1/admin"
   bootstrap_payload='{"action":"bootstrap.sync"}'
-  bootstrap_ok=0
-  for attempt in {1..20}; do
-    status_code=$(curl -sS -o /dev/null -w "%{http_code}" \
-      -X POST \
-      -H "Content-Type: application/json" \
-      -d "$bootstrap_payload" \
-      "$bootstrap_url" || true)
-    if [[ "$status_code" == "200" ]]; then
-      echo "Keycloak sync bootstrap completed (HTTP $status_code)."
-      bootstrap_ok=1
-      break
-    fi
-    sleep 2
-  done
+  bootstrap_service_key=$(grep -E '^SERVICE_ROLE_KEY=' "$env_file" | head -n1 | cut -d= -f2- || true)
+  if [[ -z "$bootstrap_service_key" ]]; then
+    echo "Warning: SERVICE_ROLE_KEY not found in $env_file; skipping Keycloak sync bootstrap." >&2
+  else
+    bootstrap_ok=0
+    for attempt in {1..20}; do
+      status_code=$(curl -sS -o /dev/null -w "%{http_code}" \
+        -X POST \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer ${bootstrap_service_key}" \
+        -d "$bootstrap_payload" \
+        "$bootstrap_url" || true)
+      if [[ "$status_code" == "200" ]]; then
+        echo "Keycloak sync bootstrap completed (HTTP $status_code)."
+        bootstrap_ok=1
+        break
+      fi
+      sleep 2
+    done
 
-  if [[ "$bootstrap_ok" -ne 1 ]]; then
-    echo "Warning: could not confirm Keycloak sync bootstrap. Check functions logs." >&2
+    if [[ "$bootstrap_ok" -ne 1 ]]; then
+      echo "Warning: could not confirm Keycloak sync bootstrap. Check functions logs." >&2
+    fi
   fi
 else
   echo "Warning: curl is not installed, skipping Keycloak sync bootstrap request." >&2
