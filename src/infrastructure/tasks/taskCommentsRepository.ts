@@ -1,5 +1,5 @@
-import DOMPurify from 'dompurify';
 import { supabase } from '@/shared/lib/supabaseClient';
+import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import type { CommentAuthorStatus, TaskComment } from '@/features/planner/types/planner';
 
 // ---------------------------------------------------------------------------
@@ -25,31 +25,7 @@ export const COMMENT_MAX_PLAIN_LENGTH = 1000;
 // Sanitisation
 // ---------------------------------------------------------------------------
 
-/**
- * Sanitises comment HTML.  Allows the same tags as the task description editor
- * plus `data-mention-user-id` and `data-mention-name` on <span> for @mentions.
- */
-export const sanitizeCommentHtml = (value: string): string => {
-  if (typeof window === 'undefined') return value;
-  return DOMPurify.sanitize(value, {
-    ALLOWED_TAGS: [
-      'b', 'strong', 'i', 'em', 'u', 's', 'strike',
-      'ul', 'ol', 'li',
-      'blockquote',
-      'br', 'div', 'p', 'span', 'img',
-    ],
-    ALLOWED_ATTR: [
-      'src', 'alt', 'style', 'width', 'height',
-      'class',
-      'data-mention-user-id',
-      'data-mention-name',
-      'contenteditable',
-    ],
-    ALLOWED_URI_REGEXP:
-      /^(?:(?:https?|mailto|data:image\/)|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
-    ALLOWED_CSS_PROPERTIES: ['width', 'height'],
-  });
-};
+export const sanitizeCommentHtml = sanitizeCommentRichText;
 
 /**
  * Returns the plain-text character count (strips HTML tags).
