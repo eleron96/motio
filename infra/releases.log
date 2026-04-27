@@ -269,3 +269,4 @@
 2026-04-25T10:06:17Z | 0.4.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-100532.dump | No documented changes.
 2026-04-25T10:27:34Z | 0.4.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-102647.dump | No documented changes.
 2026-04-25T10:47:20Z | 0.4.20 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-104634.dump | No documented changes.
+2026-04-27T11:07:14Z | 0.4.21 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260427-110626.dump | Landing: removed em-dashes, copy reads more naturally.
