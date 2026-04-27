@@ -8,7 +8,7 @@ import {
   parseISO,
 } from 'date-fns';
 
-export type RepeatSeriesFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+export type RepeatSeriesFrequency = 'daily' | 'weekly' | 'biweekly' | 'fourweekly' | 'monthly' | 'yearly';
 export type RepeatSeriesEnds = 'never' | 'on' | 'after';
 
 export type RepeatSeriesRebuildTask = {
@@ -57,6 +57,8 @@ const addInterval = (
       return addWeeks(date, step);
     case 'biweekly':
       return addWeeks(date, step * 2);
+    case 'fourweekly':
+      return addWeeks(date, step * 4);
     case 'monthly':
       return addMonths(date, step);
     case 'yearly':

@@ -24,11 +24,14 @@ dist-ssr
 .env.*
 !.env.example
 !.env.compose.example
+!infra/metabase/.env.metabase.example
 .supabase
 .supabase-functions.log
 .supabase-functions.env
 infra/backups/
+infra/seeds/
 docs/
+/marketing/
 
 # Editor directories and files
 .vscode/*

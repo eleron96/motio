@@ -929,6 +929,12 @@ export const handler = async (req: Request) => {
   const action = payload.action;
 
   if (action === ADMIN_ACTIONS.BOOTSTRAP_SYNC) {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
+    if (!token || token !== serviceRoleKey) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+
     const reserveResult = await ensureReserveAdminOnce();
     if ("error" in reserveResult) {
       return jsonResponse({ error: reserveResult.error }, 503);
@@ -945,9 +951,6 @@ export const handler = async (req: Request) => {
     });
   }
 
-  await ensureReserveAdminOnce();
-  await ensureKeycloakMigrationOnce();
-
   const authResult = await getAuthUser(req);
   if ("error" in authResult) {
     return jsonResponse({ error: authResult.error }, authResult.status ?? 401);
@@ -957,6 +960,9 @@ export const handler = async (req: Request) => {
   if (!isSuperAdmin) {
     return jsonResponse({ error: "Forbidden" }, 403);
   }
+
+  await ensureReserveAdminOnce();
+  await ensureKeycloakMigrationOnce();
 
   switch (action) {
     case ADMIN_ACTIONS.USERS_LIST:

@@ -14,6 +14,8 @@ rsync_output="$(
     --exclude 'node_modules' \
     --exclude 'dist' \
     --exclude '.env' \
+    --exclude 'docs/' \
+    --exclude 'infra/seeds/' \
     --exclude 'infra/backups' \
     --exclude 'infra/caddy/Caddyfile' \
     "${root_dir}/" "${host}:${remote_dir}/"

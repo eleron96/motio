@@ -138,7 +138,7 @@ export const ProjectsMainPanel = ({
   const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
 
   return (
-    <section className="h-full min-h-0 min-w-0 overflow-hidden flex flex-col">
+    <section data-tour="projects-main-panel" className="h-full min-h-0 min-w-0 overflow-hidden flex flex-col">
       {mode === 'projects' ? (
         <>
           {!selectedProject && (
@@ -221,7 +221,11 @@ export const ProjectsMainPanel = ({
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
+                      <Button
+                        data-tour="projects-assignee-filter"
+                        variant="outline"
+                        className={isMobile ? 'w-full justify-between' : undefined}
+                      >
                         {assigneeFilterLabel}
                       </Button>
                     </PopoverTrigger>

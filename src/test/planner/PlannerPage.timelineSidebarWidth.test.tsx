@@ -1,6 +1,7 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import PlannerPage from '@/features/planner/pages/PlannerPage';
 import { getTimelineSidebarWidthStorageKey } from '@/features/planner/lib/timelineSidebarWidthStorage';
 
@@ -146,7 +147,11 @@ describe('PlannerPage timeline sidebar width', () => {
   });
 
   it('persists a new width when TimelineGrid reports sidebar resize', async () => {
-    render(<PlannerPage />);
+    render(
+      <MemoryRouter>
+        <PlannerPage />
+      </MemoryRouter>,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: 'resize timeline sidebar' }));
 

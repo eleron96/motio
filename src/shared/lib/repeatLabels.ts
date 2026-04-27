@@ -7,6 +7,8 @@ export const formatRepeatCadenceLabel = (cadence: RepeatCadence) => {
       return t`Daily recurring`;
     case 'weekly':
       return t`Weekly recurring`;
+    case 'fourweekly':
+      return t`Every 4 weeks recurring`;
     case 'monthly':
       return t`Monthly recurring`;
     case 'yearly':

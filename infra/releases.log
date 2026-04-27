@@ -225,3 +225,48 @@
 2026-03-23T09:34:48Z | 0.3.52 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-093406.dump | No documented changes.
 2026-03-23T10:09:09Z | 0.3.53 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260323-100828.dump | No documented changes.
 2026-03-27T15:29:27Z | 0.3.54 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260327-152845.dump | No documented changes.
+2026-03-30T15:26:45Z | 0.3.57 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260330-152603.dump | No documented changes.
+2026-03-30T15:35:26Z | 0.3.58 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260330-153443.dump | No documented changes.
+2026-03-31T06:13:01Z | 0.3.59 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260331-061221.dump | No documented changes.
+2026-03-31T07:02:42Z | 0.3.60 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260331-070201.dump | No documented changes.
+2026-03-31T07:13:04Z | 0.3.61 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260331-071224.dump | No documented changes.
+2026-03-31T12:56:31Z | 0.3.62 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260331-125551.dump | No documented changes.
+2026-03-31T13:01:42Z | 0.3.63 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260331-130101.dump | No documented changes.
+2026-03-31T13:09:16Z | 0.3.64 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260331-130836.dump | No documented changes.
+2026-03-31T13:14:21Z | 0.3.65 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260331-131340.dump | No documented changes.
+2026-04-01T10:06:41Z | 0.3.66 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260401-100601.dump | No documented changes.
+2026-04-01T18:28:01Z | 0.3.67 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260401-182713.dump | No documented changes.
+2026-04-03T09:16:45Z | 0.3.68 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-091547.dump | No documented changes.
+2026-04-03T09:33:35Z | 0.3.69 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-093252.dump | Enable transaction tracing in GlitchTip (tracesSampleRate 20%)
+2026-04-03T09:42:39Z | 0.3.70 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-094156.dump | No documented changes.
+2026-04-03T14:35:51Z | 0.3.71 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-143508.dump | No documented changes.
+2026-04-03T14:51:33Z | 0.3.72 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-145051.dump | No documented changes.
+2026-04-03T14:56:21Z | 0.3.73 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-145538.dump | No documented changes.
+2026-04-03T16:32:58Z | 0.3.74 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-163215.dump | No documented changes.
+2026-04-03T16:45:41Z | 0.3.75 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-164457.dump | No documented changes.
+2026-04-03T20:54:11Z | 0.3.76 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-205330.dump | No documented changes.
+2026-04-03T20:57:19Z | 0.3.77 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260403-205637.dump | No documented changes.
+2026-04-04T09:41:13Z | 0.3.78 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260404-094027.dump | No documented changes.
+2026-04-04T14:52:04Z | 0.3.79 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260404-145106.dump | No documented changes.
+2026-04-04T15:09:06Z | 0.3.80 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260404-150822.dump | No documented changes.
+2026-04-06T09:46:37Z | 0.3.81 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260406-094552.dump | No documented changes.
+2026-04-12T19:50:57Z | 0.3.82 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260412-195011.dump | No documented changes.
+2026-04-14T10:25:07Z | 0.3.83 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260414-102406.dump | No documented changes.
+2026-04-19T19:48:30Z | 0.3.84 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260419-194742.dump | No documented changes.
+2026-04-21T12:08:55Z | 0.3.85 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260421-120812.dump | No documented changes.
+2026-04-22T12:40:20Z | 0.4.0 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-123915.dump | Account deletion with a 30-day grace period, data export, and the new tabbed Account Settings layout (Profile / Preferences / Data).
+2026-04-22T13:10:38Z | 0.4.1 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-130950.dump | No documented changes.
+2026-04-22T13:22:48Z | 0.4.2 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-132159.dump | No documented changes.
+2026-04-22T19:23:17Z | 0.4.3 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-192235.dump | Task-media garbage collection: images are now removed from Storage and `public.task_media` when they are deleted from a task description or when the parent task is deleted (previously they leaked).
+2026-04-22T19:50:59Z | 0.4.5 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-195018.dump | Timeline perf: scoped TaskBar store subscriptions, rAF-throttled hover tooltip, removed custom smooth-wheel scroll.
+2026-04-22T20:24:54Z | 0.4.7 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-202413.dump | Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
+2026-04-22T21:19:57Z | 0.4.9 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-211916.dump | Fixed milestone list sorting: the 'Upcoming' tab now shows the soonest dates on top (April → May → July), and the 'Past' tab shows the most recent past dates first.
+2026-04-24T11:49:50Z | 0.4.13 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260424-114902.dump | No documented changes.
+2026-04-24T14:49:18Z | 0.4.14 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260424-144833.dump | No documented changes.
+2026-04-25T08:48:23Z | 0.4.15 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-084738.dump | No documented changes.
+2026-04-25T09:12:26Z | 0.4.16 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-091139.dump | No documented changes.
+2026-04-25T09:45:10Z | 0.4.17 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-094412.dump | No documented changes.
+2026-04-25T10:06:17Z | 0.4.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-100532.dump | No documented changes.
+2026-04-25T10:27:34Z | 0.4.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-102647.dump | No documented changes.
+2026-04-25T10:47:20Z | 0.4.20 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-104634.dump | No documented changes.
+2026-04-27T11:07:14Z | 0.4.21 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260427-110626.dump | Landing: removed em-dashes, copy reads more naturally.

@@ -121,6 +121,7 @@ export const MembersSidebar = ({
           <SegmentedControlItem
             active={mode === 'tasks'}
             onClick={() => onModeChange('tasks')}
+            data-tour="members-people-tab"
           >
             {t`People`}
           </SegmentedControlItem>
@@ -128,6 +129,7 @@ export const MembersSidebar = ({
             <SegmentedControlItem
               active={mode === 'access'}
               onClick={() => onModeChange('access')}
+              data-tour="members-access-tab"
             >
               {t`Access`}
             </SegmentedControlItem>
@@ -135,6 +137,7 @@ export const MembersSidebar = ({
           <SegmentedControlItem
             active={mode === 'groups'}
             onClick={() => onModeChange('groups')}
+            data-tour="members-groups-tab"
           >
             {t`Groups`}
           </SegmentedControlItem>

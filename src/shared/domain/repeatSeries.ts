@@ -4,7 +4,7 @@ type RepeatComparableTask = {
   startDate: string;
 };
 
-export type RepeatCadence = 'generic' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type RepeatCadence = 'generic' | 'daily' | 'weekly' | 'fourweekly' | 'monthly' | 'yearly';
 
 export const inferRepeatCadence = (tasks: RepeatComparableTask[]): RepeatCadence => {
   if (tasks.length < 2) return 'generic';
@@ -14,7 +14,8 @@ export const inferRepeatCadence = (tasks: RepeatComparableTask[]): RepeatCadence
   const diffDays = Math.abs(differenceInCalendarDays(second, first));
   if (diffDays === 1) return 'daily';
   if (diffDays === 7) return 'weekly';
-  if (diffDays >= 28 && diffDays <= 31) return 'monthly';
+  if (diffDays === 28) return 'fourweekly';
+  if (diffDays >= 29 && diffDays <= 31) return 'monthly';
   if (diffDays >= 364 && diffDays <= 366) return 'yearly';
   return 'generic';
 };

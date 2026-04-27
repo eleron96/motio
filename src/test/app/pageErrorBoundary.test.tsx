@@ -7,6 +7,25 @@ vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray) => strings[0],
 }));
 
+const boundaryMocks = vi.hoisted(() => ({
+  isRecoverableImportError: vi.fn(() => false),
+  reloadCurrentPage: vi.fn(),
+  reloadForRecoverableImportError: vi.fn(() => false),
+  captureException: vi.fn(),
+}));
+
+vi.mock('@/shared/lib/recoverableImportError', () => ({
+  isRecoverableImportError: boundaryMocks.isRecoverableImportError,
+  reloadCurrentPage: boundaryMocks.reloadCurrentPage,
+  reloadForRecoverableImportError: boundaryMocks.reloadForRecoverableImportError,
+}));
+
+vi.mock('@/shared/lib/sentry', () => ({
+  Sentry: {
+    captureException: boundaryMocks.captureException,
+  },
+}));
+
 import { PageErrorBoundary } from '@/app/PageErrorBoundary';
 
 // ---------------------------------------------------------------------------
@@ -45,6 +64,11 @@ describe('PageErrorBoundary', () => {
   beforeEach(() => {
     // Suppress the expected console.error calls that React emits during error handling.
     consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    boundaryMocks.isRecoverableImportError.mockReturnValue(false);
+    boundaryMocks.reloadCurrentPage.mockReset();
+    boundaryMocks.reloadForRecoverableImportError.mockReset();
+    boundaryMocks.reloadForRecoverableImportError.mockReturnValue(false);
+    boundaryMocks.captureException.mockReset();
   });
 
   afterEach(() => {
@@ -124,5 +148,37 @@ describe('PageErrorBoundary', () => {
       expect.any(Error),
       expect.any(String),
     );
+  });
+
+  it('triggers recoverable import reload flow without rendering the raw chunk URL', () => {
+    boundaryMocks.isRecoverableImportError.mockReturnValue(true);
+    boundaryMocks.reloadForRecoverableImportError.mockReturnValue(true);
+
+    render(
+      <PageErrorBoundary>
+        <AlwaysThrowingComponent message="Failed to fetch dynamically imported module: https://motio.nikog.net/assets/AuthPage-B0CeTuqf.js" />
+      </PageErrorBoundary>,
+    );
+
+    expect(
+      screen.queryByText(
+        'Failed to fetch dynamically imported module: https://motio.nikog.net/assets/AuthPage-B0CeTuqf.js',
+      ),
+    ).not.toBeInTheDocument();
+    expect(boundaryMocks.reloadForRecoverableImportError).toHaveBeenCalledWith(expect.any(Error));
+  });
+
+  it('hard reloads when clicking "Try again" for a recoverable import error', () => {
+    boundaryMocks.isRecoverableImportError.mockReturnValue(true);
+
+    render(
+      <PageErrorBoundary>
+        <AlwaysThrowingComponent message="Failed to fetch dynamically imported module: https://motio.nikog.net/assets/AuthPage-B0CeTuqf.js" />
+      </PageErrorBoundary>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
+
+    expect(boundaryMocks.reloadCurrentPage).toHaveBeenCalledTimes(1);
   });
 });

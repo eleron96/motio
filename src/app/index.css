@@ -496,3 +496,167 @@
 .timeline-drag-scroll-active .milestone-cell {
   pointer-events: none !important;
 }
+
+/* Onboarding tour (driver.js) */
+.motio-tour-popover {
+  --driver-overlay-opacity: 0.65;
+  font-family: var(--font-sans);
+}
+
+.motio-tour-popover .driver-popover {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.18), 0 2px 8px -2px rgba(0, 0, 0, 0.10);
+  color: hsl(var(--card-foreground));
+  max-width: calc(100vw - 2rem) !important;
+  min-width: fit-content !important;
+  padding: 1.5rem 1.5rem 1.25rem;
+  width: fit-content !important;
+}
+
+/* Arrow */
+.motio-tour-popover .driver-popover-arrow-side-left.driver-popover-arrow,
+.motio-tour-popover .driver-popover-arrow-side-right.driver-popover-arrow,
+.motio-tour-popover .driver-popover-arrow-side-top.driver-popover-arrow,
+.motio-tour-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-color: hsl(var(--card)) transparent transparent transparent;
+}
+
+/* Close button */
+.motio-tour-popover .driver-popover-close-btn {
+  color: hsl(var(--muted-foreground));
+  font-size: 1.125rem;
+  line-height: 1;
+  opacity: 0.6;
+  top: 1rem;
+  right: 1rem;
+}
+.motio-tour-popover .driver-popover-close-btn:hover {
+  opacity: 1;
+}
+
+/* Title */
+.motio-tour-popover .driver-popover-title {
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.375rem;
+}
+
+/* Description */
+.motio-tour-popover .driver-popover-description {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  line-height: 1.55;
+  margin-bottom: 0;
+}
+
+/* Divider before footer */
+.motio-tour-popover .driver-popover-footer {
+  align-items: center;
+  border-top: 1px solid hsl(var(--border));
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  margin-top: 1.125rem;
+  padding-top: 0.875rem;
+}
+
+.motio-tour-popover .driver-popover-footer button {
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-shadow: none;
+  -webkit-font-smoothing: antialiased;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+
+/* Progress text */
+.motio-tour-popover .driver-popover-progress-text {
+  color: hsl(var(--muted-foreground));
+  flex: 0 0 auto;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Nav buttons group */
+.motio-tour-popover .driver-popover-navigation-btns {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.375rem;
+  margin-left: auto;
+}
+
+/* Shared size for ALL footer buttons */
+.motio-tour-popover .driver-popover-navigation-btns button,
+.motio-tour-popover .motio-tour-skip-btn {
+  border-radius: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  height: 2rem;
+  line-height: 1;
+  padding: 0 0.875rem;
+  white-space: nowrap;
+}
+
+/* Next / Done button */
+.motio-tour-popover .driver-popover-next-btn {
+  background-color: hsl(var(--primary));
+  border: 1px solid transparent;
+  color: hsl(var(--primary-foreground));
+}
+.motio-tour-popover .driver-popover-next-btn:hover {
+  background-color: hsl(var(--primary) / 0.88);
+}
+
+/* Prev button */
+.motio-tour-popover .driver-popover-prev-btn {
+  background-color: transparent;
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+.motio-tour-popover .driver-popover-prev-btn:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+/* Skip button */
+.motio-tour-popover .motio-tour-skip-btn {
+  background-color: transparent;
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+  font-weight: 500;
+  transition: background-color 0.15s, color 0.15s;
+}
+.motio-tour-popover .motio-tour-skip-btn:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+/* Dark mode */
+.dark .motio-tour-popover .driver-popover {
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.45), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .motio-tour-popover .driver-popover {
+    min-width: 0;
+    padding: 1.25rem 1.25rem 1rem;
+  }
+
+  .motio-tour-popover .driver-popover-footer {
+    flex-wrap: wrap;
+  }
+
+  .motio-tour-popover .driver-popover-navigation-btns {
+    margin-left: auto;
+  }
+}

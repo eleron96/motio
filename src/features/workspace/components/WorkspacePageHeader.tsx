@@ -54,6 +54,7 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
           {primaryAction}
           {showSettingsButton && (
             <Button
+              data-tour="settings-btn"
               variant="outline"
               size="icon"
               onClick={onOpenSettings}
