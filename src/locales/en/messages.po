@@ -362,8 +362,8 @@ msgid "Analytics"
 msgstr "Analytics"
 
 #: src/features/marketing/pages/LandingPage.tsx:645
-msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features — because that's the product's position."
-msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more features — because that's the product's position."
+msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
+msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx:42
 msgid "Apply changes to repeating tasks?"
@@ -1113,8 +1113,8 @@ msgid "During this period, you can sign in to restore the account."
 msgstr "During this period, you can sign in to restore the account."
 
 #: src/features/marketing/pages/LandingPage.tsx:466
-msgid "Each morning starts with a short brief — what's on you today, which milestones are this week, where the team needs you. Before you open anything else."
-msgstr "Each morning starts with a short brief — what's on you today, which milestones are this week, where the team needs you. Before you open anything else."
+msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
+msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
 #: src/features/planner/components/TaskCommentItem.tsx:150
 #: src/features/projects/components/ProjectsMainPanel.tsx:534
@@ -1608,8 +1608,8 @@ msgid "Keep holding the widget header..."
 msgstr "Keep holding the widget header..."
 
 #: src/features/marketing/pages/LandingPage.tsx:492
-msgid "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
-msgstr "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
+msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
+msgstr "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx:302
 #: src/features/auth/pages/AuthPage.tsx:177
@@ -1850,8 +1850,8 @@ msgstr "Most tools show what people are doing. Almost none let you quickly see w
 #~ msgstr "Motio - Team planning in one timeline"
 
 #: src/features/marketing/pages/LandingPage.tsx:81
-msgid "Motio — One timeline for your whole team. 10 seconds per task."
-msgstr "Motio — One timeline for your whole team. 10 seconds per task."
+msgid "Motio. One timeline for your whole team. 10 seconds per task."
+msgstr "Motio. One timeline for your whole team. 10 seconds per task."
 
 #: src/features/marketing/pages/LandingPage.tsx:639
 msgid "Motio grew out of exactly this boring but very real problem."
@@ -1874,8 +1874,8 @@ msgstr "Motio is currently in testing mode but already open for use. We're gradu
 #~ msgstr "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
 
 #: src/features/marketing/pages/LandingPage.tsx:409
-msgid "Motio keeps tasks, projects and workload in one shared workspace — no chaos, no spreadsheets."
-msgstr "Motio keeps tasks, projects and workload in one shared workspace — no chaos, no spreadsheets."
+msgid "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
+msgstr "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
 
 #: src/features/marketing/pages/LandingPage.tsx:570
 msgid "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
@@ -2313,8 +2313,8 @@ msgid "On"
 msgstr "On"
 
 #: src/features/marketing/pages/LandingPage.tsx:636
-msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late — at the retro, in a chat thread, or after a missed deadline."
-msgstr "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late — at the retro, in a chat thread, or after a missed deadline."
+msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
+msgstr "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 
 #: src/features/marketing/pages/LandingPage.tsx:399
 msgid "One <0>clear timeline</0><1/> for your whole team"
@@ -2887,8 +2887,8 @@ msgid "Self-hosted"
 msgstr "Self-hosted"
 
 #: src/features/marketing/pages/LandingPage.tsx:82
-msgid "Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
-msgstr "Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
+msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
+msgstr "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:624
 msgid "Send invite"

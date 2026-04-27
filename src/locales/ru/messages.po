@@ -362,8 +362,8 @@ msgid "Analytics"
 msgstr "Аналитика"
 
 #: src/features/marketing/pages/LandingPage.tsx:645
-msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features — because that's the product's position."
-msgstr "Любая задача добавляется за 10 секунд. Не потому что мы забыли сделать больше функций. А потому что это и есть позиция продукта."
+msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
+msgstr "Любая задача добавляется за 10 секунд. Не потому что мы забыли выкатить больше фич. Это и есть позиция продукта."
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx:42
 msgid "Apply changes to repeating tasks?"
@@ -1080,7 +1080,7 @@ msgstr "Стиль отображения"
 
 #: src/features/marketing/pages/LandingPage.tsx:576
 msgid "Docker Compose. Postgres. Your servers, your rules."
-msgstr "Docker Compose. Postgres. Ваши серверы — ваши правила."
+msgstr "Docker Compose. Postgres. Ваши серверы, ваши правила."
 
 #: src/features/planner/components/RepeatSettingsFields.tsx:64
 msgid "Does not repeat"
@@ -1113,8 +1113,8 @@ msgid "During this period, you can sign in to restore the account."
 msgstr "В течение этого периода вы можете войти, чтобы восстановить аккаунт."
 
 #: src/features/marketing/pages/LandingPage.tsx:466
-msgid "Each morning starts with a short brief — what's on you today, which milestones are this week, where the team needs you. Before you open anything else."
-msgstr "Утро начинается с короткой сводки: что у тебя сегодня, какие вехи на неделе, где нужен команде. Без открывания трекера."
+msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
+msgstr "Каждое утро начинается с короткого брифа. Что на тебе сегодня, какие майлстоуны на этой неделе, где команде нужна твоя помощь. До того как ты откроешь что-то ещё."
 
 #: src/features/planner/components/TaskCommentItem.tsx:150
 #: src/features/projects/components/ProjectsMainPanel.tsx:534
@@ -1528,7 +1528,7 @@ msgstr "Меня зовут Niko G. Вот уже много лет я упра�
 
 #: src/features/marketing/pages/LandingPage.tsx:648
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
-msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в твоей команде — значит пора попробовать Motio."
+msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в твоей команде, значит пора попробовать Motio."
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx:19
 msgid "In {diff} days"
@@ -1608,8 +1608,8 @@ msgid "Keep holding the widget header..."
 msgstr "Продолжайте удерживать заголовок виджета..."
 
 #: src/features/marketing/pages/LandingPage.tsx:492
-msgid "KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status."
-msgstr "KPI-виджеты, столбчатые и area-графики, круговые диаграммы — стройте любой дашборд. Фильтрация по исполнителю, проекту или статусу."
+msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
+msgstr "KPI-виджеты, столбчатые и area-графики, круговые диаграммы. Соберите любой дашборд. Фильтрация по исполнителю, проекту или статусу."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx:302
 #: src/features/auth/pages/AuthPage.tsx:177
@@ -1850,8 +1850,8 @@ msgstr "Большинство инструментов показывают, ч
 #~ msgstr "Motio — командное планирование на таймлайне"
 
 #: src/features/marketing/pages/LandingPage.tsx:81
-msgid "Motio — One timeline for your whole team. 10 seconds per task."
-msgstr "Motio — один таймлайн для всей команды. Любая задача за 10 секунд."
+msgid "Motio. One timeline for your whole team. 10 seconds per task."
+msgstr "Motio. Один таймлайн для всей команды. Любая задача за 10 секунд."
 
 #: src/features/marketing/pages/LandingPage.tsx:639
 msgid "Motio grew out of exactly this boring but very real problem."
@@ -1874,8 +1874,8 @@ msgstr "Motio сейчас в тестовом режиме, но уже отк�
 #~ msgstr "Motio не пытается быть всем сразу. Нет кастомных полей, автоматизаций, формул, kanban-режима. Один экран, вся команда, любая задача за 10 секунд. Это позиция, а не недостающая фича."
 
 #: src/features/marketing/pages/LandingPage.tsx:409
-msgid "Motio keeps tasks, projects and workload in one shared workspace — no chaos, no spreadsheets."
-msgstr "Motio держит задачи, проекты и нагрузку в одном воркспейсе — без хаоса и таблиц."
+msgid "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
+msgstr "Motio держит задачи, проекты и нагрузку в одном воркспейсе. Без хаоса и таблиц."
 
 #: src/features/marketing/pages/LandingPage.tsx:570
 msgid "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
@@ -2313,8 +2313,8 @@ msgid "On"
 msgstr "Вкл."
 
 #: src/features/marketing/pages/LandingPage.tsx:636
-msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late — at the retro, in a chat thread, or after a missed deadline."
-msgstr "В понедельник я мог открыть три разные вкладки, чтобы ответить на простой вопрос: кто свободен на этой неделе. К среде оказывалось, что кто-то уже перегружен, но узнавал я об этом слишком поздно — на ретро, в переписке или после сорванного срока."
+msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
+msgstr "В понедельник я мог открыть три разные вкладки, чтобы ответить на простой вопрос: кто свободен на этой неделе. К среде оказывалось, что кто-то уже перегружен, но узнавал я об этом слишком поздно. На ретро, в переписке или после сорванного срока."
 
 #: src/features/marketing/pages/LandingPage.tsx:399
 msgid "One <0>clear timeline</0><1/> for your whole team"
@@ -2376,7 +2376,7 @@ msgstr "Открыть проекты"
 
 #: src/features/marketing/pages/LandingPage.tsx:579
 msgid "Open source schema. Export everything, leave anytime."
-msgstr "Открытая схема данных. Выгрузить всё и уйти — в любой момент."
+msgstr "Открытая схема данных. Выгрузить всё и уйти в любой момент."
 
 #: src/features/onboarding/lib/onboardingTour.ts:156
 msgid "Open team"
@@ -2887,8 +2887,8 @@ msgid "Self-hosted"
 msgstr "Self-hosted"
 
 #: src/features/marketing/pages/LandingPage.tsx:82
-msgid "Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
-msgstr "Self-hosted планировщик задач для команды на одном экране — общем таймлайне. Без кастомных полей, автоматизаций и шума. Сделан из реальной проектной боли, а не из стартапной теории."
+msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
+msgstr "Self-hosted планировщик задач для команды на одном экране, общем таймлайне. Без кастомных полей, автоматизаций и шума. Сделан из реальной проектной боли, а не из стартапной теории."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:624
 msgid "Send invite"

@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Лендинг: убраны длинные тире, текст звучит естественнее.
+
 ## [0.4.20] - 2026-04-25
 ### Changed
 - Нет зафиксированных изменений.
