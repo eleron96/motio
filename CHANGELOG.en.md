@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Landing: removed em-dashes, copy reads more naturally.
+
 ## [0.4.20] - 2026-04-25
 ### Changed
 - No documented changes.

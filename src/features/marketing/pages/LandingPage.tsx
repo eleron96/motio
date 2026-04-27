@@ -78,8 +78,8 @@ const LandingPage = () => {
   }, [setSignOutRedirectInProgress, signOutRedirectInProgress]);
 
   usePageSeo({
-    title: t`Motio — One timeline for your whole team. 10 seconds per task.`,
-    description: t`Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory.`,
+    title: t`Motio. One timeline for your whole team. 10 seconds per task.`,
+    description: t`Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory.`,
     canonicalPath: '/',
     robots: 'index, follow',
   });
@@ -406,7 +406,7 @@ const LandingPage = () => {
             className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg"
             style={{ animation: 'landFadeDown 0.5s 0.15s ease both' }}
           >
-            {t`Motio keeps tasks, projects and workload in one shared workspace — no chaos, no spreadsheets.`}
+            {t`Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets.`}
           </p>
 
           <div style={{ animation: 'landFadeDown 0.5s 0.25s ease both' }} className="mt-8">
@@ -425,10 +425,10 @@ const LandingPage = () => {
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                 <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
                 <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                <span className="ml-2 text-xs text-slate-400">motio.app — Acme Team · Timeline</span>
+                <span className="ml-2 text-xs text-slate-400">motio.app · Acme Team · Timeline</span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
-                <span className="text-sm font-semibold text-slate-800">Acme — Projects</span>
+                <span className="text-sm font-semibold text-slate-800">Acme · Projects</span>
                 <div className="flex gap-1">
                   <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">{t`Timeline`}</span>
                   <span className="rounded-md px-2.5 py-1 text-xs text-slate-400">{t`Calendar`}</span>
@@ -463,7 +463,7 @@ const LandingPage = () => {
               { icon: '📅', bg: '#eff6ff', title: t`Visual timeline`,       body: t`See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly.` },
               { icon: '🗂️', bg: '#f0fdf4', title: t`Projects & milestones`,  body: t`Group tasks by project, set milestones, and track progress without switching tools.` },
               { icon: '👥', bg: '#fdf4ff', title: t`Team workload`,           body: t`Understand who is overloaded before it becomes a problem. Balance work across the team.` },
-              { icon: '☀️', bg: '#fff7ed', title: t`Daily Brief`,             body: t`Each morning starts with a short brief — what's on you today, which milestones are this week, where the team needs you. Before you open anything else.` },
+              { icon: '☀️', bg: '#fff7ed', title: t`Daily Brief`,             body: t`Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else.` },
             ] as const).map((card, i) => (
               <div
                 key={i}
@@ -489,7 +489,7 @@ const LandingPage = () => {
                 {t`Your team's progress, always in view`}
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-slate-500">
-                {t`KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status.`}
+                {t`KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status.`}
               </p>
               <ul className="mt-6 flex flex-col gap-3">
                 {[
@@ -509,7 +509,7 @@ const LandingPage = () => {
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                  <span className="ml-2 text-xs text-slate-400">motio.app — Acme · Dashboard</span>
+                  <span className="ml-2 text-xs text-slate-400">motio.app · Acme · Dashboard</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
                   <span className="text-sm font-semibold text-slate-800">{t`Dashboard`}</span>
@@ -633,7 +633,7 @@ const LandingPage = () => {
               {t`Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week.`}
             </p>
             <p>
-              {t`On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late — at the retro, in a chat thread, or after a missed deadline.`}
+              {t`On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline.`}
             </p>
             <p>
               {t`Motio grew out of exactly this boring but very real problem.`}
@@ -642,7 +642,7 @@ const LandingPage = () => {
               {t`It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what.`}
             </p>
             <p>
-              {t`Any task takes 10 seconds to add. Not because we forgot to ship more features — because that's the product's position.`}
+              {t`Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position.`}
             </p>
             <p>
               {t`If the question "who's working on what this week" keeps coming up in your team, it's time to try Motio.`}
