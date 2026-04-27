@@ -1,6 +1,6 @@
 import { addDays, endOfMonth, format, isSameMonth, isSameYear, parseISO } from 'date-fns';
 
-export type RepeatFrequency = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+export type RepeatFrequency = 'none' | 'daily' | 'weekly' | 'biweekly' | 'fourweekly' | 'monthly' | 'yearly';
 export type RepeatEnds = 'never' | 'on' | 'after';
 
 export type RepeatValidationError = 'missing_count' | 'missing_until';

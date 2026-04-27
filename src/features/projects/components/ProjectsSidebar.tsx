@@ -331,7 +331,7 @@ export const ProjectsSidebar = ({
   };
 
   return (
-    <aside className="h-full min-h-0 min-w-0 bg-card flex flex-col">
+    <aside data-tour="projects-sidebar" className="h-full min-h-0 min-w-0 bg-card flex flex-col">
       <div className="px-4 py-3 border-b border-border">
         <SegmentedControl surface="filled">
           <SegmentedControlItem

@@ -11,7 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog';
-import { Pencil } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { AlertTriangle, Database, LogOut, Pencil, Sliders, Trash2, User } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { Switch } from '@/shared/ui/switch';
@@ -20,12 +21,28 @@ import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { APP_VERSION, getLatestReleaseNotes } from '@/shared/lib/releaseNotes';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { AvatarWithEditButton } from './AvatarWithEditButton';
+import { DeleteAccountWizard } from './DeleteAccountWizard';
+import { DataExportButton } from './DataExportButton';
+import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+// Shared trigger class — underline style (active tab gets a bottom border + primary color)
+// rather than the default filled pill, to match the handoff "Variant B" design.
+// On mobile we let tabs keep their natural width (left-aligned), on >=sm we stretch
+// them evenly across the sheet so the underline feels balanced.
+const TAB_TRIGGER_CLASS = [
+  'gap-2 rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5',
+  'sm:flex-1 sm:px-2',
+  '-mb-px text-sm font-medium text-muted-foreground shadow-none',
+  'data-[state=active]:border-primary data-[state=active]:bg-transparent',
+  'data-[state=active]:text-primary data-[state=active]:shadow-none',
+  'data-[state=active]:font-semibold',
+].join(' ');
 
 export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ open, onOpenChange }) => {
   const { user, updateDisplayName, updateLocale, updateAvatarUrl, profileAvatarUrl, signOut } = useAuthStore();
@@ -39,8 +56,13 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [saved, setSaved] = useState(false);
   const [localeSaving, setLocaleSaving] = useState(false);
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
+  const [deleteWizardOpen, setDeleteWizardOpen] = useState(false);
+  const accountDeletionEnabled = isAccountDeletionEnabled();
   const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
+  // When the delete wizard opens the user elsewhere on the Profile tab (to fix their
+  // display name), we need to switch tabs. Controlled value lets us do that.
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'data'>('profile');
 
   useEffect(() => {
     if (!open || !user) return;
@@ -83,6 +105,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   useEffect(() => {
     if (open) return;
     setReleaseNotesOpen(false);
+    setActiveTab('profile');
   }, [open]);
 
   const signedInLabel = getAccountSignedInLabel(user, t`Unknown user`);
@@ -155,131 +178,199 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex h-full w-[420px] flex-col sm:w-[480px]">
-          <SheetHeader>
+        <SheetContent className="flex h-full w-full max-w-full flex-col gap-0 p-0 sm:w-[480px] sm:max-w-[480px]">
+          <SheetHeader className="px-6 pb-3 pt-6 text-left">
             <SheetTitle>{t`Account settings`}</SheetTitle>
             <SheetDescription className="sr-only">
               {t`Manage your profile and account preferences.`}
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 flex flex-1 flex-col items-center space-y-4 text-center">
-            {user && (
-              <AvatarWithEditButton
-                userId={user.id}
-                avatarUrl={profileAvatarUrl ?? null}
-                initials={initials}
-                onAvatarChange={(url) => updateAvatarUrl(url)}
-                disabled={loading}
-              />
-            )}
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+            className="flex flex-1 flex-col overflow-hidden"
+          >
+            <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0 px-5 sm:justify-stretch">
+              <TabsTrigger value="profile" className={TAB_TRIGGER_CLASS}>
+                <User className="h-4 w-4" />
+                {t`Profile`}
+              </TabsTrigger>
+              <TabsTrigger value="preferences" className={TAB_TRIGGER_CLASS}>
+                <Sliders className="h-4 w-4" />
+                {t`Preferences`}
+              </TabsTrigger>
+              {accountDeletionEnabled && (
+                <TabsTrigger value="data" className={TAB_TRIGGER_CLASS}>
+                  <Database className="h-4 w-4" />
+                  {t`Data`}
+                </TabsTrigger>
+              )}
+            </TabsList>
 
-            <div className="w-full max-w-xs space-y-2">
-              {isEditingName ? (
-                <>
-                  <Input
-                    value={displayName}
-                    onChange={(e) => {
-                      setDisplayName(e.target.value);
-                      setSaved(false);
-                    }}
-                    placeholder={t`Add your name`}
-                    disabled={!user || loading}
-                  />
-                  <div className="flex items-center gap-2">
-                    {showSave && (
-                      <Button onClick={handleSave} disabled={!user || loading} className="w-full">
-                        {t`Save`}
-                      </Button>
+            <div className="flex-1 overflow-y-auto">
+              {/* ---------------- PROFILE TAB ---------------- */}
+              <TabsContent value="profile" className="mt-0 px-6 py-5 focus-visible:outline-none">
+                <div className="flex flex-col items-center space-y-4 text-center">
+                  {user && (
+                    <AvatarWithEditButton
+                      userId={user.id}
+                      avatarUrl={profileAvatarUrl ?? null}
+                      initials={initials}
+                      onAvatarChange={(url) => updateAvatarUrl(url)}
+                      disabled={loading}
+                    />
+                  )}
+
+                  <div className="w-full max-w-xs space-y-2">
+                    {isEditingName ? (
+                      <>
+                        <Input
+                          value={displayName}
+                          onChange={(e) => {
+                            setDisplayName(e.target.value);
+                            setSaved(false);
+                          }}
+                          placeholder={t`Add your name`}
+                          disabled={!user || loading}
+                        />
+                        <div className="flex items-center gap-2">
+                          {showSave && (
+                            <Button onClick={handleSave} disabled={!user || loading} className="w-full">
+                              {t`Save`}
+                            </Button>
+                          )}
+                          {canCancelEditing && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setDisplayName(initialDisplayName);
+                                setIsEditingName(false);
+                                setSaved(false);
+                              }}
+                              disabled={!canEditName}
+                              className="w-full"
+                            >
+                              {t`Cancel`}
+                            </Button>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="inline-flex items-start gap-1 text-lg font-semibold text-foreground">
+                        <span>{displayName}</span>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-3.5 w-3.5 -mt-1 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            setIsEditingName(true);
+                            setSaved(false);
+                          }}
+                          disabled={!canEditName}
+                          aria-label={t`Edit name`}
+                        >
+                          <Pencil className="h-2 w-2" />
+                        </Button>
+                      </div>
                     )}
-                    {canCancelEditing && (
+                  </div>
+
+                  <div className="text-sm text-muted-foreground">{signedInLabel}</div>
+
+                  {error && <div className="text-sm text-destructive">{error}</div>}
+                  {saved && <div className="text-sm text-emerald-600">{t`Saved.`}</div>}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => signOut()}
+                    className="mt-2 gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {t`Sign out`}
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* ---------------- PREFERENCES TAB ---------------- */}
+              <TabsContent value="preferences" className="mt-0 px-6 py-5 focus-visible:outline-none">
+                <div className="space-y-5">
+                  <div className="space-y-2 text-left">
+                    <Label htmlFor="account-language">{t`Language`}</Label>
+                    <Select value={locale} onValueChange={handleLocaleChange} disabled={localeSaving}>
+                      <SelectTrigger id="account-language">
+                        <SelectValue placeholder={t`Select language`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languageOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2 border-t pt-4 text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="daily-brief-toggle" className="cursor-pointer">
+                        {t`Daily brief`}
+                      </Label>
+                      <Switch
+                        id="daily-brief-toggle"
+                        checked={dailyBriefEnabled}
+                        onCheckedChange={handleDailyBriefToggle}
+                        disabled={!user || loading}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t`Show daily task summary each morning`}
+                    </p>
+                  </div>
+
+                  {error && <div className="text-sm text-destructive">{error}</div>}
+                </div>
+              </TabsContent>
+
+              {/* ---------------- DATA TAB ---------------- */}
+              {accountDeletionEnabled && (
+                <TabsContent value="data" className="mt-0 px-6 py-5 focus-visible:outline-none">
+                  <div className="space-y-5">
+                    <DataExportButton />
+
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+                      <div className="mb-2 flex items-center gap-2 text-destructive">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <span className="text-xs font-semibold uppercase tracking-wide">
+                          {t`Danger zone`}
+                        </span>
+                      </div>
+                      <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+                        {t`Account deletion is permanent. We will ask you to confirm your email.`}
+                      </p>
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => {
-                          setDisplayName(initialDisplayName);
-                          setIsEditingName(false);
-                          setSaved(false);
-                        }}
-                        disabled={!canEditName}
-                        className="w-full"
+                        className="w-full gap-2 border-destructive/40 bg-background text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setDeleteWizardOpen(true)}
+                        disabled={!user || loading}
                       >
-                        {t`Cancel`}
+                        <Trash2 className="h-4 w-4" />
+                        {t`Delete my account`}
                       </Button>
-                    )}
+                    </div>
+
+                    {error && <div className="text-sm text-destructive">{error}</div>}
                   </div>
-                </>
-              ) : (
-                <div className="inline-flex items-start gap-1 text-lg font-semibold text-foreground">
-                  <span>{displayName}</span>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="h-3.5 w-3.5 -mt-1 text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                      setIsEditingName(true);
-                      setSaved(false);
-                    }}
-                    disabled={!canEditName}
-                    aria-label={t`Edit name`}
-                  >
-                    <Pencil className="h-2 w-2" />
-                  </Button>
-                </div>
+                </TabsContent>
               )}
             </div>
+          </Tabs>
 
-            <div className="text-sm text-muted-foreground">{signedInLabel}</div>
-
-            <div className="w-full max-w-xs space-y-2 text-left">
-              <Label htmlFor="account-language">{t`Language`}</Label>
-              <Select value={locale} onValueChange={handleLocaleChange} disabled={localeSaving}>
-                <SelectTrigger id="account-language">
-                  <SelectValue placeholder={t`Select language`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {languageOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-full max-w-xs space-y-2 text-left">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="daily-brief-toggle">{t`Daily brief`}</Label>
-                <Switch
-                  id="daily-brief-toggle"
-                  checked={dailyBriefEnabled}
-                  onCheckedChange={handleDailyBriefToggle}
-                  disabled={!user || loading}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t`Show daily task summary each morning`}
-              </p>
-            </div>
-
-            {error && (
-              <div className="text-sm text-destructive">{error}</div>
-            )}
-            {saved && (
-              <div className="text-sm text-emerald-600">{t`Saved.`}</div>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => signOut()}
-            >
-              {t`Sign out`}
-            </Button>
-
-          </div>
-          <div className="mt-auto space-y-2 pt-4 text-center text-[11px] text-muted-foreground">
+          <div className="space-y-2 border-t px-6 py-3 text-center text-[11px] text-muted-foreground">
             <button
               type="button"
               onClick={() => setReleaseNotesOpen(true)}
@@ -301,6 +392,13 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
           </div>
         </SheetContent>
       </Sheet>
+
+      {accountDeletionEnabled && (
+        <DeleteAccountWizard
+          open={deleteWizardOpen}
+          onOpenChange={setDeleteWizardOpen}
+        />
+      )}
 
       <Dialog open={releaseNotesOpen} onOpenChange={setReleaseNotesOpen}>
         <DialogContent className="w-[95vw] max-w-xl">

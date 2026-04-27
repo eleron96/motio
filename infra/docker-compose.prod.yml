@@ -222,6 +222,7 @@ services:
       TASK_MEDIA_USER_QUOTA_BYTES: ${TASK_MEDIA_USER_QUOTA_BYTES:-209715200}
       TASK_MEDIA_WORKSPACE_QUOTA_BYTES: ${TASK_MEDIA_WORKSPACE_QUOTA_BYTES:-2147483648}
       TASK_MEDIA_TOKEN_TTL_SECONDS: ${TASK_MEDIA_TOKEN_TTL_SECONDS:-604800}
+      GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
     command: ["start", "--main-service", "/home/deno/functions/main", "--port", "9000"]
@@ -251,8 +252,28 @@ services:
       BACKUP_SCHEMAS: ${BACKUP_SCHEMAS:-public,auth,storage}
       BACKUP_MAX_UPLOAD_MB: ${BACKUP_MAX_UPLOAD_MB:-1024}
       BACKUP_CORS_ORIGIN: ${BACKUP_CORS_ORIGIN:-http://localhost:5173}
+      STORAGE_BLOBS_DIR: /storage-blobs
+      STORAGE_BACKUP_RETENTION_COUNT: ${STORAGE_BACKUP_RETENTION_COUNT:-14}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-ru-1}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      # Phase 5: account-deletion cron (no-op if SUPABASE_INTERNAL_URL / SERVICE_ROLE_KEY missing).
+      SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY:-}
+      PURGE_CRON: ${PURGE_CRON:-0 4 * * *}
+      PURGE_CRON_ENABLED: ${PURGE_CRON_ENABLED:-true}
+      EXPORT_WORKER_CRON: ${EXPORT_WORKER_CRON:-*/5 * * * *}
+      EXPORT_CLEANUP_CRON: ${EXPORT_CLEANUP_CRON:-0 5 * * *}
+      EXPORT_CLEANUP_BATCH_LIMIT: ${EXPORT_CLEANUP_BATCH_LIMIT:-100}
+      ACCOUNT_DELETION_HEALTH_CRON: ${ACCOUNT_DELETION_HEALTH_CRON:-15 * * * *}
+      GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
     volumes:
       - ./backups:/backups
+      # Read-only mount so backup-service can tar+upload task-media blobs to S3.
+      # Same volume is mounted rw into the storage service above.
+      - storage_data:/storage-blobs:ro
 
   storage:
     image: supabase/storage-api:v1.11.13
@@ -317,7 +338,8 @@ services:
         VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-timeline-supabase}
         VITE_OAUTH2_PROXY_ENABLED: ${VITE_OAUTH2_PROXY_ENABLED:-true}
         VITE_OAUTH2_PROXY_SIGN_OUT_PATH: ${VITE_OAUTH2_PROXY_SIGN_OUT_PATH:-/oauth2/sign_out}
-        VITE_GA_MEASUREMENT_ID: ${VITE_GA_MEASUREMENT_ID:-}
+        VITE_GLITCHTIP_DSN: ${VITE_GLITCHTIP_DSN:-}
+        VITE_FEATURE_ACCOUNT_DELETION: ${VITE_FEATURE_ACCOUNT_DELETION:-false}
     deploy:
       resources:
         limits:

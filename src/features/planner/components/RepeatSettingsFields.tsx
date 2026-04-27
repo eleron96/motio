@@ -65,6 +65,7 @@ export const RepeatSettingsFields = ({
               <SelectItem value="daily">{t`Daily`}</SelectItem>
               <SelectItem value="weekly">{t`Weekly`}</SelectItem>
               <SelectItem value="biweekly">{t`Biweekly (every 2 weeks)`}</SelectItem>
+              <SelectItem value="fourweekly">{t`Every 4 weeks`}</SelectItem>
               <SelectItem value="monthly">{t`Monthly`}</SelectItem>
               <SelectItem value="yearly">{t`Yearly`}</SelectItem>
             </SelectContent>

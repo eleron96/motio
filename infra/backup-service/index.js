@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const dns = require('dns/promises');
-const { createWriteStream } = require('fs');
+const { createWriteStream, createReadStream } = require('fs');
 const fs = require('fs/promises');
 const { Transform } = require('stream');
 const { pipeline } = require('stream/promises');
@@ -10,11 +10,24 @@ const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const cron = require('node-cron');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { captureException, captureMessage } = require('./glitchtipCapture');
+const {
+  tickAccountPurge,
+  tickDataExportWorker,
+  tickDataExportCleanup,
+  tickHealthCheck,
+} = require('./accountDeletionCron');
 
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.BACKUP_PORT || 7000);
 const BACKUP_DIR = process.env.BACKUP_DIR || '/backups';
+const STORAGE_BLOBS_DIR = process.env.STORAGE_BLOBS_DIR || '';
+const STORAGE_BACKUP_RETENTION_COUNT = (() => {
+  const parsed = Number.parseInt(process.env.STORAGE_BACKUP_RETENTION_COUNT || '14', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 14;
+})();
 const DB_URL = process.env.SUPABASE_DB_URL || '';
 const GOTRUE_DB_DATABASE_URL = process.env.GOTRUE_DB_DATABASE_URL || '';
 const BACKUP_RESTORE_DB_URL = process.env.BACKUP_RESTORE_DB_URL || '';
@@ -36,6 +49,52 @@ const BACKUP_RETENTION_COUNT = (() => {
   const parsed = Number.parseInt(process.env.BACKUP_RETENTION_COUNT || '30', 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
 })();
+
+const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
+const S3_REGION = process.env.S3_REGION || 'us-east-1';
+const S3_BUCKET = process.env.S3_BUCKET || '';
+const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || '';
+const S3_SECRET_KEY = process.env.S3_SECRET_KEY || '';
+
+// Phase 5: account-deletion cron
+const SUPABASE_INTERNAL_URL = process.env.SUPABASE_INTERNAL_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const PURGE_CRON = process.env.PURGE_CRON || '0 4 * * *';
+const EXPORT_WORKER_CRON = process.env.EXPORT_WORKER_CRON || '*/5 * * * *';
+const EXPORT_CLEANUP_CRON = process.env.EXPORT_CLEANUP_CRON || '0 5 * * *';
+const ACCOUNT_DELETION_HEALTH_CRON = process.env.ACCOUNT_DELETION_HEALTH_CRON || '15 * * * *';
+const PURGE_CRON_ENABLED = (process.env.PURGE_CRON_ENABLED ?? 'true').toLowerCase() !== 'false';
+const ACCOUNT_DELETION_CRON_ENABLED = Boolean(SUPABASE_INTERNAL_URL && SUPABASE_SERVICE_ROLE_KEY);
+const EXPORT_CLEANUP_BATCH_LIMIT = (() => {
+  const parsed = Number.parseInt(process.env.EXPORT_CLEANUP_BATCH_LIMIT || '100', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 100;
+})();
+
+const s3Enabled = Boolean(S3_ENDPOINT && S3_BUCKET && S3_ACCESS_KEY && S3_SECRET_KEY);
+
+const s3 = s3Enabled
+  ? new S3Client({
+      endpoint: S3_ENDPOINT,
+      region: S3_REGION,
+      credentials: { accessKeyId: S3_ACCESS_KEY, secretAccessKey: S3_SECRET_KEY },
+      forcePathStyle: true,
+    })
+  : null;
+
+const uploadToS3 = async (filePath, fileName) => {
+  if (!s3) return;
+  try {
+    const fileStream = createReadStream(filePath);
+    await s3.send(new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: fileName,
+      Body: fileStream,
+    }));
+    console.log(`S3 upload ok: ${fileName}`);
+  } catch (error) {
+    console.error(`S3 upload failed for ${fileName}:`, error.message || error);
+  }
+};
 
 if (!DB_URL) {
   console.error('Missing SUPABASE_DB_URL');
@@ -257,9 +316,91 @@ const createBackup = async (type, options = {}) => {
   if (shouldPrune) {
     await pruneBackups([name]);
   }
+  await uploadToS3(filePath, name);
   return {
     ...toBackupEntry(name, stat),
     type,
+  };
+};
+
+const isSafeStorageBackupName = (name) => /^[a-z0-9._-]+$/i.test(name) && name.endsWith('.tar.gz');
+
+const pruneStorageBackups = async (protectedNames = []) => {
+  const protectedSet = new Set(protectedNames);
+  await fs.mkdir(BACKUP_DIR, { recursive: true });
+  const entries = await fs.readdir(BACKUP_DIR);
+  const storageFiles = await Promise.all(
+    entries
+      .filter((name) => isSafeStorageBackupName(name) && name.startsWith('storage-'))
+      .map(async (name) => {
+        const fullPath = path.join(BACKUP_DIR, name);
+        const stat = await fs.stat(fullPath);
+        return { name, fullPath, mtimeMs: stat.mtimeMs };
+      }),
+  );
+  storageFiles.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  let kept = 0;
+  for (const file of storageFiles) {
+    if (protectedSet.has(file.name)) {
+      kept += 1;
+      continue;
+    }
+    if (kept < STORAGE_BACKUP_RETENTION_COUNT) {
+      kept += 1;
+      continue;
+    }
+    await fs.unlink(file.fullPath).catch(() => {});
+  }
+};
+
+const createStorageBackup = async () => {
+  if (!STORAGE_BLOBS_DIR) {
+    throw new Error('STORAGE_BLOBS_DIR is not configured; storage backups disabled.');
+  }
+  try {
+    const stat = await fs.stat(STORAGE_BLOBS_DIR);
+    if (!stat.isDirectory()) {
+      throw new Error(`STORAGE_BLOBS_DIR is not a directory: ${STORAGE_BLOBS_DIR}`);
+    }
+  } catch (error) {
+    throw new Error(`STORAGE_BLOBS_DIR inaccessible (${STORAGE_BLOBS_DIR}): ${error.message || error}`);
+  }
+
+  await fs.mkdir(BACKUP_DIR, { recursive: true });
+  const name = `storage-${buildTimestamp()}.tar.gz`;
+  const filePath = path.join(BACKUP_DIR, name);
+
+  // tar cz everything inside STORAGE_BLOBS_DIR. Use -C to keep archive paths relative.
+  await execFileAsync('tar', [
+    '--create',
+    '--gzip',
+    '--file', filePath,
+    '--directory', STORAGE_BLOBS_DIR,
+    '.',
+  ]);
+
+  const stat = await fs.stat(filePath);
+  if (stat.size === 0) {
+    await fs.unlink(filePath).catch(() => {});
+    throw new Error('Storage archive is empty after tar.');
+  }
+
+  // Sanity check: tar -t should list entries without error.
+  try {
+    await execFileAsync('tar', ['--list', '--file', filePath], { maxBuffer: 64 * 1024 * 1024 });
+  } catch (validationError) {
+    await fs.unlink(filePath).catch(() => {});
+    throw new Error(`Storage archive validation failed: ${validationError.message || validationError}`);
+  }
+
+  await pruneStorageBackups([name]);
+  await uploadToS3(filePath, name);
+
+  return {
+    name,
+    type: 'storage',
+    createdAt: stat.mtime.toISOString(),
+    size: stat.size,
   };
 };
 
@@ -561,6 +702,26 @@ app.post('/backups/:name/restore', requireSuperAdmin, async (req, res) => {
   }
 });
 
+app.post('/storage-backups', requireSuperAdmin, async (_req, res) => {
+  if (!STORAGE_BLOBS_DIR) {
+    res.status(501).json({ error: 'Storage backups are not configured (STORAGE_BLOBS_DIR missing).' });
+    return;
+  }
+  if (activeJob) {
+    res.status(409).json({ error: `Backup job already running: ${activeJob}` });
+    return;
+  }
+  activeJob = 'manual-storage-backup';
+  try {
+    const backup = await createStorageBackup();
+    res.json({ backup });
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Failed to create storage backup.' });
+  } finally {
+    activeJob = null;
+  }
+});
+
 cron.schedule(BACKUP_CRON, async () => {
   if (activeJob) return;
   activeJob = 'daily-backup';
@@ -571,7 +732,68 @@ cron.schedule(BACKUP_CRON, async () => {
   } finally {
     activeJob = null;
   }
+
+  // Storage blobs backup runs right after the DB dump.
+  // We accept a brief window where freshly uploaded files may appear in DB after
+  // the pg_dump but before the tar starts — those files will still be on disk
+  // in the next daily archive, so the only risk is orphan blobs (files without
+  // a corresponding DB row), which is strictly safer than dangling DB references.
+  if (STORAGE_BLOBS_DIR) {
+    if (activeJob) return;
+    activeJob = 'daily-storage-backup';
+    try {
+      const backup = await createStorageBackup();
+      console.log(`Storage backup ok: ${backup.name} (${backup.size} bytes)`);
+    } catch (error) {
+      console.error('Daily storage backup failed:', error.message || error);
+    } finally {
+      activeJob = null;
+    }
+  }
 });
+
+// ─────────────────────────── Phase 5: account-deletion cron ───────────────────────────
+// Включается автоматически, если заданы SUPABASE_INTERNAL_URL + SUPABASE_SERVICE_ROLE_KEY.
+// Иначе — тихий no-op, чтобы локальный docker-compose без этих переменных продолжал работать.
+if (ACCOUNT_DELETION_CRON_ENABLED) {
+  const cronCtx = () => ({
+    supabaseUrl: SUPABASE_INTERNAL_URL,
+    serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
+    pool,
+    captureException,
+    captureMessage,
+    cronEnabled: PURGE_CRON_ENABLED,
+    exportCleanupBatchLimit: EXPORT_CLEANUP_BATCH_LIMIT,
+  });
+
+  cron.schedule(PURGE_CRON, async () => {
+    try { await tickAccountPurge(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(EXPORT_WORKER_CRON, async () => {
+    try { await tickDataExportWorker(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(EXPORT_CLEANUP_CRON, async () => {
+    try { await tickDataExportCleanup(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(ACCOUNT_DELETION_HEALTH_CRON, async () => {
+    try { await tickHealthCheck(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  console.log(
+    `Account-deletion cron enabled: purge=${PURGE_CRON} (${PURGE_CRON_ENABLED ? 'on' : 'off'}), `
+    + `export-worker=${EXPORT_WORKER_CRON}, export-cleanup=${EXPORT_CLEANUP_CRON}, `
+    + `health=${ACCOUNT_DELETION_HEALTH_CRON}`,
+  );
+} else {
+  console.log('Account-deletion cron disabled (SUPABASE_INTERNAL_URL / SUPABASE_SERVICE_ROLE_KEY not set).');
+}
 
 app.listen(PORT, () => {
   console.log(`Backup service listening on ${PORT}`);

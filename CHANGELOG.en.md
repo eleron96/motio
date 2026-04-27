@@ -7,6 +7,226 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.21] - 2026-04-27
+### Changed
+- Landing: removed em-dashes, copy reads more naturally.
+
+## [0.4.20] - 2026-04-25
+### Changed
+- No documented changes.
+
+## [0.4.19] - 2026-04-25
+### Changed
+- No documented changes.
+
+## [0.4.18] - 2026-04-25
+### Changed
+- No documented changes.
+
+## [0.4.17] - 2026-04-25
+### Changed
+- No documented changes.
+
+## [0.4.16] - 2026-04-25
+### Changed
+- No documented changes.
+
+## [0.4.15] - 2026-04-25
+### Changed
+- No documented changes.
+
+## [0.4.14] - 2026-04-24
+### Changed
+- No documented changes.
+
+## [0.4.13] - 2026-04-24
+### Changed
+- No documented changes.
+
+## [0.4.12] - 2026-04-24
+### Changed
+- Final landing CTA: 'Try Motio now' headline, updated testing-mode copy, 'Start now' button.
+
+## [0.4.11] - 2026-04-24
+### Changed
+- Rewrote the founder block in a personal voice — a real story about BIM and the 'who's working on what this week' problem. Removed the 'Read the manifesto' link.
+
+## [0.4.10] - 2026-04-24
+### Changed
+- Landing page refresh: new positioning, self-hosted & SSO section, honest early-access CTA, founder intro block.
+
+## [0.4.9] - 2026-04-22
+### Fixed
+- Fixed milestone list sorting: the 'Upcoming' tab now shows the soonest dates on top (April → May → July), and the 'Past' tab shows the most recent past dates first.
+
+## [0.4.8] - 2026-04-22
+### Fixed
+- Fixed milestone list sorting: the 'Upcoming' tab now shows the soonest dates on top (April → May → July), and the 'Past' tab shows the most recent past dates first.
+
+## [0.4.7] - 2026-04-22
+### Changed
+- Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
+
+## [0.4.6] - 2026-04-22
+### Changed
+- Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
+
+## [0.4.5] - 2026-04-22
+### Changed
+- Timeline perf: scoped TaskBar store subscriptions, rAF-throttled hover tooltip, removed custom smooth-wheel scroll.
+
+## [0.4.4] - 2026-04-22
+### Changed
+- Timeline perf: scoped TaskBar store subscriptions, rAF-throttled hover tooltip, removed custom smooth-wheel scroll.
+
+## [0.4.3] - 2026-04-22
+### Added
+- Task-media garbage collection: images are now removed from Storage and `public.task_media` when they are deleted from a task description or when the parent task is deleted (previously they leaked).
+- `DELETE /functions/v1/task-media/:id` endpoint for the media owner or workspace admin.
+
+### Fixed
+- Auto `location.reload()` when the browser hits `Failed to fetch dynamically imported module` — tabs opened before a deploy no longer break when they lazy-load a now-rotated chunk (guarded against reload loops via a 10-second cooldown).
+
+
+### Changed
+- Timeline milestones now render as project-colored chips with the title (max 2 per cell + +N overflow), and the milestone lane now has a localized Milestones label.
+
+## [0.4.2] - 2026-04-22
+### Changed
+- No documented changes.
+
+## [0.4.1] - 2026-04-22
+### Changed
+- No documented changes.
+
+## [0.4.0] - 2026-04-22
+### Added
+- Account deletion with a 30-day grace period, data export, and the new tabbed Account Settings layout (Profile / Preferences / Data).
+
+## [0.3.85] - 2026-04-21
+### Changed
+- No documented changes.
+
+## [0.3.84] - 2026-04-19
+### Changed
+- No documented changes.
+
+## [0.3.83] - 2026-04-14
+### Changed
+- No documented changes.
+
+## [0.3.82] - 2026-04-12
+### Changed
+- No documented changes.
+
+## [0.3.81] - 2026-04-06
+### Changed
+- No documented changes.
+
+## [0.3.80] - 2026-04-04
+### Changed
+- No documented changes.
+
+## [0.3.79] - 2026-04-04
+### Changed
+- No documented changes.
+
+## [0.3.78] - 2026-04-04
+### Changed
+- No documented changes.
+
+## [0.3.77] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.76] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.75] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.74] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.73] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.72] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.71] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.70] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.69] - 2026-04-03
+### Changed
+- Enable transaction tracing in GlitchTip (tracesSampleRate 20%)
+
+## [0.3.68] - 2026-04-03
+### Changed
+- No documented changes.
+
+## [0.3.67] - 2026-04-01
+### Changed
+- No documented changes.
+
+## [0.3.66] - 2026-04-01
+### Changed
+- No documented changes.
+
+## [0.3.65] - 2026-03-31
+### Changed
+- No documented changes.
+
+## [0.3.64] - 2026-03-31
+### Changed
+- No documented changes.
+
+## [0.3.63] - 2026-03-31
+### Changed
+- No documented changes.
+
+## [0.3.62] - 2026-03-31
+### Changed
+- No documented changes.
+
+## [0.3.61] - 2026-03-31
+### Changed
+- No documented changes.
+
+## [0.3.60] - 2026-03-31
+### Changed
+- No documented changes.
+
+## [0.3.59] - 2026-03-31
+### Changed
+- No documented changes.
+
+## [0.3.58] - 2026-03-30
+### Changed
+- No documented changes.
+
+## [0.3.57] - 2026-03-30
+### Changed
+- No documented changes.
+
+## [0.3.56] - 2026-03-30
+### Fixed
+- Fixed task image uploads for files whose names contain Cyrillic or other non-Latin characters.
+
+## [0.3.55] - 2026-03-30
+### Changed
+- [internal] Moved task comment image storage from Postgres to Supabase Storage with backward compatibility for legacy attachments.
+
 ## [0.3.54] - 2026-03-27
 ### Changed
 - No documented changes.

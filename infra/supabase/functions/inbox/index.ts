@@ -47,8 +47,8 @@ type SentInviteSummary = {
 
 type TaskNotification = {
   id: string;
-  type: "task_assigned" | "comment_mention";
-  workspaceId: string;
+  type: "task_assigned" | "comment_mention" | "export_ready" | "export_failed";
+  workspaceId: string | null;
   workspaceName: string;
   actorUserId: string | null;
   actorDisplayName: string | null;
@@ -281,7 +281,13 @@ const loadTaskNotifications = async (authUser: AuthInboxUser, limit: number) => 
     return { error: accessResult.error };
   }
 
-  const visibleRows = (rows ?? []).filter((row) => accessResult.workspaceIds.has(row.workspace_id));
+  // Account-level rows (workspace_id IS NULL, e.g. `export_ready`/`export_failed`) pass
+  // through without a workspace-membership check — they only need recipient match, which
+  // the outer `.eq("recipient_user_id", authUser.id)` already enforces.
+  const visibleRows = (rows ?? []).filter((row) => {
+    if (row.workspace_id === null) return true;
+    return accessResult.workspaceIds.has(row.workspace_id);
+  });
 
   const workspaceNameResult = await buildWorkspaceNameMap(
     visibleRows

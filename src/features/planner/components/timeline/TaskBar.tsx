@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/classNames';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
-import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
+import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP, ROW_TOP_PADDING } from '@/features/planner/lib/dateUtils';
 import { getTaskBarAppearance } from '@/features/planner/lib/taskBarColors';
 import { Ban, MessageSquare, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
@@ -28,6 +28,7 @@ import {
 } from '@/shared/ui/context-menu';
 import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
+import { Input } from '@/shared/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,25 +66,23 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
-  const {
-    tasks,
-    projects,
-    trackedProjectIds,
-    statuses,
-    taskTypes,
-    assignees,
-    moveTask,
-    updateTask,
-    removeAssigneeFromTask,
-    deleteTask,
-    deleteTaskSeries,
-    duplicateTask,
-    setSelectedTaskId,
-    selectedTaskId,
-    highlightedTaskId,
-    setHighlightedTaskId,
-    groupMode,
-  } = usePlannerStore();
+  const tasks = usePlannerStore((state) => state.tasks);
+  const projects = usePlannerStore((state) => state.projects);
+  const trackedProjectIds = usePlannerStore((state) => state.trackedProjectIds);
+  const statuses = usePlannerStore((state) => state.statuses);
+  const taskTypes = usePlannerStore((state) => state.taskTypes);
+  const assignees = usePlannerStore((state) => state.assignees);
+  const moveTask = usePlannerStore((state) => state.moveTask);
+  const updateTask = usePlannerStore((state) => state.updateTask);
+  const removeAssigneeFromTask = usePlannerStore((state) => state.removeAssigneeFromTask);
+  const deleteTask = usePlannerStore((state) => state.deleteTask);
+  const deleteTaskSeries = usePlannerStore((state) => state.deleteTaskSeries);
+  const duplicateTask = usePlannerStore((state) => state.duplicateTask);
+  const setSelectedTaskId = usePlannerStore((state) => state.setSelectedTaskId);
+  const selectedTaskId = usePlannerStore((state) => state.selectedTaskId);
+  const highlightedTaskId = usePlannerStore((state) => state.highlightedTaskId);
+  const setHighlightedTaskId = usePlannerStore((state) => state.setHighlightedTaskId);
+  const groupMode = usePlannerStore((state) => state.groupMode);
   const commentCount = usePlannerStore((state) => state.taskCommentCounts?.[task.id] ?? 0);
   
   const [isDragging, setIsDragging] = useState(false);
@@ -96,6 +95,9 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const [deleteForRowAssigneeOnly, setDeleteForRowAssigneeOnly] = useState(false);
   const [pendingRepeatMove, setPendingRepeatMove] = useState<PendingRepeatMove | null>(null);
   const [repeatScopeOpen, setRepeatScopeOpen] = useState(false);
+  const [projectSubOpen, setProjectSubOpen] = useState(false);
+  const [projectQuery, setProjectQuery] = useState('');
+  const projectSearchInputRef = useRef<HTMLInputElement | null>(null);
   
   const barRef = useRef<HTMLDivElement>(null);
   
@@ -151,22 +153,39 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const showTooltip = isHovering && !isDragging && !isResizing;
   
   // Calculate vertical position based on lane
-  const topPosition = lane * (TASK_HEIGHT + TASK_GAP);
+  const topPosition = ROW_TOP_PADDING + lane * (TASK_HEIGHT + TASK_GAP);
+
+  const tooltipRafRef = useRef<number | null>(null);
+  const tooltipPendingRef = useRef<{ clientX: number; clientY: number } | null>(null);
+
+  useEffect(() => () => {
+    if (tooltipRafRef.current !== null) {
+      cancelAnimationFrame(tooltipRafRef.current);
+      tooltipRafRef.current = null;
+    }
+  }, []);
 
   const updateTooltipPosition = useCallback((event: React.MouseEvent) => {
-    const offset = 14;
-    const tooltipWidth = 260;
-    const tooltipHeight = 180;
-    const { innerWidth, innerHeight } = window;
-    let x = event.clientX + offset;
-    let y = event.clientY + offset;
-    if (x + tooltipWidth > innerWidth) {
-      x = Math.max(8, event.clientX - tooltipWidth - offset);
-    }
-    if (y + tooltipHeight > innerHeight) {
-      y = Math.max(8, event.clientY - tooltipHeight - offset);
-    }
-    setTooltipPos({ x, y });
+    tooltipPendingRef.current = { clientX: event.clientX, clientY: event.clientY };
+    if (tooltipRafRef.current !== null) return;
+    tooltipRafRef.current = requestAnimationFrame(() => {
+      tooltipRafRef.current = null;
+      const pending = tooltipPendingRef.current;
+      if (!pending) return;
+      const offset = 14;
+      const tooltipWidth = 260;
+      const tooltipHeight = 180;
+      const { innerWidth, innerHeight } = window;
+      let x = pending.clientX + offset;
+      let y = pending.clientY + offset;
+      if (x + tooltipWidth > innerWidth) {
+        x = Math.max(8, pending.clientX - tooltipWidth - offset);
+      }
+      if (y + tooltipHeight > innerHeight) {
+        y = Math.max(8, pending.clientY - tooltipHeight - offset);
+      }
+      setTooltipPos({ x, y });
+    });
   }, []);
   
   const handleMouseDown = useCallback((e: React.MouseEvent, resize?: 'left' | 'right') => {
@@ -278,15 +297,26 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   ]);
 
   // Calculate visual position during drag
-  const visualLeft = isDragging || isResizing === 'left'
-    ? position.left + dragOffset.x
-    : position.left;
-    
-  const visualWidth = isResizing === 'left'
-    ? position.width - dragOffset.x
-    : isResizing === 'right'
-    ? position.width + dragOffset.x
-    : position.width;
+  const visualLeft = useMemo(() => (
+    isDragging || isResizing === 'left'
+      ? position.left + dragOffset.x
+      : position.left
+  ), [isDragging, isResizing, position.left, dragOffset.x]);
+
+  const visualWidth = useMemo(() => {
+    if (isResizing === 'left') return position.width - dragOffset.x;
+    if (isResizing === 'right') return position.width + dragOffset.x;
+    return position.width;
+  }, [isResizing, position.width, dragOffset.x]);
+
+  const barStyle = useMemo(() => ({
+    left: visualLeft,
+    top: topPosition,
+    width: Math.max(visualWidth, dayWidth - 4),
+    height: TASK_HEIGHT,
+    backgroundColor: appearance.backgroundColor,
+    border: appearance.border,
+  }), [visualLeft, topPosition, visualWidth, dayWidth, appearance.backgroundColor, appearance.border]);
 
   const handleStatusChange = (statusId: string) => {
     if (!canEdit || statusId === task.statusId) return;
@@ -302,6 +332,30 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   };
 
   const projectValue = task.projectId ?? 'none';
+
+  const filteredProjectOptions = useMemo(() => {
+    const query = projectQuery.trim().toLowerCase();
+    if (!query) return projectOptions;
+    return projectOptions.filter((item) => {
+      const name = item.name?.toLowerCase() ?? '';
+      const code = item.code?.toLowerCase() ?? '';
+      return name.includes(query) || code.includes(query);
+    });
+  }, [projectOptions, projectQuery]);
+
+  useEffect(() => {
+    if (!projectSubOpen) setProjectQuery('');
+  }, [projectSubOpen]);
+
+  const priorityValue = task.priority ?? 'none';
+  const handlePriorityChange = (value: string) => {
+    if (!canEdit) return;
+    const nextPriority: TaskPriority | null = value === 'none'
+      ? null
+      : (value as TaskPriority);
+    if (nextPriority === (task.priority ?? null)) return;
+    updateTask(task.id, { priority: nextPriority });
+  };
 
   useEffect(() => {
     if (!deleteOpen) {
@@ -340,14 +394,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             isHighlighted && 'task-highlight z-40',
             appearance.isCancelled && 'opacity-60 saturate-50'
           )}
-          style={{
-            left: visualLeft,
-            top: topPosition,
-            width: Math.max(visualWidth, dayWidth - 4),
-            height: TASK_HEIGHT,
-            backgroundColor: appearance.backgroundColor,
-            border: appearance.border,
-          }}
+          style={barStyle}
         >
           {/* Left resize handle */}
           <div
@@ -421,45 +468,108 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuSub>
-          <ContextMenuSubTrigger>{t`Status`}</ContextMenuSubTrigger>
+          <ContextMenuSubTrigger className="py-1 text-xs">{t`Status`}</ContextMenuSubTrigger>
           <ContextMenuSubContent>
-            <ContextMenuLabel>{t`Status`}</ContextMenuLabel>
+            <ContextMenuLabel className="px-2 py-1 text-xs">{t`Status`}</ContextMenuLabel>
             <ContextMenuSeparator />
             <ContextMenuRadioGroup value={task.statusId} onValueChange={handleStatusChange}>
               {statuses.map((item) => (
-                <ContextMenuRadioItem key={item.id} value={item.id} disabled={!canEdit}>
+                <ContextMenuRadioItem key={item.id} value={item.id} disabled={!canEdit} className="py-1 pl-7 text-xs">
                   {formatStatusLabel(item.name, item.emoji)}
                 </ContextMenuRadioItem>
               ))}
             </ContextMenuRadioGroup>
           </ContextMenuSubContent>
         </ContextMenuSub>
-        <ContextMenuItem onSelect={() => duplicateTask(task.id)} disabled={!canEdit}>
+        <ContextMenuItem onSelect={() => duplicateTask(task.id)} disabled={!canEdit} className="py-1 text-xs">
           {t`Duplicate task`}
         </ContextMenuItem>
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>{t`Assign project`}</ContextMenuSubTrigger>
-          <ContextMenuSubContent>
-            <ContextMenuLabel>{t`Project`}</ContextMenuLabel>
+        <ContextMenuSub open={projectSubOpen} onOpenChange={setProjectSubOpen}>
+          <ContextMenuSubTrigger className="py-1 text-xs">{t`Assign project`}</ContextMenuSubTrigger>
+          <ContextMenuSubContent
+            className="w-64 p-1"
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              requestAnimationFrame(() => {
+                projectSearchInputRef.current?.focus();
+                projectSearchInputRef.current?.select();
+              });
+            }}
+          >
+            <div className="px-1 pb-1">
+              <Input
+                ref={projectSearchInputRef}
+                value={projectQuery}
+                onChange={(event) => setProjectQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  // Prevent Radix typeahead/arrow-nav from stealing keystrokes.
+                  if (event.key !== 'Escape' && event.key !== 'Tab') {
+                    event.stopPropagation();
+                  }
+                }}
+                placeholder={t`Search projects`}
+                className="h-7 text-xs"
+              />
+            </div>
             <ContextMenuSeparator />
-            <ContextMenuRadioGroup value={projectValue} onValueChange={handleProjectChange}>
-              <ContextMenuRadioItem value="none" disabled={!canEdit || noProjectDisabled}>
-                {t`No project`}
-              </ContextMenuRadioItem>
-              {projectOptions.map((item) => (
-                <ContextMenuRadioItem key={item.id} value={item.id} disabled={!canEdit}>
-                  <span className="mr-2 inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-                  {formatProjectLabel(item.name, item.code)}
-                  {item.archived && (
-                    <span className="ml-1 text-[10px] text-muted-foreground">({t`Archived`})</span>
-                  )}
+            <div className="max-h-64 overflow-y-auto">
+              <ContextMenuRadioGroup value={projectValue} onValueChange={handleProjectChange}>
+                <ContextMenuRadioItem
+                  value="none"
+                  disabled={!canEdit || noProjectDisabled}
+                  className="py-1 pl-7 text-xs"
+                >
+                  {t`No project`}
                 </ContextMenuRadioItem>
-              ))}
+                {filteredProjectOptions.map((item) => (
+                  <ContextMenuRadioItem
+                    key={item.id}
+                    value={item.id}
+                    disabled={!canEdit}
+                    className="py-1 pl-7 text-xs"
+                  >
+                    <span
+                      className="mr-1.5 inline-flex h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="truncate">{formatProjectLabel(item.name, item.code)}</span>
+                    {item.archived && (
+                      <span className="ml-1 text-[10px] text-muted-foreground">({t`Archived`})</span>
+                    )}
+                  </ContextMenuRadioItem>
+                ))}
+                {filteredProjectOptions.length === 0 && (
+                  <div className="px-2 py-3 text-center text-xs text-muted-foreground">
+                    {t`No matches`}
+                  </div>
+                )}
+              </ContextMenuRadioGroup>
+            </div>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger className="py-1 text-xs">{t`Priority`}</ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            <ContextMenuLabel className="px-2 py-1 text-xs">{t`Priority`}</ContextMenuLabel>
+            <ContextMenuSeparator />
+            <ContextMenuRadioGroup value={priorityValue} onValueChange={handlePriorityChange}>
+              <ContextMenuRadioItem value="none" disabled={!canEdit} className="py-1 pl-7 text-xs">
+                {t`No priority`}
+              </ContextMenuRadioItem>
+              <ContextMenuRadioItem value="low" disabled={!canEdit} className="py-1 pl-7 text-xs">
+                {priorityLabels.low}
+              </ContextMenuRadioItem>
+              <ContextMenuRadioItem value="medium" disabled={!canEdit} className="py-1 pl-7 text-xs">
+                {priorityLabels.medium}
+              </ContextMenuRadioItem>
+              <ContextMenuRadioItem value="high" disabled={!canEdit} className="py-1 pl-7 text-xs">
+                {priorityLabels.high}
+              </ContextMenuRadioItem>
             </ContextMenuRadioGroup>
           </ContextMenuSubContent>
         </ContextMenuSub>
         <ContextMenuSeparator />
-        <ContextMenuItem onSelect={() => setDeleteOpen(true)} disabled={!canEdit} className="text-destructive">
+        <ContextMenuItem onSelect={() => setDeleteOpen(true)} disabled={!canEdit} className="py-1 text-xs text-destructive">
           {t`Delete task`}
         </ContextMenuItem>
       </ContextMenuContent>

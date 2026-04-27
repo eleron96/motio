@@ -5,7 +5,6 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { Button } from '@/shared/ui/button';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
-import { trackGoogleEvent } from '@/shared/lib/analytics/googleTag';
 import logoMotio from '@/shared/assets/branding/logo-motio.png';
 
 // ── static animation data (outside component) ──────────────────────────────
@@ -79,8 +78,8 @@ const LandingPage = () => {
   }, [setSignOutRedirectInProgress, signOutRedirectInProgress]);
 
   usePageSeo({
-    title: t`Motio - Team planning in one timeline`,
-    description: t`Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline.`,
+    title: t`Motio. One timeline for your whole team. 10 seconds per task.`,
+    description: t`Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory.`,
     canonicalPath: '/',
     robots: 'index, follow',
   });
@@ -356,7 +355,7 @@ const LandingPage = () => {
               className="rounded-md px-2 py-1 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
               aria-label="Switch language"
             >
-              {locale === 'en' ? 'RU' : 'EN'}
+              {locale.toUpperCase()}
             </button>
 
             {!loading && user ? (
@@ -381,7 +380,6 @@ const LandingPage = () => {
                 asChild
                 variant="outline"
                 size="sm"
-                onClick={() => trackGoogleEvent('login_cta_click', { placement: 'header' })}
               >
                 <Link to="/app">{t`Sign in`}</Link>
               </Button>
@@ -408,14 +406,13 @@ const LandingPage = () => {
             className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg"
             style={{ animation: 'landFadeDown 0.5s 0.15s ease both' }}
           >
-            {t`Motio keeps tasks, projects and workload in one shared workspace — no chaos, no spreadsheets.`}
+            {t`Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets.`}
           </p>
 
           <div style={{ animation: 'landFadeDown 0.5s 0.25s ease both' }} className="mt-8">
             <Button
               asChild
               size="lg"
-              onClick={() => trackGoogleEvent('start_free_click', { placement: 'hero' })}
             >
               <Link to="/app">{t`Start for free →`}</Link>
             </Button>
@@ -428,10 +425,10 @@ const LandingPage = () => {
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                 <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
                 <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                <span className="ml-2 text-xs text-slate-400">motio.app — Acme Team · Timeline</span>
+                <span className="ml-2 text-xs text-slate-400">motio.app · Acme Team · Timeline</span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
-                <span className="text-sm font-semibold text-slate-800">Acme — Projects</span>
+                <span className="text-sm font-semibold text-slate-800">Acme · Projects</span>
                 <div className="flex gap-1">
                   <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">{t`Timeline`}</span>
                   <span className="rounded-md px-2.5 py-1 text-xs text-slate-400">{t`Calendar`}</span>
@@ -466,7 +463,7 @@ const LandingPage = () => {
               { icon: '📅', bg: '#eff6ff', title: t`Visual timeline`,       body: t`See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly.` },
               { icon: '🗂️', bg: '#f0fdf4', title: t`Projects & milestones`,  body: t`Group tasks by project, set milestones, and track progress without switching tools.` },
               { icon: '👥', bg: '#fdf4ff', title: t`Team workload`,           body: t`Understand who is overloaded before it becomes a problem. Balance work across the team.` },
-              { icon: '🔔', bg: '#fff7ed', title: t`Notifications`,           body: t`Stay in the loop when tasks are assigned or updated. No more missed deadlines.` },
+              { icon: '☀️', bg: '#fff7ed', title: t`Daily Brief`,             body: t`Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else.` },
             ] as const).map((card, i) => (
               <div
                 key={i}
@@ -492,7 +489,7 @@ const LandingPage = () => {
                 {t`Your team's progress, always in view`}
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-slate-500">
-                {t`KPI widgets, bar and area charts, pie breakdowns — build any dashboard you need. Filter by assignee, project or status.`}
+                {t`KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status.`}
               </p>
               <ul className="mt-6 flex flex-col gap-3">
                 {[
@@ -512,7 +509,7 @@ const LandingPage = () => {
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                  <span className="ml-2 text-xs text-slate-400">motio.app — Acme · Dashboard</span>
+                  <span className="ml-2 text-xs text-slate-400">motio.app · Acme · Dashboard</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
                   <span className="text-sm font-semibold text-slate-800">{t`Dashboard`}</span>
@@ -558,6 +555,45 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* ── SELF-HOSTED / SSO ── */}
+        <section className="mx-auto w-full max-w-[1200px] px-4 pt-24 sm:px-6 lg:px-10">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 sm:px-12 sm:py-16">
+            <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-14">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  {t`Your infrastructure`}
+                </p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl" style={{ letterSpacing: '-0.5px' }}>
+                  {t`For teams that own their data`}
+                </h2>
+                <p className="mt-4 text-sm leading-relaxed text-slate-500 sm:text-base">
+                  {t`Motio runs on your infrastructure. No "our cloud" lock-in, no data leaves your perimeter. Built for teams who need to answer "where does our data live?" before they can adopt anything.`}
+                </p>
+              </div>
+
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {([
+                  { icon: '🖥️', title: t`Self-hosted`,        body: t`Docker Compose. Postgres. Your servers, your rules.` },
+                  { icon: '🔐', title: t`SSO via Keycloak`,    body: t`Plug into your identity provider out of the box.` },
+                  { icon: '💾', title: t`Backup & restore`,    body: t`Full snapshot from the admin console. Restore in one command.` },
+                  { icon: '🚪', title: t`No SaaS lock-in`,     body: t`Open source schema. Export everything, leave anytime.` },
+                ] as const).map((item, i) => (
+                  <li
+                    key={i}
+                    className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4"
+                  >
+                    <span className="text-lg leading-none">{item.icon}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-500">{item.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
         {/* ── HOW IT WORKS ── */}
         <section className="mx-auto w-full max-w-[900px] px-4 pt-24 text-center sm:px-6 lg:px-10">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl" style={{ letterSpacing: '-0.5px' }}>
@@ -581,24 +617,56 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* ── WHY I BUILT THIS ── */}
+        <section className="mx-auto w-full max-w-[760px] px-4 pt-24 sm:px-6 lg:px-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            {t`Why I built this`}
+          </p>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl" style={{ letterSpacing: '-0.5px' }}>
+            {t`The tool I wanted to use`}
+          </h2>
+          <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-slate-600 sm:text-base">
+            <p>
+              {t`I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem.`}
+            </p>
+            <p>
+              {t`Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week.`}
+            </p>
+            <p>
+              {t`On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline.`}
+            </p>
+            <p>
+              {t`Motio grew out of exactly this boring but very real problem.`}
+            </p>
+            <p>
+              {t`It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what.`}
+            </p>
+            <p>
+              {t`Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position.`}
+            </p>
+            <p>
+              {t`If the question "who's working on what this week" keeps coming up in your team, it's time to try Motio.`}
+            </p>
+          </div>
+        </section>
+
         {/* ── CTA BOTTOM ── */}
         <div className="mx-auto w-full max-w-[1200px] px-4 py-24 sm:px-6 lg:px-10">
           <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-8 py-16 text-center">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(99,102,241,0.15),transparent_70%)]" />
             <h2 className="relative text-2xl font-bold text-white sm:text-3xl lg:text-4xl" style={{ letterSpacing: '-0.5px' }}>
-              {t`Ready to bring clarity to your team?`}
+              {t`Try Motio now`}
             </h2>
-            <p className="relative mt-3 text-base text-slate-400">
-              {t`Join teams already planning smarter with Motio.`}
+            <p className="relative mx-auto mt-4 max-w-xl text-base leading-relaxed text-slate-400">
+              {t`Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread.`}
             </p>
             <div className="relative mt-8">
               <Button
                 asChild
                 className="bg-white text-slate-900 hover:bg-slate-100"
                 size="lg"
-                onClick={() => trackGoogleEvent('start_free_click', { placement: 'cta_bottom' })}
               >
-                <Link to="/app">{t`Get started for free →`}</Link>
+                <Link to="/app">{t`Start now →`}</Link>
               </Button>
             </div>
           </div>
@@ -609,7 +677,23 @@ const LandingPage = () => {
       {/* ── FOOTER ── */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-0.5 px-4 py-3 text-[11px] leading-tight text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
-          <p>© {currentYear} Motio. {t`Team planning workspace.`}</p>
+          <p>
+            © {currentYear} Motio. {t`Team planning workspace.`}
+            {' · '}
+            <Link
+              to="/privacy"
+              className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+            >
+              {t`Privacy Policy`}
+            </Link>
+            {' · '}
+            <Link
+              to="/terms"
+              className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+            >
+              {t`Terms of Service`}
+            </Link>
+          </p>
           <p>
             <Trans>
               Designed and developed by{' '}

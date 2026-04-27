@@ -119,9 +119,11 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
           const dayKey = format(day, 'yyyy-MM-dd');
           const today = dayKey === todayKey;
           const weekend = isWeekend(day);
+          const nextDay = visibleDays[index + 1];
+          const adjacentWeekend = weekend && nextDay !== undefined && isWeekend(nextDay);
           const isHoliday = shouldApplyHolidayHatch(dayKey, weekend, holidayDates);
           const isAttentionDay = attentionDate === dayKey;
-          
+
           return (
             <ContextMenu key={index}>
               <ContextMenuTrigger asChild>
@@ -130,6 +132,7 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
                   className={cn(
                     'flex flex-col items-center justify-center border-r border-border transition-colors py-2 gap-1',
                     weekend && 'bg-timeline-weekend',
+                    adjacentWeekend && 'border-r-foreground/20',
                     isHoliday && 'holiday-hatch',
                     today && 'today-hatch',
                     onDateContextAction && 'cursor-context-menu',

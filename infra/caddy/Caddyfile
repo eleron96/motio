@@ -1,5 +1,13 @@
+errors.motio.nikog.net {
+  reverse_proxy glitchtip-web:8000
+}
+
 monitor.motio.nikog.net {
   reverse_proxy beszel:8090
+}
+
+analytics.motio.nikog.net {
+  reverse_proxy metabase:3000
 }
 
 www.motio.nikog.net {
@@ -7,7 +15,13 @@ www.motio.nikog.net {
 }
 
 motio.nikog.net {
-  header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  }
 
   route {
     encode zstd gzip
@@ -21,6 +35,7 @@ motio.nikog.net {
     redir /admin /admin/master/console/ 302
     redir /admin/master/console /admin/master/console/ 302
 
+    # --- Keycloak (no pooling needed, low traffic) ---
     handle /resources* {
       reverse_proxy keycloak:8080
     }
@@ -41,76 +56,162 @@ motio.nikog.net {
       reverse_proxy keycloak:8080
     }
 
+    # --- Supabase Gateway (API, auth, storage, functions) ---
+    # Shared transport with higher keepalive pool to prevent
+    # connection queuing under concurrent browser requests.
     handle /health {
-      reverse_proxy gateway:8080
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
     }
 
     handle /auth/v1* {
-      reverse_proxy gateway:8080
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
     }
 
     handle /auth* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /rest/v1* {
-      reverse_proxy gateway:8080
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
     }
 
     handle /realtime/v1* {
-      reverse_proxy gateway:8080
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
     }
 
     handle /storage/v1* {
-      reverse_proxy gateway:8080
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
     }
 
     handle /functions/v1* {
-      reverse_proxy gateway:8080
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
     }
 
     handle /backup* {
-      reverse_proxy gateway:8080
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
     }
 
+    # --- Web frontend (static assets, SPA routes) ---
+    # Higher idle pool to handle burst of JS chunk requests
+    # during initial page load (9+ concurrent requests).
     handle /assets* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /branding* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /favicon* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /logo.png {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /placeholder.svg {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /robots.txt {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /sitemap.xml {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /invite* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /privacy* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle /app* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle / {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
     }
 
     handle {

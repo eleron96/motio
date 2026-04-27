@@ -17,9 +17,10 @@ type WorkspaceNavItemProps = {
   orientation: 'horizontal' | 'vertical';
   to: string;
   end?: boolean;
+  dataTour?: string;
 };
 
-const WorkspaceNavItem = ({ end, label, onNavigate, orientation, to }: WorkspaceNavItemProps) => {
+const WorkspaceNavItem = ({ end, label, onNavigate, orientation, to, dataTour }: WorkspaceNavItemProps) => {
   const resolvedPath = useResolvedPath(to);
   const isActive = Boolean(useMatch({ end, path: resolvedPath.pathname }));
 
@@ -27,11 +28,10 @@ const WorkspaceNavItem = ({ end, label, onNavigate, orientation, to }: Workspace
     <SegmentedControlItem
       asChild
       active={isActive}
-      fullWidth={orientation === 'vertical'}
       inactiveClassName="text-muted-foreground hover:text-foreground"
       size="sm"
     >
-      <NavLink to={to} end={end} onClick={onNavigate}>
+      <NavLink to={to} end={end} onClick={onNavigate} data-tour={dataTour}>
         {label}
       </NavLink>
     </SegmentedControlItem>
@@ -44,13 +44,14 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
   onNavigate,
 }) => (
   <nav
+    data-tour="nav-bar"
     aria-label={t`Workspace sections`}
-    className={cn(orientation === 'vertical' && 'w-full', className)}
+    className={className}
   >
     <SegmentedControl
       orientation={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
       surface={orientation === 'horizontal' ? 'subtle' : 'none'}
-      className={cn(orientation === 'vertical' && 'w-full')}
+      className={cn(orientation === 'vertical' && '!items-start gap-1')}
     >
       {getAppNavigationItems().map((item) => (
         <WorkspaceNavItem
@@ -60,6 +61,12 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
           onNavigate={onNavigate}
           to={item.to}
           end={item.end}
+          dataTour={
+            item.to === '/app/dashboard' ? 'nav-dashboard'
+              : item.to === '/app/projects' ? 'nav-projects'
+              : item.to === '/app/members' ? 'nav-team'
+                : undefined
+          }
         />
       ))}
     </SegmentedControl>

@@ -155,6 +155,49 @@
     formOptions.parentNode.insertBefore(headerHint, formOptions);
   }
 
+  function injectPrivacyConsent() {
+    var registerForm = doc.getElementById('kc-register-form');
+    if (!registerForm) return;
+
+    // Only on actual register page — has password-confirm field
+    if (!doc.getElementById('password-confirm')) return;
+
+    // Don't inject twice
+    if (doc.getElementById('timeline-privacy-consent')) return;
+
+    var submitButton = registerForm.querySelector('[type="submit"]');
+    if (!submitButton) return;
+
+    var lang = (root.lang || '').toLowerCase();
+    var isRu = lang.indexOf('ru') === 0;
+
+    var prefix = isRu
+      ? 'Регистрируясь, вы соглашаетесь с нашей\u00a0'
+      : 'By registering, you agree to our\u00a0';
+    var linkText = isRu ? 'Политикой конфиденциальности' : 'Privacy Policy';
+
+    var consent = doc.createElement('div');
+    consent.id = 'timeline-privacy-consent';
+    consent.className = 'timeline-privacy-consent';
+
+    var link = doc.createElement('a');
+    link.href = '/privacy';
+    link.target = '_blank';
+    link.rel = 'noreferrer';
+    link.textContent = linkText;
+
+    consent.appendChild(doc.createTextNode(prefix));
+    consent.appendChild(link);
+    consent.appendChild(doc.createTextNode('.'));
+
+    var container = submitButton.closest('.pf-c-form__group') || submitButton.parentNode;
+    if (container && container.parentNode) {
+      container.parentNode.insertBefore(consent, container.nextSibling);
+    } else {
+      registerForm.appendChild(consent);
+    }
+  }
+
   function isReAuthScreen() {
     var passwordInput = doc.getElementById('password');
     var usernameInput = doc.getElementById('username');
@@ -175,6 +218,7 @@
     disableAutofocus();
     fixPasswordToggleControls();
     moveRegisterRequiredHint();
+    injectPrivacyConsent();
 
     if (!isReAuthScreen()) {
       setPageHidden(false);

@@ -115,6 +115,7 @@ const AdminUsersPage: React.FC = () => {
     downloadBackup,
     renameBackup,
     deleteBackup,
+    adminForcePurgeAccount,
     signOut,
   } = useAuthStore();
   const locale = useLocaleStore((state) => state.locale);
@@ -154,6 +155,14 @@ const AdminUsersPage: React.FC = () => {
   const [backupDeleteSubmitting, setBackupDeleteSubmitting] = useState(false);
   const [backupDeleteError, setBackupDeleteError] = useState('');
   const backupUploadInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [forcePurgeUserId, setForcePurgeUserId] = useState('');
+  const [forcePurgeConfirmOpen, setForcePurgeConfirmOpen] = useState(false);
+  const [forcePurgeSubmitting, setForcePurgeSubmitting] = useState(false);
+  const [forcePurgeError, setForcePurgeError] = useState('');
+  const [forcePurgeResult, setForcePurgeResult] = useState<
+    { userId: string; purgeAfter: string } | null
+  >(null);
 
   useEffect(() => {
     if (!isSuperAdmin) return;
@@ -358,6 +367,36 @@ const AdminUsersPage: React.FC = () => {
     setBackupRestoreSubmitting(false);
     setBackupRestoreOpen(false);
     setBackupRestoreTarget(null);
+  };
+
+  const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const forcePurgeTrimmed = forcePurgeUserId.trim();
+  const forcePurgeValid = UUID_PATTERN.test(forcePurgeTrimmed);
+
+  const openForcePurgeConfirm = () => {
+    if (!forcePurgeValid) {
+      setForcePurgeError(t`Enter a valid user UUID.`);
+      return;
+    }
+    setForcePurgeError('');
+    setForcePurgeResult(null);
+    setForcePurgeConfirmOpen(true);
+  };
+
+  const handleForcePurge = async () => {
+    setForcePurgeSubmitting(true);
+    setForcePurgeError('');
+    const { data, error } = await adminForcePurgeAccount(forcePurgeTrimmed);
+    setForcePurgeSubmitting(false);
+    if (error) {
+      setForcePurgeError(error);
+      return;
+    }
+    if (data) {
+      setForcePurgeResult({ userId: data.user_id, purgeAfter: data.purge_after });
+    }
+    setForcePurgeConfirmOpen(false);
+    setForcePurgeUserId('');
   };
 
   const workspaceDetails = workspacesTarget?.workspaces ?? [];
@@ -579,6 +618,56 @@ const AdminUsersPage: React.FC = () => {
                     </Table>
                   </div>
                 )}
+
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+                  <div>
+                    <div className="text-sm font-semibold">{t`Force purge account`}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t`Skip the 30-day grace period for a PENDING_DELETION account. The cron will pick the user on the next tick.`}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                    <Input
+                      value={forcePurgeUserId}
+                      placeholder={t`User UUID`}
+                      onChange={(event) => {
+                        setForcePurgeUserId(event.target.value);
+                        setForcePurgeError('');
+                        setForcePurgeResult(null);
+                      }}
+                      data-testid="force-purge-user-id-input"
+                      disabled={forcePurgeSubmitting}
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={openForcePurgeConfirm}
+                      disabled={forcePurgeSubmitting || !forcePurgeValid}
+                      data-testid="force-purge-submit-button"
+                    >
+                      {t`Purge now`}
+                    </Button>
+                  </div>
+                  {forcePurgeError && (
+                    <Alert variant="destructive">
+                      <AlertTitle>{t`Force purge failed`}</AlertTitle>
+                      <AlertDescription>{forcePurgeError}</AlertDescription>
+                    </Alert>
+                  )}
+                  {forcePurgeResult && (
+                    <Alert>
+                      <AlertTitle>{t`Force purge scheduled`}</AlertTitle>
+                      <AlertDescription>
+                        <div className="text-xs">
+                          {t`User`}: {forcePurgeResult.userId}
+                        </div>
+                        <div className="text-xs">
+                          {t`purge_after`}: {formatDate(forcePurgeResult.purgeAfter, locale)}
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value="workspaces" className="space-y-4">
@@ -1001,6 +1090,35 @@ const AdminUsersPage: React.FC = () => {
               disabled={backupDeleteSubmitting}
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={forcePurgeConfirmOpen}
+        onOpenChange={(open) => {
+          if (!forcePurgeSubmitting) setForcePurgeConfirmOpen(open);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Force purge account?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`This will schedule immediate purge for user ${forcePurgeTrimmed}. The user must be in PENDING_DELETION. This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={forcePurgeSubmitting}>{t`Cancel`}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault();
+                void handleForcePurge();
+              }}
+              disabled={forcePurgeSubmitting}
+              data-testid="force-purge-confirm-button"
+            >
+              {t`Purge`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -56,7 +56,7 @@ export const DailyBriefModal = ({ open, onDismiss, workspaceId, assigneeId }: Pr
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-5 max-h-[50vh] overflow-y-auto">
           <section>
             <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
               <span>⚠️</span>

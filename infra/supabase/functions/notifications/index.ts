@@ -12,7 +12,11 @@ const corsHeaders = {
 };
 
 type NotificationAction = "list" | "markRead" | "markUnread" | "markAllRead" | "deleteAll" | "delete";
-type NotificationType = "task_assigned" | "comment_mention";
+type NotificationType =
+  | "task_assigned"
+  | "comment_mention"
+  | "export_ready"
+  | "export_failed";
 
 interface NotificationsPayload {
   action?: NotificationAction;
@@ -108,7 +112,11 @@ const handleList = async (
     return jsonResponse({ error: accessResult.error }, 400);
   }
 
-  const visibleRows = (rows ?? []).filter((row) => accessResult.workspaceIds.has(row.workspace_id));
+  // Account-level rows (workspace_id IS NULL) pass through without the workspace gate.
+  const visibleRows = (rows ?? []).filter((row) => {
+    if (row.workspace_id === null) return true;
+    return accessResult.workspaceIds.has(row.workspace_id);
+  });
 
   const visibleWorkspaceIds = Array.from(new Set(
     visibleRows
@@ -214,6 +222,11 @@ const ensureNotificationAccess = async (notificationId: string, userId: string) 
     return { error: "Notification not found.", status: 404 };
   }
 
+  // Account-level notifications (workspace_id IS NULL): recipient match is sufficient.
+  if (row.workspace_id === null) {
+    return { row };
+  }
+
   const accessResult = await getWorkspaceAccessSet([row.workspace_id], userId);
   if ("error" in accessResult) {
     return { error: accessResult.error, status: 400 };
@@ -291,25 +304,36 @@ const handleMarkAllRead = async (authUser: AuthNotificationsUser) => {
       .filter((id): id is string => typeof id === "string" && id.length > 0),
   ));
 
-  if (workspaceIds.length === 0) {
-    return jsonResponse({ success: true, updated: 0 });
+  const readAt = new Date().toISOString();
+  let total = 0;
+
+  // Workspace-scoped notifications (task_assigned / comment_mention).
+  if (workspaceIds.length > 0) {
+    const { data, error } = await supabaseAdmin
+      .from("user_notifications")
+      .update({ read_at: readAt })
+      .eq("recipient_user_id", authUser.id)
+      .is("deleted_at", null)
+      .is("read_at", null)
+      .in("workspace_id", workspaceIds)
+      .select("id");
+    if (error) return jsonResponse({ error: error.message }, 400);
+    total += (data ?? []).length;
   }
 
-  const readAt = new Date().toISOString();
-  const { data: updatedRows, error } = await supabaseAdmin
+  // Account-level notifications (workspace_id IS NULL — export_ready / export_failed).
+  const { data: accountRows, error: accountError } = await supabaseAdmin
     .from("user_notifications")
     .update({ read_at: readAt })
     .eq("recipient_user_id", authUser.id)
     .is("deleted_at", null)
     .is("read_at", null)
-    .in("workspace_id", workspaceIds)
+    .is("workspace_id", null)
     .select("id");
+  if (accountError) return jsonResponse({ error: accountError.message }, 400);
+  total += (accountRows ?? []).length;
 
-  if (error) {
-    return jsonResponse({ error: error.message }, 400);
-  }
-
-  return jsonResponse({ success: true, updated: (updatedRows ?? []).length });
+  return jsonResponse({ success: true, updated: total });
 };
 
 const handleDeleteAll = async (authUser: AuthNotificationsUser) => {
@@ -328,24 +352,32 @@ const handleDeleteAll = async (authUser: AuthNotificationsUser) => {
       .filter((id): id is string => typeof id === "string" && id.length > 0),
   ));
 
-  if (workspaceIds.length === 0) {
-    return jsonResponse({ success: true, updated: 0 });
+  const deletedAt = new Date().toISOString();
+  let total = 0;
+
+  if (workspaceIds.length > 0) {
+    const { data, error } = await supabaseAdmin
+      .from("user_notifications")
+      .update({ deleted_at: deletedAt })
+      .eq("recipient_user_id", authUser.id)
+      .is("deleted_at", null)
+      .in("workspace_id", workspaceIds)
+      .select("id");
+    if (error) return jsonResponse({ error: error.message }, 400);
+    total += (data ?? []).length;
   }
 
-  const deletedAt = new Date().toISOString();
-  const { data: updatedRows, error } = await supabaseAdmin
+  const { data: accountRows, error: accountError } = await supabaseAdmin
     .from("user_notifications")
     .update({ deleted_at: deletedAt })
     .eq("recipient_user_id", authUser.id)
     .is("deleted_at", null)
-    .in("workspace_id", workspaceIds)
+    .is("workspace_id", null)
     .select("id");
+  if (accountError) return jsonResponse({ error: accountError.message }, 400);
+  total += (accountRows ?? []).length;
 
-  if (error) {
-    return jsonResponse({ error: error.message }, 400);
-  }
-
-  return jsonResponse({ success: true, updated: (updatedRows ?? []).length });
+  return jsonResponse({ success: true, updated: total });
 };
 
 const handleNotifications = async (req: Request) => {

@@ -7,6 +7,7 @@ import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 
 type NameSort = 'asc' | 'desc';
 type MilestoneGroupBy = 'project' | 'customer' | 'month';
+type MilestoneTab = 'active' | 'past';
 
 export type MilestoneGroup = {
   id: string;
@@ -23,6 +24,7 @@ export type ProjectGroup = {
 type BuildGroupedMilestonesArgs = {
   visibleMilestones: Milestone[];
   milestoneGroupBy: MilestoneGroupBy;
+  milestoneTab: MilestoneTab;
   projectById: Map<string, Project>;
   projects: Project[];
   sortedCustomers: Customer[];
@@ -130,6 +132,7 @@ export const splitMilestonesByDate = (milestones: Milestone[], todayMilestoneKey
 export const buildGroupedMilestones = ({
   visibleMilestones,
   milestoneGroupBy,
+  milestoneTab,
   projectById,
   projects,
   sortedCustomers,
@@ -138,8 +141,11 @@ export const buildGroupedMilestones = ({
   dateLocale,
   labels,
 }: BuildGroupedMilestonesArgs): MilestoneGroup[] => {
+  const orderedMilestones = milestoneTab === 'past'
+    ? [...visibleMilestones].reverse()
+    : visibleMilestones;
   const buckets = new Map<string, Milestone[]>();
-  visibleMilestones.forEach((milestone) => {
+  orderedMilestones.forEach((milestone) => {
     if (milestoneGroupBy === 'project') {
       const key = projectById.has(milestone.projectId) ? milestone.projectId : 'missing-project';
       const list = buckets.get(key) ?? [];
@@ -210,7 +216,11 @@ export const buildGroupedMilestones = ({
   }
 
   return Array.from(buckets.entries())
-    .sort((left, right) => right[0].localeCompare(left[0]))
+    .sort((left, right) => (
+      milestoneTab === 'past'
+        ? right[0].localeCompare(left[0])
+        : left[0].localeCompare(right[0])
+    ))
     .map(([monthKey, list]) => ({
       id: monthKey,
       name: format(parseISO(`${monthKey}-01`), 'LLLL yyyy', { locale: dateLocale }),

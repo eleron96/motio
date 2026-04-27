@@ -1,5 +1,11 @@
 test.motio.nikog.net {
-  header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  }
 
   route {
     encode zstd gzip
@@ -94,6 +100,10 @@ test.motio.nikog.net {
     }
 
     handle /invite* {
+      reverse_proxy web:80
+    }
+
+    handle /privacy* {
       reverse_proxy web:80
     }
 

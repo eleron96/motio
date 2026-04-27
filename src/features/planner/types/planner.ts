@@ -12,7 +12,7 @@ export interface Task {
   typeId: string;
   priority: TaskPriority | null;
   tagIds: string[];
-  description: string | null;
+  description: string | null | undefined;
   repeatId: string | null;
 }
 
@@ -85,11 +85,14 @@ export interface Milestone {
   date: string; // ISO date
 }
 
+export type CommentAuthorStatus = 'ACTIVE' | 'PENDING_DELETION' | 'PURGED';
+
 export interface TaskComment {
   id: string;
   taskId: string;
   authorId: string;
   authorDisplayName: string;
+  authorStatus: CommentAuthorStatus;
   content: string; // sanitized HTML
   mentionedUserIds: string[];
   createdAt: string; // ISO timestamp
