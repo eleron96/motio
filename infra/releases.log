@@ -262,3 +262,10 @@
 2026-04-22T20:24:54Z | 0.4.7 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-202413.dump | Timeline task bars now have a small top padding inside their row — no longer flush against the row's top border.
 2026-04-22T21:19:57Z | 0.4.9 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260422-211916.dump | Fixed milestone list sorting: the 'Upcoming' tab now shows the soonest dates on top (April → May → July), and the 'Past' tab shows the most recent past dates first.
 2026-04-24T11:49:50Z | 0.4.13 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260424-114902.dump | No documented changes.
+2026-04-24T14:49:18Z | 0.4.14 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260424-144833.dump | No documented changes.
+2026-04-25T08:48:23Z | 0.4.15 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-084738.dump | No documented changes.
+2026-04-25T09:12:26Z | 0.4.16 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-091139.dump | No documented changes.
+2026-04-25T09:45:10Z | 0.4.17 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-094412.dump | No documented changes.
+2026-04-25T10:06:17Z | 0.4.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-100532.dump | No documented changes.
+2026-04-25T10:27:34Z | 0.4.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-102647.dump | No documented changes.
+2026-04-25T10:47:20Z | 0.4.20 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260425-104634.dump | No documented changes.
