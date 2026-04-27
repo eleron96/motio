@@ -29,6 +29,7 @@ dist-ssr
 .supabase-functions.log
 .supabase-functions.env
 infra/backups/
+infra/seeds/
 docs/
 /marketing/
 
