@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.30] - 2026-04-29
 ### Changed
 - Desktop header: a small Motio logo appears in the top-left corner; clicking it returns to the Timeline.
 
