@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.25] - 2026-04-29
+### Changed
+- Mobile header: added a small gap between the menu logo and the section pill buttons for visual separation.
+
 ## [0.4.24] - 2026-04-29
 ### Changed
 - Mobile: subsections of Projects (Projects/Milestones/Customers) and Team (People/Access/Groups) moved to a top pill-nav carousel instead of the side panel. On Timeline calendar view, the filter and add-task buttons are now hidden.
