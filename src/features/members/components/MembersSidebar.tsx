@@ -70,6 +70,7 @@ type MembersSidebarProps = {
   onSelectGroup: (groupId: string) => void;
   onStartEditGroup: (group: GroupRecord) => void;
   onDeleteGroup: (group: GroupRecord) => void;
+  hideModeSelector?: boolean;
 };
 
 export const MembersSidebar = ({
@@ -77,6 +78,7 @@ export const MembersSidebar = ({
   mode,
   onModeChange,
   isAdmin,
+  hideModeSelector = false,
   tab,
   onTabChange,
   accessTab,
@@ -116,33 +118,35 @@ export const MembersSidebar = ({
 }: MembersSidebarProps) => {
   return (
     <aside className={cn('w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col', className)}>
-      <div className="px-4 py-3 border-b border-border">
-        <SegmentedControl surface="filled">
-          <SegmentedControlItem
-            active={mode === 'tasks'}
-            onClick={() => onModeChange('tasks')}
-            data-tour="members-people-tab"
-          >
-            {t`People`}
-          </SegmentedControlItem>
-          {isAdmin && (
+      {hideModeSelector ? null : (
+        <div className="px-4 py-3 border-b border-border">
+          <SegmentedControl surface="filled">
             <SegmentedControlItem
-              active={mode === 'access'}
-              onClick={() => onModeChange('access')}
-              data-tour="members-access-tab"
+              active={mode === 'tasks'}
+              onClick={() => onModeChange('tasks')}
+              data-tour="members-people-tab"
             >
-              {t`Access`}
+              {t`People`}
             </SegmentedControlItem>
-          )}
-          <SegmentedControlItem
-            active={mode === 'groups'}
-            onClick={() => onModeChange('groups')}
-            data-tour="members-groups-tab"
-          >
-            {t`Groups`}
-          </SegmentedControlItem>
-        </SegmentedControl>
-      </div>
+            {isAdmin && (
+              <SegmentedControlItem
+                active={mode === 'access'}
+                onClick={() => onModeChange('access')}
+                data-tour="members-access-tab"
+              >
+                {t`Access`}
+              </SegmentedControlItem>
+            )}
+            <SegmentedControlItem
+              active={mode === 'groups'}
+              onClick={() => onModeChange('groups')}
+              data-tour="members-groups-tab"
+            >
+              {t`Groups`}
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
+      )}
 
       {mode === 'tasks' && (
         <Tabs

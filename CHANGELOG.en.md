@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.24] - 2026-04-29
+### Changed
+- Mobile: subsections of Projects (Projects/Milestones/Customers) and Team (People/Access/Groups) moved to a top pill-nav carousel instead of the side panel. On Timeline calendar view, the filter and add-task buttons are now hidden.
+
 ## [0.4.23] - 2026-04-29
 ### Changed
 - Mobile header now shows the Motio brand favicon as the menu logo instead of the abstract mark.
