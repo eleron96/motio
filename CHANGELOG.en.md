@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.26] - 2026-04-29
+### Changed
+- Mobile view of Projects and Team: search and filters are collapsed under a chevron button and only expand on demand. Opening the side browse sheet no longer auto-focuses the search input and pops the keyboard.
+
 ## [0.4.25] - 2026-04-29
 ### Changed
 - Mobile header: added a small gap between the menu logo and the section pill buttons for visual separation.

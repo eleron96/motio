@@ -59,6 +59,12 @@ export const MobilePageSheetLayout: React.FC<MobilePageSheetLayoutProps> = ({
         side="left"
         aria-describedby={undefined}
         className="flex h-full w-[min(100vw,24rem)] flex-col gap-0 p-0 sm:max-w-[24rem]"
+        onOpenAutoFocus={(event) => {
+          // Prevent Radix from auto-focusing the first focusable element
+          // (usually a search input) — on mobile that pops up the keyboard
+          // every time the user opens the sheet to browse.
+          event.preventDefault();
+        }}
       >
         <SheetHeader className="border-b border-border px-4 py-4 text-left">
           <SheetTitle>{sheetTitle}</SheetTitle>
