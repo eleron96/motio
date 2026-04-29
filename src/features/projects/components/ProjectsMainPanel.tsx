@@ -1,7 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
-import { CalendarDays, RefreshCcw } from 'lucide-react';
+import { CalendarDays, ChevronDown, RefreshCcw, Search } from 'lucide-react';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
@@ -136,6 +136,11 @@ export const ProjectsMainPanel = ({
 }: ProjectsMainPanelProps) => {
   const isMobile = useIsMobile();
   const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const hasActiveFilters = search.trim().length > 0
+    || statusFilterIds.length > 0
+    || assigneeFilterIds.length > 0
+    || (taskScope === 'past' && (pastFromDate.length > 0 || pastToDate.length > 0));
 
   return (
     <section data-tour="projects-main-panel" className="h-full min-h-0 min-w-0 overflow-hidden flex flex-col">
@@ -184,7 +189,34 @@ export const ProjectsMainPanel = ({
               </div>
 
               <div className={`border-b border-border ${sectionPadding}`}>
-                <div className={isMobile ? 'flex flex-col items-stretch gap-2' : 'flex flex-wrap items-center gap-3'}>
+                {isMobile ? (
+                  <button
+                    type="button"
+                    onClick={() => setMobileFiltersOpen((open) => !open)}
+                    aria-expanded={mobileFiltersOpen}
+                    className="flex w-full items-center justify-between text-xs font-medium text-muted-foreground"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Search className="h-3.5 w-3.5" />
+                      {t`Search & filters`}
+                      {hasActiveFilters && !mobileFiltersOpen ? (
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                      ) : null}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                ) : null}
+                <div
+                  className={
+                    isMobile
+                      ? mobileFiltersOpen
+                        ? 'mt-3 flex flex-col items-stretch gap-2'
+                        : 'hidden'
+                      : 'flex flex-wrap items-center gap-3'
+                  }
+                >
                   <Input
                     className="w-full sm:w-[220px]"
                     placeholder={t`Search tasks...`}

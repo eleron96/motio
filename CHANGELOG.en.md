@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.27] - 2026-04-29
+### Changed
+- Mobile: task-list filters inside Member and Project panels (search, statuses, assignees/projects, date range) are now collapsed by default and expand via a chevron — frees up half the screen.
+
 ## [0.4.26] - 2026-04-29
 ### Changed
 - Mobile view of Projects and Team: search and filters are collapsed under a chevron button and only expand on demand. Opening the side browse sheet no longer auto-focuses the search input and pops the keyboard.
