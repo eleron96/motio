@@ -40,6 +40,7 @@ import {
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
+import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 const ProjectsPage = () => {
@@ -550,6 +551,7 @@ const ProjectsPage = () => {
     <ProjectsSidebar
       mode={mode}
       onModeChange={setMode}
+      hideModeSelector={isMobile}
       canEdit={canEdit}
       nameSort={nameSort}
       nameSortLabel={nameSortLabel}
@@ -760,16 +762,35 @@ const ProjectsPage = () => {
       )}
 
       {isMobile ? (
-        <MobilePageSheetLayout
-          open={mobileSidebarOpen}
-          onOpenChange={setMobileSidebarOpen}
-          browseLabel={mobileSheetLabel}
-          sheetTitle={mobileSheetLabel}
-          summary={mobileSummary}
-          sheetContent={renderProjectsSidebar(true)}
-        >
-          {renderProjectsMainPanel()}
-        </MobilePageSheetLayout>
+        <>
+          {(() => {
+            const subnavItems: MobilePillSubnavItem[] = [
+              { id: 'projects', label: t`Projects` },
+              { id: 'milestones', label: t`Milestones` },
+              { id: 'customers', label: t`Customers` },
+            ];
+            return (
+              <div className="border-b border-border bg-card">
+                <MobilePillSubnav
+                  items={subnavItems}
+                  activeId={mode}
+                  onChange={(id) => setMode(id as 'projects' | 'milestones' | 'customers')}
+                  ariaLabel={t`Projects sections`}
+                />
+              </div>
+            );
+          })()}
+          <MobilePageSheetLayout
+            open={mobileSidebarOpen}
+            onOpenChange={setMobileSidebarOpen}
+            browseLabel={mobileSheetLabel}
+            sheetTitle={mobileSheetLabel}
+            summary={mobileSummary}
+            sheetContent={renderProjectsSidebar(true)}
+          >
+            {renderProjectsMainPanel()}
+          </MobilePageSheetLayout>
+        </>
       ) : (
         <div className="flex flex-1 min-h-0 overflow-hidden">
           <ResizablePanelGroup

@@ -85,6 +85,7 @@ type ProjectsSidebarProps = {
   onRequestDeleteProject: (project: Project) => void;
   onToggleProjectArchived: (project: Project) => Promise<void>;
   groupProjects: (list: Project[]) => ProjectGroup[];
+  hideModeSelector?: boolean;
 };
 
 export const ProjectsSidebar = ({
@@ -142,6 +143,7 @@ export const ProjectsSidebar = ({
   onRequestDeleteProject,
   onToggleProjectArchived,
   groupProjects,
+  hideModeSelector = false,
 }: ProjectsSidebarProps) => {
   const renderProjectItem = (project: Project, showArchivedBadge: boolean) => {
     const customerName = project.customerId ? customerById.get(project.customerId)?.name : null;
@@ -332,28 +334,30 @@ export const ProjectsSidebar = ({
 
   return (
     <aside data-tour="projects-sidebar" className="h-full min-h-0 min-w-0 bg-card flex flex-col">
-      <div className="px-4 py-3 border-b border-border">
-        <SegmentedControl surface="filled">
-          <SegmentedControlItem
-            active={mode === 'projects'}
-            onClick={() => onModeChange('projects')}
-          >
-            {t`Projects`}
-          </SegmentedControlItem>
-          <SegmentedControlItem
-            active={mode === 'milestones'}
-            onClick={() => onModeChange('milestones')}
-          >
-            {t`Milestones`}
-          </SegmentedControlItem>
-          <SegmentedControlItem
-            active={mode === 'customers'}
-            onClick={() => onModeChange('customers')}
-          >
-            {t`Customers`}
-          </SegmentedControlItem>
-        </SegmentedControl>
-      </div>
+      {hideModeSelector ? null : (
+        <div className="px-4 py-3 border-b border-border">
+          <SegmentedControl surface="filled">
+            <SegmentedControlItem
+              active={mode === 'projects'}
+              onClick={() => onModeChange('projects')}
+            >
+              {t`Projects`}
+            </SegmentedControlItem>
+            <SegmentedControlItem
+              active={mode === 'milestones'}
+              onClick={() => onModeChange('milestones')}
+            >
+              {t`Milestones`}
+            </SegmentedControlItem>
+            <SegmentedControlItem
+              active={mode === 'customers'}
+              onClick={() => onModeChange('customers')}
+            >
+              {t`Customers`}
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
+      )}
 
       {mode === 'customers' && (
         <>
