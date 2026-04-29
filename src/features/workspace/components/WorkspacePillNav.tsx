@@ -13,7 +13,6 @@ import {
   ProjectsNavIcon,
   TeamNavIcon,
 } from '@/features/workspace/components/sectionNavIcons';
-import { MotioMark } from '@/features/workspace/components/MotioMark';
 
 const SECTION_ICONS: Record<SectionIconKey, React.FC<{ size?: number; className?: string }>> = {
   timeline: TimelineNavIcon,
@@ -112,13 +111,17 @@ export const WorkspacePillNav: React.FC<WorkspacePillNavProps> = ({
         onClick={onOpenDrawer}
         aria-label={t`Open menu`}
         className={cn(
-          'inline-flex shrink-0 items-center justify-center rounded-full text-foreground',
+          'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          'hover:bg-muted/60',
         )}
         style={{ width: ROUND, height: ROUND }}
       >
-        <MotioMark size={ROUND - 6} />
+        <img
+          src="/favicon-theme-light.png"
+          alt=""
+          className="h-full w-full object-contain"
+          draggable={false}
+        />
       </button>
 
       <div className="flex min-w-0 flex-1 items-center" style={{ gap: GAP }}>
