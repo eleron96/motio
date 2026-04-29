@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.22] - 2026-04-29
+### Changed
+- Mobile header redesigned with round section buttons (Timeline, Dashboard, Projects, Team): the active one expands into a labelled pill, and the page primary action now lives in a floating button at the bottom.
+
 ## [0.4.21] - 2026-04-27
 ### Changed
 - Landing: removed em-dashes, copy reads more naturally.

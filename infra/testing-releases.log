@@ -19,3 +19,4 @@
 2026-04-24T10:12:06Z | 0.4.10 | cc8189b | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Landing page refresh: new positioning, self-hosted & SSO section, honest early-access CTA, founder intro block.
 2026-04-24T10:31:19Z | 0.4.11 | eaad68e | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Rewrote the founder block in a personal voice — a real story about BIM and the 'who's working on what this week' problem. Removed the 'Read the manifesto' link.
 2026-04-24T10:44:41Z | 0.4.12 | 94ae2ad | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Final landing CTA: 'Try Motio now' headline, updated testing-mode copy, 'Start now' button.
+2026-04-29T09:59:19Z | 0.4.22 | ae86e08 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Mobile header redesigned with round section buttons (Timeline, Dashboard, Projects, Team): the active one expands into a labelled pill, and the page primary action now lives in a floating button at the bottom.

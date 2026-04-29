@@ -12,10 +12,11 @@
 
 ## 2. Источники истины
 
-1. Архитектурные границы: `docs/architecture/frontend-boundaries.md`.
-2. Поведенческие спецификации: `docs/specifications/planner-behavior-by-example.md`.
-3. Текущая карта системы: `docs/codex-map.md`.
-4. Dev/Prod команды: `README.md` и `Makefile`.
+1. Обзор продукта простым языком: `docs/overview-for-ai.md` (что Motio делает, из чего состоит, как работает).
+2. Архитектурные границы: `docs/architecture/frontend-boundaries.md`.
+3. Поведенческие спецификации: `docs/specifications/planner-behavior-by-example.md`.
+4. Текущая карта системы: `docs/codex-map.md`.
+5. Dev/Prod команды: `README.md` и `Makefile`.
 
 Если есть конфликт между устаревшим кодом и этими документами, сначала привести решение к правилам документов.
 

@@ -2,11 +2,13 @@ import React from 'react';
 import { Settings } from 'lucide-react';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { WorkspaceMobileMenu } from '@/features/workspace/components/WorkspaceMobileMenu';
+import { WorkspacePillNav } from '@/features/workspace/components/WorkspacePillNav';
+import { WorkspaceMobileDrawer } from '@/features/workspace/components/WorkspaceMobileDrawer';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { AccountBadgeButton } from '@/features/auth/components/AccountBadgeButton';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button';
+import { MobileFab } from '@/shared/ui/mobile-fab';
 
 interface WorkspacePageHeaderProps {
   primaryAction?: React.ReactNode;
@@ -24,21 +26,24 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
   showSettingsButton = true,
 }) => {
   const isMobile = useIsMobile();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   if (isMobile) {
     return (
-      <header className="border-b border-border bg-card px-4 py-3">
-        <WorkspaceMobileMenu
-          open={mobileMenuOpen}
-          onOpenChange={setMobileMenuOpen}
-          primaryAction={primaryAction}
+      <>
+        <header className="border-b border-border bg-card">
+          <WorkspacePillNav onOpenDrawer={() => setDrawerOpen(true)} />
+        </header>
+        <WorkspaceMobileDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
           onOpenSettings={onOpenSettings}
           onOpenAccountSettings={onOpenAccountSettings}
           settingsDisabled={settingsDisabled}
           showSettingsButton={showSettingsButton}
         />
-      </header>
+        {primaryAction ? <MobileFab>{primaryAction}</MobileFab> : null}
+      </>
     );
   }
 
