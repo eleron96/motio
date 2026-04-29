@@ -1,6 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowDownZA, CalendarDays, Filter, Layers, Star } from 'lucide-react';
+import { ArrowDownAZ, ArrowDownZA, CalendarDays, ChevronDown, Filter, Layers, Search, Star } from 'lucide-react';
+import { cn } from '@/shared/lib/classNames';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -145,6 +146,12 @@ export const ProjectsSidebar = ({
   groupProjects,
   hideModeSelector = false,
 }: ProjectsSidebarProps) => {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const compactFilters = hideModeSelector;
+  const hasActiveProjectFilters = projectSearch.trim().length > 0
+    || customerFilterIds.length > 0
+    || groupByCustomer
+    || nameSort !== 'asc';
   const renderProjectItem = (project: Project, showArchivedBadge: boolean) => {
     const customerName = project.customerId ? customerById.get(project.customerId)?.name : null;
     const isTracked = trackedProjectIdSet.has(project.id);
@@ -506,7 +513,36 @@ export const ProjectsSidebar = ({
           onValueChange={(value) => onTabChange(value as ProjectTab)}
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="px-4 py-3 border-b border-border">
+          {compactFilters ? (
+            <div className="border-b border-border">
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen((open) => !open)}
+                aria-expanded={mobileFiltersOpen}
+                className="flex w-full items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Search className="h-3.5 w-3.5" />
+                  {t`Search & filters`}
+                  {hasActiveProjectFilters && !mobileFiltersOpen ? (
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                  ) : null}
+                </span>
+                <ChevronDown
+                  className={cn('h-4 w-4 transition-transform', mobileFiltersOpen && 'rotate-180')}
+                />
+              </button>
+            </div>
+          ) : null}
+          <div
+            className={cn(
+              compactFilters
+                ? mobileFiltersOpen
+                  ? 'px-4 pb-3 pt-1 border-b border-border'
+                  : 'hidden'
+                : 'px-4 py-3 border-b border-border',
+            )}
+          >
             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
               <Input
                 className="h-8"
