@@ -1879,6 +1879,10 @@ msgstr "Most tools show what people are doing. Almost none let you quickly see w
 msgid "Motio grew out of exactly this boring but very real problem."
 msgstr "Motio grew out of exactly this boring but very real problem."
 
+#: src/features/workspace/components/WorkspacePageHeader.tsx:58
+msgid "Motio home"
+msgstr "Motio home"
+
 #: src/features/marketing/pages/LandingPage.tsx:82
 #~ msgid "Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline."
 #~ msgstr "Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline."
