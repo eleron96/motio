@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.30] - 2026-04-29
 ### Changed
 - Десктопная шапка: слева сверху появился маленький логотип Motio — клик возвращает на Таймлайн.
 
