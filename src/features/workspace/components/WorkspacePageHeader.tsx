@@ -1,5 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Settings } from 'lucide-react';
+import { t } from '@lingui/macro';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
 import { WorkspacePillNav } from '@/features/workspace/components/WorkspacePillNav';
@@ -51,6 +53,18 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
     <header className="border-b border-border bg-card px-4 py-3">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
+          <Link
+            to="/app"
+            aria-label={t`Motio home`}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <img
+              src="/favicon-theme-light.png"
+              alt=""
+              className="h-full w-full object-contain"
+              draggable={false}
+            />
+          </Link>
           <WorkspaceSwitcher />
           <WorkspaceNav />
         </div>
