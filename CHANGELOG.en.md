@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Major Q2 release. Mobile UI fully redesigned: round section buttons in the header with an expanding pill, floating primary-action button, collapsible search/filters in Member and Project panels, pill-nav carousels for Projects and Team subsections, and a clean Calendar view without floating buttons. Added 30-day account deletion with full data export delivered as a ZIP with notifications, a morning Daily Brief showing today's tasks and milestones, an extended onboarding tour across all workspace pages, a Terms page, and consent flows for data processing. Timeline: milestones now render as project-colored diamond chips with stacking and a click-through menu; added every-4-weeks repeat interval and explicit scope selection when moving repeating tasks; task comments now sync in real time. Task media moved to object storage with non-ASCII file name support. Security hardened: tightened HTML sanitization, baseline security headers, and workspace invites readable by admins only.
+
 ## [0.4.27] - 2026-04-29
 ### Changed
 - Mobile: task-list filters inside Member and Project panels (search, statuses, assignees/projects, date range) are now collapsed by default and expand via a chevron — frees up half the screen.
