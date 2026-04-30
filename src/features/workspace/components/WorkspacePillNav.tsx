@@ -124,7 +124,7 @@ export const WorkspacePillNav: React.FC<WorkspacePillNavProps> = ({
         />
       </button>
 
-      <div className="ml-2 flex min-w-0 flex-1 items-center" style={{ gap: GAP }}>
+      <div className="ml-auto flex items-center" style={{ gap: GAP }}>
         {items.map((item) => (
           <PillButton key={item.to} item={item} width={labelWidths[item.to] ?? 60} />
         ))}
