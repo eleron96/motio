@@ -17,6 +17,7 @@ interface UseMilestoneDisplayParams {
   filterProjectIds: string[];
   visibleDays: Date[];
   projects: Project[];
+  isMobile?: boolean;
 }
 
 export const useMilestoneDisplay = ({
@@ -24,6 +25,7 @@ export const useMilestoneDisplay = ({
   filterProjectIds,
   visibleDays,
   projects,
+  isMobile = false,
 }: UseMilestoneDisplayParams) => {
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
@@ -88,14 +90,15 @@ export const useMilestoneDisplay = ({
 
   // ─── Dimensions ─────────────────────────────────────────────────────────────
 
-  const milestoneRowHeight = 56;
+  const effectiveHeaderHeight = isMobile ? 56 : HEADER_HEIGHT;
+  const milestoneRowHeight = isMobile ? 16 : 56;
   const milestoneDotRadius = 5;
-  const milestoneLineTop = HEADER_HEIGHT + milestoneRowHeight / 2 + milestoneDotRadius;
+  const milestoneLineTop = effectiveHeaderHeight + milestoneRowHeight / 2 + milestoneDotRadius;
   const milestoneLineHeight = `calc(100% - ${milestoneLineTop}px)`;
   const milestoneLineWidth = 3;
   const milestoneLineHoverWidth = 4;
-  const milestoneHeaderRowTop = 40;
-  const milestoneHeaderRowHeight = HEADER_HEIGHT - milestoneHeaderRowTop;
+  const milestoneHeaderRowTop = isMobile ? 0 : 40;
+  const milestoneHeaderRowHeight = effectiveHeaderHeight - milestoneHeaderRowTop;
 
   // ─── Handlers ───────────────────────────────────────────────────────────────
 
@@ -142,6 +145,7 @@ export const useMilestoneDisplay = ({
     visibleMilestoneLines,
     milestoneTooltipCells,
     // dimensions
+    effectiveHeaderHeight,
     milestoneRowHeight,
     milestoneDotRadius,
     milestoneLineTop,
