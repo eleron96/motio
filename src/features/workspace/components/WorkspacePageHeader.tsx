@@ -9,6 +9,7 @@ import { WorkspaceMobileDrawer } from '@/features/workspace/components/Workspace
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { AccountBadgeButton } from '@/features/auth/components/AccountBadgeButton';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { Button } from '@/shared/ui/button';
 import { MobileFab } from '@/shared/ui/mobile-fab';
 
@@ -28,6 +29,7 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
   showSettingsButton = true,
 }) => {
   const isMobile = useIsMobile();
+  const basePath = useAppBasePath();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   if (isMobile) {
@@ -54,7 +56,7 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link
-            to="/app"
+            to={basePath}
             aria-label={t`Motio home`}
             className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
@@ -83,7 +85,7 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
               <Settings className="h-4 w-4" />
             </Button>
           )}
-          <InviteNotifications />
+          {basePath === '/app' && <InviteNotifications />}
           <AccountBadgeButton onClick={onOpenAccountSettings} />
         </div>
       </div>

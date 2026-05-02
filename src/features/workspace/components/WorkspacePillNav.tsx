@@ -7,6 +7,7 @@ import {
   type AppNavigationItem,
   type SectionIconKey,
 } from '@/features/workspace/lib/appNavigation';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import {
   TimelineNavIcon,
   DashboardNavIcon,
@@ -80,7 +81,8 @@ export const WorkspacePillNav: React.FC<WorkspacePillNavProps> = ({
   onOpenDrawer,
   className,
 }) => {
-  const items = React.useMemo(() => getAppNavigationItems(), []);
+  const basePath = useAppBasePath();
+  const items = React.useMemo(() => getAppNavigationItems(basePath), [basePath]);
   const measureRef = React.useRef<HTMLDivElement | null>(null);
   const [labelWidths, setLabelWidths] = React.useState<Record<string, number>>({});
 
