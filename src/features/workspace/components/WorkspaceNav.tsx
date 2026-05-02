@@ -3,6 +3,7 @@ import { NavLink, useMatch, useResolvedPath } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { getAppNavigationItems } from '@/features/workspace/lib/appNavigation';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 
 interface WorkspaceNavProps {
@@ -42,33 +43,39 @@ export const WorkspaceNav: React.FC<WorkspaceNavProps> = ({
   orientation = 'horizontal',
   className,
   onNavigate,
-}) => (
-  <nav
-    data-tour="nav-bar"
-    aria-label={t`Workspace sections`}
-    className={className}
-  >
-    <SegmentedControl
-      orientation={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
-      surface={orientation === 'horizontal' ? 'subtle' : 'none'}
-      className={cn(orientation === 'vertical' && '!items-start gap-1')}
+}) => {
+  const basePath = useAppBasePath();
+
+  const dataTourFor = (to: string) => {
+    if (to === `${basePath}/dashboard`) return 'nav-dashboard';
+    if (to === `${basePath}/projects`) return 'nav-projects';
+    if (to === `${basePath}/members`) return 'nav-team';
+    return undefined;
+  };
+
+  return (
+    <nav
+      data-tour="nav-bar"
+      aria-label={t`Workspace sections`}
+      className={className}
     >
-      {getAppNavigationItems().map((item) => (
-        <WorkspaceNavItem
-          key={item.to}
-          label={item.label}
-          orientation={orientation}
-          onNavigate={onNavigate}
-          to={item.to}
-          end={item.end}
-          dataTour={
-            item.to === '/app/dashboard' ? 'nav-dashboard'
-              : item.to === '/app/projects' ? 'nav-projects'
-              : item.to === '/app/members' ? 'nav-team'
-                : undefined
-          }
-        />
-      ))}
-    </SegmentedControl>
-  </nav>
-);
+      <SegmentedControl
+        orientation={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
+        surface={orientation === 'horizontal' ? 'subtle' : 'none'}
+        className={cn(orientation === 'vertical' && '!items-start gap-1')}
+      >
+        {getAppNavigationItems(basePath).map((item) => (
+          <WorkspaceNavItem
+            key={item.to}
+            label={item.label}
+            orientation={orientation}
+            onNavigate={onNavigate}
+            to={item.to}
+            end={item.end}
+            dataTour={dataTourFor(item.to)}
+          />
+        ))}
+      </SegmentedControl>
+    </nav>
+  );
+};

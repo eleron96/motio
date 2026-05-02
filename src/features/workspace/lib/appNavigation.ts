@@ -2,6 +2,8 @@ import { t } from '@lingui/macro';
 
 export type SectionIconKey = 'timeline' | 'dashboard' | 'projects' | 'team';
 
+export type AppBasePath = '/app' | '/demo';
+
 export type AppNavigationItem = {
   to: string;
   label: string;
@@ -9,33 +11,33 @@ export type AppNavigationItem = {
   iconKey: SectionIconKey;
 };
 
-export const getAppNavigationItems = (): AppNavigationItem[] => [
+export const getAppNavigationItems = (basePath: AppBasePath = '/app'): AppNavigationItem[] => [
   {
-    to: '/app',
+    to: basePath,
     label: t`Timeline`,
     end: true,
     iconKey: 'timeline',
   },
   {
-    to: '/app/dashboard',
+    to: `${basePath}/dashboard`,
     label: t`Dashboard`,
     iconKey: 'dashboard',
   },
   {
-    to: '/app/projects',
+    to: `${basePath}/projects`,
     label: t`Projects`,
     iconKey: 'projects',
   },
   {
-    to: '/app/members',
+    to: `${basePath}/members`,
     label: t`Team`,
     iconKey: 'team',
   },
 ];
 
-export const getAppNavigationLabel = (pathname: string) => {
+export const getAppNavigationLabel = (pathname: string, basePath: AppBasePath = '/app') => {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/';
-  const matchedItem = getAppNavigationItems().find((item) => {
+  const matchedItem = getAppNavigationItems(basePath).find((item) => {
     if (item.end) {
       return normalizedPath === item.to;
     }
