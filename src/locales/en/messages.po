@@ -33,7 +33,7 @@ msgstr "(edited)"
 msgid "(no name set)"
 msgstr "(no name set)"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:448
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:459
 msgid "(you)"
 msgstr "(you)"
 
@@ -117,7 +117,6 @@ msgstr "{actor} updated workspace access."
 msgid "{customersCount} customers"
 msgstr "{customersCount} customers"
 
-#: src/features/auth/components/DataExportButton 2.tsx:16
 #: src/features/auth/components/DataExportButton.tsx:16
 msgid "{minutes} minutes"
 msgstr "{minutes} minutes"
@@ -139,19 +138,19 @@ msgstr "{selectedTaskCommentCount} comments"
 msgid "+{0} more milestones"
 msgstr "+{0} more milestones"
 
-#: src/features/marketing/pages/LandingPage.tsx:499
+#: src/features/marketing/pages/LandingPage.tsx:507
 msgid "🎯 Milestones calendar"
 msgstr "🎯 Milestones calendar"
 
-#: src/features/marketing/pages/LandingPage.tsx:497
+#: src/features/marketing/pages/LandingPage.tsx:505
 msgid "📈 Completion trends over time"
 msgstr "📈 Completion trends over time"
 
-#: src/features/marketing/pages/LandingPage.tsx:496
+#: src/features/marketing/pages/LandingPage.tsx:504
 msgid "📊 Tasks by project & assignee"
 msgstr "📊 Tasks by project & assignee"
 
-#: src/features/marketing/pages/LandingPage.tsx:498
+#: src/features/marketing/pages/LandingPage.tsx:506
 msgid "🥧 Status & workload breakdown"
 msgstr "🥧 Status & workload breakdown"
 
@@ -159,7 +158,6 @@ msgstr "🥧 Status & workload breakdown"
 msgid "1 comment"
 msgstr "1 comment"
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:121
 #: src/features/workspace/components/RenamePurgedDialog.tsx:121
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
@@ -183,7 +181,7 @@ msgid "Accept the invitation to join your team workspace."
 msgstr "Accept the invitation to join your team workspace."
 
 #: src/features/auth/components/InviteNotifications.tsx:213
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:360
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:371
 msgid "Accepted"
 msgstr "Accepted"
 
@@ -195,11 +193,11 @@ msgid "Access"
 msgstr "Access"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:413
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:398
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:409
 msgid "Access denied"
 msgstr "Access denied"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:352
+#: src/features/auth/components/AccountSettingsDialog.tsx:366
 msgid "Account deletion is permanent. We will ask you to confirm your email."
 msgstr "Account deletion is permanent. We will ask you to confirm your email."
 
@@ -207,27 +205,25 @@ msgstr "Account deletion is permanent. We will ask you to confirm your email."
 msgid "Account deletion scheduled"
 msgstr "Account deletion scheduled"
 
-#: src/shared/components/PendingDeletionBanner 2.tsx:38
 #: src/shared/components/PendingDeletionBanner.tsx:38
 msgid "Account deletion scheduled — purge {purgeLabel}."
 msgstr "Account deletion scheduled — purge {purgeLabel}."
 
-#: src/shared/components/PendingDeletionBanner 2.tsx:39
 #: src/shared/components/PendingDeletionBanner.tsx:39
 msgid "Account deletion scheduled."
 msgstr "Account deletion scheduled."
 
 #: src/features/auth/components/AccountBadgeButton.tsx:27
-#: src/features/auth/components/AccountSettingsDialog.tsx:183
+#: src/features/auth/components/AccountSettingsDialog.tsx:188
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx:99
 msgid "Account settings"
 msgstr "Account settings"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:652
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:663
 msgid "Action failed"
 msgstr "Action failed"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:745
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:756
 msgid "Actions"
 msgstr "Actions"
 
@@ -239,8 +235,8 @@ msgstr "active"
 #: src/features/members/components/MembersSidebar.tsx:227
 #: src/features/members/components/MembersSidebar.tsx:327
 #: src/features/projects/components/ProjectsSidebar.tsx:624
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:236
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:520
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:240
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:531
 msgid "Active"
 msgstr "Active"
 
@@ -275,9 +271,8 @@ msgstr "Add a widget"
 msgid "Add group"
 msgstr "Add group"
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:145
 #: src/features/members/components/MembersGroupPanel.tsx:145
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:570
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:581
 msgid "Add member"
 msgstr "Add member"
 
@@ -294,7 +289,7 @@ msgstr "Add subtask"
 msgid "Add task"
 msgstr "Add task"
 
-#: src/features/marketing/pages/LandingPage.tsx:606
+#: src/features/marketing/pages/LandingPage.tsx:614
 msgid "Add tasks & dates"
 msgstr "Add tasks & dates"
 
@@ -302,7 +297,7 @@ msgstr "Add tasks & dates"
 msgid "Add widget"
 msgstr "Add widget"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:234
+#: src/features/auth/components/AccountSettingsDialog.tsx:239
 msgid "Add your name"
 msgstr "Add your name"
 
@@ -312,8 +307,8 @@ msgstr "admin"
 
 #: src/features/auth/components/InviteNotifications.tsx:122
 #: src/features/members/pages/MembersPage.tsx:143
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:490
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:593
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:501
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:604
 msgid "Admin"
 msgstr "Admin"
 
@@ -363,11 +358,11 @@ msgstr "All statuses"
 msgid "All tasks"
 msgstr "All tasks"
 
-#: src/features/marketing/pages/LandingPage.tsx:487
+#: src/features/marketing/pages/LandingPage.tsx:495
 msgid "Analytics"
 msgstr "Analytics"
 
-#: src/features/marketing/pages/LandingPage.tsx:645
+#: src/features/marketing/pages/LandingPage.tsx:653
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 
@@ -459,7 +454,7 @@ msgstr "Back"
 msgid "Back to today"
 msgstr "Back to today"
 
-#: src/features/marketing/pages/LandingPage.tsx:578
+#: src/features/marketing/pages/LandingPage.tsx:586
 msgid "Backup & restore"
 msgstr "Backup & restore"
 
@@ -476,7 +471,7 @@ msgid "By project"
 msgstr "By project"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:87
-#: src/features/marketing/pages/LandingPage.tsx:542
+#: src/features/marketing/pages/LandingPage.tsx:550
 msgid "By status"
 msgstr "By status"
 
@@ -484,7 +479,7 @@ msgstr "By status"
 msgid "By user"
 msgstr "By user"
 
-#: src/features/marketing/pages/LandingPage.tsx:434
+#: src/features/marketing/pages/LandingPage.tsx:442
 #: src/features/planner/components/timeline/TimelineControls.tsx:240
 #: src/features/planner/components/timeline/TimelineControls.tsx:243
 msgid "Calendar"
@@ -499,14 +494,13 @@ msgid "Calendar range"
 msgstr "Calendar range"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:1112
-#: src/features/auth/components/AccountSettingsDialog.tsx:255
+#: src/features/auth/components/AccountSettingsDialog.tsx:260
 #: src/features/auth/components/DeleteAccountWizard.tsx:248
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:733
 #: src/features/dashboard/pages/DashboardPage.tsx:946
 #: src/features/dashboard/pages/DashboardPage.tsx:977
 #: src/features/dashboard/pages/DashboardPage.tsx:1011
 #: src/features/members/components/MembersDialogs.tsx:106
-#: src/features/members/components/MembersGroupPanel 2.tsx:128
 #: src/features/members/components/MembersGroupPanel.tsx:128
 #: src/features/planner/components/AddTaskDialog.tsx:841
 #: src/features/planner/components/CommentEditor.tsx:838
@@ -522,14 +516,13 @@ msgstr "Calendar range"
 #: src/features/projects/components/ProjectsDialogs.tsx:558
 #: src/features/projects/components/ProjectsDialogs.tsx:581
 #: src/features/projects/components/ProjectsDialogs.tsx:604
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:144
 #: src/features/workspace/components/RenamePurgedDialog.tsx:144
 #: src/features/workspace/components/SettingsPanel.tsx:753
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:460
 msgid "Cancel"
 msgstr "Cancel"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:362
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:373
 msgid "Canceled"
 msgstr "Canceled"
 
@@ -546,6 +539,10 @@ msgstr "Cancelled"
 msgid "Cancelled status"
 msgstr "Cancelled status"
 
+#: src/features/demo/components/DemoBanner.tsx:44
+msgid "Changes won't be saved. The sandbox resets after 10 minutes of inactivity."
+msgstr "Changes won't be saved. The sandbox resets after 10 minutes of inactivity."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:69
 msgid "Chart"
 msgstr "Chart"
@@ -558,7 +555,7 @@ msgstr "Chart palette"
 msgid "Chart style"
 msgstr "Chart style"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:637
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:648
 msgid "Check your inbox"
 msgstr "Check your inbox"
 
@@ -640,12 +637,12 @@ msgstr "Comment actions"
 msgid "Comments"
 msgstr "Comments"
 
-#: src/features/marketing/pages/LandingPage.tsx:521
+#: src/features/marketing/pages/LandingPage.tsx:529
 #: src/features/planner/components/SubtasksSection.tsx:60
 msgid "Completed"
 msgstr "Completed"
 
-#: src/features/marketing/pages/LandingPage.tsx:550
+#: src/features/marketing/pages/LandingPage.tsx:558
 msgid "Completion trend"
 msgstr "Completion trend"
 
@@ -665,6 +662,10 @@ msgstr "Continue with Keycloak"
 #: src/features/auth/pages/AuthPage.tsx:171
 msgid "Continue with Keycloak to access the workspace."
 msgstr "Continue with Keycloak to access the workspace."
+
+#: src/features/demo/providers/DemoBootstrap.tsx:149
+msgid "Couldn't start the demo session."
+msgstr "Couldn't start the demo session."
 
 #: src/features/planner/components/RepeatSettingsFields.tsx:88
 msgid "Count"
@@ -718,11 +719,15 @@ msgstr "Create a new project here, then group tasks and milestones inside it."
 msgid "Create a task"
 msgstr "Create a task"
 
+#: src/features/demo/components/DemoConversionModal.tsx:60
+msgid "Create account"
+msgstr "Create account"
+
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:148
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:127
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:171
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:187
-#: src/features/planner/components/timeline/TimelineHeader.tsx:167
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:130
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:174
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:190
+#: src/features/planner/components/timeline/TimelineHeader.tsx:176
 msgid "Create milestone"
 msgstr "Create milestone"
 
@@ -743,7 +748,7 @@ msgstr "Create project"
 msgid "Create task"
 msgstr "Create task"
 
-#: src/features/marketing/pages/LandingPage.tsx:605
+#: src/features/marketing/pages/LandingPage.tsx:613
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:203
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:211
 msgid "Create workspace"
@@ -803,11 +808,11 @@ msgstr "Customers"
 msgid "Daily"
 msgstr "Daily"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:320
+#: src/features/auth/components/AccountSettingsDialog.tsx:334
 msgid "Daily brief"
 msgstr "Daily brief"
 
-#: src/features/marketing/pages/LandingPage.tsx:466
+#: src/features/marketing/pages/LandingPage.tsx:474
 msgid "Daily Brief"
 msgstr "Daily Brief"
 
@@ -815,14 +820,14 @@ msgstr "Daily Brief"
 msgid "Daily recurring"
 msgstr "Daily recurring"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:348
+#: src/features/auth/components/AccountSettingsDialog.tsx:362
 #: src/features/workspace/components/SettingsPanel.tsx:495
 msgid "Danger zone"
 msgstr "Danger zone"
 
-#: src/features/marketing/pages/LandingPage.tsx:515
+#: src/features/marketing/pages/LandingPage.tsx:523
 #: src/features/onboarding/lib/onboardingTour.ts:78
-#: src/features/workspace/lib/appNavigation.ts:21
+#: src/features/workspace/lib/appNavigation.ts:23
 msgid "Dashboard"
 msgstr "Dashboard"
 
@@ -848,7 +853,7 @@ msgstr "Dashboard settings"
 msgid "Dashboards"
 msgstr "Dashboards"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:206
+#: src/features/auth/components/AccountSettingsDialog.tsx:211
 msgid "Data"
 msgstr "Data"
 
@@ -857,7 +862,6 @@ msgid "Data export failed"
 msgstr "Data export failed"
 
 #. placeholder {0}: status?.errorMessage ?? t`unknown error`
-#: src/features/auth/components/DataExportButton 2.tsx:64
 #: src/features/auth/components/DataExportButton.tsx:64
 msgid "Data export failed: {0}"
 msgstr "Data export failed: {0}"
@@ -889,7 +893,7 @@ msgid "Decline"
 msgstr "Decline"
 
 #: src/features/auth/components/InviteNotifications.tsx:213
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:361
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:372
 msgid "Declined"
 msgstr "Declined"
 
@@ -950,7 +954,7 @@ msgstr "Delete dashboard?"
 msgid "Delete milestone?"
 msgstr "Delete milestone?"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:362
+#: src/features/auth/components/AccountSettingsDialog.tsx:376
 msgid "Delete my account"
 msgstr "Delete my account"
 
@@ -1012,7 +1016,7 @@ msgstr "Delete workspace"
 msgid "Delete workspace?"
 msgstr "Delete workspace?"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:472
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:483
 msgid "Deleted account"
 msgstr "Deleted account"
 
@@ -1024,6 +1028,10 @@ msgstr "Deleting a workspace is permanent. Type the workspace name to enable del
 msgid "Deleting…"
 msgstr "Deleting…"
 
+#: src/features/demo/components/DemoBanner.tsx:41
+msgid "Demo sandbox"
+msgstr "Demo sandbox"
+
 #: src/features/members/components/TaskDetailsDialog.tsx:145
 #: src/features/planner/components/AddTaskDialog.tsx:718
 #: src/features/planner/components/TaskDetailPanel.tsx:525
@@ -1031,7 +1039,7 @@ msgstr "Deleting…"
 msgid "Description"
 msgstr "Description"
 
-#: src/features/marketing/pages/LandingPage.tsx:698
+#: src/features/marketing/pages/LandingPage.tsx:706
 msgid "Designed and developed by <0>NIKO G.</0>"
 msgstr "Designed and developed by <0>NIKO G.</0>"
 
@@ -1039,7 +1047,7 @@ msgstr "Designed and developed by <0>NIKO G.</0>"
 msgid "Details"
 msgstr "Details"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:517
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:528
 msgid "Disable member"
 msgstr "Disable member"
 
@@ -1047,17 +1055,15 @@ msgstr "Disable member"
 msgid "disabled"
 msgstr "disabled"
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:196
-#: src/features/members/components/MembersGroupPanel 2.tsx:243
 #: src/features/members/components/MembersGroupPanel.tsx:196
 #: src/features/members/components/MembersGroupPanel.tsx:243
 #: src/features/members/components/MembersSidebar.tsx:228
 #: src/features/members/components/MembersSidebar.tsx:301
 #: src/features/members/components/MembersSidebar.tsx:332
 #: src/features/members/components/MemberTasksPanel.tsx:148
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:236
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:475
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:520
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:240
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:486
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:531
 msgid "Disabled"
 msgstr "Disabled"
 
@@ -1090,7 +1096,7 @@ msgstr "Dismiss"
 msgid "Display style"
 msgstr "Display style"
 
-#: src/features/marketing/pages/LandingPage.tsx:576
+#: src/features/marketing/pages/LandingPage.tsx:584
 msgid "Docker Compose. Postgres. Your servers, your rules."
 msgstr "Docker Compose. Postgres. Your servers, your rules."
 
@@ -1103,7 +1109,6 @@ msgstr "Does not repeat"
 msgid "Done"
 msgstr "Done"
 
-#: src/features/auth/components/DataExportButton 2.tsx:97
 #: src/features/auth/components/DataExportButton.tsx:97
 msgid "Download export"
 msgstr "Download export"
@@ -1125,7 +1130,7 @@ msgstr "Duplicate task"
 msgid "During this period, you can sign in to restore the account."
 msgstr "During this period, you can sign in to restore the account."
 
-#: src/features/marketing/pages/LandingPage.tsx:466
+#: src/features/marketing/pages/LandingPage.tsx:474
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
@@ -1139,12 +1144,12 @@ msgstr "Edit"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:454
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:148
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:267
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:346
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:270
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:390
 msgid "Edit milestone"
 msgstr "Edit milestone"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:273
+#: src/features/auth/components/AccountSettingsDialog.tsx:278
 msgid "Edit name"
 msgstr "Edit name"
 
@@ -1171,8 +1176,8 @@ msgstr "editor"
 
 #: src/features/auth/components/InviteNotifications.tsx:123
 #: src/features/members/pages/MembersPage.tsx:144
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:489
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:592
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:500
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:603
 msgid "Editor"
 msgstr "Editor"
 
@@ -1180,7 +1185,7 @@ msgstr "Editor"
 msgid "Editors and admins add widgets here to build the dashboard."
 msgstr "Editors and admins add widgets here to build the dashboard."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:575
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:586
 msgid "Email"
 msgstr "Email"
 
@@ -1188,7 +1193,7 @@ msgstr "Email"
 msgid "Emoji"
 msgstr "Emoji"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:517
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:528
 msgid "Enable member"
 msgstr "Enable member"
 
@@ -1267,34 +1272,44 @@ msgstr "Every 4 weeks"
 msgid "Every 4 weeks recurring"
 msgstr "Every 4 weeks recurring"
 
-#: src/features/marketing/pages/LandingPage.tsx:607
+#: src/features/marketing/pages/LandingPage.tsx:615
 msgid "Everyone sees the same picture. Plan together, ship together."
 msgstr "Everyone sees the same picture. Plan together, ship together."
 
-#: src/features/marketing/pages/LandingPage.tsx:459
+#: src/features/marketing/pages/LandingPage.tsx:467
 msgid "Everything your team needs to stay aligned"
 msgstr "Everything your team needs to stay aligned"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx:295
+msgid "Exit demo"
+msgstr "Exit demo"
 
 #: src/features/planner/components/FilterPanel.tsx:191
 #: src/features/planner/pages/PlannerPage.tsx:385
 msgid "Expand filters"
 msgstr "Expand filters"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:363
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:374
 msgid "Expired"
 msgstr "Expired"
 
-#: src/features/auth/components/DataExportButton 2.tsx:129
 #: src/features/auth/components/DataExportButton.tsx:129
 msgid "Export my data"
 msgstr "Export my data"
+
+#: src/features/demo/components/DemoConversionModal.tsx:21
+msgid "Export your work after you sign up"
+msgstr "Export your work after you sign up"
+
+#: src/features/demo/components/DemoConversionModal.tsx:38
+msgid "Exports run on your real workspace. Sign up in 30 seconds to enable them."
+msgstr "Exports run on your real workspace. Sign up in 30 seconds to enable them."
 
 #: src/features/planner/components/TaskCommentSection.tsx:112
 #: src/features/planner/components/TaskCommentSection.tsx:124
 msgid "Failed to add comment"
 msgstr "Failed to add comment"
 
-#: src/features/planner/hooks/useTaskSubtasks 2.ts:114
 #: src/features/planner/hooks/useTaskSubtasks.ts:114
 msgid "Failed to add subtask."
 msgstr "Failed to add subtask."
@@ -1307,7 +1322,6 @@ msgstr "Failed to create task."
 msgid "Failed to delete comment"
 msgstr "Failed to delete comment"
 
-#: src/features/planner/hooks/useTaskSubtasks 2.ts:169
 #: src/features/planner/hooks/useTaskSubtasks.ts:169
 msgid "Failed to delete subtask."
 msgstr "Failed to delete subtask."
@@ -1317,7 +1331,6 @@ msgstr "Failed to delete subtask."
 msgid "Failed to load comments"
 msgstr "Failed to load comments"
 
-#: src/features/members/hooks/useMemberTaskFetcher 2.ts:154
 #: src/features/members/hooks/useMemberTaskFetcher.ts:154
 #: src/features/projects/hooks/useProjectTasksQuery.ts:85
 msgid "Failed to load tasks."
@@ -1395,7 +1408,7 @@ msgstr "Find or add customer..."
 msgid "Finish"
 msgstr "Finish"
 
-#: src/features/marketing/pages/LandingPage.tsx:567
+#: src/features/marketing/pages/LandingPage.tsx:575
 msgid "For teams that own their data"
 msgstr "For teams that own their data"
 
@@ -1415,7 +1428,7 @@ msgstr "Force purge failed"
 msgid "Force purge scheduled"
 msgstr "Force purge scheduled"
 
-#: src/features/marketing/pages/LandingPage.tsx:578
+#: src/features/marketing/pages/LandingPage.tsx:586
 msgid "Full snapshot from the admin console. Restore in one command."
 msgstr "Full snapshot from the admin console. Restore in one command."
 
@@ -1423,7 +1436,6 @@ msgstr "Full snapshot from the admin console. Restore in one command."
 msgid "General"
 msgstr "General"
 
-#: src/features/auth/components/DataExportButton 2.tsx:106
 #: src/features/auth/components/DataExportButton.tsx:106
 msgid "Generate a new export"
 msgstr "Generate a new export"
@@ -1447,8 +1459,8 @@ msgid "Good morning, {displayName}!"
 msgstr "Good morning, {displayName}!"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:93
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:598
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:734
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:609
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:745
 msgid "Group"
 msgstr "Group"
 
@@ -1478,7 +1490,7 @@ msgstr "Group milestones"
 msgid "Group name"
 msgstr "Group name"
 
-#: src/features/marketing/pages/LandingPage.tsx:464
+#: src/features/marketing/pages/LandingPage.tsx:472
 msgid "Group tasks by project, set milestones, and track progress without switching tools."
 msgstr "Group tasks by project, set milestones, and track progress without switching tools."
 
@@ -1493,8 +1505,6 @@ msgstr "Groups"
 msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
 msgstr "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:162
-#: src/features/members/components/MembersGroupPanel 2.tsx:163
 #: src/features/members/components/MembersGroupPanel.tsx:162
 #: src/features/members/components/MembersGroupPanel.tsx:163
 msgid "Hide disabled people"
@@ -1535,7 +1545,7 @@ msgstr "Holiday:"
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "I agree to the <0>Privacy Policy</0>"
 
-#: src/features/marketing/pages/LandingPage.tsx:630
+#: src/features/marketing/pages/LandingPage.tsx:638
 msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
 msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
 
@@ -1547,7 +1557,7 @@ msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where 
 #~ msgid "If \"who's doing what this week\" is a recurring question for your team, I'd like to talk."
 #~ msgstr "If \"who's doing what this week\" is a recurring question for your team, I'd like to talk."
 
-#: src/features/marketing/pages/LandingPage.tsx:648
+#: src/features/marketing/pages/LandingPage.tsx:656
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 
@@ -1555,7 +1565,7 @@ msgstr "If the question \"who's working on what this week\" keeps coming up in y
 msgid "In {diff} days"
 msgstr "In {diff} days"
 
-#: src/features/marketing/pages/LandingPage.tsx:522
+#: src/features/marketing/pages/LandingPage.tsx:530
 msgid "In progress"
 msgstr "In progress"
 
@@ -1571,16 +1581,15 @@ msgstr "Include unassigned"
 msgid "Insert image"
 msgstr "Insert image"
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:48
 #: src/features/workspace/components/RenamePurgedDialog.tsx:48
 msgid "Invalid name."
 msgstr "Invalid name."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:635
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:646
 msgid "Invite created"
 msgstr "Invite created"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:564
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:575
 msgid "Invite people and share access."
 msgstr "Invite people and share access."
 
@@ -1588,11 +1597,15 @@ msgstr "Invite people and share access."
 msgid "Invite teammates"
 msgstr "Invite teammates"
 
+#: src/features/demo/components/DemoConversionModal.tsx:17
+msgid "Invite teammates after you sign up"
+msgstr "Invite teammates after you sign up"
+
 #: src/features/auth/components/InviteNotifications.tsx:214
 msgid "Invite update"
 msgstr "Invite update"
 
-#: src/features/marketing/pages/LandingPage.tsx:607
+#: src/features/marketing/pages/LandingPage.tsx:615
 msgid "Invite your team"
 msgstr "Invite your team"
 
@@ -1601,15 +1614,14 @@ msgid "Invited by"
 msgstr "Invited by"
 
 #: src/features/auth/components/InviteNotifications.tsx:861
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:562
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:573
 msgid "Invites"
 msgstr "Invites"
 
-#: src/features/marketing/pages/LandingPage.tsx:642
+#: src/features/marketing/pages/LandingPage.tsx:650
 msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
 msgstr "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
 
-#: src/features/auth/components/AccountRestoreScreen 2.tsx:53
 #: src/features/auth/components/AccountRestoreScreen.tsx:53
 msgid "It will be permanently purged {purgeLabel}."
 msgstr "It will be permanently purged {purgeLabel}."
@@ -1626,21 +1638,24 @@ msgstr "It will be permanently purged {purgeLabel}."
 msgid "Keep editing"
 msgstr "Keep editing"
 
+#: src/features/demo/components/DemoConversionModal.tsx:56
+msgid "Keep exploring"
+msgstr "Keep exploring"
+
 #: src/features/dashboard/pages/DashboardPage.tsx:816
 msgid "Keep holding the widget header..."
 msgstr "Keep holding the widget header..."
 
-#: src/features/marketing/pages/LandingPage.tsx:492
+#: src/features/marketing/pages/LandingPage.tsx:500
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:302
+#: src/features/auth/components/AccountSettingsDialog.tsx:316
 #: src/features/auth/pages/AuthPage.tsx:177
 msgid "Language"
 msgstr "Language"
 
 #. placeholder {0}: status.errorMessage ?? t`unknown error`
-#: src/features/auth/components/DataExportButton 2.tsx:142
 #: src/features/auth/components/DataExportButton.tsx:142
 msgid "Last export failed: {0}"
 msgstr "Last export failed: {0}"
@@ -1652,6 +1667,10 @@ msgstr "Last in series"
 #: src/features/onboarding/lib/onboardingTour.ts:43
 msgid "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
 msgstr "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
+
+#: src/features/demo/components/DemoConversionModal.tsx:23
+msgid "Like what you see? Save your work."
+msgstr "Like what you see? Save your work."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:74
 msgid "Line chart"
@@ -1680,7 +1699,7 @@ msgstr "Loading dashboard..."
 
 #: src/features/auth/components/InviteNotifications.tsx:706
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:736
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:663
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:674
 msgid "Loading data..."
 msgstr "Loading data..."
 
@@ -1690,20 +1709,19 @@ msgid "Loading editor..."
 msgstr "Loading editor..."
 
 #: src/features/members/components/MembersSidebar.tsx:406
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:499
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:605
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:510
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:616
 msgid "Loading groups..."
 msgstr "Loading groups..."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:790
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:801
 msgid "Loading history..."
 msgstr "Loading history..."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:214
 #: src/features/members/components/MembersGroupPanel.tsx:214
 #: src/features/planner/components/CommentEditor.tsx:775
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:752
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:771
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:763
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:782
 msgid "Loading members..."
 msgstr "Loading members..."
 
@@ -1737,6 +1755,10 @@ msgstr "Loading your workspaces…"
 msgid "Loading..."
 msgstr "Loading..."
 
+#: src/features/demo/pages/DemoPage.tsx:13
+msgid "Loading…"
+msgstr "Loading…"
+
 #: src/features/planner/components/AddTaskDialog.tsx:660
 #: src/features/planner/components/TaskDetailPanel.tsx:722
 msgid "Low"
@@ -1746,11 +1768,11 @@ msgstr "Low"
 msgid "Low priority"
 msgstr "Low priority"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:547
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:558
 msgid "Manage team invites, roles, and access."
 msgstr "Manage team invites, roles, and access."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:706
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:717
 msgid "Manage team roles, groups, and status."
 msgstr "Manage team roles, groups, and status."
 
@@ -1762,7 +1784,7 @@ msgstr "Manage workspace members, roles, and invitations."
 msgid "Manage workspace settings, statuses, task types, and tags."
 msgstr "Manage workspace settings, statuses, task types, and tags."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:185
+#: src/features/auth/components/AccountSettingsDialog.tsx:190
 msgid "Manage your profile and account preferences."
 msgstr "Manage your profile and account preferences."
 
@@ -1799,11 +1821,11 @@ msgstr "Medium"
 msgid "Medium priority"
 msgstr "Medium priority"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:718
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:729
 msgid "Member"
 msgstr "Member"
 
-#: src/features/marketing/pages/LandingPage.tsx:439
+#: src/features/marketing/pages/LandingPage.tsx:447
 msgid "Members"
 msgstr "Members"
 
@@ -1826,8 +1848,8 @@ msgstr "Milestone name..."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:70
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:394
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:476
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:135
-#: src/features/planner/components/timeline/TimelineGrid.tsx:409
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:138
+#: src/features/planner/components/timeline/TimelineGrid.tsx:411
 #: src/features/projects/components/ProjectsSidebar.tsx:357
 #: src/features/projects/pages/ProjectsPage.tsx:540
 #: src/features/projects/pages/ProjectsPage.tsx:769
@@ -1867,7 +1889,7 @@ msgstr "Monthly"
 msgid "Monthly recurring"
 msgstr "Monthly recurring"
 
-#: src/features/marketing/pages/LandingPage.tsx:633
+#: src/features/marketing/pages/LandingPage.tsx:641
 msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
 msgstr "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
 
@@ -1875,11 +1897,11 @@ msgstr "Most tools show what people are doing. Almost none let you quickly see w
 #~ msgid "Motio - Team planning in one timeline"
 #~ msgstr "Motio - Team planning in one timeline"
 
-#: src/features/marketing/pages/LandingPage.tsx:639
+#: src/features/marketing/pages/LandingPage.tsx:647
 msgid "Motio grew out of exactly this boring but very real problem."
 msgstr "Motio grew out of exactly this boring but very real problem."
 
-#: src/features/workspace/components/WorkspacePageHeader.tsx:58
+#: src/features/workspace/components/WorkspacePageHeader.tsx:60
 msgid "Motio home"
 msgstr "Motio home"
 
@@ -1887,7 +1909,7 @@ msgstr "Motio home"
 #~ msgid "Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline."
 #~ msgstr "Motio is a simple workspace for planning projects, tasks, and team workload on a visual timeline."
 
-#: src/features/marketing/pages/LandingPage.tsx:661
+#: src/features/marketing/pages/LandingPage.tsx:669
 msgid "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
 msgstr "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
 
@@ -1899,11 +1921,11 @@ msgstr "Motio is currently in testing mode but already open for use. We're gradu
 #~ msgid "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
 #~ msgstr "Motio isn't trying to be everything. No custom fields, no automations, no formulas, no kanban mode. One screen, the whole team, any task in 10 seconds. That's a position, not a missing feature."
 
-#: src/features/marketing/pages/LandingPage.tsx:409
+#: src/features/marketing/pages/LandingPage.tsx:414
 msgid "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
 msgstr "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
 
-#: src/features/marketing/pages/LandingPage.tsx:570
+#: src/features/marketing/pages/LandingPage.tsx:578
 msgid "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
 msgstr "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
 
@@ -1923,32 +1945,27 @@ msgstr "My team workspace"
 msgid "Name"
 msgstr "Name"
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:36
 #: src/features/workspace/components/RenamePurgedDialog.tsx:36
 msgid "Name cannot be empty."
 msgstr "Name cannot be empty."
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:42
 #: src/features/workspace/components/RenamePurgedDialog.tsx:42
 msgid "Name cannot contain @."
 msgstr "Name cannot contain @."
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:44
 #: src/features/workspace/components/RenamePurgedDialog.tsx:44
 msgid "Name cannot contain a URL."
 msgstr "Name cannot contain a URL."
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:38
 #: src/features/workspace/components/RenamePurgedDialog.tsx:38
 msgid "Name must be at least 2 characters."
 msgstr "Name must be at least 2 characters."
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:40
 #: src/features/workspace/components/RenamePurgedDialog.tsx:40
 msgid "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 msgstr "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:579
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:590
 msgid "name@example.com"
 msgstr "name@example.com"
 
@@ -1966,7 +1983,6 @@ msgstr "New customer"
 msgid "New dashboard"
 msgstr "New dashboard"
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:106
 #: src/features/workspace/components/RenamePurgedDialog.tsx:106
 msgid "New display name"
 msgstr "New display name"
@@ -2036,13 +2052,12 @@ msgstr "Next, we'll open Projects to show where project details, tasks and assig
 msgid "Next, we'll open the dashboard and show where widgets are added and arranged."
 msgstr "Next, we'll open the dashboard and show where widgets are added and arranged."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:83
 #: src/features/members/components/MembersGroupPanel.tsx:83
 msgid "No active members match the search."
 msgstr "No active members match the search."
 
 #: src/features/members/components/MembersSidebar.tsx:233
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:755
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:766
 msgid "No active members."
 msgstr "No active members."
 
@@ -2075,7 +2090,6 @@ msgstr "No assignees on this project."
 msgid "No assignees yet."
 msgstr "No assignees yet."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:91
 #: src/features/members/components/MembersGroupPanel.tsx:91
 msgid "No available members."
 msgstr "No available members."
@@ -2129,23 +2143,23 @@ msgid "No description."
 msgstr "No description."
 
 #: src/features/members/components/MembersSidebar.tsx:276
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:774
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:785
 msgid "No disabled members."
 msgstr "No disabled members."
 
 #: src/features/members/hooks/useMembersFilter.ts:99
 #: src/features/members/hooks/useMembersFilter.ts:112
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:232
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:499
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:502
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:605
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:608
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:236
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:510
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:513
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:616
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:619
 #: src/shared/lib/workspaceMemberActivity.ts:52
 #: src/shared/lib/workspaceMemberActivity.ts:53
 msgid "No group"
 msgstr "No group"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:620
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:631
 msgid "No groups created yet."
 msgstr "No groups created yet."
 
@@ -2154,11 +2168,11 @@ msgstr "No groups created yet."
 msgid "No groups yet."
 msgstr "No groups yet."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:796
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:807
 msgid "No history yet."
 msgstr "No history yet."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:665
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:676
 msgid "No invites sent yet."
 msgstr "No invites sent yet."
 
@@ -2172,8 +2186,8 @@ msgstr "No matches"
 #: src/features/planner/components/FilterPanel.tsx:404
 #: src/features/planner/components/FilterPanel.tsx:438
 #: src/features/planner/components/FilterPanel.tsx:472
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:758
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:777
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:769
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:788
 msgid "No matches."
 msgstr "No matches."
 
@@ -2181,12 +2195,10 @@ msgstr "No matches."
 msgid "No members found"
 msgstr "No members found"
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:222
 #: src/features/members/components/MembersGroupPanel.tsx:222
 msgid "No members in this group."
 msgstr "No members in this group."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:90
 #: src/features/members/components/MembersGroupPanel.tsx:90
 msgid "No members match the search."
 msgstr "No members match the search."
@@ -2232,7 +2244,6 @@ msgstr "No priority"
 #: src/features/members/components/MemberTasksPanel.tsx:488
 #: src/features/members/components/TaskDetailsDialog.tsx:60
 #: src/features/planner/components/TaskProjectSelect.tsx:93
-#: src/features/planner/components/timeline/hooks/useTaskDisplayRows 2.tsx:104
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:104
 #: src/features/planner/components/timeline/TaskBar.tsx:448
 #: src/features/planner/components/timeline/TaskBar.tsx:522
@@ -2261,7 +2272,7 @@ msgstr "No projects match the current filters."
 msgid "No rules yet."
 msgstr "No rules yet."
 
-#: src/features/marketing/pages/LandingPage.tsx:579
+#: src/features/marketing/pages/LandingPage.tsx:587
 msgid "No SaaS lock-in"
 msgstr "No SaaS lock-in"
 
@@ -2353,15 +2364,14 @@ msgstr "OK"
 msgid "On"
 msgstr "On"
 
-#: src/features/marketing/pages/LandingPage.tsx:636
+#: src/features/marketing/pages/LandingPage.tsx:644
 msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 msgstr "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 
-#: src/features/marketing/pages/LandingPage.tsx:399
+#: src/features/marketing/pages/LandingPage.tsx:404
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "One <0>clear timeline</0><1/> for your whole team"
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:84
 #: src/features/members/components/MembersGroupPanel.tsx:84
 msgid "Only disabled people are available."
 msgstr "Only disabled people are available."
@@ -2403,7 +2413,7 @@ msgstr "Open fullscreen"
 msgid "Open invites and task updates."
 msgstr "Open invites and task updates."
 
-#: src/features/workspace/components/WorkspacePillNav.tsx:112
+#: src/features/workspace/components/WorkspacePillNav.tsx:114
 msgid "Open menu"
 msgstr "Open menu"
 
@@ -2420,7 +2430,7 @@ msgstr "Open project"
 msgid "Open projects"
 msgstr "Open projects"
 
-#: src/features/marketing/pages/LandingPage.tsx:579
+#: src/features/marketing/pages/LandingPage.tsx:587
 msgid "Open source schema. Export everything, leave anytime."
 msgstr "Open source schema. Export everything, leave anytime."
 
@@ -2463,7 +2473,7 @@ msgstr "Pastel mint"
 msgid "Pastel sky"
 msgstr "Pastel sky"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:364
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:375
 msgid "Pending"
 msgstr "Pending"
 
@@ -2476,7 +2486,7 @@ msgstr "Pending"
 msgid "People"
 msgstr "People"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:704
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:715
 msgid "People access"
 msgstr "People access"
 
@@ -2500,7 +2510,7 @@ msgstr "Period"
 msgid "Pie chart (Donut)"
 msgstr "Pie chart (Donut)"
 
-#: src/features/marketing/pages/LandingPage.tsx:606
+#: src/features/marketing/pages/LandingPage.tsx:614
 msgid "Place tasks on the timeline. Assign them to people and projects."
 msgstr "Place tasks on the timeline. Assign them to people and projects."
 
@@ -2508,15 +2518,14 @@ msgstr "Place tasks on the timeline. Assign them to people and projects."
 msgid "Please select an image file."
 msgstr "Please select an image file."
 
-#: src/features/marketing/pages/LandingPage.tsx:577
+#: src/features/marketing/pages/LandingPage.tsx:585
 msgid "Plug into your identity provider out of the box."
 msgstr "Plug into your identity provider out of the box."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:201
+#: src/features/auth/components/AccountSettingsDialog.tsx:206
 msgid "Preferences"
 msgstr "Preferences"
 
-#: src/features/auth/components/DataExportButton 2.tsx:126
 #: src/features/auth/components/DataExportButton.tsx:126
 msgid "Preparing your data…"
 msgstr "Preparing your data…"
@@ -2540,11 +2549,11 @@ msgstr "Previous"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/features/marketing/pages/LandingPage.tsx:687
+#: src/features/marketing/pages/LandingPage.tsx:695
 msgid "Privacy Policy"
 msgstr "Privacy Policy"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:197
+#: src/features/auth/components/AccountSettingsDialog.tsx:202
 msgid "Profile"
 msgstr "Profile"
 
@@ -2556,8 +2565,8 @@ msgstr "Profile"
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:413
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:494
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:192
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:109
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:154
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:112
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:157
 #: src/features/planner/components/timeline/TaskBar.tsx:598
 #: src/features/projects/components/ProjectsMainPanel.tsx:586
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:56
@@ -2582,11 +2591,11 @@ msgstr "Project not found."
 #: src/features/projects/components/ProjectsSidebar.tsx:351
 #: src/features/projects/pages/ProjectsPage.tsx:543
 #: src/features/projects/pages/ProjectsPage.tsx:768
-#: src/features/workspace/lib/appNavigation.ts:26
+#: src/features/workspace/lib/appNavigation.ts:28
 msgid "Projects"
 msgstr "Projects"
 
-#: src/features/marketing/pages/LandingPage.tsx:464
+#: src/features/marketing/pages/LandingPage.tsx:472
 msgid "Projects & milestones"
 msgstr "Projects & milestones"
 
@@ -2606,7 +2615,7 @@ msgstr "Purge now"
 msgid "purge_after"
 msgstr "purge_after"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:554
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:565
 msgid "Read-only"
 msgstr "Read-only"
 
@@ -2618,14 +2627,13 @@ msgstr "Read-only"
 msgid "Recurring"
 msgstr "Recurring"
 
-#: src/features/auth/components/DataExportButton 2.tsx:111
 #: src/features/auth/components/DataExportButton.tsx:111
 #: src/features/members/components/MemberTasksPanel.tsx:305
 #: src/features/projects/components/ProjectsMainPanel.tsx:330
 msgid "Refresh"
 msgstr "Refresh"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:534
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:545
 msgid "Remove"
 msgstr "Remove"
 
@@ -2637,7 +2645,6 @@ msgstr "Remove \"{scopedAssigneeName}\" from this task only."
 msgid "Remove \"{scopedAssigneeName}\" from this task or from this and following repeats."
 msgstr "Remove \"{scopedAssigneeName}\" from this task or from this and following repeats."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:260
 #: src/features/members/components/MembersGroupPanel.tsx:260
 msgid "Remove from group"
 msgstr "Remove from group"
@@ -2668,13 +2675,11 @@ msgstr "Rename customer"
 msgid "Rename dashboard"
 msgstr "Rename dashboard"
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:98
 #: src/features/workspace/components/RenamePurgedDialog.tsx:98
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:462
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:473
 msgid "Rename deleted member"
 msgstr "Rename deleted member"
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:132
 #: src/features/workspace/components/RenamePurgedDialog.tsx:132
 msgid "Rename failed"
 msgstr "Rename failed"
@@ -2701,7 +2706,6 @@ msgstr "Repeat type"
 msgid "Repeats until the selected date."
 msgstr "Repeats until the selected date."
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:100
 #: src/features/workspace/components/RenamePurgedDialog.tsx:100
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
@@ -2714,6 +2718,19 @@ msgstr "Replace the display name of a deleted (purged) account. The change appli
 msgid "Reset"
 msgstr "Reset"
 
+#: src/features/demo/components/DemoBanner.tsx:56
+msgid "Reset demo"
+msgstr "Reset demo"
+
+#: src/features/demo/components/DemoBanner.tsx:21
+#: src/features/demo/components/DemoBanner.tsx:31
+msgid "Reset failed. Try again in a moment."
+msgstr "Reset failed. Try again in a moment."
+
+#: src/features/demo/components/DemoBanner.tsx:56
+msgid "Resetting…"
+msgstr "Resetting…"
+
 #: src/features/planner/pages/PlannerPage.tsx:431
 msgid "Resize filters"
 msgstr "Resize filters"
@@ -2722,17 +2739,14 @@ msgstr "Resize filters"
 msgid "Restore"
 msgstr "Restore"
 
-#: src/shared/components/PendingDeletionBanner 2.tsx:47
 #: src/shared/components/PendingDeletionBanner.tsx:47
 msgid "Restore account"
 msgstr "Restore account"
 
-#: src/features/auth/components/AccountRestoreScreen 2.tsx:65
 #: src/features/auth/components/AccountRestoreScreen.tsx:65
 msgid "Restore my account"
 msgstr "Restore my account"
 
-#: src/features/auth/components/AccountRestoreScreen 2.tsx:65
 #: src/features/auth/components/AccountRestoreScreen.tsx:65
 msgid "Restoring…"
 msgstr "Restoring…"
@@ -2741,7 +2755,7 @@ msgstr "Restoring…"
 msgid "Return to Home"
 msgstr "Return to Home"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:691
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:702
 msgid "Revoke"
 msgstr "Revoke"
 
@@ -2750,22 +2764,20 @@ msgid "Right-click to add your first widget."
 msgstr "Right-click to add your first widget."
 
 #: src/features/auth/components/InviteNotifications.tsx:868
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:585
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:726
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:596
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:737
 msgid "Role"
 msgstr "Role"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:240
+#: src/features/auth/components/AccountSettingsDialog.tsx:245
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:736
 #: src/features/dashboard/pages/DashboardPage.tsx:988
-#: src/features/members/components/MembersGroupPanel 2.tsx:120
 #: src/features/members/components/MembersGroupPanel.tsx:120
 #: src/features/planner/components/CommentEditor.tsx:848
 #: src/features/planner/components/TaskDetailDialogs.tsx:93
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:230
 #: src/features/projects/components/ProjectsDialogs.tsx:288
 #: src/features/projects/components/ProjectsDialogs.tsx:487
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:147
 #: src/features/workspace/components/RenamePurgedDialog.tsx:147
 #: src/features/workspace/components/SettingsPanel.tsx:368
 #: src/features/workspace/components/SettingsPanel.tsx:457
@@ -2776,12 +2788,19 @@ msgstr "Save"
 msgid "Save template"
 msgstr "Save template"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:284
+#: src/features/demo/components/DemoBanner.tsx:64
+msgid "Save your work"
+msgstr "Save your work"
+
+#: src/features/demo/components/DemoConversionModal.tsx:27
+msgid "Save your work — create an account"
+msgstr "Save your work — create an account"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx:289
 msgid "Saved."
 msgstr "Saved."
 
 #: src/features/dashboard/pages/DashboardPage.tsx:891
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:147
 #: src/features/workspace/components/RenamePurgedDialog.tsx:147
 msgid "Saving..."
 msgstr "Saving..."
@@ -2806,7 +2825,6 @@ msgstr "Search customers..."
 msgid "Search groups..."
 msgstr "Search groups..."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:151
 #: src/features/members/components/MembersGroupPanel.tsx:151
 msgid "Search members..."
 msgstr "Search members..."
@@ -2852,7 +2870,7 @@ msgstr "Search types..."
 #~ msgid "Sections"
 #~ msgstr "Sections"
 
-#: src/features/marketing/pages/LandingPage.tsx:463
+#: src/features/marketing/pages/LandingPage.tsx:471
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 
@@ -2865,7 +2883,6 @@ msgstr "Select a customer"
 msgid "Select a group"
 msgstr "Select a group"
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:100
 #: src/features/members/components/MembersGroupPanel.tsx:100
 msgid "Select a group to see members."
 msgstr "Select a group to see members."
@@ -2915,14 +2932,14 @@ msgstr "Select country"
 msgid "Select dashboard"
 msgstr "Select dashboard"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:305
+#: src/features/auth/components/AccountSettingsDialog.tsx:319
 #: src/features/auth/pages/AuthPage.tsx:180
 msgid "Select language"
 msgstr "Select language"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:362
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:230
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:309
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:233
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:353
 msgid "Select milestone"
 msgstr "Select milestone"
 
@@ -2959,7 +2976,7 @@ msgstr "Select value"
 msgid "Select workspace"
 msgstr "Select workspace"
 
-#: src/features/marketing/pages/LandingPage.tsx:576
+#: src/features/marketing/pages/LandingPage.tsx:584
 msgid "Self-hosted"
 msgstr "Self-hosted"
 
@@ -2967,34 +2984,47 @@ msgstr "Self-hosted"
 msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
 msgstr "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:624
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:635
 msgid "Send invite"
 msgstr "Send invite"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:661
+#: src/features/demo/components/DemoConversionModal.tsx:34
+msgid "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
+msgstr "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:672
 msgid "Sent invites"
 msgstr "Sent invites"
 
-#: src/features/marketing/pages/LandingPage.tsx:605
+#: src/features/marketing/pages/LandingPage.tsx:613
 msgid "Set up your team workspace in seconds. No credit card needed."
 msgstr "Set up your team workspace in seconds. No credit card needed."
 
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:420
+#: src/features/demo/providers/DemoBootstrap.tsx:159
+msgid "Setting up your demo sandbox…"
+msgstr "Setting up your demo sandbox…"
+
+#: src/features/demo/components/DemoConversionModal.tsx:19
+msgid "Share your timeline after you sign up"
+msgstr "Share your timeline after you sign up"
+
+#: src/features/demo/components/DemoConversionModal.tsx:36
+msgid "Sharing a live timeline needs a real account. Sign up in 30 seconds."
+msgstr "Sharing a live timeline needs a real account. Sign up in 30 seconds."
+
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:464
 msgid "Show {overflowCount} more milestones"
 msgstr "Show {overflowCount} more milestones"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:330
+#: src/features/auth/components/AccountSettingsDialog.tsx:344
 msgid "Show daily task summary each morning"
 msgstr "Show daily task summary each morning"
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:162
-#: src/features/members/components/MembersGroupPanel 2.tsx:163
 #: src/features/members/components/MembersGroupPanel.tsx:162
 #: src/features/members/components/MembersGroupPanel.tsx:163
 msgid "Show disabled people"
 msgstr "Show disabled people"
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:85
 #: src/features/members/components/MembersGroupPanel.tsx:85
 msgid "Show disabled people to add them."
 msgstr "Show disabled people to add them."
@@ -3017,7 +3047,7 @@ msgstr "Show tasks without an assignee."
 msgid "Show unassigned"
 msgstr "Show unassigned"
 
-#: src/features/marketing/pages/LandingPage.tsx:384
+#: src/features/marketing/pages/LandingPage.tsx:388
 msgid "Sign in"
 msgstr "Sign in"
 
@@ -3026,9 +3056,8 @@ msgid "Sign in required"
 msgstr "Sign in required"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:431
-#: src/features/auth/components/AccountRestoreScreen 2.tsx:74
 #: src/features/auth/components/AccountRestoreScreen.tsx:74
-#: src/features/auth/components/AccountSettingsDialog.tsx:293
+#: src/features/auth/components/AccountSettingsDialog.tsx:306
 #: src/features/marketing/pages/LandingPage.tsx:375
 msgid "Sign out"
 msgstr "Sign out"
@@ -3038,7 +3067,6 @@ msgid "Signed in"
 msgstr "Signed in"
 
 #. placeholder {0}: profileDisplayName ?? user?.email ?? ''
-#: src/features/auth/components/AccountRestoreScreen 2.tsx:49
 #: src/features/auth/components/AccountRestoreScreen.tsx:49
 msgid "Signed in as {0}"
 msgstr "Signed in as {0}"
@@ -3056,7 +3084,7 @@ msgstr "Skip the 30-day grace period for a PENDING_DELETION account. The cron wi
 msgid "Something went wrong"
 msgstr "Something went wrong"
 
-#: src/features/marketing/pages/LandingPage.tsx:577
+#: src/features/marketing/pages/LandingPage.tsx:585
 msgid "SSO via Keycloak"
 msgstr "SSO via Keycloak"
 
@@ -3082,11 +3110,11 @@ msgstr "Start date ↑"
 msgid "Start date ↓"
 msgstr "Start date ↓"
 
-#: src/features/marketing/pages/LandingPage.tsx:417
+#: src/features/marketing/pages/LandingPage.tsx:422
 msgid "Start for free →"
 msgstr "Start for free →"
 
-#: src/features/marketing/pages/LandingPage.tsx:669
+#: src/features/marketing/pages/LandingPage.tsx:677
 msgid "Start now →"
 msgstr "Start now →"
 
@@ -3102,7 +3130,7 @@ msgstr "Start now →"
 #: src/features/projects/components/ProjectsMainPanel.tsx:413
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:69
 #: src/features/workspace/components/SettingsPanel.tsx:556
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:742
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:753
 msgid "Status"
 msgstr "Status"
 
@@ -3171,7 +3199,7 @@ msgstr "Task was created, but subtasks were not saved."
 msgid "Tasks"
 msgstr "Tasks"
 
-#: src/features/marketing/pages/LandingPage.tsx:538
+#: src/features/marketing/pages/LandingPage.tsx:546
 msgid "Tasks by project"
 msgstr "Tasks by project"
 
@@ -3183,21 +3211,21 @@ msgstr "Tasks count loading..."
 msgid "Tasks from today"
 msgstr "Tasks from today"
 
-#: src/features/workspace/lib/appNavigation.ts:31
+#: src/features/workspace/lib/appNavigation.ts:33
 msgid "Team"
 msgstr "Team"
 
 #: src/features/onboarding/lib/onboardingTour.ts:153
 #: src/features/onboarding/lib/onboardingTour.ts:199
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:545
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:556
 msgid "Team access"
 msgstr "Team access"
 
-#: src/features/marketing/pages/LandingPage.tsx:681
+#: src/features/marketing/pages/LandingPage.tsx:689
 msgid "Team planning workspace."
 msgstr "Team planning workspace."
 
-#: src/features/marketing/pages/LandingPage.tsx:465
+#: src/features/marketing/pages/LandingPage.tsx:473
 msgid "Team workload"
 msgstr "Team workload"
 
@@ -3217,7 +3245,7 @@ msgstr "Template is used for all new workspaces."
 msgid "Template saved."
 msgstr "Template saved."
 
-#: src/features/marketing/pages/LandingPage.tsx:694
+#: src/features/marketing/pages/LandingPage.tsx:702
 msgid "Terms of Service"
 msgstr "Terms of Service"
 
@@ -3229,7 +3257,6 @@ msgstr "Text value"
 msgid "The database will be replaced with backup {name}."
 msgstr "The database will be replaced with backup {name}."
 
-#: src/features/auth/components/DataExportButton 2.tsx:136
 #: src/features/auth/components/DataExportButton.tsx:136
 msgid "The previous export file has expired. Request it again."
 msgstr "The previous export file has expired. Request it again."
@@ -3238,7 +3265,7 @@ msgstr "The previous export file has expired. Request it again."
 msgid "The selected task does not exist or was deleted."
 msgstr "The selected task does not exist or was deleted."
 
-#: src/features/marketing/pages/LandingPage.tsx:626
+#: src/features/marketing/pages/LandingPage.tsx:634
 msgid "The tool I wanted to use"
 msgstr "The tool I wanted to use"
 
@@ -3282,11 +3309,10 @@ msgstr "This is where your workspace projects are listed and reviewed."
 msgid "this milestone"
 msgstr "this milestone"
 
-#: src/features/marketing/pages/LandingPage.tsx:516
+#: src/features/marketing/pages/LandingPage.tsx:524
 msgid "This month"
 msgstr "This month"
 
-#: src/features/workspace/components/RenamePurgedDialog 2.tsx:46
 #: src/features/workspace/components/RenamePurgedDialog.tsx:46
 msgid "This name is reserved."
 msgstr "This name is reserved."
@@ -3294,6 +3320,10 @@ msgstr "This name is reserved."
 #: src/features/projects/pages/ProjectsPage.tsx:523
 msgid "this project"
 msgstr "this project"
+
+#: src/features/demo/components/DemoConversionModal.tsx:40
+msgid "This sandbox resets soon. Create a free account to keep this timeline and start your own."
+msgstr "This sandbox resets soon. Create a free account to keep this timeline and start your own."
 
 #: src/features/onboarding/lib/onboardingTour.ts:200
 msgid "This section contains invitations, roles and workspace access for your team."
@@ -3338,8 +3368,8 @@ msgstr "This will schedule immediate purge for user {forcePurgeTrimmed}. The use
 msgid "this workspace"
 msgstr "this workspace"
 
-#: src/features/marketing/pages/LandingPage.tsx:433
-#: src/features/workspace/lib/appNavigation.ts:15
+#: src/features/marketing/pages/LandingPage.tsx:441
+#: src/features/workspace/lib/appNavigation.ts:17
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -3362,7 +3392,7 @@ msgstr "Title Z–A"
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx:17
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx:19
 #: src/features/planner/components/timeline/TimelineControls.tsx:180
-#: src/features/planner/components/timeline/TimelineGrid.tsx:504
+#: src/features/planner/components/timeline/TimelineGrid.tsx:508
 msgid "Today"
 msgstr "Today"
 
@@ -3378,11 +3408,11 @@ msgstr "Tools"
 msgid "Total"
 msgstr "Total"
 
-#: src/features/planner/components/timeline/MilestoneLayer.tsx:117
+#: src/features/planner/components/timeline/MilestoneLayer.tsx:120
 msgid "Total milestones"
 msgstr "Total milestones"
 
-#: src/features/marketing/pages/LandingPage.tsx:520
+#: src/features/marketing/pages/LandingPage.tsx:528
 msgid "Total tasks"
 msgstr "Total tasks"
 
@@ -3406,7 +3436,15 @@ msgstr "Try again"
 msgid "Try again from Account settings."
 msgstr "Try again from Account settings."
 
-#: src/features/marketing/pages/LandingPage.tsx:658
+#: src/features/marketing/pages/LandingPage.tsx:381
+msgid "Try demo"
+msgstr "Try demo"
+
+#: src/features/marketing/pages/LandingPage.tsx:425
+msgid "Try demo — no signup"
+msgstr "Try demo — no signup"
+
+#: src/features/marketing/pages/LandingPage.tsx:666
 msgid "Try Motio now"
 msgstr "Try Motio now"
 
@@ -3437,7 +3475,6 @@ msgstr "Types"
 #: src/features/planner/components/AddTaskDialog.tsx:489
 #: src/features/planner/components/AddTaskDialog.tsx:579
 #: src/features/planner/components/TaskDetailPanel.tsx:200
-#: src/features/planner/components/timeline/hooks/useTaskDisplayRows 2.tsx:103
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:103
 #: src/features/planner/components/timeline/TaskBar.tsx:128
 #: src/features/planner/components/timeline/TimelineControls.tsx:287
@@ -3447,12 +3484,11 @@ msgstr "Types"
 msgid "Unassigned"
 msgstr "Unassigned"
 
-#: src/features/auth/components/DataExportButton 2.tsx:16
 #: src/features/auth/components/DataExportButton.tsx:16
 msgid "under a minute"
 msgstr "under a minute"
 
-#: src/features/marketing/pages/LandingPage.tsx:465
+#: src/features/marketing/pages/LandingPage.tsx:473
 msgid "Understand who is overloaded before it becomes a problem. Balance work across the team."
 msgstr "Understand who is overloaded before it becomes a problem. Balance work across the team."
 
@@ -3467,13 +3503,11 @@ msgstr "unknown"
 #: src/features/projects/components/ProjectsMainPanel.tsx:456
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:76
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:106
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:235
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:669
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:239
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:680
 msgid "Unknown"
 msgstr "Unknown"
 
-#: src/features/auth/components/DataExportButton 2.tsx:64
-#: src/features/auth/components/DataExportButton 2.tsx:142
 #: src/features/auth/components/DataExportButton.tsx:64
 #: src/features/auth/components/DataExportButton.tsx:142
 msgid "unknown error"
@@ -3495,7 +3529,7 @@ msgid "unknown role"
 msgstr "unknown role"
 
 #: src/features/auth/components/AccountBadgeButton.tsx:18
-#: src/features/auth/components/AccountSettingsDialog.tsx:111
+#: src/features/auth/components/AccountSettingsDialog.tsx:116
 #: src/features/auth/components/InviteNotifications.tsx:739
 #: src/features/auth/components/InviteNotifications.tsx:863
 #: src/features/planner/components/timeline/TaskBar.tsx:126
@@ -3523,7 +3557,7 @@ msgstr "Unsaved changes"
 msgid "Until date"
 msgstr "Until date"
 
-#: src/features/marketing/pages/LandingPage.tsx:600
+#: src/features/marketing/pages/LandingPage.tsx:608
 msgid "Up and running in minutes"
 msgstr "Up and running in minutes"
 
@@ -3604,7 +3638,6 @@ msgstr "View task details linked to this project."
 msgid "View task details without leaving the members page."
 msgstr "View task details without leaving the members page."
 
-#: src/features/members/components/MembersGroupPanel 2.tsx:250
 #: src/features/members/components/MembersGroupPanel.tsx:250
 msgid "View tasks"
 msgstr "View tasks"
@@ -3615,12 +3648,12 @@ msgstr "viewer"
 
 #: src/features/auth/components/InviteNotifications.tsx:124
 #: src/features/members/pages/MembersPage.tsx:145
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:488
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:591
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:499
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:602
 msgid "Viewer"
 msgstr "Viewer"
 
-#: src/features/marketing/pages/LandingPage.tsx:463
+#: src/features/marketing/pages/LandingPage.tsx:471
 msgid "Visual timeline"
 msgstr "Visual timeline"
 
@@ -3649,11 +3682,11 @@ msgstr "Welcome to Motio!"
 msgid "Who takes over?"
 msgstr "Who takes over?"
 
-#: src/features/marketing/pages/LandingPage.tsx:623
+#: src/features/marketing/pages/LandingPage.tsx:631
 msgid "Why I built this"
 msgstr "Why I built this"
 
-#: src/features/marketing/pages/LandingPage.tsx:456
+#: src/features/marketing/pages/LandingPage.tsx:464
 msgid "Why Motio"
 msgstr "Why Motio"
 
@@ -3670,7 +3703,7 @@ msgid "Workflow"
 msgstr "Workflow"
 
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx:62
-#: src/features/workspace/lib/appNavigation.ts:46
+#: src/features/workspace/lib/appNavigation.ts:48
 msgid "Workspace"
 msgstr "Workspace"
 
@@ -3702,7 +3735,7 @@ msgstr "Workspace name"
 msgid "Workspace not selected."
 msgstr "Workspace not selected."
 
-#: src/features/workspace/components/WorkspaceNav.tsx:48
+#: src/features/workspace/components/WorkspaceNav.tsx:59
 msgid "Workspace sections"
 msgstr "Workspace sections"
 
@@ -3736,12 +3769,11 @@ msgid "You are the sole admin in these workspaces. Pick an heir or delete the wo
 msgstr "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 
 #. placeholder {0}: formatRetryAfter(retryAfter)
-#: src/features/auth/components/DataExportButton 2.tsx:151
 #: src/features/auth/components/DataExportButton.tsx:151
 msgid "You can request a new export in {0}."
 msgstr "You can request a new export in {0}."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:402
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:413
 msgid "You cannot remove yourself."
 msgstr "You cannot remove yourself."
 
@@ -3768,7 +3800,7 @@ msgstr "You have unsaved milestone changes. Close without saving?"
 msgid "You have view access and cannot edit this workspace."
 msgstr "You have view access and cannot edit this workspace."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx:555
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx:566
 msgid "You have view access and cannot manage members."
 msgstr "You have view access and cannot manage members."
 
@@ -3797,7 +3829,6 @@ msgstr "You've been invited to Motio"
 msgid "Your account is now pending deletion. You will be redirected to the restore screen the next time you sign in."
 msgstr "Your account is now pending deletion. You will be redirected to the restore screen the next time you sign in."
 
-#: src/features/auth/components/AccountRestoreScreen 2.tsx:47
 #: src/features/auth/components/AccountRestoreScreen.tsx:47
 msgid "Your account is scheduled for deletion"
 msgstr "Your account is scheduled for deletion"
@@ -3811,7 +3842,6 @@ msgstr "Your account will be scheduled for deletion in {0} days."
 msgid "Your data export failed."
 msgstr "Your data export failed."
 
-#: src/features/auth/components/DataExportButton 2.tsx:62
 #: src/features/auth/components/DataExportButton.tsx:62
 msgid "Your data export is ready to download."
 msgstr "Your data export is ready to download."
@@ -3824,7 +3854,7 @@ msgstr "Your data export is ready."
 msgid "Your display name stays visible in historical comments:"
 msgstr "Your display name stays visible in historical comments:"
 
-#: src/features/marketing/pages/LandingPage.tsx:564
+#: src/features/marketing/pages/LandingPage.tsx:572
 msgid "Your infrastructure"
 msgstr "Your infrastructure"
 
@@ -3832,7 +3862,7 @@ msgstr "Your infrastructure"
 msgid "Your sign-in session expired. Please continue with Keycloak again."
 msgstr "Your sign-in session expired. Please continue with Keycloak again."
 
-#: src/features/marketing/pages/LandingPage.tsx:489
+#: src/features/marketing/pages/LandingPage.tsx:497
 msgid "Your team's progress, always in view"
 msgstr "Your team's progress, always in view"
 
