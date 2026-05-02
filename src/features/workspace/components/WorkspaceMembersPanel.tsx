@@ -16,6 +16,8 @@ import { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberAct
 import { formatWorkspaceMemberActivity } from '@/shared/lib/workspaceMemberActivity';
 import { matchesWorkspaceMemberSearch } from '@/shared/domain/workspaceMemberSearch';
 import { RenamePurgedDialog } from './RenamePurgedDialog';
+import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
+import { useDemoConversion } from '@/features/demo/providers/DemoConversionProvider';
 
 interface WorkspaceMembersPanelProps {
   active?: boolean;
@@ -97,6 +99,8 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const [renameTargetCurrentName, setRenameTargetCurrentName] = useState<string | null>(null);
 
   const isAdmin = currentWorkspaceRole === 'admin';
+  const isDemo = useIsDemo();
+  const { open: openDemoConversion } = useDemoConversion();
   const currentUserId = user?.id ?? null;
   const currentWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === currentWorkspaceId) ?? null,
@@ -311,6 +315,13 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     setError('');
     setInviteResult(null);
     if (!email.trim()) return;
+
+    if (isDemo) {
+      // Sending real invites needs a real account. Convert instead.
+      setInviteOpen(false);
+      openDemoConversion('invite');
+      return;
+    }
 
     const invitedEmail = email.trim();
     setSubmitting(true);
