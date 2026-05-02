@@ -19,6 +19,9 @@ production project is **not** touched by anything in this folder.
      `demo_heartbeat`, `reset_demo_workspace`. Called from the frontend.
    - `0005_demo_cleanup_cron.sql` — periodic job that removes anon users
      (and their cascaded workspace) after 10 minutes without a heartbeat.
+   - `0006_demo_override_ensure_initial.sql` — replace the prod
+     `ensure_initial_workspace` RPC body so that authStore's existing
+     "no workspaces yet" branch routes through `seed_demo_workspace`.
 
 ## Frontend wiring
 

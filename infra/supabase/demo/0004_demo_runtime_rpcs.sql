@@ -35,6 +35,11 @@ begin
     raise exception 'seed_demo_workspace requires an authenticated session';
   end if;
 
+  -- Same key as ensure_initial_workspace so the two cannot race on first
+  -- sign-in. Whoever wins creates and seeds; the loser sees the existing
+  -- workspace and returns early.
+  perform pg_advisory_xact_lock(hashtextextended(v_user_id::text, 0));
+
   -- Reuse existing workspace if the user already has one (idempotent boot).
   select id
     into v_workspace_id
