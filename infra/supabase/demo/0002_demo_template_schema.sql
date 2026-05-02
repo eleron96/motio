@@ -10,9 +10,8 @@ create schema if not exists demo_template;
 
 -- Template entities use deterministic uuids so cross-references between
 -- template_tasks and their project/status/type/assignee/tags can be
--- expressed in the same SQL file. We rely on uuid columns rather than
--- a slug because runtime tables already use uuid PKs and copying is
--- a straight insert with mapping.
+-- expressed inline. Runtime tables also use uuid PKs so copying is a
+-- straight insert with the same id values.
 
 create table demo_template.projects (
   id uuid primary key,
@@ -32,6 +31,7 @@ create table demo_template.statuses (
   name text not null,
   color text not null,
   is_final boolean not null default false,
+  is_cancelled boolean not null default false,
   sort_order int not null default 0
 );
 
@@ -53,7 +53,7 @@ create table demo_template.tasks (
   id uuid primary key,
   title text not null,
   project_id uuid references demo_template.projects(id) on delete set null,
-  assignee_id uuid references demo_template.assignees(id) on delete set null,
+  assignee_ids uuid[] not null default '{}',
   status_id uuid not null references demo_template.statuses(id),
   type_id uuid not null references demo_template.task_types(id),
   priority text,

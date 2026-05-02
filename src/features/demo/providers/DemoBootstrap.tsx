@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Trans } from '@lingui/macro';
-import { supabase } from '@/shared/lib/supabaseClient';
+import { Link } from 'react-router-dom';
+import { supabase, isDemoConfigured } from '@/shared/lib/supabaseClient';
+import { Button } from '@/shared/ui/button';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { DemoBanner } from '../components/DemoBanner';
 import { DemoConversionModal } from '../components/DemoConversionModal';
@@ -70,6 +72,7 @@ export const DemoBootstrap = ({ children }: DemoBootstrapProps) => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
+  const demoConfigured = isDemoConfigured();
 
   const [signInError, setSignInError] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
@@ -80,6 +83,7 @@ export const DemoBootstrap = ({ children }: DemoBootstrapProps) => {
   // visitor already has a demo session in localStorage, AuthProvider
   // will surface them as `user` and we skip sign-in entirely.
   useEffect(() => {
+    if (!demoConfigured) return;
     if (loading) return;
     if (user) return;
     if (signInAttempted.current) return;
@@ -98,7 +102,7 @@ export const DemoBootstrap = ({ children }: DemoBootstrapProps) => {
       .finally(() => {
         setSigningIn(false);
       });
-  }, [loading, user]);
+  }, [demoConfigured, loading, user]);
 
   // Heartbeat: pings demo_heartbeat() every 30s while the user is active.
   // "Active" means an interaction happened within IDLE_THRESHOLD_MS. The
@@ -141,6 +145,27 @@ export const DemoBootstrap = ({ children }: DemoBootstrapProps) => {
       }
     };
   }, [user]);
+
+  if (!demoConfigured) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+        <h1 className="text-xl font-semibold">
+          <Trans>Demo is not configured</Trans>
+        </h1>
+        <p className="max-w-md text-sm text-muted-foreground">
+          <Trans>
+            VITE_SUPABASE_URL_DEMO and VITE_SUPABASE_ANON_KEY_DEMO are not set on this build.
+            The demo sandbox needs an isolated Supabase project to run.
+          </Trans>
+        </p>
+        <Button asChild variant="outline">
+          <Link to="/">
+            <Trans>Back to landing</Trans>
+          </Link>
+        </Button>
+      </div>
+    );
+  }
 
   if (signInError) {
     return (
