@@ -1,14 +1,14 @@
--- Demo project only. Periodic cleanup of inactive anon sessions.
+-- Demo project only. Function that removes inactive anon sessions.
 --
 -- The frontend pings demo_heartbeat() every ~30s while the user is
 -- active. After ~3 minutes of idle it stops. Anything older than
 -- 10 minutes here is considered abandoned and deleted, taking the
 -- workspace and all cascaded rows with it.
 --
--- Requires the pg_cron extension. Enable in the demo Supabase project
--- via Database → Extensions → pg_cron before applying this file.
-
-create extension if not exists pg_cron;
+-- Scheduling is *not* via pg_cron (which lives in the cluster-wide
+-- `postgres` database and is awkward to use from a separate logical
+-- DB on shared infra). Instead, a tiny demo-janitor sidecar in
+-- docker-compose calls this function every 2 minutes via psql.
 
 create or replace function public.cleanup_demo_sessions()
 returns int as $$
@@ -32,10 +32,4 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public, auth set row_security = off;
 
--- Scheduled every 2 minutes. Gives ~10-12 minutes between user idle
--- and full cleanup, matching the "10 minutes after they leave" spec.
-select cron.schedule(
-  'demo-cleanup-stale-sessions',
-  '*/2 * * * *',
-  $$select public.cleanup_demo_sessions()$$
-);
+grant execute on function public.cleanup_demo_sessions() to anon, authenticated, service_role;
