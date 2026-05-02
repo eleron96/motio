@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Trans } from '@lingui/macro';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { DemoBanner } from '../components/DemoBanner';
+import { DemoConversionModal } from '../components/DemoConversionModal';
+import { DemoConversionProvider, useDemoConversion } from './DemoConversionProvider';
 
 interface DemoBootstrapProps {
   children: React.ReactNode;
@@ -9,7 +12,59 @@ interface DemoBootstrapProps {
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
 const IDLE_THRESHOLD_MS = 3 * 60_000;
+const CONVERSION_TIMER_MS = 3 * 60_000;
 const ACTIVITY_EVENTS: ReadonlyArray<keyof WindowEventMap> = ['mousemove', 'keydown', 'click', 'scroll'];
+
+// Lives inside DemoConversionProvider so it can call open('timer').
+// Mounts banner + modal and runs the once-per-session conversion timer.
+const DemoSessionShell = ({ children }: { children: React.ReactNode }) => {
+  const { open } = useDemoConversion();
+  const triggered = useRef(false);
+
+  useEffect(() => {
+    if (triggered.current) return;
+    let activeMs = 0;
+    let lastTick = Date.now();
+    const onActivity = () => {
+      lastTick = Date.now();
+    };
+
+    if (typeof window !== 'undefined') {
+      ACTIVITY_EVENTS.forEach((event) => window.addEventListener(event, onActivity, { passive: true }));
+    }
+
+    const intervalId = window.setInterval(() => {
+      const now = Date.now();
+      const delta = now - lastTick;
+      // Count time toward the threshold only when the user actually
+      // interacted in the previous tick window. Idle time doesn't accrue.
+      if (delta < HEARTBEAT_INTERVAL_MS * 1.5) {
+        activeMs += delta;
+      }
+      lastTick = now;
+
+      if (!triggered.current && activeMs >= CONVERSION_TIMER_MS) {
+        triggered.current = true;
+        open('timer');
+      }
+    }, HEARTBEAT_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+      if (typeof window !== 'undefined') {
+        ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, onActivity));
+      }
+    };
+  }, [open]);
+
+  return (
+    <>
+      <DemoBanner />
+      {children}
+      <DemoConversionModal />
+    </>
+  );
+};
 
 export const DemoBootstrap = ({ children }: DemoBootstrapProps) => {
   const user = useAuthStore((state) => state.user);
@@ -106,5 +161,9 @@ export const DemoBootstrap = ({ children }: DemoBootstrapProps) => {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <DemoConversionProvider>
+      <DemoSessionShell>{children}</DemoSessionShell>
+    </DemoConversionProvider>
+  );
 };
