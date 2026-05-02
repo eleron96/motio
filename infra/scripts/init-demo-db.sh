@@ -220,6 +220,28 @@ for f in "$root_dir"/infra/supabase/demo/00*.sql; do
 done
 echo "    $demo_count demo files applied"
 
+echo "==> Granting Supabase role privileges on public/auth/storage schemas"
+# Freshly CREATE'd databases inside supabase-postgres skip the bundled
+# init script that grants public.* access to anon / authenticated /
+# service_role. Without these, PostgREST hits "permission denied for
+# table tasks" on the first SELECT. RLS policies still gate row-level
+# access — these grants only open the door to the table at all.
+psql_super -d "$DEMO_DB_NAME" >/dev/null <<'GRANTS'
+grant usage on schema public to anon, authenticated, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
+grant select on all tables in schema public to anon;
+grant usage, select on all sequences in schema public to anon, authenticated, service_role;
+grant execute on all functions in schema public to anon, authenticated, service_role;
+alter default privileges in schema public grant select, insert, update, delete on tables to authenticated, service_role;
+alter default privileges in schema public grant select on tables to anon;
+alter default privileges in schema public grant usage, select on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
+
+grant usage on schema auth to anon, authenticated, service_role;
+grant select on all tables in schema auth to authenticated, service_role;
+grant select on all tables in schema storage to authenticated, service_role;
+GRANTS
+
 echo
 echo "Demo database $DEMO_DB_NAME is ready."
 echo "Bring up the demo stack:"
