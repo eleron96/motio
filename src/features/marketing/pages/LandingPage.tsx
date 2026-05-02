@@ -376,13 +376,18 @@ const LandingPage = () => {
                 </Button>
               </>
             ) : (
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-              >
-                <Link to="/app">{t`Sign in`}</Link>
-              </Button>
+              <>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/demo">{t`Try demo`}</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                >
+                  <Link to="/app">{t`Sign in`}</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -409,12 +414,15 @@ const LandingPage = () => {
             {t`Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets.`}
           </p>
 
-          <div style={{ animation: 'landFadeDown 0.5s 0.25s ease both' }} className="mt-8">
-            <Button
-              asChild
-              size="lg"
-            >
+          <div
+            style={{ animation: 'landFadeDown 0.5s 0.25s ease both' }}
+            className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+          >
+            <Button asChild size="lg">
               <Link to="/app">{t`Start for free →`}</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/demo">{t`Try demo — no signup`}</Link>
             </Button>
           </div>
 
