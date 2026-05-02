@@ -2,7 +2,11 @@
 --
 -- seed_demo_workspace()  — bootstraps the calling anon user's sandbox by
 --                          copying demo_template.* into real public.*
---                          tables with offset_days resolved against today.
+--                          tables. Each call mints fresh UUIDs and
+--                          remaps every FK reference (assignee_ids,
+--                          tag_ids, status_id, type_id, project_id) to
+--                          the new IDs, so multiple visitors never
+--                          collide on the metadata primary keys.
 -- demo_heartbeat()       — touches the calling user's last_seen_at; the
 --                          cleanup cron uses this to decide who to delete.
 -- reset_demo_workspace() — wipes and re-seeds the caller's workspace.
@@ -64,68 +68,145 @@ begin
   insert into public.workspace_members (workspace_id, user_id, role)
   values (v_workspace_id, v_user_id, 'admin');
 
-  -- Statuses, task_types, tags — direct copy of template sets.
-  insert into public.statuses (id, workspace_id, name, color, is_final, is_cancelled)
-  select id, v_workspace_id, name, color, is_final, is_cancelled
-  from demo_template.statuses
-  order by sort_order;
+  -- ── Per-call ID mapping ──────────────────────────────────────────────
+  -- public.statuses, projects etc. have a global PK on id, so we can't
+  -- copy the deterministic UUIDs from demo_template — the second visitor
+  -- would conflict on the existing rows. Generate fresh UUIDs at insert
+  -- time and remember which template row each new row came from.
+  --
+  -- Join key is name: template content keeps each name unique within a
+  -- given catalog (one Backlog, one Ready, one Emma Taylor, etc.), and
+  -- public.* tables receive only those names within v_workspace_id.
+  create temp table if not exists _seed_status_map (
+    template_id uuid primary key, new_id uuid not null
+  ) on commit drop;
+  create temp table if not exists _seed_type_map (
+    template_id uuid primary key, new_id uuid not null
+  ) on commit drop;
+  create temp table if not exists _seed_tag_map (
+    template_id uuid primary key, new_id uuid not null
+  ) on commit drop;
+  create temp table if not exists _seed_project_map (
+    template_id uuid primary key, new_id uuid not null
+  ) on commit drop;
+  create temp table if not exists _seed_assignee_map (
+    template_id uuid primary key, new_id uuid not null
+  ) on commit drop;
 
-  insert into public.task_types (id, workspace_id, name, icon)
-  select id, v_workspace_id, name, icon
-  from demo_template.task_types
-  order by sort_order;
+  -- Statuses
+  with inserted as (
+    insert into public.statuses (workspace_id, name, color, is_final, is_cancelled)
+    select v_workspace_id, t.name, t.color, t.is_final, t.is_cancelled
+    from demo_template.statuses t
+    order by t.sort_order
+    returning id, name
+  )
+  insert into _seed_status_map (template_id, new_id)
+  select t.id, i.id
+  from demo_template.statuses t
+  join inserted i on i.name = t.name;
 
-  insert into public.tags (id, workspace_id, name, color)
-  select id, v_workspace_id, name, color
-  from demo_template.tags
-  order by sort_order;
+  -- Task types
+  with inserted as (
+    insert into public.task_types (workspace_id, name, icon)
+    select v_workspace_id, t.name, t.icon
+    from demo_template.task_types t
+    order by t.sort_order
+    returning id, name
+  )
+  insert into _seed_type_map (template_id, new_id)
+  select t.id, i.id
+  from demo_template.task_types t
+  join inserted i on i.name = t.name;
 
-  -- Projects — direct copy.
-  insert into public.projects (id, workspace_id, name, color)
-  select id, v_workspace_id, name, color
-  from demo_template.projects
-  order by sort_order;
+  -- Tags
+  with inserted as (
+    insert into public.tags (workspace_id, name, color)
+    select v_workspace_id, t.name, t.color
+    from demo_template.tags t
+    order by t.sort_order
+    returning id, name
+  )
+  insert into _seed_tag_map (template_id, new_id)
+  select t.id, i.id
+  from demo_template.tags t
+  join inserted i on i.name = t.name;
 
-  -- Assignees — synthetic teammates (user_id NULL) plus the auto-assignee
-  -- created by sync_member_assignee for the anon user themselves.
-  insert into public.assignees (id, workspace_id, user_id, name)
-  select id, v_workspace_id, null, name
-  from demo_template.assignees
-  order by sort_order
-  on conflict do nothing;
+  -- Projects
+  with inserted as (
+    insert into public.projects (workspace_id, name, color)
+    select v_workspace_id, t.name, t.color
+    from demo_template.projects t
+    order by t.sort_order
+    returning id, name
+  )
+  insert into _seed_project_map (template_id, new_id)
+  select t.id, i.id
+  from demo_template.projects t
+  join inserted i on i.name = t.name;
 
-  -- Tasks — resolve relative offsets to absolute dates against today.
-  -- assignee_id (legacy single FK) is set to the first assignee_ids entry
-  -- so older code paths reading the scalar column still work.
-  insert into public.tasks
-    (id, workspace_id, title, project_id, assignee_id, assignee_ids,
-     start_date, end_date, status_id, type_id, priority, tag_ids, description)
+  -- Assignees: synthetic teammates only (user_id NULL). The auto-assignee
+  -- created by sync_member_assignee for the anon user themselves uses a
+  -- different name ("Demo Visitor") and won't collide.
+  with inserted as (
+    insert into public.assignees (workspace_id, user_id, name)
+    select v_workspace_id, null, t.name
+    from demo_template.assignees t
+    order by t.sort_order
+    returning id, name
+  )
+  insert into _seed_assignee_map (template_id, new_id)
+  select t.id, i.id
+  from demo_template.assignees t
+  join inserted i on i.name = t.name;
+
+  -- Tasks: every FK reference rewritten via the maps. assignee_ids and
+  -- tag_ids arrays are remapped element-wise via unnest WITH ORDINALITY
+  -- so the original ordering is preserved.
+  insert into public.tasks (
+    workspace_id, title, project_id, assignee_id, assignee_ids,
+    start_date, end_date, status_id, type_id, priority, tag_ids, description
+  )
   select
-    t.id,
     v_workspace_id,
     t.title,
-    t.project_id,
-    case when array_length(t.assignee_ids, 1) > 0 then t.assignee_ids[1] else null end,
-    t.assignee_ids,
+    pm.new_id,
+    case when array_length(t.assignee_ids, 1) > 0
+         then (select new_id from _seed_assignee_map where template_id = t.assignee_ids[1])
+         else null end,
+    coalesce(
+      (select array_agg(am.new_id order by ord.idx)
+       from unnest(t.assignee_ids) with ordinality as ord(template_id, idx)
+       join _seed_assignee_map am on am.template_id = ord.template_id),
+      '{}'::uuid[]
+    ),
     v_today + t.start_offset_days,
     v_today + t.end_offset_days,
-    t.status_id,
-    t.type_id,
+    sm.new_id,
+    tm.new_id,
     t.priority,
-    t.tag_ids,
+    coalesce(
+      (select array_agg(gm.new_id order by ord.idx)
+       from unnest(t.tag_ids) with ordinality as ord(template_id, idx)
+       join _seed_tag_map gm on gm.template_id = ord.template_id),
+      '{}'::uuid[]
+    ),
     t.description
   from demo_template.tasks t
+  join _seed_project_map pm on pm.template_id = t.project_id
+  join _seed_status_map sm on sm.template_id = t.status_id
+  join _seed_type_map tm on tm.template_id = t.type_id
   order by t.sort_order;
 
-  -- Milestones.
-  insert into public.milestones (id, workspace_id, project_id, date, title)
+  -- Milestones
+  insert into public.milestones (workspace_id, project_id, date, title)
   select
-    m.id,
     v_workspace_id,
-    m.project_id,
+    pm.new_id,
     v_today + m.offset_days,
     m.title
   from demo_template.milestones m
+  join _seed_project_map pm on pm.template_id = m.project_id
   order by m.sort_order;
 
   insert into public.demo_session_heartbeats (user_id, workspace_id)
