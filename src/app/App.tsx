@@ -26,6 +26,7 @@ const PlannerPage = lazy(() => import("@/features/planner/pages/PlannerPage"));
 const DashboardPage = lazy(() => import("@/features/dashboard/pages/DashboardPage"));
 const ProjectsPage = lazy(() => import("@/features/projects/pages/ProjectsPage"));
 const MembersPage = lazy(() => import("@/features/members/pages/MembersPage"));
+const DemoPage = lazy(() => import("@/features/demo/pages/DemoPage"));
 
 const SentryRoutes = withSentryReactRouterV6Routing(Routes);
 
@@ -60,6 +61,7 @@ const App = () => {
                   <Route path="/terms" element={<TermsPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/invite/:inviteToken" element={<InvitePage />} />
+                  <Route path="/demo/*" element={<DemoPage />} />
                   <Route
                     path="/app/admin/users"
                     element={(
