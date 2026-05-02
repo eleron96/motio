@@ -65,8 +65,8 @@ begin
   values (v_workspace_id, v_user_id, 'admin');
 
   -- Statuses, task_types, tags — direct copy of template sets.
-  insert into public.statuses (id, workspace_id, name, color, is_final)
-  select id, v_workspace_id, name, color, is_final
+  insert into public.statuses (id, workspace_id, name, color, is_final, is_cancelled)
+  select id, v_workspace_id, name, color, is_final, is_cancelled
   from demo_template.statuses
   order by sort_order;
 
@@ -95,15 +95,18 @@ begin
   on conflict do nothing;
 
   -- Tasks — resolve relative offsets to absolute dates against today.
+  -- assignee_id (legacy single FK) is set to the first assignee_ids entry
+  -- so older code paths reading the scalar column still work.
   insert into public.tasks
-    (id, workspace_id, title, project_id, assignee_id, start_date, end_date,
-     status_id, type_id, priority, tag_ids, description)
+    (id, workspace_id, title, project_id, assignee_id, assignee_ids,
+     start_date, end_date, status_id, type_id, priority, tag_ids, description)
   select
     t.id,
     v_workspace_id,
     t.title,
     t.project_id,
-    t.assignee_id,
+    case when array_length(t.assignee_ids, 1) > 0 then t.assignee_ids[1] else null end,
+    t.assignee_ids,
     v_today + t.start_offset_days,
     v_today + t.end_offset_days,
     t.status_id,

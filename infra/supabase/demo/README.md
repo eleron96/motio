@@ -3,7 +3,22 @@
 A separate Supabase project dedicated to the public `/demo` sandbox. The
 production project is **not** touched by anything in this folder.
 
-## Apply order
+## One-shot setup
+
+Use the bundled script — it applies prod migrations and this folder in
+the right order, refusing to run against a non-empty database:
+
+```sh
+DATABASE_URL='postgresql://postgres:PASSWORD@db.example.supabase.co:5432/postgres' \
+  ./infra/scripts/setup-demo-supabase.sh
+```
+
+Anonymous sign-ins still have to be enabled manually in the demo
+project's Auth → Providers settings, and `pg_cron` enabled in
+Database → Extensions before `0005_demo_cleanup_cron.sql` will apply
+(the script skips that file with a hint if `pg_cron` is missing).
+
+## Apply order (manual)
 
 1. Apply every prod migration from `infra/supabase/migrations/0001..N.sql`
    to the demo project (same schema as prod — keeps TypeScript types in

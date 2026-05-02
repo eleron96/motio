@@ -18,6 +18,8 @@ export const supabaseProd: SupabaseClient = createClient(supabaseUrl, supabaseAn
 const demoUrl = import.meta.env.VITE_SUPABASE_URL_DEMO;
 const demoAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY_DEMO;
 
+export const isDemoConfigured = (): boolean => Boolean(demoUrl && demoAnonKey);
+
 let demoClientCache: SupabaseClient | null = null;
 
 const getDemoClient = (): SupabaseClient | null => {
