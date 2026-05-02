@@ -28,13 +28,26 @@ if [[ ! -f "$env_file" ]]; then
   exit 1
 fi
 
-# shellcheck disable=SC1090
-set -a
-. "$env_file"
-set +a
+# Pull only the keys we need. Sourcing the whole .env breaks on values
+# with whitespace (JAVA_OPTS, command-style flags, etc.).
+get_env() {
+  local key="$1"
+  local line
+  line=$(grep -E "^${key}=" "$env_file" | tail -n1 || true)
+  if [[ -z "$line" ]]; then return; fi
+  printf '%s' "${line#*=}"
+}
 
+POSTGRES_USER="$(get_env POSTGRES_USER)"
+POSTGRES_PASSWORD="$(get_env POSTGRES_PASSWORD)"
+DEMO_DB_NAME="$(get_env DEMO_DB_NAME)"
 DEMO_DB_NAME="${DEMO_DB_NAME:-motio_demo}"
 DB_CONTAINER="${DB_CONTAINER:-supabase-db}"
+
+if [[ -z "$POSTGRES_USER" || -z "$POSTGRES_PASSWORD" ]]; then
+  echo "POSTGRES_USER / POSTGRES_PASSWORD missing from $env_file" >&2
+  exit 1
+fi
 
 if ! docker ps --format '{{.Names}}' | grep -qx "$DB_CONTAINER"; then
   echo "Container $DB_CONTAINER is not running." >&2
