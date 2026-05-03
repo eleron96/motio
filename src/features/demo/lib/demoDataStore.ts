@@ -1,0 +1,336 @@
+// Client-side data store for the demo sandbox. Lives in sessionStorage
+// so closing the tab wipes everything; a 24h TTL on lastActivityAt
+// catches forgotten tabs that someone leaves open for a day or two.
+//
+// The store backs the supabase mock (demoSupabaseClient.ts). Every
+// row is just a plain object — the mock's chained query builder
+// reads/writes these arrays directly.
+
+import {
+  DEMO_SEED_PROJECTS,
+  DEMO_SEED_ASSIGNEES,
+  DEMO_SEED_STATUSES,
+  DEMO_SEED_TASK_TYPES,
+  DEMO_SEED_TAGS,
+  DEMO_SEED_TASKS,
+  DEMO_SEED_MILESTONES,
+} from './demoSeed';
+
+const STORAGE_KEY = 'motio.demo.state.v1';
+const TTL_MS = 24 * 60 * 60 * 1000;
+const DEMO_USER_ID_PREFIX = 'demo-user-';
+const DEMO_WORKSPACE_NAME = 'Demo Sandbox';
+
+type Row = Record<string, unknown>;
+
+type Tables = Record<string, Row[]>;
+
+interface PersistedState {
+  schemaVersion: 1;
+  lastActivityAt: number;
+  user: { id: string; email: string; display_name: string };
+  workspaceId: string;
+  tables: Tables;
+}
+
+interface DemoStore {
+  user: PersistedState['user'];
+  workspaceId: string;
+  tables: Tables;
+  lastActivityAt: number;
+}
+
+const newId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback for old browsers that won't ever hit prod /demo, but keep
+  // typescript happy and unit tests deterministic.
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
+};
+
+const today = (): Date => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+};
+
+const addDays = (base: Date, days: number): string => {
+  const d = new Date(base);
+  d.setDate(d.getDate() + days);
+  const iso = d.toISOString();
+  return iso.slice(0, 10);
+};
+
+const buildFreshState = (): DemoStore => {
+  const userId = `${DEMO_USER_ID_PREFIX}${newId()}`;
+  const workspaceId = newId();
+  const nowIso = new Date().toISOString();
+  const anchor = today();
+
+  const user = {
+    id: userId,
+    email: 'demo@motio.local',
+    display_name: 'Demo Visitor',
+  };
+
+  const tables: Tables = {
+    workspaces: [
+      {
+        id: workspaceId,
+        name: DEMO_WORKSPACE_NAME,
+        owner_id: userId,
+        holiday_country: null,
+        created_at: nowIso,
+      },
+    ],
+    workspace_members: [
+      {
+        workspace_id: workspaceId,
+        user_id: userId,
+        role: 'admin',
+        created_at: nowIso,
+      },
+    ],
+    profiles: [
+      {
+        id: userId,
+        email: user.email,
+        display_name: user.display_name,
+        locale: null,
+        avatar_url: null,
+        status: 'ACTIVE',
+        purge_after: null,
+        preferences: {},
+        created_at: nowIso,
+      },
+    ],
+    projects: DEMO_SEED_PROJECTS.map((p) => ({
+      id: p.id,
+      workspace_id: workspaceId,
+      name: p.name,
+      color: p.color,
+      customer_id: null,
+      code: null,
+      archived_at: null,
+      created_at: nowIso,
+    })),
+    statuses: DEMO_SEED_STATUSES.map((s) => ({
+      id: s.id,
+      workspace_id: workspaceId,
+      name: s.name,
+      color: s.color,
+      is_final: s.is_final,
+      is_cancelled: s.is_cancelled,
+      emoji: null,
+      created_at: nowIso,
+    })),
+    task_types: DEMO_SEED_TASK_TYPES.map((t) => ({
+      id: t.id,
+      workspace_id: workspaceId,
+      name: t.name,
+      icon: t.icon,
+      created_at: nowIso,
+    })),
+    tags: DEMO_SEED_TAGS.map((t) => ({
+      id: t.id,
+      workspace_id: workspaceId,
+      name: t.name,
+      color: t.color,
+      created_at: nowIso,
+    })),
+    assignees: [
+      // synthetic teammates
+      ...DEMO_SEED_ASSIGNEES.map((a) => ({
+        id: a.id,
+        workspace_id: workspaceId,
+        user_id: null,
+        name: a.name,
+        active: true,
+        created_at: nowIso,
+      })),
+      // auto-assignee for the demo visitor themselves
+      {
+        id: newId(),
+        workspace_id: workspaceId,
+        user_id: userId,
+        name: user.display_name,
+        active: true,
+        created_at: nowIso,
+      },
+    ],
+    tasks: DEMO_SEED_TASKS.map((t) => ({
+      id: t.id,
+      workspace_id: workspaceId,
+      title: t.title,
+      project_id: t.project_id,
+      assignee_id: t.assignee_ids[0] ?? null,
+      assignee_ids: t.assignee_ids,
+      start_date: addDays(anchor, t.start_offset_days),
+      end_date: addDays(anchor, t.end_offset_days),
+      status_id: t.status_id,
+      type_id: t.type_id,
+      priority: t.priority,
+      tag_ids: t.tag_ids,
+      description: t.description,
+      created_at: nowIso,
+      updated_at: nowIso,
+    })),
+    milestones: DEMO_SEED_MILESTONES.map((m) => ({
+      id: m.id,
+      workspace_id: workspaceId,
+      project_id: m.project_id,
+      date: addDays(anchor, m.offset_days),
+      title: m.title,
+      created_at: nowIso,
+      updated_at: nowIso,
+    })),
+    // Tables read by the app but not seeded — empty arrays prevent
+    // "table 'foo' not found" errors in the mock client.
+    member_groups: [],
+    member_group_assignments: [],
+    workspace_dashboards: [],
+    customers: [],
+    project_tracking: [],
+    user_workspace_templates: [],
+    task_subtasks: [],
+    task_comments: [],
+    super_admins: [],
+    user_notifications: [],
+    invites: [],
+    holidays: [],
+    daily_brief_state: [],
+    account_deletion_events: [],
+    data_export_requests: [],
+  };
+
+  return {
+    user,
+    workspaceId,
+    tables,
+    lastActivityAt: Date.now(),
+  };
+};
+
+const isBrowser = typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
+
+const loadPersisted = (): DemoStore | null => {
+  if (!isBrowser) return null;
+  const raw = window.sessionStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as PersistedState;
+    if (parsed.schemaVersion !== 1) return null;
+    if (Date.now() - parsed.lastActivityAt > TTL_MS) return null;
+    return {
+      user: parsed.user,
+      workspaceId: parsed.workspaceId,
+      tables: parsed.tables,
+      lastActivityAt: parsed.lastActivityAt,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const persist = (store: DemoStore): void => {
+  if (!isBrowser) return;
+  const payload: PersistedState = {
+    schemaVersion: 1,
+    lastActivityAt: store.lastActivityAt,
+    user: store.user,
+    workspaceId: store.workspaceId,
+    tables: store.tables,
+  };
+  try {
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // sessionStorage full or blocked — demo just runs purely in memory.
+  }
+};
+
+let store: DemoStore | null = null;
+
+export const demoStore = {
+  /**
+   * Returns the live store, hydrating from sessionStorage if present and
+   * still within the TTL window, otherwise reseeding from scratch.
+   */
+  get(): DemoStore {
+    if (store) return store;
+    store = loadPersisted() ?? buildFreshState();
+    persist(store);
+    return store;
+  },
+
+  /**
+   * Drops the persisted state and starts over with a fresh seed. Used
+   * by the "Reset demo" button and by the TTL expiry path.
+   */
+  reset(): DemoStore {
+    store = buildFreshState();
+    persist(store);
+    return store;
+  },
+
+  /**
+   * Bumps lastActivityAt and writes through to sessionStorage. Cheap;
+   * called on every mutation.
+   */
+  touch(): void {
+    const s = this.get();
+    s.lastActivityAt = Date.now();
+    persist(s);
+  },
+
+  /**
+   * Whether the persisted state has expired against the TTL. Computed
+   * lazily — callers should invoke this on visibility-change to detect
+   * a tab that woke up after >24h.
+   */
+  isExpired(): boolean {
+    if (!isBrowser) return false;
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    try {
+      const parsed = JSON.parse(raw) as PersistedState;
+      return Date.now() - parsed.lastActivityAt > TTL_MS;
+    } catch {
+      return true;
+    }
+  },
+
+  /**
+   * Direct access to a table for the supabase mock. Returns the live
+   * array reference — mutations on it persist via touch().
+   */
+  table<T extends Row = Row>(name: string): T[] {
+    const s = this.get();
+    if (!s.tables[name]) {
+      s.tables[name] = [];
+    }
+    return s.tables[name] as T[];
+  },
+
+  user(): DemoStore['user'] {
+    return this.get().user;
+  },
+
+  workspaceId(): string {
+    return this.get().workspaceId;
+  },
+
+  /**
+   * For tests that need a guaranteed clean slate.
+   */
+  __reset(): void {
+    store = null;
+    if (isBrowser) {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+    }
+  },
+};
+
+export const TTL_HOURS = 24;

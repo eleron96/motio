@@ -81,32 +81,3 @@ services:
         limits:
           memory: 64M
           cpus: '0.25'
-
-  # Demo stack — only created when the `demo` profile is active.
-  demo-auth:
-    deploy:
-      resources:
-        limits:
-          memory: 96M
-          cpus: '0.25'
-
-  demo-rest:
-    deploy:
-      resources:
-        limits:
-          memory: 96M
-          cpus: '0.25'
-
-  demo-gateway:
-    deploy:
-      resources:
-        limits:
-          memory: 32M
-          cpus: '0.1'
-
-  demo-janitor:
-    deploy:
-      resources:
-        limits:
-          memory: 32M
-          cpus: '0.1'

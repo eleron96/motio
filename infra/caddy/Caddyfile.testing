@@ -43,13 +43,6 @@ test.motio.nikog.net {
       reverse_proxy gateway:8080
     }
 
-    # Demo sandbox backend (separate DB inside the same Postgres process).
-    # Frontend points VITE_SUPABASE_URL_DEMO at /demo-supabase. The supabase
-    # JS client then appends /auth/v1/* and /rest/v1/* on top.
-    handle_path /demo-supabase/* {
-      reverse_proxy demo-gateway:8080
-    }
-
     handle /auth/v1* {
       reverse_proxy gateway:8080
     }

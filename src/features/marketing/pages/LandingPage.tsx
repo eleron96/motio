@@ -4,7 +4,6 @@ import { t, Trans } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { Button } from '@/shared/ui/button';
-import { isDemoConfigured } from '@/shared/lib/supabaseClient';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import logoMotio from '@/shared/assets/branding/logo-motio.png';
 
@@ -378,11 +377,9 @@ const LandingPage = () => {
               </>
             ) : (
               <>
-                {isDemoConfigured() && (
-                  <Button asChild variant="ghost" size="sm">
-                    <Link to="/demo">{t`Try demo`}</Link>
-                  </Button>
-                )}
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/demo">{t`Try demo`}</Link>
+                </Button>
                 <Button
                   asChild
                   variant="outline"
@@ -424,11 +421,9 @@ const LandingPage = () => {
             <Button asChild size="lg">
               <Link to="/app">{t`Start for free →`}</Link>
             </Button>
-            {isDemoConfigured() && (
-              <Button asChild size="lg" variant="outline">
-                <Link to="/demo">{t`Try demo — no signup`}</Link>
-              </Button>
-            )}
+            <Button asChild size="lg" variant="outline">
+              <Link to="/demo">{t`Try demo — no signup`}</Link>
+            </Button>
           </div>
 
           {/* animated timeline */}
