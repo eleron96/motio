@@ -206,6 +206,17 @@ motio.nikog.net {
       }
     }
 
+    # Public demo sandbox SPA. Without this block /demo falls through to
+    # the catch-all → oauth2-proxy → Keycloak redirect, which defeats
+    # the whole "no signup" point of the demo.
+    handle /demo* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
     handle / {
       reverse_proxy web:80 {
         transport http {
