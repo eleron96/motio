@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.32] - 2026-05-03
 ### Added
 - No-signup demo sandbox at `/demo`: a sample workspace with 13 projects, 52 tasks and 42 milestones pre-distributed ±2 months around today. Visitors can play with the timeline, filters, dashboards and the team page; edits live only in the current tab. The session resets when the tab closes or after 24 hours of inactivity. The landing page gains two "Try demo" entry points (header link and hero outline button). The whole demo runs in the browser — no extra backend.
 
