@@ -197,7 +197,7 @@ msgstr "Доступ"
 msgid "Access denied"
 msgstr "Нет доступа"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:366
+#: src/features/auth/components/AccountSettingsDialog.tsx:375
 msgid "Account deletion is permanent. We will ask you to confirm your email."
 msgstr "Удаление аккаунта необратимо. Мы попросим подтвердить email."
 
@@ -547,7 +547,7 @@ msgstr "Отмененный статус"
 #~ msgid "Changes won't be saved. The sandbox resets after 10 minutes of inactivity."
 #~ msgstr "Изменения не сохранятся. Песочница сбросится после 10 минут бездействия."
 
-#: src/features/demo/components/DemoBanner.tsx:34
+#: src/features/demo/components/DemoBanner.tsx:44
 msgid "Changes won't be saved. The sandbox resets after 24 hours of inactivity."
 msgstr "Изменения не сохранятся. Песочница сбросится через 24 часа бездействия."
 
@@ -816,7 +816,7 @@ msgstr "Клиенты"
 msgid "Daily"
 msgstr "Ежедневно"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:334
+#: src/features/auth/components/AccountSettingsDialog.tsx:343
 msgid "Daily brief"
 msgstr "Ежедневный дайджест"
 
@@ -828,7 +828,7 @@ msgstr "Утренняя сводка"
 msgid "Daily recurring"
 msgstr "Ежедневный повтор"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:362
+#: src/features/auth/components/AccountSettingsDialog.tsx:371
 #: src/features/workspace/components/SettingsPanel.tsx:495
 msgid "Danger zone"
 msgstr "Опасная зона"
@@ -962,7 +962,7 @@ msgstr "Удалить дашборд?"
 msgid "Delete milestone?"
 msgstr "Удалить веху?"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:376
+#: src/features/auth/components/AccountSettingsDialog.tsx:385
 msgid "Delete my account"
 msgstr "Удалить мой аккаунт"
 
@@ -1040,7 +1040,7 @@ msgstr "Удаление…"
 #~ msgid "Demo is not configured"
 #~ msgstr "Демо не настроено"
 
-#: src/features/demo/components/DemoBanner.tsx:31
+#: src/features/demo/components/DemoBanner.tsx:41
 msgid "Demo sandbox"
 msgstr "Демо-песочница"
 
@@ -1292,7 +1292,8 @@ msgstr "Все видят одну картину. Планируйте вмес
 msgid "Everything your team needs to stay aligned"
 msgstr "Всё что нужно команде чтобы работать слаженно"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:295
+#: src/features/auth/components/AccountSettingsDialog.tsx:305
+#: src/features/demo/components/DemoBanner.tsx:66
 msgid "Exit demo"
 msgstr "Выйти из демо"
 
@@ -1662,7 +1663,7 @@ msgstr "Продолжайте удерживать заголовок видж�
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI-виджеты, столбчатые и area-графики, круговые диаграммы. Соберите любой дашборд. Фильтрация по исполнителю, проекту или статусу."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:316
+#: src/features/auth/components/AccountSettingsDialog.tsx:325
 #: src/features/auth/pages/AuthPage.tsx:177
 msgid "Language"
 msgstr "Язык"
@@ -2730,15 +2731,15 @@ msgstr "Заменить отображаемое имя удалённого а
 msgid "Reset"
 msgstr "Сброс"
 
-#: src/features/demo/components/DemoBanner.tsx:45
+#: src/features/demo/components/DemoBanner.tsx:56
 msgid "Reset demo"
 msgstr "Сбросить демо"
 
-#: src/features/demo/components/DemoBanner.tsx:22
+#: src/features/demo/components/DemoBanner.tsx:20
 msgid "Reset failed. Try again in a moment."
 msgstr "Не удалось сбросить. Попробуйте ещё раз."
 
-#: src/features/demo/components/DemoBanner.tsx:45
+#: src/features/demo/components/DemoBanner.tsx:56
 msgid "Resetting…"
 msgstr "Сбрасываем…"
 
@@ -2943,7 +2944,7 @@ msgstr "Выберите страну"
 msgid "Select dashboard"
 msgstr "Выберите дашборд"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:319
+#: src/features/auth/components/AccountSettingsDialog.tsx:328
 #: src/features/auth/pages/AuthPage.tsx:180
 msgid "Select language"
 msgstr "Выберите язык"
@@ -3027,7 +3028,7 @@ msgstr "Чтобы поделиться живым таймлайном, нуж�
 msgid "Show {overflowCount} more milestones"
 msgstr "Показать ещё {overflowCount} вех"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:344
+#: src/features/auth/components/AccountSettingsDialog.tsx:353
 msgid "Show daily task summary each morning"
 msgstr "Показывать ежедневный дайджест задач по утрам"
 
@@ -3068,7 +3069,7 @@ msgstr "Требуется вход"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:431
 #: src/features/auth/components/AccountRestoreScreen.tsx:74
-#: src/features/auth/components/AccountSettingsDialog.tsx:306
+#: src/features/auth/components/AccountSettingsDialog.tsx:315
 #: src/features/marketing/pages/LandingPage.tsx:375
 msgid "Sign out"
 msgstr "Выйти"

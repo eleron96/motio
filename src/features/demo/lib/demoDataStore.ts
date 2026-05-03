@@ -323,13 +323,23 @@ export const demoStore = {
   },
 
   /**
-   * For tests that need a guaranteed clean slate.
+   * Wipes the persisted state without reseeding. Used when the visitor
+   * leaves the sandbox via the "Exit demo" button so the next visit
+   * starts from scratch instead of restoring whatever they last did.
    */
-  __reset(): void {
+  clear(): void {
     store = null;
     if (isBrowser) {
       window.sessionStorage.removeItem(STORAGE_KEY);
     }
+  },
+
+  /**
+   * Test-only alias of clear(). Kept for backwards compatibility with
+   * the few tests that already call __reset().
+   */
+  __reset(): void {
+    this.clear();
   },
 };
 
