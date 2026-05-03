@@ -197,7 +197,7 @@ msgstr "Access"
 msgid "Access denied"
 msgstr "Access denied"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:366
+#: src/features/auth/components/AccountSettingsDialog.tsx:375
 msgid "Account deletion is permanent. We will ask you to confirm your email."
 msgstr "Account deletion is permanent. We will ask you to confirm your email."
 
@@ -547,7 +547,7 @@ msgstr "Cancelled status"
 #~ msgid "Changes won't be saved. The sandbox resets after 10 minutes of inactivity."
 #~ msgstr "Changes won't be saved. The sandbox resets after 10 minutes of inactivity."
 
-#: src/features/demo/components/DemoBanner.tsx:34
+#: src/features/demo/components/DemoBanner.tsx:44
 msgid "Changes won't be saved. The sandbox resets after 24 hours of inactivity."
 msgstr "Changes won't be saved. The sandbox resets after 24 hours of inactivity."
 
@@ -816,7 +816,7 @@ msgstr "Customers"
 msgid "Daily"
 msgstr "Daily"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:334
+#: src/features/auth/components/AccountSettingsDialog.tsx:343
 msgid "Daily brief"
 msgstr "Daily brief"
 
@@ -828,7 +828,7 @@ msgstr "Daily Brief"
 msgid "Daily recurring"
 msgstr "Daily recurring"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:362
+#: src/features/auth/components/AccountSettingsDialog.tsx:371
 #: src/features/workspace/components/SettingsPanel.tsx:495
 msgid "Danger zone"
 msgstr "Danger zone"
@@ -962,7 +962,7 @@ msgstr "Delete dashboard?"
 msgid "Delete milestone?"
 msgstr "Delete milestone?"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:376
+#: src/features/auth/components/AccountSettingsDialog.tsx:385
 msgid "Delete my account"
 msgstr "Delete my account"
 
@@ -1040,7 +1040,7 @@ msgstr "Deleting…"
 #~ msgid "Demo is not configured"
 #~ msgstr "Demo is not configured"
 
-#: src/features/demo/components/DemoBanner.tsx:31
+#: src/features/demo/components/DemoBanner.tsx:41
 msgid "Demo sandbox"
 msgstr "Demo sandbox"
 
@@ -1292,7 +1292,8 @@ msgstr "Everyone sees the same picture. Plan together, ship together."
 msgid "Everything your team needs to stay aligned"
 msgstr "Everything your team needs to stay aligned"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:295
+#: src/features/auth/components/AccountSettingsDialog.tsx:305
+#: src/features/demo/components/DemoBanner.tsx:66
 msgid "Exit demo"
 msgstr "Exit demo"
 
@@ -1662,7 +1663,7 @@ msgstr "Keep holding the widget header..."
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:316
+#: src/features/auth/components/AccountSettingsDialog.tsx:325
 #: src/features/auth/pages/AuthPage.tsx:177
 msgid "Language"
 msgstr "Language"
@@ -2730,15 +2731,15 @@ msgstr "Replace the display name of a deleted (purged) account. The change appli
 msgid "Reset"
 msgstr "Reset"
 
-#: src/features/demo/components/DemoBanner.tsx:45
+#: src/features/demo/components/DemoBanner.tsx:56
 msgid "Reset demo"
 msgstr "Reset demo"
 
-#: src/features/demo/components/DemoBanner.tsx:22
+#: src/features/demo/components/DemoBanner.tsx:20
 msgid "Reset failed. Try again in a moment."
 msgstr "Reset failed. Try again in a moment."
 
-#: src/features/demo/components/DemoBanner.tsx:45
+#: src/features/demo/components/DemoBanner.tsx:56
 msgid "Resetting…"
 msgstr "Resetting…"
 
@@ -2943,7 +2944,7 @@ msgstr "Select country"
 msgid "Select dashboard"
 msgstr "Select dashboard"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:319
+#: src/features/auth/components/AccountSettingsDialog.tsx:328
 #: src/features/auth/pages/AuthPage.tsx:180
 msgid "Select language"
 msgstr "Select language"
@@ -3027,7 +3028,7 @@ msgstr "Sharing a live timeline needs a real account. Sign up in 30 seconds."
 msgid "Show {overflowCount} more milestones"
 msgstr "Show {overflowCount} more milestones"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx:344
+#: src/features/auth/components/AccountSettingsDialog.tsx:353
 msgid "Show daily task summary each morning"
 msgstr "Show daily task summary each morning"
 
@@ -3068,7 +3069,7 @@ msgstr "Sign in required"
 
 #: src/features/admin/pages/AdminUsersPage.tsx:431
 #: src/features/auth/components/AccountRestoreScreen.tsx:74
-#: src/features/auth/components/AccountSettingsDialog.tsx:306
+#: src/features/auth/components/AccountSettingsDialog.tsx:315
 #: src/features/marketing/pages/LandingPage.tsx:375
 msgid "Sign out"
 msgstr "Sign out"

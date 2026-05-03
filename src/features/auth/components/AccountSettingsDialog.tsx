@@ -25,7 +25,7 @@ import { DeleteAccountWizard } from './DeleteAccountWizard';
 import { DataExportButton } from './DataExportButton';
 import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
-import { Link } from 'react-router-dom';
+import { demoStore } from '@/features/demo/lib/demoDataStore';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
@@ -289,11 +289,20 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                   {saved && <div className="text-sm text-emerald-600">{t`Saved.`}</div>}
 
                   {isDemo ? (
-                    <Button asChild type="button" variant="outline" className="mt-2 gap-2">
-                      <Link to="/" onClick={() => onOpenChange(false)}>
-                        <LogOut className="h-4 w-4" />
-                        {t`Exit demo`}
-                      </Link>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        demoStore.clear();
+                        onOpenChange(false);
+                        if (typeof window !== 'undefined') {
+                          window.location.href = '/';
+                        }
+                      }}
+                      className="mt-2 gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {t`Exit demo`}
                     </Button>
                   ) : (
                     <Button
