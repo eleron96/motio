@@ -9,20 +9,28 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase env vars: VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY');
 }
 
-export const supabaseProd: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    flowType: 'pkce',
-  },
-});
+// Created lazily so that visitors landing directly on /demo do NOT
+// instantiate the prod client at all. createClient() schedules its own
+// auto-refresh loop and reads any persisted session out of localStorage,
+// which would otherwise cause /demo pages to make background requests
+// to the prod auth endpoint on behalf of a logged-in user — noise that
+// has no business firing inside an "ephemeral demo" surface.
+let supabaseProdCache: SupabaseClient | null = null;
 
-// The demo sandbox runs entirely client-side. demoSupabaseClient is a
-// hand-rolled mock backed by demoDataStore (sessionStorage with a 24h
-// TTL). No network, no anon auth, no Postgres on the other end.
+const getSupabaseProd = (): SupabaseClient => {
+  if (!supabaseProdCache) {
+    supabaseProdCache = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { flowType: 'pkce' },
+    });
+  }
+  return supabaseProdCache;
+};
+
 export const getSupabase = (): SupabaseClient => {
   if (isDemoRoute()) {
     return demoSupabaseClient as unknown as SupabaseClient;
   }
-  return supabaseProd;
+  return getSupabaseProd();
 };
 
 // Existing code does `import { supabase } from '@/shared/lib/supabaseClient'`.
