@@ -65,7 +65,22 @@ export const DemoBootstrap = ({ children }: DemoBootstrapProps) => {
     demoStore.get();
   }, []);
 
-  if (loading || !user || !currentWorkspaceId) {
+  // Safety net against a real-account session leaking into /demo. If
+  // someone reaches /demo without a full page reload (browser back/
+  // forward, a stray <Link>, etc.) the AuthProvider listener may still
+  // be wired to the prod supabase client and authStore may carry the
+  // signed-in user. Detect a non-demo identity and hard-reload — that
+  // re-runs AuthProvider against the mock from a clean slate.
+  const demoUserId = demoStore.user().id;
+  const isWrongUser = user != null && user.id !== demoUserId;
+
+  useEffect(() => {
+    if (!isWrongUser) return;
+    if (typeof window === 'undefined') return;
+    window.location.replace('/demo');
+  }, [isWrongUser]);
+
+  if (isWrongUser || loading || !user || !currentWorkspaceId) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         <Trans>Setting up your demo sandbox…</Trans>

@@ -378,7 +378,11 @@ const LandingPage = () => {
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/demo">{t`Try demo`}</Link>
+                  {/* Hard navigation (not React Router push) so AuthProvider
+                      remounts under /demo and the supabase mock is wired
+                      from the start — never the prod client carrying a
+                      logged-in user's data. */}
+                  <a href="/demo">{t`Try demo`}</a>
                 </Button>
                 <Button
                   asChild
@@ -422,7 +426,8 @@ const LandingPage = () => {
               <Link to="/app">{t`Start for free →`}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/demo">{t`Try demo — no signup`}</Link>
+              {/* Hard navigation — see header CTA above. */}
+              <a href="/demo">{t`Try demo — no signup`}</a>
             </Button>
           </div>
 
