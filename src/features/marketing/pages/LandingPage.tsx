@@ -341,32 +341,37 @@ const LandingPage = () => {
         .land-reveal  { opacity:0; transform:translateY(20px); }
         .land-reveal.visible { animation:landFadeUp 0.5s ease forwards; }
 
-        /* Demo CTA emphasis: a green "live" dot that gently pulses, plus a
-           breathing emerald halo around the hero button. Tasteful — no
-           blink, no neon — just enough to catch the eye. */
-        @keyframes demoDotPulse {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16,185,129,0.55); }
-          50%      { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+        /* Demo CTA emphasis: the hero button breathes — a soft scale
+           pulse on the button itself plus a synchronised emerald halo
+           that expands and fades behind it. Animations only touch
+           transform and opacity so they composite on the GPU and stay
+           smooth on 120Hz displays. No box-shadow / no filter — those
+           can trigger paint and tank the framerate on big elements. */
+        @keyframes demoCtaBreath {
+          0%, 100% { transform: scale(1);     }
+          50%      { transform: scale(1.045); }
         }
-        @keyframes demoHaloPulse {
-          0%   { transform: scale(0.96); opacity: 0.45; }
-          100% { transform: scale(1.08); opacity: 0;   }
+        @keyframes demoCtaHalo {
+          0%, 100% { transform: scale(1);    opacity: 0.55; }
+          50%      { transform: scale(1.22); opacity: 0;    }
         }
-        .demo-dot {
-          display:inline-block; width:8px; height:8px; border-radius:9999px;
-          background: rgb(16 185 129); flex-shrink:0;
-          animation: demoDotPulse 2.2s ease-in-out infinite;
-        }
-        .demo-cta-wrap { position: relative; display: inline-flex; }
+        .demo-cta-wrap { position: relative; display: inline-flex; isolation: isolate; }
         .demo-cta-wrap::before {
-          content: ''; position: absolute; inset: -4px; border-radius: 9999px;
-          background: rgb(16 185 129 / 0.28);
-          animation: demoHaloPulse 2.2s ease-out infinite;
+          content: ''; position: absolute; inset: 0; border-radius: 9999px;
+          background: rgb(16 185 129);
+          animation: demoCtaHalo 2400ms cubic-bezier(0.4, 0, 0.6, 1) infinite;
           pointer-events: none; z-index: 0;
+          will-change: transform, opacity;
         }
-        .demo-cta-wrap > * { position: relative; z-index: 1; }
+        .demo-cta-button {
+          position: relative; z-index: 1;
+          animation: demoCtaBreath 2400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+          transform-origin: center;
+          will-change: transform;
+        }
+        .demo-cta-button:hover { animation-play-state: paused; }
         @media (prefers-reduced-motion: reduce) {
-          .demo-dot, .demo-cta-wrap::before { animation: none; }
+          .demo-cta-wrap::before, .demo-cta-button { animation: none; }
         }
       `}</style>
 
@@ -405,15 +410,12 @@ const LandingPage = () => {
               </>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm" className="gap-2 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
+                <Button asChild variant="ghost" size="sm" className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
                   {/* Hard navigation (not React Router push) so AuthProvider
                       remounts under /demo and the supabase mock is wired
                       from the start — never the prod client carrying a
                       logged-in user's data. */}
-                  <a href="/demo">
-                    <span className="demo-dot" aria-hidden />
-                    {t`Try demo`}
-                  </a>
+                  <a href="/demo">{t`Try demo`}</a>
                 </Button>
                 <Button
                   asChild
@@ -460,14 +462,10 @@ const LandingPage = () => {
               <Button
                 asChild
                 size="lg"
-                variant="outline"
-                className="gap-2.5 border-emerald-500/60 bg-white text-emerald-700 hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-800"
+                className="demo-cta-button bg-emerald-500 text-white shadow-md hover:bg-emerald-600"
               >
                 {/* Hard navigation — see header CTA above. */}
-                <a href="/demo">
-                  <span className="demo-dot" aria-hidden />
-                  {t`Try demo — no signup`}
-                </a>
+                <a href="/demo">{t`Try demo — no signup`}</a>
               </Button>
             </span>
           </div>
