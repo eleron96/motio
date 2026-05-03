@@ -3,33 +3,23 @@ import { Trans, t } from '@lingui/macro';
 import { RotateCcw } from 'lucide-react';
 import { toast } from '@/shared/ui/sonner';
 import { Button } from '@/shared/ui/button';
-import { supabase } from '@/shared/lib/supabaseClient';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { useDemoConversion } from '../providers/DemoConversionProvider';
+import { demoStore } from '../lib/demoDataStore';
 
 export const DemoBanner = () => {
-  const { open } = useDemoConversion();
-  const fetchWorkspaces = useAuthStore((state) => state.fetchWorkspaces);
   const [resetting, setResetting] = useState(false);
 
-  const handleReset = async () => {
+  const handleReset = () => {
     if (resetting) return;
     setResetting(true);
     try {
-      const { error } = await supabase.rpc('reset_demo_workspace');
-      if (error) {
-        toast.error(t`Reset failed. Try again in a moment.`);
-        return;
-      }
-      await fetchWorkspaces();
-      // Hard reload the route so every store rehydrates against the new
-      // workspace_id without us needing to surgically reset every slice.
+      demoStore.reset();
+      // Hard reload the route so every store rehydrates against the
+      // fresh seed without us needing to surgically reset every slice.
       if (typeof window !== 'undefined') {
         window.location.reload();
       }
     } catch (_error) {
       toast.error(t`Reset failed. Try again in a moment.`);
-    } finally {
       setResetting(false);
     }
   };
@@ -41,29 +31,19 @@ export const DemoBanner = () => {
           <Trans>Demo sandbox</Trans>
         </span>
         <span className="mx-2 opacity-60">·</span>
-        <Trans>Changes won't be saved. The sandbox resets after 10 minutes of inactivity.</Trans>
+        <Trans>Changes won't be saved. The sandbox resets after 24 hours of inactivity.</Trans>
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleReset}
-          disabled={resetting}
-          className="h-7 gap-1.5 px-2 text-xs text-amber-900 hover:bg-amber-100 hover:text-amber-900 dark:text-amber-100 dark:hover:bg-amber-900/40 dark:hover:text-amber-100"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          {resetting ? <Trans>Resetting…</Trans> : <Trans>Reset demo</Trans>}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          onClick={() => open('banner')}
-          className="h-7 px-3 text-xs"
-        >
-          <Trans>Save your work</Trans>
-        </Button>
-      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleReset}
+        disabled={resetting}
+        className="h-7 shrink-0 gap-1.5 px-2 text-xs text-amber-900 hover:bg-amber-100 hover:text-amber-900 dark:text-amber-100 dark:hover:bg-amber-900/40 dark:hover:text-amber-100"
+      >
+        <RotateCcw className="h-3.5 w-3.5" />
+        {resetting ? <Trans>Resetting…</Trans> : <Trans>Reset demo</Trans>}
+      </Button>
     </div>
   );
 };
