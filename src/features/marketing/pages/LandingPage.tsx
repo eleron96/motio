@@ -341,37 +341,22 @@ const LandingPage = () => {
         .land-reveal  { opacity:0; transform:translateY(20px); }
         .land-reveal.visible { animation:landFadeUp 0.5s ease forwards; }
 
-        /* Demo CTA emphasis: the hero button breathes — a soft scale
-           pulse on the button itself plus a synchronised emerald halo
-           that expands and fades behind it. Animations only touch
-           transform and opacity so they composite on the GPU and stay
-           smooth on 120Hz displays. No box-shadow / no filter — those
-           can trigger paint and tank the framerate on big elements. */
+        /* Demo CTA emphasis: the hero button gently breathes via a
+           transform-only scale pulse — no halo (it was getting visually
+           clipped by the neighbouring "Start for free" button). Pure
+           transform → composited on GPU, smooth on 120Hz displays. */
         @keyframes demoCtaBreath {
           0%, 100% { transform: scale(1);     }
           50%      { transform: scale(1.045); }
         }
-        @keyframes demoCtaHalo {
-          0%, 100% { transform: scale(1);    opacity: 0.55; }
-          50%      { transform: scale(1.22); opacity: 0;    }
-        }
-        .demo-cta-wrap { position: relative; display: inline-flex; isolation: isolate; }
-        .demo-cta-wrap::before {
-          content: ''; position: absolute; inset: 0; border-radius: 9999px;
-          background: rgb(16 185 129);
-          animation: demoCtaHalo 2400ms cubic-bezier(0.4, 0, 0.6, 1) infinite;
-          pointer-events: none; z-index: 0;
-          will-change: transform, opacity;
-        }
         .demo-cta-button {
-          position: relative; z-index: 1;
           animation: demoCtaBreath 2400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
           transform-origin: center;
           will-change: transform;
         }
         .demo-cta-button:hover { animation-play-state: paused; }
         @media (prefers-reduced-motion: reduce) {
-          .demo-cta-wrap::before, .demo-cta-button { animation: none; }
+          .demo-cta-button { animation: none; }
         }
       `}</style>
 
@@ -458,16 +443,14 @@ const LandingPage = () => {
             <Button asChild size="lg">
               <Link to="/app">{t`Start for free →`}</Link>
             </Button>
-            <span className="demo-cta-wrap">
-              <Button
-                asChild
-                size="lg"
-                className="demo-cta-button bg-emerald-500 text-white shadow-md hover:bg-emerald-600"
-              >
-                {/* Hard navigation — see header CTA above. */}
-                <a href="/demo">{t`Try demo — no signup`}</a>
-              </Button>
-            </span>
+            <Button
+              asChild
+              size="lg"
+              className="demo-cta-button bg-emerald-500 text-white shadow-md hover:bg-emerald-600"
+            >
+              {/* Hard navigation — see header CTA above. */}
+              <a href="/demo">{t`Try demo — no signup`}</a>
+            </Button>
           </div>
 
           {/* animated timeline */}
