@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { getMonogramColor } from '@/shared/lib/monogramColor';
 import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
+import { ACTIVITY_HTML_TAG_RE } from '@/features/projects/lib/projectActivityContent';
 import styles from './projectCard.module.css';
 
 interface ActivityBlockProps {
@@ -22,7 +23,6 @@ interface ActivityBlockProps {
   workspaceId?: string | null;
 }
 
-const HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i;
 const IMG_TAG_RE = /<img\b/i;
 const ALL_TAGS_RE = /<[^>]+>/g;
 
@@ -36,16 +36,18 @@ const isContentMeaningful = (raw: string) => {
 };
 
 const stripHtmlForSearch = (raw: string) => {
-  if (!HTML_TAG_RE.test(raw)) return raw;
+  if (!ACTIVITY_HTML_TAG_RE.test(raw)) return raw;
   return raw.replace(ALL_TAGS_RE, ' ').replace(/&nbsp;/gi, ' ');
 };
 
 const renderRichTextHtml = (raw: string) => {
   if (!raw) return { __html: '' };
-  if (HTML_TAG_RE.test(raw)) {
+  if (ACTIVITY_HTML_TAG_RE.test(raw)) {
     return { __html: sanitizeCommentRichText(raw) };
   }
-  // Plain text — preserve newlines via <br>.
+  // Plain text — preserve newlines via <br>. Escapes literal angle brackets
+  // so user input like `<200 sq ft>` renders as text rather than vanishing
+  // (it doesn't match the allowlist regex above, so we land here).
   const escaped = raw
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

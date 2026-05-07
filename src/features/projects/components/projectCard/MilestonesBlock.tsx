@@ -16,7 +16,7 @@ interface MilestonesBlockProps {
   canEdit: boolean;
   onAddMilestone: () => void;
   onEditMilestone?: (milestone: Milestone) => void;
-  /** Phase 7.6: project accent color so rail dots/lines pick up project color. */
+  /** Project accent color so rail dots/lines pick up the project color. */
   accentColor: string;
 }
 

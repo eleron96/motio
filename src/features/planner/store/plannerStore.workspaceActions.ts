@@ -2,6 +2,7 @@ import { addYears, format, parseISO } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
 import type {
@@ -157,27 +158,37 @@ export const createWorkspaceActions = (
       .from('customers')
       .select('id, workspace_id, name, industry')
       .eq('workspace_id', workspaceId);
-    const customerContactsQuery = supabase
-      .from('customer_contacts')
-      .select('id, workspace_id, customer_id, name, role, email, phone, position, tag')
-      .eq('workspace_id', workspaceId)
-      .order('position', { ascending: true })
-      .order('created_at', { ascending: true });
+    // Project-card-only tables: skip the queries entirely when the feature
+    // flag is off. Vite inlines `isProjectCardEnabled()` at build time, so
+    // disabled deployments pay zero cost (no round-trip, no RAM, no map).
+    const projectCardOn = isProjectCardEnabled();
+    const customerContactsQuery = projectCardOn
+      ? supabase
+          .from('customer_contacts')
+          .select('id, workspace_id, customer_id, name, role, email, phone, position, tag')
+          .eq('workspace_id', workspaceId)
+          .order('position', { ascending: true })
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] as never[], error: null });
     const assigneesQuery = supabase
       .from('assignees')
       .select('id, workspace_id, name, user_id, is_active, email, phone')
       .eq('workspace_id', workspaceId);
-    const projectMembersQuery = supabase
-      .from('project_members')
-      .select('id, workspace_id, project_id, assignee_id, role, position, tag, external_name, external_company, external_email, external_phone')
-      .eq('workspace_id', workspaceId)
-      .order('position', { ascending: true })
-      .order('created_at', { ascending: true });
-    const projectActivityQuery = supabase
-      .from('project_activity')
-      .select('id, workspace_id, project_id, author_id, author_display_name, kind, content, created_at, updated_at')
-      .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: false });
+    const projectMembersQuery = projectCardOn
+      ? supabase
+          .from('project_members')
+          .select('id, workspace_id, project_id, assignee_id, role, position, tag, external_name, external_company, external_email, external_phone')
+          .eq('workspace_id', workspaceId)
+          .order('position', { ascending: true })
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] as never[], error: null });
+    const projectActivityQuery = projectCardOn
+      ? supabase
+          .from('project_activity')
+          .select('id, workspace_id, project_id, author_id, author_display_name, kind, content, created_at, updated_at')
+          .eq('workspace_id', workspaceId)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] as never[], error: null });
     const memberGroupsQuery = supabase
       .from('member_groups')
       .select('id, name')

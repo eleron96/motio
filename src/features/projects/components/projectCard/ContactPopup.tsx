@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Check, Copy, Mail, Phone } from 'lucide-react';
 
 /**
- * Phase 4: any entity that has a name, optional role, and optional email/phone
- * can drive this popup — both customer contacts and project team members.
+ * Any entity that has a name, optional role, and optional email/phone can
+ * drive this popup — both customer contacts and project team members.
  */
 export interface ContactPopupTarget {
   name: string;
@@ -20,10 +20,54 @@ interface ContactPopupProps {
 }
 
 const POPUP_WIDTH = 300;
+const VIEWPORT_MARGIN = 8;
+const ANCHOR_GAP = 8;
+
+interface PopupPlacement {
+  top: number;
+  left: number;
+  /** Set when the popup couldn't fit at full natural width on a small viewport. */
+  width: number;
+}
+
+const computePlacement = (anchorRect: DOMRect, popupHeight: number): PopupPlacement => {
+  if (typeof window === 'undefined') {
+    return { top: anchorRect.bottom + ANCHOR_GAP, left: anchorRect.left, width: POPUP_WIDTH };
+  }
+  const { innerWidth, innerHeight } = window;
+  const width = Math.min(POPUP_WIDTH, innerWidth - VIEWPORT_MARGIN * 2);
+
+  // Horizontal: anchor's left, but clamp into [margin, innerWidth - width - margin].
+  const desiredLeft = anchorRect.left;
+  const maxLeft = innerWidth - width - VIEWPORT_MARGIN;
+  const left = Math.max(VIEWPORT_MARGIN, Math.min(desiredLeft, maxLeft));
+
+  // Vertical: prefer below, but flip above if no room and there is room above.
+  const spaceBelow = innerHeight - anchorRect.bottom - VIEWPORT_MARGIN;
+  const spaceAbove = anchorRect.top - VIEWPORT_MARGIN;
+  const fitsBelow = popupHeight + ANCHOR_GAP <= spaceBelow;
+  const fitsAbove = popupHeight + ANCHOR_GAP <= spaceAbove;
+  let top: number;
+  if (fitsBelow || !fitsAbove) {
+    top = anchorRect.bottom + ANCHOR_GAP;
+    if (top + popupHeight + VIEWPORT_MARGIN > innerHeight) {
+      // Last-resort clamp into viewport so we don't render off-screen.
+      top = Math.max(VIEWPORT_MARGIN, innerHeight - popupHeight - VIEWPORT_MARGIN);
+    }
+  } else {
+    top = Math.max(VIEWPORT_MARGIN, anchorRect.top - popupHeight - ANCHOR_GAP);
+  }
+
+  return { top, left, width };
+};
 
 export const ContactPopup: React.FC<ContactPopupProps> = ({ contact, anchorRect, onClose }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState<'email' | 'phone' | null>(null);
+  const [placement, setPlacement] = useState<PopupPlacement>(() => (
+    computePlacement(anchorRect, 200)
+  ));
+  const titleId = useId();
 
   useEffect(() => {
     const onDoc = (event: MouseEvent) => {
@@ -40,6 +84,19 @@ export const ContactPopup: React.FC<ContactPopupProps> = ({ contact, anchorRect,
     };
   }, [onClose]);
 
+  // Recompute placement once the popup has rendered so we know its real height
+  // and can flip vertically near the bottom of the viewport.
+  useLayoutEffect(() => {
+    if (!ref.current) return;
+    const { height } = ref.current.getBoundingClientRect();
+    setPlacement(computePlacement(anchorRect, height));
+  }, [anchorRect, contact.email, contact.phone]);
+
+  // Move focus into the popup so it can be navigated by keyboard.
+  useEffect(() => {
+    ref.current?.focus();
+  }, []);
+
   const copy = async (value: string, key: 'email' | 'phone') => {
     try {
       await navigator.clipboard.writeText(value);
@@ -50,18 +107,18 @@ export const ContactPopup: React.FC<ContactPopupProps> = ({ contact, anchorRect,
     }
   };
 
-  const top = anchorRect.bottom + 8;
-  const left = Math.min(anchorRect.left, (typeof window !== 'undefined' ? window.innerWidth : 0) - POPUP_WIDTH - 16);
-
   return (
     <div
       ref={ref}
-      className="fixed z-50 w-[300px] rounded-xl border border-border bg-card p-3.5 shadow-lg"
-      style={{ top, left }}
+      tabIndex={-1}
+      className="fixed z-50 rounded-xl border border-border bg-card p-3.5 shadow-lg outline-none"
+      style={{ top: placement.top, left: placement.left, width: placement.width }}
       role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
     >
       <div className="border-b border-border/70 pb-2.5">
-        <div className="text-ui-sm font-semibold">{contact.name}</div>
+        <div id={titleId} className="text-ui-sm font-semibold">{contact.name}</div>
         {contact.role && (
           <div className="mt-0.5 text-[11px] text-muted-foreground">{contact.role}</div>
         )}

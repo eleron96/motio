@@ -33,9 +33,10 @@ describe('sanitizeProjectActivityContent', () => {
       expect(sanitizeProjectActivityContent('<div><p></p></div>')).toBeNull();
     });
 
-    it('returns null for HTML that DOMPurify strips entirely', () => {
-      // <script> is removed and there is no remaining text.
-      expect(sanitizeProjectActivityContent('<script>alert(1)</script>')).toBeNull();
+    it('returns null when allowlist HTML strips down to nothing', () => {
+      // `<p>` is in the allowlist, so the detector triggers DOMPurify which
+      // removes the inner `<script>` and leaves an empty `<p>` — empty.
+      expect(sanitizeProjectActivityContent('<p><script>alert(1)</script></p>')).toBeNull();
     });
   });
 
@@ -44,12 +45,14 @@ describe('sanitizeProjectActivityContent', () => {
       expect(sanitizeProjectActivityContent('  hello world  ')).toBe('hello world');
     });
 
-    it('preserves literal angle-bracket text that is not real HTML', () => {
-      // The detector requires `<letter`, so `<not-html>` triggers HTML-mode and
-      // DOMPurify strips it. We document that behavior here.
-      const result = sanitizeProjectActivityContent('plain <text>');
-      // The leading "plain " survives as text content of the parsed fragment.
-      expect(result).toContain('plain');
+    it('preserves literal angle-bracket text that is not in the allowlist', () => {
+      // `<text>` is not on the rich-text-editor allowlist, so the detector
+      // skips DOMPurify and the string is stored verbatim.
+      expect(sanitizeProjectActivityContent('plain <text>')).toBe('plain <text>');
+    });
+
+    it('preserves prose with measurements like `<200 sq ft>`', () => {
+      expect(sanitizeProjectActivityContent('size <200 sq ft>')).toBe('size <200 sq ft>');
     });
 
     it('preserves multi-line plain text', () => {
@@ -58,11 +61,19 @@ describe('sanitizeProjectActivityContent', () => {
   });
 
   describe('XSS', () => {
-    it('strips <script> while preserving surrounding text', () => {
+    it('strips <script> nested inside an allowlisted tag', () => {
       const result = sanitizeProjectActivityContent('<p>hi<script>alert(1)</script></p>');
       expect(result).not.toContain('<script');
       expect(result).not.toContain('alert(1)');
       expect(result).toContain('hi');
+    });
+
+    it('treats a bare <script> as plain text (renderer escapes it)', () => {
+      // The detector only matches allowlisted rich-text tags, so a stand-
+      // alone `<script>` is stored verbatim. The render path escapes `<` to
+      // `&lt;` so it cannot execute — verified in ActivityBlock unit tests.
+      const result = sanitizeProjectActivityContent('<script>alert(1)</script>');
+      expect(result).toBe('<script>alert(1)</script>');
     });
 
     it('strips <iframe>', () => {

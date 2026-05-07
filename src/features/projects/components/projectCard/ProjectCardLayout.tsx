@@ -38,9 +38,9 @@ interface ProjectCardLayoutProps {
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteCustomerContact: (id: string) => Promise<boolean>;
-  /** Phase 1 fallback list — assignees that appear on this project's tasks. */
+  /** Fallback list — assignees that appear on this project's tasks. */
   projectMembers: Assignee[];
-  /** Phase 4 explicit members of this project. */
+  /** Explicit members of this project (project_members rows). */
   projectMemberRows: ProjectMember[];
   assigneesById: Map<string, Assignee>;
   workspaceAssignees: Assignee[];
@@ -59,7 +59,7 @@ interface ProjectCardLayoutProps {
   onAddMilestone: () => void;
   onEditMilestone?: (milestone: Milestone) => void;
   onSaveProjectStatus: (next: string | null) => Promise<boolean>;
-  /** Phase 6 — activity feed for this project. */
+  /** Activity feed for this project. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
   onAddActivity: (content: string) => Promise<boolean>;

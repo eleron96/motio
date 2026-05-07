@@ -38,9 +38,9 @@ interface ProjectCardSidebarProps {
   onOpenProjectSettings: (project: Project) => void;
   onToggleProjectArchived: (project: Project) => void;
   onRequestDeleteProject: (project: Project) => void;
-  /** Phase 2 — workspace-level "active" tab label so the user knows what list they're looking at. */
+  /** Workspace-level "active" tab label so the user knows what list they're looking at. */
   groupLabel?: string;
-  /** Phase 1.5 follow-up: customer filter (popover with checkboxes) + group-by-customer toggle. */
+  /** Customer filter (popover with checkboxes) + group-by-customer toggle. */
   sortedCustomers: Customer[];
   customerFilterIds: string[];
   customerFilterLabel: string;
@@ -48,15 +48,15 @@ interface ProjectCardSidebarProps {
   onClearCustomerFilters: () => void;
   groupByCustomer: boolean;
   onToggleGroupByCustomer: () => void;
-  /** Phase 7: filter by owner team (member group). */
+  /** Filter by owner team (member group). */
   memberGroups: MemberGroup[];
   ownerGroupFilterIds: string[];
   ownerGroupFilterLabel: string;
   onToggleOwnerGroupFilter: (groupId: string) => void;
   onClearOwnerGroupFilters: () => void;
-  /** Phase 7.5: optional Projects | Customers tabs rendered above the title. */
+  /** Optional Projects | Customers tabs rendered above the title. */
   modeTabs?: React.ReactNode;
-  /** Phase 7.6: active/archived toggle controlled from the page state. */
+  /** Active/archived toggle controlled from the page state. */
   showArchived: boolean;
   onToggleShowArchived: () => void;
   /**

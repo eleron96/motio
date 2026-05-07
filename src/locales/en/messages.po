@@ -23,15 +23,15 @@ msgstr "— pick member —"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:86
 #: src/features/projects/components/projectCard/TasksBlock.tsx:157
-#: src/features/projects/components/ProjectsMainPanel.tsx:428
-#: src/features/projects/components/ProjectsMainPanel.tsx:543
-#: src/features/projects/components/ProjectsMainPanel.tsx:620
+#: src/features/projects/components/ProjectsMainPanel.tsx:437
+#: src/features/projects/components/ProjectsMainPanel.tsx:552
+#: src/features/projects/components/ProjectsMainPanel.tsx:629
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:91
 msgid "(disabled)"
 msgstr "(disabled)"
 
 #: src/features/planner/components/TaskCommentItem.tsx:111
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:205
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:207
 msgid "(edited)"
 msgstr "(edited)"
 
@@ -61,7 +61,7 @@ msgid "{0} past"
 msgstr "{0} past"
 
 #. placeholder {0}: selectedCustomerProjects.length
-#: src/features/projects/components/ProjectsMainPanel.tsx:769
+#: src/features/projects/components/ProjectsMainPanel.tsx:778
 msgid "{0} projects"
 msgstr "{0} projects"
 
@@ -125,7 +125,7 @@ msgstr "{actor} renamed group {0} to {1}."
 msgid "{actor} updated workspace access."
 msgstr "{actor} updated workspace access."
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:770
+#: src/features/projects/components/ProjectsMainPanel.tsx:779
 msgid "{customersCount} customers"
 msgstr "{customersCount} customers"
 
@@ -267,11 +267,11 @@ msgstr "Active"
 msgid "Active people"
 msgstr "Active people"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:106
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:108
 msgid "Activity"
 msgstr "Activity"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:305
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:307
 msgid "Activity entry"
 msgstr "Activity entry"
 
@@ -304,7 +304,7 @@ msgstr "Add a description..."
 msgid "Add a widget"
 msgstr "Add a widget"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:115
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:117
 msgid "Add activity entry"
 msgstr "Add activity entry"
 
@@ -325,7 +325,8 @@ msgstr "Add member"
 msgid "Add milestone"
 msgstr "Add milestone"
 
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:166
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:169
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:170
 msgid "Add project status"
 msgstr "Add project status"
 
@@ -380,7 +381,7 @@ msgstr "After the grace period, all data (comments, tasks, profile) will be anon
 
 #: src/features/members/components/MemberTasksPanel.tsx:215
 #: src/features/projects/components/projectCard/TasksBlock.tsx:118
-#: src/features/projects/components/ProjectsMainPanel.tsx:383
+#: src/features/projects/components/ProjectsMainPanel.tsx:392
 #: src/features/projects/pages/ProjectsPage.tsx:695
 msgid "All"
 msgstr "All"
@@ -447,9 +448,9 @@ msgstr "Archive"
 #: src/features/planner/components/TaskProjectSelect.tsx:104
 #: src/features/planner/components/timeline/TaskBar.tsx:537
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:103
-#: src/features/projects/components/ProjectsMainPanel.tsx:319
-#: src/features/projects/components/ProjectsMainPanel.tsx:697
-#: src/features/projects/components/ProjectsMainPanel.tsx:797
+#: src/features/projects/components/ProjectsMainPanel.tsx:328
+#: src/features/projects/components/ProjectsMainPanel.tsx:706
+#: src/features/projects/components/ProjectsMainPanel.tsx:806
 #: src/features/projects/components/ProjectsSidebar.tsx:184
 #: src/features/projects/components/ProjectsSidebar.tsx:289
 #: src/features/projects/components/ProjectsSidebar.tsx:625
@@ -478,7 +479,7 @@ msgstr "assigned you to task"
 #: src/features/planner/components/TaskDetailPanel.tsx:596
 #: src/features/planner/components/TaskDetailPanel.tsx:599
 #: src/features/planner/components/timeline/TaskBar.tsx:595
-#: src/features/projects/components/ProjectsMainPanel.tsx:563
+#: src/features/projects/components/ProjectsMainPanel.tsx:572
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:80
 msgid "Assignees"
 msgstr "Assignees"
@@ -579,8 +580,8 @@ msgstr "Calendar range"
 #: src/features/planner/components/TaskDetailDialogs.tsx:120
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:266
 #: src/features/planner/components/timeline/TaskBar.tsx:644
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:173
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:332
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:175
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:334
 #: src/features/projects/components/projectCard/AddContactForm.tsx:74
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:144
 #: src/features/projects/components/projectCard/TeamBlock.tsx:392
@@ -647,7 +648,7 @@ msgstr "Checkerboard"
 msgid "Checking invite..."
 msgstr "Checking invite..."
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:777
+#: src/features/projects/components/ProjectsMainPanel.tsx:786
 msgid "Choose a customer to see their projects."
 msgstr "Choose a customer to see their projects."
 
@@ -670,13 +671,13 @@ msgstr "Choose where to apply this change."
 msgid "Clear"
 msgstr "Clear"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:146
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:148
 msgid "Clear date filter"
 msgstr "Clear date filter"
 
 #: src/features/members/components/MemberTasksPanel.tsx:295
 #: src/features/projects/components/projectCard/TasksBlock.tsx:167
-#: src/features/projects/components/ProjectsMainPanel.tsx:469
+#: src/features/projects/components/ProjectsMainPanel.tsx:478
 msgid "Clear filters"
 msgstr "Clear filters"
 
@@ -690,7 +691,7 @@ msgstr "Click this button or double-click a date on the timeline to open the tas
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:317
 #: src/features/members/components/TaskDetailsDialog.tsx:164
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:345
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:347
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:153
 msgid "Close"
 msgstr "Close"
@@ -758,15 +759,15 @@ msgstr "Continue with Keycloak"
 msgid "Continue with Keycloak to access the workspace."
 msgstr "Continue with Keycloak to access the workspace."
 
-#: src/features/projects/components/projectCard/ContactPopup.tsx:117
+#: src/features/projects/components/projectCard/ContactPopup.tsx:174
 msgid "Copied"
 msgstr "Copied"
 
-#: src/features/projects/components/projectCard/ContactPopup.tsx:76
+#: src/features/projects/components/projectCard/ContactPopup.tsx:133
 msgid "Copy email"
 msgstr "Copy email"
 
-#: src/features/projects/components/projectCard/ContactPopup.tsx:85
+#: src/features/projects/components/projectCard/ContactPopup.tsx:142
 msgid "Copy phone"
 msgstr "Copy phone"
 
@@ -877,7 +878,7 @@ msgstr "Creates the specified number of repeats."
 #: src/features/members/components/MemberTasksPanel.tsx:156
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:253
 #: src/features/projects/components/projectCard/TasksBlock.tsx:100
-#: src/features/projects/components/ProjectsMainPanel.tsx:327
+#: src/features/projects/components/ProjectsMainPanel.tsx:336
 #: src/features/projects/components/ProjectsSidebar.tsx:493
 msgid "Current"
 msgstr "Current"
@@ -895,7 +896,7 @@ msgstr "Custom"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:103
 #: src/features/projects/components/ProjectsDialogs.tsx:401
 #: src/features/projects/components/ProjectsDialogs.tsx:532
-#: src/features/projects/components/ProjectsMainPanel.tsx:743
+#: src/features/projects/components/ProjectsMainPanel.tsx:752
 #: src/features/projects/hooks/useProjectsFilter.ts:104
 msgid "Customer"
 msgstr "Customer"
@@ -984,13 +985,13 @@ msgstr "Data export ready"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:177
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:192
-#: src/features/projects/components/ProjectsMainPanel.tsx:731
+#: src/features/projects/components/ProjectsMainPanel.tsx:740
 msgid "Date"
 msgstr "Date"
 
 #: src/features/members/components/MemberTasksPanel.tsx:426
 #: src/features/members/components/TaskDetailsDialog.tsx:93
-#: src/features/projects/components/ProjectsMainPanel.tsx:564
+#: src/features/projects/components/ProjectsMainPanel.tsx:573
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:98
 msgid "Dates"
 msgstr "Dates"
@@ -1019,11 +1020,11 @@ msgstr "Declined"
 #: src/features/planner/components/TaskDetailPanel.tsx:815
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:275
 #: src/features/planner/components/timeline/TaskBar.tsx:689
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:342
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:344
 #: src/features/projects/components/ProjectsDialogs.tsx:649
 #: src/features/projects/components/ProjectsDialogs.tsx:672
 #: src/features/projects/components/ProjectsDialogs.tsx:695
-#: src/features/projects/components/ProjectsMainPanel.tsx:723
+#: src/features/projects/components/ProjectsMainPanel.tsx:732
 #: src/features/projects/components/ProjectsSidebar.tsx:208
 #: src/features/projects/components/ProjectsSidebar.tsx:310
 #: src/features/projects/components/ProjectsSidebar.tsx:439
@@ -1230,7 +1231,7 @@ msgstr "Does not repeat"
 #: src/features/members/components/MemberTasksPanel.tsx:217
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:254
 #: src/features/projects/components/projectCard/TasksBlock.tsx:120
-#: src/features/projects/components/ProjectsMainPanel.tsx:385
+#: src/features/projects/components/ProjectsMainPanel.tsx:394
 msgid "Done"
 msgstr "Done"
 
@@ -1273,8 +1274,8 @@ msgid "Each morning starts with a short brief. What's on you today, which milest
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
 #: src/features/planner/components/TaskCommentItem.tsx:150
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:347
-#: src/features/projects/components/ProjectsMainPanel.tsx:715
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:349
+#: src/features/projects/components/ProjectsMainPanel.tsx:724
 #: src/features/projects/components/ProjectsSidebar.tsx:195
 #: src/features/projects/components/ProjectsSidebar.tsx:297
 #: src/features/projects/components/ProjectsSidebar.tsx:432
@@ -1318,6 +1319,11 @@ msgstr "Edit project details such as name, code, customer, and color."
 msgid "Edit project status"
 msgstr "Edit project status"
 
+#. placeholder {0}: project.status
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:154
+msgid "Edit project status: {0}"
+msgstr "Edit project status: {0}"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:130
 msgid "Edit widget"
 msgstr "Edit widget"
@@ -1359,12 +1365,12 @@ msgid "End Date"
 msgstr "End Date"
 
 #: src/features/members/components/MemberTasksPanel.tsx:284
-#: src/features/projects/components/ProjectsMainPanel.tsx:458
+#: src/features/projects/components/ProjectsMainPanel.tsx:467
 msgid "End date ↑"
 msgstr "End date ↑"
 
 #: src/features/members/components/MemberTasksPanel.tsx:283
-#: src/features/projects/components/ProjectsMainPanel.tsx:457
+#: src/features/projects/components/ProjectsMainPanel.tsx:466
 msgid "End date ↓"
 msgstr "End date ↓"
 
@@ -1842,7 +1848,7 @@ msgstr "It will be permanently purged {purgeLabel}."
 #~ msgid "Join teams already planning smarter with Motio."
 #~ msgstr "Join teams already planning smarter with Motio."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:139
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:141
 msgid "Jump to date"
 msgstr "Jump to date"
 
@@ -1943,7 +1949,7 @@ msgstr "Loading members..."
 
 #: src/features/members/components/MemberTasksPanel.tsx:322
 #: src/features/projects/components/projectCard/TasksBlock.tsx:183
-#: src/features/projects/components/ProjectsMainPanel.tsx:486
+#: src/features/projects/components/ProjectsMainPanel.tsx:495
 msgid "Loading tasks..."
 msgstr "Loading tasks..."
 
@@ -2263,7 +2269,7 @@ msgstr "New widget"
 #: src/features/onboarding/lib/onboardingTour.ts:315
 #: src/features/planner/components/timeline/TimelineControls.tsx:187
 #: src/features/projects/components/projectCard/TasksBlock.tsx:259
-#: src/features/projects/components/ProjectsMainPanel.tsx:659
+#: src/features/projects/components/ProjectsMainPanel.tsx:668
 msgid "Next"
 msgstr "Next"
 
@@ -2293,7 +2299,7 @@ msgstr "No active people."
 msgid "No active projects."
 msgstr "No active projects."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:190
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:192
 msgid "No activity yet. Use + to add the first entry."
 msgstr "No activity yet. Use + to add the first entry."
 
@@ -2310,7 +2316,7 @@ msgid "No assignees available."
 msgstr "No assignees available."
 
 #: src/features/projects/components/projectCard/TasksBlock.tsx:146
-#: src/features/projects/components/ProjectsMainPanel.tsx:417
+#: src/features/projects/components/ProjectsMainPanel.tsx:426
 msgid "No assignees on this project."
 msgstr "No assignees on this project."
 
@@ -2341,7 +2347,7 @@ msgstr "No current milestones."
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:166
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:341
 #: src/features/projects/components/ProjectsMainPanel.tsx:315
-#: src/features/projects/components/ProjectsMainPanel.tsx:745
+#: src/features/projects/components/ProjectsMainPanel.tsx:754
 #: src/features/projects/components/ProjectsSidebar.tsx:176
 #: src/features/projects/components/ProjectsSidebar.tsx:281
 #: src/features/projects/components/ProjectsSidebar.tsx:579
@@ -2387,7 +2393,7 @@ msgstr "No description."
 msgid "No disabled members."
 msgstr "No disabled members."
 
-#: src/features/projects/components/projectCard/ContactPopup.tsx:90
+#: src/features/projects/components/projectCard/ContactPopup.tsx:147
 msgid "No email or phone for this contact yet."
 msgstr "No email or phone for this contact yet."
 
@@ -2508,7 +2514,7 @@ msgstr "No priority"
 msgid "No project"
 msgstr "No project"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:780
+#: src/features/projects/components/ProjectsMainPanel.tsx:789
 msgid "No projects assigned to this customer."
 msgstr "No projects assigned to this customer."
 
@@ -2560,7 +2566,7 @@ msgstr "No tags available yet."
 
 #: src/features/members/components/MemberTasksPanel.tsx:330
 #: src/features/projects/components/projectCard/TasksBlock.tsx:189
-#: src/features/projects/components/ProjectsMainPanel.tsx:494
+#: src/features/projects/components/ProjectsMainPanel.tsx:503
 msgid "No tasks match the current filters."
 msgstr "No tasks match the current filters."
 
@@ -2618,7 +2624,7 @@ msgstr "None"
 msgid "Not equals"
 msgstr "Not equals"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:751
+#: src/features/projects/components/ProjectsMainPanel.tsx:760
 msgid "Not tracked"
 msgstr "Not tracked"
 
@@ -2626,7 +2632,7 @@ msgstr "Not tracked"
 msgid "Note"
 msgstr "Note"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:191
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:193
 msgid "Nothing matches the current filters."
 msgstr "Nothing matches the current filters."
 
@@ -2641,7 +2647,7 @@ msgid "Occurrences"
 msgstr "Occurrences"
 
 #: src/features/members/components/MemberTasksPanel.tsx:504
-#: src/features/projects/components/ProjectsMainPanel.tsx:639
+#: src/features/projects/components/ProjectsMainPanel.tsx:648
 msgid "of"
 msgstr "of"
 
@@ -2683,7 +2689,7 @@ msgstr "Only this task"
 
 #: src/features/members/components/MemberTasksPanel.tsx:216
 #: src/features/projects/components/projectCard/TasksBlock.tsx:119
-#: src/features/projects/components/ProjectsMainPanel.tsx:384
+#: src/features/projects/components/ProjectsMainPanel.tsx:393
 msgid "Open"
 msgstr "Open"
 
@@ -2715,7 +2721,7 @@ msgstr "Open menu"
 #~ msgid "Open navigation menu"
 #~ msgstr "Open navigation menu"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:707
+#: src/features/projects/components/ProjectsMainPanel.tsx:716
 #: src/features/projects/components/ProjectsSidebar.tsx:303
 msgid "Open project"
 msgstr "Open project"
@@ -2746,7 +2752,7 @@ msgid "Owner team"
 msgstr "Owner team"
 
 #: src/features/members/components/MemberTasksPanel.tsx:516
-#: src/features/projects/components/ProjectsMainPanel.tsx:651
+#: src/features/projects/components/ProjectsMainPanel.tsx:660
 msgid "Page {pageIndex} / {totalPages}"
 msgstr "Page {pageIndex} / {totalPages}"
 
@@ -2760,7 +2766,7 @@ msgstr "Passwords and account recovery are managed in Keycloak."
 
 #: src/features/members/components/MemberTasksPanel.tsx:162
 #: src/features/projects/components/projectCard/TasksBlock.tsx:106
-#: src/features/projects/components/ProjectsMainPanel.tsx:333
+#: src/features/projects/components/ProjectsMainPanel.tsx:342
 #: src/features/projects/components/ProjectsSidebar.tsx:494
 msgid "Past"
 msgstr "Past"
@@ -2846,7 +2852,7 @@ msgstr "Preparing your data…"
 
 #: src/features/members/components/MemberTasksPanel.tsx:513
 #: src/features/projects/components/projectCard/TasksBlock.tsx:256
-#: src/features/projects/components/ProjectsMainPanel.tsx:648
+#: src/features/projects/components/ProjectsMainPanel.tsx:657
 msgid "Prev"
 msgstr "Prev"
 
@@ -2883,7 +2889,7 @@ msgstr "Profile"
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:112
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:157
 #: src/features/planner/components/timeline/TaskBar.tsx:598
-#: src/features/projects/components/ProjectsMainPanel.tsx:735
+#: src/features/projects/components/ProjectsMainPanel.tsx:744
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:56
 #: src/features/projects/hooks/useProjectsFilter.ts:103
 msgid "Project"
@@ -2908,6 +2914,13 @@ msgstr "Project not found."
 msgid "Project status"
 msgstr "Project status"
 
+#. placeholder {0}: project.status
+#. placeholder {0}: selectedProject.status
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:155
+#: src/features/projects/components/ProjectsMainPanel.tsx:322
+msgid "Project status: {0}"
+msgstr "Project status: {0}"
+
 #: src/features/onboarding/lib/onboardingTour.ts:114
 #: src/features/onboarding/lib/onboardingTour.ts:131
 #: src/features/planner/components/FilterPanel.tsx:265
@@ -2931,7 +2944,7 @@ msgstr "Projects & milestones"
 msgid "Projects sections"
 msgstr "Projects sections"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:180
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:182
 msgid "Publish"
 msgstr "Publish"
 
@@ -2947,7 +2960,7 @@ msgstr "Purge now"
 msgid "purge_after"
 msgstr "purge_after"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:307
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:309
 msgid "Read or edit a single project activity entry."
 msgstr "Read or edit a single project activity entry."
 
@@ -2966,7 +2979,7 @@ msgstr "Recurring"
 #: src/features/auth/components/DataExportButton.tsx:111
 #: src/features/members/components/MemberTasksPanel.tsx:305
 #: src/features/projects/components/projectCard/TasksBlock.tsx:177
-#: src/features/projects/components/ProjectsMainPanel.tsx:479
+#: src/features/projects/components/ProjectsMainPanel.tsx:488
 msgid "Refresh"
 msgstr "Refresh"
 
@@ -3129,7 +3142,7 @@ msgstr "Role / job title"
 #: src/features/planner/components/CommentEditor.tsx:848
 #: src/features/planner/components/TaskDetailDialogs.tsx:93
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:283
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:335
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:337
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:134
 #: src/features/projects/components/projectCard/TeamBlock.tsx:395
 #: src/features/projects/components/ProjectsDialogs.tsx:323
@@ -3163,12 +3176,12 @@ msgstr "Saving..."
 
 #: src/features/members/components/MembersSidebar.tsx:172
 #: src/features/members/components/MemberTasksPanel.tsx:182
-#: src/features/projects/components/ProjectsMainPanel.tsx:350
+#: src/features/projects/components/ProjectsMainPanel.tsx:359
 #: src/features/projects/components/ProjectsSidebar.tsx:526
 msgid "Search & filters"
 msgstr "Search & filters"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:127
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:129
 msgid "Search activity..."
 msgstr "Search activity..."
 
@@ -3220,7 +3233,7 @@ msgstr "Search tags..."
 
 #: src/features/members/components/MemberTasksPanel.tsx:203
 #: src/features/projects/components/projectCard/TasksBlock.tsx:90
-#: src/features/projects/components/ProjectsMainPanel.tsx:371
+#: src/features/projects/components/ProjectsMainPanel.tsx:380
 msgid "Search tasks..."
 msgstr "Search tasks..."
 
@@ -3236,7 +3249,7 @@ msgstr "Search types..."
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:765
+#: src/features/projects/components/ProjectsMainPanel.tsx:774
 #: src/features/projects/pages/ProjectsPage.tsx:820
 msgid "Select a customer"
 msgstr "Select a customer"
@@ -3257,7 +3270,7 @@ msgstr "Select a member"
 msgid "Select a milestone"
 msgstr "Select a milestone"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:674
+#: src/features/projects/components/ProjectsMainPanel.tsx:683
 msgid "Select a milestone to view details."
 msgstr "Select a milestone to view details."
 
@@ -3484,12 +3497,12 @@ msgid "Start Date"
 msgstr "Start Date"
 
 #: src/features/members/components/MemberTasksPanel.tsx:286
-#: src/features/projects/components/ProjectsMainPanel.tsx:460
+#: src/features/projects/components/ProjectsMainPanel.tsx:469
 msgid "Start date ↑"
 msgstr "Start date ↑"
 
 #: src/features/members/components/MemberTasksPanel.tsx:285
-#: src/features/projects/components/ProjectsMainPanel.tsx:459
+#: src/features/projects/components/ProjectsMainPanel.tsx:468
 msgid "Start date ↓"
 msgstr "Start date ↓"
 
@@ -3511,8 +3524,8 @@ msgstr "Start now →"
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:238
 #: src/features/planner/components/timeline/TaskBar.tsx:471
 #: src/features/planner/components/timeline/TaskBar.tsx:473
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:170
-#: src/features/projects/components/ProjectsMainPanel.tsx:562
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:174
+#: src/features/projects/components/ProjectsMainPanel.tsx:571
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:69
 #: src/features/workspace/components/SettingsPanel.tsx:556
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:753
@@ -3557,7 +3570,7 @@ msgid "Tags"
 msgstr "Tags"
 
 #: src/features/members/components/MemberTasksPanel.tsx:423
-#: src/features/projects/components/ProjectsMainPanel.tsx:561
+#: src/features/projects/components/ProjectsMainPanel.tsx:570
 msgid "Task"
 msgstr "Task"
 
@@ -3785,12 +3798,12 @@ msgid "Title"
 msgstr "Title"
 
 #: src/features/members/components/MemberTasksPanel.tsx:287
-#: src/features/projects/components/ProjectsMainPanel.tsx:461
+#: src/features/projects/components/ProjectsMainPanel.tsx:470
 msgid "Title A–Z"
 msgstr "Title A–Z"
 
 #: src/features/members/components/MemberTasksPanel.tsx:288
-#: src/features/projects/components/ProjectsMainPanel.tsx:462
+#: src/features/projects/components/ProjectsMainPanel.tsx:471
 msgid "Title Z–A"
 msgstr "Title Z–A"
 
@@ -3825,11 +3838,11 @@ msgstr "Total tasks"
 msgid "Track"
 msgstr "Track"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:751
+#: src/features/projects/components/ProjectsMainPanel.tsx:760
 msgid "Tracked project"
 msgstr "Tracked project"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:749
+#: src/features/projects/components/ProjectsMainPanel.tsx:758
 msgid "Tracking"
 msgstr "Tracking"
 
@@ -3887,8 +3900,8 @@ msgstr "Unarchive"
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:103
 #: src/features/planner/components/timeline/TaskBar.tsx:128
 #: src/features/planner/components/timeline/TimelineControls.tsx:287
-#: src/features/projects/components/ProjectsMainPanel.tsx:537
-#: src/features/projects/components/ProjectsMainPanel.tsx:610
+#: src/features/projects/components/ProjectsMainPanel.tsx:546
+#: src/features/projects/components/ProjectsMainPanel.tsx:619
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:83
 msgid "Unassigned"
 msgstr "Unassigned"
@@ -3909,7 +3922,7 @@ msgstr "unknown"
 #: src/features/members/components/MemberTasksPanel.tsx:472
 #: src/features/members/components/TaskDetailsDialog.tsx:71
 #: src/features/members/components/TaskDetailsDialog.tsx:101
-#: src/features/projects/components/ProjectsMainPanel.tsx:605
+#: src/features/projects/components/ProjectsMainPanel.tsx:614
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:76
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:106
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:239
@@ -3926,8 +3939,8 @@ msgstr "unknown error"
 msgid "Unknown member"
 msgstr "Unknown member"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:693
-#: src/features/projects/components/ProjectsMainPanel.tsx:739
+#: src/features/projects/components/ProjectsMainPanel.tsx:702
+#: src/features/projects/components/ProjectsMainPanel.tsx:748
 #: src/features/projects/components/ProjectsSidebar.tsx:254
 #: src/features/projects/hooks/useProjectsFilter.ts:95
 msgid "Unknown project"
@@ -4182,8 +4195,8 @@ msgstr "Workspaces"
 msgid "Workspaces you will simply leave:"
 msgstr "Workspaces you will simply leave:"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:160
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:319
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:162
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:321
 msgid "Write a comment..."
 msgstr "Write a comment..."
 
