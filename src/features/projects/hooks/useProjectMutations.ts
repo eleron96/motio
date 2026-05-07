@@ -22,6 +22,8 @@ export interface UseProjectMutationsResult {
   setProjectSettingsColor: Dispatch<SetStateAction<string>>;
   projectSettingsCustomerId: string | null;
   setProjectSettingsCustomerId: Dispatch<SetStateAction<string | null>>;
+  projectSettingsOwnerGroupId: string | null;
+  setProjectSettingsOwnerGroupId: Dispatch<SetStateAction<string | null>>;
   projectSettingsConfirmOpen: boolean;
   setProjectSettingsConfirmOpen: Dispatch<SetStateAction<boolean>>;
   deleteProjectTarget: Project | null;
@@ -49,6 +51,7 @@ export const useProjectMutations = ({
   const [projectSettingsCode, setProjectSettingsCode] = useState('');
   const [projectSettingsColor, setProjectSettingsColor] = useState(DEFAULT_PROJECT_COLOR);
   const [projectSettingsCustomerId, setProjectSettingsCustomerId] = useState<string | null>(null);
+  const [projectSettingsOwnerGroupId, setProjectSettingsOwnerGroupId] = useState<string | null>(null);
   const [projectSettingsConfirmOpen, setProjectSettingsConfirmOpen] = useState(false);
   const [deleteProjectTarget, setDeleteProjectTarget] = useState<Project | null>(null);
   const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
@@ -60,6 +63,7 @@ export const useProjectMutations = ({
     setProjectSettingsCode(project.code ?? '');
     setProjectSettingsColor(project.color);
     setProjectSettingsCustomerId(project.customerId ?? null);
+    setProjectSettingsOwnerGroupId(project.ownerGroupId ?? null);
     setProjectSettingsOpen(true);
   }, [canEdit]);
 
@@ -76,6 +80,9 @@ export const useProjectMutations = ({
     if (projectSettingsCustomerId !== projectSettingsTarget.customerId) {
       updates.customerId = projectSettingsCustomerId;
     }
+    if (projectSettingsOwnerGroupId !== (projectSettingsTarget.ownerGroupId ?? null)) {
+      updates.ownerGroupId = projectSettingsOwnerGroupId;
+    }
     if (Object.keys(updates).length > 0) {
       setMutationError('');
       const result = await updateProject(projectSettingsTarget.id, updates);
@@ -91,6 +98,7 @@ export const useProjectMutations = ({
     projectSettingsColor,
     projectSettingsCustomerId,
     projectSettingsName,
+    projectSettingsOwnerGroupId,
     projectSettingsTarget,
     setMutationError,
     updateProject,
@@ -105,12 +113,14 @@ export const useProjectMutations = ({
     if ((projectSettingsTarget.code ?? null) !== normalizedCode) return true;
     if (projectSettingsColor !== projectSettingsTarget.color) return true;
     if (projectSettingsCustomerId !== projectSettingsTarget.customerId) return true;
+    if (projectSettingsOwnerGroupId !== (projectSettingsTarget.ownerGroupId ?? null)) return true;
     return false;
   }, [
     projectSettingsCode,
     projectSettingsColor,
     projectSettingsCustomerId,
     projectSettingsName,
+    projectSettingsOwnerGroupId,
     projectSettingsTarget,
   ]);
 
@@ -161,6 +171,8 @@ export const useProjectMutations = ({
     setProjectSettingsColor,
     projectSettingsCustomerId,
     setProjectSettingsCustomerId,
+    projectSettingsOwnerGroupId,
+    setProjectSettingsOwnerGroupId,
     projectSettingsConfirmOpen,
     setProjectSettingsConfirmOpen,
     deleteProjectTarget,

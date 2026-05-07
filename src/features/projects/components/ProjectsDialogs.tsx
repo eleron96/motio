@@ -4,6 +4,7 @@ import { MilestoneDialog } from '@/features/planner/components/timeline/Mileston
 import {
   Assignee,
   Customer,
+  MemberGroup,
   Milestone,
   Project,
   Status,
@@ -19,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { CustomerCombobox } from '@/features/projects/components/CustomerCombobox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { ProjectTaskDetailsDialog } from '@/features/projects/components/ProjectTaskDetailsDialog';
 
 type ProjectsDialogsProps = {
@@ -37,6 +39,8 @@ type ProjectsDialogsProps = {
   requestCloseRenameCustomer: () => void;
   editingCustomerName: string;
   setEditingCustomerName: (value: string) => void;
+  editingCustomerIndustry: string;
+  setEditingCustomerIndustry: (value: string) => void;
   handleRenameCustomer: () => Promise<void>;
   renameCustomerConfirmOpen: boolean;
   setRenameCustomerConfirmOpen: (open: boolean) => void;
@@ -52,6 +56,9 @@ type ProjectsDialogsProps = {
   setNewProjectColor: (value: string) => void;
   newProjectCustomerId: string | null;
   setNewProjectCustomerId: (customerId: string | null) => void;
+  newProjectOwnerGroupId: string | null;
+  setNewProjectOwnerGroupId: (groupId: string | null) => void;
+  memberGroups: MemberGroup[];
   handleCreateProject: () => Promise<void>;
   createProjectConfirmOpen: boolean;
   setCreateProjectConfirmOpen: (open: boolean) => void;
@@ -69,6 +76,8 @@ type ProjectsDialogsProps = {
   setProjectSettingsColor: (value: string) => void;
   projectSettingsCustomerId: string | null;
   setProjectSettingsCustomerId: (customerId: string | null) => void;
+  projectSettingsOwnerGroupId: string | null;
+  setProjectSettingsOwnerGroupId: (groupId: string | null) => void;
   handleSaveProjectSettings: () => Promise<void>;
   projectSettingsConfirmOpen: boolean;
   setProjectSettingsConfirmOpen: (open: boolean) => void;
@@ -120,6 +129,8 @@ export const ProjectsDialogs = ({
   requestCloseRenameCustomer,
   editingCustomerName,
   setEditingCustomerName,
+  editingCustomerIndustry,
+  setEditingCustomerIndustry,
   handleRenameCustomer,
   renameCustomerConfirmOpen,
   setRenameCustomerConfirmOpen,
@@ -135,6 +146,9 @@ export const ProjectsDialogs = ({
   setNewProjectColor,
   newProjectCustomerId,
   setNewProjectCustomerId,
+  newProjectOwnerGroupId,
+  setNewProjectOwnerGroupId,
+  memberGroups,
   handleCreateProject,
   createProjectConfirmOpen,
   setCreateProjectConfirmOpen,
@@ -152,6 +166,8 @@ export const ProjectsDialogs = ({
   setProjectSettingsColor,
   projectSettingsCustomerId,
   setProjectSettingsCustomerId,
+  projectSettingsOwnerGroupId,
+  setProjectSettingsOwnerGroupId,
   handleSaveProjectSettings,
   projectSettingsConfirmOpen,
   setProjectSettingsConfirmOpen,
@@ -255,9 +271,9 @@ export const ProjectsDialogs = ({
       >
         <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
-            <DialogTitle>{t`Rename customer`}</DialogTitle>
+            <DialogTitle>{t`Edit customer`}</DialogTitle>
             <DialogDescription className="sr-only">
-              {t`Update customer name.`}
+              {t`Update customer name and industry.`}
             </DialogDescription>
           </DialogHeader>
           <form
@@ -273,6 +289,15 @@ export const ProjectsDialogs = ({
                 placeholder={t`Enter customer name...`}
                 value={editingCustomerName}
                 onChange={(event) => setEditingCustomerName(event.target.value)}
+                disabled={!canEdit}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>{t`Industry / segment`}</Label>
+              <Input
+                placeholder={t`E.g. Real estate · Residential`}
+                value={editingCustomerIndustry}
+                onChange={(event) => setEditingCustomerIndustry(event.target.value)}
                 disabled={!canEdit}
               />
             </div>
@@ -371,6 +396,24 @@ export const ProjectsDialogs = ({
                 onCreateCustomer={createCustomerByName}
                 disabled={!canEdit}
               />
+            </div>
+            <div className="space-y-1">
+              <Label>{t`Owner team`}</Label>
+              <Select
+                value={newProjectOwnerGroupId ?? '__none__'}
+                onValueChange={(value) => setNewProjectOwnerGroupId(value === '__none__' ? null : value)}
+                disabled={!canEdit}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t`No team`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">{t`No team`}</SelectItem>
+                  {memberGroups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={requestCloseCreateProject}>
@@ -475,6 +518,24 @@ export const ProjectsDialogs = ({
                   onCreateCustomer={createCustomerByName}
                   disabled={!canEdit}
                 />
+              </div>
+              <div className="space-y-1">
+                <Label>{t`Owner team`}</Label>
+                <Select
+                  value={projectSettingsOwnerGroupId ?? '__none__'}
+                  onValueChange={(value) => setProjectSettingsOwnerGroupId(value === '__none__' ? null : value)}
+                  disabled={!canEdit}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t`No team`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">{t`No team`}</SelectItem>
+                    {memberGroups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={requestCloseProjectSettings}>

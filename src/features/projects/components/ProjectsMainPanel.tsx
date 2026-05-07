@@ -14,10 +14,12 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { Assignee, Customer, Milestone, Project, Status, Task } from '@/features/planner/types/planner';
+import { Assignee, Customer, CustomerContact, Milestone, Project, ProjectActivity, ProjectMember, Status, Task } from '@/features/planner/types/planner';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
+import { ProjectCardLayout } from '@/features/projects/components/projectCard/ProjectCardLayout';
 
 type DisplayTaskRow = {
   key: string;
@@ -80,6 +82,31 @@ type ProjectsMainPanelProps = {
   selectedCustomerProjects: Project[];
   customersCount: number;
   onOpenProjectFromCustomer: (project: Project) => void;
+  /**
+   * Phase 1 (Project Card): only consumed when `isProjectCardEnabled()` is on
+   * and `mode === 'projects'`. Computed in ProjectsPage from existing data.
+   */
+  projectMembers: Assignee[];
+  projectMilestones: Milestone[];
+  today: Date;
+  /** Phase 3 — customer contacts list + handlers wired through plannerStore. */
+  customerContacts: CustomerContact[];
+  onAddCustomerContact: (
+    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null }
+  ) => Promise<void>;
+  onDeleteCustomerContact: (id: string) => Promise<void>;
+  /** Phase 4 — explicit project members + handlers. */
+  projectMemberRows: ProjectMember[];
+  workspaceAssignees: Assignee[];
+  onAddProjectMember: (projectId: string, assigneeId: string, role: string | null) => Promise<void>;
+  onRemoveProjectMember: (memberId: string) => Promise<void>;
+  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<void>;
+  /** Phase 6 — activity feed entries for the whole workspace + handlers. */
+  projectActivity: ProjectActivity[];
+  formatActivityTimestamp: (iso: string) => string;
+  onAddProjectActivity: (projectId: string, content: string) => Promise<void>;
+  onUpdateProjectActivity: (id: string, content: string) => Promise<void>;
+  onDeleteProjectActivity: (id: string) => Promise<void>;
 };
 
 export const ProjectsMainPanel = ({
@@ -133,6 +160,22 @@ export const ProjectsMainPanel = ({
   selectedCustomerProjects,
   customersCount,
   onOpenProjectFromCustomer,
+  projectMembers,
+  projectMilestones,
+  today,
+  customerContacts,
+  onAddCustomerContact,
+  onDeleteCustomerContact,
+  projectMemberRows,
+  workspaceAssignees,
+  onAddProjectMember,
+  onRemoveProjectMember,
+  onUpdateAssigneeContact,
+  projectActivity,
+  formatActivityTimestamp,
+  onAddProjectActivity,
+  onUpdateProjectActivity,
+  onDeleteProjectActivity,
 }: ProjectsMainPanelProps) => {
   const isMobile = useIsMobile();
   const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
@@ -141,6 +184,70 @@ export const ProjectsMainPanel = ({
     || statusFilterIds.length > 0
     || assigneeFilterIds.length > 0
     || (taskScope === 'past' && (pastFromDate.length > 0 || pastToDate.length > 0));
+
+  const projectCardEnabled = isProjectCardEnabled();
+
+  // Phase 1: when the flag is on and a project is selected on desktop, replace
+  // the legacy main panel with the new card layout. Mobile (and milestones /
+  // customers modes) still use the legacy UI until follow-up phases.
+  if (
+    mode === 'projects'
+    && projectCardEnabled
+    && selectedProject
+    && !isMobile
+  ) {
+    return (
+      <ProjectCardLayout
+        selectedProject={selectedProject}
+        customer={customerById.get(selectedProject.customerId ?? '') ?? null}
+        customerContacts={customerContacts.filter((contact) => contact.customerId === (selectedProject.customerId ?? ''))}
+        canEdit={canEdit}
+        onAddCustomerContact={onAddCustomerContact}
+        onDeleteCustomerContact={onDeleteCustomerContact}
+        projectMembers={projectMembers}
+        projectMemberRows={projectMemberRows.filter((row) => row.projectId === selectedProject.id)}
+        assigneesById={assigneeById}
+        workspaceAssignees={workspaceAssignees}
+        onAddProjectMember={(assigneeId, role) => onAddProjectMember(selectedProject.id, assigneeId, role)}
+        onRemoveProjectMember={onRemoveProjectMember}
+        onUpdateAssigneeContact={onUpdateAssigneeContact}
+        projectActivity={projectActivity.filter((entry) => entry.projectId === selectedProject.id)}
+        formatActivityTimestamp={formatActivityTimestamp}
+        onAddActivity={(content) => onAddProjectActivity(selectedProject.id, content)}
+        onUpdateActivity={onUpdateProjectActivity}
+        onDeleteActivity={onDeleteProjectActivity}
+        projectMilestones={projectMilestones}
+        formatMilestoneDate={formatMilestoneDate}
+        today={today}
+        taskScope={taskScope}
+        onChangeTaskScope={onChangeTaskScope}
+        search={search}
+        onSearchChange={onSearchChange}
+        statuses={statuses}
+        statusFilterIds={statusFilterIds}
+        onToggleStatus={onToggleStatus}
+        setStatusPreset={setStatusPreset}
+        statusFilterLabel={statusFilterLabel}
+        assigneeOptions={assigneeOptions}
+        assigneeFilterIds={assigneeFilterIds}
+        onToggleAssignee={onToggleAssignee}
+        assigneeFilterLabel={assigneeFilterLabel}
+        onClearFilters={onClearFilters}
+        onRefreshTasks={onRefreshTasks}
+        tasksLoading={tasksLoading}
+        tasksError={tasksError}
+        displayTaskRows={displayTaskRows}
+        statusById={statusById}
+        assigneeById={assigneeById}
+        onSelectTask={onSelectTask}
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        onPrevPage={onPrevPage}
+        onNextPage={onNextPage}
+        totalCount={displayTotalCount}
+      />
+    );
+  }
 
   return (
     <section data-tour="projects-main-panel" className="h-full min-h-0 min-w-0 overflow-hidden flex flex-col">

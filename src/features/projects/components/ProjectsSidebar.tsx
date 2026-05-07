@@ -45,7 +45,7 @@ type ProjectsSidebarProps = {
   customerProjectCounts: Map<string, number>;
   selectedCustomerId: string | null;
   onSelectCustomer: (customerId: string) => void;
-  onStartCustomerEdit: (customerId: string, customerName: string) => void;
+  onStartCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
   onRequestDeleteCustomer: (customer: Customer) => void;
   milestoneTab: MilestoneTab;
   onMilestoneTabChange: (value: MilestoneTab) => void;
@@ -427,7 +427,7 @@ export const ProjectsSidebar = ({
                       <ContextMenuContent>
                         <ContextMenuItem
                           disabled={!canEdit}
-                          onSelect={() => onStartCustomerEdit(customer.id, customer.name)}
+                          onSelect={() => onStartCustomerEdit(customer.id, customer.name, customer.industry)}
                         >
                           {t`Edit`}
                         </ContextMenuItem>

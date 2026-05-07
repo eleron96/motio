@@ -32,11 +32,26 @@ export interface Project {
   color: string; // hex
   archived: boolean;
   customerId: string | null;
+  /** Phase 2: workspace MemberGroup that owns this project (Юсов / Ладыгина / etc.). */
+  ownerGroupId: string | null;
 }
 
 export interface Customer {
   id: string;
   name: string;
+  /** Phase 3: free-form industry / segment label, e.g. «Девелопмент · Жилая». */
+  industry: string | null;
+}
+
+/** Phase 3: a person on the customer side (Project Card → Customer block). */
+export interface CustomerContact {
+  id: string;
+  customerId: string;
+  name: string;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+  position: number;
 }
 
 export interface Assignee {
@@ -45,6 +60,41 @@ export interface Assignee {
   avatar?: string;
   userId?: string | null;
   isActive: boolean;
+  /** Phase 4: optional contact info shown in the project-card Team popup. */
+  email: string | null;
+  phone: string | null;
+}
+
+/**
+ * Phase 4: explicit per-project membership. Decoupled from task assignment so
+ * a person can be on the team even before any tasks are scheduled for them.
+ */
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  assigneeId: string;
+  role: string | null;
+  position: number;
+}
+
+/**
+ * Phase 6: per-project activity feed. v1 only carries `kind = 'comment'`;
+ * system kinds (milestone_done, task_added, ...) can be added later without
+ * the consumer having to special-case them.
+ */
+export type ProjectActivityKind = 'comment';
+
+export interface ProjectActivity {
+  id: string;
+  projectId: string;
+  authorId: string | null;
+  authorDisplayName: string;
+  kind: ProjectActivityKind;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  /** updatedAt > createdAt by more than 1 second */
+  isEdited: boolean;
 }
 
 export interface MemberGroup {
@@ -78,11 +128,17 @@ export interface Tag {
   color: string; // hex
 }
 
+export type MilestoneStatusOverride = 'done' | 'current' | 'upcoming';
+
 export interface Milestone {
   id: string;
   title: string;
   projectId: string;
   date: string; // ISO date
+  /** Phase 5: short context note shown below the title on the project card. */
+  note: string | null;
+  /** Phase 5: explicit status; when null, status is derived from `date`. */
+  statusOverride: MilestoneStatusOverride | null;
 }
 
 export type CommentAuthorStatus = 'ACTIVE' | 'PENDING_DELETION' | 'PURGED';
@@ -119,7 +175,10 @@ export interface PlannerState {
   projects: Project[];
   trackedProjectIds: string[];
   customers: Customer[];
+  customerContacts: CustomerContact[];
   assignees: Assignee[];
+  projectMembers: ProjectMember[];
+  projectActivity: ProjectActivity[];
   memberGroups: MemberGroup[];
   memberGroupAssignments: MemberGroupAssignment[];
   statuses: Status[];

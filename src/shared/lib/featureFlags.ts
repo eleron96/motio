@@ -12,3 +12,7 @@ const readFlag = (value: unknown): boolean => {
 export const isAccountDeletionEnabled = (): boolean => (
   readFlag(import.meta.env.VITE_FEATURE_ACCOUNT_DELETION)
 );
+
+export const isProjectCardEnabled = (): boolean => (
+  readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD)
+);
