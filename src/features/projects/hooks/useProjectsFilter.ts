@@ -47,17 +47,16 @@ export function useProjectsFilter({
   const [projectSearch, setProjectSearch] = useState('');
   const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
   const [ownerGroupFilterIds, setOwnerGroupFilterIds] = useState<string[]>([]);
-  const [statusFilterValues, setStatusFilterValues] = useState<string[]>([]);
   const [milestoneSearch, setMilestoneSearch] = useState('');
 
   const filteredActiveProjects = useMemo(
-    () => filterProjectsByCustomerAndSearch(activeProjects, customerFilterIds, projectSearch, ownerGroupFilterIds, statusFilterValues),
-    [activeProjects, customerFilterIds, ownerGroupFilterIds, projectSearch, statusFilterValues],
+    () => filterProjectsByCustomerAndSearch(activeProjects, customerFilterIds, projectSearch, ownerGroupFilterIds),
+    [activeProjects, customerFilterIds, ownerGroupFilterIds, projectSearch],
   );
 
   const filteredArchivedProjects = useMemo(
-    () => filterProjectsByCustomerAndSearch(archivedProjects, customerFilterIds, projectSearch, ownerGroupFilterIds, statusFilterValues),
-    [archivedProjects, customerFilterIds, ownerGroupFilterIds, projectSearch, statusFilterValues],
+    () => filterProjectsByCustomerAndSearch(archivedProjects, customerFilterIds, projectSearch, ownerGroupFilterIds),
+    [archivedProjects, customerFilterIds, ownerGroupFilterIds, projectSearch],
   );
 
   const todayMilestoneKey = format(new Date(), 'yyyy-MM-dd');
@@ -121,8 +120,6 @@ export function useProjectsFilter({
     setCustomerFilterIds,
     ownerGroupFilterIds,
     setOwnerGroupFilterIds,
-    statusFilterValues,
-    setStatusFilterValues,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,
