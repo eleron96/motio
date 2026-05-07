@@ -36,35 +36,35 @@ interface ProjectCardLayoutProps {
   canEdit: boolean;
   onAddCustomerContact: (
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
-  ) => Promise<void>;
-  onDeleteCustomerContact: (id: string) => Promise<void>;
+  ) => Promise<boolean>;
+  onDeleteCustomerContact: (id: string) => Promise<boolean>;
   /** Phase 1 fallback list — assignees that appear on this project's tasks. */
   projectMembers: Assignee[];
   /** Phase 4 explicit members of this project. */
   projectMemberRows: ProjectMember[];
   assigneesById: Map<string, Assignee>;
   workspaceAssignees: Assignee[];
-  onAddProjectMember: (input: import('./TeamBlock').AddMemberInput) => Promise<void>;
-  onRemoveProjectMember: (memberId: string) => Promise<void>;
-  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<void>;
+  onAddProjectMember: (input: import('./TeamBlock').AddMemberInput) => Promise<boolean>;
+  onRemoveProjectMember: (memberId: string) => Promise<boolean>;
+  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<boolean>;
   onUpdateExternalMember: (
     memberId: string,
     updates: Partial<Pick<ProjectMember,
       'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
     >>,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   projectMilestones: Milestone[];
   formatMilestoneDate: (date: string) => string;
   today: Date;
   onAddMilestone: () => void;
   onEditMilestone?: (milestone: Milestone) => void;
-  onSaveProjectStatus: (next: string | null) => Promise<void>;
+  onSaveProjectStatus: (next: string | null) => Promise<boolean>;
   /** Phase 6 — activity feed for this project. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
-  onAddActivity: (content: string) => Promise<void>;
-  onUpdateActivity: (id: string, content: string) => Promise<void>;
-  onDeleteActivity: (id: string) => Promise<void>;
+  onAddActivity: (content: string) => Promise<boolean>;
+  onUpdateActivity: (id: string, content: string) => Promise<boolean>;
+  onDeleteActivity: (id: string) => Promise<boolean>;
   /** Workspace id used by the activity rich-text editor for image uploads. */
   workspaceId?: string | null;
 

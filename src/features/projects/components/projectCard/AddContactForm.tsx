@@ -3,13 +3,19 @@ import { t } from '@lingui/macro';
 import { Button } from '@/shared/ui/button';
 
 interface AddContactFormProps {
+  /**
+   * Resolves to `true` on success, `false` on failure (so the caller can keep
+   * the form open and preserve user input). May also resolve to `void` for
+   * callers that don't surface failures — in that case the form treats the
+   * call as successful.
+   */
   onSave: (payload: {
     name: string;
     role: string;
     email: string;
     phone: string;
     tag: string;
-  }) => Promise<void> | void;
+  }) => Promise<boolean | void> | boolean | void;
   onCancel: () => void;
 }
 
@@ -25,6 +31,8 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
     if (!name.trim() || submitting) return;
     setSubmitting(true);
     try {
+      // Treat `void` returns as success — only an explicit `false` means
+      // "stay open with the user's draft".
       await onSave({
         name: name.trim(),
         role: role.trim(),
@@ -38,7 +46,19 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
   };
 
   return (
-    <div className="mb-3 flex flex-col gap-1.5 rounded-lg bg-muted p-3">
+    <form
+      className="mb-3 flex flex-col gap-1.5 rounded-lg bg-muted p-3"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void handleSubmit();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          onCancel();
+        }
+      }}
+    >
       <Field
         placeholder={t`Full name`}
         value={name}
@@ -50,14 +70,14 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
       <Field placeholder="Email" value={email} onChange={setEmail} type="email" />
       <Field placeholder={t`Phone`} value={phone} onChange={setPhone} />
       <div className="mt-1 flex justify-end gap-1.5">
-        <Button variant="ghost" size="sm" onClick={onCancel} disabled={submitting}>
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={submitting}>
           {t`Cancel`}
         </Button>
-        <Button size="sm" onClick={() => void handleSubmit()} disabled={!name.trim() || submitting}>
+        <Button type="submit" size="sm" disabled={!name.trim() || submitting}>
           {t`Add`}
         </Button>
       </div>
-    </div>
+    </form>
   );
 };
 

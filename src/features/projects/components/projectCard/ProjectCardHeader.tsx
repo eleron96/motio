@@ -11,7 +11,11 @@ interface ProjectCardHeaderProps {
   project: Project;
   customer: Customer | null;
   canEdit: boolean;
-  onSaveStatus: (next: string | null) => Promise<void>;
+  /**
+   * Resolves to `true` on success and `false` on failure. The form stays in
+   * edit mode on failure so the user can retry without losing their draft.
+   */
+  onSaveStatus: (next: string | null) => Promise<boolean>;
 }
 
 export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
@@ -34,11 +38,15 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
     }
   }, [editing]);
 
+  // When the user opens a different project, drop the in-progress draft. We
+  // intentionally do NOT depend on `project.status` here — a live-sync update
+  // arriving while the user is mid-edit (or while a save is in flight) must
+  // not stomp the draft they're typing.
   useEffect(() => {
-    // Reset draft whenever the underlying project changes (e.g. switch project).
     setDraft(project.status ?? '');
     setEditing(false);
-  }, [project.id, project.status]);
+    setSubmitting(false);
+  }, [project.id]);
 
   const beginEdit = () => {
     if (!canEdit) return;
@@ -60,8 +68,9 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
     }
     setSubmitting(true);
     try {
-      await onSaveStatus(next);
-      setEditing(false);
+      const ok = await onSaveStatus(next);
+      // Stay in edit mode on failure so the user keeps the draft and can retry.
+      if (ok) setEditing(false);
     } finally {
       setSubmitting(false);
     }

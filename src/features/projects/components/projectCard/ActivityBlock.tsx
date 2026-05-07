@@ -14,9 +14,10 @@ interface ActivityBlockProps {
   entries: ProjectActivity[];
   canEdit: boolean;
   formatDate: (iso: string) => string;
-  onAdd: (content: string) => Promise<void>;
-  onUpdate: (id: string, content: string) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
+  /** Each handler resolves to `true` on success and `false` on failure. */
+  onAdd: (content: string) => Promise<boolean>;
+  onUpdate: (id: string, content: string) => Promise<boolean>;
+  onDelete: (id: string) => Promise<boolean>;
   /** Workspace id used by RichTextEditor for image uploads. */
   workspaceId?: string | null;
 }
@@ -89,9 +90,11 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
     if (!isContentMeaningful(composerText)) return;
     setComposerSubmitting(true);
     try {
-      await onAdd(composerText);
-      setComposerText('');
-      setComposerOpen(false);
+      const ok = await onAdd(composerText);
+      if (ok) {
+        setComposerText('');
+        setComposerOpen(false);
+      }
     } finally {
       setComposerSubmitting(false);
     }
@@ -228,12 +231,14 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
           workspaceId={workspaceId}
           onClose={() => setOpenItem(null)}
           onSave={async (content) => {
-            await onUpdate(openItem.id, content);
-            setOpenItem(null);
+            const ok = await onUpdate(openItem.id, content);
+            if (ok) setOpenItem(null);
+            return ok;
           }}
           onDelete={async () => {
-            await onDelete(openItem.id);
-            setOpenItem(null);
+            const ok = await onDelete(openItem.id);
+            if (ok) setOpenItem(null);
+            return ok;
           }}
         />
       )}
@@ -247,8 +252,9 @@ interface ActivityModalProps {
   formatDate: (iso: string) => string;
   workspaceId?: string | null;
   onClose: () => void;
-  onSave: (content: string) => Promise<void>;
-  onDelete: () => Promise<void>;
+  /** Resolves to `true` on success; the modal closes itself on success only. */
+  onSave: (content: string) => Promise<boolean>;
+  onDelete: () => Promise<boolean>;
 }
 
 const ActivityModal: React.FC<ActivityModalProps> = ({
@@ -274,6 +280,8 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
     if (!isContentMeaningful(text)) return;
     setBusy(true);
     try {
+      // Parent closes the modal only on success; on failure we stay in edit
+      // mode so the user keeps their draft and can retry.
       await onSave(text);
     } finally {
       setBusy(false);
