@@ -146,3 +146,68 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Rich-text rendering for activity entries (matches RTE allowed tags). */
+.feedRichText {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.feedRichText p {
+  margin: 0 0 0.4em;
+}
+
+.feedRichText p:last-child {
+  margin-bottom: 0;
+}
+
+.feedRichText ul,
+.feedRichText ol {
+  margin: 0.25em 0 0.4em;
+  padding-left: 1.4em;
+}
+
+.feedRichText ul {
+  list-style: disc;
+}
+
+.feedRichText ol {
+  list-style: decimal;
+}
+
+.feedRichText li {
+  margin: 0.1em 0;
+}
+
+.feedRichText blockquote {
+  border-left: 3px solid hsl(var(--border));
+  margin: 0.4em 0;
+  padding: 0.05em 0.75em;
+  color: hsl(var(--muted-foreground));
+}
+
+.feedRichText img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 0.35em 0;
+}
+
+.feedRichText strong,
+.feedRichText b {
+  font-weight: 600;
+}
+
+.feedRichText em,
+.feedRichText i {
+  font-style: italic;
+}
+
+.feedRichText u {
+  text-decoration: underline;
+}
+
+.feedRichText s,
+.feedRichText strike {
+  text-decoration: line-through;
+}
