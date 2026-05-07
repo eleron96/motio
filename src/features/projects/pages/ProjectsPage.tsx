@@ -189,10 +189,10 @@ const ProjectsPage = () => {
     }
   }, [currentWorkspaceId, loadWorkspaceData]);
 
-  // Phase 7.7 — when an owner team (member group) is assigned to a project,
-  // auto-add every workspace user in that group as an explicit project member.
-  // The user can still prune individual members afterward; we never remove
-  // anyone here, only add. Idempotent — already-added members are skipped.
+  // When an owner team (member group) is assigned to a project, auto-add
+  // every workspace user in that group as an explicit project member. The
+  // user can still prune individual members afterward; we never remove anyone
+  // here, only add. Idempotent — already-added members are skipped.
   const syncGroupMembersToProject = useCallback(async (
     projectId: string,
     groupId: string | null,
@@ -398,9 +398,9 @@ const ProjectsPage = () => {
     [projects],
   );
 
-  // Phase 1 (Project Card): derive members from the assignees actually used on
-  // this project's tasks (no per-project membership table yet — Phase 4 will
-  // replace this with explicit `project_members`).
+  // Fallback list: derive members from the assignees actually used on this
+  // project's tasks. The project_members table is the authoritative source;
+  // this list is shown in the legacy mobile UI which doesn't load that table.
   const projectMembers = useMemo(() => (
     Array.from(availableAssigneeIds)
       .map((id) => assigneeById.get(id))
@@ -415,7 +415,7 @@ const ProjectsPage = () => {
 
   const today = useMemo(() => new Date(), []);
 
-  // Phase 3 — customer contact handlers; surface mutation errors via the
+  // Customer contact handlers; surface mutation errors via the
   // existing error banner.
   const handleAddCustomerContact = useCallback(async (
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
@@ -439,7 +439,7 @@ const ProjectsPage = () => {
     return true;
   }, [deleteCustomerContact]);
 
-  // Phase 4/7 — project member handlers (workspace + external).
+  // Project member handlers (workspace + external).
   const handleAddProjectMember = useCallback(async (
     projectId: string,
     input: import('@/features/projects/components/projectCard/TeamBlock').AddMemberInput,
@@ -513,7 +513,7 @@ const ProjectsPage = () => {
     return true;
   }, [updateAssignee]);
 
-  // Phase 6 — activity feed handlers.
+  // Activity feed handlers.
   const handleAddProjectActivity = useCallback(async (projectId: string, content: string): Promise<boolean> => {
     setMutationError('');
     const result = await addProjectActivity({ projectId, content });
@@ -548,7 +548,7 @@ const ProjectsPage = () => {
     format(parseISO(iso), 'd MMM yyyy, HH:mm', { locale: dateLocale })
   ), [dateLocale]);
 
-  // Phase 7.8 — inline status edit from the project card header.
+  // Inline status edit from the project card header.
   const handleSaveProjectStatus = useCallback(async (projectId: string, next: string | null): Promise<boolean> => {
     setMutationError('');
     const result = await updateProject(projectId, { status: next });
@@ -822,9 +822,9 @@ const ProjectsPage = () => {
 
   const projectCardEnabled = isProjectCardEnabled();
 
-  // Phase 7.5/7.6: Projects | Customers segmented switch — one rounded pill
-  // container, the active option goes black. Used above both the new card
-  // sidebar and the legacy customers sidebar.
+  // Projects | Customers segmented switch — one rounded pill container, the
+  // active option goes black. Used above both the new card sidebar and the
+  // legacy customers sidebar.
   const renderModeTabs = () => (
     <div className="border-b border-border bg-card px-3 py-2">
       <div className="inline-flex w-full items-center rounded-full border border-border bg-muted/50 p-0.5">
@@ -857,8 +857,8 @@ const ProjectsPage = () => {
   );
 
   const renderProjectsSidebar = (closeOnSelect = false) => {
-    // Phase 1.5: when the flag is on, in 'projects' mode, on desktop — replace
-    // the legacy multi-mode sidebar with the new card-style list. Milestones /
+    // When the flag is on, in 'projects' mode, on desktop — replace the
+    // legacy multi-mode sidebar with the new card-style list. Milestones /
     // customers / mobile keep using the legacy sidebar.
     if (projectCardEnabled && mode === 'projects' && !isMobile) {
       const visibleProjects = tab === 'archived'

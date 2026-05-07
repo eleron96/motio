@@ -19,8 +19,8 @@ const compareByDateAsc = (a: Milestone, b: Milestone): number => (
  *     - the next not-yet-passed milestone → `current`
  *     - everything else in the future     → `upcoming`
  *
- * Phase 5 introduced the override column; the heuristic remains the default
- * so existing milestones still get a sensible status without manual upkeep.
+ * The `statusOverride` column was added on top of this heuristic so existing
+ * milestones still get a sensible status without manual upkeep.
  */
 export const deriveMilestonesWithStatus = (
   milestones: readonly Milestone[],

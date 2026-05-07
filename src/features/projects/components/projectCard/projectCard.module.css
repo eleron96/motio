@@ -127,7 +127,7 @@
   text-decoration-color: hsl(var(--muted-foreground) / 0.4);
 }
 
-/* ---- Activity feed (Phase 6 will wire data; layout is final) ---- */
+/* ---- Activity feed ---- */
 .feedItem {
   padding: 14px 0;
   border-bottom: 1px dashed hsl(var(--border) / 0.7);

@@ -1,6 +1,16 @@
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 
-const HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i;
+/**
+ * Detector for "this string looks like rich-text HTML we should sanitize".
+ *
+ * We match only the explicit allowlist of tags supported by the rich-text
+ * editor + sanitizer. This way prose with literal angle brackets like
+ * `<200 sq ft>` does NOT trigger DOMPurify (which would parse and drop it),
+ * while real `<b>`, `<p>`, `<img>`, etc. still do.
+ */
+export const ACTIVITY_HTML_TAG_RE = (
+  /<\/?(?:b|strong|i|em|u|s|strike|ul|ol|li|blockquote|br|div|p|span|img)\b/i
+);
 const IMG_TAG_RE = /<img\b/i;
 const ALL_TAGS_RE = /<[^>]+>/g;
 const NBSP_RE = /&nbsp;/gi;
@@ -23,7 +33,7 @@ export const sanitizeProjectActivityContent = (raw: string | null | undefined): 
   if (typeof raw !== 'string') return null;
   const trimmed = raw.trim();
   if (!trimmed) return null;
-  const looksLikeHtml = HTML_TAG_RE.test(trimmed);
+  const looksLikeHtml = ACTIVITY_HTML_TAG_RE.test(trimmed);
   const sanitized = looksLikeHtml ? sanitizeCommentRichText(trimmed) : trimmed;
   if (!sanitized) return null;
   if (IMG_TAG_RE.test(sanitized)) return sanitized;

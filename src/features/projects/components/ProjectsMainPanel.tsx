@@ -83,8 +83,8 @@ type ProjectsMainPanelProps = {
   customersCount: number;
   onOpenProjectFromCustomer: (project: Project) => void;
   /**
-   * Phase 1 (Project Card): only consumed when `isProjectCardEnabled()` is on
-   * and `mode === 'projects'`. Computed in ProjectsPage from existing data.
+   * Only consumed when `isProjectCardEnabled()` is on and `mode === 'projects'`.
+   * Computed in ProjectsPage from existing data.
    */
   projectMembers: Assignee[];
   projectMilestones: Milestone[];
@@ -92,13 +92,13 @@ type ProjectsMainPanelProps = {
   onCreateMilestoneForProject: (projectId: string) => void;
   onEditMilestone: (milestone: Milestone) => void;
   onSaveProjectStatus: (projectId: string, next: string | null) => Promise<boolean>;
-  /** Phase 3 — customer contacts list + handlers wired through plannerStore. */
+  /** Customer contacts list + handlers wired through plannerStore. */
   customerContacts: CustomerContact[];
   onAddCustomerContact: (
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteCustomerContact: (id: string) => Promise<boolean>;
-  /** Phase 4 — explicit project members + handlers. */
+  /** Explicit project members + handlers. */
   projectMemberRows: ProjectMember[];
   workspaceAssignees: Assignee[];
   onAddProjectMember: (
@@ -113,7 +113,7 @@ type ProjectsMainPanelProps = {
       'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
     >>,
   ) => Promise<boolean>;
-  /** Phase 6 — activity feed entries for the whole workspace + handlers. */
+  /** Activity feed entries for the whole workspace + handlers. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
   onAddProjectActivity: (projectId: string, content: string) => Promise<boolean>;
@@ -224,9 +224,9 @@ export const ProjectsMainPanel = ({
     [projectActivity, cardProjectId],
   );
 
-  // Phase 1: when the flag is on and a project is selected on desktop, replace
-  // the legacy main panel with the new card layout. Mobile (and milestones /
-  // customers modes) still use the legacy UI until follow-up phases.
+  // When the flag is on and a project is selected on desktop, replace the
+  // legacy main panel with the new card layout. Mobile (and milestones /
+  // customers modes) still fall through to the legacy UI by design.
   if (
     mode === 'projects'
     && projectCardEnabled
@@ -315,6 +315,15 @@ export const ProjectsMainPanel = ({
                           {customerById.get(selectedProject.customerId ?? '')?.name ?? t`No customer`}
                         </div>
                       </div>
+                      {selectedProject.status && (
+                        <Badge
+                          variant="outline"
+                          className="font-semibold uppercase tracking-wide"
+                          title={t`Project status: ${selectedProject.status}`}
+                        >
+                          {selectedProject.status}
+                        </Badge>
+                      )}
                       {selectedProject.archived && (
                         <Badge variant="secondary">{t`Archived`}</Badge>
                       )}

@@ -105,7 +105,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
           </div>
         </div>
 
-        {/* Phase 7.8: editable status chip in the top-right of the header. */}
+        {/* Editable status chip in the top-right of the header. */}
         <div className="flex flex-shrink-0 items-start">
           {editing ? (
             <form
@@ -150,13 +150,16 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
               onClick={beginEdit}
               disabled={!canEdit}
               title={canEdit ? t`Edit project status` : project.status}
+              aria-label={canEdit
+                ? t`Edit project status: ${project.status}`
+                : t`Project status: ${project.status}`}
               className={`group inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${
                 canEdit ? 'hover:bg-foreground hover:text-background' : 'cursor-default'
               }`}
             >
               <span>{project.status}</span>
               {canEdit && (
-                <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
               )}
             </button>
           ) : canEdit ? (
@@ -164,9 +167,10 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
               type="button"
               onClick={beginEdit}
               title={t`Add project status`}
+              aria-label={t`Add project status`}
               className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:border-foreground hover:text-foreground"
             >
-              <Plus className="h-3 w-3" />
+              <Plus className="h-3 w-3" aria-hidden="true" />
               {t`Status`}
             </button>
           ) : null}
