@@ -151,7 +151,7 @@ export const createWorkspaceActions = (
 
     const projectsQuery = supabase
       .from('projects')
-      .select('id, workspace_id, name, code, color, archived, customer_id, owner_group_id')
+      .select('id, workspace_id, name, code, color, archived, customer_id, owner_group_id, status')
       .eq('workspace_id', workspaceId);
     const customersQuery = supabase
       .from('customers')

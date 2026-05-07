@@ -41,6 +41,7 @@ export type ProjectRow = {
   archived: boolean;
   customer_id: string | null;
   owner_group_id: string | null;
+  status: string | null;
 };
 
 export type ProjectTrackingRow = {
@@ -231,6 +232,7 @@ export const mapProjectRow = (row: ProjectRow): Project => ({
   archived: row.archived ?? false,
   customerId: row.customer_id ?? null,
   ownerGroupId: row.owner_group_id ?? null,
+  status: row.status ?? null,
 });
 
 export const mapCustomerRow = (row: CustomerRow): Customer => ({

@@ -24,6 +24,8 @@ export interface UseProjectCreateFormResult {
   setNewProjectCustomerId: Dispatch<SetStateAction<string | null>>;
   newProjectOwnerGroupId: string | null;
   setNewProjectOwnerGroupId: Dispatch<SetStateAction<string | null>>;
+  newProjectStatus: string;
+  setNewProjectStatus: Dispatch<SetStateAction<string>>;
   resetCreateProjectForm: () => void;
   handleCreateProject: () => Promise<void>;
   requestCloseCreateProject: () => void;
@@ -42,6 +44,7 @@ export const useProjectCreateForm = ({
   const [newProjectColor, setNewProjectColor] = useState(DEFAULT_PROJECT_COLOR);
   const [newProjectCustomerId, setNewProjectCustomerId] = useState<string | null>(null);
   const [newProjectOwnerGroupId, setNewProjectOwnerGroupId] = useState<string | null>(null);
+  const [newProjectStatus, setNewProjectStatus] = useState('');
 
   const resetCreateProjectForm = useCallback(() => {
     setNewProjectName('');
@@ -49,6 +52,7 @@ export const useProjectCreateForm = ({
     setNewProjectColor(DEFAULT_PROJECT_COLOR);
     setNewProjectCustomerId(null);
     setNewProjectOwnerGroupId(null);
+    setNewProjectStatus('');
     setEditingCustomerId(null);
     setEditingCustomerName('');
   }, [setEditingCustomerId, setEditingCustomerName]);
@@ -62,6 +66,7 @@ export const useProjectCreateForm = ({
       archived: false,
       customerId: newProjectCustomerId,
       ownerGroupId: newProjectOwnerGroupId,
+      status: newProjectStatus.trim() ? newProjectStatus.trim() : null,
     });
     setCreateProjectOpen(false);
     resetCreateProjectForm();
@@ -73,6 +78,7 @@ export const useProjectCreateForm = ({
     newProjectCustomerId,
     newProjectName,
     newProjectOwnerGroupId,
+    newProjectStatus,
     resetCreateProjectForm,
   ]);
 
@@ -82,7 +88,8 @@ export const useProjectCreateForm = ({
     || newProjectColor !== DEFAULT_PROJECT_COLOR
     || newProjectCustomerId !== null
     || newProjectOwnerGroupId !== null
-  ), [newProjectCode, newProjectColor, newProjectCustomerId, newProjectName, newProjectOwnerGroupId]);
+    || newProjectStatus.trim().length > 0
+  ), [newProjectCode, newProjectColor, newProjectCustomerId, newProjectName, newProjectOwnerGroupId, newProjectStatus]);
 
   const requestCloseCreateProject = useCallback(() => {
     if (createProjectHasUnsavedChanges) {
@@ -107,6 +114,8 @@ export const useProjectCreateForm = ({
     setNewProjectCustomerId,
     newProjectOwnerGroupId,
     setNewProjectOwnerGroupId,
+    newProjectStatus,
+    setNewProjectStatus,
     resetCreateProjectForm,
     handleCreateProject,
     requestCloseCreateProject,

@@ -34,6 +34,8 @@ export interface Project {
   customerId: string | null;
   /** Phase 2: workspace MemberGroup that owns this project (Юсов / Ладыгина / etc.). */
   ownerGroupId: string | null;
+  /** Phase 7.5: free-form status, e.g. «В работе», «Заморожен», «Завершен». */
+  status: string | null;
 }
 
 export interface Customer {

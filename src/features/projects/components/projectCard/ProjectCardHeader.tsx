@@ -37,6 +37,11 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({ project, c
             <h1 className="break-words text-ui-2xl font-semibold tracking-tight [overflow-wrap:anywhere]">
               {project.name}
             </h1>
+            {project.status && (
+              <span className="rounded-md bg-muted px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {project.status}
+              </span>
+            )}
             {project.archived && (
               <Badge variant="secondary">{t`Archived`}</Badge>
             )}

@@ -57,6 +57,8 @@ type ProjectsDialogsProps = {
   newProjectCustomerId: string | null;
   setNewProjectCustomerId: (customerId: string | null) => void;
   newProjectOwnerGroupId: string | null;
+  setNewProjectStatus: (value: string) => void;
+  newProjectStatus: string;
   setNewProjectOwnerGroupId: (groupId: string | null) => void;
   memberGroups: MemberGroup[];
   handleCreateProject: () => Promise<void>;
@@ -78,6 +80,8 @@ type ProjectsDialogsProps = {
   setProjectSettingsCustomerId: (customerId: string | null) => void;
   projectSettingsOwnerGroupId: string | null;
   setProjectSettingsOwnerGroupId: (groupId: string | null) => void;
+  projectSettingsStatus: string;
+  setProjectSettingsStatus: (value: string) => void;
   handleSaveProjectSettings: () => Promise<void>;
   projectSettingsConfirmOpen: boolean;
   setProjectSettingsConfirmOpen: (open: boolean) => void;
@@ -149,6 +153,8 @@ export const ProjectsDialogs = ({
   setNewProjectCustomerId,
   newProjectOwnerGroupId,
   setNewProjectOwnerGroupId,
+  newProjectStatus,
+  setNewProjectStatus,
   memberGroups,
   handleCreateProject,
   createProjectConfirmOpen,
@@ -169,6 +175,8 @@ export const ProjectsDialogs = ({
   setProjectSettingsCustomerId,
   projectSettingsOwnerGroupId,
   setProjectSettingsOwnerGroupId,
+  projectSettingsStatus,
+  setProjectSettingsStatus,
   handleSaveProjectSettings,
   projectSettingsConfirmOpen,
   setProjectSettingsConfirmOpen,
@@ -417,6 +425,15 @@ export const ProjectsDialogs = ({
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1">
+              <Label>{t`Project status`}</Label>
+              <Input
+                placeholder={t`E.g. В работе, Заморожен, Завершен`}
+                value={newProjectStatus}
+                onChange={(event) => setNewProjectStatus(event.target.value)}
+                disabled={!canEdit}
+              />
+            </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={requestCloseCreateProject}>
                 {t`Cancel`}
@@ -538,6 +555,15 @@ export const ProjectsDialogs = ({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>{t`Project status`}</Label>
+                <Input
+                  placeholder={t`E.g. В работе, Заморожен, Завершен`}
+                  value={projectSettingsStatus}
+                  onChange={(event) => setProjectSettingsStatus(event.target.value)}
+                  disabled={!canEdit}
+                />
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={requestCloseProjectSettings}>
