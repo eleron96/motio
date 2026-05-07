@@ -107,6 +107,7 @@ export const createCatalogActions = (
         archived: project.archived ?? false,
         customer_id: project.customerId ?? null,
         owner_group_id: project.ownerGroupId ?? null,
+        status: project.status ?? null,
       })
       .select('*')
       .single();
@@ -130,6 +131,7 @@ export const createCatalogActions = (
     if ('archived' in updates) payload.archived = updates.archived;
     if ('customerId' in updates) payload.customer_id = updates.customerId;
     if ('ownerGroupId' in updates) payload.owner_group_id = updates.ownerGroupId;
+    if ('status' in updates) payload.status = updates.status;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase

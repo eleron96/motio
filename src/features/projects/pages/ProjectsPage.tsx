@@ -194,6 +194,7 @@ const ProjectsPage = () => {
     projectSettingsColor, setProjectSettingsColor,
     projectSettingsCustomerId, setProjectSettingsCustomerId,
     projectSettingsOwnerGroupId, setProjectSettingsOwnerGroupId,
+    projectSettingsStatus, setProjectSettingsStatus,
     projectSettingsConfirmOpen, setProjectSettingsConfirmOpen,
     deleteProjectTarget, setDeleteProjectTarget,
     deleteProjectOpen, setDeleteProjectOpen,
@@ -243,6 +244,7 @@ const ProjectsPage = () => {
     newProjectColor, setNewProjectColor,
     newProjectCustomerId, setNewProjectCustomerId,
     newProjectOwnerGroupId, setNewProjectOwnerGroupId,
+    newProjectStatus, setNewProjectStatus,
     resetCreateProjectForm,
     handleCreateProject,
     requestCloseCreateProject,
@@ -476,6 +478,8 @@ const ProjectsPage = () => {
     setCustomerFilterIds,
     ownerGroupFilterIds,
     setOwnerGroupFilterIds,
+    statusFilterValues,
+    setStatusFilterValues,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,
@@ -617,6 +621,27 @@ const ProjectsPage = () => {
     ));
   };
 
+  // Phase 7.5: distinct project statuses currently in use across the workspace.
+  const statusOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const project of projects) {
+      if (project.status && project.status.trim()) set.add(project.status.trim());
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [projects]);
+
+  const projectStatusFilterLabel = statusFilterValues.length === 0
+    ? t`Status`
+    : t`${statusFilterValues.length} selected`;
+
+  const handleToggleProjectStatusFilter = (value: string) => {
+    setStatusFilterValues((current) => (
+      current.includes(value)
+        ? current.filter((entry) => entry !== value)
+        : [...current, value]
+    ));
+  };
+
   const nameSortLabel = nameSort === 'asc' ? t`A-Z` : t`Z-A`;
 
   const handleToggleStatus = (statusId: string) => {
@@ -732,6 +757,37 @@ const ProjectsPage = () => {
 
   const projectCardEnabled = isProjectCardEnabled();
 
+  // Phase 7.5: simple Projects | Customers tabs that appear above both the
+  // new card sidebar and the legacy customers sidebar when the flag is on.
+  const renderModeTabs = () => (
+    <div className="flex items-center gap-1 border-b border-border bg-card px-3 py-2">
+      <button
+        type="button"
+        onClick={() => setMode('projects')}
+        aria-pressed={mode === 'projects'}
+        className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+          mode === 'projects'
+            ? 'bg-foreground text-background'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+        }`}
+      >
+        {t`Projects`}
+      </button>
+      <button
+        type="button"
+        onClick={() => setMode('customers')}
+        aria-pressed={mode === 'customers'}
+        className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+          mode === 'customers'
+            ? 'bg-foreground text-background'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+        }`}
+      >
+        {t`Customers`}
+      </button>
+    </div>
+  );
+
   const renderProjectsSidebar = (closeOnSelect = false) => {
     // Phase 1.5: when the flag is on, in 'projects' mode, on desktop — replace
     // the legacy multi-mode sidebar with the new card-style list. Milestones /
@@ -774,7 +830,92 @@ const ProjectsPage = () => {
           ownerGroupFilterLabel={ownerGroupFilterLabel}
           onToggleOwnerGroupFilter={handleToggleOwnerGroupFilter}
           onClearOwnerGroupFilters={() => setOwnerGroupFilterIds([])}
+          statusOptions={statusOptions}
+          statusFilterValues={statusFilterValues}
+          statusFilterLabel={projectStatusFilterLabel}
+          onToggleStatusFilter={handleToggleProjectStatusFilter}
+          onClearStatusFilters={() => setStatusFilterValues([])}
+          modeTabs={renderModeTabs()}
         />
+      );
+    }
+    if (projectCardEnabled && !isMobile) {
+      // Customers/milestones modes: show the same Projects|Customers tabs above
+      // the legacy sidebar so the user can still flip between them.
+      return (
+        <div className="flex h-full flex-col">
+          {renderModeTabs()}
+          <div className="flex-1 min-h-0">
+            <ProjectsSidebar
+              mode={mode}
+              onModeChange={setMode}
+              hideModeSelector
+              canEdit={canEdit}
+              nameSort={nameSort}
+              nameSortLabel={nameSortLabel}
+              onToggleNameSort={() => setNameSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+              customerSearch={customerSearch}
+              onCustomerSearchChange={setCustomerSearch}
+              sortedCustomers={sortedCustomers}
+              filteredCustomers={filteredCustomers}
+              customerProjectCounts={customerProjectCounts}
+              selectedCustomerId={selectedCustomerId}
+              onSelectCustomer={(customerId) => {
+                setSelectedCustomerId(customerId);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
+              onStartCustomerEdit={startCustomerEdit}
+              onRequestDeleteCustomer={requestDeleteCustomer}
+              milestoneTab={milestoneTab}
+              onMilestoneTabChange={setMilestoneTab}
+              milestoneSearch={milestoneSearch}
+              onMilestoneSearchChange={setMilestoneSearch}
+              milestoneGroupLabel={milestoneGroupLabel}
+              onCycleMilestoneGroup={handleCycleMilestoneGroup}
+              milestones={milestones}
+              visibleMilestones={visibleMilestones}
+              groupedMilestones={groupedMilestones}
+              selectedMilestoneId={selectedMilestoneId}
+              onSelectMilestone={(milestoneId) => {
+                setSelectedMilestoneId(milestoneId);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
+              onOpenMilestoneSettings={handleOpenMilestoneSettings}
+              onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
+              onRequestDeleteMilestone={requestDeleteMilestone}
+              projectById={projectById}
+              customerById={customerById}
+              trackedProjectIdSet={trackedProjectIdSet}
+              formatMilestoneDate={formatMilestoneDate}
+              tab={tab}
+              onTabChange={setTab}
+              projectSearch={projectSearch}
+              onProjectSearchChange={setProjectSearch}
+              customerFilterLabel={customerFilterLabel}
+              customerFilterIds={customerFilterIds}
+              onClearCustomerFilters={() => setCustomerFilterIds([])}
+              onToggleCustomerFilter={handleToggleCustomer}
+              groupByCustomer={groupByCustomer}
+              onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
+              activeProjects={activeProjects}
+              archivedProjects={archivedProjects}
+              filteredActiveProjects={filteredActiveProjects}
+              filteredArchivedProjects={filteredArchivedProjects}
+              selectedProjectId={selectedProjectId}
+              onSelectProject={(projectId) => {
+                setSelectedProjectId(projectId);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
+              onToggleTrackedProject={(projectId, nextTracked) => {
+                void toggleTrackedProject(projectId, nextTracked);
+              }}
+              onOpenProjectSettings={openProjectSettings}
+              onRequestDeleteProject={requestDeleteProject}
+              onToggleProjectArchived={handleToggleProjectArchived}
+              groupProjects={groupedProjects}
+            />
+          </div>
+        </div>
       );
     }
     return (
@@ -1094,6 +1235,8 @@ const ProjectsPage = () => {
         setNewProjectCustomerId={setNewProjectCustomerId}
         newProjectOwnerGroupId={newProjectOwnerGroupId}
         setNewProjectOwnerGroupId={setNewProjectOwnerGroupId}
+        newProjectStatus={newProjectStatus}
+        setNewProjectStatus={setNewProjectStatus}
         memberGroups={memberGroups}
         handleCreateProject={handleCreateProject}
         createProjectConfirmOpen={createProjectConfirmOpen}
@@ -1114,6 +1257,8 @@ const ProjectsPage = () => {
         setProjectSettingsCustomerId={setProjectSettingsCustomerId}
         projectSettingsOwnerGroupId={projectSettingsOwnerGroupId}
         setProjectSettingsOwnerGroupId={setProjectSettingsOwnerGroupId}
+        projectSettingsStatus={projectSettingsStatus}
+        setProjectSettingsStatus={setProjectSettingsStatus}
         handleSaveProjectSettings={handleSaveProjectSettings}
         projectSettingsConfirmOpen={projectSettingsConfirmOpen}
         setProjectSettingsConfirmOpen={setProjectSettingsConfirmOpen}

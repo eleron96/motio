@@ -70,6 +70,7 @@ export const filterProjectsByCustomerAndSearch = (
   customerFilterIds: string[],
   projectSearch: string,
   ownerGroupFilterIds: string[] = [],
+  statusFilterValues: string[] = [],
 ) => {
   const normalizedQuery = projectSearch.trim().toLowerCase();
   return projects.filter((project) => {
@@ -79,10 +80,13 @@ export const filterProjectsByCustomerAndSearch = (
     const matchesOwnerGroup = ownerGroupFilterIds.length === 0
       ? true
       : ownerGroupFilterIds.includes(project.ownerGroupId ?? 'none');
+    const matchesStatus = statusFilterValues.length === 0
+      ? true
+      : statusFilterValues.includes(project.status ?? '__none__');
     const matchesSearch = normalizedQuery.length === 0
       ? true
       : project.name.toLowerCase().includes(normalizedQuery);
-    return matchesCustomer && matchesOwnerGroup && matchesSearch;
+    return matchesCustomer && matchesOwnerGroup && matchesStatus && matchesSearch;
   });
 };
 
