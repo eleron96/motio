@@ -6,6 +6,7 @@ import {
   type WorkspaceTemplate,
 } from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
+import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import type {
   PlannerGetState,
@@ -81,6 +82,29 @@ type CatalogActions = Pick<
 >;
 
 const emptyMutationResult: MutationResult = {};
+
+const HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i;
+const IMG_TAG_RE = /<img\b/i;
+const ALL_TAGS_RE = /<[^>]+>/g;
+const NBSP_RE = /&nbsp;/gi;
+
+/**
+ * Normalize a project_activity content payload that may arrive as plain text
+ * or rich HTML from the editor. Returns a sanitized string ready for storage,
+ * or `null` if the content is effectively empty.
+ */
+const sanitizeProjectActivityContent = (raw: string): string | null => {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const looksLikeHtml = HTML_TAG_RE.test(trimmed);
+  const sanitized = looksLikeHtml ? sanitizeCommentRichText(trimmed) : trimmed;
+  if (!sanitized) return null;
+  if (IMG_TAG_RE.test(sanitized)) return sanitized;
+  const textOnly = sanitized.replace(ALL_TAGS_RE, '').replace(NBSP_RE, ' ').trim();
+  if (!textOnly) return null;
+  return sanitized;
+};
 
 const getCurrentUserId = async () => {
   const { data, error } = await supabase.auth.getUser();
@@ -503,8 +527,8 @@ export const createCatalogActions = (
   addProjectActivity: async ({ projectId, content }) => {
     const workspaceId = get().workspaceId;
     if (!workspaceId) return null;
-    const trimmed = content.trim();
-    if (!trimmed) return null;
+    const sanitized = sanitizeProjectActivityContent(content);
+    if (!sanitized) return null;
 
     const userResult = await getCurrentUserId();
     if ('error' in userResult) {
@@ -524,7 +548,7 @@ export const createCatalogActions = (
         author_id: userResult.userId,
         author_display_name: authorDisplayName,
         kind: 'comment',
-        content: trimmed,
+        content: sanitized,
       })
       .select('*')
       .single();
@@ -542,12 +566,12 @@ export const createCatalogActions = (
   updateProjectActivity: async (id, updates) => {
     const workspaceId = get().workspaceId;
     if (!workspaceId) return { error: 'Workspace not selected.' };
-    const trimmed = updates.content.trim();
-    if (!trimmed) return { error: 'Content is empty.' };
+    const sanitized = sanitizeProjectActivityContent(updates.content);
+    if (!sanitized) return { error: 'Content is empty.' };
 
     const { data, error } = await supabase
       .from('project_activity')
-      .update({ content: trimmed })
+      .update({ content: sanitized })
       .eq('id', id)
       .eq('workspace_id', workspaceId)
       .select('*')

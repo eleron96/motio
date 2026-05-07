@@ -65,6 +65,8 @@ interface ProjectCardLayoutProps {
   onAddActivity: (content: string) => Promise<void>;
   onUpdateActivity: (id: string, content: string) => Promise<void>;
   onDeleteActivity: (id: string) => Promise<void>;
+  /** Workspace id used by the activity rich-text editor for image uploads. */
+  workspaceId?: string | null;
 
   // Tasks data + handlers — same shape as ProjectsMainPanel consumes.
   taskScope: TaskScope;
@@ -122,6 +124,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
     onAddActivity,
     onUpdateActivity,
     onDeleteActivity,
+    workspaceId,
     ...taskProps
   } = props;
 
@@ -173,6 +176,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
           onAdd={onAddActivity}
           onUpdate={onUpdateActivity}
           onDelete={onDeleteActivity}
+          workspaceId={workspaceId}
         />
 
         <TasksBlock {...taskProps} />

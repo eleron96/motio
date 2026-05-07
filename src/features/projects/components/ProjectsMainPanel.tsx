@@ -119,6 +119,8 @@ type ProjectsMainPanelProps = {
   onAddProjectActivity: (projectId: string, content: string) => Promise<void>;
   onUpdateProjectActivity: (id: string, content: string) => Promise<void>;
   onDeleteProjectActivity: (id: string) => Promise<void>;
+  /** Workspace id used by the activity rich-text editor for image uploads. */
+  workspaceId?: string | null;
 };
 
 export const ProjectsMainPanel = ({
@@ -192,6 +194,7 @@ export const ProjectsMainPanel = ({
   onAddProjectActivity,
   onUpdateProjectActivity,
   onDeleteProjectActivity,
+  workspaceId,
 }: ProjectsMainPanelProps) => {
   const isMobile = useIsMobile();
   const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
@@ -233,6 +236,7 @@ export const ProjectsMainPanel = ({
         onAddActivity={(content) => onAddProjectActivity(selectedProject.id, content)}
         onUpdateActivity={onUpdateProjectActivity}
         onDeleteActivity={onDeleteProjectActivity}
+        workspaceId={workspaceId}
         projectMilestones={projectMilestones}
         formatMilestoneDate={formatMilestoneDate}
         today={today}

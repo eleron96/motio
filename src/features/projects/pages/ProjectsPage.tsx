@@ -1132,6 +1132,7 @@ const ProjectsPage = () => {
       onAddProjectActivity={handleAddProjectActivity}
       onUpdateProjectActivity={handleUpdateProjectActivity}
       onDeleteProjectActivity={handleDeleteProjectActivity}
+      workspaceId={currentWorkspaceId}
     />
   );
 

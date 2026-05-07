@@ -4,9 +4,10 @@ import { Calendar, Plus, Search, X } from 'lucide-react';
 import type { ProjectActivity } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
-import { Textarea } from '@/shared/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
+import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import styles from './projectCard.module.css';
 
 interface ActivityBlockProps {
@@ -16,7 +17,41 @@ interface ActivityBlockProps {
   onAdd: (content: string) => Promise<void>;
   onUpdate: (id: string, content: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  /** Workspace id used by RichTextEditor for image uploads. */
+  workspaceId?: string | null;
 }
+
+const HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i;
+const IMG_TAG_RE = /<img\b/i;
+const ALL_TAGS_RE = /<[^>]+>/g;
+
+const isContentMeaningful = (raw: string) => {
+  if (!raw) return false;
+  const trimmed = raw.trim();
+  if (!trimmed) return false;
+  if (IMG_TAG_RE.test(trimmed)) return true;
+  const text = trimmed.replace(ALL_TAGS_RE, '').replace(/&nbsp;/gi, ' ').trim();
+  return text.length > 0;
+};
+
+const stripHtmlForSearch = (raw: string) => {
+  if (!HTML_TAG_RE.test(raw)) return raw;
+  return raw.replace(ALL_TAGS_RE, ' ').replace(/&nbsp;/gi, ' ');
+};
+
+const renderRichTextHtml = (raw: string) => {
+  if (!raw) return { __html: '' };
+  if (HTML_TAG_RE.test(raw)) {
+    return { __html: sanitizeCommentRichText(raw) };
+  }
+  // Plain text — preserve newlines via <br>.
+  const escaped = raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+  return { __html: escaped };
+};
 
 export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   entries,
@@ -25,6 +60,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   onAdd,
   onUpdate,
   onDelete,
+  workspaceId,
 }) => {
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState('');
@@ -38,7 +74,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((entry) => (
-        entry.content.toLowerCase().includes(q)
+        stripHtmlForSearch(entry.content).toLowerCase().includes(q)
         || entry.authorDisplayName.toLowerCase().includes(q)
       ));
     }
@@ -49,11 +85,11 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   }, [entries, jumpDate, search]);
 
   const submitComposer = async () => {
-    const text = composerText.trim();
-    if (!text || composerSubmitting) return;
+    if (composerSubmitting) return;
+    if (!isContentMeaningful(composerText)) return;
     setComposerSubmitting(true);
     try {
-      await onAdd(text);
+      await onAdd(composerText);
       setComposerText('');
       setComposerOpen(false);
     } finally {
@@ -114,12 +150,12 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
 
       {composerOpen && (
         <div className="mb-3 flex flex-col gap-2 rounded-lg bg-muted p-3">
-          <Textarea
+          <RichTextEditor
             value={composerText}
-            onChange={(event) => setComposerText(event.target.value)}
+            onChange={setComposerText}
+            workspaceId={workspaceId ?? null}
             placeholder={t`Write a comment...`}
-            rows={3}
-            autoFocus
+            disabled={composerSubmitting}
           />
           <div className="flex justify-end gap-1.5">
             <Button
@@ -136,7 +172,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
             <Button
               size="sm"
               onClick={() => void submitComposer()}
-              disabled={!composerText.trim() || composerSubmitting}
+              disabled={!isContentMeaningful(composerText) || composerSubmitting}
             >
               {t`Publish`}
             </Button>
@@ -174,9 +210,10 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                     {entry.authorDisplayName}
                   </div>
                 </div>
-                <div className={`${styles.feedTextClamp} text-[14px] leading-[1.5]`}>
-                  {entry.content}
-                </div>
+                <div
+                  className={`${styles.feedTextClamp} ${styles.feedRichText} text-[14px] leading-[1.5]`}
+                  dangerouslySetInnerHTML={renderRichTextHtml(entry.content)}
+                />
               </li>
             ))}
           </ol>
@@ -188,6 +225,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
           entry={openItem}
           canEdit={canEdit}
           formatDate={formatDate}
+          workspaceId={workspaceId}
           onClose={() => setOpenItem(null)}
           onSave={async (content) => {
             await onUpdate(openItem.id, content);
@@ -207,12 +245,21 @@ interface ActivityModalProps {
   entry: ProjectActivity;
   canEdit: boolean;
   formatDate: (iso: string) => string;
+  workspaceId?: string | null;
   onClose: () => void;
   onSave: (content: string) => Promise<void>;
   onDelete: () => Promise<void>;
 }
 
-const ActivityModal: React.FC<ActivityModalProps> = ({ entry, canEdit, formatDate, onClose, onSave, onDelete }) => {
+const ActivityModal: React.FC<ActivityModalProps> = ({
+  entry,
+  canEdit,
+  formatDate,
+  workspaceId,
+  onClose,
+  onSave,
+  onDelete,
+}) => {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(entry.content);
   const [busy, setBusy] = useState(false);
@@ -224,6 +271,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ entry, canEdit, formatDat
 
   const handleSave = async () => {
     if (busy) return;
+    if (!isContentMeaningful(text)) return;
     setBusy(true);
     try {
       await onSave(text);
@@ -244,7 +292,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ entry, canEdit, formatDat
 
   return (
     <Dialog open onOpenChange={(open) => (open ? null : onClose())}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-[640px]">
         <DialogHeader>
           <DialogTitle>{t`Activity entry`}</DialogTitle>
           <DialogDescription className="sr-only">
@@ -256,16 +304,18 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ entry, canEdit, formatDat
           <div className="tabular-nums text-muted-foreground">{formatDate(entry.createdAt)}</div>
         </div>
         {editing ? (
-          <Textarea
+          <RichTextEditor
             value={text}
-            onChange={(event) => setText(event.target.value)}
-            rows={8}
-            autoFocus
+            onChange={setText}
+            workspaceId={workspaceId ?? null}
+            placeholder={t`Write a comment...`}
+            disabled={busy}
           />
         ) : (
-          <div className="whitespace-pre-wrap break-words text-[14px] leading-[1.55]">
-            {entry.content}
-          </div>
+          <div
+            className={`${styles.feedRichText} break-words text-[14px] leading-[1.55]`}
+            dangerouslySetInnerHTML={renderRichTextHtml(entry.content)}
+          />
         )}
         <DialogFooter className="gap-2">
           {editing ? (
@@ -273,7 +323,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({ entry, canEdit, formatDat
               <Button variant="outline" onClick={() => { setEditing(false); setText(entry.content); }} disabled={busy}>
                 {t`Cancel`}
               </Button>
-              <Button onClick={() => void handleSave()} disabled={busy || !text.trim()}>
+              <Button onClick={() => void handleSave()} disabled={busy || !isContentMeaningful(text)}>
                 {t`Save`}
               </Button>
             </>
