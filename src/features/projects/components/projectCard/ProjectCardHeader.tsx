@@ -69,11 +69,10 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
 
   return (
     <div
-      className="relative rounded-2xl border border-border bg-card p-6 shadow-sm"
+      className="rounded-2xl border border-border bg-card p-6 shadow-sm"
       style={buildProjectAccentVars(project.color)}
     >
-      <div className={styles.accentBar} aria-hidden="true" />
-      <div className="flex flex-wrap items-start justify-between gap-3 pt-1">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-ui-xs text-muted-foreground">
             <span>{t`Projects`}</span>
