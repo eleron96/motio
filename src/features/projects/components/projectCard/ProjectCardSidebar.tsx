@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowUpAZ, Filter, Layers, MoreHorizontal, Search } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, Filter, Layers, MoreHorizontal, Search, Users } from 'lucide-react';
 import type { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
 import { Checkbox } from '@/shared/ui/checkbox';
 import {
@@ -48,6 +48,12 @@ interface ProjectCardSidebarProps {
   onClearCustomerFilters: () => void;
   groupByCustomer: boolean;
   onToggleGroupByCustomer: () => void;
+  /** Phase 7: filter by owner team (member group). */
+  memberGroups: MemberGroup[];
+  ownerGroupFilterIds: string[];
+  ownerGroupFilterLabel: string;
+  onToggleOwnerGroupFilter: (groupId: string) => void;
+  onClearOwnerGroupFilters: () => void;
   /**
    * Pre-grouped projects when `groupByCustomer` is on. The page already builds
    * this through `groupProjectsForSidebar` for the legacy sidebar, so we
@@ -80,6 +86,11 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
   groupByCustomer,
   onToggleGroupByCustomer,
   groupedProjects,
+  memberGroups,
+  ownerGroupFilterIds,
+  ownerGroupFilterLabel,
+  onToggleOwnerGroupFilter,
+  onClearOwnerGroupFilters,
 }) => {
   const milestoneCountByProject = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -154,6 +165,57 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                         onCheckedChange={() => onToggleCustomerFilter(customer.id)}
                       />
                       <span className="truncate text-sm">{customer.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted hover:text-foreground ${
+                  ownerGroupFilterIds.length > 0
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground'
+                }`}
+                aria-label={t`Filter by owner team`}
+              >
+                <Users className="h-3.5 w-3.5" />
+                {ownerGroupFilterLabel}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60 p-3" align="start">
+              <div className="flex items-center justify-between pb-2">
+                <span className="text-[11px] text-muted-foreground">{t`Filter by team`}</span>
+                <button
+                  type="button"
+                  className="rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground"
+                  onClick={onClearOwnerGroupFilters}
+                >
+                  {t`Clear`}
+                </button>
+              </div>
+              <ScrollArea className="max-h-56 pr-2">
+                <div className="space-y-1">
+                  <label className="flex cursor-pointer items-center gap-2 py-1">
+                    <Checkbox
+                      checked={ownerGroupFilterIds.includes('none')}
+                      onCheckedChange={() => onToggleOwnerGroupFilter('none')}
+                    />
+                    <span className="text-sm">{t`No team`}</span>
+                  </label>
+                  {memberGroups.length === 0 && (
+                    <div className="text-xs text-muted-foreground">{t`No teams yet.`}</div>
+                  )}
+                  {memberGroups.map((group) => (
+                    <label key={group.id} className="flex cursor-pointer items-center gap-2 py-1">
+                      <Checkbox
+                        checked={ownerGroupFilterIds.includes(group.id)}
+                        onCheckedChange={() => onToggleOwnerGroupFilter(group.id)}
+                      />
+                      <span className="truncate text-sm">{group.name}</span>
                     </label>
                   ))}
                 </div>

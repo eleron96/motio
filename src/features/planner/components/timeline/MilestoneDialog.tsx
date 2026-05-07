@@ -31,6 +31,11 @@ interface MilestoneDialogProps {
   milestone: Milestone | null;
   canEdit: boolean;
   allowDateEdit?: boolean;
+  /**
+   * Phase 7: pre-selects the project on create (e.g. when adding a milestone
+   * straight from a project's card). Ignored when editing an existing one.
+   */
+  defaultProjectId?: string | null;
 }
 
 export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
@@ -40,6 +45,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   milestone,
   canEdit,
   allowDateEdit = false,
+  defaultProjectId = null,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
@@ -91,12 +97,12 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
       return;
     }
     setTitle('');
-    setProjectId(activeProjects[0]?.id ?? '');
+    setProjectId(defaultProjectId ?? activeProjects[0]?.id ?? '');
     setMilestoneDate(date ?? format(new Date(), 'yyyy-MM-dd'));
     setNote('');
     setStatusOverride('auto');
     setHasChanges(false);
-  }, [milestone, open, activeProjects, date]);
+  }, [milestone, open, activeProjects, date, defaultProjectId]);
 
   const requestClose = () => {
     if (!hasChanges) {

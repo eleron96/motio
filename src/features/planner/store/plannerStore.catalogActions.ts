@@ -338,6 +338,7 @@ export const createCatalogActions = (
         email: contact.email,
         phone: contact.phone,
         position: nextPosition,
+        tag: contact.tag ?? null,
       })
       .select('*')
       .single();
@@ -362,6 +363,7 @@ export const createCatalogActions = (
     if ('email' in updates) payload.email = updates.email;
     if ('phone' in updates) payload.phone = updates.phone;
     if ('position' in updates) payload.position = updates.position;
+    if ('tag' in updates) payload.tag = updates.tag;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase
@@ -420,6 +422,11 @@ export const createCatalogActions = (
         assignee_id: member.assigneeId,
         role: member.role,
         position: nextPosition,
+        tag: member.tag ?? null,
+        external_name: member.externalName ?? null,
+        external_company: member.externalCompany ?? null,
+        external_email: member.externalEmail ?? null,
+        external_phone: member.externalPhone ?? null,
       })
       .select('*')
       .single();
@@ -441,6 +448,11 @@ export const createCatalogActions = (
     const payload: Record<string, unknown> = {};
     if ('role' in updates) payload.role = updates.role;
     if ('position' in updates) payload.position = updates.position;
+    if ('tag' in updates) payload.tag = updates.tag;
+    if ('externalName' in updates) payload.external_name = updates.externalName;
+    if ('externalCompany' in updates) payload.external_company = updates.externalCompany;
+    if ('externalEmail' in updates) payload.external_email = updates.externalEmail;
+    if ('externalPhone' in updates) payload.external_phone = updates.externalPhone;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase

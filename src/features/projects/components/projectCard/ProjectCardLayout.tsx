@@ -35,7 +35,7 @@ interface ProjectCardLayoutProps {
   customerContacts: CustomerContact[];
   canEdit: boolean;
   onAddCustomerContact: (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null }
+    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<void>;
   onDeleteCustomerContact: (id: string) => Promise<void>;
   /** Phase 1 fallback list — assignees that appear on this project's tasks. */
@@ -44,12 +44,20 @@ interface ProjectCardLayoutProps {
   projectMemberRows: ProjectMember[];
   assigneesById: Map<string, Assignee>;
   workspaceAssignees: Assignee[];
-  onAddProjectMember: (assigneeId: string, role: string | null) => Promise<void>;
+  onAddProjectMember: (input: import('./TeamBlock').AddMemberInput) => Promise<void>;
   onRemoveProjectMember: (memberId: string) => Promise<void>;
   onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<void>;
+  onUpdateExternalMember: (
+    memberId: string,
+    updates: Partial<Pick<ProjectMember,
+      'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
+    >>,
+  ) => Promise<void>;
   projectMilestones: Milestone[];
   formatMilestoneDate: (date: string) => string;
   today: Date;
+  onAddMilestone: () => void;
+  onEditMilestone?: (milestone: Milestone) => void;
   /** Phase 6 — activity feed for this project. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
@@ -101,9 +109,12 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
     onAddProjectMember,
     onRemoveProjectMember,
     onUpdateAssigneeContact,
+    onUpdateExternalMember,
     projectMilestones,
     formatMilestoneDate,
     today,
+    onAddMilestone,
+    onEditMilestone,
     projectActivity,
     formatActivityTimestamp,
     onAddActivity,
@@ -135,11 +146,15 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
             onAddMember={onAddProjectMember}
             onRemoveMember={onRemoveProjectMember}
             onUpdateAssigneeContact={onUpdateAssigneeContact}
+            onUpdateExternalMember={onUpdateExternalMember}
           />
           <MilestonesBlock
             milestones={projectMilestones}
             formatDate={formatMilestoneDate}
             today={today}
+            canEdit={canEdit}
+            onAddMilestone={onAddMilestone}
+            onEditMilestone={onEditMilestone}
           />
         </div>
 

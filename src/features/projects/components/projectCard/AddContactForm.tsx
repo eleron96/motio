@@ -3,7 +3,13 @@ import { t } from '@lingui/macro';
 import { Button } from '@/shared/ui/button';
 
 interface AddContactFormProps {
-  onSave: (payload: { name: string; role: string; email: string; phone: string }) => Promise<void> | void;
+  onSave: (payload: {
+    name: string;
+    role: string;
+    email: string;
+    phone: string;
+    tag: string;
+  }) => Promise<void> | void;
   onCancel: () => void;
 }
 
@@ -12,6 +18,7 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
   const [role, setRole] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [tag, setTag] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -23,6 +30,7 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
         role: role.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        tag: tag.trim(),
       });
     } finally {
       setSubmitting(false);
@@ -38,6 +46,7 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
         autoFocus
       />
       <Field placeholder={t`Role / job title`} value={role} onChange={setRole} />
+      <Field placeholder={t`Tag (e.g. subcontractor)`} value={tag} onChange={setTag} />
       <Field placeholder="Email" value={email} onChange={setEmail} type="email" />
       <Field placeholder={t`Phone`} value={phone} onChange={setPhone} />
       <div className="mt-1 flex justify-end gap-1.5">

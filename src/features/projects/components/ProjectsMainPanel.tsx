@@ -89,18 +89,29 @@ type ProjectsMainPanelProps = {
   projectMembers: Assignee[];
   projectMilestones: Milestone[];
   today: Date;
+  onCreateMilestoneForProject: (projectId: string) => void;
+  onEditMilestone: (milestone: Milestone) => void;
   /** Phase 3 — customer contacts list + handlers wired through plannerStore. */
   customerContacts: CustomerContact[];
   onAddCustomerContact: (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null }
+    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<void>;
   onDeleteCustomerContact: (id: string) => Promise<void>;
   /** Phase 4 — explicit project members + handlers. */
   projectMemberRows: ProjectMember[];
   workspaceAssignees: Assignee[];
-  onAddProjectMember: (projectId: string, assigneeId: string, role: string | null) => Promise<void>;
+  onAddProjectMember: (
+    projectId: string,
+    input: import('./projectCard/TeamBlock').AddMemberInput,
+  ) => Promise<void>;
   onRemoveProjectMember: (memberId: string) => Promise<void>;
   onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<void>;
+  onUpdateExternalMember: (
+    memberId: string,
+    updates: Partial<Pick<ProjectMember,
+      'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
+    >>,
+  ) => Promise<void>;
   /** Phase 6 — activity feed entries for the whole workspace + handlers. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
@@ -163,6 +174,8 @@ export const ProjectsMainPanel = ({
   projectMembers,
   projectMilestones,
   today,
+  onCreateMilestoneForProject,
+  onEditMilestone,
   customerContacts,
   onAddCustomerContact,
   onDeleteCustomerContact,
@@ -171,6 +184,7 @@ export const ProjectsMainPanel = ({
   onAddProjectMember,
   onRemoveProjectMember,
   onUpdateAssigneeContact,
+  onUpdateExternalMember,
   projectActivity,
   formatActivityTimestamp,
   onAddProjectActivity,
@@ -208,9 +222,10 @@ export const ProjectsMainPanel = ({
         projectMemberRows={projectMemberRows.filter((row) => row.projectId === selectedProject.id)}
         assigneesById={assigneeById}
         workspaceAssignees={workspaceAssignees}
-        onAddProjectMember={(assigneeId, role) => onAddProjectMember(selectedProject.id, assigneeId, role)}
+        onAddProjectMember={(input) => onAddProjectMember(selectedProject.id, input)}
         onRemoveProjectMember={onRemoveProjectMember}
         onUpdateAssigneeContact={onUpdateAssigneeContact}
+        onUpdateExternalMember={onUpdateExternalMember}
         projectActivity={projectActivity.filter((entry) => entry.projectId === selectedProject.id)}
         formatActivityTimestamp={formatActivityTimestamp}
         onAddActivity={(content) => onAddProjectActivity(selectedProject.id, content)}
@@ -219,6 +234,8 @@ export const ProjectsMainPanel = ({
         projectMilestones={projectMilestones}
         formatMilestoneDate={formatMilestoneDate}
         today={today}
+        onAddMilestone={() => onCreateMilestoneForProject(selectedProject.id)}
+        onEditMilestone={onEditMilestone}
         taskScope={taskScope}
         onChangeTaskScope={onChangeTaskScope}
         search={search}
