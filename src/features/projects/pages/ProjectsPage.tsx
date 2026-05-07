@@ -710,6 +710,14 @@ const ProjectsPage = () => {
           onToggleProjectArchived={handleToggleProjectArchived}
           onRequestDeleteProject={requestDeleteProject}
           groupLabel={groupLabel}
+          sortedCustomers={sortedCustomers}
+          customerFilterIds={customerFilterIds}
+          customerFilterLabel={customerFilterLabel}
+          onToggleCustomerFilter={handleToggleCustomer}
+          onClearCustomerFilters={() => setCustomerFilterIds([])}
+          groupByCustomer={groupByCustomer}
+          onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
+          groupedProjects={groupedProjects(visibleProjects)}
         />
       );
     }

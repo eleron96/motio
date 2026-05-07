@@ -119,11 +119,11 @@ msgstr "{actor} updated workspace access."
 msgid "{customersCount} customers"
 msgstr "{customersCount} customers"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:157
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:272
 msgid "{milestoneCount} milestone"
 msgstr "{milestoneCount} milestone"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:158
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:273
 msgid "{milestoneCount} milestones"
 msgstr "{milestoneCount} milestones"
 
@@ -174,7 +174,7 @@ msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words.
 
 #: src/features/members/pages/MembersPage.tsx:224
 #: src/features/members/pages/MembersPage.tsx:225
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:91
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:173
 #: src/features/projects/pages/ProjectsPage.tsx:569
 msgid "A-Z"
 msgstr "A-Z"
@@ -245,7 +245,7 @@ msgstr "active"
 #: src/features/dashboard/components/DashboardWidgetCard.tsx:64
 #: src/features/members/components/MembersSidebar.tsx:227
 #: src/features/members/components/MembersSidebar.tsx:327
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:97
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:190
 #: src/features/projects/components/ProjectsSidebar.tsx:624
 #: src/features/projects/pages/ProjectsPage.tsx:692
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:240
@@ -417,7 +417,7 @@ msgstr "Apply template"
 msgid "Apply your saved template to this workspace (adds missing items by name)."
 msgstr "Apply your saved template to this workspace (adds missing items by name)."
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:180
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:295
 #: src/features/projects/components/ProjectsSidebar.tsx:201
 msgid "Archive"
 msgstr "Archive"
@@ -643,6 +643,7 @@ msgid "Choose where to apply this change."
 msgstr "Choose where to apply this change."
 
 #: src/features/planner/components/FilterPanel.tsx:249
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:135
 #: src/features/projects/components/ProjectsSidebar.tsx:569
 msgid "Clear"
 msgstr "Clear"
@@ -884,7 +885,7 @@ msgstr "Customer:"
 
 #: src/features/projects/components/ProjectsSidebar.tsx:363
 #: src/features/projects/pages/ProjectsPage.tsx:674
-#: src/features/projects/pages/ProjectsPage.tsx:953
+#: src/features/projects/pages/ProjectsPage.tsx:961
 msgid "Customers"
 msgstr "Customers"
 
@@ -1101,7 +1102,7 @@ msgstr "Delete workspace"
 msgid "Delete workspace?"
 msgstr "Delete workspace?"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:187
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:302
 msgid "Delete..."
 msgstr "Delete..."
 
@@ -1183,7 +1184,7 @@ msgstr "Discard"
 msgid "Discard task?"
 msgstr "Discard task?"
 
-#: src/features/projects/pages/ProjectsPage.tsx:941
+#: src/features/projects/pages/ProjectsPage.tsx:949
 msgid "Dismiss"
 msgstr "Dismiss"
 
@@ -1272,7 +1273,7 @@ msgstr "Edit name"
 msgid "Edit photo"
 msgstr "Edit photo"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:177
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:292
 #: src/features/projects/components/ProjectsDialogs.tsx:464
 msgid "Edit project"
 msgstr "Edit project"
@@ -1486,6 +1487,11 @@ msgstr "Fill out task fields and create a new task."
 msgid "Filter applied"
 msgstr "Filter applied"
 
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:121
+msgid "Filter by customer"
+msgstr "Filter by customer"
+
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:129
 #: src/features/projects/components/ProjectsSidebar.tsx:563
 msgid "Filter customers"
 msgstr "Filter customers"
@@ -1605,6 +1611,7 @@ msgstr "Group {0}"
 msgid "Group by"
 msgstr "Group by"
 
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:179
 #: src/features/projects/components/ProjectsSidebar.tsx:616
 msgid "Group by customer"
 msgstr "Group by customer"
@@ -1994,7 +2001,7 @@ msgstr "Milestone name..."
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx:41
 #: src/features/projects/components/ProjectsSidebar.tsx:357
 #: src/features/projects/pages/ProjectsPage.tsx:672
-#: src/features/projects/pages/ProjectsPage.tsx:952
+#: src/features/projects/pages/ProjectsPage.tsx:960
 msgid "Milestones"
 msgstr "Milestones"
 
@@ -2116,7 +2123,7 @@ msgid "Never"
 msgstr "Never"
 
 #: src/features/projects/components/ProjectsDialogs.tsx:225
-#: src/features/projects/pages/ProjectsPage.tsx:901
+#: src/features/projects/pages/ProjectsPage.tsx:909
 msgid "New customer"
 msgstr "New customer"
 
@@ -2134,7 +2141,7 @@ msgstr "New display name"
 msgid "New group"
 msgstr "New group"
 
-#: src/features/projects/pages/ProjectsPage.tsx:912
+#: src/features/projects/pages/ProjectsPage.tsx:920
 msgid "New milestone"
 msgstr "New milestone"
 
@@ -2145,7 +2152,7 @@ msgstr "New owner: {0}"
 
 #: src/features/onboarding/lib/onboardingTour.ts:131
 #: src/features/projects/components/ProjectsDialogs.tsx:356
-#: src/features/projects/pages/ProjectsPage.tsx:923
+#: src/features/projects/pages/ProjectsPage.tsx:931
 msgid "New project"
 msgstr "New project"
 
@@ -2258,7 +2265,8 @@ msgstr "No current milestones."
 #: src/features/projects/components/CustomerCombobox.tsx:32
 #: src/features/projects/components/CustomerCombobox.tsx:115
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:14
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:139
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:145
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:254
 #: src/features/projects/components/ProjectsMainPanel.tsx:273
 #: src/features/projects/components/ProjectsMainPanel.tsx:703
 #: src/features/projects/components/ProjectsSidebar.tsx:176
@@ -2283,6 +2291,7 @@ msgstr "No customer contacts yet. Use + to add one."
 msgid "No customers found."
 msgstr "No customers found."
 
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:148
 #: src/features/projects/components/ProjectsSidebar.tsx:398
 #: src/features/projects/components/ProjectsSidebar.tsx:582
 msgid "No customers yet."
@@ -2442,7 +2451,7 @@ msgstr "No projects found"
 msgid "No projects match the current filters."
 msgstr "No projects match the current filters."
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:103
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:196
 msgid "No projects match the current search."
 msgstr "No projects match the current search."
 
@@ -2793,7 +2802,7 @@ msgstr "Profile"
 msgid "Project"
 msgstr "Project"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:170
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:285
 msgid "Project actions"
 msgstr "Project actions"
 
@@ -2812,10 +2821,10 @@ msgstr "Project not found."
 #: src/features/planner/components/timeline/TimelineControls.tsx:264
 #: src/features/planner/components/timeline/TimelineControls.tsx:267
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:25
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:64
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:95
 #: src/features/projects/components/ProjectsSidebar.tsx:351
 #: src/features/projects/pages/ProjectsPage.tsx:675
-#: src/features/projects/pages/ProjectsPage.tsx:951
+#: src/features/projects/pages/ProjectsPage.tsx:959
 #: src/features/workspace/lib/appNavigation.ts:28
 msgid "Projects"
 msgstr "Projects"
@@ -2824,7 +2833,7 @@ msgstr "Projects"
 msgid "Projects & milestones"
 msgstr "Projects & milestones"
 
-#: src/features/projects/pages/ProjectsPage.tsx:961
+#: src/features/projects/pages/ProjectsPage.tsx:969
 msgid "Projects sections"
 msgstr "Projects sections"
 
@@ -3100,7 +3109,7 @@ msgid "Search projects"
 msgstr "Search projects"
 
 #: src/features/planner/components/FilterPanel.tsx:272
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:75
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:106
 #: src/features/projects/components/ProjectsSidebar.tsx:549
 msgid "Search projects..."
 msgstr "Search projects..."
@@ -3743,7 +3752,7 @@ msgstr "Type the phrase to confirm:"
 msgid "Types"
 msgstr "Types"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:180
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:295
 msgid "Unarchive"
 msgstr "Unarchive"
 
@@ -4169,7 +4178,7 @@ msgstr "Your widgets live here. Resize and rearrange them to monitor workload, d
 
 #: src/features/members/pages/MembersPage.tsx:224
 #: src/features/members/pages/MembersPage.tsx:225
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:91
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:173
 #: src/features/projects/pages/ProjectsPage.tsx:569
 msgid "Z-A"
 msgstr "Z-A"
