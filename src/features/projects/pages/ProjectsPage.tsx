@@ -86,6 +86,7 @@ const ProjectsPage = () => {
     projectMembers: projectMemberRows,
     projectActivity,
     memberGroups,
+    memberGroupAssignments,
     statuses,
     assignees,
     taskTypes,
@@ -122,6 +123,7 @@ const ProjectsPage = () => {
     projectMembers: state.projectMembers,
     projectActivity: state.projectActivity,
     memberGroups: state.memberGroups,
+    memberGroupAssignments: state.memberGroupAssignments,
     statuses: state.statuses,
     assignees: state.assignees,
     taskTypes: state.taskTypes,
@@ -186,6 +188,62 @@ const ProjectsPage = () => {
     }
   }, [currentWorkspaceId, loadWorkspaceData]);
 
+  // Phase 7.7 — when an owner team (member group) is assigned to a project,
+  // auto-add every workspace user in that group as an explicit project member.
+  // The user can still prune individual members afterward; we never remove
+  // anyone here, only add. Idempotent — already-added members are skipped.
+  const syncGroupMembersToProject = useCallback(async (
+    projectId: string,
+    groupId: string | null,
+  ) => {
+    if (!groupId) return;
+    const userIdsInGroup = memberGroupAssignments
+      .filter((row) => row.groupId === groupId)
+      .map((row) => row.userId);
+    if (userIdsInGroup.length === 0) return;
+    const assigneesInGroup = assignees.filter(
+      (assignee) => assignee.userId && userIdsInGroup.includes(assignee.userId),
+    );
+    const alreadyMember = new Set(
+      projectMemberRows
+        .filter((row) => row.projectId === projectId && row.assigneeId)
+        .map((row) => row.assigneeId as string),
+    );
+    const toAdd = assigneesInGroup.filter((assignee) => !alreadyMember.has(assignee.id));
+    if (toAdd.length === 0) return;
+    await Promise.all(toAdd.map((assignee) => addProjectMember({
+      projectId,
+      assigneeId: assignee.id,
+      role: null,
+      tag: null,
+      externalName: null,
+      externalCompany: null,
+      externalEmail: null,
+      externalPhone: null,
+    })));
+  }, [addProjectMember, assignees, memberGroupAssignments, projectMemberRows]);
+
+  const addProjectWithGroupSync = useCallback(async (
+    payload: Parameters<typeof addProject>[0],
+  ) => {
+    const created = await addProject(payload);
+    if (created && payload.ownerGroupId) {
+      await syncGroupMembersToProject(created.id, payload.ownerGroupId);
+    }
+    return created;
+  }, [addProject, syncGroupMembersToProject]);
+
+  const updateProjectWithGroupSync = useCallback(async (
+    id: string,
+    updates: Parameters<typeof updateProject>[1],
+  ) => {
+    const result = await updateProject(id, updates);
+    if (!result?.error && updates.ownerGroupId) {
+      await syncGroupMembersToProject(id, updates.ownerGroupId);
+    }
+    return result;
+  }, [updateProject, syncGroupMembersToProject]);
+
   const {
     projectSettingsOpen, setProjectSettingsOpen,
     projectSettingsTarget, setProjectSettingsTarget,
@@ -204,7 +262,7 @@ const ProjectsPage = () => {
     requestDeleteProject,
     handleConfirmDeleteProject,
     handleToggleProjectArchived,
-  } = useProjectMutations({ canEdit, updateProject, deleteProject, setMutationError });
+  } = useProjectMutations({ canEdit, updateProject: updateProjectWithGroupSync, deleteProject, setMutationError });
 
   const {
     newCustomerName, setNewCustomerName,
@@ -250,7 +308,7 @@ const ProjectsPage = () => {
     requestCloseCreateProject,
   } = useProjectCreateForm({
     canEdit,
-    addProject,
+    addProject: addProjectWithGroupSync,
     setEditingCustomerId,
     setEditingCustomerName,
   });
