@@ -14,16 +14,22 @@ import type {
 } from '@/features/planner/store/plannerStore.contract';
 import {
   AssigneeRow,
+  CustomerContactRow,
   CustomerRow,
   mapAssigneeRow,
+  mapCustomerContactRow,
   mapCustomerRow,
   mapMilestoneRow,
+  mapProjectActivityRow,
+  mapProjectMemberRow,
   mapProjectRow,
   mapStatusRow,
   mapTagRow,
   mapTaskTypeRow,
   MilestoneRow,
   MutationResult,
+  ProjectActivityRow,
+  ProjectMemberRow,
   ProjectRow,
   StatusRow,
   TagRow,
@@ -45,6 +51,15 @@ type CatalogActions = Pick<
   | 'addCustomer'
   | 'updateCustomer'
   | 'deleteCustomer'
+  | 'addCustomerContact'
+  | 'updateCustomerContact'
+  | 'deleteCustomerContact'
+  | 'addProjectMember'
+  | 'updateProjectMember'
+  | 'deleteProjectMember'
+  | 'addProjectActivity'
+  | 'updateProjectActivity'
+  | 'deleteProjectActivity'
   | 'addAssignee'
   | 'updateAssignee'
   | 'deleteAssignee'
@@ -91,6 +106,7 @@ export const createCatalogActions = (
         color: project.color,
         archived: project.archived ?? false,
         customer_id: project.customerId ?? null,
+        owner_group_id: project.ownerGroupId ?? null,
       })
       .select('*')
       .single();
@@ -113,6 +129,7 @@ export const createCatalogActions = (
     if ('color' in updates) payload.color = updates.color;
     if ('archived' in updates) payload.archived = updates.archived;
     if ('customerId' in updates) payload.customer_id = updates.customerId;
+    if ('ownerGroupId' in updates) payload.owner_group_id = updates.ownerGroupId;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase
@@ -227,6 +244,7 @@ export const createCatalogActions = (
       .insert({
         workspace_id: workspaceId,
         name: customer.name,
+        industry: customer.industry ?? null,
       })
       .select('*')
       .single();
@@ -250,6 +268,7 @@ export const createCatalogActions = (
 
     const payload: Record<string, unknown> = {};
     if ('name' in updates) payload.name = updates.name;
+    if ('industry' in updates) payload.industry = updates.industry;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase
@@ -292,11 +311,262 @@ export const createCatalogActions = (
 
     set((state) => ({
       customers: state.customers.filter((customer) => customer.id !== id),
+      customerContacts: state.customerContacts.filter((contact) => contact.customerId !== id),
       projects: state.projects.map((project) => (
         project.customerId === id ? { ...project, customerId: null } : project
       )),
     }));
 
+    return emptyMutationResult;
+  },
+
+  addCustomerContact: async (contact) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return null;
+
+    // Append at the end of the per-customer list.
+    const existingForCustomer = get().customerContacts.filter((c) => c.customerId === contact.customerId);
+    const nextPosition = existingForCustomer.reduce((max, c) => Math.max(max, c.position + 1), 0);
+
+    const { data, error } = await supabase
+      .from('customer_contacts')
+      .insert({
+        workspace_id: workspaceId,
+        customer_id: contact.customerId,
+        name: contact.name,
+        role: contact.role,
+        email: contact.email,
+        phone: contact.phone,
+        position: nextPosition,
+      })
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return null;
+    }
+
+    const mapped = mapCustomerContactRow(data as CustomerContactRow);
+    set((state) => ({ customerContacts: [...state.customerContacts, mapped] }));
+    return mapped;
+  },
+
+  updateCustomerContact: async (id, updates) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const payload: Record<string, unknown> = {};
+    if ('name' in updates) payload.name = updates.name;
+    if ('role' in updates) payload.role = updates.role;
+    if ('email' in updates) payload.email = updates.email;
+    if ('phone' in updates) payload.phone = updates.phone;
+    if ('position' in updates) payload.position = updates.position;
+    if (Object.keys(payload).length === 0) return emptyMutationResult;
+
+    const { data, error } = await supabase
+      .from('customer_contacts')
+      .update(payload)
+      .eq('id', id)
+      .eq('workspace_id', workspaceId)
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return { error: error?.message ?? 'Failed to update contact.' };
+    }
+
+    const updated = mapCustomerContactRow(data as CustomerContactRow);
+    set((state) => ({
+      customerContacts: state.customerContacts.map((c) => (c.id === id ? updated : c)),
+    }));
+    return emptyMutationResult;
+  },
+
+  deleteCustomerContact: async (id) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const { error } = await supabase
+      .from('customer_contacts')
+      .delete()
+      .eq('id', id)
+      .eq('workspace_id', workspaceId);
+
+    if (error) {
+      console.error(error);
+      return { error: error.message };
+    }
+
+    set((state) => ({
+      customerContacts: state.customerContacts.filter((c) => c.id !== id),
+    }));
+    return emptyMutationResult;
+  },
+
+  addProjectMember: async (member) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return null;
+
+    const existingForProject = get().projectMembers.filter((m) => m.projectId === member.projectId);
+    const nextPosition = existingForProject.reduce((max, m) => Math.max(max, m.position + 1), 0);
+
+    const { data, error } = await supabase
+      .from('project_members')
+      .insert({
+        workspace_id: workspaceId,
+        project_id: member.projectId,
+        assignee_id: member.assigneeId,
+        role: member.role,
+        position: nextPosition,
+      })
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return null;
+    }
+
+    const mapped = mapProjectMemberRow(data as ProjectMemberRow);
+    set((state) => ({ projectMembers: [...state.projectMembers, mapped] }));
+    return mapped;
+  },
+
+  updateProjectMember: async (id, updates) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const payload: Record<string, unknown> = {};
+    if ('role' in updates) payload.role = updates.role;
+    if ('position' in updates) payload.position = updates.position;
+    if (Object.keys(payload).length === 0) return emptyMutationResult;
+
+    const { data, error } = await supabase
+      .from('project_members')
+      .update(payload)
+      .eq('id', id)
+      .eq('workspace_id', workspaceId)
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return { error: error?.message ?? 'Failed to update project member.' };
+    }
+
+    const updated = mapProjectMemberRow(data as ProjectMemberRow);
+    set((state) => ({
+      projectMembers: state.projectMembers.map((m) => (m.id === id ? updated : m)),
+    }));
+    return emptyMutationResult;
+  },
+
+  deleteProjectMember: async (id) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const { error } = await supabase
+      .from('project_members')
+      .delete()
+      .eq('id', id)
+      .eq('workspace_id', workspaceId);
+
+    if (error) {
+      console.error(error);
+      return { error: error.message };
+    }
+
+    set((state) => ({
+      projectMembers: state.projectMembers.filter((m) => m.id !== id),
+    }));
+    return emptyMutationResult;
+  },
+
+  addProjectActivity: async ({ projectId, content }) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return null;
+    const trimmed = content.trim();
+    if (!trimmed) return null;
+
+    const userResult = await getCurrentUserId();
+    if ('error' in userResult) {
+      console.error(userResult.error);
+      return null;
+    }
+    const authState = useAuthStore.getState();
+    const authorDisplayName = authState.profileDisplayName?.trim()
+      || authState.user?.email
+      || 'Member';
+
+    const { data, error } = await supabase
+      .from('project_activity')
+      .insert({
+        workspace_id: workspaceId,
+        project_id: projectId,
+        author_id: userResult.userId,
+        author_display_name: authorDisplayName,
+        kind: 'comment',
+        content: trimmed,
+      })
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return null;
+    }
+
+    const mapped = mapProjectActivityRow(data as ProjectActivityRow);
+    set((state) => ({ projectActivity: [mapped, ...state.projectActivity] }));
+    return mapped;
+  },
+
+  updateProjectActivity: async (id, updates) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+    const trimmed = updates.content.trim();
+    if (!trimmed) return { error: 'Content is empty.' };
+
+    const { data, error } = await supabase
+      .from('project_activity')
+      .update({ content: trimmed })
+      .eq('id', id)
+      .eq('workspace_id', workspaceId)
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return { error: error?.message ?? 'Failed to update activity entry.' };
+    }
+
+    const mapped = mapProjectActivityRow(data as ProjectActivityRow);
+    set((state) => ({
+      projectActivity: state.projectActivity.map((entry) => (entry.id === id ? mapped : entry)),
+    }));
+    return emptyMutationResult;
+  },
+
+  deleteProjectActivity: async (id) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const { error } = await supabase
+      .from('project_activity')
+      .delete()
+      .eq('id', id)
+      .eq('workspace_id', workspaceId);
+
+    if (error) {
+      console.error(error);
+      return { error: error.message };
+    }
+
+    set((state) => ({
+      projectActivity: state.projectActivity.filter((entry) => entry.id !== id),
+    }));
     return emptyMutationResult;
   },
 
@@ -310,6 +580,8 @@ export const createCatalogActions = (
         workspace_id: workspaceId,
         name: assignee.name,
         is_active: assignee.isActive ?? true,
+        email: assignee.email ?? null,
+        phone: assignee.phone ?? null,
       })
       .select('*')
       .single();
@@ -330,6 +602,8 @@ export const createCatalogActions = (
     const payload: Record<string, unknown> = {};
     if ('name' in updates) payload.name = updates.name;
     if ('isActive' in updates) payload.is_active = updates.isActive;
+    if ('email' in updates) payload.email = updates.email;
+    if ('phone' in updates) payload.phone = updates.phone;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase
@@ -775,6 +1049,8 @@ export const createCatalogActions = (
         project_id: milestone.projectId,
         date: milestone.date,
         title: milestone.title,
+        note: milestone.note ?? null,
+        status_override: milestone.statusOverride ?? null,
       })
       .select('*')
       .single();
@@ -796,6 +1072,8 @@ export const createCatalogActions = (
     if ('title' in updates) payload.title = updates.title;
     if ('projectId' in updates) payload.project_id = updates.projectId;
     if ('date' in updates) payload.date = updates.date;
+    if ('note' in updates) payload.note = updates.note;
+    if ('statusOverride' in updates) payload.status_override = updates.statusOverride;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase

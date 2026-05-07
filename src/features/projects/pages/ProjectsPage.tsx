@@ -4,6 +4,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ProjectsSidebar } from '@/features/projects/components/ProjectsSidebar';
+import { ProjectCardSidebar } from '@/features/projects/components/projectCard/ProjectCardSidebar';
+import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
 import { ProjectsDialogs } from '@/features/projects/components/ProjectsDialogs';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
@@ -28,7 +30,7 @@ import { format, parseISO } from 'date-fns';
 import {
   Plus,
 } from 'lucide-react';
-import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
+import { Assignee, Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import {
@@ -80,6 +82,10 @@ const ProjectsPage = () => {
     milestones,
     trackedProjectIds,
     customers,
+    customerContacts,
+    projectMembers: projectMemberRows,
+    projectActivity,
+    memberGroups,
     statuses,
     assignees,
     taskTypes,
@@ -90,6 +96,14 @@ const ProjectsPage = () => {
     updateProject,
     updateCustomer,
     deleteCustomer,
+    addCustomerContact,
+    deleteCustomerContact,
+    addProjectMember,
+    deleteProjectMember,
+    addProjectActivity,
+    updateProjectActivity,
+    deleteProjectActivity,
+    updateAssignee,
     deleteProject,
     deleteMilestone,
     toggleTrackedProject,
@@ -103,6 +117,10 @@ const ProjectsPage = () => {
     milestones: state.milestones,
     trackedProjectIds: state.trackedProjectIds,
     customers: state.customers,
+    customerContacts: state.customerContacts,
+    projectMembers: state.projectMembers,
+    projectActivity: state.projectActivity,
+    memberGroups: state.memberGroups,
     statuses: state.statuses,
     assignees: state.assignees,
     taskTypes: state.taskTypes,
@@ -113,6 +131,14 @@ const ProjectsPage = () => {
     updateProject: state.updateProject,
     updateCustomer: state.updateCustomer,
     deleteCustomer: state.deleteCustomer,
+    addCustomerContact: state.addCustomerContact,
+    deleteCustomerContact: state.deleteCustomerContact,
+    addProjectMember: state.addProjectMember,
+    deleteProjectMember: state.deleteProjectMember,
+    addProjectActivity: state.addProjectActivity,
+    updateProjectActivity: state.updateProjectActivity,
+    deleteProjectActivity: state.deleteProjectActivity,
+    updateAssignee: state.updateAssignee,
     deleteProject: state.deleteProject,
     deleteMilestone: state.deleteMilestone,
     toggleTrackedProject: state.toggleTrackedProject,
@@ -165,6 +191,7 @@ const ProjectsPage = () => {
     projectSettingsCode, setProjectSettingsCode,
     projectSettingsColor, setProjectSettingsColor,
     projectSettingsCustomerId, setProjectSettingsCustomerId,
+    projectSettingsOwnerGroupId, setProjectSettingsOwnerGroupId,
     projectSettingsConfirmOpen, setProjectSettingsConfirmOpen,
     deleteProjectTarget, setDeleteProjectTarget,
     deleteProjectOpen, setDeleteProjectOpen,
@@ -181,6 +208,7 @@ const ProjectsPage = () => {
     createCustomerOpen, setCreateCustomerOpen,
     editingCustomerId, setEditingCustomerId,
     editingCustomerName, setEditingCustomerName,
+    editingCustomerIndustry, setEditingCustomerIndustry,
     editingCustomerOriginalName,
     renameCustomerOpen, setRenameCustomerOpen,
     renameCustomerConfirmOpen, setRenameCustomerConfirmOpen,
@@ -212,6 +240,7 @@ const ProjectsPage = () => {
     newProjectCode, setNewProjectCode,
     newProjectColor, setNewProjectColor,
     newProjectCustomerId, setNewProjectCustomerId,
+    newProjectOwnerGroupId, setNewProjectOwnerGroupId,
     resetCreateProjectForm,
     handleCreateProject,
     requestCloseCreateProject,
@@ -241,6 +270,10 @@ const ProjectsPage = () => {
   const customerById = useMemo(
     () => new Map(customers.map((customer) => [customer.id, customer])),
     [customers],
+  );
+  const memberGroupById = useMemo(
+    () => new Map(memberGroups.map((group) => [group.id, group])),
+    [memberGroups],
   );
   const projectById = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
@@ -301,6 +334,105 @@ const ProjectsPage = () => {
     () => buildCustomerProjectCounts(projects),
     [projects],
   );
+
+  // Phase 1 (Project Card): derive members from the assignees actually used on
+  // this project's tasks (no per-project membership table yet — Phase 4 will
+  // replace this with explicit `project_members`).
+  const projectMembers = useMemo(() => (
+    Array.from(availableAssigneeIds)
+      .map((id) => assigneeById.get(id))
+      .filter((assignee): assignee is Assignee => Boolean(assignee))
+  ), [assigneeById, availableAssigneeIds]);
+
+  const projectMilestones = useMemo(() => (
+    selectedProjectId
+      ? milestones.filter((milestone) => milestone.projectId === selectedProjectId)
+      : []
+  ), [milestones, selectedProjectId]);
+
+  const today = useMemo(() => new Date(), []);
+
+  // Phase 3 — customer contact handlers; surface mutation errors via the
+  // existing error banner.
+  const handleAddCustomerContact = useCallback(async (
+    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null },
+  ) => {
+    setMutationError('');
+    const result = await addCustomerContact(payload);
+    if (!result) {
+      setMutationError(t`Failed to add customer contact.`);
+    }
+  }, [addCustomerContact]);
+
+  const handleDeleteCustomerContact = useCallback(async (id: string) => {
+    setMutationError('');
+    const result = await deleteCustomerContact(id);
+    if (result?.error) {
+      setMutationError(result.error);
+    }
+  }, [deleteCustomerContact]);
+
+  // Phase 4 — project member handlers.
+  const handleAddProjectMember = useCallback(async (
+    projectId: string,
+    assigneeId: string,
+    role: string | null,
+  ) => {
+    setMutationError('');
+    const result = await addProjectMember({ projectId, assigneeId, role });
+    if (!result) {
+      setMutationError(t`Failed to add project member.`);
+    }
+  }, [addProjectMember]);
+
+  const handleRemoveProjectMember = useCallback(async (memberId: string) => {
+    setMutationError('');
+    const result = await deleteProjectMember(memberId);
+    if (result?.error) {
+      setMutationError(result.error);
+    }
+  }, [deleteProjectMember]);
+
+  const handleUpdateAssigneeContact = useCallback(async (
+    assigneeId: string,
+    email: string | null,
+    phone: string | null,
+  ) => {
+    setMutationError('');
+    const result = await updateAssignee(assigneeId, { email, phone });
+    if (result?.error) {
+      setMutationError(result.error);
+    }
+  }, [updateAssignee]);
+
+  // Phase 6 — activity feed handlers.
+  const handleAddProjectActivity = useCallback(async (projectId: string, content: string) => {
+    setMutationError('');
+    const result = await addProjectActivity({ projectId, content });
+    if (!result) {
+      setMutationError(t`Failed to publish activity entry.`);
+    }
+  }, [addProjectActivity]);
+
+  const handleUpdateProjectActivity = useCallback(async (id: string, content: string) => {
+    setMutationError('');
+    const result = await updateProjectActivity(id, { content });
+    if (result?.error) {
+      setMutationError(result.error);
+    }
+  }, [updateProjectActivity]);
+
+  const handleDeleteProjectActivity = useCallback(async (id: string) => {
+    setMutationError('');
+    const result = await deleteProjectActivity(id);
+    if (result?.error) {
+      setMutationError(result.error);
+    }
+  }, [deleteProjectActivity]);
+
+  const formatActivityTimestamp = useCallback((iso: string) => (
+    format(parseISO(iso), 'd MMM yyyy, HH:mm', { locale: dateLocale })
+  ), [dateLocale]);
 
   const {
     projectSearch,
@@ -547,7 +679,41 @@ const ProjectsPage = () => {
       ? (selectedCustomer?.name ?? t`Select a customer`)
       : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
 
-  const renderProjectsSidebar = (closeOnSelect = false) => (
+  const projectCardEnabled = isProjectCardEnabled();
+
+  const renderProjectsSidebar = (closeOnSelect = false) => {
+    // Phase 1.5: when the flag is on, in 'projects' mode, on desktop — replace
+    // the legacy multi-mode sidebar with the new card-style list. Milestones /
+    // customers / mobile keep using the legacy sidebar.
+    if (projectCardEnabled && mode === 'projects' && !isMobile) {
+      const visibleProjects = tab === 'archived'
+        ? filteredArchivedProjects
+        : filteredActiveProjects;
+      const groupLabel = tab === 'archived' ? t`Archived` : t`Active`;
+      return (
+        <ProjectCardSidebar
+          projects={visibleProjects}
+          customerById={customerById}
+          memberGroupById={memberGroupById}
+          milestones={milestones}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={(projectId) => {
+            setSelectedProjectId(projectId);
+            if (closeOnSelect) setMobileSidebarOpen(false);
+          }}
+          search={projectSearch}
+          onSearchChange={setProjectSearch}
+          nameSort={nameSort}
+          onToggleNameSort={() => setNameSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+          canEdit={canEdit}
+          onOpenProjectSettings={openProjectSettings}
+          onToggleProjectArchived={handleToggleProjectArchived}
+          onRequestDeleteProject={requestDeleteProject}
+          groupLabel={groupLabel}
+        />
+      );
+    }
+    return (
     <ProjectsSidebar
       mode={mode}
       onModeChange={setMode}
@@ -616,7 +782,8 @@ const ProjectsPage = () => {
       onToggleProjectArchived={handleToggleProjectArchived}
       groupProjects={groupedProjects}
     />
-  );
+    );
+  };
 
   const renderProjectsMainPanel = () => (
     <ProjectsMainPanel
@@ -696,6 +863,22 @@ const ProjectsPage = () => {
       selectedCustomerProjects={selectedCustomerProjects}
       customersCount={customers.length}
       onOpenProjectFromCustomer={handleOpenProjectFromCustomer}
+      projectMembers={projectMembers}
+      projectMilestones={projectMilestones}
+      today={today}
+      customerContacts={customerContacts}
+      onAddCustomerContact={handleAddCustomerContact}
+      onDeleteCustomerContact={handleDeleteCustomerContact}
+      projectMemberRows={projectMemberRows}
+      workspaceAssignees={assignees}
+      onAddProjectMember={handleAddProjectMember}
+      onRemoveProjectMember={handleRemoveProjectMember}
+      onUpdateAssigneeContact={handleUpdateAssigneeContact}
+      projectActivity={projectActivity}
+      formatActivityTimestamp={formatActivityTimestamp}
+      onAddProjectActivity={handleAddProjectActivity}
+      onUpdateProjectActivity={handleUpdateProjectActivity}
+      onDeleteProjectActivity={handleDeleteProjectActivity}
     />
   );
 
@@ -825,6 +1008,8 @@ const ProjectsPage = () => {
         requestCloseRenameCustomer={requestCloseRenameCustomer}
         editingCustomerName={editingCustomerName}
         setEditingCustomerName={setEditingCustomerName}
+        editingCustomerIndustry={editingCustomerIndustry}
+        setEditingCustomerIndustry={setEditingCustomerIndustry}
         handleRenameCustomer={handleRenameCustomer}
         renameCustomerConfirmOpen={renameCustomerConfirmOpen}
         setRenameCustomerConfirmOpen={setRenameCustomerConfirmOpen}
@@ -840,6 +1025,9 @@ const ProjectsPage = () => {
         setNewProjectColor={setNewProjectColor}
         newProjectCustomerId={newProjectCustomerId}
         setNewProjectCustomerId={setNewProjectCustomerId}
+        newProjectOwnerGroupId={newProjectOwnerGroupId}
+        setNewProjectOwnerGroupId={setNewProjectOwnerGroupId}
+        memberGroups={memberGroups}
         handleCreateProject={handleCreateProject}
         createProjectConfirmOpen={createProjectConfirmOpen}
         setCreateProjectConfirmOpen={setCreateProjectConfirmOpen}
@@ -857,6 +1045,8 @@ const ProjectsPage = () => {
         setProjectSettingsColor={setProjectSettingsColor}
         projectSettingsCustomerId={projectSettingsCustomerId}
         setProjectSettingsCustomerId={setProjectSettingsCustomerId}
+        projectSettingsOwnerGroupId={projectSettingsOwnerGroupId}
+        setProjectSettingsOwnerGroupId={setProjectSettingsOwnerGroupId}
         handleSaveProjectSettings={handleSaveProjectSettings}
         projectSettingsConfirmOpen={projectSettingsConfirmOpen}
         setProjectSettingsConfirmOpen={setProjectSettingsConfirmOpen}

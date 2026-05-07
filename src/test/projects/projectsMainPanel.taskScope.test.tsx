@@ -13,6 +13,14 @@ vi.mock('@/shared/hooks/use-mobile', () => ({
   useIsMobile: vi.fn(),
 }));
 
+// Force the legacy panel path for these tests so the existing assertions
+// (past-date inputs, "1–100 of N" pager) still apply. Phase 1+ behaviour is
+// covered by separate tests against the new ProjectCardLayout.
+vi.mock('@/shared/lib/featureFlags', () => ({
+  isProjectCardEnabled: () => false,
+  isAccountDeletionEnabled: () => false,
+}));
+
 const useIsMobileMock = vi.mocked(useIsMobile);
 
 const baseProps = {
