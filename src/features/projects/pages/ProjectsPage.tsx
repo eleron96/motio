@@ -529,6 +529,15 @@ const ProjectsPage = () => {
     format(parseISO(iso), 'd MMM yyyy, HH:mm', { locale: dateLocale })
   ), [dateLocale]);
 
+  // Phase 7.8 — inline status edit from the project card header.
+  const handleSaveProjectStatus = useCallback(async (projectId: string, next: string | null) => {
+    setMutationError('');
+    const result = await updateProject(projectId, { status: next });
+    if (result?.error) {
+      setMutationError(result.error);
+    }
+  }, [updateProject]);
+
   const {
     projectSearch,
     setProjectSearch,
@@ -1108,6 +1117,7 @@ const ProjectsPage = () => {
       today={today}
       onCreateMilestoneForProject={handleOpenCreateMilestoneForProject}
       onEditMilestone={handleOpenMilestoneSettings}
+      onSaveProjectStatus={handleSaveProjectStatus}
       customerContacts={customerContacts}
       onAddCustomerContact={handleAddCustomerContact}
       onDeleteCustomerContact={handleDeleteCustomerContact}

@@ -91,6 +91,7 @@ type ProjectsMainPanelProps = {
   today: Date;
   onCreateMilestoneForProject: (projectId: string) => void;
   onEditMilestone: (milestone: Milestone) => void;
+  onSaveProjectStatus: (projectId: string, next: string | null) => Promise<void>;
   /** Phase 3 — customer contacts list + handlers wired through plannerStore. */
   customerContacts: CustomerContact[];
   onAddCustomerContact: (
@@ -176,6 +177,7 @@ export const ProjectsMainPanel = ({
   today,
   onCreateMilestoneForProject,
   onEditMilestone,
+  onSaveProjectStatus,
   customerContacts,
   onAddCustomerContact,
   onDeleteCustomerContact,
@@ -236,6 +238,7 @@ export const ProjectsMainPanel = ({
         today={today}
         onAddMilestone={() => onCreateMilestoneForProject(selectedProject.id)}
         onEditMilestone={onEditMilestone}
+        onSaveProjectStatus={(next) => onSaveProjectStatus(selectedProject.id, next)}
         taskScope={taskScope}
         onChangeTaskScope={onChangeTaskScope}
         search={search}
