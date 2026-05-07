@@ -91,34 +91,34 @@ type ProjectsMainPanelProps = {
   today: Date;
   onCreateMilestoneForProject: (projectId: string) => void;
   onEditMilestone: (milestone: Milestone) => void;
-  onSaveProjectStatus: (projectId: string, next: string | null) => Promise<void>;
+  onSaveProjectStatus: (projectId: string, next: string | null) => Promise<boolean>;
   /** Phase 3 — customer contacts list + handlers wired through plannerStore. */
   customerContacts: CustomerContact[];
   onAddCustomerContact: (
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
-  ) => Promise<void>;
-  onDeleteCustomerContact: (id: string) => Promise<void>;
+  ) => Promise<boolean>;
+  onDeleteCustomerContact: (id: string) => Promise<boolean>;
   /** Phase 4 — explicit project members + handlers. */
   projectMemberRows: ProjectMember[];
   workspaceAssignees: Assignee[];
   onAddProjectMember: (
     projectId: string,
     input: import('./projectCard/TeamBlock').AddMemberInput,
-  ) => Promise<void>;
-  onRemoveProjectMember: (memberId: string) => Promise<void>;
-  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<void>;
+  ) => Promise<boolean>;
+  onRemoveProjectMember: (memberId: string) => Promise<boolean>;
+  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<boolean>;
   onUpdateExternalMember: (
     memberId: string,
     updates: Partial<Pick<ProjectMember,
       'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
     >>,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   /** Phase 6 — activity feed entries for the whole workspace + handlers. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
-  onAddProjectActivity: (projectId: string, content: string) => Promise<void>;
-  onUpdateProjectActivity: (id: string, content: string) => Promise<void>;
-  onDeleteProjectActivity: (id: string) => Promise<void>;
+  onAddProjectActivity: (projectId: string, content: string) => Promise<boolean>;
+  onUpdateProjectActivity: (id: string, content: string) => Promise<boolean>;
+  onDeleteProjectActivity: (id: string) => Promise<boolean>;
   /** Workspace id used by the activity rich-text editor for image uploads. */
   workspaceId?: string | null;
 };
@@ -206,6 +206,24 @@ export const ProjectsMainPanel = ({
 
   const projectCardEnabled = isProjectCardEnabled();
 
+  // Memoize per-project slices so we don't re-allocate filtered arrays on every
+  // unrelated re-render (these arrays span the whole workspace). Defensive
+  // defaults guard against tests that mount the panel with partial props.
+  const cardCustomerId = selectedProject?.customerId ?? null;
+  const cardProjectId = selectedProject?.id ?? null;
+  const filteredCustomerContacts = React.useMemo(
+    () => (customerContacts ?? []).filter((contact) => contact.customerId === (cardCustomerId ?? '')),
+    [customerContacts, cardCustomerId],
+  );
+  const filteredProjectMemberRows = React.useMemo(
+    () => (projectMemberRows ?? []).filter((row) => row.projectId === cardProjectId),
+    [projectMemberRows, cardProjectId],
+  );
+  const filteredProjectActivity = React.useMemo(
+    () => (projectActivity ?? []).filter((entry) => entry.projectId === cardProjectId),
+    [projectActivity, cardProjectId],
+  );
+
   // Phase 1: when the flag is on and a project is selected on desktop, replace
   // the legacy main panel with the new card layout. Mobile (and milestones /
   // customers modes) still use the legacy UI until follow-up phases.
@@ -219,19 +237,19 @@ export const ProjectsMainPanel = ({
       <ProjectCardLayout
         selectedProject={selectedProject}
         customer={customerById.get(selectedProject.customerId ?? '') ?? null}
-        customerContacts={customerContacts.filter((contact) => contact.customerId === (selectedProject.customerId ?? ''))}
+        customerContacts={filteredCustomerContacts}
         canEdit={canEdit}
         onAddCustomerContact={onAddCustomerContact}
         onDeleteCustomerContact={onDeleteCustomerContact}
         projectMembers={projectMembers}
-        projectMemberRows={projectMemberRows.filter((row) => row.projectId === selectedProject.id)}
+        projectMemberRows={filteredProjectMemberRows}
         assigneesById={assigneeById}
         workspaceAssignees={workspaceAssignees}
         onAddProjectMember={(input) => onAddProjectMember(selectedProject.id, input)}
         onRemoveProjectMember={onRemoveProjectMember}
         onUpdateAssigneeContact={onUpdateAssigneeContact}
         onUpdateExternalMember={onUpdateExternalMember}
-        projectActivity={projectActivity.filter((entry) => entry.projectId === selectedProject.id)}
+        projectActivity={filteredProjectActivity}
         formatActivityTimestamp={formatActivityTimestamp}
         onAddActivity={(content) => onAddProjectActivity(selectedProject.id, content)}
         onUpdateActivity={onUpdateProjectActivity}

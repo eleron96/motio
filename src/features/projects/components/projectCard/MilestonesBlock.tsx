@@ -120,10 +120,11 @@ export const MilestonesBlock: React.FC<MilestonesBlockProps> = ({
     pastCount: number,
     isPastSection: boolean,
   ) {
+    // Past items render only inside the `pastExpanded` block, so we don't need
+    // to re-check that flag here. A past item is the last in the timeline only
+    // when there are no upcoming items below it.
     const isLast = isPastSection
-      ? !pastExpanded
-        ? false
-        : flatIndex === pastCount - 1 && upcomingItems.length === 0
+      ? flatIndex === pastCount - 1 && upcomingItems.length === 0
       : flatIndex === totalCount - 1;
     return (
       <li

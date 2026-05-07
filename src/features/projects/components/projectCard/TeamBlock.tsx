@@ -23,15 +23,16 @@ interface TeamBlockProps {
   assigneesById: Map<string, Assignee>;
   workspaceAssignees: Assignee[];
   canEdit: boolean;
-  onAddMember: (input: AddMemberInput) => Promise<void>;
-  onRemoveMember: (memberId: string) => Promise<void>;
-  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<void>;
+  /** Each handler resolves to `true` on success and `false` on failure. */
+  onAddMember: (input: AddMemberInput) => Promise<boolean>;
+  onRemoveMember: (memberId: string) => Promise<boolean>;
+  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<boolean>;
   onUpdateExternalMember: (
     memberId: string,
     updates: Partial<Pick<ProjectMember,
       'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
     >>,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
 }
 
 export type AddMemberInput =
@@ -193,19 +194,22 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       const email = editingEmail.trim() || null;
       const phone = editingPhone.trim() || null;
       const tag = editingTag.trim() || null;
+      let ok = true;
       if (member.assignee) {
-        await onUpdateAssigneeContact(member.assignee.id, email, phone);
-        if (member.memberRowId && tag !== member.tag) {
-          await onUpdateExternalMember(member.memberRowId, { tag });
+        ok = await onUpdateAssigneeContact(member.assignee.id, email, phone);
+        if (ok && member.memberRowId && tag !== member.tag) {
+          ok = await onUpdateExternalMember(member.memberRowId, { tag });
         }
       } else if (member.external && member.memberRowId) {
-        await onUpdateExternalMember(member.memberRowId, {
+        ok = await onUpdateExternalMember(member.memberRowId, {
           externalEmail: email,
           externalPhone: phone,
           tag,
         });
       }
-      cancelEdit();
+      // Only close the editor when every write succeeded so the user keeps
+      // their draft on failure.
+      if (ok) cancelEdit();
     } finally {
       setEditingSubmitting(false);
     }
@@ -217,14 +221,16 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       if (!addAssigneeId) return;
       setAddSubmitting(true);
       try {
-        await onAddMember({
+        const ok = await onAddMember({
           kind: 'workspace',
           assigneeId: addAssigneeId,
           role: addRole.trim() || null,
           tag: addTag.trim() || null,
         });
-        resetAddForm();
-        setAddOpen(false);
+        if (ok) {
+          resetAddForm();
+          setAddOpen(false);
+        }
       } finally {
         setAddSubmitting(false);
       }
@@ -233,7 +239,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
     if (!addExternalName.trim()) return;
     setAddSubmitting(true);
     try {
-      await onAddMember({
+      const ok = await onAddMember({
         kind: 'external',
         name: addExternalName.trim(),
         company: addExternalCompany.trim() || null,
@@ -242,8 +248,10 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         email: addExternalEmail.trim() || null,
         phone: addExternalPhone.trim() || null,
       });
-      resetAddForm();
-      setAddOpen(false);
+      if (ok) {
+        resetAddForm();
+        setAddOpen(false);
+      }
     } finally {
       setAddSubmitting(false);
     }

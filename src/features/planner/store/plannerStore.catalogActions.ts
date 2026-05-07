@@ -6,7 +6,7 @@ import {
   type WorkspaceTemplate,
 } from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
-import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
+import { sanitizeProjectActivityContent } from '@/features/projects/lib/projectActivityContent';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import type {
   PlannerGetState,
@@ -82,29 +82,6 @@ type CatalogActions = Pick<
 >;
 
 const emptyMutationResult: MutationResult = {};
-
-const HTML_TAG_RE = /<\/?[a-z][\s\S]*?>/i;
-const IMG_TAG_RE = /<img\b/i;
-const ALL_TAGS_RE = /<[^>]+>/g;
-const NBSP_RE = /&nbsp;/gi;
-
-/**
- * Normalize a project_activity content payload that may arrive as plain text
- * or rich HTML from the editor. Returns a sanitized string ready for storage,
- * or `null` if the content is effectively empty.
- */
-const sanitizeProjectActivityContent = (raw: string): string | null => {
-  if (typeof raw !== 'string') return null;
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  const looksLikeHtml = HTML_TAG_RE.test(trimmed);
-  const sanitized = looksLikeHtml ? sanitizeCommentRichText(trimmed) : trimmed;
-  if (!sanitized) return null;
-  if (IMG_TAG_RE.test(sanitized)) return sanitized;
-  const textOnly = sanitized.replace(ALL_TAGS_RE, '').replace(NBSP_RE, ' ').trim();
-  if (!textOnly) return null;
-  return sanitized;
-};
 
 const getCurrentUserId = async () => {
   const { data, error } = await supabase.auth.getUser();

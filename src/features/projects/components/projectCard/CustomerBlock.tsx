@@ -13,10 +13,11 @@ interface CustomerBlockProps {
   contacts: CustomerContact[];
   accentColor: string;
   canEdit: boolean;
+  /** Each handler resolves to `true` on success and `false` on failure. */
   onAddContact: (
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
-  ) => Promise<void>;
-  onDeleteContact: (id: string) => Promise<void>;
+  ) => Promise<boolean>;
+  onDeleteContact: (id: string) => Promise<boolean>;
 }
 
 const buildInitials = (name: string): string => {
@@ -80,7 +81,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   const accentVars = buildProjectAccentVars(accentColor);
 
   const handleSave = async (form: { name: string; role: string; email: string; phone: string; tag: string }) => {
-    await onAddContact({
+    const ok = await onAddContact({
       customerId: customer.id,
       name: form.name,
       role: form.role || null,
@@ -88,7 +89,8 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
       phone: form.phone || null,
       tag: form.tag || null,
     });
-    setAdding(false);
+    if (ok) setAdding(false);
+    return ok;
   };
 
   const openPopup = (event: React.MouseEvent<HTMLButtonElement>, contact: CustomerContact) => {

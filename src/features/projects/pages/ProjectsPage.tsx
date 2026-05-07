@@ -5,6 +5,7 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ProjectsSidebar } from '@/features/projects/components/ProjectsSidebar';
 import { ProjectCardSidebar } from '@/features/projects/components/projectCard/ProjectCardSidebar';
+import { computeGroupMembersToAdd } from '@/features/projects/lib/projectCard/computeGroupMembersToAdd';
 import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
 import { ProjectsDialogs } from '@/features/projects/components/ProjectsDialogs';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
@@ -196,20 +197,13 @@ const ProjectsPage = () => {
     projectId: string,
     groupId: string | null,
   ) => {
-    if (!groupId) return;
-    const userIdsInGroup = memberGroupAssignments
-      .filter((row) => row.groupId === groupId)
-      .map((row) => row.userId);
-    if (userIdsInGroup.length === 0) return;
-    const assigneesInGroup = assignees.filter(
-      (assignee) => assignee.userId && userIdsInGroup.includes(assignee.userId),
-    );
-    const alreadyMember = new Set(
-      projectMemberRows
-        .filter((row) => row.projectId === projectId && row.assigneeId)
-        .map((row) => row.assigneeId as string),
-    );
-    const toAdd = assigneesInGroup.filter((assignee) => !alreadyMember.has(assignee.id));
+    const toAdd = computeGroupMembersToAdd({
+      projectId,
+      groupId,
+      memberGroupAssignments,
+      assignees,
+      projectMembers: projectMemberRows,
+    });
     if (toAdd.length === 0) return;
     await Promise.all(toAdd.map((assignee) => addProjectMember({
       projectId,
@@ -237,12 +231,19 @@ const ProjectsPage = () => {
     id: string,
     updates: Parameters<typeof updateProject>[1],
   ) => {
+    const previous = projects.find((project) => project.id === id) ?? null;
     const result = await updateProject(id, updates);
-    if (!result?.error && updates.ownerGroupId) {
-      await syncGroupMembersToProject(id, updates.ownerGroupId);
+    if (result?.error) return result;
+    // Only fan out to project_members when the owner group actually changed
+    // and resolves to a non-null group. Avoids redundant round-trips when an
+    // unrelated field (name, color, etc.) is edited.
+    const nextGroupId = 'ownerGroupId' in updates ? updates.ownerGroupId ?? null : null;
+    const previousGroupId = previous?.ownerGroupId ?? null;
+    if (nextGroupId && nextGroupId !== previousGroupId) {
+      await syncGroupMembersToProject(id, nextGroupId);
     }
     return result;
-  }, [updateProject, syncGroupMembersToProject]);
+  }, [projects, updateProject, syncGroupMembersToProject]);
 
   const {
     projectSettingsOpen, setProjectSettingsOpen,
@@ -418,27 +419,31 @@ const ProjectsPage = () => {
   // existing error banner.
   const handleAddCustomerContact = useCallback(async (
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
-  ) => {
+  ): Promise<boolean> => {
     setMutationError('');
     const result = await addCustomerContact(payload);
     if (!result) {
       setMutationError(t`Failed to add customer contact.`);
+      return false;
     }
+    return true;
   }, [addCustomerContact]);
 
-  const handleDeleteCustomerContact = useCallback(async (id: string) => {
+  const handleDeleteCustomerContact = useCallback(async (id: string): Promise<boolean> => {
     setMutationError('');
     const result = await deleteCustomerContact(id);
     if (result?.error) {
       setMutationError(result.error);
+      return false;
     }
+    return true;
   }, [deleteCustomerContact]);
 
   // Phase 4/7 — project member handlers (workspace + external).
   const handleAddProjectMember = useCallback(async (
     projectId: string,
     input: import('@/features/projects/components/projectCard/TeamBlock').AddMemberInput,
-  ) => {
+  ): Promise<boolean> => {
     setMutationError('');
     const payload = input.kind === 'workspace'
       ? {
@@ -464,7 +469,9 @@ const ProjectsPage = () => {
     const result = await addProjectMember(payload);
     if (!result) {
       setMutationError(t`Failed to add project member.`);
+      return false;
     }
+    return true;
   }, [addProjectMember]);
 
   const handleUpdateExternalMember = useCallback(async (
@@ -472,57 +479,69 @@ const ProjectsPage = () => {
     updates: Partial<Pick<import('@/features/planner/types/planner').ProjectMember,
       'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
     >>,
-  ) => {
+  ): Promise<boolean> => {
     setMutationError('');
     const result = await updateProjectMember(memberId, updates);
     if (result?.error) {
       setMutationError(result.error);
+      return false;
     }
+    return true;
   }, [updateProjectMember]);
 
-  const handleRemoveProjectMember = useCallback(async (memberId: string) => {
+  const handleRemoveProjectMember = useCallback(async (memberId: string): Promise<boolean> => {
     setMutationError('');
     const result = await deleteProjectMember(memberId);
     if (result?.error) {
       setMutationError(result.error);
+      return false;
     }
+    return true;
   }, [deleteProjectMember]);
 
   const handleUpdateAssigneeContact = useCallback(async (
     assigneeId: string,
     email: string | null,
     phone: string | null,
-  ) => {
+  ): Promise<boolean> => {
     setMutationError('');
     const result = await updateAssignee(assigneeId, { email, phone });
     if (result?.error) {
       setMutationError(result.error);
+      return false;
     }
+    return true;
   }, [updateAssignee]);
 
   // Phase 6 — activity feed handlers.
-  const handleAddProjectActivity = useCallback(async (projectId: string, content: string) => {
+  const handleAddProjectActivity = useCallback(async (projectId: string, content: string): Promise<boolean> => {
     setMutationError('');
     const result = await addProjectActivity({ projectId, content });
     if (!result) {
       setMutationError(t`Failed to publish activity entry.`);
+      return false;
     }
+    return true;
   }, [addProjectActivity]);
 
-  const handleUpdateProjectActivity = useCallback(async (id: string, content: string) => {
+  const handleUpdateProjectActivity = useCallback(async (id: string, content: string): Promise<boolean> => {
     setMutationError('');
     const result = await updateProjectActivity(id, { content });
     if (result?.error) {
       setMutationError(result.error);
+      return false;
     }
+    return true;
   }, [updateProjectActivity]);
 
-  const handleDeleteProjectActivity = useCallback(async (id: string) => {
+  const handleDeleteProjectActivity = useCallback(async (id: string): Promise<boolean> => {
     setMutationError('');
     const result = await deleteProjectActivity(id);
     if (result?.error) {
       setMutationError(result.error);
+      return false;
     }
+    return true;
   }, [deleteProjectActivity]);
 
   const formatActivityTimestamp = useCallback((iso: string) => (
@@ -530,12 +549,14 @@ const ProjectsPage = () => {
   ), [dateLocale]);
 
   // Phase 7.8 — inline status edit from the project card header.
-  const handleSaveProjectStatus = useCallback(async (projectId: string, next: string | null) => {
+  const handleSaveProjectStatus = useCallback(async (projectId: string, next: string | null): Promise<boolean> => {
     setMutationError('');
     const result = await updateProject(projectId, { status: next });
     if (result?.error) {
       setMutationError(result.error);
+      return false;
     }
+    return true;
   }, [updateProject]);
 
   const {
