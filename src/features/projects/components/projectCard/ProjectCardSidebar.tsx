@@ -139,6 +139,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                     : 'text-muted-foreground'
                 }`}
                 aria-label={t`Filter by customer`}
+                title={t`Filter by customer`}
               >
                 <Filter className="h-3.5 w-3.5" />
                 {customerFilterLabel}
@@ -238,6 +239,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
             type="button"
             className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={onToggleNameSort}
+            title={nameSort === 'asc' ? t`Sort A to Z` : t`Sort Z to A`}
           >
             {nameSort === 'asc' ? (
               <ArrowDownAZ className="h-3.5 w-3.5" />

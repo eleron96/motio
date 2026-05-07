@@ -58,6 +58,7 @@ interface ProjectCardLayoutProps {
   today: Date;
   onAddMilestone: () => void;
   onEditMilestone?: (milestone: Milestone) => void;
+  onSaveProjectStatus: (next: string | null) => Promise<void>;
   /** Phase 6 — activity feed for this project. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
@@ -115,6 +116,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
     today,
     onAddMilestone,
     onEditMilestone,
+    onSaveProjectStatus,
     projectActivity,
     formatActivityTimestamp,
     onAddActivity,
@@ -126,7 +128,12 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-y-auto bg-background">
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-4 p-6">
-        <ProjectCardHeader project={selectedProject} customer={customer} />
+        <ProjectCardHeader
+          project={selectedProject}
+          customer={customer}
+          canEdit={canEdit}
+          onSaveStatus={onSaveProjectStatus}
+        />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_1.2fr]">
           <CustomerBlock

@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
+import { Pencil, Plus } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/button';
 import type { Project, Customer } from '@/features/planner/types/planner';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
 import styles from './projectCard.module.css';
@@ -8,10 +10,62 @@ import styles from './projectCard.module.css';
 interface ProjectCardHeaderProps {
   project: Project;
   customer: Customer | null;
+  canEdit: boolean;
+  onSaveStatus: (next: string | null) => Promise<void>;
 }
 
-export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({ project, customer }) => {
+export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
+  project,
+  customer,
+  canEdit,
+  onSaveStatus,
+}) => {
   const customerLabel = customer?.name ?? t`No customer`;
+
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(project.status ?? '');
+  const [submitting, setSubmitting] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  useEffect(() => {
+    // Reset draft whenever the underlying project changes (e.g. switch project).
+    setDraft(project.status ?? '');
+    setEditing(false);
+  }, [project.id, project.status]);
+
+  const beginEdit = () => {
+    if (!canEdit) return;
+    setDraft(project.status ?? '');
+    setEditing(true);
+  };
+
+  const cancel = () => {
+    setDraft(project.status ?? '');
+    setEditing(false);
+  };
+
+  const submit = async () => {
+    if (submitting) return;
+    const next = draft.trim() ? draft.trim() : null;
+    if (next === (project.status ?? null)) {
+      setEditing(false);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await onSaveStatus(next);
+      setEditing(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div
@@ -37,15 +91,77 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({ project, c
             <h1 className="break-words text-ui-2xl font-semibold tracking-tight [overflow-wrap:anywhere]">
               {project.name}
             </h1>
-            {project.status && (
-              <span className="rounded-md bg-muted px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {project.status}
-              </span>
-            )}
             {project.archived && (
               <Badge variant="secondary">{t`Archived`}</Badge>
             )}
           </div>
+        </div>
+
+        {/* Phase 7.8: editable status chip in the top-right of the header. */}
+        <div className="flex flex-shrink-0 items-start">
+          {editing ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submit();
+              }}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1.5 shadow-sm"
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cancel();
+                  }
+                }}
+                placeholder={t`Project status`}
+                className="w-44 bg-transparent text-[12px] font-medium uppercase tracking-wide text-foreground outline-none placeholder:text-muted-foreground/70"
+                disabled={submitting}
+              />
+              <Button type="submit" size="sm" disabled={submitting} className="h-7 px-2.5">
+                {t`Save`}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={cancel}
+                disabled={submitting}
+                className="h-7 px-2.5"
+              >
+                {t`Cancel`}
+              </Button>
+            </form>
+          ) : project.status ? (
+            <button
+              type="button"
+              onClick={beginEdit}
+              disabled={!canEdit}
+              title={canEdit ? t`Edit project status` : project.status}
+              className={`group inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${
+                canEdit ? 'hover:bg-foreground hover:text-background' : 'cursor-default'
+              }`}
+            >
+              <span>{project.status}</span>
+              {canEdit && (
+                <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+              )}
+            </button>
+          ) : canEdit ? (
+            <button
+              type="button"
+              onClick={beginEdit}
+              title={t`Add project status`}
+              className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:border-foreground hover:text-foreground"
+            >
+              <Plus className="h-3 w-3" />
+              {t`Status`}
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
