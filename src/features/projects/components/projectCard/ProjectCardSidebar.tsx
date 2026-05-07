@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowUpAZ, CircleDot, Filter, Layers, MoreHorizontal, Search, Users } from 'lucide-react';
+import { Archive, ArrowDownAZ, ArrowUpAZ, Filter, Layers, MoreHorizontal, Search, Users } from 'lucide-react';
 import type { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
 import { Checkbox } from '@/shared/ui/checkbox';
 import {
@@ -54,14 +54,11 @@ interface ProjectCardSidebarProps {
   ownerGroupFilterLabel: string;
   onToggleOwnerGroupFilter: (groupId: string) => void;
   onClearOwnerGroupFilters: () => void;
-  /** Phase 7.5: filter by free-form project status. */
-  statusOptions: string[];
-  statusFilterValues: string[];
-  statusFilterLabel: string;
-  onToggleStatusFilter: (value: string) => void;
-  onClearStatusFilters: () => void;
   /** Phase 7.5: optional Projects | Customers tabs rendered above the title. */
   modeTabs?: React.ReactNode;
+  /** Phase 7.6: active/archived toggle controlled from the page state. */
+  showArchived: boolean;
+  onToggleShowArchived: () => void;
   /**
    * Pre-grouped projects when `groupByCustomer` is on. The page already builds
    * this through `groupProjectsForSidebar` for the legacy sidebar, so we
@@ -99,12 +96,9 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
   ownerGroupFilterLabel,
   onToggleOwnerGroupFilter,
   onClearOwnerGroupFilters,
-  statusOptions,
-  statusFilterValues,
-  statusFilterLabel,
-  onToggleStatusFilter,
-  onClearStatusFilters,
   modeTabs,
+  showArchived,
+  onToggleShowArchived,
 }) => {
   const milestoneCountByProject = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -190,15 +184,18 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted hover:text-foreground ${
+                className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium hover:bg-muted hover:text-foreground ${
                   ownerGroupFilterIds.length > 0
                     ? 'bg-muted text-foreground'
                     : 'text-muted-foreground'
                 }`}
                 aria-label={t`Filter by owner team`}
+                title={ownerGroupFilterIds.length > 0 ? ownerGroupFilterLabel : t`Filter by team`}
               >
                 <Users className="h-3.5 w-3.5" />
-                {ownerGroupFilterLabel}
+                {ownerGroupFilterIds.length > 0 && (
+                  <span className="text-[10px] tabular-nums">{ownerGroupFilterIds.length}</span>
+                )}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-60 p-3" align="start">
@@ -237,57 +234,6 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
               </ScrollArea>
             </PopoverContent>
           </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium hover:bg-muted hover:text-foreground ${
-                  statusFilterValues.length > 0
-                    ? 'bg-muted text-foreground'
-                    : 'text-muted-foreground'
-                }`}
-                aria-label={t`Filter by status`}
-              >
-                <CircleDot className="h-3.5 w-3.5" />
-                {statusFilterLabel}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-60 p-3" align="start">
-              <div className="flex items-center justify-between pb-2">
-                <span className="text-[11px] text-muted-foreground">{t`Filter by status`}</span>
-                <button
-                  type="button"
-                  className="rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground"
-                  onClick={onClearStatusFilters}
-                >
-                  {t`Clear`}
-                </button>
-              </div>
-              <ScrollArea className="max-h-56 pr-2">
-                <div className="space-y-1">
-                  <label className="flex cursor-pointer items-center gap-2 py-1">
-                    <Checkbox
-                      checked={statusFilterValues.includes('__none__')}
-                      onCheckedChange={() => onToggleStatusFilter('__none__')}
-                    />
-                    <span className="text-sm">{t`No status`}</span>
-                  </label>
-                  {statusOptions.length === 0 && (
-                    <div className="text-xs text-muted-foreground">{t`No statuses yet.`}</div>
-                  )}
-                  {statusOptions.map((value) => (
-                    <label key={value} className="flex cursor-pointer items-center gap-2 py-1">
-                      <Checkbox
-                        checked={statusFilterValues.includes(value)}
-                        onCheckedChange={() => onToggleStatusFilter(value)}
-                      />
-                      <span className="truncate text-sm">{value}</span>
-                    </label>
-                  ))}
-                </div>
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
           <button
             type="button"
             className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -302,10 +248,21 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
           </button>
           <button
             type="button"
+            onClick={onToggleShowArchived}
+            aria-pressed={showArchived}
+            title={showArchived ? t`Showing archived` : t`Show archived`}
+            className={`ml-auto grid h-7 w-7 place-items-center rounded-md hover:bg-muted hover:text-foreground ${
+              showArchived ? 'bg-muted text-foreground' : 'text-muted-foreground'
+            }`}
+          >
+            <Archive className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
             onClick={onToggleGroupByCustomer}
             aria-pressed={groupByCustomer}
             title={t`Group by customer`}
-            className={`ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium hover:bg-muted hover:text-foreground ${
+            className={`grid h-7 w-7 place-items-center rounded-md hover:bg-muted hover:text-foreground ${
               groupByCustomer ? 'bg-muted text-foreground' : 'text-muted-foreground'
             }`}
           >

@@ -478,8 +478,6 @@ const ProjectsPage = () => {
     setCustomerFilterIds,
     ownerGroupFilterIds,
     setOwnerGroupFilterIds,
-    statusFilterValues,
-    setStatusFilterValues,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,
@@ -621,27 +619,6 @@ const ProjectsPage = () => {
     ));
   };
 
-  // Phase 7.5: distinct project statuses currently in use across the workspace.
-  const statusOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const project of projects) {
-      if (project.status && project.status.trim()) set.add(project.status.trim());
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [projects]);
-
-  const projectStatusFilterLabel = statusFilterValues.length === 0
-    ? t`Status`
-    : t`${statusFilterValues.length} selected`;
-
-  const handleToggleProjectStatusFilter = (value: string) => {
-    setStatusFilterValues((current) => (
-      current.includes(value)
-        ? current.filter((entry) => entry !== value)
-        : [...current, value]
-    ));
-  };
-
   const nameSortLabel = nameSort === 'asc' ? t`A-Z` : t`Z-A`;
 
   const handleToggleStatus = (statusId: string) => {
@@ -757,34 +734,37 @@ const ProjectsPage = () => {
 
   const projectCardEnabled = isProjectCardEnabled();
 
-  // Phase 7.5: simple Projects | Customers tabs that appear above both the
-  // new card sidebar and the legacy customers sidebar when the flag is on.
+  // Phase 7.5/7.6: Projects | Customers segmented switch — one rounded pill
+  // container, the active option goes black. Used above both the new card
+  // sidebar and the legacy customers sidebar.
   const renderModeTabs = () => (
-    <div className="flex items-center gap-1 border-b border-border bg-card px-3 py-2">
-      <button
-        type="button"
-        onClick={() => setMode('projects')}
-        aria-pressed={mode === 'projects'}
-        className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-          mode === 'projects'
-            ? 'bg-foreground text-background'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-        }`}
-      >
-        {t`Projects`}
-      </button>
-      <button
-        type="button"
-        onClick={() => setMode('customers')}
-        aria-pressed={mode === 'customers'}
-        className={`flex-1 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-          mode === 'customers'
-            ? 'bg-foreground text-background'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-        }`}
-      >
-        {t`Customers`}
-      </button>
+    <div className="border-b border-border bg-card px-3 py-2">
+      <div className="inline-flex w-full items-center rounded-full border border-border bg-muted/50 p-0.5">
+        <button
+          type="button"
+          onClick={() => setMode('projects')}
+          aria-pressed={mode === 'projects'}
+          className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            mode === 'projects'
+              ? 'bg-foreground text-background shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {t`Projects`}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('customers')}
+          aria-pressed={mode === 'customers'}
+          className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
+            mode === 'customers'
+              ? 'bg-foreground text-background shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {t`Customers`}
+        </button>
+      </div>
     </div>
   );
 
@@ -830,12 +810,9 @@ const ProjectsPage = () => {
           ownerGroupFilterLabel={ownerGroupFilterLabel}
           onToggleOwnerGroupFilter={handleToggleOwnerGroupFilter}
           onClearOwnerGroupFilters={() => setOwnerGroupFilterIds([])}
-          statusOptions={statusOptions}
-          statusFilterValues={statusFilterValues}
-          statusFilterLabel={projectStatusFilterLabel}
-          onToggleStatusFilter={handleToggleProjectStatusFilter}
-          onClearStatusFilters={() => setStatusFilterValues([])}
           modeTabs={renderModeTabs()}
+          showArchived={tab === 'archived'}
+          onToggleShowArchived={() => setTab((current) => current === 'archived' ? 'active' : 'archived')}
         />
       );
     }

@@ -155,6 +155,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
             canEdit={canEdit}
             onAddMilestone={onAddMilestone}
             onEditMilestone={onEditMilestone}
+            accentColor={selectedProject.color}
           />
         </div>
 
