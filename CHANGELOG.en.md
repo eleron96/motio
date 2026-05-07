@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.35] - 2026-05-07
+### Added
+- Test deploy of the redesigned project tab (behind VITE_FEATURE_PROJECT_CARD). Project card with Customer, Team, Milestones, Activity and Tasks blocks instead of the flat task list. Sidebar with project accent bar, code, customer and owner team. Per-project activity journal with composer, search and jump-to-date. Migrations 0080–0084 add project owner team, customer industry and contacts, assignee contact info and explicit project_members, milestone note and status override, project activity feed.
+
 ## [0.4.34] - 2026-05-03
 ### Changed
 - No documented changes.
