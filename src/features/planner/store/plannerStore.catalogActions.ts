@@ -95,7 +95,7 @@ export const createCatalogActions = (
 ): CatalogActions => ({
   addProject: async (project) => {
     const workspaceId = get().workspaceId;
-    if (!workspaceId) return;
+    if (!workspaceId) return null;
 
     const { data, error } = await supabase
       .from('projects')
@@ -114,10 +114,12 @@ export const createCatalogActions = (
 
     if (error || !data) {
       console.error(error);
-      return;
+      return null;
     }
 
-    set((state) => ({ projects: [...state.projects, mapProjectRow(data as ProjectRow)] }));
+    const mapped = mapProjectRow(data as ProjectRow);
+    set((state) => ({ projects: [...state.projects, mapped] }));
+    return mapped;
   },
 
   updateProject: async (id, updates) => {

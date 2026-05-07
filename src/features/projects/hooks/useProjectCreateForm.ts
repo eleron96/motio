@@ -4,7 +4,7 @@ import { DEFAULT_PROJECT_COLOR } from '@/shared/lib/colors';
 
 interface UseProjectCreateFormParams {
   canEdit: boolean;
-  addProject: (data: Omit<Project, 'id'>) => Promise<void>;
+  addProject: (data: Omit<Project, 'id'>) => Promise<Project | null>;
   setEditingCustomerId: Dispatch<SetStateAction<string | null>>;
   setEditingCustomerName: Dispatch<SetStateAction<string>>;
 }
