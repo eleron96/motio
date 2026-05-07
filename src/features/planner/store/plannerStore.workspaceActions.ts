@@ -159,7 +159,7 @@ export const createWorkspaceActions = (
       .eq('workspace_id', workspaceId);
     const customerContactsQuery = supabase
       .from('customer_contacts')
-      .select('id, workspace_id, customer_id, name, role, email, phone, position')
+      .select('id, workspace_id, customer_id, name, role, email, phone, position, tag')
       .eq('workspace_id', workspaceId)
       .order('position', { ascending: true })
       .order('created_at', { ascending: true });
@@ -169,7 +169,7 @@ export const createWorkspaceActions = (
       .eq('workspace_id', workspaceId);
     const projectMembersQuery = supabase
       .from('project_members')
-      .select('id, workspace_id, project_id, assignee_id, role, position')
+      .select('id, workspace_id, project_id, assignee_id, role, position, tag, external_name, external_company, external_email, external_phone')
       .eq('workspace_id', workspaceId)
       .order('position', { ascending: true })
       .order('created_at', { ascending: true });

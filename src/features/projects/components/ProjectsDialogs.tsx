@@ -84,6 +84,7 @@ type ProjectsDialogsProps = {
   milestoneDialogOpen: boolean;
   handleMilestoneDialogOpenChange: (open: boolean) => void;
   milestoneDialogDate: string | null;
+  milestoneDialogDefaultProjectId: string | null;
   editingMilestone: Milestone | null;
   selectedTaskId: string | null;
   setSelectedTaskId: (taskId: string | null) => void;
@@ -174,6 +175,7 @@ export const ProjectsDialogs = ({
   milestoneDialogOpen,
   handleMilestoneDialogOpenChange,
   milestoneDialogDate,
+  milestoneDialogDefaultProjectId,
   editingMilestone,
   selectedTaskId,
   setSelectedTaskId,
@@ -582,6 +584,7 @@ export const ProjectsDialogs = ({
         milestone={editingMilestone}
         canEdit={canEdit}
         allowDateEdit
+        defaultProjectId={milestoneDialogDefaultProjectId}
       />
 
       <ProjectTaskDetailsDialog

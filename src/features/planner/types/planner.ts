@@ -52,6 +52,8 @@ export interface CustomerContact {
   email: string | null;
   phone: string | null;
   position: number;
+  /** Phase 7: free-form tag for grouping (e.g. «субподрядчик», «BIM-менеджер»). */
+  tag: string | null;
 }
 
 export interface Assignee {
@@ -72,9 +74,21 @@ export interface Assignee {
 export interface ProjectMember {
   id: string;
   projectId: string;
-  assigneeId: string;
+  /**
+   * Phase 4: workspace assignee link. Phase 7 made this nullable so that
+   * external (non-Motio) people can be added — at least one of `assigneeId`
+   * or `externalName` must be set, enforced by a CHECK constraint in 0086.
+   */
+  assigneeId: string | null;
   role: string | null;
   position: number;
+  /** Phase 7: free-form grouping label (e.g. «субподрядчик»). */
+  tag: string | null;
+  /** Phase 7: external person fields. Used when `assigneeId` is null. */
+  externalName: string | null;
+  externalCompany: string | null;
+  externalEmail: string | null;
+  externalPhone: string | null;
 }
 
 /**

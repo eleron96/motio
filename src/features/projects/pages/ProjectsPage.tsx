@@ -100,6 +100,7 @@ const ProjectsPage = () => {
     deleteCustomerContact,
     addProjectMember,
     deleteProjectMember,
+    updateProjectMember,
     addProjectActivity,
     updateProjectActivity,
     deleteProjectActivity,
@@ -135,6 +136,7 @@ const ProjectsPage = () => {
     deleteCustomerContact: state.deleteCustomerContact,
     addProjectMember: state.addProjectMember,
     deleteProjectMember: state.deleteProjectMember,
+    updateProjectMember: state.updateProjectMember,
     addProjectActivity: state.addProjectActivity,
     updateProjectActivity: state.updateProjectActivity,
     deleteProjectActivity: state.deleteProjectActivity,
@@ -355,7 +357,7 @@ const ProjectsPage = () => {
   // Phase 3 — customer contact handlers; surface mutation errors via the
   // existing error banner.
   const handleAddCustomerContact = useCallback(async (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null },
+    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
   ) => {
     setMutationError('');
     const result = await addCustomerContact(payload);
@@ -372,18 +374,51 @@ const ProjectsPage = () => {
     }
   }, [deleteCustomerContact]);
 
-  // Phase 4 — project member handlers.
+  // Phase 4/7 — project member handlers (workspace + external).
   const handleAddProjectMember = useCallback(async (
     projectId: string,
-    assigneeId: string,
-    role: string | null,
+    input: import('@/features/projects/components/projectCard/TeamBlock').AddMemberInput,
   ) => {
     setMutationError('');
-    const result = await addProjectMember({ projectId, assigneeId, role });
+    const payload = input.kind === 'workspace'
+      ? {
+          projectId,
+          assigneeId: input.assigneeId,
+          role: input.role,
+          tag: input.tag,
+          externalName: null,
+          externalCompany: null,
+          externalEmail: null,
+          externalPhone: null,
+        }
+      : {
+          projectId,
+          assigneeId: null,
+          role: input.role,
+          tag: input.tag,
+          externalName: input.name,
+          externalCompany: input.company,
+          externalEmail: input.email,
+          externalPhone: input.phone,
+        };
+    const result = await addProjectMember(payload);
     if (!result) {
       setMutationError(t`Failed to add project member.`);
     }
   }, [addProjectMember]);
+
+  const handleUpdateExternalMember = useCallback(async (
+    memberId: string,
+    updates: Partial<Pick<import('@/features/planner/types/planner').ProjectMember,
+      'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
+    >>,
+  ) => {
+    setMutationError('');
+    const result = await updateProjectMember(memberId, updates);
+    if (result?.error) {
+      setMutationError(result.error);
+    }
+  }, [updateProjectMember]);
 
   const handleRemoveProjectMember = useCallback(async (memberId: string) => {
     setMutationError('');
@@ -439,6 +474,8 @@ const ProjectsPage = () => {
     setProjectSearch,
     customerFilterIds,
     setCustomerFilterIds,
+    ownerGroupFilterIds,
+    setOwnerGroupFilterIds,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,
@@ -503,11 +540,13 @@ const ProjectsPage = () => {
     editingMilestone,
     milestoneDialogOpen,
     milestoneDialogDate,
+    milestoneDialogDefaultProjectId,
     deleteMilestoneTarget,
     deleteMilestoneOpen,
     setDeleteMilestoneOpen,
     setDeleteMilestoneTarget,
     handleOpenCreateMilestone,
+    handleOpenCreateMilestoneForProject,
     handleOpenMilestoneSettings,
     handleMilestoneDialogOpenChange,
     requestDeleteMilestone,
@@ -565,6 +604,18 @@ const ProjectsPage = () => {
   const customerFilterLabel = customerFilterIds.length === 0
     ? t`All`
     : t`${customerFilterIds.length} selected`;
+
+  const ownerGroupFilterLabel = ownerGroupFilterIds.length === 0
+    ? t`Team`
+    : t`${ownerGroupFilterIds.length} selected`;
+
+  const handleToggleOwnerGroupFilter = (groupId: string) => {
+    setOwnerGroupFilterIds((current) => (
+      current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId]
+    ));
+  };
 
   const nameSortLabel = nameSort === 'asc' ? t`A-Z` : t`Z-A`;
 
@@ -718,6 +769,11 @@ const ProjectsPage = () => {
           groupByCustomer={groupByCustomer}
           onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
           groupedProjects={groupedProjects(visibleProjects)}
+          memberGroups={memberGroups}
+          ownerGroupFilterIds={ownerGroupFilterIds}
+          ownerGroupFilterLabel={ownerGroupFilterLabel}
+          onToggleOwnerGroupFilter={handleToggleOwnerGroupFilter}
+          onClearOwnerGroupFilters={() => setOwnerGroupFilterIds([])}
         />
       );
     }
@@ -874,6 +930,8 @@ const ProjectsPage = () => {
       projectMembers={projectMembers}
       projectMilestones={projectMilestones}
       today={today}
+      onCreateMilestoneForProject={handleOpenCreateMilestoneForProject}
+      onEditMilestone={handleOpenMilestoneSettings}
       customerContacts={customerContacts}
       onAddCustomerContact={handleAddCustomerContact}
       onDeleteCustomerContact={handleDeleteCustomerContact}
@@ -882,6 +940,7 @@ const ProjectsPage = () => {
       onAddProjectMember={handleAddProjectMember}
       onRemoveProjectMember={handleRemoveProjectMember}
       onUpdateAssigneeContact={handleUpdateAssigneeContact}
+      onUpdateExternalMember={handleUpdateExternalMember}
       projectActivity={projectActivity}
       formatActivityTimestamp={formatActivityTimestamp}
       onAddProjectActivity={handleAddProjectActivity}
@@ -1061,6 +1120,7 @@ const ProjectsPage = () => {
         milestoneDialogOpen={milestoneDialogOpen}
         handleMilestoneDialogOpenChange={handleMilestoneDialogOpenChange}
         milestoneDialogDate={milestoneDialogDate}
+        milestoneDialogDefaultProjectId={milestoneDialogDefaultProjectId}
         editingMilestone={editingMilestone}
         selectedTaskId={selectedTaskId}
         setSelectedTaskId={setSelectedTaskId}

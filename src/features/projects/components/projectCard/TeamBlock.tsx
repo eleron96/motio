@@ -1,34 +1,50 @@
 import React, { useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { ExternalLink, Group, Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
+import { getMonogramColor } from '@/shared/lib/monogramColor';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
 import { ContactPopup } from './ContactPopup';
 
+const UNTAGGED_KEY = '__no_tag__';
+const UNTAGGED_LABEL_PROVIDER = () => t`Untagged`;
+
 interface TeamBlockProps {
-  /**
-   * Explicit per-project members. Source of truth for the "team". Phase 4
-   * kept legacy task-derived assignees as the *fallback* shown when no
-   * explicit members exist yet, so the project doesn't look empty after the
-   * migration ships.
-   */
   members: ProjectMember[];
   taskFallbackMembers: Assignee[];
   assigneesById: Map<string, Assignee>;
   workspaceAssignees: Assignee[];
   canEdit: boolean;
-  onAddMember: (assigneeId: string, role: string | null) => Promise<void>;
+  onAddMember: (input: AddMemberInput) => Promise<void>;
   onRemoveMember: (memberId: string) => Promise<void>;
   onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<void>;
+  onUpdateExternalMember: (
+    memberId: string,
+    updates: Partial<Pick<ProjectMember,
+      'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
+    >>,
+  ) => Promise<void>;
 }
+
+export type AddMemberInput =
+  | { kind: 'workspace'; assigneeId: string; role: string | null; tag: string | null }
+  | {
+      kind: 'external';
+      name: string;
+      company: string | null;
+      role: string | null;
+      tag: string | null;
+      email: string | null;
+      phone: string | null;
+    };
 
 const buildInitials = (name: string): string => {
   const parts = name.trim().split(/\s+/);
@@ -41,8 +57,17 @@ const buildInitials = (name: string): string => {
 interface ResolvedMember {
   /** project_members row id when explicit, null when only task-derived. */
   memberRowId: string | null;
-  assignee: Assignee;
+  /** When the row points at a workspace assignee. */
+  assignee: Assignee | null;
+  /** External label fields, valid when assignee is null. */
+  external: {
+    name: string;
+    company: string | null;
+    email: string | null;
+    phone: string | null;
+  } | null;
   role: string | null;
+  tag: string | null;
 }
 
 export const TeamBlock: React.FC<TeamBlockProps> = ({
@@ -54,75 +79,318 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   onAddMember,
   onRemoveMember,
   onUpdateAssigneeContact,
+  onUpdateExternalMember,
 }) => {
   const [popup, setPopup] = useState<{ contact: ResolvedMember; rect: DOMRect } | null>(null);
-  const [addingRole, setAddingRole] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
   const [editingPhone, setEditingPhone] = useState('');
+  const [editingTag, setEditingTag] = useState('');
   const [editingSubmitting, setEditingSubmitting] = useState(false);
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [addKind, setAddKind] = useState<'workspace' | 'external'>('workspace');
+  const [addAssigneeId, setAddAssigneeId] = useState<string | null>(null);
+  const [addRole, setAddRole] = useState('');
+  const [addTag, setAddTag] = useState('');
+  const [addExternalName, setAddExternalName] = useState('');
+  const [addExternalCompany, setAddExternalCompany] = useState('');
+  const [addExternalEmail, setAddExternalEmail] = useState('');
+  const [addExternalPhone, setAddExternalPhone] = useState('');
+  const [addSubmitting, setAddSubmitting] = useState(false);
+
+  const [groupByTag, setGroupByTag] = useState(false);
+  const [collapsedTags, setCollapsedTags] = useState<Set<string>>(new Set());
+
   const explicitMode = members.length > 0;
-
-  const beginEdit = (assignee: Assignee) => {
-    setEditingId(assignee.id);
-    setEditingEmail(assignee.email ?? '');
-    setEditingPhone(assignee.phone ?? '');
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditingEmail('');
-    setEditingPhone('');
-  };
-
-  const saveEdit = async (assigneeId: string) => {
-    if (editingSubmitting) return;
-    setEditingSubmitting(true);
-    try {
-      await onUpdateAssigneeContact(
-        assigneeId,
-        editingEmail.trim() || null,
-        editingPhone.trim() || null,
-      );
-      cancelEdit();
-    } finally {
-      setEditingSubmitting(false);
-    }
-  };
 
   const resolvedMembers = useMemo<ResolvedMember[]>(() => {
     if (explicitMode) {
       return members
         .slice()
         .sort((a, b) => a.position - b.position)
-        .map((member) => {
-          const assignee = assigneesById.get(member.assigneeId);
-          return assignee
-            ? { memberRowId: member.id, assignee, role: member.role }
-            : null;
+        .map<ResolvedMember | null>((member) => {
+          if (member.assigneeId) {
+            const assignee = assigneesById.get(member.assigneeId);
+            if (!assignee) return null;
+            return { memberRowId: member.id, assignee, external: null, role: member.role, tag: member.tag };
+          }
+          if (member.externalName) {
+            return {
+              memberRowId: member.id,
+              assignee: null,
+              external: {
+                name: member.externalName,
+                company: member.externalCompany,
+                email: member.externalEmail,
+                phone: member.externalPhone,
+              },
+              role: member.role,
+              tag: member.tag,
+            };
+          }
+          return null;
         })
         .filter((value): value is ResolvedMember => value !== null);
     }
     return [...taskFallbackMembers]
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map<ResolvedMember>((assignee) => ({ memberRowId: null, assignee, role: null }));
+      .map<ResolvedMember>((assignee) => ({
+        memberRowId: null,
+        assignee,
+        external: null,
+        role: null,
+        tag: null,
+      }));
   }, [assigneesById, explicitMode, members, taskFallbackMembers]);
 
   const availableForAdd = useMemo(() => {
-    const usedIds = new Set(members.map((member) => member.assigneeId));
+    const usedIds = new Set(members.map((m) => m.assigneeId).filter(Boolean));
     return workspaceAssignees
-      .filter((assignee) => assignee.isActive && !usedIds.has(assignee.id))
+      .filter((a) => a.isActive && !usedIds.has(a.id))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [members, workspaceAssignees]);
 
-  const openPopup = (event: React.MouseEvent<HTMLButtonElement>, member: ResolvedMember) => {
-    setPopup({ contact: member, rect: event.currentTarget.getBoundingClientRect() });
+  const groupedByTag = useMemo(() => {
+    const groups = new Map<string, ResolvedMember[]>();
+    for (const member of resolvedMembers) {
+      const key = member.tag?.trim() ? member.tag.trim() : UNTAGGED_KEY;
+      const list = groups.get(key) ?? [];
+      list.push(member);
+      groups.set(key, list);
+    }
+    return Array.from(groups.entries())
+      .sort(([a], [b]) => {
+        if (a === UNTAGGED_KEY) return 1;
+        if (b === UNTAGGED_KEY) return -1;
+        return a.localeCompare(b);
+      });
+  }, [resolvedMembers]);
+
+  const beginEdit = (member: ResolvedMember) => {
+    setEditingId(member.memberRowId ?? member.assignee?.id ?? null);
+    if (member.assignee) {
+      setEditingEmail(member.assignee.email ?? '');
+      setEditingPhone(member.assignee.phone ?? '');
+    } else if (member.external) {
+      setEditingEmail(member.external.email ?? '');
+      setEditingPhone(member.external.phone ?? '');
+    }
+    setEditingTag(member.tag ?? '');
   };
 
-  const handleAdd = async (assigneeId: string) => {
-    const role = addingRole.trim() || null;
-    setAddingRole('');
-    await onAddMember(assigneeId, role);
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingEmail('');
+    setEditingPhone('');
+    setEditingTag('');
+  };
+
+  const saveEdit = async (member: ResolvedMember) => {
+    if (editingSubmitting) return;
+    setEditingSubmitting(true);
+    try {
+      const email = editingEmail.trim() || null;
+      const phone = editingPhone.trim() || null;
+      const tag = editingTag.trim() || null;
+      if (member.assignee) {
+        await onUpdateAssigneeContact(member.assignee.id, email, phone);
+        if (member.memberRowId && tag !== member.tag) {
+          await onUpdateExternalMember(member.memberRowId, { tag });
+        }
+      } else if (member.external && member.memberRowId) {
+        await onUpdateExternalMember(member.memberRowId, {
+          externalEmail: email,
+          externalPhone: phone,
+          tag,
+        });
+      }
+      cancelEdit();
+    } finally {
+      setEditingSubmitting(false);
+    }
+  };
+
+  const submitAdd = async () => {
+    if (addSubmitting) return;
+    if (addKind === 'workspace') {
+      if (!addAssigneeId) return;
+      setAddSubmitting(true);
+      try {
+        await onAddMember({
+          kind: 'workspace',
+          assigneeId: addAssigneeId,
+          role: addRole.trim() || null,
+          tag: addTag.trim() || null,
+        });
+        resetAddForm();
+        setAddOpen(false);
+      } finally {
+        setAddSubmitting(false);
+      }
+      return;
+    }
+    if (!addExternalName.trim()) return;
+    setAddSubmitting(true);
+    try {
+      await onAddMember({
+        kind: 'external',
+        name: addExternalName.trim(),
+        company: addExternalCompany.trim() || null,
+        role: addRole.trim() || null,
+        tag: addTag.trim() || null,
+        email: addExternalEmail.trim() || null,
+        phone: addExternalPhone.trim() || null,
+      });
+      resetAddForm();
+      setAddOpen(false);
+    } finally {
+      setAddSubmitting(false);
+    }
+  };
+
+  const resetAddForm = () => {
+    setAddAssigneeId(null);
+    setAddRole('');
+    setAddTag('');
+    setAddExternalName('');
+    setAddExternalCompany('');
+    setAddExternalEmail('');
+    setAddExternalPhone('');
+  };
+
+  const toggleTagCollapsed = (key: string) => {
+    setCollapsedTags((set) => {
+      const next = new Set(set);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const renderMemberRow = (member: ResolvedMember) => {
+    const displayName = member.assignee?.name ?? member.external?.name ?? '—';
+    const initials = buildInitials(displayName);
+    const colorSeed = member.assignee?.userId ?? member.assignee?.id ?? member.external?.email ?? displayName;
+    const hasContact = Boolean(
+      (member.assignee && (member.assignee.email || member.assignee.phone))
+        || (member.external && (member.external.email || member.external.phone)),
+    );
+    const isExternal = !member.assignee;
+    const editingKey = member.memberRowId ?? member.assignee?.id ?? null;
+    const isEditing = editingKey !== null && editingKey === editingId;
+
+    return (
+      <li key={member.memberRowId ?? member.assignee?.id ?? displayName} className="rounded-md hover:bg-muted/40">
+        <div className="group flex items-center gap-2 px-1.5 py-1">
+          <div className="relative h-6 w-6 flex-shrink-0">
+            <div
+              className="grid h-6 w-6 place-items-center rounded-full text-[9px] font-semibold text-white"
+              style={{ background: getMonogramColor(colorSeed) }}
+            >
+              {initials}
+            </div>
+            {isExternal && (
+              <span
+                className="absolute -bottom-0.5 -right-0.5 grid h-3 w-3 place-items-center rounded-full border border-card bg-card text-[8px] text-muted-foreground"
+                title={t`External (not in Motio)`}
+              >
+                <ExternalLink className="h-[8px] w-[8px]" />
+              </span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="truncate text-[12px] font-medium leading-tight">{displayName}</span>
+              {member.tag && (
+                <span className="rounded-sm bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {member.tag}
+                </span>
+              )}
+            </div>
+            {(member.role || member.external?.company || (member.assignee && !member.assignee.isActive)) && (
+              <div className="truncate text-[10px] text-muted-foreground">
+                {[
+                  member.role,
+                  member.external?.company,
+                  member.assignee && !member.assignee.isActive ? t`Disabled` : null,
+                ].filter(Boolean).join(' · ')}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-0.5 opacity-50 transition-opacity group-hover:opacity-100">
+            {hasContact && (
+              <button
+                type="button"
+                onClick={(e) => setPopup({ contact: member, rect: e.currentTarget.getBoundingClientRect() })}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
+                aria-label={t`Show contact info`}
+              >
+                {(member.assignee?.email ?? member.external?.email) ? (
+                  <Mail className="h-3 w-3" />
+                ) : (
+                  <Phone className="h-3 w-3" />
+                )}
+              </button>
+            )}
+            {canEdit && member.memberRowId && (
+              <button
+                type="button"
+                onClick={() => (isEditing ? cancelEdit() : beginEdit(member))}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
+                aria-label={t`Edit contact info`}
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
+            {canEdit && member.memberRowId && (
+              <button
+                type="button"
+                onClick={() => void onRemoveMember(member.memberRowId!)}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-destructive hover:shadow-sm"
+                aria-label={t`Remove from team`}
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        </div>
+        {isEditing && (
+          <div className="mx-1.5 mb-1.5 flex flex-col gap-1.5 rounded-md bg-muted p-2">
+            <input
+              type="email"
+              placeholder="Email"
+              value={editingEmail}
+              onChange={(e) => setEditingEmail(e.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+              autoFocus
+            />
+            <input
+              type="text"
+              placeholder={t`Phone`}
+              value={editingPhone}
+              onChange={(e) => setEditingPhone(e.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <input
+              type="text"
+              placeholder={t`Tag`}
+              value={editingTag}
+              onChange={(e) => setEditingTag(e.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <div className="flex justify-end gap-1.5">
+              <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={editingSubmitting}>
+                {t`Cancel`}
+              </Button>
+              <Button size="sm" onClick={() => void saveEdit(member)} disabled={editingSubmitting}>
+                {t`Save`}
+              </Button>
+            </div>
+          </div>
+        )}
+      </li>
+    );
   };
 
   return (
@@ -132,42 +400,128 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground tabular-nums">
           {resolvedMembers.length}
         </span>
+        <button
+          type="button"
+          onClick={() => setGroupByTag((v) => !v)}
+          aria-pressed={groupByTag}
+          title={t`Group by tag`}
+          className={`ml-auto grid h-6 w-6 place-items-center rounded-md hover:bg-muted hover:text-foreground ${
+            groupByTag ? 'bg-muted text-foreground' : 'text-muted-foreground'
+          }`}
+        >
+          <Group className="h-3.5 w-3.5" />
+        </button>
         {canEdit && (
-          <DropdownMenu>
+          <DropdownMenu open={addOpen} onOpenChange={setAddOpen}>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="ml-auto grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                 aria-label={t`Add team member`}
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72">
-              <div className="space-y-2 p-2">
-                <input
-                  type="text"
-                  placeholder={t`Role on this project (optional)`}
-                  value={addingRole}
-                  onChange={(event) => setAddingRole(event.target.value)}
-                  className="w-full rounded-md border border-border bg-card px-2.5 py-1.5 text-[12px] outline-none focus:border-primary"
-                />
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>{t`Add team member`}</DropdownMenuLabel>
+              <div className="px-2 pb-2">
+                <div className="flex gap-1 rounded-md bg-muted p-1">
+                  <button
+                    type="button"
+                    onClick={() => setAddKind('workspace')}
+                    className={`flex-1 rounded px-2 py-1 text-[11px] font-medium ${
+                      addKind === 'workspace' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {t`Motio`}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddKind('external')}
+                    className={`flex-1 rounded px-2 py-1 text-[11px] font-medium ${
+                      addKind === 'external' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {t`External`}
+                  </button>
+                </div>
               </div>
               <DropdownMenuSeparator />
-              <div className="max-h-56 overflow-y-auto py-1">
-                {availableForAdd.length === 0 && (
-                  <div className="px-3 py-2 text-[12px] text-muted-foreground">
-                    {t`No more workspace assignees to add.`}
-                  </div>
-                )}
-                {availableForAdd.map((assignee) => (
-                  <DropdownMenuItem
-                    key={assignee.id}
-                    onSelect={() => void handleAdd(assignee.id)}
+              <div className="flex flex-col gap-1.5 px-2 py-2">
+                {addKind === 'workspace' ? (
+                  <select
+                    value={addAssigneeId ?? ''}
+                    onChange={(e) => setAddAssigneeId(e.target.value || null)}
+                    className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                   >
-                    <span className="truncate">{assignee.name}</span>
-                  </DropdownMenuItem>
-                ))}
+                    <option value="">{t`— pick member —`}</option>
+                    {availableForAdd.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      placeholder={t`Full name`}
+                      value={addExternalName}
+                      onChange={(e) => setAddExternalName(e.target.value)}
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                      autoFocus
+                    />
+                    <input
+                      type="text"
+                      placeholder={t`Company`}
+                      value={addExternalCompany}
+                      onChange={(e) => setAddExternalCompany(e.target.value)}
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                    />
+                  </>
+                )}
+                <input
+                  type="text"
+                  placeholder={t`Role / job title`}
+                  value={addRole}
+                  onChange={(e) => setAddRole(e.target.value)}
+                  className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                />
+                <input
+                  type="text"
+                  placeholder={t`Tag (e.g. subcontractor)`}
+                  value={addTag}
+                  onChange={(e) => setAddTag(e.target.value)}
+                  className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                />
+                {addKind === 'external' && (
+                  <>
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={addExternalEmail}
+                      onChange={(e) => setAddExternalEmail(e.target.value)}
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                    />
+                    <input
+                      type="text"
+                      placeholder={t`Phone`}
+                      value={addExternalPhone}
+                      onChange={(e) => setAddExternalPhone(e.target.value)}
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                    />
+                  </>
+                )}
+                <div className="mt-1 flex justify-end gap-1.5">
+                  <Button
+                    size="sm"
+                    onClick={() => void submitAdd()}
+                    disabled={
+                      addSubmitting
+                        || (addKind === 'workspace' ? !addAssigneeId : !addExternalName.trim())
+                    }
+                  >
+                    {t`Add`}
+                  </Button>
+                </div>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -175,7 +529,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       </div>
 
       {!explicitMode && resolvedMembers.length > 0 && (
-        <div className="mb-2 rounded-md bg-muted/50 px-3 py-2 text-[11px] text-muted-foreground">
+        <div className="mb-2 rounded-md bg-muted/50 px-2.5 py-1.5 text-[10px] text-muted-foreground">
           {t`These members are derived from this project's tasks. Use + to pin them explicitly.`}
         </div>
       )}
@@ -184,126 +538,46 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         <div className="text-ui-xs text-muted-foreground">
           {t`No team members yet. Use + to add one.`}
         </div>
-      ) : (
-        <ul className="flex flex-col gap-1">
-          {resolvedMembers.map((member) => {
-            const { assignee, role, memberRowId } = member;
-            const initials = buildInitials(assignee.name);
-            const hasContact = Boolean(assignee.email || assignee.phone);
-            const isEditing = editingId === assignee.id;
+      ) : groupByTag ? (
+        <div className="flex flex-col gap-2">
+          {groupedByTag.map(([key, list]) => {
+            const label = key === UNTAGGED_KEY ? UNTAGGED_LABEL_PROVIDER() : key;
+            const collapsed = collapsedTags.has(key);
             return (
-              <li
-                key={memberRowId ?? assignee.id}
-                className="rounded-md hover:bg-muted/50"
-              >
-                <div className="group flex items-center gap-2.5 px-2 py-1.5">
-                  <UserAvatar
-                    avatarUrl={assignee.avatar}
-                    initials={initials}
-                    colorSeed={assignee.userId ?? assignee.id}
-                    size="lg"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13px] font-medium">{assignee.name}</div>
-                    {(role || !assignee.isActive) && (
-                      <div className="truncate text-[11px] text-muted-foreground">
-                        {role ?? (!assignee.isActive ? t`Disabled` : null)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-0.5 opacity-50 transition-opacity group-hover:opacity-100">
-                    {hasContact && (
-                      <button
-                        type="button"
-                        onClick={(event) => openPopup(event, member)}
-                        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
-                        aria-label={t`Show contact info`}
-                      >
-                        {assignee.email ? (
-                          <Mail className="h-3.5 w-3.5" />
-                        ) : (
-                          <Phone className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-                    )}
-                    {canEdit && (
-                      <button
-                        type="button"
-                        onClick={() => (isEditing ? cancelEdit() : beginEdit(assignee))}
-                        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
-                        aria-label={t`Edit contact info`}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    {canEdit && memberRowId && (
-                      <button
-                        type="button"
-                        onClick={() => void onRemoveMember(memberRowId)}
-                        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-destructive hover:shadow-sm"
-                        aria-label={t`Remove from team`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {isEditing && (
-                  <div className="mx-2 mb-2 flex flex-col gap-1.5 rounded-lg bg-muted p-2.5">
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={editingEmail}
-                      onChange={(event) => setEditingEmail(event.target.value)}
-                      className="rounded-md border border-border bg-card px-2.5 py-1.5 text-[12px] outline-none focus:border-primary"
-                      autoFocus
-                    />
-                    <input
-                      type="text"
-                      placeholder={t`Phone`}
-                      value={editingPhone}
-                      onChange={(event) => setEditingPhone(event.target.value)}
-                      className="rounded-md border border-border bg-card px-2.5 py-1.5 text-[12px] outline-none focus:border-primary"
-                    />
-                    <div className="mt-0.5 flex justify-end gap-1.5">
-                      <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={editingSubmitting}>
-                        {t`Cancel`}
-                      </Button>
-                      <Button size="sm" onClick={() => void saveEdit(assignee.id)} disabled={editingSubmitting}>
-                        {t`Save`}
-                      </Button>
-                    </div>
-                  </div>
+              <div key={key}>
+                <button
+                  type="button"
+                  onClick={() => toggleTagCollapsed(key)}
+                  className="flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                >
+                  <span className="text-[8px]">{collapsed ? '▸' : '▾'}</span>
+                  <span>{label}</span>
+                  <span className="ml-auto text-muted-foreground/70">{list.length}</span>
+                </button>
+                {!collapsed && (
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {list.map(renderMemberRow)}
+                  </ul>
                 )}
-              </li>
+              </div>
             );
           })}
-        </ul>
-      )}
-
-      {!explicitMode && taskFallbackMembers.length > 0 && canEdit && availableForAdd.length > 0 && (
-        <div className="mt-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {
-              // Convenience: pin every task-derived assignee as a real member.
-              void Promise.all(taskFallbackMembers.map((assignee) => onAddMember(assignee.id, null)));
-            }}
-          >
-            {t`Pin all task assignees as members`}
-          </Button>
         </div>
+      ) : (
+        <ul className="flex flex-col gap-0.5">
+          {resolvedMembers.map(renderMemberRow)}
+        </ul>
       )}
 
       {popup && (
         <ContactPopup
           contact={{
-            name: popup.contact.assignee.name,
-            role: popup.contact.role ?? (popup.contact.assignee.isActive ? null : t`Disabled`),
-            email: popup.contact.assignee.email,
-            phone: popup.contact.assignee.phone,
+            name: popup.contact.assignee?.name ?? popup.contact.external?.name ?? '—',
+            role: popup.contact.role
+              ?? popup.contact.external?.company
+              ?? (popup.contact.assignee?.isActive === false ? t`Disabled` : null),
+            email: popup.contact.assignee?.email ?? popup.contact.external?.email ?? null,
+            phone: popup.contact.assignee?.phone ?? popup.contact.external?.phone ?? null,
           }}
           anchorRect={popup.rect}
           onClose={() => setPopup(null)}

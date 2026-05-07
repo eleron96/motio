@@ -125,7 +125,7 @@ export interface PlannerStore extends PlannerState {
   ) => Promise<ProjectMember | null>;
   updateProjectMember: (
     id: string,
-    updates: Partial<Pick<ProjectMember, 'role' | 'position'>>,
+    updates: Partial<Pick<ProjectMember, 'role' | 'position' | 'tag' | 'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone'>>,
   ) => Promise<MutationResult>;
   deleteProjectMember: (id: string) => Promise<MutationResult>;
 

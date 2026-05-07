@@ -63,6 +63,7 @@ export type CustomerContactRow = {
   email: string | null;
   phone: string | null;
   position: number;
+  tag: string | null;
 };
 
 export type AssigneeRow = {
@@ -79,9 +80,14 @@ export type ProjectMemberRow = {
   id: string;
   workspace_id: string;
   project_id: string;
-  assignee_id: string;
+  assignee_id: string | null;
   role: string | null;
   position: number;
+  tag: string | null;
+  external_name: string | null;
+  external_company: string | null;
+  external_email: string | null;
+  external_phone: string | null;
 };
 
 export type ProjectActivityRow = {
@@ -241,6 +247,7 @@ export const mapCustomerContactRow = (row: CustomerContactRow): CustomerContact 
   email: row.email ?? null,
   phone: row.phone ?? null,
   position: row.position ?? 0,
+  tag: row.tag ?? null,
 });
 
 export const mapAssigneeRow = (row: AssigneeRow): Assignee => ({
@@ -255,9 +262,14 @@ export const mapAssigneeRow = (row: AssigneeRow): Assignee => ({
 export const mapProjectMemberRow = (row: ProjectMemberRow): ProjectMember => ({
   id: row.id,
   projectId: row.project_id,
-  assigneeId: row.assignee_id,
+  assigneeId: row.assignee_id ?? null,
   role: row.role ?? null,
   position: row.position ?? 0,
+  tag: row.tag ?? null,
+  externalName: row.external_name ?? null,
+  externalCompany: row.external_company ?? null,
+  externalEmail: row.external_email ?? null,
+  externalPhone: row.external_phone ?? null,
 });
 
 export const mapProjectActivityRow = (row: ProjectActivityRow): ProjectActivity => {
