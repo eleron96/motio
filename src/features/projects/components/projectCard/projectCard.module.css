@@ -173,7 +173,24 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 1px 0 hsl(var(--border) / 0.5);
+  /* A real drop-shadow below the pinned row(s) so the unpinned content
+     scrolling underneath visually slides "behind" them — same separation
+     trick used on the sticky timeline sidebar. The shadow is asymmetric
+     (offset down only) so it doesn't bleed onto neighbouring pinned rows
+     when several stack at the top. */
+  box-shadow: 0 6px 10px -6px rgba(15, 23, 42, 0.18), 0 2px 4px -2px rgba(15, 23, 42, 0.08);
+}
+
+/* When several pinned rows stack, only the LAST one needs the drop-shadow
+   — the rows above it sit on a solid neighbour, not the scrolling content,
+   so a shadow there would just darken their seam. `:has(+ :not(.feedItemPinned))`
+   targets exactly the last pinned in a contiguous run. Browsers without
+   `:has()` keep the regular shadow above; that's a graceful degrade. */
+.feedItemPinned + .feedItemPinned {
+  box-shadow: none;
+}
+.feedItemPinned:has(+ :not(.feedItemPinned)) {
+  box-shadow: 0 6px 10px -6px rgba(15, 23, 42, 0.18), 0 2px 4px -2px rgba(15, 23, 42, 0.08);
 }
 
 .feedTextClamp {
