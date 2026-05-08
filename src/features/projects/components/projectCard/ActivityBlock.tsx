@@ -479,27 +479,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   ) : (
     <>
       {canEdit && (
-        <Button
-          variant="ghost"
-          onClick={() => void handleTogglePin()}
-          disabled={busy || togglingPin}
-          aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
-          className={entry.pinned ? 'text-amber-600' : undefined}
-        >
-          {entry.pinned ? (
-            <>
-              <PinOff className="mr-2 h-4 w-4" aria-hidden="true" />
-              {t`Unpin`}
-            </>
-          ) : (
-            <>
-              <Pin className="mr-2 h-4 w-4" aria-hidden="true" />
-              {t`Pin to top`}
-            </>
-          )}
-        </Button>
-      )}
-      {canEdit && (
         <Button variant="destructive" onClick={() => void handleDelete()} disabled={busy}>
           {t`Delete`}
         </Button>
@@ -661,6 +640,28 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             {t`Read or edit a single project note.`}
           </DialogDescription>
         </DialogHeader>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => void handleTogglePin()}
+            disabled={togglingPin}
+            // Sit just to the left of the dialog's built-in X close (which is
+            // pinned at right-4 top-4 by shadcn). Hover surface stays compact
+            // so it doesn't crowd the title.
+            className={`absolute right-12 top-4 grid h-6 w-6 place-items-center rounded transition-colors ${
+              entry.pinned
+                ? 'text-amber-500 hover:text-amber-600'
+                : 'text-muted-foreground/60 hover:text-amber-500'
+            }`}
+            aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
+            title={entry.pinned ? t`Unpin` : t`Pin to top`}
+          >
+            <Pin
+              className={`h-4 w-4 ${entry.pinned ? 'fill-amber-500' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+        )}
         {meta}
         {body}
         <DialogFooter className="gap-2">
