@@ -263,12 +263,31 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
               >
                 <div className="flex items-center justify-between gap-2.5">
                   <div className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/80">
-                    {entry.pinned && (
+                    {canEditEntries ? (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          // Don't open the modal — the row's onClick fires
+                          // on the parent <li>, so we cancel propagation.
+                          event.stopPropagation();
+                          void onSetPinned(entry.id, !entry.pinned);
+                        }}
+                        aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
+                        title={entry.pinned ? t`Unpin` : t`Pin to top`}
+                        className={`grid h-6 w-6 place-items-center rounded transition-colors ${
+                          entry.pinned
+                            ? 'text-amber-500 hover:text-amber-600'
+                            : 'text-muted-foreground/40 hover:text-amber-500'
+                        }`}
+                      >
+                        <Pin className={`h-3.5 w-3.5 ${entry.pinned ? 'fill-amber-500' : ''}`} aria-hidden="true" />
+                      </button>
+                    ) : entry.pinned ? (
                       <Pin
-                        className="h-3 w-3 text-amber-500"
+                        className="h-3 w-3 text-amber-500 fill-amber-500"
                         aria-label={t`Pinned`}
                       />
-                    )}
+                    ) : null}
                     <span>{formatDate(entry.createdAt)}</span>
                     {entry.isEdited && (
                       <span className="text-muted-foreground/60">{t`(edited)`}</span>

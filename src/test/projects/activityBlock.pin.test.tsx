@@ -64,12 +64,24 @@ describe('ActivityBlock — pin/unpin notes', () => {
     expect(items[3]).toHaveTextContent('newest');
   });
 
-  it('shows the pinned indicator next to the date for pinned entries', () => {
+  it('shows an Unpin button on already-pinned entries (editor view)', () => {
     const entries = [mkEntry({ id: 'a', pinned: true })];
 
     render(<ActivityBlock {...baseProps} entries={entries} />);
 
+    // Editor sees an interactive Pin/Unpin button; the inline + modal
+    // versions share the same aria-label so getAllByRole returns ≥1.
+    expect(screen.getAllByRole('button', { name: 'Unpin' }).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows a non-interactive "Pinned" indicator for read-only viewers', () => {
+    const entries = [mkEntry({ id: 'a', pinned: true })];
+
+    render(<ActivityBlock {...baseProps} canEdit={false} entries={entries} />);
+
     expect(screen.getByLabelText('Pinned')).toBeInTheDocument();
+    // Read-only viewers don't see the toggle button.
+    expect(screen.queryByRole('button', { name: 'Unpin' })).toBeNull();
   });
 
   it('toggles pinned via the desktop modal Pin button', async () => {
@@ -78,9 +90,29 @@ describe('ActivityBlock — pin/unpin notes', () => {
     render(<ActivityBlock {...baseProps} entries={entries} />);
 
     fireEvent.click(screen.getByRole('listitem'));
+    // The modal Pin button lives in the dialog's footer; the inline pin is
+    // an icon-only button on the row itself. Both share the same aria-label,
+    // so we explicitly target the modal one rendered inside the dialog.
+    const dialog = screen.getByRole('dialog');
+    const pinButton = dialog.querySelector('button[aria-label="Pin to top"]');
+    expect(pinButton).not.toBeNull();
+    fireEvent.click(pinButton!);
+
+    expect(baseProps.onSetPinned).toHaveBeenCalledWith('a', true);
+  });
+
+  it('inline pin button on the row toggles without opening the modal', () => {
+    const entries = [mkEntry({ id: 'a', content: 'hello', pinned: false })];
+
+    render(<ActivityBlock {...baseProps} entries={entries} />);
+
+    // Two buttons may share the "Pin to top" label (inline + modal); but the
+    // modal hasn't been opened yet, so the inline one is the only candidate.
     fireEvent.click(screen.getByRole('button', { name: 'Pin to top' }));
 
     expect(baseProps.onSetPinned).toHaveBeenCalledWith('a', true);
+    // Click should NOT have bubbled to the row — modal stays closed.
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('renders a search snippet with the matched word highlighted', () => {
@@ -111,6 +143,8 @@ describe('ActivityBlock — pin/unpin notes', () => {
 
     fireEvent.click(screen.getAllByRole('listitem')[0]);
 
-    expect(screen.getByRole('button', { name: 'Unpin' })).toBeInTheDocument();
+    // Both inline and modal buttons share the Unpin label here.
+    const unpinButtons = screen.getAllByRole('button', { name: 'Unpin' });
+    expect(unpinButtons.length).toBeGreaterThanOrEqual(1);
   });
 });
