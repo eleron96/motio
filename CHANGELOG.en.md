@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- The project notes feed now shows up to 4 lines of body text per row (was 2). Longer entries still clip with an ellipsis as before.
 
 ## [0.7.1] - 2026-05-08
 ### Changed
