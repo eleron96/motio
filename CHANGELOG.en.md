@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.0] - 2026-05-08
 ### Added
 - Pin/unpin notes inside a project: any editor can pin a note — it floats to the top of the feed and gains an amber accent. An inline icon on each row (next to the author) toggles the pin in one click without opening the modal; the same action lives behind the `⋯` menu inside the note modal. Migration `0088` adds `project_activity.pinned` with a partial index to keep the pinned-first sort cheap.
 - Note search now shows a snippet centered on the matched word with the match highlighted (`<mark>` in amber). Long entries get `…` ellipses on trimmed edges.

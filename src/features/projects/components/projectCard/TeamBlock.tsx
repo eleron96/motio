@@ -96,6 +96,11 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   const [editingEmail, setEditingEmail] = useState('');
   const [editingPhone, setEditingPhone] = useState('');
   const [editingTag, setEditingTag] = useState('');
+  // External members get extra editable fields — name, company, role —
+  // hidden from workspace members whose identity lives in their assignee row.
+  const [editingName, setEditingName] = useState('');
+  const [editingCompany, setEditingCompany] = useState('');
+  const [editingRole, setEditingRole] = useState('');
   const [editingSubmitting, setEditingSubmitting] = useState(false);
 
   // Mobile-specific sheet state. Edit / remove track the resolved row so we
@@ -183,31 +188,28 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       });
   }, [resolvedMembers]);
 
-  const beginEdit = (member: ResolvedMember) => {
-    if (isMobile) {
-      // Hydrate the inline-edit state too so saveEdit() — shared between
-      // desktop inline form and mobile sheet — has fresh values to read.
-      setEditingId(member.memberRowId ?? member.assignee?.id ?? null);
-      if (member.assignee) {
-        setEditingEmail(member.assignee.email ?? '');
-        setEditingPhone(member.assignee.phone ?? '');
-      } else if (member.external) {
-        setEditingEmail(member.external.email ?? '');
-        setEditingPhone(member.external.phone ?? '');
-      }
-      setEditingTag(member.tag ?? '');
-      setMobileEditMember(member);
-      return;
-    }
+  const hydrateEditState = (member: ResolvedMember) => {
     setEditingId(member.memberRowId ?? member.assignee?.id ?? null);
     if (member.assignee) {
       setEditingEmail(member.assignee.email ?? '');
       setEditingPhone(member.assignee.phone ?? '');
+      setEditingName('');
+      setEditingCompany('');
     } else if (member.external) {
       setEditingEmail(member.external.email ?? '');
       setEditingPhone(member.external.phone ?? '');
+      setEditingName(member.external.name ?? '');
+      setEditingCompany(member.external.company ?? '');
     }
     setEditingTag(member.tag ?? '');
+    setEditingRole(member.role ?? '');
+  };
+
+  const beginEdit = (member: ResolvedMember) => {
+    hydrateEditState(member);
+    if (isMobile) {
+      setMobileEditMember(member);
+    }
   };
 
   const cancelEdit = () => {
@@ -215,6 +217,9 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
     setEditingEmail('');
     setEditingPhone('');
     setEditingTag('');
+    setEditingName('');
+    setEditingCompany('');
+    setEditingRole('');
   };
 
   const saveEdit = async (member: ResolvedMember) => {
@@ -224,17 +229,37 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       const email = editingEmail.trim() || null;
       const phone = editingPhone.trim() || null;
       const tag = editingTag.trim() || null;
+      const role = editingRole.trim() || null;
+      const name = editingName.trim();
+      const company = editingCompany.trim() || null;
       let ok = true;
       if (member.assignee) {
         ok = await onUpdateAssigneeContact(member.assignee.id, email, phone);
-        if (ok && member.memberRowId && tag !== member.tag) {
-          ok = await onUpdateExternalMember(member.memberRowId, { tag });
+        if (ok && member.memberRowId) {
+          // Workspace members can still edit their project-local tag and role
+          // here; their name/company/contacts on the assignee row are owned
+          // by the Members page.
+          const updates: Parameters<typeof onUpdateExternalMember>[1] = {};
+          if (tag !== (member.tag ?? null)) updates.tag = tag;
+          if (role !== (member.role ?? null)) updates.role = role;
+          if (Object.keys(updates).length > 0) {
+            ok = await onUpdateExternalMember(member.memberRowId, updates);
+          }
         }
       } else if (member.external && member.memberRowId) {
+        // External members are project-local; we own all of their fields and
+        // can update the lot in one round-trip.
+        if (!name) {
+          // Empty name is invalid for an external row — keep the editor open.
+          return;
+        }
         ok = await onUpdateExternalMember(member.memberRowId, {
+          externalName: name,
+          externalCompany: company,
           externalEmail: email,
           externalPhone: phone,
           tag,
+          role,
         });
       }
       // Only close the editor when every write succeeded so the user keeps
@@ -414,19 +439,48 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         </div>
         {isEditing && !isMobile && (
           <div className="mx-1.5 mb-1.5 flex flex-col gap-1.5 rounded-md bg-muted p-2">
+            {/* External-only fields: name + company. Workspace members own
+                their identity at the assignee row (Members page), so we
+                don't expose those fields when editing them inline. */}
+            {!member.assignee && (
+              <>
+                <input
+                  type="text"
+                  placeholder={t`Full name`}
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  placeholder={t`Company`}
+                  value={editingCompany}
+                  onChange={(e) => setEditingCompany(e.target.value)}
+                  className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+                />
+              </>
+            )}
             <input
               type="email"
               placeholder="Email"
               value={editingEmail}
               onChange={(e) => setEditingEmail(e.target.value)}
               className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
-              autoFocus
+              autoFocus={!!member.assignee}
             />
             <input
               type="text"
               placeholder={t`Phone`}
               value={editingPhone}
               onChange={(e) => setEditingPhone(e.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <input
+              type="text"
+              placeholder={t`Role / job title`}
+              value={editingRole}
+              onChange={(e) => setEditingRole(e.target.value)}
               className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
             />
             <input
@@ -440,7 +494,11 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
               <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={editingSubmitting}>
                 {t`Cancel`}
               </Button>
-              <Button size="sm" onClick={() => void saveEdit(member)} disabled={editingSubmitting}>
+              <Button
+                size="sm"
+                onClick={() => void saveEdit(member)}
+                disabled={editingSubmitting || (!member.assignee && !editingName.trim())}
+              >
                 {t`Save`}
               </Button>
             </div>
@@ -783,22 +841,42 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
             // mutation failed and we keep the sheet open with the draft.
             if (editingId === null) setMobileEditMember(null);
           }}
-          title={t`Edit contact info`}
+          title={mobileEditMember.assignee ? t`Edit contact info` : t`Edit member`}
           submitting={editingSubmitting}
-          canSave
+          canSave={!!mobileEditMember.assignee || editingName.trim().length > 0}
           saveLabel={t`Save`}
         >
+          {!mobileEditMember.assignee && (
+            <>
+              <Input
+                placeholder={t`Full name`}
+                value={editingName}
+                onChange={(event) => setEditingName(event.target.value)}
+                autoFocus
+              />
+              <Input
+                placeholder={t`Company`}
+                value={editingCompany}
+                onChange={(event) => setEditingCompany(event.target.value)}
+              />
+            </>
+          )}
           <Input
             type="email"
             placeholder="Email"
             value={editingEmail}
             onChange={(event) => setEditingEmail(event.target.value)}
-            autoFocus
+            autoFocus={!!mobileEditMember.assignee}
           />
           <Input
             placeholder={t`Phone`}
             value={editingPhone}
             onChange={(event) => setEditingPhone(event.target.value)}
+          />
+          <Input
+            placeholder={t`Role / job title`}
+            value={editingRole}
+            onChange={(event) => setEditingRole(event.target.value)}
           />
           <Input
             placeholder={t`Tag`}
