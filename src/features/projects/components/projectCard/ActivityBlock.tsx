@@ -4,6 +4,7 @@ import { Calendar, Plus, Search, X } from 'lucide-react';
 import type { ProjectActivity } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { Textarea } from '@/shared/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
@@ -11,6 +12,7 @@ import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { ACTIVITY_HTML_TAG_RE } from '@/features/projects/lib/projectActivityContent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobileTextSheet } from './MobileTextSheet';
 import styles from './projectCard.module.css';
 
 interface ActivityBlockProps {
@@ -68,13 +70,16 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   workspaceId,
 }) => {
   const isMobile = useIsMobile();
-  // M1 mobile: read-only feed. Composer (RTE / textarea) and inline edit /
-  // delete come in M2 with mobile-friendly sheet variants. The detail view
-  // stays available so users can read full entries.
-  const canEditEntries = canEdit && !isMobile;
+  // M2: mobile users can publish + edit entries via bottom sheets. The
+  // desktop inline RTE composer remains the same.
+  const canEditEntries = canEdit;
+  const useMobileComposer = canEdit && isMobile;
+  const useDesktopComposer = canEdit && !isMobile;
+
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState('');
   const [composerSubmitting, setComposerSubmitting] = useState(false);
+  const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [jumpDate, setJumpDate] = useState('');
   const [openItem, setOpenItem] = useState<ProjectActivity | null>(null);
@@ -120,7 +125,13 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
           <button
             type="button"
             className="ml-auto grid h-6 w-6 place-items-center rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
-            onClick={() => setComposerOpen((value) => !value)}
+            onClick={() => {
+              if (isMobile) {
+                setMobileComposerOpen(true);
+              } else {
+                setComposerOpen((value) => !value);
+              }
+            }}
             aria-label={t`Add activity entry`}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -160,7 +171,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
         </div>
       </div>
 
-      {composerOpen && (
+      {composerOpen && useDesktopComposer && (
         <div className="mb-3 flex flex-col gap-2 rounded-lg bg-muted p-3">
           <RichTextEditor
             value={composerText}
@@ -252,6 +263,20 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
           }}
         />
       )}
+
+      {useMobileComposer && (
+        <MobileTextSheet
+          open={mobileComposerOpen}
+          onClose={() => setMobileComposerOpen(false)}
+          onSave={onAdd}
+          title={t`Add activity entry`}
+          description={t`Write a comment that will appear in the project activity feed.`}
+          placeholder={t`Write a comment...`}
+          saveLabel={t`Publish`}
+          multiline
+          minLength={1}
+        />
+      )}
     </section>
   );
 };
@@ -319,13 +344,27 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   );
 
   const body = editing ? (
-    <RichTextEditor
-      value={text}
-      onChange={setText}
-      workspaceId={workspaceId ?? null}
-      placeholder={t`Write a comment...`}
-      disabled={busy}
-    />
+    isMobile ? (
+      // Mobile edit uses a plain textarea — RTE toolbar is too tight for
+      // touch and image upload is not part of M2. Existing rich content
+      // entered on desktop is preserved if the user doesn't change it.
+      <Textarea
+        value={text}
+        onChange={(event) => setText(event.target.value)}
+        placeholder={t`Write a comment...`}
+        rows={6}
+        disabled={busy}
+        autoFocus
+      />
+    ) : (
+      <RichTextEditor
+        value={text}
+        onChange={setText}
+        workspaceId={workspaceId ?? null}
+        placeholder={t`Write a comment...`}
+        disabled={busy}
+      />
+    )
   ) : (
     <div
       className={`${styles.feedRichText} break-words text-[14px] leading-[1.55]`}

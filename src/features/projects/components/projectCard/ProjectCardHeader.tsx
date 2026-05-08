@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/button';
 import type { Project, Customer } from '@/features/planner/types/planner';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobileTextSheet } from './MobileTextSheet';
 import styles from './projectCard.module.css';
 
 interface ProjectCardHeaderProps {
@@ -27,14 +28,17 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
 }) => {
   const customerLabel = customer?.name ?? t`No customer`;
 
-  // M1 mobile: read-only flow. Mobile inline editing of the status chip will
-  // arrive in M2 with a full-screen sheet — until then the chip is a label.
+  // Desktop opens an inline form; mobile opens a bottom sheet (M2). The chip
+  // itself is interactive whenever the user has edit permission — mobile no
+  // longer renders it as a disabled label.
   const isMobile = useIsMobile();
-  const canEditStatus = canEdit && !isMobile;
+  const canEditStatus = canEdit;
+  const canEditInline = canEdit && !isMobile;
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(project.status ?? '');
   const [submitting, setSubmitting] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -52,12 +56,26 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
     setDraft(project.status ?? '');
     setEditing(false);
     setSubmitting(false);
+    setMobileSheetOpen(false);
   }, [project.id]);
 
   const beginEdit = () => {
     if (!canEditStatus) return;
     setDraft(project.status ?? '');
+    if (isMobile) {
+      setMobileSheetOpen(true);
+      return;
+    }
     setEditing(true);
+  };
+
+  const handleMobileSave = async (next: string): Promise<boolean> => {
+    const normalized = next.trim() ? next.trim() : null;
+    if (normalized === (project.status ?? null)) {
+      // No change — close sheet without firing a network request.
+      return true;
+    }
+    return onSaveStatus(normalized);
   };
 
   const cancel = () => {
@@ -164,7 +182,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
               }`}
             >
               <span>{project.status}</span>
-              {canEditStatus && (
+              {canEditInline && (
                 <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
               )}
             </button>
@@ -182,6 +200,17 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
           ) : null}
         </div>
       </div>
+
+      <MobileTextSheet
+        open={mobileSheetOpen}
+        onClose={() => setMobileSheetOpen(false)}
+        onSave={handleMobileSave}
+        title={project.status ? t`Edit project status` : t`Add project status`}
+        description={t`Set or clear the custom status label shown on this project.`}
+        initialValue={project.status ?? ''}
+        placeholder={t`Project status`}
+        allowEmpty
+      />
     </div>
   );
 };

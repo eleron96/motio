@@ -139,29 +139,41 @@ describe('ProjectsMainPanel — mobile project card (M1)', () => {
     expect(screen.queryByText('Customer')).not.toBeInTheDocument();
   });
 
-  it('does not show the activity composer + button on mobile (M1 read-only)', () => {
+  it('keeps add buttons hidden for read-only blocks on mobile (M1)', () => {
     useIsMobileMock.mockReturnValue(true);
     isProjectCardEnabledMock.mockReturnValue(true);
     isProjectCardMobileEnabledMock.mockReturnValue(true);
 
     render(<ProjectsMainPanel {...baseProps} />);
 
-    expect(screen.queryByLabelText('Add activity entry')).not.toBeInTheDocument();
+    // M2 enables activity composer on mobile, so its + button is allowed.
+    // Team / milestones / customer contacts add buttons remain hidden until
+    // M3 / M4.
     expect(screen.queryByLabelText('Add team member')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Add milestone')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Add customer contact')).not.toBeInTheDocument();
   });
 
-  it('renders the project status as a non-editable label on mobile', () => {
+  it('renders the activity composer + button on mobile (M2)', () => {
     useIsMobileMock.mockReturnValue(true);
     isProjectCardEnabledMock.mockReturnValue(true);
     isProjectCardMobileEnabledMock.mockReturnValue(true);
 
     render(<ProjectsMainPanel {...baseProps} />);
 
-    // The chip itself is rendered (status text appears) but the button is
-    // disabled — `disabled` attribute exists on the underlying <button>.
-    const chip = screen.getByRole('button', { name: 'Project status: IN PROGRESS' });
-    expect(chip).toBeDisabled();
+    expect(screen.getByLabelText('Add activity entry')).toBeInTheDocument();
+  });
+
+  it('keeps the project-status chip interactive on mobile (M2)', () => {
+    useIsMobileMock.mockReturnValue(true);
+    isProjectCardEnabledMock.mockReturnValue(true);
+    isProjectCardMobileEnabledMock.mockReturnValue(true);
+
+    render(<ProjectsMainPanel {...baseProps} />);
+
+    // M2 makes the chip clickable on mobile (opens a bottom sheet). It is
+    // labelled the same as on desktop and not disabled.
+    const chip = screen.getByRole('button', { name: 'Edit project status: IN PROGRESS' });
+    expect(chip).not.toBeDisabled();
   });
 });
