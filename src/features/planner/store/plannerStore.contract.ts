@@ -137,6 +137,7 @@ export interface PlannerStore extends PlannerState {
     updates: { content: string },
   ) => Promise<MutationResult>;
   deleteProjectActivity: (id: string) => Promise<MutationResult>;
+  setProjectActivityPinned: (id: string, pinned: boolean) => Promise<MutationResult>;
 
   addAssignee: (assignee: Omit<Assignee, 'id'>) => Promise<void>;
   updateAssignee: (id: string, updates: Partial<Assignee>) => Promise<MutationResult>;

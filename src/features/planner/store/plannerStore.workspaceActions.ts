@@ -185,7 +185,7 @@ export const createWorkspaceActions = (
     const projectActivityQuery = projectCardOn
       ? supabase
           .from('project_activity')
-          .select('id, workspace_id, project_id, author_id, author_display_name, kind, content, created_at, updated_at')
+          .select('id, workspace_id, project_id, author_id, author_display_name, kind, content, created_at, updated_at, pinned')
           .eq('workspace_id', workspaceId)
           .order('created_at', { ascending: false })
       : Promise.resolve({ data: [] as never[], error: null });

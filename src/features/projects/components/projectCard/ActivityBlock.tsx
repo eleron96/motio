@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Calendar, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
+import { Calendar, MoreHorizontal, Pin, PinOff, Plus, Search, Trash2, X } from 'lucide-react';
 import type { ProjectActivity } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -24,6 +24,8 @@ interface ActivityBlockProps {
   onAdd: (content: string) => Promise<boolean>;
   onUpdate: (id: string, content: string) => Promise<boolean>;
   onDelete: (id: string) => Promise<boolean>;
+  /** Toggle the pinned flag on a note. Pinned notes float to the top of the feed. */
+  onSetPinned: (id: string, pinned: boolean) => Promise<boolean>;
   /** Workspace id used by RichTextEditor for image uploads. */
   workspaceId?: string | null;
 }
@@ -68,6 +70,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   onAdd,
   onUpdate,
   onDelete,
+  onSetPinned,
   workspaceId,
 }) => {
   const isMobile = useIsMobile();
@@ -97,7 +100,13 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
     if (jumpDate) {
       list = list.filter((entry) => entry.createdAt.slice(0, 10) === jumpDate);
     }
-    return list;
+    // Pinned notes float to the top of the feed, preserving their relative
+    // chronology (newest pinned first). Non-pinned notes keep the order they
+    // arrived in (already DESC by created_at from the SELECT).
+    return [...list].sort((a, b) => {
+      if (a.pinned === b.pinned) return 0;
+      return a.pinned ? -1 : 1;
+    });
   }, [entries, jumpDate, search]);
 
   const submitComposer = async () => {
@@ -216,14 +225,20 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
             {filtered.map((entry) => (
               <li
                 key={entry.id}
-                className={`${styles.feedItem} cursor-pointer`}
+                className={`${styles.feedItem} cursor-pointer ${entry.pinned ? styles.feedItemPinned : ''}`}
                 onClick={() => setOpenItem(entry)}
               >
                 <div className="flex items-center justify-between gap-2.5">
-                  <div className="text-[11px] tabular-nums text-muted-foreground/80">
-                    {formatDate(entry.createdAt)}
+                  <div className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/80">
+                    {entry.pinned && (
+                      <Pin
+                        className="h-3 w-3 text-amber-500"
+                        aria-label={t`Pinned`}
+                      />
+                    )}
+                    <span>{formatDate(entry.createdAt)}</span>
                     {entry.isEdited && (
-                      <span className="ml-1.5 text-muted-foreground/60">{t`(edited)`}</span>
+                      <span className="text-muted-foreground/60">{t`(edited)`}</span>
                     )}
                   </div>
                   <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
@@ -262,6 +277,9 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
             if (ok) setOpenItem(null);
             return ok;
           }}
+          onTogglePinned={async () => {
+            await onSetPinned(openItem.id, !openItem.pinned);
+          }}
         />
       )}
 
@@ -292,6 +310,8 @@ interface ActivityModalProps {
   /** Resolves to `true` on success; the modal closes itself on success only. */
   onSave: (content: string) => Promise<boolean>;
   onDelete: () => Promise<boolean>;
+  /** Toggles the pinned flag on the open entry; modal stays open. */
+  onTogglePinned: () => Promise<void>;
 }
 
 const ActivityModal: React.FC<ActivityModalProps> = ({
@@ -303,6 +323,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   onClose,
   onSave,
   onDelete,
+  onTogglePinned,
 }) => {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(entry.content);
@@ -310,7 +331,18 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   // Mobile-only: explicit confirm step replaces the inline destructive button
   // so users don't accidentally tap "Delete" while reaching for "Edit".
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [togglingPin, setTogglingPin] = useState(false);
   const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
+
+  const handleTogglePin = async () => {
+    if (togglingPin) return;
+    setTogglingPin(true);
+    try {
+      await onTogglePinned();
+    } finally {
+      setTogglingPin(false);
+    }
+  };
 
   useEffect(() => {
     setText(entry.content);
@@ -377,6 +409,27 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   ) : (
     <>
       {canEdit && (
+        <Button
+          variant="ghost"
+          onClick={() => void handleTogglePin()}
+          disabled={busy || togglingPin}
+          aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
+          className={entry.pinned ? 'text-amber-600' : undefined}
+        >
+          {entry.pinned ? (
+            <>
+              <PinOff className="mr-2 h-4 w-4" aria-hidden="true" />
+              {t`Unpin`}
+            </>
+          ) : (
+            <>
+              <Pin className="mr-2 h-4 w-4" aria-hidden="true" />
+              {t`Pin to top`}
+            </>
+          )}
+        </Button>
+      )}
+      {canEdit && (
         <Button variant="destructive" onClick={() => void handleDelete()} disabled={busy}>
           {t`Delete`}
         </Button>
@@ -428,6 +481,25 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        void handleTogglePin();
+                      }}
+                      disabled={togglingPin}
+                    >
+                      {entry.pinned ? (
+                        <>
+                          <PinOff className="mr-2 h-4 w-4" aria-hidden="true" />
+                          {t`Unpin`}
+                        </>
+                      ) : (
+                        <>
+                          <Pin className="mr-2 h-4 w-4" aria-hidden="true" />
+                          {t`Pin to top`}
+                        </>
+                      )}
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
                       onSelect={(event) => {

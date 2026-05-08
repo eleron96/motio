@@ -140,6 +140,18 @@
   border-bottom: 0;
 }
 
+/* Pinned notes — subtle amber tint + slightly more presence than the
+   surrounding entries so they read as 'sticky' without screaming. */
+.feedItemPinned {
+  background: hsl(var(--card));
+  border-left: 2px solid #f59e0b;
+  margin-left: -8px;
+  margin-right: -8px;
+  padding-left: 10px;
+  padding-right: 8px;
+  border-radius: 6px;
+}
+
 .feedTextClamp {
   display: -webkit-box;
   -webkit-line-clamp: 2;
