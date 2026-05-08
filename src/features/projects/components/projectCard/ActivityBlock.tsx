@@ -12,6 +12,7 @@ import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { ACTIVITY_HTML_TAG_RE } from '@/features/projects/lib/projectActivityContent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
 import { MobileNoteSheet } from './MobileNoteSheet';
 import styles from './projectCard.module.css';
 
@@ -309,6 +310,7 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   // Mobile-only: explicit confirm step replaces the inline destructive button
   // so users don't accidentally tap "Delete" while reaching for "Edit".
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
 
   useEffect(() => {
     setText(entry.content);
@@ -400,7 +402,15 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
     // "Are you sure?" within the same surface.
     return (
       <Sheet open onOpenChange={(open) => (open ? null : onClose())}>
-        <SheetContent side="bottom" className="rounded-t-2xl">
+        <SheetContent
+          side="bottom"
+          className="overflow-y-auto rounded-t-2xl"
+          style={{
+            bottom: keyboardOffset,
+            maxHeight: viewportHeight ? `${viewportHeight}px` : undefined,
+            transition: 'bottom 150ms ease-out',
+          }}
+        >
           <SheetHeader className="text-left">
             <div className="flex items-start justify-between gap-2 pr-8">
               <SheetTitle>{t`Note`}</SheetTitle>
