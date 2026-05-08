@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Calendar, MoreHorizontal, Pin, PinOff, Plus, Search, Trash2, X } from 'lucide-react';
 import type { ProjectActivity } from '@/features/planner/types/planner';
@@ -117,6 +117,16 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [jumpDate, setJumpDate] = useState('');
+
+  // Chat-style auto-scroll: park the feed at the bottom on initial mount and
+  // whenever new entries arrive — but only if the user is already at (or
+  // near) the bottom. If they've scrolled up to read older notes, leave
+  // their position alone. `stickToBottomRef` flips on scroll and updates the
+  // intent for subsequent layout passes.
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
+  const lastEntryIdRef = useRef<string | null>(null);
+  const initialMountRef = useRef(true);
   const [openItem, setOpenItem] = useState<ProjectActivity | null>(null);
 
   const filtered = useMemo(() => {
@@ -141,6 +151,29 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
     });
   }, [entries, jumpDate, search]);
 
+  // Auto-scroll the feed to the bottom on initial mount and whenever a new
+  // entry slides in at the end — but only when the user is parked at (or
+  // near) the bottom. The threshold is generous (~80px) so the script feels
+  // forgiving on touch trackpads where small inertial drifts are common.
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const lastId = filtered.length > 0 ? filtered[filtered.length - 1].id : null;
+    const lastChanged = lastId !== lastEntryIdRef.current;
+    if (initialMountRef.current || (stickToBottomRef.current && lastChanged)) {
+      container.scrollTop = container.scrollHeight;
+      initialMountRef.current = false;
+    }
+    lastEntryIdRef.current = lastId;
+  }, [filtered]);
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    stickToBottomRef.current = distanceFromBottom < 80;
+  };
+
   const submitComposer = async () => {
     if (composerSubmitting) return;
     if (!isContentMeaningful(composerText)) return;
@@ -157,7 +190,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   };
 
   return (
-    <section className="flex max-h-[640px] min-h-[320px] flex-col rounded-2xl border border-border bg-card p-5">
+    <section className="flex min-h-[320px] flex-col rounded-2xl border border-border bg-card p-5 lg:max-h-[640px]">
       <div className="mb-3 flex items-center gap-2">
         <h3 className="text-ui-sm font-semibold">{t`Notes`}</h3>
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground tabular-nums">
@@ -246,7 +279,14 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
         </div>
       )}
 
-      <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        // Desktop: cap visible feed to ~5 rows (≈80 px each) so the section
+        // never grows past one card-height. Below `lg`, the parent flex
+        // handles scrolling along with the page.
+        className="flex-1 min-h-0 overflow-y-auto pr-2 lg:max-h-[420px]"
+      >
         {filtered.length === 0 ? (
           <div className="py-8 text-center text-ui-xs text-muted-foreground">
             {entries.length === 0
