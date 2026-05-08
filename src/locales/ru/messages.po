@@ -23,15 +23,15 @@ msgstr "— выбери участника —"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:86
 #: src/features/projects/components/projectCard/TasksBlock.tsx:157
-#: src/features/projects/components/ProjectsMainPanel.tsx:449
-#: src/features/projects/components/ProjectsMainPanel.tsx:564
-#: src/features/projects/components/ProjectsMainPanel.tsx:641
+#: src/features/projects/components/ProjectsMainPanel.tsx:463
+#: src/features/projects/components/ProjectsMainPanel.tsx:578
+#: src/features/projects/components/ProjectsMainPanel.tsx:655
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:91
 msgid "(disabled)"
 msgstr "(отключен)"
 
 #: src/features/planner/components/TaskCommentItem.tsx:111
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:344
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:355
 msgid "(edited)"
 msgstr "(изменено)"
 
@@ -61,7 +61,7 @@ msgid "{0} past"
 msgstr "{0} прошедших"
 
 #. placeholder {0}: selectedCustomerProjects.length
-#: src/features/projects/components/ProjectsMainPanel.tsx:790
+#: src/features/projects/components/ProjectsMainPanel.tsx:804
 msgid "{0} projects"
 msgstr "{0} проектов"
 
@@ -125,15 +125,15 @@ msgstr "{actor}: группа {0} переименована в {1}."
 msgid "{actor} updated workspace access."
 msgstr "{actor}: доступ рабочего пространства обновлён."
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:791
+#: src/features/projects/components/ProjectsMainPanel.tsx:805
 msgid "{customersCount} customers"
 msgstr "Клиентов: {customersCount}"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:379
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:372
 msgid "{milestoneCount} milestone"
 msgstr "{milestoneCount} веха"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:380
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:373
 msgid "{milestoneCount} milestones"
 msgstr "{milestoneCount} вех"
 
@@ -330,14 +330,14 @@ msgstr "Добавить участника"
 msgid "Add milestone"
 msgstr "Добавить веху"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:246
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:435
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:257
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:447
 msgid "Add note"
 msgstr "Добавить заметку"
 
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:193
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:194
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:208
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:215
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:216
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:287
 msgid "Add project status"
 msgstr "Добавить статус"
 
@@ -394,7 +394,7 @@ msgstr "После окончания периода восстановлени�
 
 #: src/features/members/components/MemberTasksPanel.tsx:215
 #: src/features/projects/components/projectCard/TasksBlock.tsx:118
-#: src/features/projects/components/ProjectsMainPanel.tsx:404
+#: src/features/projects/components/ProjectsMainPanel.tsx:418
 #: src/features/projects/pages/ProjectsPage.tsx:746
 msgid "All"
 msgstr "Все"
@@ -451,7 +451,8 @@ msgstr "Применить шаблон"
 msgid "Apply your saved template to this workspace (adds missing items by name)."
 msgstr "Применить сохраненный шаблон к этому рабочему пространству (добавит отсутствующие элементы по имени)."
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:408
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:263
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:430
 #: src/features/projects/components/ProjectsSidebar.tsx:201
 msgid "Archive"
 msgstr "Архивировать"
@@ -460,10 +461,10 @@ msgstr "Архивировать"
 #: src/features/members/components/MemberTasksPanel.tsx:484
 #: src/features/planner/components/TaskProjectSelect.tsx:104
 #: src/features/planner/components/timeline/TaskBar.tsx:537
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:127
-#: src/features/projects/components/ProjectsMainPanel.tsx:340
-#: src/features/projects/components/ProjectsMainPanel.tsx:718
-#: src/features/projects/components/ProjectsMainPanel.tsx:818
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:147
+#: src/features/projects/components/ProjectsMainPanel.tsx:354
+#: src/features/projects/components/ProjectsMainPanel.tsx:732
+#: src/features/projects/components/ProjectsMainPanel.tsx:832
 #: src/features/projects/components/ProjectsSidebar.tsx:184
 #: src/features/projects/components/ProjectsSidebar.tsx:289
 #: src/features/projects/components/ProjectsSidebar.tsx:625
@@ -492,7 +493,7 @@ msgstr "назначил(а) вас на задачу"
 #: src/features/planner/components/TaskDetailPanel.tsx:596
 #: src/features/planner/components/TaskDetailPanel.tsx:599
 #: src/features/planner/components/timeline/TaskBar.tsx:595
-#: src/features/projects/components/ProjectsMainPanel.tsx:584
+#: src/features/projects/components/ProjectsMainPanel.tsx:598
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:80
 msgid "Assignees"
 msgstr "Исполнители"
@@ -593,16 +594,16 @@ msgstr "Диапазон календаря"
 #: src/features/planner/components/TaskDetailDialogs.tsx:120
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:266
 #: src/features/planner/components/timeline/TaskBar.tsx:644
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:305
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:549
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:657
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:679
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:316
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:561
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:669
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:691
 #: src/features/projects/components/projectCard/AddContactForm.tsx:74
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:538
 #: src/features/projects/components/projectCard/MobileFormSheet.tsx:90
 #: src/features/projects/components/projectCard/MobileNoteSheet.tsx:110
 #: src/features/projects/components/projectCard/MobileTextSheet.tsx:144
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:168
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:190
 #: src/features/projects/components/projectCard/TeamBlock.tsx:495
 #: src/features/projects/components/ProjectsDialogs.tsx:262
 #: src/features/projects/components/ProjectsDialogs.tsx:320
@@ -667,7 +668,7 @@ msgstr "Шахматная"
 msgid "Checking invite..."
 msgstr "Проверяем приглашение..."
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:798
+#: src/features/projects/components/ProjectsMainPanel.tsx:812
 msgid "Choose a customer to see their projects."
 msgstr "Выберите клиента, чтобы увидеть его проекты."
 
@@ -690,13 +691,13 @@ msgstr "Выберите, к каким задачам применить это
 msgid "Clear"
 msgstr "Очистить"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:277
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:288
 msgid "Clear date filter"
 msgstr "Сбросить дату"
 
 #: src/features/members/components/MemberTasksPanel.tsx:295
 #: src/features/projects/components/projectCard/TasksBlock.tsx:167
-#: src/features/projects/components/ProjectsMainPanel.tsx:490
+#: src/features/projects/components/ProjectsMainPanel.tsx:504
 msgid "Clear filters"
 msgstr "Очистить фильтры"
 
@@ -710,7 +711,7 @@ msgstr "Нажмите эту кнопку или дважды кликните 
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:317
 #: src/features/members/components/TaskDetailsDialog.tsx:164
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:557
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:569
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:153
 msgid "Close"
 msgstr "Закрыть"
@@ -907,7 +908,7 @@ msgstr "Создает указанное количество повторов.
 #: src/features/members/components/MemberTasksPanel.tsx:156
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:253
 #: src/features/projects/components/projectCard/TasksBlock.tsx:100
-#: src/features/projects/components/ProjectsMainPanel.tsx:348
+#: src/features/projects/components/ProjectsMainPanel.tsx:362
 #: src/features/projects/components/ProjectsSidebar.tsx:493
 msgid "Current"
 msgstr "Текущие"
@@ -925,7 +926,7 @@ msgstr "Пользовательские"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:192
 #: src/features/projects/components/ProjectsDialogs.tsx:401
 #: src/features/projects/components/ProjectsDialogs.tsx:532
-#: src/features/projects/components/ProjectsMainPanel.tsx:764
+#: src/features/projects/components/ProjectsMainPanel.tsx:778
 #: src/features/projects/hooks/useProjectsFilter.ts:119
 msgid "Customer"
 msgstr "Клиент"
@@ -1013,13 +1014,13 @@ msgstr "Экспорт данных готов"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:177
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:192
-#: src/features/projects/components/ProjectsMainPanel.tsx:752
+#: src/features/projects/components/ProjectsMainPanel.tsx:766
 msgid "Date"
 msgstr "Дата"
 
 #: src/features/members/components/MemberTasksPanel.tsx:426
 #: src/features/members/components/TaskDetailsDialog.tsx:93
-#: src/features/projects/components/ProjectsMainPanel.tsx:585
+#: src/features/projects/components/ProjectsMainPanel.tsx:599
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:98
 msgid "Dates"
 msgstr "Даты"
@@ -1048,13 +1049,13 @@ msgstr "Отклонено"
 #: src/features/planner/components/TaskDetailPanel.tsx:815
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:275
 #: src/features/planner/components/timeline/TaskBar.tsx:689
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:631
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:666
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:768
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:643
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:678
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:780
 #: src/features/projects/components/ProjectsDialogs.tsx:649
 #: src/features/projects/components/ProjectsDialogs.tsx:672
 #: src/features/projects/components/ProjectsDialogs.tsx:695
-#: src/features/projects/components/ProjectsMainPanel.tsx:744
+#: src/features/projects/components/ProjectsMainPanel.tsx:758
 #: src/features/projects/components/ProjectsSidebar.tsx:208
 #: src/features/projects/components/ProjectsSidebar.tsx:310
 #: src/features/projects/components/ProjectsSidebar.tsx:439
@@ -1148,7 +1149,7 @@ msgstr "Удалить текущую"
 msgid "Delete this & following"
 msgstr "Удалить текущую и следующие"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:647
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:659
 msgid "Delete this note? This cannot be undone."
 msgstr "Удалить заметку? Действие нельзя отменить."
 
@@ -1168,7 +1169,8 @@ msgstr "Удалить рабочее пространство"
 msgid "Delete workspace?"
 msgstr "Удалить рабочее пространство?"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:415
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:273
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:437
 msgid "Delete..."
 msgstr "Удалить..."
 
@@ -1251,7 +1253,7 @@ msgstr "Сбросить"
 msgid "Discard task?"
 msgstr "Отменить задачу?"
 
-#: src/features/projects/pages/ProjectsPage.tsx:1294
+#: src/features/projects/pages/ProjectsPage.tsx:1300
 msgid "Dismiss"
 msgstr "Закрыть"
 
@@ -1270,7 +1272,7 @@ msgstr "Не повторяется"
 #: src/features/members/components/MemberTasksPanel.tsx:217
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:254
 #: src/features/projects/components/projectCard/TasksBlock.tsx:120
-#: src/features/projects/components/ProjectsMainPanel.tsx:406
+#: src/features/projects/components/ProjectsMainPanel.tsx:420
 msgid "Done"
 msgstr "Завершено"
 
@@ -1313,9 +1315,9 @@ msgid "Each morning starts with a short brief. What's on you today, which milest
 msgstr "Каждое утро начинается с короткого брифа. Что на тебе сегодня, какие майлстоуны на этой неделе, где команде нужна твоя помощь. До того как ты откроешь что-то ещё."
 
 #: src/features/planner/components/TaskCommentItem.tsx:150
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:559
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:696
-#: src/features/projects/components/ProjectsMainPanel.tsx:736
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:571
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:708
+#: src/features/projects/components/ProjectsMainPanel.tsx:750
 #: src/features/projects/components/ProjectsSidebar.tsx:195
 #: src/features/projects/components/ProjectsSidebar.tsx:297
 #: src/features/projects/components/ProjectsSidebar.tsx:432
@@ -1356,7 +1358,8 @@ msgstr "Редактировать имя"
 msgid "Edit photo"
 msgstr "Редактировать фото"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:405
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:259
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:427
 #: src/features/projects/components/ProjectsDialogs.tsx:483
 msgid "Edit project"
 msgstr "Редактировать проект"
@@ -1365,13 +1368,13 @@ msgstr "Редактировать проект"
 msgid "Edit project details such as name, code, customer, and color."
 msgstr "Отредактируйте детали проекта: название, код, клиента и цвет."
 
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:176
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:208
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:198
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:287
 msgid "Edit project status"
 msgstr "Редактировать статус"
 
 #. placeholder {0}: project.status
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:178
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:200
 msgid "Edit project status: {0}"
 msgstr "Изменить статус проекта: {0}"
 
@@ -1416,12 +1419,12 @@ msgid "End Date"
 msgstr "Дата окончания"
 
 #: src/features/members/components/MemberTasksPanel.tsx:284
-#: src/features/projects/components/ProjectsMainPanel.tsx:479
+#: src/features/projects/components/ProjectsMainPanel.tsx:493
 msgid "End date ↑"
 msgstr "Дата окончания ↑"
 
 #: src/features/members/components/MemberTasksPanel.tsx:283
-#: src/features/projects/components/ProjectsMainPanel.tsx:478
+#: src/features/projects/components/ProjectsMainPanel.tsx:492
 msgid "End date ↓"
 msgstr "Дата окончания ↓"
 
@@ -1910,7 +1913,7 @@ msgstr "Окончательное удаление произойдёт {purgeL
 #~ msgid "Join teams already planning smarter with Motio."
 #~ msgstr "Присоединяйтесь к командам которые уже планируют умнее с Motio."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:270
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:281
 msgid "Jump to date"
 msgstr "Перейти к дате"
 
@@ -2011,7 +2014,7 @@ msgstr "Загрузка участников..."
 
 #: src/features/members/components/MemberTasksPanel.tsx:322
 #: src/features/projects/components/projectCard/TasksBlock.tsx:183
-#: src/features/projects/components/ProjectsMainPanel.tsx:507
+#: src/features/projects/components/ProjectsMainPanel.tsx:521
 msgid "Loading tasks..."
 msgstr "Загрузка задач..."
 
@@ -2175,8 +2178,8 @@ msgstr "Ежемесячно"
 msgid "Monthly recurring"
 msgstr "Ежемесячный повтор"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:598
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:734
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:610
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:746
 msgid "More actions"
 msgstr "Ещё действия"
 
@@ -2270,7 +2273,7 @@ msgid "Never"
 msgstr "Никогда"
 
 #: src/features/projects/components/ProjectsDialogs.tsx:235
-#: src/features/projects/pages/ProjectsPage.tsx:1254
+#: src/features/projects/pages/ProjectsPage.tsx:1260
 msgid "New customer"
 msgstr "Новый клиент"
 
@@ -2288,7 +2291,7 @@ msgstr "Новое отображаемое имя"
 msgid "New group"
 msgstr "Новая группа"
 
-#: src/features/projects/pages/ProjectsPage.tsx:1265
+#: src/features/projects/pages/ProjectsPage.tsx:1271
 msgid "New milestone"
 msgstr "Новая веха"
 
@@ -2299,7 +2302,7 @@ msgstr "Новый владелец: {0}"
 
 #: src/features/onboarding/lib/onboardingTour.ts:131
 #: src/features/projects/components/ProjectsDialogs.tsx:366
-#: src/features/projects/pages/ProjectsPage.tsx:1276
+#: src/features/projects/pages/ProjectsPage.tsx:1282
 msgid "New project"
 msgstr "Новый проект"
 
@@ -2337,7 +2340,7 @@ msgstr "Новый виджет"
 #: src/features/onboarding/lib/onboardingTour.ts:315
 #: src/features/planner/components/timeline/TimelineControls.tsx:187
 #: src/features/projects/components/projectCard/TasksBlock.tsx:259
-#: src/features/projects/components/ProjectsMainPanel.tsx:680
+#: src/features/projects/components/ProjectsMainPanel.tsx:694
 msgid "Next"
 msgstr "Далее"
 
@@ -2384,7 +2387,7 @@ msgid "No assignees available."
 msgstr "Нет доступных исполнителей."
 
 #: src/features/projects/components/projectCard/TasksBlock.tsx:146
-#: src/features/projects/components/ProjectsMainPanel.tsx:438
+#: src/features/projects/components/ProjectsMainPanel.tsx:452
 msgid "No assignees on this project."
 msgstr "Нет исполнителей в этом проекте."
 
@@ -2411,11 +2414,11 @@ msgstr "Нет актуальных вех."
 #: src/features/planner/components/TaskDetailPanel.tsx:519
 #: src/features/projects/components/CustomerCombobox.tsx:32
 #: src/features/projects/components/CustomerCombobox.tsx:115
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:29
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:49
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:172
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:348
-#: src/features/projects/components/ProjectsMainPanel.tsx:327
-#: src/features/projects/components/ProjectsMainPanel.tsx:766
+#: src/features/projects/components/ProjectsMainPanel.tsx:341
+#: src/features/projects/components/ProjectsMainPanel.tsx:780
 #: src/features/projects/components/ProjectsSidebar.tsx:176
 #: src/features/projects/components/ProjectsSidebar.tsx:281
 #: src/features/projects/components/ProjectsSidebar.tsx:579
@@ -2546,7 +2549,7 @@ msgstr "Вех пока нет."
 msgid "No new repeats were needed."
 msgstr "Новые повторы не требуются."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:329
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:340
 msgid "No notes yet. Use + to add the first one."
 msgstr "Заметок ещё нет. Нажмите +, чтобы добавить первую."
 
@@ -2587,7 +2590,7 @@ msgstr "Без приоритета"
 msgid "No project"
 msgstr "Нет проекта"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:801
+#: src/features/projects/components/ProjectsMainPanel.tsx:815
 msgid "No projects assigned to this customer."
 msgstr "Нет проектов у этого клиента."
 
@@ -2639,7 +2642,7 @@ msgstr "Тегов пока нет."
 
 #: src/features/members/components/MemberTasksPanel.tsx:330
 #: src/features/projects/components/projectCard/TasksBlock.tsx:189
-#: src/features/projects/components/ProjectsMainPanel.tsx:515
+#: src/features/projects/components/ProjectsMainPanel.tsx:529
 msgid "No tasks match the current filters."
 msgstr "Нет задач, соответствующих фильтрам."
 
@@ -2697,21 +2700,21 @@ msgstr "Нет"
 msgid "Not equals"
 msgstr "Не равно"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:772
+#: src/features/projects/components/ProjectsMainPanel.tsx:786
 msgid "Not tracked"
 msgstr "Не отслеживается"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:224
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:589
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:709
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:601
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:721
 msgid "Note"
 msgstr "Заметка"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:231
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:242
 msgid "Notes"
 msgstr "Заметки"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:330
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:341
 msgid "Nothing matches the current filters."
 msgstr "Ничего не найдено по текущим фильтрам."
 
@@ -2726,7 +2729,7 @@ msgid "Occurrences"
 msgstr "Количество"
 
 #: src/features/members/components/MemberTasksPanel.tsx:504
-#: src/features/projects/components/ProjectsMainPanel.tsx:660
+#: src/features/projects/components/ProjectsMainPanel.tsx:674
 msgid "of"
 msgstr "из"
 
@@ -2768,7 +2771,7 @@ msgstr "Только эта задача"
 
 #: src/features/members/components/MemberTasksPanel.tsx:216
 #: src/features/projects/components/projectCard/TasksBlock.tsx:119
-#: src/features/projects/components/ProjectsMainPanel.tsx:405
+#: src/features/projects/components/ProjectsMainPanel.tsx:419
 msgid "Open"
 msgstr "Открытые"
 
@@ -2800,7 +2803,7 @@ msgstr "Открыть меню"
 #~ msgid "Open navigation menu"
 #~ msgstr "Открыть меню навигации"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:728
+#: src/features/projects/components/ProjectsMainPanel.tsx:742
 #: src/features/projects/components/ProjectsSidebar.tsx:303
 msgid "Open project"
 msgstr "Открыть проект"
@@ -2831,7 +2834,7 @@ msgid "Owner team"
 msgstr "Команда-владелец"
 
 #: src/features/members/components/MemberTasksPanel.tsx:516
-#: src/features/projects/components/ProjectsMainPanel.tsx:672
+#: src/features/projects/components/ProjectsMainPanel.tsx:686
 msgid "Page {pageIndex} / {totalPages}"
 msgstr "Страница {pageIndex} / {totalPages}"
 
@@ -2845,7 +2848,7 @@ msgstr "Пароли и восстановление аккаунта управ
 
 #: src/features/members/components/MemberTasksPanel.tsx:162
 #: src/features/projects/components/projectCard/TasksBlock.tsx:106
-#: src/features/projects/components/ProjectsMainPanel.tsx:354
+#: src/features/projects/components/ProjectsMainPanel.tsx:368
 #: src/features/projects/components/ProjectsSidebar.tsx:494
 msgid "Past"
 msgstr "Прошлые"
@@ -2914,14 +2917,14 @@ msgstr "Круговая диаграмма (пончик)"
 #~ msgid "Pin all task assignees as members"
 #~ msgstr "Закрепить всех ассайни задач как участников"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:362
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:363
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:619
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:755
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:373
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:374
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:631
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:767
 msgid "Pin to top"
 msgstr "Закрепить наверху"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:375
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:386
 msgid "Pinned"
 msgstr "Закреплено"
 
@@ -2947,7 +2950,7 @@ msgstr "Готовим ваши данные…"
 
 #: src/features/members/components/MemberTasksPanel.tsx:513
 #: src/features/projects/components/projectCard/TasksBlock.tsx:256
-#: src/features/projects/components/ProjectsMainPanel.tsx:669
+#: src/features/projects/components/ProjectsMainPanel.tsx:683
 msgid "Prev"
 msgstr "Назад"
 
@@ -2984,13 +2987,14 @@ msgstr "Профиль"
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:112
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:157
 #: src/features/planner/components/timeline/TaskBar.tsx:598
-#: src/features/projects/components/ProjectsMainPanel.tsx:756
+#: src/features/projects/components/ProjectsMainPanel.tsx:770
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:56
 #: src/features/projects/hooks/useProjectsFilter.ts:118
 msgid "Project"
 msgstr "Проект"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:391
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:252
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:413
 msgid "Project actions"
 msgstr "Действия с проектом"
 
@@ -3003,8 +3007,8 @@ msgstr "Название проекта"
 msgid "Project not found."
 msgstr "Проект не найден."
 
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:153
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:211
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:175
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:290
 #: src/features/projects/components/ProjectsDialogs.tsx:429
 #: src/features/projects/components/ProjectsDialogs.tsx:560
 msgid "Project status"
@@ -3012,8 +3016,8 @@ msgstr "Статус проекта"
 
 #. placeholder {0}: project.status
 #. placeholder {0}: selectedProject.status
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:179
-#: src/features/projects/components/ProjectsMainPanel.tsx:334
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:201
+#: src/features/projects/components/ProjectsMainPanel.tsx:348
 msgid "Project status: {0}"
 msgstr "Статус проекта: {0}"
 
@@ -3022,7 +3026,7 @@ msgstr "Статус проекта: {0}"
 #: src/features/planner/components/FilterPanel.tsx:265
 #: src/features/planner/components/timeline/TimelineControls.tsx:264
 #: src/features/planner/components/timeline/TimelineControls.tsx:267
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:111
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:131
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:121
 #: src/features/projects/components/ProjectsSidebar.tsx:351
 #: src/features/projects/pages/ProjectsPage.tsx:867
@@ -3039,8 +3043,8 @@ msgstr "Проекты и вехи"
 #~ msgid "Projects sections"
 #~ msgstr "Разделы проектов"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:312
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:438
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:323
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:450
 msgid "Publish"
 msgstr "Опубликовать"
 
@@ -3061,8 +3065,8 @@ msgstr "purge_after"
 #~ msgid "Read or edit a single project activity entry."
 #~ msgstr "Просмотр или редактирование записи активности проекта."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:638
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:711
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:650
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:723
 msgid "Read or edit a single project note."
 msgstr "Прочитать или изменить отдельную заметку проекта."
 
@@ -3081,7 +3085,7 @@ msgstr "Повтор"
 #: src/features/auth/components/DataExportButton.tsx:111
 #: src/features/members/components/MemberTasksPanel.tsx:305
 #: src/features/projects/components/projectCard/TasksBlock.tsx:177
-#: src/features/projects/components/ProjectsMainPanel.tsx:500
+#: src/features/projects/components/ProjectsMainPanel.tsx:514
 msgid "Refresh"
 msgstr "Обновить"
 
@@ -3254,14 +3258,14 @@ msgstr "Роль / должность"
 #: src/features/planner/components/CommentEditor.tsx:848
 #: src/features/planner/components/TaskDetailDialogs.tsx:93
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:283
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:552
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:687
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:564
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:699
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:373
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:546
 #: src/features/projects/components/projectCard/MobileFormSheet.tsx:93
 #: src/features/projects/components/projectCard/MobileNoteSheet.tsx:113
 #: src/features/projects/components/projectCard/MobileTextSheet.tsx:147
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:158
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:180
 #: src/features/projects/components/projectCard/TeamBlock.tsx:502
 #: src/features/projects/components/projectCard/TeamBlock.tsx:847
 #: src/features/projects/components/ProjectsDialogs.tsx:323
@@ -3295,7 +3299,7 @@ msgstr "Сохранение..."
 
 #: src/features/members/components/MembersSidebar.tsx:172
 #: src/features/members/components/MemberTasksPanel.tsx:182
-#: src/features/projects/components/ProjectsMainPanel.tsx:371
+#: src/features/projects/components/ProjectsMainPanel.tsx:385
 #: src/features/projects/components/ProjectsSidebar.tsx:526
 msgid "Search & filters"
 msgstr "Поиск и фильтры"
@@ -3325,7 +3329,7 @@ msgstr "Поиск участников..."
 msgid "Search milestones..."
 msgstr "Поиск вех..."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:258
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:269
 msgid "Search notes..."
 msgstr "Поиск по заметкам..."
 
@@ -3356,7 +3360,7 @@ msgstr "Поиск тегов..."
 
 #: src/features/members/components/MemberTasksPanel.tsx:203
 #: src/features/projects/components/projectCard/TasksBlock.tsx:90
-#: src/features/projects/components/ProjectsMainPanel.tsx:392
+#: src/features/projects/components/ProjectsMainPanel.tsx:406
 msgid "Search tasks..."
 msgstr "Поиск задач..."
 
@@ -3372,7 +3376,7 @@ msgstr "Поиск типов..."
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "Все задачи на одной линии времени. Сразу видно, кто и когда занят."
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:786
+#: src/features/projects/components/ProjectsMainPanel.tsx:800
 #: src/features/projects/pages/ProjectsPage.tsx:871
 msgid "Select a customer"
 msgstr "Выберите клиента"
@@ -3393,7 +3397,7 @@ msgstr "Выберите участника"
 msgid "Select a milestone"
 msgstr "Выберите веху"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:695
+#: src/features/projects/components/ProjectsMainPanel.tsx:709
 msgid "Select a milestone to view details."
 msgstr "Выберите веху, чтобы увидеть детали."
 
@@ -3409,7 +3413,7 @@ msgstr "Выберите участника, чтобы увидеть дета�
 msgid "Select a project"
 msgstr "Выберите проект"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:312
+#: src/features/projects/components/ProjectsMainPanel.tsx:326
 msgid "Select a project to view details."
 msgstr "Выберите проект, чтобы увидеть детали."
 
@@ -3498,7 +3502,7 @@ msgstr "Чтобы отправлять приглашения, нужен на�
 msgid "Sent invites"
 msgstr "Отправленные приглашения"
 
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:209
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:288
 msgid "Set or clear the custom status label shown on this project."
 msgstr "Установить или очистить пользовательский статус проекта."
 
@@ -3628,12 +3632,12 @@ msgid "Start Date"
 msgstr "Дата начала"
 
 #: src/features/members/components/MemberTasksPanel.tsx:286
-#: src/features/projects/components/ProjectsMainPanel.tsx:481
+#: src/features/projects/components/ProjectsMainPanel.tsx:495
 msgid "Start date ↑"
 msgstr "Дата начала ↑"
 
 #: src/features/members/components/MemberTasksPanel.tsx:285
-#: src/features/projects/components/ProjectsMainPanel.tsx:480
+#: src/features/projects/components/ProjectsMainPanel.tsx:494
 msgid "Start date ↓"
 msgstr "Дата начала ↓"
 
@@ -3655,8 +3659,8 @@ msgstr "Начни сейчас →"
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:238
 #: src/features/planner/components/timeline/TaskBar.tsx:471
 #: src/features/planner/components/timeline/TaskBar.tsx:473
-#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:198
-#: src/features/projects/components/ProjectsMainPanel.tsx:583
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:220
+#: src/features/projects/components/ProjectsMainPanel.tsx:597
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:69
 #: src/features/workspace/components/SettingsPanel.tsx:556
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:753
@@ -3672,7 +3676,11 @@ msgstr "Статусы"
 #~ msgid "Stay in the loop when tasks are assigned or updated. No more missed deadlines."
 #~ msgstr "Будьте в курсе когда задачи назначены или обновлены. Никаких пропущенных дедлайнов."
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:400
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:230
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:231
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:395
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:396
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:422
 #: src/features/projects/components/ProjectsSidebar.tsx:192
 msgid "Stop tracking"
 msgstr "Перестать отслеживать"
@@ -3707,7 +3715,7 @@ msgid "Tags"
 msgstr "Теги"
 
 #: src/features/members/components/MemberTasksPanel.tsx:423
-#: src/features/projects/components/ProjectsMainPanel.tsx:582
+#: src/features/projects/components/ProjectsMainPanel.tsx:596
 msgid "Task"
 msgstr "Задача"
 
@@ -3940,12 +3948,12 @@ msgid "Title"
 msgstr "Название"
 
 #: src/features/members/components/MemberTasksPanel.tsx:287
-#: src/features/projects/components/ProjectsMainPanel.tsx:482
+#: src/features/projects/components/ProjectsMainPanel.tsx:496
 msgid "Title A–Z"
 msgstr "Название А–Я"
 
 #: src/features/members/components/MemberTasksPanel.tsx:288
-#: src/features/projects/components/ProjectsMainPanel.tsx:483
+#: src/features/projects/components/ProjectsMainPanel.tsx:497
 msgid "Title Z–A"
 msgstr "Название Я–А"
 
@@ -3976,20 +3984,24 @@ msgstr "Всего вех"
 msgid "Total tasks"
 msgstr "Всего задач"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:400
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:230
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:231
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:395
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:396
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:422
 #: src/features/projects/components/ProjectsSidebar.tsx:192
 msgid "Track"
 msgstr "Отслеживать"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:355
-msgid "Tracked"
-msgstr "Отслеживается"
+#~ msgid "Tracked"
+#~ msgstr "Отслеживается"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:772
+#: src/features/projects/components/ProjectsMainPanel.tsx:786
 msgid "Tracked project"
 msgstr "Отслеживаемый проект"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:770
+#: src/features/projects/components/ProjectsMainPanel.tsx:784
 msgid "Tracking"
 msgstr "Отслеживание"
 
@@ -4035,7 +4047,8 @@ msgstr "Введите фразу для подтверждения:"
 msgid "Types"
 msgstr "Типы"
 
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:408
+#: src/features/projects/components/projectCard/ProjectCardHeader.tsx:263
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:430
 msgid "Unarchive"
 msgstr "Разархивировать"
 
@@ -4047,8 +4060,8 @@ msgstr "Разархивировать"
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:103
 #: src/features/planner/components/timeline/TaskBar.tsx:128
 #: src/features/planner/components/timeline/TimelineControls.tsx:287
-#: src/features/projects/components/ProjectsMainPanel.tsx:558
-#: src/features/projects/components/ProjectsMainPanel.tsx:631
+#: src/features/projects/components/ProjectsMainPanel.tsx:572
+#: src/features/projects/components/ProjectsMainPanel.tsx:645
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:83
 msgid "Unassigned"
 msgstr "Без назнач."
@@ -4069,7 +4082,7 @@ msgstr "неизвестно"
 #: src/features/members/components/MemberTasksPanel.tsx:472
 #: src/features/members/components/TaskDetailsDialog.tsx:71
 #: src/features/members/components/TaskDetailsDialog.tsx:101
-#: src/features/projects/components/ProjectsMainPanel.tsx:626
+#: src/features/projects/components/ProjectsMainPanel.tsx:640
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:76
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:106
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:239
@@ -4086,8 +4099,8 @@ msgstr "неизвестная ошибка"
 msgid "Unknown member"
 msgstr "Неизвестный участник"
 
-#: src/features/projects/components/ProjectsMainPanel.tsx:714
-#: src/features/projects/components/ProjectsMainPanel.tsx:760
+#: src/features/projects/components/ProjectsMainPanel.tsx:728
+#: src/features/projects/components/ProjectsMainPanel.tsx:774
 #: src/features/projects/components/ProjectsSidebar.tsx:254
 #: src/features/projects/hooks/useProjectsFilter.ts:110
 msgid "Unknown project"
@@ -4113,10 +4126,10 @@ msgstr "Неизвестный пользователь"
 msgid "Unnamed group"
 msgstr "Группа без названия"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:362
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:363
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:614
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:750
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:373
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:374
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:626
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:762
 msgid "Unpin"
 msgstr "Открепить"
 
@@ -4353,13 +4366,13 @@ msgstr "Рабочие пространства, которые вы прост�
 #~ msgid "Write a comment that will appear in the project activity feed."
 #~ msgstr "Напишите комментарий, который появится в ленте активности проекта."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:291
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:437
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:535
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:302
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:449
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:547
 msgid "Write a comment..."
 msgstr "Написать комментарий..."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:436
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:448
 msgid "Write a note that will appear in the project notes."
 msgstr "Напишите заметку, которая появится в заметках проекта."
 

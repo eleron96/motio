@@ -92,6 +92,11 @@ type ProjectsMainPanelProps = {
   onCreateMilestoneForProject: (projectId: string) => void;
   onEditMilestone: (milestone: Milestone) => void;
   onSaveProjectStatus: (projectId: string, next: string | null) => Promise<boolean>;
+  /** Per-user tracking + project actions for the card header. */
+  onToggleProjectTracked: (projectId: string, nextTracked: boolean) => void;
+  onOpenProjectSettings: (project: Project) => void;
+  onToggleProjectArchived: (project: Project) => void;
+  onRequestDeleteProject: (project: Project) => void;
   /** Customer contacts list + handlers wired through plannerStore. */
   customerContacts: CustomerContact[];
   onAddCustomerContact: (
@@ -185,6 +190,10 @@ export const ProjectsMainPanel = ({
   onCreateMilestoneForProject,
   onEditMilestone,
   onSaveProjectStatus,
+  onToggleProjectTracked,
+  onOpenProjectSettings,
+  onToggleProjectArchived,
+  onRequestDeleteProject,
   customerContacts,
   onAddCustomerContact,
   onDeleteCustomerContact,
@@ -273,6 +282,11 @@ export const ProjectsMainPanel = ({
         onAddMilestone={() => onCreateMilestoneForProject(selectedProject.id)}
         onEditMilestone={onEditMilestone}
         onSaveProjectStatus={(next) => onSaveProjectStatus(selectedProject.id, next)}
+        isProjectTracked={trackedProjectIdSet.has(selectedProject.id)}
+        onToggleProjectTracked={() => onToggleProjectTracked(selectedProject.id, !trackedProjectIdSet.has(selectedProject.id))}
+        onOpenProjectSettings={() => onOpenProjectSettings(selectedProject)}
+        onToggleProjectArchived={() => onToggleProjectArchived(selectedProject)}
+        onRequestDeleteProject={() => onRequestDeleteProject(selectedProject)}
         taskScope={taskScope}
         onChangeTaskScope={onChangeTaskScope}
         search={search}

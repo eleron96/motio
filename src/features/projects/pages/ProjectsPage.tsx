@@ -1215,6 +1215,12 @@ const ProjectsPage = () => {
       onCreateMilestoneForProject={handleOpenCreateMilestoneForProject}
       onEditMilestone={handleOpenMilestoneSettings}
       onSaveProjectStatus={handleSaveProjectStatus}
+      onToggleProjectTracked={(projectId, nextTracked) => {
+        void toggleTrackedProject(projectId, nextTracked);
+      }}
+      onOpenProjectSettings={openProjectSettings}
+      onToggleProjectArchived={handleToggleProjectArchived}
+      onRequestDeleteProject={requestDeleteProject}
       customerContacts={customerContacts}
       onAddCustomerContact={handleAddCustomerContact}
       onDeleteCustomerContact={handleDeleteCustomerContact}

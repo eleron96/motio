@@ -63,6 +63,11 @@ interface ProjectCardLayoutProps {
   onAddMilestone: () => void;
   onEditMilestone?: (milestone: Milestone) => void;
   onSaveProjectStatus: (next: string | null) => Promise<boolean>;
+  isProjectTracked: boolean;
+  onToggleProjectTracked: () => void;
+  onOpenProjectSettings?: () => void;
+  onToggleProjectArchived?: () => void;
+  onRequestDeleteProject?: () => void;
   /** Activity feed for this project. */
   projectActivity: ProjectActivity[];
   formatActivityTimestamp: (iso: string) => string;
@@ -125,6 +130,11 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
     onAddMilestone,
     onEditMilestone,
     onSaveProjectStatus,
+    isProjectTracked,
+    onToggleProjectTracked,
+    onOpenProjectSettings,
+    onToggleProjectArchived,
+    onRequestDeleteProject,
     projectActivity,
     formatActivityTimestamp,
     onAddActivity,
@@ -143,6 +153,11 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
           customer={customer}
           canEdit={canEdit}
           onSaveStatus={onSaveProjectStatus}
+          isTracked={isProjectTracked}
+          onToggleTracked={onToggleProjectTracked}
+          onOpenSettings={onOpenProjectSettings}
+          onToggleArchived={onToggleProjectArchived}
+          onRequestDelete={onRequestDeleteProject}
         />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_1.2fr]">
