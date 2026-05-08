@@ -6,6 +6,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Full new project-card UI on desktop and mobile — behind `VITE_FEATURE_PROJECT_CARD` (desktop) and `VITE_FEATURE_PROJECT_CARD_MOBILE` (mobile, implies the first flag). The card stacks into one view: Customer with tagged contacts; Team (Motio + external members, avatars, tags, grouping); Milestones with timeline of past/upcoming and quick add; Notes (formerly "Activity") with rich-text editor, images, search and jump-to-date; project Tasks.
+- Projects sidebar gets: Projects | Milestones | Customers switcher (single source of truth on mobile too), owner-team filter, customer filter with grouping, active / archived toggle.
+- Card header carries an editable custom project status — inline form on desktop, bottom sheet on mobile.
+- Auto-add of group members when an owner team is assigned to a project (idempotent; individual members can still be pruned afterward).
+- All mobile edit flows live in bottom sheets that lift above the on-screen keyboard via the Visual Viewport API.
+- Migrations 0085–0087: GRANTs for the new tables, tag / external columns on project_members, customer_contacts.tag, projects.status.
+
+### Changed
+- Mutation handlers (contacts, members, notes, status) return `Promise<boolean>` so forms stay open with the user's draft on failure instead of "silent success".
+- The top-of-page MobilePillSubnav is gone on mobile; the mode switcher now lives only in the sidebar.
+- Desktop contact popup now clamps to the viewport and flips above the anchor when needed; gains `aria-modal` and a focus trap.
+
+### Fixed
+- The status chip no longer drops an in-progress draft when a live-sync update lands mid-edit.
+- `loadWorkspaceData` skips the project-card-only tables when the feature flag is off — zero cost in prod until the flag flips on.
+- Mobile add-team picker excludes members already on the project.
 
 ## [0.4.35] - 2026-05-07
 ### Added
