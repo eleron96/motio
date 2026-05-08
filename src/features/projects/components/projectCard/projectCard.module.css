@@ -165,6 +165,9 @@
 .feedItemPinned {
   background: hsl(var(--card));
   border-left: 2px solid #f59e0b;
+  /* No dashed bottom border — the drop-shadow already separates pinned
+     rows from the unpinned content scrolling underneath. */
+  border-bottom: none;
   margin-left: -8px;
   margin-right: -8px;
   padding-left: 10px;
@@ -195,9 +198,12 @@
 
 .feedTextClamp {
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* Snippets are pre-flattened to <br>-separated inline text in
+     `renderFeedSnippetHtml`, so each <br> here counts as one logical line
+     for `-webkit-line-clamp`. */
 }
 
 /* Rich-text rendering for activity entries (matches RTE allowed tags). */

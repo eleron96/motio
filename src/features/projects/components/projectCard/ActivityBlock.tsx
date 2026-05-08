@@ -94,6 +94,42 @@ const renderRichTextHtml = (raw: string) => {
   return { __html: escaped };
 };
 
+/**
+ * Compact rendering for the feed-row preview: respects newlines from the
+ * original note but flattens block elements (`<p>`, `<div>`, `<blockquote>`,
+ * `<li>`) into `<br>`-separated inline text. The full modal still uses
+ * `renderRichTextHtml` for proper block layout.
+ *
+ * Why this exists: `display: -webkit-box; -webkit-line-clamp: N` (the only
+ * cross-browser line-clamp) collapses block children into a single visual
+ * run, so paragraphs from the rich-text editor lost their line breaks in
+ * the row preview. Pre-flattening to `<br>` keeps `-webkit-line-clamp`
+ * counting actual logical lines.
+ */
+const renderFeedSnippetHtml = (raw: string) => {
+  if (!raw) return { __html: '' };
+  if (!ACTIVITY_HTML_TAG_RE.test(raw)) {
+    const escaped = raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+    return { __html: escaped };
+  }
+  const sanitized = sanitizeCommentRichText(raw);
+  const flattened = sanitized
+    // Block-level closers become explicit line breaks
+    .replace(/<\/(p|div|blockquote|li)>/gi, '<br>')
+    // Strip the opening block tags (we already inserted <br> at close)
+    .replace(/<(p|div|blockquote|li|ul|ol)[^>]*>/gi, '')
+    // Drop images in the preview — short rows show text only
+    .replace(/<img[^>]*\/?>/gi, '')
+    // Collapse runs of <br> and trim leading/trailing breaks
+    .replace(/(<br\s*\/?>\s*){2,}/gi, '<br>')
+    .replace(/^(\s|<br\s*\/?>)+|(\s|<br\s*\/?>)+$/gi, '');
+  return { __html: flattened };
+};
+
 export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   entries,
   canEdit,
@@ -357,7 +393,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                   return (
                     <div
                       className={`${styles.feedTextClamp} ${styles.feedRichText} text-[14px] leading-[1.5]`}
-                      dangerouslySetInnerHTML={renderRichTextHtml(entry.content)}
+                      dangerouslySetInnerHTML={renderFeedSnippetHtml(entry.content)}
                     />
                   );
                 })()}

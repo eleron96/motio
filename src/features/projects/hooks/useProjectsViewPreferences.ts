@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 type NameSort = 'asc' | 'desc';
 type MilestoneTab = 'active' | 'past';
+type ProjectsTab = 'active' | 'archived';
+type ProjectsMode = 'projects' | 'milestones' | 'customers';
 
 export type MilestoneGroupBy = 'project' | 'customer' | 'month';
 
@@ -18,6 +20,12 @@ export const useProjectsViewPreferences = ({
   const [groupByCustomer, setGroupByCustomer] = useState(false);
   const [milestoneTab, setMilestoneTab] = useState<MilestoneTab>('active');
   const [milestoneGroupBy, setMilestoneGroupBy] = useState<MilestoneGroupBy>('project');
+  const [tab, setTab] = useState<ProjectsTab>('active');
+  const [mode, setMode] = useState<ProjectsMode>('projects');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
+  const [ownerGroupFilterIds, setOwnerGroupFilterIds] = useState<string[]>([]);
 
   const projectsViewPrefsStorageKey = currentWorkspaceId
     ? `projects-view-prefs-${currentWorkspaceId}`
@@ -37,6 +45,12 @@ export const useProjectsViewPreferences = ({
           groupByCustomer: boolean;
           milestoneTab: MilestoneTab;
           milestoneGroupBy: MilestoneGroupBy;
+          tab: ProjectsTab;
+          mode: ProjectsMode;
+          selectedProjectId: string | null;
+          selectedCustomerId: string | null;
+          customerFilterIds: string[];
+          ownerGroupFilterIds: string[];
         }>;
         if (parsed.nameSort === 'asc' || parsed.nameSort === 'desc') {
           setNameSort(parsed.nameSort);
@@ -49,6 +63,24 @@ export const useProjectsViewPreferences = ({
         }
         if (parsed.milestoneGroupBy === 'project' || parsed.milestoneGroupBy === 'customer' || parsed.milestoneGroupBy === 'month') {
           setMilestoneGroupBy(parsed.milestoneGroupBy);
+        }
+        if (parsed.tab === 'active' || parsed.tab === 'archived') {
+          setTab(parsed.tab);
+        }
+        if (parsed.mode === 'projects' || parsed.mode === 'milestones' || parsed.mode === 'customers') {
+          setMode(parsed.mode);
+        }
+        if (typeof parsed.selectedProjectId === 'string' || parsed.selectedProjectId === null) {
+          setSelectedProjectId(parsed.selectedProjectId);
+        }
+        if (typeof parsed.selectedCustomerId === 'string' || parsed.selectedCustomerId === null) {
+          setSelectedCustomerId(parsed.selectedCustomerId);
+        }
+        if (Array.isArray(parsed.customerFilterIds) && parsed.customerFilterIds.every((id) => typeof id === 'string')) {
+          setCustomerFilterIds(parsed.customerFilterIds);
+        }
+        if (Array.isArray(parsed.ownerGroupFilterIds) && parsed.ownerGroupFilterIds.every((id) => typeof id === 'string')) {
+          setOwnerGroupFilterIds(parsed.ownerGroupFilterIds);
         }
       } catch {
         // Ignore invalid localStorage payload and keep defaults.
@@ -65,8 +97,26 @@ export const useProjectsViewPreferences = ({
       groupByCustomer,
       milestoneTab,
       milestoneGroupBy,
+      tab,
+      mode,
+      selectedProjectId,
+      selectedCustomerId,
+      customerFilterIds,
+      ownerGroupFilterIds,
     }));
-  }, [groupByCustomer, milestoneGroupBy, milestoneTab, nameSort, projectsViewPrefsStorageKey]);
+  }, [
+    groupByCustomer,
+    milestoneGroupBy,
+    milestoneTab,
+    nameSort,
+    tab,
+    mode,
+    selectedProjectId,
+    selectedCustomerId,
+    customerFilterIds,
+    ownerGroupFilterIds,
+    projectsViewPrefsStorageKey,
+  ]);
 
   return {
     nameSort,
@@ -77,5 +127,17 @@ export const useProjectsViewPreferences = ({
     setMilestoneTab,
     milestoneGroupBy,
     setMilestoneGroupBy,
+    tab,
+    setTab,
+    mode,
+    setMode,
+    selectedProjectId,
+    setSelectedProjectId,
+    selectedCustomerId,
+    setSelectedCustomerId,
+    customerFilterIds,
+    setCustomerFilterIds,
+    ownerGroupFilterIds,
+    setOwnerGroupFilterIds,
   };
 };
