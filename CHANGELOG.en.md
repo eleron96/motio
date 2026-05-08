@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-05-08
+### Changed
+- No documented changes.
+
 ## [0.5.0] - 2026-05-08
 ### Added
 - Full new project-card UI on desktop and mobile — behind `VITE_FEATURE_PROJECT_CARD` (desktop) and `VITE_FEATURE_PROJECT_CARD_MOBILE` (mobile, implies the first flag). The card stacks into one view: Customer with tagged contacts; Team (Motio + external members, avatars, tags, grouping); Milestones with timeline of past/upcoming and quick add; Notes (formerly "Activity") with rich-text editor, images, search and jump-to-date; project Tasks.
