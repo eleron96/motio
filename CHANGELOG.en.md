@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.0] - 2026-05-08
 ### Added
 - Team block now lets you edit external members in full — name, company, role, on top of the existing email / phone / tag fields. Workspace (Motio) members keep their existing project-local edit surface here; their identity still lives on the Members page.
 - Customer block gains a real edit flow for contacts (previously only add and delete shipped). Pencil on each row opens an inline form on desktop or a bottom sheet on mobile — all five fields editable: name, role, tag, email, phone.
