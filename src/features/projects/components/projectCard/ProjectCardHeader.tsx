@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Pencil, Plus } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, Star } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import type { Project, Customer } from '@/features/planner/types/planner';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
@@ -18,6 +25,14 @@ interface ProjectCardHeaderProps {
    * edit mode on failure so the user can retry without losing their draft.
    */
   onSaveStatus: (next: string | null) => Promise<boolean>;
+  /** Per-user tracking ("star") — same model the sidebar uses. */
+  isTracked: boolean;
+  onToggleTracked: () => void;
+  /** Optional kebab-menu actions; rendered alongside the star when at least
+   * `onOpenSettings` is provided. */
+  onOpenSettings?: () => void;
+  onToggleArchived?: () => void;
+  onRequestDelete?: () => void;
 }
 
 export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
@@ -25,6 +40,11 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
   customer,
   canEdit,
   onSaveStatus,
+  isTracked,
+  onToggleTracked,
+  onOpenSettings,
+  onToggleArchived,
+  onRequestDelete,
 }) => {
   const customerLabel = customer?.name ?? t`No customer`;
 
@@ -129,8 +149,10 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
           </div>
         </div>
 
-        {/* Editable status chip in the top-right of the header. */}
-        <div className="flex flex-shrink-0 items-start">
+        {/* Editable status chip + Star (track) + kebab menu in the top-right
+            of the header. Star toggles instantly; kebab carries Edit /
+            Archive / Delete (gated on canEdit). */}
+        <div className="flex flex-shrink-0 items-start gap-1.5">
           {editing ? (
             <form
               onSubmit={(event) => {
@@ -198,6 +220,63 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
               {t`Status`}
             </button>
           ) : null}
+
+          {/* Star = track-toggle. Always visible; outline when not tracked,
+              filled amber when tracked. Per-user setting — works without
+              edit permissions. */}
+          <button
+            type="button"
+            onClick={onToggleTracked}
+            aria-label={isTracked ? t`Stop tracking` : t`Track`}
+            title={isTracked ? t`Stop tracking` : t`Track`}
+            className={`grid h-7 w-7 place-items-center rounded-md transition-colors ${
+              isTracked
+                ? 'text-amber-500 hover:text-amber-600'
+                : 'text-muted-foreground/60 hover:text-amber-500'
+            }`}
+          >
+            <Star
+              className={`h-4 w-4 ${isTracked ? 'fill-amber-500' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+
+          {/* Kebab carries Edit / Archive / Delete; rendered only when at
+              least one action is available. */}
+          {canEdit && onOpenSettings && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                  aria-label={t`Project actions`}
+                >
+                  <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onSelect={onOpenSettings}>
+                  {t`Edit project`}
+                </DropdownMenuItem>
+                {onToggleArchived && (
+                  <DropdownMenuItem onSelect={onToggleArchived}>
+                    {project.archived ? t`Unarchive` : t`Archive`}
+                  </DropdownMenuItem>
+                )}
+                {onRequestDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={onRequestDelete}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      {t`Delete...`}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 

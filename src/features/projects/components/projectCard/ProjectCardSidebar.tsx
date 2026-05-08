@@ -348,41 +348,63 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                   {customer?.name ?? t`No customer`}
                 </span>
               </div>
-              <div className="mt-0.5 flex items-start gap-1.5">
-                {isTracked && (
-                  <Star
-                    className="mt-[3px] h-3 w-3 flex-shrink-0 text-amber-500 fill-amber-500"
-                    aria-label={t`Tracked`}
-                  />
-                )}
-                <span className="line-clamp-2 text-ui-sm font-medium leading-snug">
-                  {project.name}
-                </span>
+              <div className="mt-0.5 line-clamp-2 text-ui-sm font-medium leading-snug pr-12">
+                {project.name}
               </div>
-              {project.status && (
-                <div className="mt-1 inline-flex items-center rounded-sm bg-muted px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {project.status}
+              {/* Owner team / milestone count / status share a single
+                  bottom row to save vertical space. Each piece collapses
+                  if absent so single-attribute projects don't show empty
+                  separators. */}
+              {(ownerGroup || milestoneCount > 0 || project.status) && (
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                  {ownerGroup && (
+                    <span className="inline-flex min-w-0 items-center gap-1">
+                      <span
+                        className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                        style={{ background: ownerColor ?? undefined }}
+                      />
+                      <span className="truncate">{ownerGroup.name}</span>
+                    </span>
+                  )}
+                  {milestoneCount > 0 && (
+                    <span className="tabular-nums">
+                      {milestoneCount === 1
+                        ? t`${milestoneCount} milestone`
+                        : t`${milestoneCount} milestones`}
+                    </span>
+                  )}
+                  {project.status && (
+                    <span className="rounded-sm bg-muted px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {project.status}
+                    </span>
+                  )}
                 </div>
               )}
-              {ownerGroup && (
-                <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <span
-                    className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                    style={{ background: ownerColor ?? undefined }}
-                  />
-                  <span className="truncate">{ownerGroup.name}</span>
-                </div>
-              )}
-              <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="tabular-nums">
-                  {milestoneCount === 1
-                    ? t`${milestoneCount} milestone`
-                    : t`${milestoneCount} milestones`}
-                </span>
-              </div>
             </div>
           </button>
-          <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+          {/* Top-right corner: Star (track toggle) + kebab menu. Both are
+              always visible — the star is the primary one-click action, the
+              kebab carries Edit / Archive / Delete. */}
+          <div className="absolute right-1 top-1 flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleTrackedProject(project.id, !isTracked);
+              }}
+              aria-label={isTracked ? t`Stop tracking` : t`Track`}
+              title={isTracked ? t`Stop tracking` : t`Track`}
+              className={`grid h-7 w-7 place-items-center rounded-md transition-colors ${
+                isTracked
+                  ? 'text-amber-500 hover:text-amber-600'
+                  : 'text-muted-foreground/50 hover:text-amber-500'
+              }`}
+            >
+              <Star
+                className={`h-3.5 w-3.5 ${isTracked ? 'fill-amber-500' : ''}`}
+                aria-hidden="true"
+              />
+            </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button

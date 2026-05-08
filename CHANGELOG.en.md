@@ -6,8 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- The star (track) icon and `⋯` action menu are now always visible on each sidebar project row — no hover required. The star is an outline when the project is not tracked; click flips it to filled amber and the project moves to the top of the list.
+- The project card header (next to the custom status chip) gains the same star + `⋯` kebab pair. The kebab carries Edit / Archive / Delete (gated on edit permission).
 
-## [0.7.3] - 2026-05-08
+### Changed
+- The notes feed and read modal now honour line breaks from the rich-text editor. The row preview switched to plain text + `white-space: pre-line`, so every Enter the user typed becomes a visual break regardless of which tag the browser chose (`<p>`, `<div>` or `<br>`).
+- The sidebar project row is more compact: owner team, milestone count and status now share a single bottom line (each was on its own row before).
+
+
 ### Added
 - Project tracking ("star") is back in the new sidebar — anyone can pin a project to their personal favourites; tracked projects float to the top of the list with an amber star. Toggle lives in the `⋯` dropdown on each row (works without edit permissions — it's a per-user setting).
 - The Projects page now remembers in the browser: which tab is open (Projects / Milestones / Customers), the active project and customer, customer + owner-team filters, and the Active/Archived toggle. Reopening restores them exactly.

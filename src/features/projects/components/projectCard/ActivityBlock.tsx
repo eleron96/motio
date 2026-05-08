@@ -81,7 +81,19 @@ const buildSearchSnippetHtml = (content: string, query: string): string | null =
 const renderRichTextHtml = (raw: string) => {
   if (!raw) return { __html: '' };
   if (ACTIVITY_HTML_TAG_RE.test(raw)) {
-    return { __html: sanitizeCommentRichText(raw) };
+    // Normalize browser-quirky block layout from the rich-text editor:
+    // turn every block boundary (`</p>`, `</div>`, `</blockquote>`, `</li>`,
+    // `<br>`) into an explicit `<br>` so the modal renders the same line
+    // breaks the user typed, regardless of which tag the contenteditable
+    // chose for each Enter press. Inline formatting (`<b>`, `<i>`, `<u>`,
+    // `<s>`, `<img>`) is preserved.
+    const sanitized = sanitizeCommentRichText(raw);
+    const normalized = sanitized
+      .replace(/<\/(p|div|blockquote|li)>/gi, '<br>')
+      .replace(/<(p|div|blockquote|li|ul|ol)[^>]*>/gi, '')
+      .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+      .replace(/^(\s|<br\s*\/?>)+|(\s|<br\s*\/?>)+$/gi, '');
+    return { __html: normalized };
   }
   // Plain text — preserve newlines via <br>. Escapes literal angle brackets
   // so user input like `<200 sq ft>` renders as text rather than vanishing
@@ -95,39 +107,38 @@ const renderRichTextHtml = (raw: string) => {
 };
 
 /**
- * Compact rendering for the feed-row preview: respects newlines from the
- * original note but flattens block elements (`<p>`, `<div>`, `<blockquote>`,
- * `<li>`) into `<br>`-separated inline text. The full modal still uses
- * `renderRichTextHtml` for proper block layout.
+ * Convert any saved note content (plain text OR rich-text editor HTML) into
+ * a single string with `\n` line breaks preserved. Strips all HTML tags +
+ * inline formatting + images for the row preview — what you see is just
+ * text. The display layer uses `white-space: pre-line` so the `\n`s render
+ * as visual breaks, and `-webkit-line-clamp` clips to N visible lines.
  *
- * Why this exists: `display: -webkit-box; -webkit-line-clamp: N` (the only
- * cross-browser line-clamp) collapses block children into a single visual
- * run, so paragraphs from the rich-text editor lost their line breaks in
- * the row preview. Pre-flattening to `<br>` keeps `-webkit-line-clamp`
- * counting actual logical lines.
+ * Why this is plain text: rich-text editor output mixes `<p>`, `<div>`,
+ * `<br>` depending on browser. `display: -webkit-box` (the only cross-
+ * browser line-clamp) doesn't honor block children consistently. Going
+ * fully plain text + `pre-line` gives predictable behaviour everywhere.
  */
-const renderFeedSnippetHtml = (raw: string) => {
-  if (!raw) return { __html: '' };
+const buildFeedSnippetText = (raw: string): string => {
+  if (!raw) return '';
   if (!ACTIVITY_HTML_TAG_RE.test(raw)) {
-    const escaped = raw
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\n/g, '<br>');
-    return { __html: escaped };
+    return raw;
   }
   const sanitized = sanitizeCommentRichText(raw);
-  const flattened = sanitized
-    // Block-level closers become explicit line breaks
-    .replace(/<\/(p|div|blockquote|li)>/gi, '<br>')
-    // Strip the opening block tags (we already inserted <br> at close)
-    .replace(/<(p|div|blockquote|li|ul|ol)[^>]*>/gi, '')
-    // Drop images in the preview — short rows show text only
-    .replace(/<img[^>]*\/?>/gi, '')
-    // Collapse runs of <br> and trim leading/trailing breaks
-    .replace(/(<br\s*\/?>\s*){2,}/gi, '<br>')
-    .replace(/^(\s|<br\s*\/?>)+|(\s|<br\s*\/?>)+$/gi, '');
-  return { __html: flattened };
+  const text = sanitized
+    // Block boundaries become newlines.
+    .replace(/<\/(p|div|blockquote|li|h[1-6])>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    // Strip every remaining tag (img, ul, ol, span, b, i, u, s, etc.) —
+    // the preview is text-only.
+    .replace(/<[^>]+>/g, '')
+    // HTML entities → text.
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"');
+  // Cap consecutive blank lines at one and trim outer whitespace.
+  return text.replace(/\n{3,}/g, '\n\n').trim();
 };
 
 export const ActivityBlock: React.FC<ActivityBlockProps> = ({
@@ -392,9 +403,10 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                   }
                   return (
                     <div
-                      className={`${styles.feedTextClamp} ${styles.feedRichText} text-[14px] leading-[1.5]`}
-                      dangerouslySetInnerHTML={renderFeedSnippetHtml(entry.content)}
-                    />
+                      className={`${styles.feedTextClamp} text-[14px] leading-[1.5] whitespace-pre-line`}
+                    >
+                      {buildFeedSnippetText(entry.content)}
+                    </div>
                   );
                 })()}
               </li>
