@@ -6,7 +6,9 @@ import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/proj
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { ContactPopup } from './ContactPopup';
 import { MobileContactSheet } from './MobileContactSheet';
+import { MobileFormSheet } from './MobileFormSheet';
 import { AddContactForm } from './AddContactForm';
+import { Input } from '@/shared/ui/input';
 
 const UNTAGGED_KEY = '__no_tag__';
 
@@ -39,13 +41,32 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   onDeleteContact,
 }) => {
   const isMobile = useIsMobile();
-  // M1 mobile: read-only flow. Add/remove of contacts is desktop-only until M4.
-  const canEditContacts = canEdit && !isMobile;
+  // M4: mobile users can add and delete contacts via bottom sheets. Desktop
+  // keeps the inline `AddContactForm` and the inline trash button unchanged.
+  const canEditContacts = canEdit;
   const [adding, setAdding] = useState(false);
   const [popup, setPopup] = useState<{ contact: CustomerContact; rect: DOMRect } | null>(null);
   const [mobileSheetContact, setMobileSheetContact] = useState<CustomerContact | null>(null);
+  const [mobileAddOpen, setMobileAddOpen] = useState(false);
+  const [mobileRemoveContact, setMobileRemoveContact] = useState<CustomerContact | null>(null);
+  // Mobile add form values held locally — desktop uses its own AddContactForm
+  // state; we don't share to avoid coupling unrelated lifecycles.
+  const [mAddName, setMAddName] = useState('');
+  const [mAddRole, setMAddRole] = useState('');
+  const [mAddEmail, setMAddEmail] = useState('');
+  const [mAddPhone, setMAddPhone] = useState('');
+  const [mAddTag, setMAddTag] = useState('');
+  const [mAddSubmitting, setMAddSubmitting] = useState(false);
   const [groupByTag, setGroupByTag] = useState(false);
   const [collapsedTags, setCollapsedTags] = useState<Set<string>>(new Set());
+
+  const resetMobileAddForm = () => {
+    setMAddName('');
+    setMAddRole('');
+    setMAddEmail('');
+    setMAddPhone('');
+    setMAddTag('');
+  };
 
   const groupedContacts = useMemo(() => {
     const groups = new Map<string, CustomerContact[]>();
@@ -129,7 +150,14 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
           <button
             type="button"
             className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-            onClick={() => setAdding((value) => !value)}
+            onClick={() => {
+              if (isMobile) {
+                resetMobileAddForm();
+                setMobileAddOpen(true);
+                return;
+              }
+              setAdding((value) => !value);
+            }}
             aria-label={t`Add customer contact`}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -152,7 +180,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
         </div>
       </div>
 
-      {adding && (
+      {adding && !isMobile && (
         <AddContactForm onSave={handleSave} onCancel={() => setAdding(false)} />
       )}
 
@@ -206,6 +234,88 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
         contact={mobileSheetContact}
         onClose={() => setMobileSheetContact(null)}
       />
+
+      {/* M4: bottom sheet for adding a contact on mobile (replaces the inline
+          AddContactForm which doesn't fit on narrow viewports). */}
+      {canEditContacts && isMobile && (
+        <MobileFormSheet
+          open={mobileAddOpen}
+          onClose={() => setMobileAddOpen(false)}
+          onSubmit={async () => {
+            if (mAddSubmitting) return;
+            const trimmedName = mAddName.trim();
+            if (!trimmedName) return;
+            setMAddSubmitting(true);
+            try {
+              const ok = await onAddContact({
+                customerId: customer.id,
+                name: trimmedName,
+                role: mAddRole.trim() || null,
+                email: mAddEmail.trim() || null,
+                phone: mAddPhone.trim() || null,
+                tag: mAddTag.trim() || null,
+              });
+              if (ok) {
+                resetMobileAddForm();
+                setMobileAddOpen(false);
+              }
+            } finally {
+              setMAddSubmitting(false);
+            }
+          }}
+          title={t`Add customer contact`}
+          submitting={mAddSubmitting}
+          canSave={mAddName.trim().length > 0}
+          saveLabel={t`Add`}
+        >
+          <Input
+            placeholder={t`Full name`}
+            value={mAddName}
+            onChange={(event) => setMAddName(event.target.value)}
+            autoFocus
+          />
+          <Input
+            placeholder={t`Role / job title`}
+            value={mAddRole}
+            onChange={(event) => setMAddRole(event.target.value)}
+          />
+          <Input
+            placeholder={t`Tag (e.g. subcontractor)`}
+            value={mAddTag}
+            onChange={(event) => setMAddTag(event.target.value)}
+          />
+          <Input
+            type="email"
+            placeholder="Email"
+            value={mAddEmail}
+            onChange={(event) => setMAddEmail(event.target.value)}
+          />
+          <Input
+            placeholder={t`Phone`}
+            value={mAddPhone}
+            onChange={(event) => setMAddPhone(event.target.value)}
+          />
+        </MobileFormSheet>
+      )}
+
+      {canEditContacts && isMobile && mobileRemoveContact && (
+        <MobileFormSheet
+          open={mobileRemoveContact !== null}
+          onClose={() => setMobileRemoveContact(null)}
+          onSubmit={async () => {
+            const ok = await onDeleteContact(mobileRemoveContact.id);
+            if (ok) setMobileRemoveContact(null);
+          }}
+          title={t`Remove contact`}
+          description={t`Delete the contact from this customer's list. This cannot be undone.`}
+          saveLabel={t`Remove`}
+          canSave
+        >
+          <div className="rounded-md bg-muted px-3 py-2 text-[13px]">
+            {mobileRemoveContact.name}
+          </div>
+        </MobileFormSheet>
+      )}
     </section>
   );
 
@@ -249,7 +359,13 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
           {canEditContacts && (
             <button
               type="button"
-              onClick={() => void onDeleteContact(contact.id)}
+              onClick={() => {
+                if (isMobile) {
+                  setMobileRemoveContact(contact);
+                  return;
+                }
+                void onDeleteContact(contact.id);
+              }}
               className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-destructive hover:shadow-sm"
               aria-label={t`Remove contact`}
             >

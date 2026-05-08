@@ -139,19 +139,21 @@ describe('ProjectsMainPanel — mobile project card (M1)', () => {
     expect(screen.queryByText('Customer')).not.toBeInTheDocument();
   });
 
-  it('keeps add buttons hidden for read-only blocks on mobile (M1)', () => {
+  it('renders all add buttons on mobile after M3/M4', () => {
     useIsMobileMock.mockReturnValue(true);
     isProjectCardEnabledMock.mockReturnValue(true);
     isProjectCardMobileEnabledMock.mockReturnValue(true);
 
     render(<ProjectsMainPanel {...baseProps} />);
 
-    // M2 enables activity composer on mobile, so its + button is allowed.
-    // Team / milestones / customer contacts add buttons remain hidden until
-    // M3 / M4.
-    expect(screen.queryByLabelText('Add team member')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Add milestone')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Add customer contact')).not.toBeInTheDocument();
+    // M2: activity composer; M3: team add; M4: milestone + customer contact
+    // adds. With M4 shipped, all four are accessible from mobile.
+    expect(screen.getByLabelText('Add activity entry')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add team member')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add milestone')).toBeInTheDocument();
+    // CustomerBlock is rendered only when a customer is selected. baseProps
+    // points the project at customer "c1" so the block + button are visible.
+    expect(screen.getByLabelText('Add customer contact')).toBeInTheDocument();
   });
 
   it('renders the activity composer + button on mobile (M2)', () => {
