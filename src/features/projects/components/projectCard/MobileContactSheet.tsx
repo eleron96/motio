@@ -3,6 +3,7 @@ import { t } from '@lingui/macro';
 import { Check, Copy, Mail, Phone } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/shared/ui/sheet';
 import { Button } from '@/shared/ui/button';
+import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
 import type { ContactPopupTarget } from './ContactPopup';
 
 interface MobileContactSheetProps {
@@ -20,6 +21,7 @@ interface MobileContactSheetProps {
  */
 export const MobileContactSheet: React.FC<MobileContactSheetProps> = ({ contact, onClose }) => {
   const [copied, setCopied] = useState<'email' | 'phone' | null>(null);
+  const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
 
   const copy = async (value: string, key: 'email' | 'phone') => {
     try {
@@ -35,7 +37,15 @@ export const MobileContactSheet: React.FC<MobileContactSheetProps> = ({ contact,
 
   return (
     <Sheet open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-      <SheetContent side="bottom" className="rounded-t-2xl">
+      <SheetContent
+        side="bottom"
+        className="overflow-y-auto rounded-t-2xl"
+        style={{
+          bottom: keyboardOffset,
+          maxHeight: viewportHeight ? `${viewportHeight}px` : undefined,
+          transition: 'bottom 150ms ease-out',
+        }}
+      >
         <SheetHeader className="text-left">
           <SheetTitle>{contact?.name ?? ''}</SheetTitle>
           <SheetDescription>

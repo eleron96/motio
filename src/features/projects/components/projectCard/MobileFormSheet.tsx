@@ -2,6 +2,7 @@ import React from 'react';
 import { t } from '@lingui/macro';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { Button } from '@/shared/ui/button';
+import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
 
 interface MobileFormSheetProps {
   open: boolean;
@@ -47,9 +48,19 @@ export const MobileFormSheet: React.FC<MobileFormSheetProps> = ({
   submitting = false,
   canSave = true,
   leftAction,
-}) => (
+}) => {
+  const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
+  return (
   <Sheet open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-    <SheetContent side="bottom" className="rounded-t-2xl">
+    <SheetContent
+      side="bottom"
+      className="overflow-y-auto rounded-t-2xl"
+      style={{
+        bottom: keyboardOffset,
+        maxHeight: viewportHeight ? `${viewportHeight}px` : undefined,
+        transition: 'bottom 150ms ease-out',
+      }}
+    >
       <SheetHeader className="text-left">
         <SheetTitle>{title}</SheetTitle>
         <SheetDescription className={description ? undefined : 'sr-only'}>
@@ -85,4 +96,5 @@ export const MobileFormSheet: React.FC<MobileFormSheetProps> = ({
       </form>
     </SheetContent>
   </Sheet>
-);
+  );
+};

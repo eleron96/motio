@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Textarea } from '@/shared/ui/textarea';
+import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
 
 interface MobileTextSheetProps {
   open: boolean;
@@ -58,6 +59,7 @@ export const MobileTextSheet: React.FC<MobileTextSheetProps> = ({
   const [value, setValue] = useState(initialValue);
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
 
   // Reset draft + focus whenever the sheet opens.
   useEffect(() => {
@@ -93,7 +95,15 @@ export const MobileTextSheet: React.FC<MobileTextSheetProps> = ({
 
   return (
     <Sheet open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-      <SheetContent side="bottom" className="rounded-t-2xl">
+      <SheetContent
+        side="bottom"
+        className="overflow-y-auto rounded-t-2xl"
+        style={{
+          bottom: keyboardOffset,
+          maxHeight: viewportHeight ? `${viewportHeight}px` : undefined,
+          transition: 'bottom 150ms ease-out',
+        }}
+      >
         <SheetHeader className="text-left">
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription className={description ? undefined : 'sr-only'}>

@@ -3,6 +3,7 @@ import { t } from '@lingui/macro';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { Button } from '@/shared/ui/button';
 import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
+import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
 
 interface MobileNoteSheetProps {
   open: boolean;
@@ -47,6 +48,7 @@ export const MobileNoteSheet: React.FC<MobileNoteSheetProps> = ({
 }) => {
   const [value, setValue] = useState(initialValue);
   const [submitting, setSubmitting] = useState(false);
+  const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
 
   useEffect(() => {
     if (open) {
@@ -80,7 +82,15 @@ export const MobileNoteSheet: React.FC<MobileNoteSheetProps> = ({
 
   return (
     <Sheet open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-      <SheetContent side="bottom" className="rounded-t-2xl">
+      <SheetContent
+        side="bottom"
+        className="overflow-y-auto rounded-t-2xl"
+        style={{
+          bottom: keyboardOffset,
+          maxHeight: viewportHeight ? `${viewportHeight}px` : undefined,
+          transition: 'bottom 150ms ease-out',
+        }}
+      >
         <SheetHeader className="text-left">
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription className={description ? undefined : 'sr-only'}>
