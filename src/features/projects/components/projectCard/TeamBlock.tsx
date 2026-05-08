@@ -725,7 +725,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
               className="rounded-md border border-border bg-card px-2.5 py-2 text-[13px] outline-none focus:border-primary"
             >
               <option value="">{t`Select a workspace member`}</option>
-              {workspaceAssignees
+              {availableForAdd
                 .filter((assignee) => assignee.userId)
                 .map((assignee) => (
                   <option key={assignee.id} value={assignee.id}>{assignee.name}</option>
