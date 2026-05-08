@@ -55,8 +55,6 @@ const ProjectsPage = () => {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
-  const [tab, setTab] = useState<'active' | 'archived'>('active');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
   const [search, setSearch] = useState('');
@@ -70,9 +68,7 @@ const ProjectsPage = () => {
     pageIndex, setPageIndex,
     statusFilterIds, setStatusFilterIds,
   } = useTaskScopeFilter();
-  const [mode, setMode] = useState<'projects' | 'milestones' | 'customers'>('projects');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const pageSize = 100;
@@ -181,10 +177,32 @@ const ProjectsPage = () => {
     setMilestoneTab,
     milestoneGroupBy,
     setMilestoneGroupBy,
+    tab: persistedTab,
+    setTab: setPersistedTab,
+    mode: persistedMode,
+    setMode: setPersistedMode,
+    selectedProjectId: persistedSelectedProjectId,
+    setSelectedProjectId: setPersistedSelectedProjectId,
+    selectedCustomerId: persistedSelectedCustomerId,
+    setSelectedCustomerId: setPersistedSelectedCustomerId,
+    customerFilterIds: persistedCustomerFilterIds,
+    setCustomerFilterIds: setPersistedCustomerFilterIds,
+    ownerGroupFilterIds: persistedOwnerGroupFilterIds,
+    setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
   } = useProjectsViewPreferences({
     currentWorkspaceId,
     userId: user?.id,
   });
+  // Surface persisted state under the names the rest of the page already
+  // uses, so we don't have to rename hundreds of references downstream.
+  const tab = persistedTab;
+  const setTab = setPersistedTab;
+  const mode = persistedMode;
+  const setMode = setPersistedMode;
+  const selectedProjectId = persistedSelectedProjectId;
+  const setSelectedProjectId = setPersistedSelectedProjectId;
+  const selectedCustomerId = persistedSelectedCustomerId;
+  const setSelectedCustomerId = setPersistedSelectedCustomerId;
 
   useEffect(() => {
     if (currentWorkspaceId) {
@@ -615,6 +633,13 @@ const ProjectsPage = () => {
     milestoneGroupBy,
     setMilestoneGroupBy,
     dateLocale,
+    // Persisted filters live in useProjectsViewPreferences so they survive
+    // reloads — pass them through so the filter hook reads/writes the same
+    // backing store.
+    customerFilterIds: persistedCustomerFilterIds,
+    setCustomerFilterIds: setPersistedCustomerFilterIds,
+    ownerGroupFilterIds: persistedOwnerGroupFilterIds,
+    setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
   });
 
   const {
@@ -932,6 +957,10 @@ const ProjectsPage = () => {
           modeTabs={renderModeTabs()}
           showArchived={tab === 'archived'}
           onToggleShowArchived={() => setTab((current) => current === 'archived' ? 'active' : 'archived')}
+          trackedProjectIdSet={trackedProjectIdSet}
+          onToggleTrackedProject={(projectId, nextTracked) => {
+            void toggleTrackedProject(projectId, nextTracked);
+          }}
         />
       );
     }

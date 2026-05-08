@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { format } from 'date-fns';
 import { t } from '@lingui/macro';
 import type { Locale } from 'date-fns';
@@ -26,6 +26,12 @@ interface UseProjectsFilterInput {
   milestoneGroupBy: MilestoneGroupBy;
   setMilestoneGroupBy: (v: MilestoneGroupBy) => void;
   dateLocale: Locale;
+  /** Persisted filter state — comes from `useProjectsViewPreferences` so it
+   * survives reloads. Optional for callers that don't persist (tests). */
+  customerFilterIds?: string[];
+  setCustomerFilterIds?: Dispatch<SetStateAction<string[]>>;
+  ownerGroupFilterIds?: string[];
+  setOwnerGroupFilterIds?: Dispatch<SetStateAction<string[]>>;
 }
 
 export function useProjectsFilter({
@@ -43,10 +49,19 @@ export function useProjectsFilter({
   milestoneGroupBy,
   setMilestoneGroupBy,
   dateLocale,
+  customerFilterIds: customerFilterIdsProp,
+  setCustomerFilterIds: setCustomerFilterIdsProp,
+  ownerGroupFilterIds: ownerGroupFilterIdsProp,
+  setOwnerGroupFilterIds: setOwnerGroupFilterIdsProp,
 }: UseProjectsFilterInput) {
   const [projectSearch, setProjectSearch] = useState('');
-  const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
-  const [ownerGroupFilterIds, setOwnerGroupFilterIds] = useState<string[]>([]);
+  // Fall back to local state when the caller doesn't pass persisted values.
+  const [customerFilterIdsLocal, setCustomerFilterIdsLocal] = useState<string[]>([]);
+  const [ownerGroupFilterIdsLocal, setOwnerGroupFilterIdsLocal] = useState<string[]>([]);
+  const customerFilterIds = customerFilterIdsProp ?? customerFilterIdsLocal;
+  const setCustomerFilterIds = setCustomerFilterIdsProp ?? setCustomerFilterIdsLocal;
+  const ownerGroupFilterIds = ownerGroupFilterIdsProp ?? ownerGroupFilterIdsLocal;
+  const setOwnerGroupFilterIds = setOwnerGroupFilterIdsProp ?? setOwnerGroupFilterIdsLocal;
   const [milestoneSearch, setMilestoneSearch] = useState('');
 
   const filteredActiveProjects = useMemo(

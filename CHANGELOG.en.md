@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Project tracking ("star") is back in the new sidebar — anyone can pin a project to their personal favourites; tracked projects float to the top of the list with an amber star. Toggle lives in the `⋯` dropdown on each row (works without edit permissions — it's a per-user setting).
+- The Projects page now remembers in the browser: which tab is open (Projects / Milestones / Customers), the active project and customer, customer + owner-team filters, and the Active/Archived toggle. Reopening restores them exactly.
+
+### Changed
+- Notes feed: shows up to 5 lines of body text per row (was 4) and now honors line breaks from the original entry — paragraphs from the rich-text editor are flattened into inline `<br>`-separated text only in the row preview; the full modal keeps proper block layout.
+- Pinned notes no longer carry a dashed bottom border — the drop-shadow alone is enough to separate them from the unpinned content scrolling below.
+
+## [0.7.2] - 2026-05-08
 ### Changed
 - The project notes feed now shows up to 4 lines of body text per row (was 2). Longer entries still clip with an ellipsis as before.
 

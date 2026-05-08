@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { Archive, ArrowDownAZ, ArrowUpAZ, Filter, Layers, MoreHorizontal, Search, Users } from 'lucide-react';
+import { Archive, ArrowDownAZ, ArrowUpAZ, Filter, Layers, MoreHorizontal, Search, Star, Users } from 'lucide-react';
 import type { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
 import { Checkbox } from '@/shared/ui/checkbox';
 import {
@@ -59,6 +59,10 @@ interface ProjectCardSidebarProps {
   /** Active/archived toggle controlled from the page state. */
   showArchived: boolean;
   onToggleShowArchived: () => void;
+  /** Per-user "tracked" project ids. Tracked projects float to the top of
+   * the list and show an amber Star icon. Same model the timeline uses. */
+  trackedProjectIdSet: Set<string>;
+  onToggleTrackedProject: (projectId: string, nextTracked: boolean) => void;
   /**
    * Pre-grouped projects when `groupByCustomer` is on. The page already builds
    * this through `groupProjectsForSidebar` for the legacy sidebar, so we
@@ -99,6 +103,8 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
   modeTabs,
   showArchived,
   onToggleShowArchived,
+  trackedProjectIdSet,
+  onToggleTrackedProject,
 }) => {
   const milestoneCountByProject = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -313,6 +319,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
       : null;
     const ownerColor = ownerGroup ? getMonogramColor(ownerGroup.id) : null;
     const milestoneCount = milestoneCountByProject.get(project.id) ?? 0;
+    const isTracked = trackedProjectIdSet.has(project.id);
 
     return (
       <li key={project.id}>
@@ -341,8 +348,16 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                   {customer?.name ?? t`No customer`}
                 </span>
               </div>
-              <div className="mt-0.5 line-clamp-2 text-ui-sm font-medium leading-snug">
-                {project.name}
+              <div className="mt-0.5 flex items-start gap-1.5">
+                {isTracked && (
+                  <Star
+                    className="mt-[3px] h-3 w-3 flex-shrink-0 text-amber-500 fill-amber-500"
+                    aria-label={t`Tracked`}
+                  />
+                )}
+                <span className="line-clamp-2 text-ui-sm font-medium leading-snug">
+                  {project.name}
+                </span>
               </div>
               {project.status && (
                 <div className="mt-1 inline-flex items-center rounded-sm bg-muted px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -367,36 +382,43 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
               </div>
             </div>
           </button>
-          {canEdit && (
-            <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
-                    aria-label={t`Project actions`}
-                  >
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuItem onSelect={() => onOpenProjectSettings(project)}>
-                    {t`Edit project`}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => onToggleProjectArchived(project)}>
-                    {project.archived ? t`Unarchive` : t`Archive`}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => onRequestDeleteProject(project)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    {t`Delete...`}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
+          <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                  aria-label={t`Project actions`}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                {/* Tracking is per-user — non-editors can still pin
+                    their own favourite projects to the top of the list. */}
+                <DropdownMenuItem onSelect={() => onToggleTrackedProject(project.id, !isTracked)}>
+                  {isTracked ? t`Stop tracking` : t`Track`}
+                </DropdownMenuItem>
+                {canEdit && (
+                  <>
+                    <DropdownMenuItem onSelect={() => onOpenProjectSettings(project)}>
+                      {t`Edit project`}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => onToggleProjectArchived(project)}>
+                      {project.archived ? t`Unarchive` : t`Archive`}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() => onRequestDeleteProject(project)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      {t`Delete...`}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </li>
     );
