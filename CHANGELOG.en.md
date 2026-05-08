@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Pin/unpin notes inside a project: any editor can pin a note — it floats to the top of the feed and gains an amber accent. An inline icon on each row (next to the author) toggles the pin in one click without opening the modal; the same action lives behind the `⋯` menu inside the note modal. Migration `0088` adds `project_activity.pinned` with a partial index to keep the pinned-first sort cheap.
+- Note search now shows a snippet centered on the matched word with the match highlighted (`<mark>` in amber). Long entries get `…` ellipses on trimmed edges.
+- The note composer auto-focuses the rich-text editor on desktop, and edit mode auto-focuses on both desktop and mobile — start typing or pasting immediately when the editor opens.
+
+### Changed
+- The notes feed now sorts oldest-first within each group. Pinned notes stay on top (still oldest-first inside the pinned group); unpinned notes follow chronologically.
+- The desktop note modal moves Delete out of the footer into the top-right `⋯` kebab (next to Pin / Unpin). The bottom row keeps only Close + Edit, so destructive actions take a deliberate two-step path.
+- Entering edit mode on a note no longer steals focus to the Pin icon; the editor receives focus directly.
 
 ## [0.5.1] - 2026-05-08
 ### Changed
