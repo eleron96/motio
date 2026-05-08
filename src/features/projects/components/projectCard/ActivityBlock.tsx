@@ -478,11 +478,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
     </>
   ) : (
     <>
-      {canEdit && (
-        <Button variant="destructive" onClick={() => void handleDelete()} disabled={busy}>
-          {t`Delete`}
-        </Button>
-      )}
       <Button variant="outline" onClick={onClose}>{t`Close`}</Button>
       {canEdit && (
         <Button onClick={() => setEditing(true)}>{t`Edit`}</Button>
@@ -645,30 +640,60 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
         <DialogFooter className="gap-2">
           {actions}
         </DialogFooter>
-        {/* Pin/Unpin lives in the top-right visually (absolute) but is rendered
-            LAST in the DOM order so Radix's focus trap doesn't park initial
-            focus on it. When the user toggles read↔edit and the previously
-            focused button (Edit/Cancel/Save) unmounts, the trap falls back
-            to the first focusable element — we want that to be the body /
-            actions, not the Pin icon. */}
-        {canEdit && (
-          <button
-            type="button"
-            onClick={() => void handleTogglePin()}
-            disabled={togglingPin}
-            className={`absolute right-12 top-4 grid h-6 w-6 place-items-center rounded transition-colors ${
-              entry.pinned
-                ? 'text-amber-500 hover:text-amber-600'
-                : 'text-muted-foreground/60 hover:text-amber-500'
-            }`}
-            aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
-            title={entry.pinned ? t`Unpin` : t`Pin to top`}
-          >
-            <Pin
-              className={`h-4 w-4 ${entry.pinned ? 'fill-amber-500' : ''}`}
-              aria-hidden="true"
-            />
-          </button>
+        {/* Top-right kebab carries the secondary actions (Pin / Delete) so
+            the action row stays clean and the destructive option needs a
+            deliberate two-tap path. Rendered last in the DOM order so
+            Radix's focus trap doesn't park initial focus on it when the
+            user toggles read↔edit. The dialog's built-in close X sits at
+            right-4 top-4; this kebab nests just to its left. */}
+        {canEdit && !editing && (
+          <div className="absolute right-12 top-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  aria-label={t`More actions`}
+                >
+                  <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    void handleTogglePin();
+                  }}
+                  disabled={togglingPin}
+                >
+                  {entry.pinned ? (
+                    <>
+                      <PinOff className="mr-2 h-4 w-4" aria-hidden="true" />
+                      {t`Unpin`}
+                    </>
+                  ) : (
+                    <>
+                      <Pin className="mr-2 h-4 w-4" aria-hidden="true" />
+                      {t`Pin to top`}
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    void handleDelete();
+                  }}
+                  disabled={busy}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {t`Delete`}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </DialogContent>
     </Dialog>
