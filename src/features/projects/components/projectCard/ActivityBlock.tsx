@@ -4,7 +4,6 @@ import { Calendar, Plus, Search, X } from 'lucide-react';
 import type { ProjectActivity } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
-import { Textarea } from '@/shared/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
@@ -12,7 +11,7 @@ import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { ACTIVITY_HTML_TAG_RE } from '@/features/projects/lib/projectActivityContent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { MobileTextSheet } from './MobileTextSheet';
+import { MobileNoteSheet } from './MobileNoteSheet';
 import styles from './projectCard.module.css';
 
 interface ActivityBlockProps {
@@ -117,7 +116,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   return (
     <section className="flex max-h-[640px] min-h-[320px] flex-col rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center gap-2">
-        <h3 className="text-ui-sm font-semibold">{t`Activity`}</h3>
+        <h3 className="text-ui-sm font-semibold">{t`Notes`}</h3>
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground tabular-nums">
           {entries.length}
         </span>
@@ -132,7 +131,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                 setComposerOpen((value) => !value);
               }
             }}
-            aria-label={t`Add activity entry`}
+            aria-label={t`Add note`}
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
@@ -144,7 +143,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-8"
-            placeholder={t`Search activity...`}
+            placeholder={t`Search notes...`}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -207,7 +206,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
         {filtered.length === 0 ? (
           <div className="py-8 text-center text-ui-xs text-muted-foreground">
             {entries.length === 0
-              ? t`No activity yet. Use + to add the first entry.`
+              ? t`No notes yet. Use + to add the first one.`
               : t`Nothing matches the current filters.`}
           </div>
         ) : (
@@ -265,16 +264,15 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
       )}
 
       {useMobileComposer && (
-        <MobileTextSheet
+        <MobileNoteSheet
           open={mobileComposerOpen}
           onClose={() => setMobileComposerOpen(false)}
           onSave={onAdd}
-          title={t`Add activity entry`}
-          description={t`Write a comment that will appear in the project activity feed.`}
+          title={t`Add note`}
+          description={t`Write a note that will appear in the project notes.`}
           placeholder={t`Write a comment...`}
           saveLabel={t`Publish`}
-          multiline
-          minLength={1}
+          workspaceId={workspaceId}
         />
       )}
     </section>
@@ -344,27 +342,15 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   );
 
   const body = editing ? (
-    isMobile ? (
-      // Mobile edit uses a plain textarea — RTE toolbar is too tight for
-      // touch and image upload is not part of M2. Existing rich content
-      // entered on desktop is preserved if the user doesn't change it.
-      <Textarea
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        placeholder={t`Write a comment...`}
-        rows={6}
-        disabled={busy}
-        autoFocus
-      />
-    ) : (
-      <RichTextEditor
-        value={text}
-        onChange={setText}
-        workspaceId={workspaceId ?? null}
-        placeholder={t`Write a comment...`}
-        disabled={busy}
-      />
-    )
+    // Same RTE on mobile and desktop — formatting + image upload requested
+    // by users post-M2. The toolbar is small on touch but functional.
+    <RichTextEditor
+      value={text}
+      onChange={setText}
+      workspaceId={workspaceId ?? null}
+      placeholder={t`Write a comment...`}
+      disabled={busy}
+    />
   ) : (
     <div
       className={`${styles.feedRichText} break-words text-[14px] leading-[1.55]`}
@@ -400,9 +386,9 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
       <Sheet open onOpenChange={(open) => (open ? null : onClose())}>
         <SheetContent side="bottom" className="rounded-t-2xl">
           <SheetHeader className="text-left">
-            <SheetTitle>{t`Activity entry`}</SheetTitle>
+            <SheetTitle>{t`Note`}</SheetTitle>
             <SheetDescription className="sr-only">
-              {t`Read or edit a single project activity entry.`}
+              {t`Read or edit a single project note.`}
             </SheetDescription>
           </SheetHeader>
           <div className="mt-3 flex flex-col gap-3">
@@ -421,9 +407,9 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
     <Dialog open onOpenChange={(open) => (open ? null : onClose())}>
       <DialogContent className="sm:max-w-[640px]">
         <DialogHeader>
-          <DialogTitle>{t`Activity entry`}</DialogTitle>
+          <DialogTitle>{t`Note`}</DialogTitle>
           <DialogDescription className="sr-only">
-            {t`Read or edit a single project activity entry.`}
+            {t`Read or edit a single project note.`}
           </DialogDescription>
         </DialogHeader>
         {meta}
