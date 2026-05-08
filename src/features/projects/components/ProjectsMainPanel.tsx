@@ -119,6 +119,7 @@ type ProjectsMainPanelProps = {
   onAddProjectActivity: (projectId: string, content: string) => Promise<boolean>;
   onUpdateProjectActivity: (id: string, content: string) => Promise<boolean>;
   onDeleteProjectActivity: (id: string) => Promise<boolean>;
+  onSetProjectActivityPinned: (id: string, pinned: boolean) => Promise<boolean>;
   /** Workspace id used by the activity rich-text editor for image uploads. */
   workspaceId?: string | null;
 };
@@ -194,6 +195,7 @@ export const ProjectsMainPanel = ({
   onAddProjectActivity,
   onUpdateProjectActivity,
   onDeleteProjectActivity,
+  onSetProjectActivityPinned,
   workspaceId,
 }: ProjectsMainPanelProps) => {
   const isMobile = useIsMobile();
@@ -257,6 +259,7 @@ export const ProjectsMainPanel = ({
         onAddActivity={(content) => onAddProjectActivity(selectedProject.id, content)}
         onUpdateActivity={onUpdateProjectActivity}
         onDeleteActivity={onDeleteProjectActivity}
+        onSetActivityPinned={onSetProjectActivityPinned}
         workspaceId={workspaceId}
         projectMilestones={projectMilestones}
         formatMilestoneDate={formatMilestoneDate}

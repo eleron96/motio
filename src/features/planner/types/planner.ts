@@ -111,6 +111,8 @@ export interface ProjectActivity {
   updatedAt: string;
   /** updatedAt > createdAt by more than 1 second */
   isEdited: boolean;
+  /** Workspace-wide flag — pinned notes sort to the top of the project feed. */
+  pinned: boolean;
 }
 
 export interface MemberGroup {

@@ -61,6 +61,7 @@ type CatalogActions = Pick<
   | 'addProjectActivity'
   | 'updateProjectActivity'
   | 'deleteProjectActivity'
+  | 'setProjectActivityPinned'
   | 'addAssignee'
   | 'updateAssignee'
   | 'deleteAssignee'
@@ -583,6 +584,30 @@ export const createCatalogActions = (
 
     set((state) => ({
       projectActivity: state.projectActivity.filter((entry) => entry.id !== id),
+    }));
+    return emptyMutationResult;
+  },
+
+  setProjectActivityPinned: async (id, pinned) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
+
+    const { data, error } = await supabase
+      .from('project_activity')
+      .update({ pinned })
+      .eq('id', id)
+      .eq('workspace_id', workspaceId)
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return { error: error?.message ?? 'Failed to update note.' };
+    }
+
+    const mapped = mapProjectActivityRow(data as ProjectActivityRow);
+    set((state) => ({
+      projectActivity: state.projectActivity.map((entry) => (entry.id === id ? mapped : entry)),
     }));
     return emptyMutationResult;
   },

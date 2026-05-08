@@ -105,6 +105,7 @@ const ProjectsPage = () => {
     addProjectActivity,
     updateProjectActivity,
     deleteProjectActivity,
+    setProjectActivityPinned,
     updateAssignee,
     deleteProject,
     deleteMilestone,
@@ -142,6 +143,7 @@ const ProjectsPage = () => {
     addProjectActivity: state.addProjectActivity,
     updateProjectActivity: state.updateProjectActivity,
     deleteProjectActivity: state.deleteProjectActivity,
+    setProjectActivityPinned: state.setProjectActivityPinned,
     updateAssignee: state.updateAssignee,
     deleteProject: state.deleteProject,
     deleteMilestone: state.deleteMilestone,
@@ -542,6 +544,16 @@ const ProjectsPage = () => {
     }
     return true;
   }, [deleteProjectActivity]);
+
+  const handleSetProjectActivityPinned = useCallback(async (id: string, pinned: boolean): Promise<boolean> => {
+    setMutationError('');
+    const result = await setProjectActivityPinned(id, pinned);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [setProjectActivityPinned]);
 
   const formatActivityTimestamp = useCallback((iso: string) => (
     format(parseISO(iso), 'd MMM yyyy, HH:mm', { locale: dateLocale })
@@ -1173,6 +1185,7 @@ const ProjectsPage = () => {
       onAddProjectActivity={handleAddProjectActivity}
       onUpdateProjectActivity={handleUpdateProjectActivity}
       onDeleteProjectActivity={handleDeleteProjectActivity}
+      onSetProjectActivityPinned={handleSetProjectActivityPinned}
       workspaceId={currentWorkspaceId}
     />
   );

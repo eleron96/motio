@@ -65,6 +65,7 @@ interface ProjectCardLayoutProps {
   onAddActivity: (content: string) => Promise<boolean>;
   onUpdateActivity: (id: string, content: string) => Promise<boolean>;
   onDeleteActivity: (id: string) => Promise<boolean>;
+  onSetActivityPinned: (id: string, pinned: boolean) => Promise<boolean>;
   /** Workspace id used by the activity rich-text editor for image uploads. */
   workspaceId?: string | null;
 
@@ -124,6 +125,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
     onAddActivity,
     onUpdateActivity,
     onDeleteActivity,
+    onSetActivityPinned,
     workspaceId,
     ...taskProps
   } = props;
@@ -176,6 +178,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
           onAdd={onAddActivity}
           onUpdate={onUpdateActivity}
           onDelete={onDeleteActivity}
+          onSetPinned={onSetActivityPinned}
           workspaceId={workspaceId}
         />
 

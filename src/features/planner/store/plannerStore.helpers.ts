@@ -101,6 +101,7 @@ export type ProjectActivityRow = {
   content: string;
   created_at: string;
   updated_at: string;
+  pinned?: boolean | null;
 };
 
 export type MemberGroupRow = {
@@ -289,6 +290,7 @@ export const mapProjectActivityRow = (row: ProjectActivityRow): ProjectActivity 
     isEdited: Number.isFinite(created) && Number.isFinite(updated)
       ? updated - created > 1000
       : false,
+    pinned: !!row.pinned,
   };
 };
 
