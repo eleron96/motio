@@ -140,6 +140,22 @@
   border-bottom: 0;
 }
 
+/* Search snippet: trim long notes to a window around the matched word.
+   `<mark>` is rendered by the snippet builder; we style it as a subtle
+   highlight so it reads as "this is the match" without harsh contrast. */
+.feedSnippet {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.feedSnippet mark {
+  background: #fef3c7; /* amber-100 */
+  color: hsl(var(--foreground));
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
 /* Pinned notes — subtle amber tint + slightly more presence than the
    surrounding entries so they read as 'sticky' without screaming. */
 .feedItemPinned {

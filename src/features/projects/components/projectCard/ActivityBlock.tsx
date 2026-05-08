@@ -47,6 +47,37 @@ const stripHtmlForSearch = (raw: string) => {
   return raw.replace(ALL_TAGS_RE, ' ').replace(/&nbsp;/gi, ' ');
 };
 
+const escapeHtml = (raw: string): string => (
+  raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+);
+
+/**
+ * Build an HTML fragment that shows a snippet of `content` centered on the
+ * first occurrence of `query`, with the matched substring wrapped in `<mark>`.
+ * Adds `…` ellipses when the snippet is trimmed at either edge.
+ *
+ * Returns `null` when there is no match — callers can fall back to the regular
+ * note body in that case.
+ */
+const buildSearchSnippetHtml = (content: string, query: string): string | null => {
+  const text = stripHtmlForSearch(content).replace(/\s+/g, ' ').trim();
+  if (!text || !query) return null;
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const idx = lowerText.indexOf(lowerQuery);
+  if (idx === -1) return null;
+  const CONTEXT_BEFORE = 40;
+  const CONTEXT_AFTER = 80;
+  const start = Math.max(0, idx - CONTEXT_BEFORE);
+  const end = Math.min(text.length, idx + query.length + CONTEXT_AFTER);
+  const prefix = start > 0 ? '…' : '';
+  const suffix = end < text.length ? '…' : '';
+  const before = escapeHtml(text.slice(start, idx));
+  const matched = escapeHtml(text.slice(idx, idx + query.length));
+  const after = escapeHtml(text.slice(idx + query.length, end));
+  return `${prefix}${before}<mark>${matched}</mark>${after}${suffix}`;
+};
+
 const renderRichTextHtml = (raw: string) => {
   if (!raw) return { __html: '' };
   if (ACTIVITY_HTML_TAG_RE.test(raw)) {
@@ -100,12 +131,13 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
     if (jumpDate) {
       list = list.filter((entry) => entry.createdAt.slice(0, 10) === jumpDate);
     }
-    // Pinned notes float to the top of the feed, preserving their relative
-    // chronology (newest pinned first). Non-pinned notes keep the order they
-    // arrived in (already DESC by created_at from the SELECT).
+    // Pinned notes float to the top; within each group (pinned and non-pinned)
+    // sort ascending by created_at — oldest first, newest at the bottom. The
+    // SELECT returns DESC, so we explicitly reverse via localeCompare on the
+    // ISO timestamp.
     return [...list].sort((a, b) => {
-      if (a.pinned === b.pinned) return 0;
-      return a.pinned ? -1 : 1;
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      return a.createdAt.localeCompare(b.createdAt);
     });
   }, [entries, jumpDate, search]);
 
@@ -189,6 +221,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
             workspaceId={workspaceId ?? null}
             placeholder={t`Write a comment...`}
             disabled={composerSubmitting}
+            autoFocus
           />
           <div className="flex justify-end gap-1.5">
             <Button
@@ -249,10 +282,26 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                     {entry.authorDisplayName}
                   </div>
                 </div>
-                <div
-                  className={`${styles.feedTextClamp} ${styles.feedRichText} text-[14px] leading-[1.5]`}
-                  dangerouslySetInnerHTML={renderRichTextHtml(entry.content)}
-                />
+                {(() => {
+                  const trimmedQuery = search.trim();
+                  const snippet = trimmedQuery
+                    ? buildSearchSnippetHtml(entry.content, trimmedQuery)
+                    : null;
+                  if (snippet) {
+                    return (
+                      <div
+                        className={`${styles.feedSnippet} text-[13px] leading-[1.5] text-muted-foreground`}
+                        dangerouslySetInnerHTML={{ __html: snippet }}
+                      />
+                    );
+                  }
+                  return (
+                    <div
+                      className={`${styles.feedTextClamp} ${styles.feedRichText} text-[14px] leading-[1.5]`}
+                      dangerouslySetInnerHTML={renderRichTextHtml(entry.content)}
+                    />
+                  );
+                })()}
               </li>
             ))}
           </ol>
@@ -383,12 +432,14 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
   const body = editing ? (
     // Same RTE on mobile and desktop — formatting + image upload requested
     // by users post-M2. The toolbar is small on touch but functional.
+    // Auto-focus so the user can paste / type the moment they tap Edit.
     <RichTextEditor
       value={text}
       onChange={setText}
       workspaceId={workspaceId ?? null}
       placeholder={t`Write a comment...`}
       disabled={busy}
+      autoFocus
     />
   ) : (
     <div

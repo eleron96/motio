@@ -47,19 +47,21 @@ describe('ActivityBlock — pin/unpin notes', () => {
     baseProps.onSetPinned.mockClear();
   });
 
-  it('floats pinned notes to the top regardless of created_at order', () => {
+  it('floats pinned notes to the top, then sorts the rest oldest-first', () => {
     const entries = [
       mkEntry({ id: 'a', content: 'newest', createdAt: '2026-05-08T12:00:00Z' }),
       mkEntry({ id: 'b', content: 'pinned', createdAt: '2026-05-01T09:00:00Z', pinned: true }),
       mkEntry({ id: 'c', content: 'middle', createdAt: '2026-05-05T09:00:00Z' }),
+      mkEntry({ id: 'd', content: 'oldest', createdAt: '2026-04-30T09:00:00Z' }),
     ];
 
     render(<ActivityBlock {...baseProps} entries={entries} />);
 
     const items = screen.getAllByRole('listitem');
     expect(items[0]).toHaveTextContent('pinned');
-    expect(items[1]).toHaveTextContent('newest');
+    expect(items[1]).toHaveTextContent('oldest');
     expect(items[2]).toHaveTextContent('middle');
+    expect(items[3]).toHaveTextContent('newest');
   });
 
   it('shows the pinned indicator next to the date for pinned entries', () => {
@@ -79,6 +81,27 @@ describe('ActivityBlock — pin/unpin notes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pin to top' }));
 
     expect(baseProps.onSetPinned).toHaveBeenCalledWith('a', true);
+  });
+
+  it('renders a search snippet with the matched word highlighted', () => {
+    const longContent = 'lorem ipsum dolor sit amet, consectetur adipiscing elit, '
+      + 'sed do eiusmod tempor incididunt ut labore et dolore MAGNA aliqua. '
+      + 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
+    const entries = [mkEntry({ id: 'a', content: longContent })];
+
+    const { container } = render(
+      <ActivityBlock {...baseProps} entries={entries} />,
+    );
+
+    // Type a search query and let the filter render the snippet.
+    const searchInput = screen.getByPlaceholderText('Search notes...');
+    fireEvent.change(searchInput, { target: { value: 'magna' } });
+
+    const mark = container.querySelector('mark');
+    expect(mark).not.toBeNull();
+    expect(mark!.textContent).toBe('MAGNA');
+    // Snippet should clip with an ellipsis on at least one edge for long text.
+    expect(container.textContent).toContain('…');
   });
 
   it('shows Unpin label when the entry is already pinned', () => {
