@@ -42,8 +42,11 @@ export const MilestonesBlock: React.FC<MilestonesBlockProps> = ({
   accentColor,
 }) => {
   const isMobile = useIsMobile();
-  // M1 mobile: read-only timeline. Add / edit are desktop-only until M4.
-  const canEditMilestones = canEdit && !isMobile;
+  // M4: mobile users can add and edit milestones. The existing
+  // `MilestoneDialog` shadcn dialog already renders full-screen on small
+  // viewports, so no separate mobile sheet is needed here.
+  void isMobile;
+  const canEditMilestones = canEdit;
 
   const items = useMemo(
     () => deriveMilestonesWithStatus(milestones, today),

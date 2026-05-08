@@ -15,6 +15,8 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
 import { ContactPopup, type ContactPopupTarget } from './ContactPopup';
 import { MobileContactSheet } from './MobileContactSheet';
+import { MobileFormSheet } from './MobileFormSheet';
+import { Input } from '@/shared/ui/input';
 
 const UNTAGGED_KEY = '__no_tag__';
 const UNTAGGED_LABEL_PROVIDER = () => t`Untagged`;
@@ -85,9 +87,9 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   onUpdateExternalMember,
 }) => {
   const isMobile = useIsMobile();
-  // M1 mobile: read-only flow. Inline add / edit / remove for team members
-  // are desktop-only until M3 introduces mobile sheet variants of those forms.
-  const canEditMembers = canEdit && !isMobile;
+  // M3: mobile users can add / edit / remove members through bottom sheets.
+  // Desktop keeps the existing inline form + dropdown menu unchanged.
+  const canEditMembers = canEdit;
   const [popup, setPopup] = useState<{ contact: ResolvedMember; rect: DOMRect } | null>(null);
   const [mobileSheetContact, setMobileSheetContact] = useState<ContactPopupTarget | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -95,6 +97,12 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   const [editingPhone, setEditingPhone] = useState('');
   const [editingTag, setEditingTag] = useState('');
   const [editingSubmitting, setEditingSubmitting] = useState(false);
+
+  // Mobile-specific sheet state. Edit / remove track the resolved row so we
+  // can read assignee.id / memberRowId without prop-drilling extra context.
+  const [mobileAddOpen, setMobileAddOpen] = useState(false);
+  const [mobileEditMember, setMobileEditMember] = useState<ResolvedMember | null>(null);
+  const [mobileRemoveMember, setMobileRemoveMember] = useState<ResolvedMember | null>(null);
 
   const [addOpen, setAddOpen] = useState(false);
   const [addKind, setAddKind] = useState<'workspace' | 'external'>('workspace');
@@ -176,6 +184,21 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   }, [resolvedMembers]);
 
   const beginEdit = (member: ResolvedMember) => {
+    if (isMobile) {
+      // Hydrate the inline-edit state too so saveEdit() — shared between
+      // desktop inline form and mobile sheet — has fresh values to read.
+      setEditingId(member.memberRowId ?? member.assignee?.id ?? null);
+      if (member.assignee) {
+        setEditingEmail(member.assignee.email ?? '');
+        setEditingPhone(member.assignee.phone ?? '');
+      } else if (member.external) {
+        setEditingEmail(member.external.email ?? '');
+        setEditingPhone(member.external.phone ?? '');
+      }
+      setEditingTag(member.tag ?? '');
+      setMobileEditMember(member);
+      return;
+    }
     setEditingId(member.memberRowId ?? member.assignee?.id ?? null);
     if (member.assignee) {
       setEditingEmail(member.assignee.email ?? '');
@@ -374,7 +397,13 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
             {canEditMembers && member.memberRowId && (
               <button
                 type="button"
-                onClick={() => void onRemoveMember(member.memberRowId!)}
+                onClick={() => {
+                  if (isMobile) {
+                    setMobileRemoveMember(member);
+                    return;
+                  }
+                  void onRemoveMember(member.memberRowId!);
+                }}
                 className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-destructive hover:shadow-sm"
                 aria-label={t`Remove from team`}
               >
@@ -383,7 +412,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
             )}
           </div>
         </div>
-        {isEditing && (
+        {isEditing && !isMobile && (
           <div className="mx-1.5 mb-1.5 flex flex-col gap-1.5 rounded-md bg-muted p-2">
             <input
               type="email"
@@ -439,7 +468,21 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         >
           <Group className="h-3.5 w-3.5" />
         </button>
-        {canEditMembers && (
+        {canEditMembers && isMobile && (
+          <button
+            type="button"
+            className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+            onClick={() => {
+              resetAddForm();
+              setAddKind('workspace');
+              setMobileAddOpen(true);
+            }}
+            aria-label={t`Add team member`}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {canEditMembers && !isMobile && (
           <DropdownMenu open={addOpen} onOpenChange={setAddOpen}>
             <DropdownMenuTrigger asChild>
               <button
@@ -615,6 +658,176 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         contact={mobileSheetContact}
         onClose={() => setMobileSheetContact(null)}
       />
+
+      {/* M3: bottom-sheet variants of the team add / edit / remove flows.
+          State + submit handlers are shared with the desktop dropdown so we
+          don't duplicate validation logic. */}
+      {canEditMembers && isMobile && (
+        <MobileFormSheet
+          open={mobileAddOpen}
+          onClose={() => setMobileAddOpen(false)}
+          onSubmit={async () => {
+            // Mobile add bypasses `submitAdd()` so we can keep the sheet
+            // open on failure (silent-success guard from P1). Validation is
+            // already gated by `canSave` below.
+            if (addSubmitting) return;
+            setAddSubmitting(true);
+            try {
+              const payload: AddMemberInput = addKind === 'workspace'
+                ? { kind: 'workspace', assigneeId: addAssigneeId!, role: addRole.trim() || null, tag: addTag.trim() || null }
+                : {
+                    kind: 'external',
+                    name: addExternalName.trim(),
+                    company: addExternalCompany.trim() || null,
+                    role: addRole.trim() || null,
+                    tag: addTag.trim() || null,
+                    email: addExternalEmail.trim() || null,
+                    phone: addExternalPhone.trim() || null,
+                  };
+              const ok = await onAddMember(payload);
+              if (ok) {
+                resetAddForm();
+                setMobileAddOpen(false);
+              }
+            } finally {
+              setAddSubmitting(false);
+            }
+          }}
+          title={t`Add team member`}
+          submitting={addSubmitting}
+          canSave={addKind === 'workspace' ? !!addAssigneeId : addExternalName.trim().length > 0}
+          saveLabel={t`Add`}
+        >
+          <div className="flex gap-1 rounded-md bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => setAddKind('workspace')}
+              className={`flex-1 rounded px-2 py-1.5 text-[12px] font-medium ${
+                addKind === 'workspace' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              {t`Motio`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAddKind('external')}
+              className={`flex-1 rounded px-2 py-1.5 text-[12px] font-medium ${
+                addKind === 'external' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+              }`}
+            >
+              {t`External`}
+            </button>
+          </div>
+          {addKind === 'workspace' ? (
+            <select
+              value={addAssigneeId ?? ''}
+              onChange={(event) => setAddAssigneeId(event.target.value || null)}
+              className="rounded-md border border-border bg-card px-2.5 py-2 text-[13px] outline-none focus:border-primary"
+            >
+              <option value="">{t`Select a workspace member`}</option>
+              {workspaceAssignees
+                .filter((assignee) => assignee.userId)
+                .map((assignee) => (
+                  <option key={assignee.id} value={assignee.id}>{assignee.name}</option>
+                ))}
+            </select>
+          ) : (
+            <>
+              <Input
+                placeholder={t`Full name`}
+                value={addExternalName}
+                onChange={(event) => setAddExternalName(event.target.value)}
+                autoFocus
+              />
+              <Input
+                placeholder={t`Company`}
+                value={addExternalCompany}
+                onChange={(event) => setAddExternalCompany(event.target.value)}
+              />
+              <Input
+                placeholder="Email"
+                type="email"
+                value={addExternalEmail}
+                onChange={(event) => setAddExternalEmail(event.target.value)}
+              />
+              <Input
+                placeholder={t`Phone`}
+                value={addExternalPhone}
+                onChange={(event) => setAddExternalPhone(event.target.value)}
+              />
+            </>
+          )}
+          <Input
+            placeholder={t`Role / job title`}
+            value={addRole}
+            onChange={(event) => setAddRole(event.target.value)}
+          />
+          <Input
+            placeholder={t`Tag (e.g. subcontractor)`}
+            value={addTag}
+            onChange={(event) => setAddTag(event.target.value)}
+          />
+        </MobileFormSheet>
+      )}
+
+      {canEditMembers && isMobile && mobileEditMember && (
+        <MobileFormSheet
+          open={mobileEditMember !== null}
+          onClose={() => {
+            setMobileEditMember(null);
+            cancelEdit();
+          }}
+          onSubmit={async () => {
+            await saveEdit(mobileEditMember);
+            // saveEdit clears editingId on success; if it's still set the
+            // mutation failed and we keep the sheet open with the draft.
+            if (editingId === null) setMobileEditMember(null);
+          }}
+          title={t`Edit contact info`}
+          submitting={editingSubmitting}
+          canSave
+          saveLabel={t`Save`}
+        >
+          <Input
+            type="email"
+            placeholder="Email"
+            value={editingEmail}
+            onChange={(event) => setEditingEmail(event.target.value)}
+            autoFocus
+          />
+          <Input
+            placeholder={t`Phone`}
+            value={editingPhone}
+            onChange={(event) => setEditingPhone(event.target.value)}
+          />
+          <Input
+            placeholder={t`Tag`}
+            value={editingTag}
+            onChange={(event) => setEditingTag(event.target.value)}
+          />
+        </MobileFormSheet>
+      )}
+
+      {canEditMembers && isMobile && mobileRemoveMember && (
+        <MobileFormSheet
+          open={mobileRemoveMember !== null}
+          onClose={() => setMobileRemoveMember(null)}
+          onSubmit={async () => {
+            const memberRowId = mobileRemoveMember.memberRowId;
+            if (!memberRowId) return;
+            const ok = await onRemoveMember(memberRowId);
+            if (ok) setMobileRemoveMember(null);
+          }}
+          title={t`Remove from team`}
+          description={t`This will not affect tasks already assigned to ${mobileRemoveMember.assignee?.name ?? mobileRemoveMember.external?.name ?? '—'}.`}
+          saveLabel={t`Remove`}
+          canSave
+        >
+          <div className="rounded-md bg-muted px-3 py-2 text-[13px]">
+            {mobileRemoveMember.assignee?.name ?? mobileRemoveMember.external?.name}
+          </div>
+        </MobileFormSheet>
+      )}
     </section>
   );
 };

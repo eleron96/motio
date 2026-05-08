@@ -43,7 +43,6 @@ import {
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
-import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 const ProjectsPage = () => {
@@ -823,39 +822,38 @@ const ProjectsPage = () => {
   const projectCardEnabled = isProjectCardEnabled();
   const projectCardMobileEnabled = isProjectCardMobileEnabled();
 
-  // Projects | Customers segmented switch — one rounded pill container, the
-  // active option goes black. Used above both the new card sidebar and the
-  // legacy customers sidebar.
-  const renderModeTabs = () => (
-    <div className="border-b border-border bg-card px-3 py-2">
-      <div className="inline-flex w-full items-center rounded-full border border-border bg-muted/50 p-0.5">
-        <button
-          type="button"
-          onClick={() => setMode('projects')}
-          aria-pressed={mode === 'projects'}
-          className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
-            mode === 'projects'
-              ? 'bg-foreground text-background shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {t`Projects`}
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('customers')}
-          aria-pressed={mode === 'customers'}
-          className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
-            mode === 'customers'
-              ? 'bg-foreground text-background shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {t`Customers`}
-        </button>
+  // Projects | Milestones | Customers segmented switch — one rounded pill
+  // container, the active option goes black. Used above both the new card
+  // sidebar and the legacy customers sidebar. On mobile this also replaces
+  // the top-of-page MobilePillSubnav so the user has only one mode switcher.
+  const renderModeTabs = () => {
+    const tabs: Array<{ id: 'projects' | 'milestones' | 'customers'; label: string }> = [
+      { id: 'projects', label: t`Projects` },
+      { id: 'milestones', label: t`Milestones` },
+      { id: 'customers', label: t`Customers` },
+    ];
+    return (
+      <div className="border-b border-border bg-card px-3 py-2">
+        <div className="inline-flex w-full items-center rounded-full border border-border bg-muted/50 p-0.5">
+          {tabs.map((tabItem) => (
+            <button
+              key={tabItem.id}
+              type="button"
+              onClick={() => setMode(tabItem.id)}
+              aria-pressed={mode === tabItem.id}
+              className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                mode === tabItem.id
+                  ? 'bg-foreground text-background shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tabItem.label}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderProjectsSidebar = (closeOnSelect = false) => {
     // When the flag is on and in 'projects' mode, replace the legacy
@@ -989,7 +987,12 @@ const ProjectsPage = () => {
         </div>
       );
     }
-    return (
+    // Project-card flag fully off — fall through to the legacy ProjectsSidebar
+    // which has its own internal mode selector on desktop. On mobile we wrap
+    // it with the shared 3-way pill above so the user can still switch between
+    // Projects | Milestones | Customers (used to live in the top-of-page
+    // MobilePillSubnav that we removed).
+    const legacySidebar = (
     <ProjectsSidebar
       mode={mode}
       onModeChange={setMode}
@@ -1059,6 +1062,17 @@ const ProjectsPage = () => {
       groupProjects={groupedProjects}
     />
     );
+    if (isMobile) {
+      return (
+        <div className="flex h-full flex-col">
+          {renderModeTabs()}
+          <div className="flex-1 min-h-0">
+            {legacySidebar}
+          </div>
+        </div>
+      );
+    }
+    return legacySidebar;
   };
 
   const renderProjectsMainPanel = () => (
@@ -1227,23 +1241,6 @@ const ProjectsPage = () => {
 
       {isMobile ? (
         <>
-          {(() => {
-            const subnavItems: MobilePillSubnavItem[] = [
-              { id: 'projects', label: t`Projects` },
-              { id: 'milestones', label: t`Milestones` },
-              { id: 'customers', label: t`Customers` },
-            ];
-            return (
-              <div className="border-b border-border bg-card">
-                <MobilePillSubnav
-                  items={subnavItems}
-                  activeId={mode}
-                  onChange={(id) => setMode(id as 'projects' | 'milestones' | 'customers')}
-                  ariaLabel={t`Projects sections`}
-                />
-              </div>
-            );
-          })()}
           <MobilePageSheetLayout
             open={mobileSidebarOpen}
             onOpenChange={setMobileSidebarOpen}
