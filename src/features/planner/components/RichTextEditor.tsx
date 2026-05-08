@@ -16,6 +16,12 @@ interface RichTextEditorProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  /**
+   * Move focus into the editor on mount and place the caret at the end of
+   * the existing content. Useful for composers that should accept paste /
+   * typing immediately when opened.
+   */
+  autoFocus?: boolean;
 }
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -87,6 +93,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   placeholder,
   disabled = false,
   className,
+  autoFocus = false,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -220,6 +227,27 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       toast(t`Failed to upload image`, message ? { description: message } : undefined);
     }
   }, [insertImage, uploadTaskImage]);
+
+  useEffect(() => {
+    if (!autoFocus) return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    // Defer focus by a frame so the parent's open animation doesn't steal it,
+    // and place the caret at the very end of any pre-existing content so the
+    // user can paste / type immediately.
+    const id = window.requestAnimationFrame(() => {
+      editor.focus();
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [autoFocus]);
 
   useEffect(() => {
     const editor = editorRef.current;
