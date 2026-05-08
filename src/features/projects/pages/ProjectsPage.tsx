@@ -517,7 +517,7 @@ const ProjectsPage = () => {
     setMutationError('');
     const result = await addProjectActivity({ projectId, content });
     if (!result) {
-      setMutationError(t`Failed to publish activity entry.`);
+      setMutationError(t`Failed to publish note.`);
       return false;
     }
     return true;

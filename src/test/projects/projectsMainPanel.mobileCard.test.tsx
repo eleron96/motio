@@ -123,7 +123,7 @@ describe('ProjectsMainPanel — mobile project card (M1)', () => {
     // never renders. Hitting any of these proves we took the new path.
     expect(screen.getByText('Customer')).toBeInTheDocument();
     expect(screen.getByText('Team')).toBeInTheDocument();
-    expect(screen.getByText('Activity')).toBeInTheDocument();
+    expect(screen.getByText('Notes')).toBeInTheDocument();
   });
 
   it('falls back to legacy panel on mobile when the mobile flag is off', () => {
@@ -148,7 +148,7 @@ describe('ProjectsMainPanel — mobile project card (M1)', () => {
 
     // M2: activity composer; M3: team add; M4: milestone + customer contact
     // adds. With M4 shipped, all four are accessible from mobile.
-    expect(screen.getByLabelText('Add activity entry')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add note')).toBeInTheDocument();
     expect(screen.getByLabelText('Add team member')).toBeInTheDocument();
     expect(screen.getByLabelText('Add milestone')).toBeInTheDocument();
     // CustomerBlock is rendered only when a customer is selected. baseProps
@@ -163,7 +163,7 @@ describe('ProjectsMainPanel — mobile project card (M1)', () => {
 
     render(<ProjectsMainPanel {...baseProps} />);
 
-    expect(screen.getByLabelText('Add activity entry')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add note')).toBeInTheDocument();
   });
 
   it('keeps the project-status chip interactive on mobile (M2)', () => {
