@@ -98,6 +98,10 @@ type ProjectsMainPanelProps = {
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteCustomerContact: (id: string) => Promise<boolean>;
+  onUpdateCustomerContact: (
+    id: string,
+    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+  ) => Promise<boolean>;
   /** Explicit project members + handlers. */
   projectMemberRows: ProjectMember[];
   workspaceAssignees: Assignee[];
@@ -184,6 +188,7 @@ export const ProjectsMainPanel = ({
   customerContacts,
   onAddCustomerContact,
   onDeleteCustomerContact,
+  onUpdateCustomerContact,
   projectMemberRows,
   workspaceAssignees,
   onAddProjectMember,
@@ -246,6 +251,7 @@ export const ProjectsMainPanel = ({
         canEdit={canEdit}
         onAddCustomerContact={onAddCustomerContact}
         onDeleteCustomerContact={onDeleteCustomerContact}
+        onUpdateCustomerContact={onUpdateCustomerContact}
         projectMembers={projectMembers}
         projectMemberRows={filteredProjectMemberRows}
         assigneesById={assigneeById}

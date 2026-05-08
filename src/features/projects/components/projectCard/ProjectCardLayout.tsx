@@ -38,6 +38,10 @@ interface ProjectCardLayoutProps {
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteCustomerContact: (id: string) => Promise<boolean>;
+  onUpdateCustomerContact: (
+    id: string,
+    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+  ) => Promise<boolean>;
   /** Fallback list — assignees that appear on this project's tasks. */
   projectMembers: Assignee[];
   /** Explicit members of this project (project_members rows). */
@@ -106,6 +110,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
     canEdit,
     onAddCustomerContact,
     onDeleteCustomerContact,
+    onUpdateCustomerContact,
     projectMembers,
     projectMemberRows,
     assigneesById,
@@ -148,6 +153,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
             canEdit={canEdit}
             onAddContact={onAddCustomerContact}
             onDeleteContact={onDeleteCustomerContact}
+            onUpdateContact={onUpdateCustomerContact}
           />
           <TeamBlock
             members={projectMemberRows}

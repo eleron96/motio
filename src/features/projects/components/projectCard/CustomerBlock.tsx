@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Building2, Group, Mail, Phone, Plus, Trash2 } from 'lucide-react';
+import { Building2, Group, Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
 import type { Customer, CustomerContact } from '@/features/planner/types/planner';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
@@ -22,6 +22,10 @@ interface CustomerBlockProps {
     payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteContact: (id: string) => Promise<boolean>;
+  onUpdateContact: (
+    id: string,
+    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+  ) => Promise<boolean>;
 }
 
 const buildInitials = (name: string): string => {
@@ -39,6 +43,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   canEdit,
   onAddContact,
   onDeleteContact,
+  onUpdateContact,
 }) => {
   const isMobile = useIsMobile();
   // M4: mobile users can add and delete contacts via bottom sheets. Desktop
@@ -57,6 +62,18 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   const [mAddPhone, setMAddPhone] = useState('');
   const [mAddTag, setMAddTag] = useState('');
   const [mAddSubmitting, setMAddSubmitting] = useState(false);
+
+  // Edit-mode state — shared between desktop inline form and mobile sheet.
+  // We track which contact is being edited (id) plus the draft values.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [eName, setEName] = useState('');
+  const [eRole, setERole] = useState('');
+  const [eEmail, setEEmail] = useState('');
+  const [ePhone, setEPhone] = useState('');
+  const [eTag, setETag] = useState('');
+  const [eSubmitting, setESubmitting] = useState(false);
+  const [mobileEditContact, setMobileEditContact] = useState<CustomerContact | null>(null);
+
   const [groupByTag, setGroupByTag] = useState(false);
   const [collapsedTags, setCollapsedTags] = useState<Set<string>>(new Set());
 
@@ -66,6 +83,47 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
     setMAddEmail('');
     setMAddPhone('');
     setMAddTag('');
+  };
+
+  const beginEditContact = (contact: CustomerContact) => {
+    setEditingId(contact.id);
+    setEName(contact.name);
+    setERole(contact.role ?? '');
+    setEEmail(contact.email ?? '');
+    setEPhone(contact.phone ?? '');
+    setETag(contact.tag ?? '');
+    if (isMobile) {
+      setMobileEditContact(contact);
+    }
+  };
+
+  const cancelEditContact = () => {
+    setEditingId(null);
+    setEName('');
+    setERole('');
+    setEEmail('');
+    setEPhone('');
+    setETag('');
+  };
+
+  const saveEditContact = async (): Promise<boolean> => {
+    if (!editingId || eSubmitting) return false;
+    const trimmedName = eName.trim();
+    if (!trimmedName) return false;
+    setESubmitting(true);
+    try {
+      const ok = await onUpdateContact(editingId, {
+        name: trimmedName,
+        role: eRole.trim() || null,
+        email: eEmail.trim() || null,
+        phone: ePhone.trim() || null,
+        tag: eTag.trim() || null,
+      });
+      if (ok) cancelEditContact();
+      return ok;
+    } finally {
+      setESubmitting(false);
+    }
   };
 
   const groupedContacts = useMemo(() => {
@@ -298,6 +356,52 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
         </MobileFormSheet>
       )}
 
+      {canEditContacts && isMobile && mobileEditContact && (
+        <MobileFormSheet
+          open={mobileEditContact !== null}
+          onClose={() => {
+            setMobileEditContact(null);
+            cancelEditContact();
+          }}
+          onSubmit={async () => {
+            const ok = await saveEditContact();
+            if (ok) setMobileEditContact(null);
+          }}
+          title={t`Edit contact`}
+          submitting={eSubmitting}
+          canSave={eName.trim().length > 0}
+          saveLabel={t`Save`}
+        >
+          <Input
+            placeholder={t`Full name`}
+            value={eName}
+            onChange={(event) => setEName(event.target.value)}
+            autoFocus
+          />
+          <Input
+            placeholder={t`Role / job title`}
+            value={eRole}
+            onChange={(event) => setERole(event.target.value)}
+          />
+          <Input
+            placeholder={t`Tag (e.g. subcontractor)`}
+            value={eTag}
+            onChange={(event) => setETag(event.target.value)}
+          />
+          <Input
+            type="email"
+            placeholder="Email"
+            value={eEmail}
+            onChange={(event) => setEEmail(event.target.value)}
+          />
+          <Input
+            placeholder={t`Phone`}
+            value={ePhone}
+            onChange={(event) => setEPhone(event.target.value)}
+          />
+        </MobileFormSheet>
+      )}
+
       {canEditContacts && isMobile && mobileRemoveContact && (
         <MobileFormSheet
           open={mobileRemoveContact !== null}
@@ -320,59 +424,130 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   );
 
   function renderContactRow(contact: CustomerContact) {
+    const isEditing = editingId === contact.id && !isMobile;
     return (
       <li
         key={contact.id}
-        className="group flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted/40"
+        className="flex flex-col gap-1.5"
       >
-        <div className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">
-          {buildInitials(contact.name)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="truncate text-[12px] font-medium leading-tight">{contact.name}</span>
-            {contact.tag && (
-              <span className="rounded-sm bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-                {contact.tag}
-              </span>
+        <div className="group flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted/40">
+          <div className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-full bg-muted text-[9px] font-semibold text-muted-foreground">
+            {buildInitials(contact.name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="truncate text-[12px] font-medium leading-tight">{contact.name}</span>
+              {contact.tag && (
+                <span className="rounded-sm bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {contact.tag}
+                </span>
+              )}
+            </div>
+            {contact.role && (
+              <div className="truncate text-[10px] text-muted-foreground">{contact.role}</div>
             )}
           </div>
-          {contact.role && (
-            <div className="truncate text-[10px] text-muted-foreground">{contact.role}</div>
-          )}
+          <div className="flex items-center gap-0.5 opacity-50 transition-opacity group-hover:opacity-100">
+            {(contact.email || contact.phone) && (
+              <button
+                type="button"
+                onClick={(event) => openPopup(event, contact)}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
+                aria-label={t`Show contact info`}
+              >
+                {contact.email ? (
+                  <Mail className="h-3 w-3" />
+                ) : (
+                  <Phone className="h-3 w-3" />
+                )}
+              </button>
+            )}
+            {canEditContacts && (
+              <button
+                type="button"
+                onClick={() => (isEditing ? cancelEditContact() : beginEditContact(contact))}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
+                aria-label={t`Edit contact`}
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
+            )}
+            {canEditContacts && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (isMobile) {
+                    setMobileRemoveContact(contact);
+                    return;
+                  }
+                  void onDeleteContact(contact.id);
+                }}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-destructive hover:shadow-sm"
+                aria-label={t`Remove contact`}
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-0.5 opacity-50 transition-opacity group-hover:opacity-100">
-          {(contact.email || contact.phone) && (
-            <button
-              type="button"
-              onClick={(event) => openPopup(event, contact)}
-              className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
-              aria-label={t`Show contact info`}
-            >
-              {contact.email ? (
-                <Mail className="h-3 w-3" />
-              ) : (
-                <Phone className="h-3 w-3" />
-              )}
-            </button>
-          )}
-          {canEditContacts && (
-            <button
-              type="button"
-              onClick={() => {
-                if (isMobile) {
-                  setMobileRemoveContact(contact);
-                  return;
-                }
-                void onDeleteContact(contact.id);
-              }}
-              className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-destructive hover:shadow-sm"
-              aria-label={t`Remove contact`}
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
-          )}
-        </div>
+        {isEditing && (
+          <div className="mx-1.5 flex flex-col gap-1.5 rounded-md bg-muted p-2">
+            <input
+              type="text"
+              placeholder={t`Full name`}
+              value={eName}
+              onChange={(event) => setEName(event.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+              autoFocus
+            />
+            <input
+              type="text"
+              placeholder={t`Role / job title`}
+              value={eRole}
+              onChange={(event) => setERole(event.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <input
+              type="text"
+              placeholder={t`Tag`}
+              value={eTag}
+              onChange={(event) => setETag(event.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={eEmail}
+              onChange={(event) => setEEmail(event.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <input
+              type="text"
+              placeholder={t`Phone`}
+              value={ePhone}
+              onChange={(event) => setEPhone(event.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <div className="flex justify-end gap-1.5">
+              <button
+                type="button"
+                onClick={cancelEditContact}
+                disabled={eSubmitting}
+                className="rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+              >
+                {t`Cancel`}
+              </button>
+              <button
+                type="button"
+                onClick={() => void saveEditContact()}
+                disabled={eSubmitting || !eName.trim()}
+                className="rounded-md bg-foreground px-2 py-1 text-[11px] text-background disabled:opacity-50"
+              >
+                {t`Save`}
+              </button>
+            </div>
+          </div>
+        )}
       </li>
     );
   }

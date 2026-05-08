@@ -99,6 +99,7 @@ const ProjectsPage = () => {
     deleteCustomer,
     addCustomerContact,
     deleteCustomerContact,
+    updateCustomerContact,
     addProjectMember,
     deleteProjectMember,
     updateProjectMember,
@@ -137,6 +138,7 @@ const ProjectsPage = () => {
     deleteCustomer: state.deleteCustomer,
     addCustomerContact: state.addCustomerContact,
     deleteCustomerContact: state.deleteCustomerContact,
+    updateCustomerContact: state.updateCustomerContact,
     addProjectMember: state.addProjectMember,
     deleteProjectMember: state.deleteProjectMember,
     updateProjectMember: state.updateProjectMember,
@@ -439,6 +441,19 @@ const ProjectsPage = () => {
     }
     return true;
   }, [deleteCustomerContact]);
+
+  const handleUpdateCustomerContact = useCallback(async (
+    id: string,
+    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+  ): Promise<boolean> => {
+    setMutationError('');
+    const result = await updateCustomerContact(id, updates);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [updateCustomerContact]);
 
   // Project member handlers (workspace + external).
   const handleAddProjectMember = useCallback(async (
@@ -1174,6 +1189,7 @@ const ProjectsPage = () => {
       customerContacts={customerContacts}
       onAddCustomerContact={handleAddCustomerContact}
       onDeleteCustomerContact={handleDeleteCustomerContact}
+      onUpdateCustomerContact={handleUpdateCustomerContact}
       projectMemberRows={projectMemberRows}
       workspaceAssignees={assignees}
       onAddProjectMember={handleAddProjectMember}
