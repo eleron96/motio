@@ -31,7 +31,7 @@ msgid "(disabled)"
 msgstr "(disabled)"
 
 #: src/features/planner/components/TaskCommentItem.tsx:111
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:224
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:225
 msgid "(edited)"
 msgstr "(edited)"
 
@@ -330,8 +330,8 @@ msgstr "Add member"
 msgid "Add milestone"
 msgstr "Add milestone"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:134
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:271
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:135
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:272
 msgid "Add note"
 msgstr "Add note"
 
@@ -593,8 +593,10 @@ msgstr "Calendar range"
 #: src/features/planner/components/TaskDetailDialogs.tsx:120
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:266
 #: src/features/planner/components/timeline/TaskBar.tsx:644
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:192
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:364
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:193
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:369
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:455
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:477
 #: src/features/projects/components/projectCard/AddContactForm.tsx:74
 #: src/features/projects/components/projectCard/MobileFormSheet.tsx:79
 #: src/features/projects/components/projectCard/MobileNoteSheet.tsx:100
@@ -687,7 +689,7 @@ msgstr "Choose where to apply this change."
 msgid "Clear"
 msgstr "Clear"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:165
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:166
 msgid "Clear date filter"
 msgstr "Clear date filter"
 
@@ -707,7 +709,7 @@ msgstr "Click this button or double-click a date on the timeline to open the tas
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:317
 #: src/features/members/components/TaskDetailsDialog.tsx:164
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:377
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:382
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:153
 msgid "Close"
 msgstr "Close"
@@ -1043,7 +1045,9 @@ msgstr "Declined"
 #: src/features/planner/components/TaskDetailPanel.tsx:815
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:275
 #: src/features/planner/components/timeline/TaskBar.tsx:689
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:374
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:379
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:429
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:464
 #: src/features/projects/components/ProjectsDialogs.tsx:649
 #: src/features/projects/components/ProjectsDialogs.tsx:672
 #: src/features/projects/components/ProjectsDialogs.tsx:695
@@ -1140,6 +1144,10 @@ msgstr "Delete this"
 #: src/features/planner/components/timeline/TaskBar.tsx:673
 msgid "Delete this & following"
 msgstr "Delete this & following"
+
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:445
+msgid "Delete this note? This cannot be undone."
+msgstr "Delete this note? This cannot be undone."
 
 #: src/features/auth/components/DeleteAccountWizard.tsx:220
 msgid "Delete this workspace"
@@ -1302,7 +1310,8 @@ msgid "Each morning starts with a short brief. What's on you today, which milest
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
 #: src/features/planner/components/TaskCommentItem.tsx:150
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:379
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:384
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:494
 #: src/features/projects/components/ProjectsMainPanel.tsx:727
 #: src/features/projects/components/ProjectsSidebar.tsx:195
 #: src/features/projects/components/ProjectsSidebar.tsx:297
@@ -1885,7 +1894,7 @@ msgstr "It will be permanently purged {purgeLabel}."
 #~ msgid "Join teams already planning smarter with Motio."
 #~ msgstr "Join teams already planning smarter with Motio."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:158
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:159
 msgid "Jump to date"
 msgstr "Jump to date"
 
@@ -2149,6 +2158,10 @@ msgstr "Monthly"
 #: src/shared/lib/repeatLabels.ts:13
 msgid "Monthly recurring"
 msgstr "Monthly recurring"
+
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:415
+msgid "More actions"
+msgstr "More actions"
 
 #: src/features/marketing/pages/LandingPage.tsx:668
 msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
@@ -2516,7 +2529,7 @@ msgstr "No milestones yet."
 msgid "No new repeats were needed."
 msgstr "No new repeats were needed."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:209
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:210
 msgid "No notes yet. Use + to add the first one."
 msgstr "No notes yet. Use + to add the first one."
 
@@ -2672,16 +2685,16 @@ msgid "Not tracked"
 msgstr "Not tracked"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:224
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:389
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:410
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:406
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:507
 msgid "Note"
 msgstr "Note"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:119
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:120
 msgid "Notes"
 msgstr "Notes"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:210
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:211
 msgid "Nothing matches the current filters."
 msgstr "Nothing matches the current filters."
 
@@ -2996,8 +3009,8 @@ msgstr "Projects & milestones"
 #~ msgid "Projects sections"
 #~ msgstr "Projects sections"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:199
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:274
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:200
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:275
 msgid "Publish"
 msgstr "Publish"
 
@@ -3018,8 +3031,8 @@ msgstr "purge_after"
 #~ msgid "Read or edit a single project activity entry."
 #~ msgstr "Read or edit a single project activity entry."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:391
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:412
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:436
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:509
 msgid "Read or edit a single project note."
 msgstr "Read or edit a single project note."
 
@@ -3207,7 +3220,8 @@ msgstr "Role / job title"
 #: src/features/planner/components/CommentEditor.tsx:848
 #: src/features/planner/components/TaskDetailDialogs.tsx:93
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:283
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:367
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:372
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:485
 #: src/features/projects/components/projectCard/MobileFormSheet.tsx:82
 #: src/features/projects/components/projectCard/MobileNoteSheet.tsx:103
 #: src/features/projects/components/projectCard/MobileTextSheet.tsx:137
@@ -3275,7 +3289,7 @@ msgstr "Search members..."
 msgid "Search milestones..."
 msgstr "Search milestones..."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:146
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:147
 msgid "Search notes..."
 msgstr "Search notes..."
 
@@ -4288,13 +4302,13 @@ msgstr "Workspaces you will simply leave:"
 #~ msgid "Write a comment that will appear in the project activity feed."
 #~ msgstr "Write a comment that will appear in the project activity feed."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:179
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:273
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:351
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:180
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:274
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:356
 msgid "Write a comment..."
 msgstr "Write a comment..."
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx:272
+#: src/features/projects/components/projectCard/ActivityBlock.tsx:273
 msgid "Write a note that will appear in the project notes."
 msgstr "Write a note that will appear in the project notes."
 
