@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Team block now lets you edit external members in full — name, company, role, on top of the existing email / phone / tag fields. Workspace (Motio) members keep their existing project-local edit surface here; their identity still lives on the Members page.
+- Customer block gains a real edit flow for contacts (previously only add and delete shipped). Pencil on each row opens an inline form on desktop or a bottom sheet on mobile — all five fields editable: name, role, tag, email, phone.
+- Pinned notes now stay anchored to the top of the notes feed while you scroll older entries (Excel frozen-row pattern) — they remain visible until you unpin them.
+
+### Changed
+- Opening a project parks the notes feed at the bottom (newest entries) automatically. Scroll up to read older notes; while you're up there, new entries no longer yank your position. If you're already at the bottom, the feed glides to the new entry.
+- On desktop the notes feed is capped to ~5 visible rows. Fewer notes — smaller block; more — internal scroll within the same height instead of pushing the page.
 
 ## [0.6.0] - 2026-05-08
 ### Added
