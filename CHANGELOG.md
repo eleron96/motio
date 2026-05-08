@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- В ленте заметок проекта в строке теперь видно до 4 строк текста (было 2). Длиннее — обрезается многоточием как и раньше.
 
 ## [0.7.1] - 2026-05-08
 ### Changed
