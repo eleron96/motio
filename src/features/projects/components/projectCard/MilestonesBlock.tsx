@@ -7,6 +7,7 @@ import {
   type MilestoneWithStatus,
 } from '@/features/projects/lib/projectCard/deriveMilestoneStatus';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import styles from './projectCard.module.css';
 
 interface MilestonesBlockProps {
@@ -40,6 +41,10 @@ export const MilestonesBlock: React.FC<MilestonesBlockProps> = ({
   onEditMilestone,
   accentColor,
 }) => {
+  const isMobile = useIsMobile();
+  // M1 mobile: read-only timeline. Add / edit are desktop-only until M4.
+  const canEditMilestones = canEdit && !isMobile;
+
   const items = useMemo(
     () => deriveMilestonesWithStatus(milestones, today),
     [milestones, today],
@@ -65,7 +70,7 @@ export const MilestonesBlock: React.FC<MilestonesBlockProps> = ({
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground tabular-nums">
           {items.length}
         </span>
-        {canEdit && (
+        {canEditMilestones && (
           <button
             type="button"
             onClick={onAddMilestone}
@@ -142,8 +147,8 @@ export const MilestonesBlock: React.FC<MilestonesBlockProps> = ({
         <button
           type="button"
           className={`${styles.tlBody} w-full appearance-none border-0 bg-transparent p-0 text-left`}
-          onClick={() => onEditMilestone?.(milestone)}
-          disabled={!onEditMilestone}
+          onClick={() => { if (canEditMilestones) onEditMilestone?.(milestone); }}
+          disabled={!canEditMilestones || !onEditMilestone}
         >
           <div className={styles.tlDate}>
             <Calendar className="h-3 w-3" />

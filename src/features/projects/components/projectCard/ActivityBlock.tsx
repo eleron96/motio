@@ -5,10 +5,12 @@ import type { ProjectActivity } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
 import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { ACTIVITY_HTML_TAG_RE } from '@/features/projects/lib/projectActivityContent';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import styles from './projectCard.module.css';
 
 interface ActivityBlockProps {
@@ -65,6 +67,11 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   onDelete,
   workspaceId,
 }) => {
+  const isMobile = useIsMobile();
+  // M1 mobile: read-only feed. Composer (RTE / textarea) and inline edit /
+  // delete come in M2 with mobile-friendly sheet variants. The detail view
+  // stays available so users can read full entries.
+  const canEditEntries = canEdit && !isMobile;
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState('');
   const [composerSubmitting, setComposerSubmitting] = useState(false);
@@ -109,7 +116,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground tabular-nums">
           {entries.length}
         </span>
-        {canEdit && (
+        {canEditEntries && (
           <button
             type="button"
             className="ml-auto grid h-6 w-6 place-items-center rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
@@ -228,7 +235,8 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
       {openItem && (
         <ActivityModal
           entry={openItem}
-          canEdit={canEdit}
+          canEdit={canEditEntries}
+          isMobile={isMobile}
           formatDate={formatDate}
           workspaceId={workspaceId}
           onClose={() => setOpenItem(null)}
@@ -251,6 +259,8 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
 interface ActivityModalProps {
   entry: ProjectActivity;
   canEdit: boolean;
+  /** When true, render as a bottom sheet instead of a centered dialog. */
+  isMobile?: boolean;
   formatDate: (iso: string) => string;
   workspaceId?: string | null;
   onClose: () => void;
@@ -262,6 +272,7 @@ interface ActivityModalProps {
 const ActivityModal: React.FC<ActivityModalProps> = ({
   entry,
   canEdit,
+  isMobile = false,
   formatDate,
   workspaceId,
   onClose,
@@ -300,6 +311,73 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
     }
   };
 
+  const meta = (
+    <div className="flex items-center justify-between gap-2 text-[12px]">
+      <div className="font-medium">{entry.authorDisplayName}</div>
+      <div className="tabular-nums text-muted-foreground">{formatDate(entry.createdAt)}</div>
+    </div>
+  );
+
+  const body = editing ? (
+    <RichTextEditor
+      value={text}
+      onChange={setText}
+      workspaceId={workspaceId ?? null}
+      placeholder={t`Write a comment...`}
+      disabled={busy}
+    />
+  ) : (
+    <div
+      className={`${styles.feedRichText} break-words text-[14px] leading-[1.55]`}
+      dangerouslySetInnerHTML={renderRichTextHtml(entry.content)}
+    />
+  );
+
+  const actions = editing ? (
+    <>
+      <Button variant="outline" onClick={() => { setEditing(false); setText(entry.content); }} disabled={busy}>
+        {t`Cancel`}
+      </Button>
+      <Button onClick={() => void handleSave()} disabled={busy || !isContentMeaningful(text)}>
+        {t`Save`}
+      </Button>
+    </>
+  ) : (
+    <>
+      {canEdit && (
+        <Button variant="destructive" onClick={() => void handleDelete()} disabled={busy}>
+          {t`Delete`}
+        </Button>
+      )}
+      <Button variant="outline" onClick={onClose}>{t`Close`}</Button>
+      {canEdit && (
+        <Button onClick={() => setEditing(true)}>{t`Edit`}</Button>
+      )}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open onOpenChange={(open) => (open ? null : onClose())}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader className="text-left">
+            <SheetTitle>{t`Activity entry`}</SheetTitle>
+            <SheetDescription className="sr-only">
+              {t`Read or edit a single project activity entry.`}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-3 flex flex-col gap-3">
+            {meta}
+            {body}
+            <div className="mt-1 flex flex-wrap justify-end gap-2">
+              {actions}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Dialog open onOpenChange={(open) => (open ? null : onClose())}>
       <DialogContent className="sm:max-w-[640px]">
@@ -309,47 +387,10 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             {t`Read or edit a single project activity entry.`}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center justify-between gap-2 text-[12px]">
-          <div className="font-medium">{entry.authorDisplayName}</div>
-          <div className="tabular-nums text-muted-foreground">{formatDate(entry.createdAt)}</div>
-        </div>
-        {editing ? (
-          <RichTextEditor
-            value={text}
-            onChange={setText}
-            workspaceId={workspaceId ?? null}
-            placeholder={t`Write a comment...`}
-            disabled={busy}
-          />
-        ) : (
-          <div
-            className={`${styles.feedRichText} break-words text-[14px] leading-[1.55]`}
-            dangerouslySetInnerHTML={renderRichTextHtml(entry.content)}
-          />
-        )}
+        {meta}
+        {body}
         <DialogFooter className="gap-2">
-          {editing ? (
-            <>
-              <Button variant="outline" onClick={() => { setEditing(false); setText(entry.content); }} disabled={busy}>
-                {t`Cancel`}
-              </Button>
-              <Button onClick={() => void handleSave()} disabled={busy || !isContentMeaningful(text)}>
-                {t`Save`}
-              </Button>
-            </>
-          ) : (
-            <>
-              {canEdit && (
-                <Button variant="destructive" onClick={() => void handleDelete()} disabled={busy}>
-                  {t`Delete`}
-                </Button>
-              )}
-              <Button variant="outline" onClick={onClose}>{t`Close`}</Button>
-              {canEdit && (
-                <Button onClick={() => setEditing(true)}>{t`Edit`}</Button>
-              )}
-            </>
-          )}
+          {actions}
         </DialogFooter>
       </DialogContent>
     </Dialog>

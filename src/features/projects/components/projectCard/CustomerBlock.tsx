@@ -3,7 +3,9 @@ import { t } from '@lingui/macro';
 import { Building2, Group, Mail, Phone, Plus, Trash2 } from 'lucide-react';
 import type { Customer, CustomerContact } from '@/features/planner/types/planner';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { ContactPopup } from './ContactPopup';
+import { MobileContactSheet } from './MobileContactSheet';
 import { AddContactForm } from './AddContactForm';
 
 const UNTAGGED_KEY = '__no_tag__';
@@ -36,8 +38,12 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   onAddContact,
   onDeleteContact,
 }) => {
+  const isMobile = useIsMobile();
+  // M1 mobile: read-only flow. Add/remove of contacts is desktop-only until M4.
+  const canEditContacts = canEdit && !isMobile;
   const [adding, setAdding] = useState(false);
   const [popup, setPopup] = useState<{ contact: CustomerContact; rect: DOMRect } | null>(null);
+  const [mobileSheetContact, setMobileSheetContact] = useState<CustomerContact | null>(null);
   const [groupByTag, setGroupByTag] = useState(false);
   const [collapsedTags, setCollapsedTags] = useState<Set<string>>(new Set());
 
@@ -94,6 +100,10 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   };
 
   const openPopup = (event: React.MouseEvent<HTMLButtonElement>, contact: CustomerContact) => {
+    if (isMobile) {
+      setMobileSheetContact(contact);
+      return;
+    }
     setPopup({ contact, rect: event.currentTarget.getBoundingClientRect() });
   };
 
@@ -115,7 +125,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
         >
           <Group className="h-3.5 w-3.5" />
         </button>
-        {canEdit && (
+        {canEditContacts && (
           <button
             type="button"
             className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -192,6 +202,10 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
           onClose={() => setPopup(null)}
         />
       )}
+      <MobileContactSheet
+        contact={mobileSheetContact}
+        onClose={() => setMobileSheetContact(null)}
+      />
     </section>
   );
 
@@ -232,7 +246,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
               )}
             </button>
           )}
-          {canEdit && (
+          {canEditContacts && (
             <button
               type="button"
               onClick={() => void onDeleteContact(contact.id)}

@@ -6,7 +6,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { ProjectsSidebar } from '@/features/projects/components/ProjectsSidebar';
 import { ProjectCardSidebar } from '@/features/projects/components/projectCard/ProjectCardSidebar';
 import { computeGroupMembersToAdd } from '@/features/projects/lib/projectCard/computeGroupMembersToAdd';
-import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
+import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 import { ProjectsDialogs } from '@/features/projects/components/ProjectsDialogs';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
@@ -821,6 +821,7 @@ const ProjectsPage = () => {
       : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
 
   const projectCardEnabled = isProjectCardEnabled();
+  const projectCardMobileEnabled = isProjectCardMobileEnabled();
 
   // Projects | Customers segmented switch — one rounded pill container, the
   // active option goes black. Used above both the new card sidebar and the
@@ -857,10 +858,15 @@ const ProjectsPage = () => {
   );
 
   const renderProjectsSidebar = (closeOnSelect = false) => {
-    // When the flag is on, in 'projects' mode, on desktop — replace the
-    // legacy multi-mode sidebar with the new card-style list. Milestones /
-    // customers / mobile keep using the legacy sidebar.
-    if (projectCardEnabled && mode === 'projects' && !isMobile) {
+    // When the flag is on and in 'projects' mode, replace the legacy
+    // multi-mode sidebar with the new card-style list. Mobile rendering is
+    // gated separately by VITE_FEATURE_PROJECT_CARD_MOBILE so the M1 card
+    // can roll out without affecting milestones / customers modes.
+    if (
+      projectCardEnabled
+      && mode === 'projects'
+      && (!isMobile || projectCardMobileEnabled)
+    ) {
       const visibleProjects = tab === 'archived'
         ? filteredArchivedProjects
         : filteredActiveProjects;

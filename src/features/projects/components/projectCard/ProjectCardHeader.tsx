@@ -5,6 +5,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import type { Project, Customer } from '@/features/planner/types/planner';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import styles from './projectCard.module.css';
 
 interface ProjectCardHeaderProps {
@@ -25,6 +26,11 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
   onSaveStatus,
 }) => {
   const customerLabel = customer?.name ?? t`No customer`;
+
+  // M1 mobile: read-only flow. Mobile inline editing of the status chip will
+  // arrive in M2 with a full-screen sheet — until then the chip is a label.
+  const isMobile = useIsMobile();
+  const canEditStatus = canEdit && !isMobile;
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(project.status ?? '');
@@ -49,7 +55,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
   }, [project.id]);
 
   const beginEdit = () => {
-    if (!canEdit) return;
+    if (!canEditStatus) return;
     setDraft(project.status ?? '');
     setEditing(true);
   };
@@ -148,21 +154,21 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
             <button
               type="button"
               onClick={beginEdit}
-              disabled={!canEdit}
-              title={canEdit ? t`Edit project status` : project.status}
-              aria-label={canEdit
+              disabled={!canEditStatus}
+              title={canEditStatus ? t`Edit project status` : project.status}
+              aria-label={canEditStatus
                 ? t`Edit project status: ${project.status}`
                 : t`Project status: ${project.status}`}
               className={`group inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${
-                canEdit ? 'hover:bg-foreground hover:text-background' : 'cursor-default'
+                canEditStatus ? 'hover:bg-foreground hover:text-background' : 'cursor-default'
               }`}
             >
               <span>{project.status}</span>
-              {canEdit && (
+              {canEditStatus && (
                 <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true" />
               )}
             </button>
-          ) : canEdit ? (
+          ) : canEditStatus ? (
             <button
               type="button"
               onClick={beginEdit}
