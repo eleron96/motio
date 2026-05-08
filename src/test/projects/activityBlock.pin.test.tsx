@@ -84,21 +84,20 @@ describe('ActivityBlock — pin/unpin notes', () => {
     expect(screen.queryByRole('button', { name: 'Unpin' })).toBeNull();
   });
 
-  it('toggles pinned via the desktop modal Pin button', async () => {
+  it('exposes a kebab "More actions" trigger inside the desktop modal', () => {
+    // Pin / Delete moved to a kebab DropdownMenu on desktop. Radix's menu
+    // opens on pointer-events that jsdom doesn't dispatch via fireEvent —
+    // we assert the trigger renders and rely on integration testing on the
+    // test server for the full menu interaction. The inline pin button on
+    // each row already has its own assertion above.
     const entries = [mkEntry({ id: 'a', content: 'hello', pinned: false })];
 
     render(<ActivityBlock {...baseProps} entries={entries} />);
 
     fireEvent.click(screen.getByRole('listitem'));
-    // The modal Pin button lives in the dialog's footer; the inline pin is
-    // an icon-only button on the row itself. Both share the same aria-label,
-    // so we explicitly target the modal one rendered inside the dialog.
     const dialog = screen.getByRole('dialog');
-    const pinButton = dialog.querySelector('button[aria-label="Pin to top"]');
-    expect(pinButton).not.toBeNull();
-    fireEvent.click(pinButton!);
-
-    expect(baseProps.onSetPinned).toHaveBeenCalledWith('a', true);
+    const kebab = dialog.querySelector('button[aria-label="More actions"]');
+    expect(kebab).not.toBeNull();
   });
 
   it('inline pin button on the row toggles without opening the modal', () => {
@@ -136,15 +135,14 @@ describe('ActivityBlock — pin/unpin notes', () => {
     expect(container.textContent).toContain('…');
   });
 
-  it('shows Unpin label when the entry is already pinned', () => {
+  it('inline row button label flips to Unpin when entry is pinned', () => {
+    // The kebab Pin/Unpin label flips too (covered by integration on the
+    // test server). Here we assert the inline row variant of the same flip,
+    // which is the path users see most often in the feed itself.
     const entries = [mkEntry({ id: 'a', content: 'hello', pinned: true })];
 
     render(<ActivityBlock {...baseProps} entries={entries} />);
 
-    fireEvent.click(screen.getAllByRole('listitem')[0]);
-
-    // Both inline and modal buttons share the Unpin label here.
-    const unpinButtons = screen.getAllByRole('button', { name: 'Unpin' });
-    expect(unpinButtons.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('button', { name: 'Unpin' })).toBeInTheDocument();
   });
 });
