@@ -11,8 +11,10 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
-import { ContactPopup } from './ContactPopup';
+import { ContactPopup, type ContactPopupTarget } from './ContactPopup';
+import { MobileContactSheet } from './MobileContactSheet';
 
 const UNTAGGED_KEY = '__no_tag__';
 const UNTAGGED_LABEL_PROVIDER = () => t`Untagged`;
@@ -82,7 +84,12 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   onUpdateAssigneeContact,
   onUpdateExternalMember,
 }) => {
+  const isMobile = useIsMobile();
+  // M1 mobile: read-only flow. Inline add / edit / remove for team members
+  // are desktop-only until M3 introduces mobile sheet variants of those forms.
+  const canEditMembers = canEdit && !isMobile;
   const [popup, setPopup] = useState<{ contact: ResolvedMember; rect: DOMRect } | null>(null);
+  const [mobileSheetContact, setMobileSheetContact] = useState<ContactPopupTarget | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
   const [editingPhone, setEditingPhone] = useState('');
@@ -330,7 +337,20 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
             {hasContact && (
               <button
                 type="button"
-                onClick={(e) => setPopup({ contact: member, rect: e.currentTarget.getBoundingClientRect() })}
+                onClick={(e) => {
+                  if (isMobile) {
+                    setMobileSheetContact({
+                      name: member.assignee?.name ?? member.external?.name ?? '—',
+                      role: member.role
+                        ?? member.external?.company
+                        ?? (member.assignee?.isActive === false ? t`Disabled` : null),
+                      email: member.assignee?.email ?? member.external?.email ?? null,
+                      phone: member.assignee?.phone ?? member.external?.phone ?? null,
+                    });
+                    return;
+                  }
+                  setPopup({ contact: member, rect: e.currentTarget.getBoundingClientRect() });
+                }}
                 className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-sm"
                 aria-label={t`Show contact info`}
               >
@@ -341,7 +361,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                 )}
               </button>
             )}
-            {canEdit && member.memberRowId && (
+            {canEditMembers && member.memberRowId && (
               <button
                 type="button"
                 onClick={() => (isEditing ? cancelEdit() : beginEdit(member))}
@@ -351,7 +371,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                 <Pencil className="h-3 w-3" />
               </button>
             )}
-            {canEdit && member.memberRowId && (
+            {canEditMembers && member.memberRowId && (
               <button
                 type="button"
                 onClick={() => void onRemoveMember(member.memberRowId!)}
@@ -419,7 +439,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         >
           <Group className="h-3.5 w-3.5" />
         </button>
-        {canEdit && (
+        {canEditMembers && (
           <DropdownMenu open={addOpen} onOpenChange={setAddOpen}>
             <DropdownMenuTrigger asChild>
               <button
@@ -591,6 +611,10 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
           onClose={() => setPopup(null)}
         />
       )}
+      <MobileContactSheet
+        contact={mobileSheetContact}
+        onClose={() => setMobileSheetContact(null)}
+      />
     </section>
   );
 };

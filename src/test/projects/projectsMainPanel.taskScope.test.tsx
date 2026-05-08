@@ -18,6 +18,7 @@ vi.mock('@/shared/hooks/use-mobile', () => ({
 // covered by separate tests against the new ProjectCardLayout.
 vi.mock('@/shared/lib/featureFlags', () => ({
   isProjectCardEnabled: () => false,
+  isProjectCardMobileEnabled: () => false,
   isAccountDeletionEnabled: () => false,
 }));
 

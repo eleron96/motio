@@ -130,7 +130,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-y-auto bg-background">
-      <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-4 p-6">
+      <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-3 p-3 sm:gap-4 sm:p-6">
         <ProjectCardHeader
           project={selectedProject}
           customer={customer}

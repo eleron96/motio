@@ -18,7 +18,7 @@ import { Assignee, Customer, CustomerContact, Milestone, Project, ProjectActivit
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
+import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 import { ProjectCardLayout } from '@/features/projects/components/projectCard/ProjectCardLayout';
 
 type DisplayTaskRow = {
@@ -205,6 +205,7 @@ export const ProjectsMainPanel = ({
     || (taskScope === 'past' && (pastFromDate.length > 0 || pastToDate.length > 0));
 
   const projectCardEnabled = isProjectCardEnabled();
+  const projectCardMobileEnabled = isProjectCardMobileEnabled();
 
   // Memoize per-project slices so we don't re-allocate filtered arrays on every
   // unrelated re-render (these arrays span the whole workspace). Defensive
@@ -224,14 +225,16 @@ export const ProjectsMainPanel = ({
     [projectActivity, cardProjectId],
   );
 
-  // When the flag is on and a project is selected on desktop, replace the
-  // legacy main panel with the new card layout. Mobile (and milestones /
-  // customers modes) still fall through to the legacy UI by design.
+  // When the flag is on and a project is selected, replace the legacy main
+  // panel with the new card layout. Mobile rendering is gated separately by
+  // VITE_FEATURE_PROJECT_CARD_MOBILE so the mobile read-only card can roll
+  // out independently of the desktop UI. Milestones / customers modes still
+  // fall through to the legacy UI by design.
   if (
     mode === 'projects'
     && projectCardEnabled
     && selectedProject
-    && !isMobile
+    && (!isMobile || projectCardMobileEnabled)
   ) {
     return (
       <ProjectCardLayout
