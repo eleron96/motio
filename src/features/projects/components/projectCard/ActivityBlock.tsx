@@ -263,6 +263,17 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
               >
                 <div className="flex items-center justify-between gap-2.5">
                   <div className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/80">
+                    <span>{formatDate(entry.createdAt)}</span>
+                    {entry.isEdited && (
+                      <span className="text-muted-foreground/60">{t`(edited)`}</span>
+                    )}
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ background: getMonogramColor(entry.authorId ?? entry.authorDisplayName) }}
+                    />
+                    <span>{entry.authorDisplayName}</span>
                     {canEditEntries ? (
                       <button
                         type="button"
@@ -274,7 +285,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                         }}
                         aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
                         title={entry.pinned ? t`Unpin` : t`Pin to top`}
-                        className={`grid h-6 w-6 place-items-center rounded transition-colors ${
+                        className={`ml-1 grid h-6 w-6 place-items-center rounded transition-colors ${
                           entry.pinned
                             ? 'text-amber-500 hover:text-amber-600'
                             : 'text-muted-foreground/40 hover:text-amber-500'
@@ -284,21 +295,10 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                       </button>
                     ) : entry.pinned ? (
                       <Pin
-                        className="h-3 w-3 text-amber-500 fill-amber-500"
+                        className="ml-1 h-3 w-3 text-amber-500 fill-amber-500"
                         aria-label={t`Pinned`}
                       />
                     ) : null}
-                    <span>{formatDate(entry.createdAt)}</span>
-                    {entry.isEdited && (
-                      <span className="text-muted-foreground/60">{t`(edited)`}</span>
-                    )}
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ background: getMonogramColor(entry.authorId ?? entry.authorDisplayName) }}
-                    />
-                    {entry.authorDisplayName}
                   </div>
                 </div>
                 {(() => {
@@ -640,14 +640,22 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             {t`Read or edit a single project note.`}
           </DialogDescription>
         </DialogHeader>
+        {meta}
+        {body}
+        <DialogFooter className="gap-2">
+          {actions}
+        </DialogFooter>
+        {/* Pin/Unpin lives in the top-right visually (absolute) but is rendered
+            LAST in the DOM order so Radix's focus trap doesn't park initial
+            focus on it. When the user toggles read↔edit and the previously
+            focused button (Edit/Cancel/Save) unmounts, the trap falls back
+            to the first focusable element — we want that to be the body /
+            actions, not the Pin icon. */}
         {canEdit && (
           <button
             type="button"
             onClick={() => void handleTogglePin()}
             disabled={togglingPin}
-            // Sit just to the left of the dialog's built-in X close (which is
-            // pinned at right-4 top-4 by shadcn). Hover surface stays compact
-            // so it doesn't crowd the title.
             className={`absolute right-12 top-4 grid h-6 w-6 place-items-center rounded transition-colors ${
               entry.pinned
                 ? 'text-amber-500 hover:text-amber-600'
@@ -662,11 +670,6 @@ const ActivityModal: React.FC<ActivityModalProps> = ({
             />
           </button>
         )}
-        {meta}
-        {body}
-        <DialogFooter className="gap-2">
-          {actions}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
