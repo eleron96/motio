@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.6] - 2026-05-09
 ### Added
 - The project-card task preview modal (opened by clicking a task in the Tasks block) now surfaces recurrence info: a `↻` icon beside the title in the header plus a dedicated "Repeat" cell in the main grid with an outline badge (cadence: "Daily recurring", "Weekly recurring", …) and a series counter ("N in series · N more / Last in series"). Previously the modal had zero visible signal that the task was part of a repeat series — now it matches the info shown on the row in TasksBlock.
 
