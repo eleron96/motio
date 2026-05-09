@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-05-09
+### Fixed
+- The project card Tasks block once again shows a recurring-task indicator: a `↻` icon next to the title and an outline badge with the cadence label ("Daily recurring", "Weekly recurring", "Monthly recurring", "Every 4 weeks", "Yearly recurring") in the meta row. The badge tooltip shows series remainder ("N more" / "Last in series"). Previously, recurring tasks in the new TasksBlock looked identical to regular ones even though `repeatMeta` was already present on each row.
+
 ## [0.7.4] - 2026-05-08
 ### Added
 - The star (track) icon and `⋯` action menu are now always visible on each sidebar project row — no hover required. The star is an outline when the project is not tracked; click flips it to filled amber and the project moves to the top of the list.
