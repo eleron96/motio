@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.6] - 2026-05-09
 ### Added
 - Модалка предпросмотра задачи (по клику на задачу в карточке проекта) теперь тоже показывает, что задача повторяющаяся: иконка `↻` рядом с названием в заголовке плюс отдельная ячейка «Повтор» в основной сетке с outline-бейджем (тип повтора: «Daily recurring», «Weekly recurring», …) и счётчиком «N в серии · N more / Last in series». Раньше в модалке вообще никаких следов повторения не было — теперь общая инфа едина с рядом задачи в TasksBlock.
 
