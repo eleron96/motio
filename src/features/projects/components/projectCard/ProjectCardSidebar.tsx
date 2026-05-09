@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
+import { deriveMilestonesWithStatus } from '@/features/projects/lib/projectCard/deriveMilestoneStatus';
 import styles from './projectCard.module.css';
 
 export interface ProjectCardSidebarGroup {
@@ -106,10 +107,30 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
   trackedProjectIdSet,
   onToggleTrackedProject,
 }) => {
+  // Counts only milestones that are still ahead of today (status `current` or
+  // `upcoming`). Past/done milestones are skipped — they're already history,
+  // and the sidebar wants to communicate "what's left" at a glance, not a
+  // lifetime total. We bucket by projectId first, then derive status per
+  // bucket so the explicit `statusOverride` is respected per project.
   const milestoneCountByProject = React.useMemo(() => {
-    const map = new Map<string, number>();
+    const today = new Date();
+    const buckets = new Map<string, Milestone[]>();
     for (const milestone of milestones) {
-      map.set(milestone.projectId, (map.get(milestone.projectId) ?? 0) + 1);
+      const list = buckets.get(milestone.projectId);
+      if (list) {
+        list.push(milestone);
+      } else {
+        buckets.set(milestone.projectId, [milestone]);
+      }
+    }
+    const map = new Map<string, number>();
+    for (const [projectId, list] of buckets) {
+      const ahead = deriveMilestonesWithStatus(list, today)
+        .filter((m) => m.status !== 'done')
+        .length;
+      if (ahead > 0) {
+        map.set(projectId, ahead);
+      }
     }
     return map;
   }, [milestones]);
@@ -367,7 +388,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                     </span>
                   )}
                   {milestoneCount > 0 && (
-                    <span className="tabular-nums">
+                    <span className="tabular-nums" title={t`Milestones still ahead`}>
                       {milestoneCount === 1
                         ? t`${milestoneCount} milestone`
                         : t`${milestoneCount} milestones`}
