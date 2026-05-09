@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { Calendar, RefreshCcw, Search } from 'lucide-react';
+import { Calendar, RefreshCcw, Repeat, Search } from 'lucide-react';
 import type {
   Assignee,
   Status,
@@ -16,6 +16,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
+import {
+  formatRepeatCadenceLabel,
+  formatRepeatSeriesRemainderLabel,
+} from '@/shared/lib/repeatLabels';
 
 type DisplayTaskRow = {
   key: string;
@@ -216,13 +220,30 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
                       aria-hidden="true"
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="text-ui-sm font-medium leading-snug break-words [overflow-wrap:anywhere]">
-                        {task.title}
+                      <div className="flex items-start gap-1.5">
+                        {row.repeatMeta && (
+                          <Repeat
+                            className="mt-1 h-3 w-3 flex-shrink-0 text-primary/70"
+                            aria-label={formatRepeatCadenceLabel(row.repeatMeta.cadence)}
+                          />
+                        )}
+                        <div className="text-ui-sm font-medium leading-snug break-words [overflow-wrap:anywhere]">
+                          {task.title}
+                        </div>
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-muted-foreground">
                         {status && (
                           <Badge variant="secondary" className="text-[10px]">
                             {formatStatusLabel(status.name, status.emoji)}
+                          </Badge>
+                        )}
+                        {row.repeatMeta && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px]"
+                            title={formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
+                          >
+                            {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
                           </Badge>
                         )}
                         {assigneeNames.length > 0 && (
