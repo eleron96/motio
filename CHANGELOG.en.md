@@ -6,8 +6,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
-## [0.7.5] - 2026-05-09
 ### Fixed
 - The project card Tasks block once again shows a recurring-task indicator: a `↻` icon next to the title and an outline badge with the cadence label ("Daily recurring", "Weekly recurring", "Monthly recurring", "Every 4 weeks", "Yearly recurring") in the meta row. The badge tooltip shows series remainder ("N more" / "Last in series"). Previously, recurring tasks in the new TasksBlock looked identical to regular ones even though `repeatMeta` was already present on each row.
 
