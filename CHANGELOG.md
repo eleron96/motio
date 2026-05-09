@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.5] - 2026-05-09
 ### Fixed
 - В блоке «Задачи» карточки проекта снова отображается индикатор повторяющейся задачи: иконка `↻` слева от названия и Outline-бейдж с типом повтора («Daily recurring», «Weekly recurring», «Monthly recurring», «Every 4 weeks», «Yearly recurring») в ряду метаданных. На hover бейджа title показывает остаток серии («N more» / «Last in series»). До этого репит-задачи в новом TasksBlock визуально не отличались от обычных, хотя `repeatMeta` уже приходило в строки.
 
