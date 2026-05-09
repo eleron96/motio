@@ -727,6 +727,12 @@ const ProjectsPage = () => {
 
   const displayTaskRows = useDisplayTaskRows(projectTasks, taskScope);
 
+  const selectedTaskRepeatMeta = useMemo(() => {
+    if (!selectedTaskId) return null;
+    const row = displayTaskRows.find((entry) => entry.taskIds.includes(selectedTaskId));
+    return row?.repeatMeta ?? null;
+  }, [displayTaskRows, selectedTaskId]);
+
   const totalPages = taskScope === 'past'
     ? Math.max(1, Math.ceil(totalCount / pageSize))
     : 1;
@@ -1406,6 +1412,7 @@ const ProjectsPage = () => {
         selectedTask={selectedTask}
         selectedTaskProject={selectedTaskProject}
         selectedTaskCustomer={selectedTaskCustomer}
+        selectedTaskRepeatMeta={selectedTaskRepeatMeta}
         statusById={statusById}
         assigneeById={assigneeById}
         taskTypeById={taskTypeById}

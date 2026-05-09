@@ -12,6 +12,7 @@ import {
   Task,
   TaskType,
 } from '@/features/planner/types/planner';
+import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/ui/alert-dialog';
 import { Button } from '@/shared/ui/button';
@@ -95,6 +96,11 @@ type ProjectsDialogsProps = {
   selectedTask: Task | null;
   selectedTaskProject: Project | null;
   selectedTaskCustomer: Customer | null;
+  selectedTaskRepeatMeta: {
+    cadence: RepeatCadence;
+    remaining: number;
+    total: number;
+  } | null;
   statusById: Map<string, Status>;
   assigneeById: Map<string, Assignee>;
   taskTypeById: Map<string, TaskType>;
@@ -190,6 +196,7 @@ export const ProjectsDialogs = ({
   selectedTask,
   selectedTaskProject,
   selectedTaskCustomer,
+  selectedTaskRepeatMeta,
   statusById,
   assigneeById,
   taskTypeById,
@@ -619,6 +626,7 @@ export const ProjectsDialogs = ({
         selectedTask={selectedTask}
         selectedTaskProject={selectedTaskProject}
         selectedTaskCustomer={selectedTaskCustomer}
+        selectedTaskRepeatMeta={selectedTaskRepeatMeta}
         statusById={statusById}
         assigneeById={assigneeById}
         taskTypeById={taskTypeById}
