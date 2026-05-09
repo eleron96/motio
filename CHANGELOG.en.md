@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.7] - 2026-05-09
 ### Changed
 - The milestone count on each sidebar project row now shows **only milestones still ahead** (status `current` + `upcoming`), skipping already-completed ones. Previously the row counted every milestone the project ever had, which buried "what's still left" in noise. The count uses the same `deriveMilestonesWithStatus` helper as the in-card Milestones block — explicit `statusOverride` values are honoured. Projects with only past milestones now hide the counter entirely (same as before when `count === 0`). The counter span gained `title="Milestones still ahead"` for hover context.
 
