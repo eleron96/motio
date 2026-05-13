@@ -290,3 +290,18 @@
 .feedRowRichText strike {
   text-decoration: line-through;
 }
+
+/* Blockquote inside a clamped feed-row preview. We can't use a block-level
+   <blockquote> there (block descendants silently break `-webkit-line-clamp`),
+   so `buildFeedSnippetHtml` emits an inline-block <span> with this class.
+   The left border + italic + muted color make the quote distinguishable from
+   plain text without breaking the clamp. */
+.feedRowBlockquote {
+  display: inline-block;
+  border-left: 2px solid hsl(var(--border));
+  padding-left: 0.5em;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+  vertical-align: top;
+  max-width: 100%;
+}

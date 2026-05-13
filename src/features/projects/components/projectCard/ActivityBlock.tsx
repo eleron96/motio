@@ -130,12 +130,19 @@ const buildFeedSnippetHtml = (raw: string): string => {
       .replace(/\n/g, '<br>');
   }
   const sanitized = sanitizeCommentRichText(raw);
+  // Wrap blockquote in an inline <span> with our CSS-module class so we keep
+  // a visible "this is a quote" indicator (italic + left border) inside the
+  // clamped row. A block <blockquote> would break `-webkit-line-clamp`, so we
+  // demote it to inline + use border-left on inline-block via CSS.
+  const blockquoteClass = styles.feedRowBlockquote;
   return sanitized
-    // Block boundaries become explicit <br>.
-    .replace(/<\/(p|div|blockquote|li|h[1-6])>/gi, '<br>')
+    .replace(/<blockquote[^>]*>/gi, `<span class="${blockquoteClass}">`)
+    .replace(/<\/blockquote>/gi, '</span><br>')
+    // Other block boundaries become explicit <br>.
+    .replace(/<\/(p|div|li|h[1-6])>/gi, '<br>')
     // Drop block-opening tags + list containers + images — keep inline
     // formatting (b/strong/i/em/u/s/strike/span).
-    .replace(/<(p|div|blockquote|li|ul|ol|h[1-6])[^>]*>/gi, '')
+    .replace(/<(p|div|li|ul|ol|h[1-6])[^>]*>/gi, '')
     .replace(/<img[^>]*>/gi, '')
     // Cap consecutive <br>s so multi-paragraph entries don't eat the
     // whole 5-line clamp window with blank lines.
