@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.2] - 2026-05-13
 ### Changed
 - Закреплённые заметки теперь видно **полностью без своего внутреннего скролла**. Pinned-секция растёт натурально под количество закреплённых, а весь блок «Заметки» вырастает по высоте соответственно — раньше внутри pinned-секции был свой scroll cap (~220px), и при 5+ pinned приходилось скроллить внутри pinned-блока. Теперь pinned всегда полностью на виду; скроллится только unpinned-часть ниже (как и раньше, cap ≤ 420px на десктопе). Убран `max-h: 640px` с родительского `<section>` — он мешал pinned-секции расти.
 
