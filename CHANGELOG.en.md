@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Pinned notes are no longer **sticky** — they're now rendered in a separate static section above the scrollable feed. Multiple pinned rows simply stack one under another and never overlap (previously `position: sticky; top: 0` caused multiple pinned rows to pile on top of each other during scroll, since they all targeted the same top edge). The block's overall height now grows by the pinned section's height; the scrollable region (for unpinned) keeps its capped max height (~420px on desktop). The drop-shadow moved from the last pinned row to the pinned section as a whole. If every visible note is pinned (e.g. a search matched only pinned ones), an explanatory line "No more notes — everything currently visible is pinned." renders below the pinned section.
 
 ## [0.7.9] - 2026-05-13
 ### Fixed
