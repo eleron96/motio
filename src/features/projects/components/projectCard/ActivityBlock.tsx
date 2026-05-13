@@ -433,7 +433,16 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                 The amber left-border + drop-shadow on the last row still
                 separate pinned from the unpinned content below. */}
             {pinnedItems.length > 0 && (
-              <ol className={`flex flex-col pr-2 ${styles.feedPinnedSection}`}>
+              // Pinned section gets its own scroll window so it can never
+              // squeeze the unpinned area to zero when there are many
+              // pinned rows. `flex-shrink-0` keeps it at its natural
+              // (or maxed) height while the unpinned scroll-container
+              // claims the remainder of the parent. On desktop pinned
+              // is capped to ~200 px (≈3 rows visible, then scroll);
+              // mobile lets the page scroll handle it.
+              <ol
+                className={`flex flex-shrink-0 flex-col pr-2 overflow-y-auto lg:max-h-[220px] ${styles.feedPinnedSection}`}
+              >
                 {pinnedItems.map(renderEntry)}
               </ol>
             )}
@@ -442,10 +451,11 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
               onScroll={handleScroll}
               // Desktop: cap visible *unpinned* feed to ~5 rows (≈80 px
               // each) so the scrollable region never grows past one
-              // card-height. Pinned rows above add their own height to
-              // the section. Below `lg`, the parent flex handles
+              // card-height. `min-h-[160px]` guarantees the user always
+              // sees at least ~2 unpinned rows even if pinned filled
+              // its 220 px cap. Below `lg`, the parent flex handles
               // scrolling along with the page.
-              className="flex-1 min-h-0 overflow-y-auto pr-2 lg:max-h-[420px]"
+              className="flex-1 min-h-0 overflow-y-auto pr-2 lg:min-h-[160px] lg:max-h-[420px]"
             >
               {unpinnedItems.length === 0 ? (
                 <div className="py-8 text-center text-ui-xs text-muted-foreground">

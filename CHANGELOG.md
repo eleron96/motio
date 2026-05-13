@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Хотфикс к 0.8.0: pinned-секция жадно отъедала всё доступное место у родительского flex-контейнера блока «Заметки» (max-h: 640px) — scroll-контейнер unpinned `flex-1 min-h-0` сжимался до нуля, и пользователь не мог листать остальные заметки. Теперь:
+  - У pinned-секции собственный лимит на десктопе (`max-h: 220px`) + `overflow-y-auto` — много pinned-заметок скроллятся внутри собственного окна.
+  - `flex-shrink-0` у pinned-секции — она не отжимается, держит свою высоту до cap.
+  - У scroll-контейнера unpinned гарантированный минимум `min-h: 160px` на десктопе, чтобы всегда было видно хотя бы пару unpinned-строк.
 
 ## [0.8.0] - 2026-05-13
 ### Changed
