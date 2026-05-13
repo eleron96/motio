@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.8] - 2026-05-13
 ### Fixed
 - Project notes once again render rich-text formatting outside edit mode — previously bold/italic/underline/strikethrough/lists/blockquotes were only visible in the editor and rendered flat everywhere else (read modal + feed-row snippet). Earlier iterations stripped block tags (`<p>`, `<ul>`, `<li>`, `<blockquote>` …) before display to dodge browser-specific line-break quirks and `-webkit-line-clamp` weirdness. Now:
   - **Read modal** — renders the full sanitized HTML. Lists get bullets/numbers, blockquotes get a left border, inline formatting gets its natural styling. The pre-existing `.feedRichText` CSS class on the wrapper styles every allowed tag.
