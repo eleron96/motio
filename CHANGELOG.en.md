@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.9] - 2026-05-13
 ### Fixed
 - Blockquotes are now visible in the **feed-row preview** too. Previously the block `<blockquote>` collapsed to plain text with a line break (same fate as other block tags — required to keep `-webkit-line-clamp: 5` working). Now `buildFeedSnippetHtml` wraps the quote contents in an inline `<span class="feedRowBlockquote">` with italic + muted color + left border — clamp keeps working (because `display: inline-block`), and users see at a glance that the chunk is a quote rather than regular text. In the **read modal** quotes already worked since 0.7.8 (full `<blockquote>` with border-left via the `.feedRichText` CSS).
 
