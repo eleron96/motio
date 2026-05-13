@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.9] - 2026-05-13
 ### Fixed
 - В **ряду превью заметки** теперь видно цитирование (`<blockquote>`). Раньше блочная цитата в превью схлопывалась в плоский текст с переносом строки (как и остальные block-теги — это было нужно, чтобы не ломать `-webkit-line-clamp`). Теперь блок цитаты в превью оборачивается в inline-`<span class="feedRowBlockquote">` с курсивом, серым цветом и левой полоской — clamp не ломается (потому что `display: inline-block`), а пользователь сразу видит, что это цитата, а не обычный текст. В **модалке просмотра** цитата уже работала с 0.7.8 (там полноценный `<blockquote>` с border-left через `.feedRichText` CSS).
 
