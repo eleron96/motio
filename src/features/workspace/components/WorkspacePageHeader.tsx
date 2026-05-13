@@ -1,12 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Settings } from 'lucide-react';
+import { t } from '@lingui/macro';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
-import { WorkspaceMobileMenu } from '@/features/workspace/components/WorkspaceMobileMenu';
+import { WorkspacePillNav } from '@/features/workspace/components/WorkspacePillNav';
+import { WorkspaceMobileDrawer } from '@/features/workspace/components/WorkspaceMobileDrawer';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { AccountBadgeButton } from '@/features/auth/components/AccountBadgeButton';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { Button } from '@/shared/ui/button';
+import { MobileFab } from '@/shared/ui/mobile-fab';
 
 interface WorkspacePageHeaderProps {
   primaryAction?: React.ReactNode;
@@ -24,21 +29,25 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
   showSettingsButton = true,
 }) => {
   const isMobile = useIsMobile();
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const basePath = useAppBasePath();
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   if (isMobile) {
     return (
-      <header className="border-b border-border bg-card px-4 py-3">
-        <WorkspaceMobileMenu
-          open={mobileMenuOpen}
-          onOpenChange={setMobileMenuOpen}
-          primaryAction={primaryAction}
+      <>
+        <header className="border-b border-border bg-card">
+          <WorkspacePillNav onOpenDrawer={() => setDrawerOpen(true)} />
+        </header>
+        <WorkspaceMobileDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
           onOpenSettings={onOpenSettings}
           onOpenAccountSettings={onOpenAccountSettings}
           settingsDisabled={settingsDisabled}
           showSettingsButton={showSettingsButton}
         />
-      </header>
+        {primaryAction ? <MobileFab>{primaryAction}</MobileFab> : null}
+      </>
     );
   }
 
@@ -46,6 +55,18 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
     <header className="border-b border-border bg-card px-4 py-3">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
+          <Link
+            to={basePath}
+            aria-label={t`Motio home`}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <img
+              src="/favicon-theme-light.png"
+              alt=""
+              className="h-full w-full object-contain"
+              draggable={false}
+            />
+          </Link>
           <WorkspaceSwitcher />
           <WorkspaceNav />
         </div>
@@ -64,7 +85,7 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
               <Settings className="h-4 w-4" />
             </Button>
           )}
-          <InviteNotifications />
+          {basePath === '/app' && <InviteNotifications />}
           <AccountBadgeButton onClick={onOpenAccountSettings} />
         </div>
       </div>

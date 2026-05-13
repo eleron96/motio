@@ -2,6 +2,7 @@ import { addYears, format, parseISO } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
 import type {
@@ -16,6 +17,9 @@ import {
   isDateWithinRange,
   mapAssigneeRow,
   mapCustomerRow,
+  mapCustomerContactRow,
+  mapProjectActivityRow,
+  mapProjectMemberRow,
   mapMilestoneRow,
   mapProjectRow,
   mapStatusRow,
@@ -148,16 +152,43 @@ export const createWorkspaceActions = (
 
     const projectsQuery = supabase
       .from('projects')
-      .select('id, workspace_id, name, code, color, archived, customer_id')
+      .select('id, workspace_id, name, code, color, archived, customer_id, owner_group_id, status')
       .eq('workspace_id', workspaceId);
     const customersQuery = supabase
       .from('customers')
-      .select('id, workspace_id, name')
+      .select('id, workspace_id, name, industry')
       .eq('workspace_id', workspaceId);
+    // Project-card-only tables: skip the queries entirely when the feature
+    // flag is off. Vite inlines `isProjectCardEnabled()` at build time, so
+    // disabled deployments pay zero cost (no round-trip, no RAM, no map).
+    const projectCardOn = isProjectCardEnabled();
+    const customerContactsQuery = projectCardOn
+      ? supabase
+          .from('customer_contacts')
+          .select('id, workspace_id, customer_id, name, role, email, phone, position, tag')
+          .eq('workspace_id', workspaceId)
+          .order('position', { ascending: true })
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] as never[], error: null });
     const assigneesQuery = supabase
       .from('assignees')
-      .select('id, workspace_id, name, user_id, is_active')
+      .select('id, workspace_id, name, user_id, is_active, email, phone')
       .eq('workspace_id', workspaceId);
+    const projectMembersQuery = projectCardOn
+      ? supabase
+          .from('project_members')
+          .select('id, workspace_id, project_id, assignee_id, role, position, tag, external_name, external_company, external_email, external_phone')
+          .eq('workspace_id', workspaceId)
+          .order('position', { ascending: true })
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] as never[], error: null });
+    const projectActivityQuery = projectCardOn
+      ? supabase
+          .from('project_activity')
+          .select('id, workspace_id, project_id, author_id, author_display_name, kind, content, created_at, updated_at, pinned')
+          .eq('workspace_id', workspaceId)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] as never[], error: null });
     const memberGroupsQuery = supabase
       .from('member_groups')
       .select('id, name')
@@ -180,7 +211,7 @@ export const createWorkspaceActions = (
       .eq('workspace_id', workspaceId);
     const milestonesQuery = supabase
       .from('milestones')
-      .select('id, workspace_id, title, project_id, date')
+      .select('id, workspace_id, title, project_id, date, note, status_override')
       .eq('workspace_id', workspaceId)
       .gte('date', start)
       .lte('date', end);
@@ -189,7 +220,10 @@ export const createWorkspaceActions = (
       tasksRes,
       projectsRes,
       customersRes,
+      customerContactsRes,
       assigneesRes,
+      projectMembersRes,
+      projectActivityRes,
       memberGroupsRes,
       memberAssignmentsRes,
       statusesRes,
@@ -201,7 +235,10 @@ export const createWorkspaceActions = (
       tasksQuery,
       projectsQuery,
       customersQuery,
+      customerContactsQuery,
       assigneesQuery,
+      projectMembersQuery,
+      projectActivityQuery,
       memberGroupsQuery,
       memberAssignmentsQuery,
       statusesQuery,
@@ -217,7 +254,10 @@ export const createWorkspaceActions = (
       tasksRes.error
       || projectsRes.error
       || customersRes.error
+      || customerContactsRes.error
       || assigneesRes.error
+      || projectMembersRes.error
+      || projectActivityRes.error
       || memberGroupsRes.error
       || memberAssignmentsRes.error
       || statusesRes.error
@@ -229,7 +269,10 @@ export const createWorkspaceActions = (
         error: tasksRes.error?.message
           || projectsRes.error?.message
           || customersRes.error?.message
+          || customerContactsRes.error?.message
           || assigneesRes.error?.message
+          || projectMembersRes.error?.message
+          || projectActivityRes.error?.message
           || memberGroupsRes.error?.message
           || memberAssignmentsRes.error?.message
           || statusesRes.error?.message
@@ -278,6 +321,9 @@ export const createWorkspaceActions = (
     const nextCustomers = (customersRes.data ?? []).map(mapCustomerRow).sort((left, right) => (
       left.name.localeCompare(right.name)
     ));
+    const nextCustomerContacts = (customerContactsRes.data ?? []).map(mapCustomerContactRow);
+    const nextProjectMembers = (projectMembersRes.data ?? []).map(mapProjectMemberRow);
+    const nextProjectActivity = (projectActivityRes.data ?? []).map(mapProjectActivityRow);
     const nextTrackedProjectIds = get().trackedProjectIds;
     const activeProjectIds = new Set(nextProjects.filter((project) => !project.archived).map((project) => project.id));
     const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
@@ -294,7 +340,10 @@ export const createWorkspaceActions = (
       projects: nextProjects,
       trackedProjectIds: nextTrackedProjectIds,
       customers: nextCustomers,
+      customerContacts: nextCustomerContacts,
       assignees,
+      projectMembers: nextProjectMembers,
+      projectActivity: nextProjectActivity,
       memberGroups,
       memberGroupAssignments,
       statuses: (statusesRes.data ?? []).map(mapStatusRow),
@@ -367,7 +416,7 @@ export const createWorkspaceActions = (
 
     const { data, error } = await supabase
       .from('assignees')
-      .select('id, workspace_id, name, user_id, is_active')
+      .select('id, workspace_id, name, user_id, is_active, email, phone')
       .eq('workspace_id', workspaceId);
 
     if (error) {

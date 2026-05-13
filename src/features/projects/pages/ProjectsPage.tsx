@@ -4,6 +4,9 @@ import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ProjectsSidebar } from '@/features/projects/components/ProjectsSidebar';
+import { ProjectCardSidebar } from '@/features/projects/components/projectCard/ProjectCardSidebar';
+import { computeGroupMembersToAdd } from '@/features/projects/lib/projectCard/computeGroupMembersToAdd';
+import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 import { ProjectsDialogs } from '@/features/projects/components/ProjectsDialogs';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
@@ -28,7 +31,7 @@ import { format, parseISO } from 'date-fns';
 import {
   Plus,
 } from 'lucide-react';
-import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
+import { Assignee, Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import {
@@ -52,8 +55,6 @@ const ProjectsPage = () => {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
-  const [tab, setTab] = useState<'active' | 'archived'>('active');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
   const [search, setSearch] = useState('');
@@ -67,9 +68,7 @@ const ProjectsPage = () => {
     pageIndex, setPageIndex,
     statusFilterIds, setStatusFilterIds,
   } = useTaskScopeFilter();
-  const [mode, setMode] = useState<'projects' | 'milestones' | 'customers'>('projects');
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const pageSize = 100;
@@ -79,6 +78,11 @@ const ProjectsPage = () => {
     milestones,
     trackedProjectIds,
     customers,
+    customerContacts,
+    projectMembers: projectMemberRows,
+    projectActivity,
+    memberGroups,
+    memberGroupAssignments,
     statuses,
     assignees,
     taskTypes,
@@ -89,6 +93,17 @@ const ProjectsPage = () => {
     updateProject,
     updateCustomer,
     deleteCustomer,
+    addCustomerContact,
+    deleteCustomerContact,
+    updateCustomerContact,
+    addProjectMember,
+    deleteProjectMember,
+    updateProjectMember,
+    addProjectActivity,
+    updateProjectActivity,
+    deleteProjectActivity,
+    setProjectActivityPinned,
+    updateAssignee,
     deleteProject,
     deleteMilestone,
     toggleTrackedProject,
@@ -102,6 +117,11 @@ const ProjectsPage = () => {
     milestones: state.milestones,
     trackedProjectIds: state.trackedProjectIds,
     customers: state.customers,
+    customerContacts: state.customerContacts,
+    projectMembers: state.projectMembers,
+    projectActivity: state.projectActivity,
+    memberGroups: state.memberGroups,
+    memberGroupAssignments: state.memberGroupAssignments,
     statuses: state.statuses,
     assignees: state.assignees,
     taskTypes: state.taskTypes,
@@ -112,6 +132,17 @@ const ProjectsPage = () => {
     updateProject: state.updateProject,
     updateCustomer: state.updateCustomer,
     deleteCustomer: state.deleteCustomer,
+    addCustomerContact: state.addCustomerContact,
+    deleteCustomerContact: state.deleteCustomerContact,
+    updateCustomerContact: state.updateCustomerContact,
+    addProjectMember: state.addProjectMember,
+    deleteProjectMember: state.deleteProjectMember,
+    updateProjectMember: state.updateProjectMember,
+    addProjectActivity: state.addProjectActivity,
+    updateProjectActivity: state.updateProjectActivity,
+    deleteProjectActivity: state.deleteProjectActivity,
+    setProjectActivityPinned: state.setProjectActivityPinned,
+    updateAssignee: state.updateAssignee,
     deleteProject: state.deleteProject,
     deleteMilestone: state.deleteMilestone,
     toggleTrackedProject: state.toggleTrackedProject,
@@ -146,16 +177,94 @@ const ProjectsPage = () => {
     setMilestoneTab,
     milestoneGroupBy,
     setMilestoneGroupBy,
+    tab: persistedTab,
+    setTab: setPersistedTab,
+    mode: persistedMode,
+    setMode: setPersistedMode,
+    selectedProjectId: persistedSelectedProjectId,
+    setSelectedProjectId: setPersistedSelectedProjectId,
+    selectedCustomerId: persistedSelectedCustomerId,
+    setSelectedCustomerId: setPersistedSelectedCustomerId,
+    customerFilterIds: persistedCustomerFilterIds,
+    setCustomerFilterIds: setPersistedCustomerFilterIds,
+    ownerGroupFilterIds: persistedOwnerGroupFilterIds,
+    setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
   } = useProjectsViewPreferences({
     currentWorkspaceId,
     userId: user?.id,
   });
+  // Surface persisted state under the names the rest of the page already
+  // uses, so we don't have to rename hundreds of references downstream.
+  const tab = persistedTab;
+  const setTab = setPersistedTab;
+  const mode = persistedMode;
+  const setMode = setPersistedMode;
+  const selectedProjectId = persistedSelectedProjectId;
+  const setSelectedProjectId = setPersistedSelectedProjectId;
+  const selectedCustomerId = persistedSelectedCustomerId;
+  const setSelectedCustomerId = setPersistedSelectedCustomerId;
 
   useEffect(() => {
     if (currentWorkspaceId) {
       loadWorkspaceData(currentWorkspaceId);
     }
   }, [currentWorkspaceId, loadWorkspaceData]);
+
+  // When an owner team (member group) is assigned to a project, auto-add
+  // every workspace user in that group as an explicit project member. The
+  // user can still prune individual members afterward; we never remove anyone
+  // here, only add. Idempotent — already-added members are skipped.
+  const syncGroupMembersToProject = useCallback(async (
+    projectId: string,
+    groupId: string | null,
+  ) => {
+    const toAdd = computeGroupMembersToAdd({
+      projectId,
+      groupId,
+      memberGroupAssignments,
+      assignees,
+      projectMembers: projectMemberRows,
+    });
+    if (toAdd.length === 0) return;
+    await Promise.all(toAdd.map((assignee) => addProjectMember({
+      projectId,
+      assigneeId: assignee.id,
+      role: null,
+      tag: null,
+      externalName: null,
+      externalCompany: null,
+      externalEmail: null,
+      externalPhone: null,
+    })));
+  }, [addProjectMember, assignees, memberGroupAssignments, projectMemberRows]);
+
+  const addProjectWithGroupSync = useCallback(async (
+    payload: Parameters<typeof addProject>[0],
+  ) => {
+    const created = await addProject(payload);
+    if (created && payload.ownerGroupId) {
+      await syncGroupMembersToProject(created.id, payload.ownerGroupId);
+    }
+    return created;
+  }, [addProject, syncGroupMembersToProject]);
+
+  const updateProjectWithGroupSync = useCallback(async (
+    id: string,
+    updates: Parameters<typeof updateProject>[1],
+  ) => {
+    const previous = projects.find((project) => project.id === id) ?? null;
+    const result = await updateProject(id, updates);
+    if (result?.error) return result;
+    // Only fan out to project_members when the owner group actually changed
+    // and resolves to a non-null group. Avoids redundant round-trips when an
+    // unrelated field (name, color, etc.) is edited.
+    const nextGroupId = 'ownerGroupId' in updates ? updates.ownerGroupId ?? null : null;
+    const previousGroupId = previous?.ownerGroupId ?? null;
+    if (nextGroupId && nextGroupId !== previousGroupId) {
+      await syncGroupMembersToProject(id, nextGroupId);
+    }
+    return result;
+  }, [projects, updateProject, syncGroupMembersToProject]);
 
   const {
     projectSettingsOpen, setProjectSettingsOpen,
@@ -164,6 +273,8 @@ const ProjectsPage = () => {
     projectSettingsCode, setProjectSettingsCode,
     projectSettingsColor, setProjectSettingsColor,
     projectSettingsCustomerId, setProjectSettingsCustomerId,
+    projectSettingsOwnerGroupId, setProjectSettingsOwnerGroupId,
+    projectSettingsStatus, setProjectSettingsStatus,
     projectSettingsConfirmOpen, setProjectSettingsConfirmOpen,
     deleteProjectTarget, setDeleteProjectTarget,
     deleteProjectOpen, setDeleteProjectOpen,
@@ -173,13 +284,14 @@ const ProjectsPage = () => {
     requestDeleteProject,
     handleConfirmDeleteProject,
     handleToggleProjectArchived,
-  } = useProjectMutations({ canEdit, updateProject, deleteProject, setMutationError });
+  } = useProjectMutations({ canEdit, updateProject: updateProjectWithGroupSync, deleteProject, setMutationError });
 
   const {
     newCustomerName, setNewCustomerName,
     createCustomerOpen, setCreateCustomerOpen,
     editingCustomerId, setEditingCustomerId,
     editingCustomerName, setEditingCustomerName,
+    editingCustomerIndustry, setEditingCustomerIndustry,
     editingCustomerOriginalName,
     renameCustomerOpen, setRenameCustomerOpen,
     renameCustomerConfirmOpen, setRenameCustomerConfirmOpen,
@@ -211,12 +323,14 @@ const ProjectsPage = () => {
     newProjectCode, setNewProjectCode,
     newProjectColor, setNewProjectColor,
     newProjectCustomerId, setNewProjectCustomerId,
+    newProjectOwnerGroupId, setNewProjectOwnerGroupId,
+    newProjectStatus, setNewProjectStatus,
     resetCreateProjectForm,
     handleCreateProject,
     requestCloseCreateProject,
   } = useProjectCreateForm({
     canEdit,
-    addProject,
+    addProject: addProjectWithGroupSync,
     setEditingCustomerId,
     setEditingCustomerName,
   });
@@ -240,6 +354,10 @@ const ProjectsPage = () => {
   const customerById = useMemo(
     () => new Map(customers.map((customer) => [customer.id, customer])),
     [customers],
+  );
+  const memberGroupById = useMemo(
+    () => new Map(memberGroups.map((group) => [group.id, group])),
+    [memberGroups],
   );
   const projectById = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
@@ -301,11 +419,197 @@ const ProjectsPage = () => {
     [projects],
   );
 
+  // Fallback list: derive members from the assignees actually used on this
+  // project's tasks. The project_members table is the authoritative source;
+  // this list is shown in the legacy mobile UI which doesn't load that table.
+  const projectMembers = useMemo(() => (
+    Array.from(availableAssigneeIds)
+      .map((id) => assigneeById.get(id))
+      .filter((assignee): assignee is Assignee => Boolean(assignee))
+  ), [assigneeById, availableAssigneeIds]);
+
+  const projectMilestones = useMemo(() => (
+    selectedProjectId
+      ? milestones.filter((milestone) => milestone.projectId === selectedProjectId)
+      : []
+  ), [milestones, selectedProjectId]);
+
+  const today = useMemo(() => new Date(), []);
+
+  // Customer contact handlers; surface mutation errors via the
+  // existing error banner.
+  const handleAddCustomerContact = useCallback(async (
+    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
+  ): Promise<boolean> => {
+    setMutationError('');
+    const result = await addCustomerContact(payload);
+    if (!result) {
+      setMutationError(t`Failed to add customer contact.`);
+      return false;
+    }
+    return true;
+  }, [addCustomerContact]);
+
+  const handleDeleteCustomerContact = useCallback(async (id: string): Promise<boolean> => {
+    setMutationError('');
+    const result = await deleteCustomerContact(id);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [deleteCustomerContact]);
+
+  const handleUpdateCustomerContact = useCallback(async (
+    id: string,
+    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+  ): Promise<boolean> => {
+    setMutationError('');
+    const result = await updateCustomerContact(id, updates);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [updateCustomerContact]);
+
+  // Project member handlers (workspace + external).
+  const handleAddProjectMember = useCallback(async (
+    projectId: string,
+    input: import('@/features/projects/components/projectCard/TeamBlock').AddMemberInput,
+  ): Promise<boolean> => {
+    setMutationError('');
+    const payload = input.kind === 'workspace'
+      ? {
+          projectId,
+          assigneeId: input.assigneeId,
+          role: input.role,
+          tag: input.tag,
+          externalName: null,
+          externalCompany: null,
+          externalEmail: null,
+          externalPhone: null,
+        }
+      : {
+          projectId,
+          assigneeId: null,
+          role: input.role,
+          tag: input.tag,
+          externalName: input.name,
+          externalCompany: input.company,
+          externalEmail: input.email,
+          externalPhone: input.phone,
+        };
+    const result = await addProjectMember(payload);
+    if (!result) {
+      setMutationError(t`Failed to add project member.`);
+      return false;
+    }
+    return true;
+  }, [addProjectMember]);
+
+  const handleUpdateExternalMember = useCallback(async (
+    memberId: string,
+    updates: Partial<Pick<import('@/features/planner/types/planner').ProjectMember,
+      'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
+    >>,
+  ): Promise<boolean> => {
+    setMutationError('');
+    const result = await updateProjectMember(memberId, updates);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [updateProjectMember]);
+
+  const handleRemoveProjectMember = useCallback(async (memberId: string): Promise<boolean> => {
+    setMutationError('');
+    const result = await deleteProjectMember(memberId);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [deleteProjectMember]);
+
+  const handleUpdateAssigneeContact = useCallback(async (
+    assigneeId: string,
+    email: string | null,
+    phone: string | null,
+  ): Promise<boolean> => {
+    setMutationError('');
+    const result = await updateAssignee(assigneeId, { email, phone });
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [updateAssignee]);
+
+  // Activity feed handlers.
+  const handleAddProjectActivity = useCallback(async (projectId: string, content: string): Promise<boolean> => {
+    setMutationError('');
+    const result = await addProjectActivity({ projectId, content });
+    if (!result) {
+      setMutationError(t`Failed to publish note.`);
+      return false;
+    }
+    return true;
+  }, [addProjectActivity]);
+
+  const handleUpdateProjectActivity = useCallback(async (id: string, content: string): Promise<boolean> => {
+    setMutationError('');
+    const result = await updateProjectActivity(id, { content });
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [updateProjectActivity]);
+
+  const handleDeleteProjectActivity = useCallback(async (id: string): Promise<boolean> => {
+    setMutationError('');
+    const result = await deleteProjectActivity(id);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [deleteProjectActivity]);
+
+  const handleSetProjectActivityPinned = useCallback(async (id: string, pinned: boolean): Promise<boolean> => {
+    setMutationError('');
+    const result = await setProjectActivityPinned(id, pinned);
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [setProjectActivityPinned]);
+
+  const formatActivityTimestamp = useCallback((iso: string) => (
+    format(parseISO(iso), 'd MMM yyyy, HH:mm', { locale: dateLocale })
+  ), [dateLocale]);
+
+  // Inline status edit from the project card header.
+  const handleSaveProjectStatus = useCallback(async (projectId: string, next: string | null): Promise<boolean> => {
+    setMutationError('');
+    const result = await updateProject(projectId, { status: next });
+    if (result?.error) {
+      setMutationError(result.error);
+      return false;
+    }
+    return true;
+  }, [updateProject]);
+
   const {
     projectSearch,
     setProjectSearch,
     customerFilterIds,
     setCustomerFilterIds,
+    ownerGroupFilterIds,
+    setOwnerGroupFilterIds,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,
@@ -329,6 +633,13 @@ const ProjectsPage = () => {
     milestoneGroupBy,
     setMilestoneGroupBy,
     dateLocale,
+    // Persisted filters live in useProjectsViewPreferences so they survive
+    // reloads — pass them through so the filter hook reads/writes the same
+    // backing store.
+    customerFilterIds: persistedCustomerFilterIds,
+    setCustomerFilterIds: setPersistedCustomerFilterIds,
+    ownerGroupFilterIds: persistedOwnerGroupFilterIds,
+    setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
   });
 
   const {
@@ -370,11 +681,13 @@ const ProjectsPage = () => {
     editingMilestone,
     milestoneDialogOpen,
     milestoneDialogDate,
+    milestoneDialogDefaultProjectId,
     deleteMilestoneTarget,
     deleteMilestoneOpen,
     setDeleteMilestoneOpen,
     setDeleteMilestoneTarget,
     handleOpenCreateMilestone,
+    handleOpenCreateMilestoneForProject,
     handleOpenMilestoneSettings,
     handleMilestoneDialogOpenChange,
     requestDeleteMilestone,
@@ -414,6 +727,12 @@ const ProjectsPage = () => {
 
   const displayTaskRows = useDisplayTaskRows(projectTasks, taskScope);
 
+  const selectedTaskRepeatMeta = useMemo(() => {
+    if (!selectedTaskId) return null;
+    const row = displayTaskRows.find((entry) => entry.taskIds.includes(selectedTaskId));
+    return row?.repeatMeta ?? null;
+  }, [displayTaskRows, selectedTaskId]);
+
   const totalPages = taskScope === 'past'
     ? Math.max(1, Math.ceil(totalCount / pageSize))
     : 1;
@@ -432,6 +751,18 @@ const ProjectsPage = () => {
   const customerFilterLabel = customerFilterIds.length === 0
     ? t`All`
     : t`${customerFilterIds.length} selected`;
+
+  const ownerGroupFilterLabel = ownerGroupFilterIds.length === 0
+    ? t`Team`
+    : t`${ownerGroupFilterIds.length} selected`;
+
+  const handleToggleOwnerGroupFilter = (groupId: string) => {
+    setOwnerGroupFilterIds((current) => (
+      current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId]
+    ));
+  };
 
   const nameSortLabel = nameSort === 'asc' ? t`A-Z` : t`Z-A`;
 
@@ -546,10 +877,188 @@ const ProjectsPage = () => {
       ? (selectedCustomer?.name ?? t`Select a customer`)
       : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
 
-  const renderProjectsSidebar = (closeOnSelect = false) => (
+  const projectCardEnabled = isProjectCardEnabled();
+  const projectCardMobileEnabled = isProjectCardMobileEnabled();
+
+  // Projects | Milestones | Customers segmented switch — one rounded pill
+  // container, the active option goes black. Used above both the new card
+  // sidebar and the legacy customers sidebar. On mobile this also replaces
+  // the top-of-page MobilePillSubnav so the user has only one mode switcher.
+  const renderModeTabs = () => {
+    const tabs: Array<{ id: 'projects' | 'milestones' | 'customers'; label: string }> = [
+      { id: 'projects', label: t`Projects` },
+      { id: 'milestones', label: t`Milestones` },
+      { id: 'customers', label: t`Customers` },
+    ];
+    return (
+      <div className="border-b border-border bg-card px-3 py-2">
+        <div className="inline-flex w-full items-center rounded-full border border-border bg-muted/50 p-0.5">
+          {tabs.map((tabItem) => (
+            <button
+              key={tabItem.id}
+              type="button"
+              onClick={() => setMode(tabItem.id)}
+              aria-pressed={mode === tabItem.id}
+              className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                mode === tabItem.id
+                  ? 'bg-foreground text-background shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tabItem.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderProjectsSidebar = (closeOnSelect = false) => {
+    // When the flag is on and in 'projects' mode, replace the legacy
+    // multi-mode sidebar with the new card-style list. Mobile rendering is
+    // gated separately by VITE_FEATURE_PROJECT_CARD_MOBILE so the M1 card
+    // can roll out without affecting milestones / customers modes.
+    if (
+      projectCardEnabled
+      && mode === 'projects'
+      && (!isMobile || projectCardMobileEnabled)
+    ) {
+      const visibleProjects = tab === 'archived'
+        ? filteredArchivedProjects
+        : filteredActiveProjects;
+      const groupLabel = tab === 'archived' ? t`Archived` : t`Active`;
+      return (
+        <ProjectCardSidebar
+          projects={visibleProjects}
+          customerById={customerById}
+          memberGroupById={memberGroupById}
+          milestones={milestones}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={(projectId) => {
+            setSelectedProjectId(projectId);
+            if (closeOnSelect) setMobileSidebarOpen(false);
+          }}
+          search={projectSearch}
+          onSearchChange={setProjectSearch}
+          nameSort={nameSort}
+          onToggleNameSort={() => setNameSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+          canEdit={canEdit}
+          onOpenProjectSettings={openProjectSettings}
+          onToggleProjectArchived={handleToggleProjectArchived}
+          onRequestDeleteProject={requestDeleteProject}
+          groupLabel={groupLabel}
+          sortedCustomers={sortedCustomers}
+          customerFilterIds={customerFilterIds}
+          customerFilterLabel={customerFilterLabel}
+          onToggleCustomerFilter={handleToggleCustomer}
+          onClearCustomerFilters={() => setCustomerFilterIds([])}
+          groupByCustomer={groupByCustomer}
+          onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
+          groupedProjects={groupedProjects(visibleProjects)}
+          memberGroups={memberGroups}
+          ownerGroupFilterIds={ownerGroupFilterIds}
+          ownerGroupFilterLabel={ownerGroupFilterLabel}
+          onToggleOwnerGroupFilter={handleToggleOwnerGroupFilter}
+          onClearOwnerGroupFilters={() => setOwnerGroupFilterIds([])}
+          modeTabs={renderModeTabs()}
+          showArchived={tab === 'archived'}
+          onToggleShowArchived={() => setTab((current) => current === 'archived' ? 'active' : 'archived')}
+          trackedProjectIdSet={trackedProjectIdSet}
+          onToggleTrackedProject={(projectId, nextTracked) => {
+            void toggleTrackedProject(projectId, nextTracked);
+          }}
+        />
+      );
+    }
+    if (projectCardEnabled && !isMobile) {
+      // Customers/milestones modes: show the same Projects|Customers tabs above
+      // the legacy sidebar so the user can still flip between them.
+      return (
+        <div className="flex h-full flex-col">
+          {renderModeTabs()}
+          <div className="flex-1 min-h-0">
+            <ProjectsSidebar
+              mode={mode}
+              onModeChange={setMode}
+              hideModeSelector
+              canEdit={canEdit}
+              nameSort={nameSort}
+              nameSortLabel={nameSortLabel}
+              onToggleNameSort={() => setNameSort((current) => (current === 'asc' ? 'desc' : 'asc'))}
+              customerSearch={customerSearch}
+              onCustomerSearchChange={setCustomerSearch}
+              sortedCustomers={sortedCustomers}
+              filteredCustomers={filteredCustomers}
+              customerProjectCounts={customerProjectCounts}
+              selectedCustomerId={selectedCustomerId}
+              onSelectCustomer={(customerId) => {
+                setSelectedCustomerId(customerId);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
+              onStartCustomerEdit={startCustomerEdit}
+              onRequestDeleteCustomer={requestDeleteCustomer}
+              milestoneTab={milestoneTab}
+              onMilestoneTabChange={setMilestoneTab}
+              milestoneSearch={milestoneSearch}
+              onMilestoneSearchChange={setMilestoneSearch}
+              milestoneGroupLabel={milestoneGroupLabel}
+              onCycleMilestoneGroup={handleCycleMilestoneGroup}
+              milestones={milestones}
+              visibleMilestones={visibleMilestones}
+              groupedMilestones={groupedMilestones}
+              selectedMilestoneId={selectedMilestoneId}
+              onSelectMilestone={(milestoneId) => {
+                setSelectedMilestoneId(milestoneId);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
+              onOpenMilestoneSettings={handleOpenMilestoneSettings}
+              onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
+              onRequestDeleteMilestone={requestDeleteMilestone}
+              projectById={projectById}
+              customerById={customerById}
+              trackedProjectIdSet={trackedProjectIdSet}
+              formatMilestoneDate={formatMilestoneDate}
+              tab={tab}
+              onTabChange={setTab}
+              projectSearch={projectSearch}
+              onProjectSearchChange={setProjectSearch}
+              customerFilterLabel={customerFilterLabel}
+              customerFilterIds={customerFilterIds}
+              onClearCustomerFilters={() => setCustomerFilterIds([])}
+              onToggleCustomerFilter={handleToggleCustomer}
+              groupByCustomer={groupByCustomer}
+              onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
+              activeProjects={activeProjects}
+              archivedProjects={archivedProjects}
+              filteredActiveProjects={filteredActiveProjects}
+              filteredArchivedProjects={filteredArchivedProjects}
+              selectedProjectId={selectedProjectId}
+              onSelectProject={(projectId) => {
+                setSelectedProjectId(projectId);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
+              onToggleTrackedProject={(projectId, nextTracked) => {
+                void toggleTrackedProject(projectId, nextTracked);
+              }}
+              onOpenProjectSettings={openProjectSettings}
+              onRequestDeleteProject={requestDeleteProject}
+              onToggleProjectArchived={handleToggleProjectArchived}
+              groupProjects={groupedProjects}
+            />
+          </div>
+        </div>
+      );
+    }
+    // Project-card flag fully off — fall through to the legacy ProjectsSidebar
+    // which has its own internal mode selector on desktop. On mobile we wrap
+    // it with the shared 3-way pill above so the user can still switch between
+    // Projects | Milestones | Customers (used to live in the top-of-page
+    // MobilePillSubnav that we removed).
+    const legacySidebar = (
     <ProjectsSidebar
       mode={mode}
       onModeChange={setMode}
+      hideModeSelector={isMobile}
       canEdit={canEdit}
       nameSort={nameSort}
       nameSortLabel={nameSortLabel}
@@ -614,7 +1123,19 @@ const ProjectsPage = () => {
       onToggleProjectArchived={handleToggleProjectArchived}
       groupProjects={groupedProjects}
     />
-  );
+    );
+    if (isMobile) {
+      return (
+        <div className="flex h-full flex-col">
+          {renderModeTabs()}
+          <div className="flex-1 min-h-0">
+            {legacySidebar}
+          </div>
+        </div>
+      );
+    }
+    return legacySidebar;
+  };
 
   const renderProjectsMainPanel = () => (
     <ProjectsMainPanel
@@ -694,6 +1215,35 @@ const ProjectsPage = () => {
       selectedCustomerProjects={selectedCustomerProjects}
       customersCount={customers.length}
       onOpenProjectFromCustomer={handleOpenProjectFromCustomer}
+      projectMembers={projectMembers}
+      projectMilestones={projectMilestones}
+      today={today}
+      onCreateMilestoneForProject={handleOpenCreateMilestoneForProject}
+      onEditMilestone={handleOpenMilestoneSettings}
+      onSaveProjectStatus={handleSaveProjectStatus}
+      onToggleProjectTracked={(projectId, nextTracked) => {
+        void toggleTrackedProject(projectId, nextTracked);
+      }}
+      onOpenProjectSettings={openProjectSettings}
+      onToggleProjectArchived={handleToggleProjectArchived}
+      onRequestDeleteProject={requestDeleteProject}
+      customerContacts={customerContacts}
+      onAddCustomerContact={handleAddCustomerContact}
+      onDeleteCustomerContact={handleDeleteCustomerContact}
+      onUpdateCustomerContact={handleUpdateCustomerContact}
+      projectMemberRows={projectMemberRows}
+      workspaceAssignees={assignees}
+      onAddProjectMember={handleAddProjectMember}
+      onRemoveProjectMember={handleRemoveProjectMember}
+      onUpdateAssigneeContact={handleUpdateAssigneeContact}
+      onUpdateExternalMember={handleUpdateExternalMember}
+      projectActivity={projectActivity}
+      formatActivityTimestamp={formatActivityTimestamp}
+      onAddProjectActivity={handleAddProjectActivity}
+      onUpdateProjectActivity={handleUpdateProjectActivity}
+      onDeleteProjectActivity={handleDeleteProjectActivity}
+      onSetProjectActivityPinned={handleSetProjectActivityPinned}
+      workspaceId={currentWorkspaceId}
     />
   );
 
@@ -760,16 +1310,18 @@ const ProjectsPage = () => {
       )}
 
       {isMobile ? (
-        <MobilePageSheetLayout
-          open={mobileSidebarOpen}
-          onOpenChange={setMobileSidebarOpen}
-          browseLabel={mobileSheetLabel}
-          sheetTitle={mobileSheetLabel}
-          summary={mobileSummary}
-          sheetContent={renderProjectsSidebar(true)}
-        >
-          {renderProjectsMainPanel()}
-        </MobilePageSheetLayout>
+        <>
+          <MobilePageSheetLayout
+            open={mobileSidebarOpen}
+            onOpenChange={setMobileSidebarOpen}
+            browseLabel={mobileSheetLabel}
+            sheetTitle={mobileSheetLabel}
+            summary={mobileSummary}
+            sheetContent={renderProjectsSidebar(true)}
+          >
+            {renderProjectsMainPanel()}
+          </MobilePageSheetLayout>
+        </>
       ) : (
         <div className="flex flex-1 min-h-0 overflow-hidden">
           <ResizablePanelGroup
@@ -804,6 +1356,8 @@ const ProjectsPage = () => {
         requestCloseRenameCustomer={requestCloseRenameCustomer}
         editingCustomerName={editingCustomerName}
         setEditingCustomerName={setEditingCustomerName}
+        editingCustomerIndustry={editingCustomerIndustry}
+        setEditingCustomerIndustry={setEditingCustomerIndustry}
         handleRenameCustomer={handleRenameCustomer}
         renameCustomerConfirmOpen={renameCustomerConfirmOpen}
         setRenameCustomerConfirmOpen={setRenameCustomerConfirmOpen}
@@ -819,6 +1373,11 @@ const ProjectsPage = () => {
         setNewProjectColor={setNewProjectColor}
         newProjectCustomerId={newProjectCustomerId}
         setNewProjectCustomerId={setNewProjectCustomerId}
+        newProjectOwnerGroupId={newProjectOwnerGroupId}
+        setNewProjectOwnerGroupId={setNewProjectOwnerGroupId}
+        newProjectStatus={newProjectStatus}
+        setNewProjectStatus={setNewProjectStatus}
+        memberGroups={memberGroups}
         handleCreateProject={handleCreateProject}
         createProjectConfirmOpen={createProjectConfirmOpen}
         setCreateProjectConfirmOpen={setCreateProjectConfirmOpen}
@@ -836,18 +1395,24 @@ const ProjectsPage = () => {
         setProjectSettingsColor={setProjectSettingsColor}
         projectSettingsCustomerId={projectSettingsCustomerId}
         setProjectSettingsCustomerId={setProjectSettingsCustomerId}
+        projectSettingsOwnerGroupId={projectSettingsOwnerGroupId}
+        setProjectSettingsOwnerGroupId={setProjectSettingsOwnerGroupId}
+        projectSettingsStatus={projectSettingsStatus}
+        setProjectSettingsStatus={setProjectSettingsStatus}
         handleSaveProjectSettings={handleSaveProjectSettings}
         projectSettingsConfirmOpen={projectSettingsConfirmOpen}
         setProjectSettingsConfirmOpen={setProjectSettingsConfirmOpen}
         milestoneDialogOpen={milestoneDialogOpen}
         handleMilestoneDialogOpenChange={handleMilestoneDialogOpenChange}
         milestoneDialogDate={milestoneDialogDate}
+        milestoneDialogDefaultProjectId={milestoneDialogDefaultProjectId}
         editingMilestone={editingMilestone}
         selectedTaskId={selectedTaskId}
         setSelectedTaskId={setSelectedTaskId}
         selectedTask={selectedTask}
         selectedTaskProject={selectedTaskProject}
         selectedTaskCustomer={selectedTaskCustomer}
+        selectedTaskRepeatMeta={selectedTaskRepeatMeta}
         statusById={statusById}
         assigneeById={assigneeById}
         taskTypeById={taskTypeById}

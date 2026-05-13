@@ -111,6 +111,10 @@ test.motio.nikog.net {
       reverse_proxy web:80
     }
 
+    handle /demo* {
+      reverse_proxy web:80
+    }
+
     handle / {
       reverse_proxy web:80
     }

@@ -513,6 +513,7 @@ infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeli
 
 ## 📚 Документация
 
+- [`docs/overview-for-ai.md`](./docs/overview-for-ai.md) — обзор продукта простым языком (для ИИ-агента и быстрого онбординга).
 - [`docs/architecture/frontend-boundaries.md`](./docs/architecture/frontend-boundaries.md) — архитектурные границы frontend.
 - [`docs/specifications/planner-behavior-by-example.md`](./docs/specifications/planner-behavior-by-example.md) — спецификация поведения планировщика (Specification by Example).
 - [`docs/specifications/task-media-storage-behavior-by-example.md`](./docs/specifications/task-media-storage-behavior-by-example.md) — спецификация хранения task media.

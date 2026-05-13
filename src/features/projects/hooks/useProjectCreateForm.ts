@@ -4,7 +4,7 @@ import { DEFAULT_PROJECT_COLOR } from '@/shared/lib/colors';
 
 interface UseProjectCreateFormParams {
   canEdit: boolean;
-  addProject: (data: Omit<Project, 'id'>) => Promise<void>;
+  addProject: (data: Omit<Project, 'id'>) => Promise<Project | null>;
   setEditingCustomerId: Dispatch<SetStateAction<string | null>>;
   setEditingCustomerName: Dispatch<SetStateAction<string>>;
 }
@@ -22,6 +22,10 @@ export interface UseProjectCreateFormResult {
   setNewProjectColor: Dispatch<SetStateAction<string>>;
   newProjectCustomerId: string | null;
   setNewProjectCustomerId: Dispatch<SetStateAction<string | null>>;
+  newProjectOwnerGroupId: string | null;
+  setNewProjectOwnerGroupId: Dispatch<SetStateAction<string | null>>;
+  newProjectStatus: string;
+  setNewProjectStatus: Dispatch<SetStateAction<string>>;
   resetCreateProjectForm: () => void;
   handleCreateProject: () => Promise<void>;
   requestCloseCreateProject: () => void;
@@ -39,12 +43,16 @@ export const useProjectCreateForm = ({
   const [newProjectCode, setNewProjectCode] = useState('');
   const [newProjectColor, setNewProjectColor] = useState(DEFAULT_PROJECT_COLOR);
   const [newProjectCustomerId, setNewProjectCustomerId] = useState<string | null>(null);
+  const [newProjectOwnerGroupId, setNewProjectOwnerGroupId] = useState<string | null>(null);
+  const [newProjectStatus, setNewProjectStatus] = useState('');
 
   const resetCreateProjectForm = useCallback(() => {
     setNewProjectName('');
     setNewProjectCode('');
     setNewProjectColor(DEFAULT_PROJECT_COLOR);
     setNewProjectCustomerId(null);
+    setNewProjectOwnerGroupId(null);
+    setNewProjectStatus('');
     setEditingCustomerId(null);
     setEditingCustomerName('');
   }, [setEditingCustomerId, setEditingCustomerName]);
@@ -57,17 +65,31 @@ export const useProjectCreateForm = ({
       color: newProjectColor,
       archived: false,
       customerId: newProjectCustomerId,
+      ownerGroupId: newProjectOwnerGroupId,
+      status: newProjectStatus.trim() ? newProjectStatus.trim() : null,
     });
     setCreateProjectOpen(false);
     resetCreateProjectForm();
-  }, [addProject, canEdit, newProjectCode, newProjectColor, newProjectCustomerId, newProjectName, resetCreateProjectForm]);
+  }, [
+    addProject,
+    canEdit,
+    newProjectCode,
+    newProjectColor,
+    newProjectCustomerId,
+    newProjectName,
+    newProjectOwnerGroupId,
+    newProjectStatus,
+    resetCreateProjectForm,
+  ]);
 
   const createProjectHasUnsavedChanges = useMemo(() => (
     newProjectName.trim().length > 0
     || newProjectCode.trim().length > 0
     || newProjectColor !== DEFAULT_PROJECT_COLOR
     || newProjectCustomerId !== null
-  ), [newProjectCode, newProjectColor, newProjectCustomerId, newProjectName]);
+    || newProjectOwnerGroupId !== null
+    || newProjectStatus.trim().length > 0
+  ), [newProjectCode, newProjectColor, newProjectCustomerId, newProjectName, newProjectOwnerGroupId, newProjectStatus]);
 
   const requestCloseCreateProject = useCallback(() => {
     if (createProjectHasUnsavedChanges) {
@@ -90,6 +112,10 @@ export const useProjectCreateForm = ({
     setNewProjectColor,
     newProjectCustomerId,
     setNewProjectCustomerId,
+    newProjectOwnerGroupId,
+    setNewProjectOwnerGroupId,
+    newProjectStatus,
+    setNewProjectStatus,
     resetCreateProjectForm,
     handleCreateProject,
     requestCloseCreateProject,

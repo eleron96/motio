@@ -17,6 +17,7 @@ import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescri
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
+import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
 import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
 import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
 import { Task } from '@/features/planner/types/planner';
@@ -506,6 +507,7 @@ const MembersPage = () => {
       className={closeOnSelect ? 'w-full border-r-0' : undefined}
       mode={mode}
       onModeChange={setMode}
+      hideModeSelector={isMobile}
       isAdmin={isAdmin}
       tab={tab}
       onTabChange={setTab}
@@ -690,16 +692,35 @@ const MembersPage = () => {
       />
 
       {isMobile ? (
-        <MobilePageSheetLayout
-          open={mobileSidebarOpen}
-          onOpenChange={setMobileSidebarOpen}
-          browseLabel={mobileSheetLabel}
-          sheetTitle={mobileSheetLabel}
-          summary={mobileSummary}
-          sheetContent={renderMembersSidebar(true)}
-        >
-          {renderMembersContent()}
-        </MobilePageSheetLayout>
+        <>
+          {(() => {
+            const subnavItems: MobilePillSubnavItem[] = [
+              { id: 'tasks', label: t`People` },
+              ...(isAdmin ? [{ id: 'access', label: t`Access` }] : []),
+              { id: 'groups', label: t`Groups` },
+            ];
+            return (
+              <div className="border-b border-border bg-card">
+                <MobilePillSubnav
+                  items={subnavItems}
+                  activeId={mode}
+                  onChange={(id) => setMode(id as 'tasks' | 'access' | 'groups')}
+                  ariaLabel={t`People sections`}
+                />
+              </div>
+            );
+          })()}
+          <MobilePageSheetLayout
+            open={mobileSidebarOpen}
+            onOpenChange={setMobileSidebarOpen}
+            browseLabel={mobileSheetLabel}
+            sheetTitle={mobileSheetLabel}
+            summary={mobileSummary}
+            sheetContent={renderMembersSidebar(true)}
+          >
+            {renderMembersContent()}
+          </MobilePageSheetLayout>
+        </>
       ) : (
         <div className="flex flex-1 min-h-0 overflow-hidden">
           {renderMembersSidebar()}

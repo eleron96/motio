@@ -25,11 +25,13 @@ import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
 const MAX_VISIBLE_CHIPS = 2;
+const MAX_VISIBLE_MOBILE_DOTS = 3;
 
 interface MilestoneLayerProps {
   /** Width of the full timeline grid (px), used on the row container. */
   totalWidth: number;
   dayWidth: number;
+  isMobile?: boolean;
   milestoneRowHeight: number;
   /** Top offset (px) of the milestone click targets inside the calendar header row. */
   milestoneHeaderRowTop: number;
@@ -51,6 +53,7 @@ interface MilestoneLayerProps {
 export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
   totalWidth,
   dayWidth,
+  isMobile = false,
   milestoneRowHeight,
   milestoneHeaderRowTop,
   milestoneHeaderRowHeight,
@@ -278,7 +281,48 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
         })}
       </div>
 
-      {/* Milestone row — bar with chips and interactive cells */}
+      {/* Milestone row — compact dots on mobile (visual only); chips + interactive cells on desktop */}
+      {isMobile ? (
+        <div
+          className="pointer-events-none relative overflow-hidden border-b border-border bg-timeline-header"
+          style={{ width: totalWidth, height: milestoneRowHeight }}
+        >
+          {milestoneTooltipCells.map((cell) => {
+            const dayMilestones = cell.milestones;
+            if (dayMilestones.length === 0) return null;
+            const visible = dayMilestones.slice(0, MAX_VISIBLE_MOBILE_DOTS);
+            const overflow = dayMilestones.length - visible.length;
+            const cellLeft = cell.dayIndex * dayWidth;
+            return (
+              <div
+                key={`mobile-milestone-dots-${cell.date}`}
+                className="absolute inset-y-0 flex items-center justify-center gap-0.5 px-0.5"
+                style={{ left: cellLeft, width: dayWidth }}
+              >
+                {visible.map((milestone) => {
+                  const project = projectById.get(milestone.projectId);
+                  const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
+                  return (
+                    <span
+                      key={milestone.id}
+                      aria-hidden="true"
+                      className="text-[10px] leading-none"
+                      style={{ color }}
+                    >
+                      ◆
+                    </span>
+                  );
+                })}
+                {overflow > 0 && (
+                  <span className="text-[9px] font-semibold leading-none text-muted-foreground">
+                    +{overflow}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
       <div
         className="relative border-b border-border bg-timeline-header"
         style={{ width: totalWidth, height: milestoneRowHeight }}
@@ -453,6 +497,7 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
           return <React.Fragment key={`milestone-chips-${cell.date}`}>{chipsContainer}</React.Fragment>;
         })}
       </div>
+      )}
     </>
   );
 };

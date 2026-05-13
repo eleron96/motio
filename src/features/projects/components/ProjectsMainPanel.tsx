@@ -1,7 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
-import { CalendarDays, RefreshCcw } from 'lucide-react';
+import { CalendarDays, ChevronDown, RefreshCcw, Search } from 'lucide-react';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
@@ -14,10 +14,12 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { Assignee, Customer, Milestone, Project, Status, Task } from '@/features/planner/types/planner';
+import { Assignee, Customer, CustomerContact, Milestone, Project, ProjectActivity, ProjectMember, Status, Task } from '@/features/planner/types/planner';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
+import { ProjectCardLayout } from '@/features/projects/components/projectCard/ProjectCardLayout';
 
 type DisplayTaskRow = {
   key: string;
@@ -80,6 +82,55 @@ type ProjectsMainPanelProps = {
   selectedCustomerProjects: Project[];
   customersCount: number;
   onOpenProjectFromCustomer: (project: Project) => void;
+  /**
+   * Only consumed when `isProjectCardEnabled()` is on and `mode === 'projects'`.
+   * Computed in ProjectsPage from existing data.
+   */
+  projectMembers: Assignee[];
+  projectMilestones: Milestone[];
+  today: Date;
+  onCreateMilestoneForProject: (projectId: string) => void;
+  onEditMilestone: (milestone: Milestone) => void;
+  onSaveProjectStatus: (projectId: string, next: string | null) => Promise<boolean>;
+  /** Per-user tracking + project actions for the card header. */
+  onToggleProjectTracked: (projectId: string, nextTracked: boolean) => void;
+  onOpenProjectSettings: (project: Project) => void;
+  onToggleProjectArchived: (project: Project) => void;
+  onRequestDeleteProject: (project: Project) => void;
+  /** Customer contacts list + handlers wired through plannerStore. */
+  customerContacts: CustomerContact[];
+  onAddCustomerContact: (
+    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
+  ) => Promise<boolean>;
+  onDeleteCustomerContact: (id: string) => Promise<boolean>;
+  onUpdateCustomerContact: (
+    id: string,
+    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+  ) => Promise<boolean>;
+  /** Explicit project members + handlers. */
+  projectMemberRows: ProjectMember[];
+  workspaceAssignees: Assignee[];
+  onAddProjectMember: (
+    projectId: string,
+    input: import('./projectCard/TeamBlock').AddMemberInput,
+  ) => Promise<boolean>;
+  onRemoveProjectMember: (memberId: string) => Promise<boolean>;
+  onUpdateAssigneeContact: (assigneeId: string, email: string | null, phone: string | null) => Promise<boolean>;
+  onUpdateExternalMember: (
+    memberId: string,
+    updates: Partial<Pick<ProjectMember,
+      'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
+    >>,
+  ) => Promise<boolean>;
+  /** Activity feed entries for the whole workspace + handlers. */
+  projectActivity: ProjectActivity[];
+  formatActivityTimestamp: (iso: string) => string;
+  onAddProjectActivity: (projectId: string, content: string) => Promise<boolean>;
+  onUpdateProjectActivity: (id: string, content: string) => Promise<boolean>;
+  onDeleteProjectActivity: (id: string) => Promise<boolean>;
+  onSetProjectActivityPinned: (id: string, pinned: boolean) => Promise<boolean>;
+  /** Workspace id used by the activity rich-text editor for image uploads. */
+  workspaceId?: string | null;
 };
 
 export const ProjectsMainPanel = ({
@@ -133,9 +184,138 @@ export const ProjectsMainPanel = ({
   selectedCustomerProjects,
   customersCount,
   onOpenProjectFromCustomer,
+  projectMembers,
+  projectMilestones,
+  today,
+  onCreateMilestoneForProject,
+  onEditMilestone,
+  onSaveProjectStatus,
+  onToggleProjectTracked,
+  onOpenProjectSettings,
+  onToggleProjectArchived,
+  onRequestDeleteProject,
+  customerContacts,
+  onAddCustomerContact,
+  onDeleteCustomerContact,
+  onUpdateCustomerContact,
+  projectMemberRows,
+  workspaceAssignees,
+  onAddProjectMember,
+  onRemoveProjectMember,
+  onUpdateAssigneeContact,
+  onUpdateExternalMember,
+  projectActivity,
+  formatActivityTimestamp,
+  onAddProjectActivity,
+  onUpdateProjectActivity,
+  onDeleteProjectActivity,
+  onSetProjectActivityPinned,
+  workspaceId,
 }: ProjectsMainPanelProps) => {
   const isMobile = useIsMobile();
   const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const hasActiveFilters = search.trim().length > 0
+    || statusFilterIds.length > 0
+    || assigneeFilterIds.length > 0
+    || (taskScope === 'past' && (pastFromDate.length > 0 || pastToDate.length > 0));
+
+  const projectCardEnabled = isProjectCardEnabled();
+  const projectCardMobileEnabled = isProjectCardMobileEnabled();
+
+  // Memoize per-project slices so we don't re-allocate filtered arrays on every
+  // unrelated re-render (these arrays span the whole workspace). Defensive
+  // defaults guard against tests that mount the panel with partial props.
+  const cardCustomerId = selectedProject?.customerId ?? null;
+  const cardProjectId = selectedProject?.id ?? null;
+  const filteredCustomerContacts = React.useMemo(
+    () => (customerContacts ?? []).filter((contact) => contact.customerId === (cardCustomerId ?? '')),
+    [customerContacts, cardCustomerId],
+  );
+  const filteredProjectMemberRows = React.useMemo(
+    () => (projectMemberRows ?? []).filter((row) => row.projectId === cardProjectId),
+    [projectMemberRows, cardProjectId],
+  );
+  const filteredProjectActivity = React.useMemo(
+    () => (projectActivity ?? []).filter((entry) => entry.projectId === cardProjectId),
+    [projectActivity, cardProjectId],
+  );
+
+  // When the flag is on and a project is selected, replace the legacy main
+  // panel with the new card layout. Mobile rendering is gated separately by
+  // VITE_FEATURE_PROJECT_CARD_MOBILE so the mobile read-only card can roll
+  // out independently of the desktop UI. Milestones / customers modes still
+  // fall through to the legacy UI by design.
+  if (
+    mode === 'projects'
+    && projectCardEnabled
+    && selectedProject
+    && (!isMobile || projectCardMobileEnabled)
+  ) {
+    return (
+      <ProjectCardLayout
+        selectedProject={selectedProject}
+        customer={customerById.get(selectedProject.customerId ?? '') ?? null}
+        customerContacts={filteredCustomerContacts}
+        canEdit={canEdit}
+        onAddCustomerContact={onAddCustomerContact}
+        onDeleteCustomerContact={onDeleteCustomerContact}
+        onUpdateCustomerContact={onUpdateCustomerContact}
+        projectMembers={projectMembers}
+        projectMemberRows={filteredProjectMemberRows}
+        assigneesById={assigneeById}
+        workspaceAssignees={workspaceAssignees}
+        onAddProjectMember={(input) => onAddProjectMember(selectedProject.id, input)}
+        onRemoveProjectMember={onRemoveProjectMember}
+        onUpdateAssigneeContact={onUpdateAssigneeContact}
+        onUpdateExternalMember={onUpdateExternalMember}
+        projectActivity={filteredProjectActivity}
+        formatActivityTimestamp={formatActivityTimestamp}
+        onAddActivity={(content) => onAddProjectActivity(selectedProject.id, content)}
+        onUpdateActivity={onUpdateProjectActivity}
+        onDeleteActivity={onDeleteProjectActivity}
+        onSetActivityPinned={onSetProjectActivityPinned}
+        workspaceId={workspaceId}
+        projectMilestones={projectMilestones}
+        formatMilestoneDate={formatMilestoneDate}
+        today={today}
+        onAddMilestone={() => onCreateMilestoneForProject(selectedProject.id)}
+        onEditMilestone={onEditMilestone}
+        onSaveProjectStatus={(next) => onSaveProjectStatus(selectedProject.id, next)}
+        isProjectTracked={trackedProjectIdSet.has(selectedProject.id)}
+        onToggleProjectTracked={() => onToggleProjectTracked(selectedProject.id, !trackedProjectIdSet.has(selectedProject.id))}
+        onOpenProjectSettings={() => onOpenProjectSettings(selectedProject)}
+        onToggleProjectArchived={() => onToggleProjectArchived(selectedProject)}
+        onRequestDeleteProject={() => onRequestDeleteProject(selectedProject)}
+        taskScope={taskScope}
+        onChangeTaskScope={onChangeTaskScope}
+        search={search}
+        onSearchChange={onSearchChange}
+        statuses={statuses}
+        statusFilterIds={statusFilterIds}
+        onToggleStatus={onToggleStatus}
+        setStatusPreset={setStatusPreset}
+        statusFilterLabel={statusFilterLabel}
+        assigneeOptions={assigneeOptions}
+        assigneeFilterIds={assigneeFilterIds}
+        onToggleAssignee={onToggleAssignee}
+        assigneeFilterLabel={assigneeFilterLabel}
+        onClearFilters={onClearFilters}
+        onRefreshTasks={onRefreshTasks}
+        tasksLoading={tasksLoading}
+        tasksError={tasksError}
+        displayTaskRows={displayTaskRows}
+        statusById={statusById}
+        assigneeById={assigneeById}
+        onSelectTask={onSelectTask}
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        onPrevPage={onPrevPage}
+        onNextPage={onNextPage}
+        totalCount={displayTotalCount}
+      />
+    );
+  }
 
   return (
     <section data-tour="projects-main-panel" className="h-full min-h-0 min-w-0 overflow-hidden flex flex-col">
@@ -161,6 +341,15 @@ export const ProjectsMainPanel = ({
                           {customerById.get(selectedProject.customerId ?? '')?.name ?? t`No customer`}
                         </div>
                       </div>
+                      {selectedProject.status && (
+                        <Badge
+                          variant="outline"
+                          className="font-semibold uppercase tracking-wide"
+                          title={t`Project status: ${selectedProject.status}`}
+                        >
+                          {selectedProject.status}
+                        </Badge>
+                      )}
                       {selectedProject.archived && (
                         <Badge variant="secondary">{t`Archived`}</Badge>
                       )}
@@ -184,7 +373,34 @@ export const ProjectsMainPanel = ({
               </div>
 
               <div className={`border-b border-border ${sectionPadding}`}>
-                <div className={isMobile ? 'flex flex-col items-stretch gap-2' : 'flex flex-wrap items-center gap-3'}>
+                {isMobile ? (
+                  <button
+                    type="button"
+                    onClick={() => setMobileFiltersOpen((open) => !open)}
+                    aria-expanded={mobileFiltersOpen}
+                    className="flex w-full items-center justify-between text-xs font-medium text-muted-foreground"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Search className="h-3.5 w-3.5" />
+                      {t`Search & filters`}
+                      {hasActiveFilters && !mobileFiltersOpen ? (
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                      ) : null}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                ) : null}
+                <div
+                  className={
+                    isMobile
+                      ? mobileFiltersOpen
+                        ? 'mt-3 flex flex-col items-stretch gap-2'
+                        : 'hidden'
+                      : 'flex flex-wrap items-center gap-3'
+                  }
+                >
                   <Input
                     className="w-full sm:w-[220px]"
                     placeholder={t`Search tasks...`}

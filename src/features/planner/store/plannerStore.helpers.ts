@@ -11,9 +11,13 @@ import type { TaskMappedRow } from '@/shared/domain/taskRowMapper';
 import {
   Assignee,
   Customer,
+  CustomerContact,
   Filters,
   Milestone,
   Project,
+  ProjectActivity,
+  ProjectActivityKind,
+  ProjectMember,
   Status,
   Tag,
   Task,
@@ -36,6 +40,8 @@ export type ProjectRow = {
   color: string;
   archived: boolean;
   customer_id: string | null;
+  owner_group_id: string | null;
+  status: string | null;
 };
 
 export type ProjectTrackingRow = {
@@ -46,6 +52,19 @@ export type CustomerRow = {
   id: string;
   workspace_id: string;
   name: string;
+  industry: string | null;
+};
+
+export type CustomerContactRow = {
+  id: string;
+  workspace_id: string;
+  customer_id: string;
+  name: string;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+  position: number;
+  tag: string | null;
 };
 
 export type AssigneeRow = {
@@ -54,6 +73,35 @@ export type AssigneeRow = {
   name: string;
   user_id: string | null;
   is_active: boolean;
+  email: string | null;
+  phone: string | null;
+};
+
+export type ProjectMemberRow = {
+  id: string;
+  workspace_id: string;
+  project_id: string;
+  assignee_id: string | null;
+  role: string | null;
+  position: number;
+  tag: string | null;
+  external_name: string | null;
+  external_company: string | null;
+  external_email: string | null;
+  external_phone: string | null;
+};
+
+export type ProjectActivityRow = {
+  id: string;
+  workspace_id: string;
+  project_id: string;
+  author_id: string | null;
+  author_display_name: string;
+  kind: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  pinned?: boolean | null;
 };
 
 export type MemberGroupRow = {
@@ -98,6 +146,8 @@ export type MilestoneRow = {
   project_id: string;
   date: string;
   title: string;
+  note: string | null;
+  status_override: 'done' | 'current' | 'upcoming' | null;
 };
 
 export type TaskSubtaskRow = {
@@ -182,11 +232,25 @@ export const mapProjectRow = (row: ProjectRow): Project => ({
   color: row.color,
   archived: row.archived ?? false,
   customerId: row.customer_id ?? null,
+  ownerGroupId: row.owner_group_id ?? null,
+  status: row.status ?? null,
 });
 
 export const mapCustomerRow = (row: CustomerRow): Customer => ({
   id: row.id,
   name: row.name,
+  industry: row.industry ?? null,
+});
+
+export const mapCustomerContactRow = (row: CustomerContactRow): CustomerContact => ({
+  id: row.id,
+  customerId: row.customer_id,
+  name: row.name,
+  role: row.role ?? null,
+  email: row.email ?? null,
+  phone: row.phone ?? null,
+  position: row.position ?? 0,
+  tag: row.tag ?? null,
 });
 
 export const mapAssigneeRow = (row: AssigneeRow): Assignee => ({
@@ -194,7 +258,41 @@ export const mapAssigneeRow = (row: AssigneeRow): Assignee => ({
   name: row.name,
   userId: row.user_id,
   isActive: row.is_active ?? true,
+  email: row.email ?? null,
+  phone: row.phone ?? null,
 });
+
+export const mapProjectMemberRow = (row: ProjectMemberRow): ProjectMember => ({
+  id: row.id,
+  projectId: row.project_id,
+  assigneeId: row.assignee_id ?? null,
+  role: row.role ?? null,
+  position: row.position ?? 0,
+  tag: row.tag ?? null,
+  externalName: row.external_name ?? null,
+  externalCompany: row.external_company ?? null,
+  externalEmail: row.external_email ?? null,
+  externalPhone: row.external_phone ?? null,
+});
+
+export const mapProjectActivityRow = (row: ProjectActivityRow): ProjectActivity => {
+  const created = new Date(row.created_at).getTime();
+  const updated = new Date(row.updated_at).getTime();
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    authorId: row.author_id ?? null,
+    authorDisplayName: row.author_display_name,
+    kind: (row.kind as ProjectActivityKind) ?? 'comment',
+    content: row.content,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    isEdited: Number.isFinite(created) && Number.isFinite(updated)
+      ? updated - created > 1000
+      : false,
+    pinned: !!row.pinned,
+  };
+};
 
 export const mapStatusRow = (row: StatusRow): Status => {
   const { name: cleanedName, emoji: inlineEmoji } = splitStatusLabel(row.name);
@@ -232,6 +330,8 @@ export const mapMilestoneRow = (row: MilestoneRow): Milestone => ({
   title: row.title,
   projectId: row.project_id,
   date: row.date,
+  note: row.note ?? null,
+  statusOverride: row.status_override ?? null,
 });
 
 export const mapTaskSubtaskRow = (row: TaskSubtaskRow): TaskSubtask => ({

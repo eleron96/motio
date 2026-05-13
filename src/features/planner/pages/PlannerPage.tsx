@@ -329,12 +329,17 @@ const PlannerPage = () => {
   if (isSuperAdmin) {
     return <Navigate to="/app/admin/users" replace />;
   }
-  
+
+  // On mobile in calendar mode, hide the FAB ("Add task") and the floating
+  // filter trigger — the calendar view is read-only by design and these
+  // controls would float over the month grid.
+  const hideTimelineActions = isMobile && viewMode === 'calendar';
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       {/* Header */}
       <WorkspacePageHeader
-        primaryAction={(
+        primaryAction={hideTimelineActions ? undefined : (
           <Button
             data-tour="add-task-btn"
             onClick={() => {
@@ -374,22 +379,24 @@ const PlannerPage = () => {
         {isMobile ? (
           <>
             {filterCollapsed ? (
-              <button
-                type="button"
-                aria-label={t`Expand filters`}
-                data-tour="filter-toggle"
-                onClick={() => setFilterCollapsed(false)}
-                style={{
-                  left: `calc(${
-                    groupMode === 'assignee'
-                      ? 'clamp(48px, 14vw, 56px)'
-                      : 'clamp(120px, 38vw, 152px)'
-                  } + 12px)`,
-                }}
-                className="absolute bottom-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
-              >
-                <Filter className="h-5 w-5 text-muted-foreground" />
-              </button>
+              hideTimelineActions ? null : (
+                <button
+                  type="button"
+                  aria-label={t`Expand filters`}
+                  data-tour="filter-toggle"
+                  onClick={() => setFilterCollapsed(false)}
+                  style={{
+                    left: `calc(${
+                      groupMode === 'assignee'
+                        ? 'clamp(48px, 14vw, 56px)'
+                        : 'clamp(120px, 38vw, 152px)'
+                    } + 12px)`,
+                  }}
+                  className="absolute bottom-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
+                >
+                  <Filter className="h-5 w-5 text-muted-foreground" />
+                </button>
+              )
             ) : (
               <>
                 <button

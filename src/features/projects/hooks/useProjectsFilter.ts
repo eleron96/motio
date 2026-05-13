@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { format } from 'date-fns';
 import { t } from '@lingui/macro';
 import type { Locale } from 'date-fns';
@@ -26,6 +26,12 @@ interface UseProjectsFilterInput {
   milestoneGroupBy: MilestoneGroupBy;
   setMilestoneGroupBy: (v: MilestoneGroupBy) => void;
   dateLocale: Locale;
+  /** Persisted filter state — comes from `useProjectsViewPreferences` so it
+   * survives reloads. Optional for callers that don't persist (tests). */
+  customerFilterIds?: string[];
+  setCustomerFilterIds?: Dispatch<SetStateAction<string[]>>;
+  ownerGroupFilterIds?: string[];
+  setOwnerGroupFilterIds?: Dispatch<SetStateAction<string[]>>;
 }
 
 export function useProjectsFilter({
@@ -43,19 +49,29 @@ export function useProjectsFilter({
   milestoneGroupBy,
   setMilestoneGroupBy,
   dateLocale,
+  customerFilterIds: customerFilterIdsProp,
+  setCustomerFilterIds: setCustomerFilterIdsProp,
+  ownerGroupFilterIds: ownerGroupFilterIdsProp,
+  setOwnerGroupFilterIds: setOwnerGroupFilterIdsProp,
 }: UseProjectsFilterInput) {
   const [projectSearch, setProjectSearch] = useState('');
-  const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
+  // Fall back to local state when the caller doesn't pass persisted values.
+  const [customerFilterIdsLocal, setCustomerFilterIdsLocal] = useState<string[]>([]);
+  const [ownerGroupFilterIdsLocal, setOwnerGroupFilterIdsLocal] = useState<string[]>([]);
+  const customerFilterIds = customerFilterIdsProp ?? customerFilterIdsLocal;
+  const setCustomerFilterIds = setCustomerFilterIdsProp ?? setCustomerFilterIdsLocal;
+  const ownerGroupFilterIds = ownerGroupFilterIdsProp ?? ownerGroupFilterIdsLocal;
+  const setOwnerGroupFilterIds = setOwnerGroupFilterIdsProp ?? setOwnerGroupFilterIdsLocal;
   const [milestoneSearch, setMilestoneSearch] = useState('');
 
   const filteredActiveProjects = useMemo(
-    () => filterProjectsByCustomerAndSearch(activeProjects, customerFilterIds, projectSearch),
-    [activeProjects, customerFilterIds, projectSearch],
+    () => filterProjectsByCustomerAndSearch(activeProjects, customerFilterIds, projectSearch, ownerGroupFilterIds),
+    [activeProjects, customerFilterIds, ownerGroupFilterIds, projectSearch],
   );
 
   const filteredArchivedProjects = useMemo(
-    () => filterProjectsByCustomerAndSearch(archivedProjects, customerFilterIds, projectSearch),
-    [archivedProjects, customerFilterIds, projectSearch],
+    () => filterProjectsByCustomerAndSearch(archivedProjects, customerFilterIds, projectSearch, ownerGroupFilterIds),
+    [archivedProjects, customerFilterIds, ownerGroupFilterIds, projectSearch],
   );
 
   const todayMilestoneKey = format(new Date(), 'yyyy-MM-dd');
@@ -117,6 +133,8 @@ export function useProjectsFilter({
     setProjectSearch,
     customerFilterIds,
     setCustomerFilterIds,
+    ownerGroupFilterIds,
+    setOwnerGroupFilterIds,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,

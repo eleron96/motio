@@ -14,6 +14,8 @@ import {
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Textarea } from '@/shared/ui/textarea';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Milestone } from '@/features/planner/types/planner';
@@ -29,6 +31,11 @@ interface MilestoneDialogProps {
   milestone: Milestone | null;
   canEdit: boolean;
   allowDateEdit?: boolean;
+  /**
+   * Phase 7: pre-selects the project on create (e.g. when adding a milestone
+   * straight from a project's card). Ignored when editing an existing one.
+   */
+  defaultProjectId?: string | null;
 }
 
 export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
@@ -38,6 +45,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   milestone,
   canEdit,
   allowDateEdit = false,
+  defaultProjectId = null,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
@@ -45,6 +53,10 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   const [title, setTitle] = useState('');
   const [projectId, setProjectId] = useState('');
   const [milestoneDate, setMilestoneDate] = useState('');
+  const [note, setNote] = useState('');
+  // Phase 5: stored as 'auto' (status derived from date) or one of the
+  // explicit override values. Persisted as null when 'auto'.
+  const [statusOverride, setStatusOverride] = useState<'auto' | 'done' | 'current' | 'upcoming'>('auto');
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -79,14 +91,18 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
       setTitle(milestone.title);
       setProjectId(milestone.projectId);
       setMilestoneDate(milestone.date);
+      setNote(milestone.note ?? '');
+      setStatusOverride(milestone.statusOverride ?? 'auto');
       setHasChanges(false);
       return;
     }
     setTitle('');
-    setProjectId(activeProjects[0]?.id ?? '');
+    setProjectId(defaultProjectId ?? activeProjects[0]?.id ?? '');
     setMilestoneDate(date ?? format(new Date(), 'yyyy-MM-dd'));
+    setNote('');
+    setStatusOverride('auto');
     setHasChanges(false);
-  }, [milestone, open, activeProjects, date]);
+  }, [milestone, open, activeProjects, date, defaultProjectId]);
 
   const requestClose = () => {
     if (!hasChanges) {
@@ -111,6 +127,8 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
       title: title.trim(),
       projectId,
       date: milestoneDate,
+      note: note.trim() ? note.trim() : null,
+      statusOverride: statusOverride === 'auto' ? null : statusOverride,
     };
     if (milestone) {
       const result = await updateMilestone(milestone.id, payload);
@@ -201,6 +219,41 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                 setHasChanges(true);
               }}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="milestone-note">{t`Note`}</Label>
+            <Textarea
+              id="milestone-note"
+              value={note}
+              onChange={(event) => {
+                setNote(event.target.value);
+                setHasChanges(true);
+              }}
+              placeholder={t`E.g. Передано заказчику`}
+              rows={2}
+              disabled={!canEdit}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>{t`Status`}</Label>
+            <Select
+              value={statusOverride}
+              onValueChange={(value) => {
+                setStatusOverride(value as 'auto' | 'done' | 'current' | 'upcoming');
+                setHasChanges(true);
+              }}
+              disabled={!canEdit}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">{t`Auto (from date)`}</SelectItem>
+                <SelectItem value="upcoming">{t`Upcoming`}</SelectItem>
+                <SelectItem value="current">{t`Current`}</SelectItem>
+                <SelectItem value="done">{t`Done`}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

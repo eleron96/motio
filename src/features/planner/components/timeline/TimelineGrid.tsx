@@ -6,7 +6,7 @@ import { TimelineHeader } from './TimelineHeader';
 import { TimelineRow } from './TimelineRow';
 import { MilestoneDialog } from './MilestoneDialog';
 import { MilestoneLayer } from './MilestoneLayer';
-import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH, HEADER_HEIGHT } from '@/features/planner/lib/dateUtils';
+import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
 import {
   buildAssigneeGroupMap,
@@ -239,6 +239,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     milestoneOffsets,
     visibleMilestoneLines,
     milestoneTooltipCells,
+    effectiveHeaderHeight,
     milestoneRowHeight,
     milestoneLineTop,
     milestoneLineHeight,
@@ -256,6 +257,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     filterProjectIds: filters.projectIds,
     visibleDays,
     projects,
+    isMobile,
   });
 
   // ─── Task display ──────────────────────────────────────────────────────────
@@ -400,19 +402,20 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   className="sticky left-0 z-30 flex-shrink-0 bg-timeline-header border-r border-border"
                   style={{ width: resolvedSidebarWidth }}
                 >
-                  <div className="flex-shrink-0 border-b border-border" style={{ height: HEADER_HEIGHT }} />
+                  <div className="flex-shrink-0 border-b border-border" style={{ height: effectiveHeaderHeight }} />
                   <div
                     className="flex flex-shrink-0 items-center justify-center gap-1.5 border-b border-border px-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
                     style={{ height: milestoneRowHeight }}
                   >
                     <span aria-hidden="true" className="text-[11px] leading-none text-[hsl(16_58%_55%)]">◆</span>
-                    <span className="truncate">{t`Milestones`}</span>
+                    {!isMobile && <span className="truncate">{t`Milestones`}</span>}
                   </div>
                 </div>
                 <div className="flex-shrink-0" style={{ width: totalWidth }}>
                   <MilestoneLayer
                     totalWidth={totalWidth}
                     dayWidth={dayWidth}
+                    isMobile={isMobile}
                     milestoneRowHeight={milestoneRowHeight}
                     milestoneHeaderRowTop={milestoneHeaderRowTop}
                     milestoneHeaderRowHeight={milestoneHeaderRowHeight}
@@ -430,6 +433,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                       visibleDays={visibleDays}
                       dayWidth={dayWidth}
                       viewMode={viewMode}
+                      isMobile={isMobile}
                       scrollLeft={scrollLeft}
                       viewportWidth={viewportWidth}
                       attentionDate={timelineAttentionDate}
