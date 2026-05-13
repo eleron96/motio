@@ -81,19 +81,16 @@ const buildSearchSnippetHtml = (content: string, query: string): string | null =
 const renderRichTextHtml = (raw: string) => {
   if (!raw) return { __html: '' };
   if (ACTIVITY_HTML_TAG_RE.test(raw)) {
-    // Normalize browser-quirky block layout from the rich-text editor:
-    // turn every block boundary (`</p>`, `</div>`, `</blockquote>`, `</li>`,
-    // `<br>`) into an explicit `<br>` so the modal renders the same line
-    // breaks the user typed, regardless of which tag the contenteditable
-    // chose for each Enter press. Inline formatting (`<b>`, `<i>`, `<u>`,
-    // `<s>`, `<img>`) is preserved.
-    const sanitized = sanitizeCommentRichText(raw);
-    const normalized = sanitized
-      .replace(/<\/(p|div|blockquote|li)>/gi, '<br>')
-      .replace(/<(p|div|blockquote|li|ul|ol)[^>]*>/gi, '')
-      .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
-      .replace(/^(\s|<br\s*\/?>)+|(\s|<br\s*\/?>)+$/gi, '');
-    return { __html: normalized };
+    // For the read-modal we trust the editor's HTML wholesale (after
+    // DOMPurify): block structure (p/div/ul/ol/li/blockquote) survives,
+    // inline formatting (b/strong/i/em/u/s/strike/span/img) survives. The
+    // wrapper `.feedRichText` class in projectCard.module.css provides the
+    // visual styling for every allowed tag (list bullets, blockquote
+    // indent, bold/italic/underline, image clamping). Previous versions
+    // flattened block tags to `<br>` to dodge browser-specific spacing,
+    // but that killed list markers + quote indents entirely, so the user
+    // saw no formatting outside edit mode.
+    return { __html: sanitizeCommentRichText(raw) };
   }
   // Plain text — preserve newlines via <br>. Escapes literal angle brackets
   // so user input like `<200 sq ft>` renders as text rather than vanishing
@@ -107,38 +104,44 @@ const renderRichTextHtml = (raw: string) => {
 };
 
 /**
- * Convert any saved note content (plain text OR rich-text editor HTML) into
- * a single string with `\n` line breaks preserved. Strips all HTML tags +
- * inline formatting + images for the row preview — what you see is just
- * text. The display layer uses `white-space: pre-line` so the `\n`s render
- * as visual breaks, and `-webkit-line-clamp` clips to N visible lines.
+ * Build the HTML snippet for a feed row (the compact preview under each
+ * entry). Keeps inline formatting (`<b>`, `<strong>`, `<i>`, `<em>`, `<u>`,
+ * `<s>`, `<strike>`, `<span>`) so users see bold / italic / underline /
+ * strike at a glance — same way a chat list shows formatted messages.
  *
- * Why this is plain text: rich-text editor output mixes `<p>`, `<div>`,
- * `<br>` depending on browser. `display: -webkit-box` (the only cross-
- * browser line-clamp) doesn't honor block children consistently. Going
- * fully plain text + `pre-line` gives predictable behaviour everywhere.
+ * Block tags (`<p>`, `<div>`, `<blockquote>`, `<li>`, `<h1-6>`) collapse to
+ * `<br>` for line breaks. Images and list containers (`<ul>`, `<ol>`) are
+ * stripped — bullets/numbers would break `-webkit-line-clamp` and images
+ * don't belong in a tight preview row anyway. Users see the full version
+ * in the modal.
+ *
+ * Why inline-only: `-webkit-box` + `-webkit-line-clamp` (the only cross-
+ * browser N-line clamp) only honours inline children. Block descendants
+ * break the clamp silently. So we flatten everything to one inline run
+ * with `<br>` line breaks, which clamps reliably across browsers.
  */
-const buildFeedSnippetText = (raw: string): string => {
+const buildFeedSnippetHtml = (raw: string): string => {
   if (!raw) return '';
   if (!ACTIVITY_HTML_TAG_RE.test(raw)) {
-    return raw;
+    return raw
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
   }
   const sanitized = sanitizeCommentRichText(raw);
-  const text = sanitized
-    // Block boundaries become newlines.
-    .replace(/<\/(p|div|blockquote|li|h[1-6])>/gi, '\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    // Strip every remaining tag (img, ul, ol, span, b, i, u, s, etc.) —
-    // the preview is text-only.
-    .replace(/<[^>]+>/g, '')
-    // HTML entities → text.
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"');
-  // Cap consecutive blank lines at one and trim outer whitespace.
-  return text.replace(/\n{3,}/g, '\n\n').trim();
+  return sanitized
+    // Block boundaries become explicit <br>.
+    .replace(/<\/(p|div|blockquote|li|h[1-6])>/gi, '<br>')
+    // Drop block-opening tags + list containers + images — keep inline
+    // formatting (b/strong/i/em/u/s/strike/span).
+    .replace(/<(p|div|blockquote|li|ul|ol|h[1-6])[^>]*>/gi, '')
+    .replace(/<img[^>]*>/gi, '')
+    // Cap consecutive <br>s so multi-paragraph entries don't eat the
+    // whole 5-line clamp window with blank lines.
+    .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+    // Trim leading/trailing whitespace and <br>s.
+    .replace(/^(\s|<br\s*\/?>)+|(\s|<br\s*\/?>)+$/gi, '');
 };
 
 export const ActivityBlock: React.FC<ActivityBlockProps> = ({
@@ -403,10 +406,9 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                   }
                   return (
                     <div
-                      className={`${styles.feedTextClamp} text-[14px] leading-[1.5] whitespace-pre-line`}
-                    >
-                      {buildFeedSnippetText(entry.content)}
-                    </div>
+                      className={`${styles.feedTextClamp} ${styles.feedRowRichText} text-[14px] leading-[1.5]`}
+                      dangerouslySetInnerHTML={{ __html: buildFeedSnippetHtml(entry.content) }}
+                    />
                   );
                 })()}
               </li>

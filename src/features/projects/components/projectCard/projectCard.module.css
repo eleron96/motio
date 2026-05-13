@@ -270,3 +270,23 @@
 .feedRichText strike {
   text-decoration: line-through;
 }
+
+/* Compact rich-text styles for the feed *row* preview (clamped to 5 lines
+   via `.feedTextClamp`). Inline formatting (b/strong/i/em/u/s) is kept
+   visible at-a-glance; block tags are pre-flattened to `<br>` by
+   `buildFeedSnippetHtml`, so we don't need block-level CSS here. */
+.feedRowRichText strong,
+.feedRowRichText b {
+  font-weight: 600;
+}
+.feedRowRichText em,
+.feedRowRichText i {
+  font-style: italic;
+}
+.feedRowRichText u {
+  text-decoration: underline;
+}
+.feedRowRichText s,
+.feedRowRichText strike {
+  text-decoration: line-through;
+}
