@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.1] - 2026-05-13
 ### Fixed
 - Hotfix for 0.8.0: the static pinned section was eating all available space inside the Notes block's flex parent (max-h: 640px), squeezing the unpinned `flex-1 min-h-0` scroll-container down to zero — users couldn't scroll the rest of the feed. Now:
   - Pinned section gets its own desktop cap (`max-h: 220px`) + `overflow-y-auto` so a long list of pinned notes scrolls inside its own window.
