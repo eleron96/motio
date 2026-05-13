@@ -336,93 +336,130 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
         </div>
       )}
 
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        // Desktop: cap visible feed to ~5 rows (≈80 px each) so the section
-        // never grows past one card-height. Below `lg`, the parent flex
-        // handles scrolling along with the page.
-        className="flex-1 min-h-0 overflow-y-auto pr-2 lg:max-h-[420px]"
-      >
-        {filtered.length === 0 ? (
-          <div className="py-8 text-center text-ui-xs text-muted-foreground">
-            {entries.length === 0
-              ? t`No notes yet. Use + to add the first one.`
-              : t`Nothing matches the current filters.`}
-          </div>
-        ) : (
-          <ol className="flex flex-col">
-            {filtered.map((entry) => (
-              <li
-                key={entry.id}
-                className={`${styles.feedItem} cursor-pointer ${entry.pinned ? styles.feedItemPinned : ''}`}
-                onClick={() => setOpenItem(entry)}
-              >
-                <div className="flex items-center justify-between gap-2.5">
-                  <div className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/80">
-                    <span>{formatDate(entry.createdAt)}</span>
-                    {entry.isEdited && (
-                      <span className="text-muted-foreground/60">{t`(edited)`}</span>
-                    )}
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ background: getMonogramColor(entry.authorId ?? entry.authorDisplayName) }}
-                    />
-                    <span>{entry.authorDisplayName}</span>
-                    {canEditEntries ? (
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          // Don't open the modal — the row's onClick fires
-                          // on the parent <li>, so we cancel propagation.
-                          event.stopPropagation();
-                          void onSetPinned(entry.id, !entry.pinned);
-                        }}
-                        aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
-                        title={entry.pinned ? t`Unpin` : t`Pin to top`}
-                        className={`ml-1 grid h-6 w-6 place-items-center rounded transition-colors ${
-                          entry.pinned
-                            ? 'text-amber-500 hover:text-amber-600'
-                            : 'text-muted-foreground/40 hover:text-amber-500'
-                        }`}
-                      >
-                        <Pin className={`h-3.5 w-3.5 ${entry.pinned ? 'fill-amber-500' : ''}`} aria-hidden="true" />
-                      </button>
-                    ) : entry.pinned ? (
-                      <Pin
-                        className="ml-1 h-3 w-3 text-amber-500 fill-amber-500"
-                        aria-label={t`Pinned`}
-                      />
-                    ) : null}
-                  </div>
+      {(() => {
+        // Split into pinned (static block above the scroll area) + unpinned
+        // (inside the scrollable area). Two-section layout means several
+        // pinned rows simply stack vertically without overlapping — sticky
+        // positioning is no longer needed and the unpinned scroll window
+        // keeps its capped height independent of how many pinned exist.
+        const pinnedItems = filtered.filter((entry) => entry.pinned);
+        const unpinnedItems = filtered.filter((entry) => !entry.pinned);
+
+        const renderEntry = (entry: ProjectActivity) => (
+          <li
+            key={entry.id}
+            className={`${styles.feedItem} cursor-pointer ${entry.pinned ? styles.feedItemPinned : ''}`}
+            onClick={() => setOpenItem(entry)}
+          >
+            <div className="flex items-center justify-between gap-2.5">
+              <div className="inline-flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground/80">
+                <span>{formatDate(entry.createdAt)}</span>
+                {entry.isEdited && (
+                  <span className="text-muted-foreground/60">{t`(edited)`}</span>
+                )}
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: getMonogramColor(entry.authorId ?? entry.authorDisplayName) }}
+                />
+                <span>{entry.authorDisplayName}</span>
+                {canEditEntries ? (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      // Don't open the modal — the row's onClick fires
+                      // on the parent <li>, so we cancel propagation.
+                      event.stopPropagation();
+                      void onSetPinned(entry.id, !entry.pinned);
+                    }}
+                    aria-label={entry.pinned ? t`Unpin` : t`Pin to top`}
+                    title={entry.pinned ? t`Unpin` : t`Pin to top`}
+                    className={`ml-1 grid h-6 w-6 place-items-center rounded transition-colors ${
+                      entry.pinned
+                        ? 'text-amber-500 hover:text-amber-600'
+                        : 'text-muted-foreground/40 hover:text-amber-500'
+                    }`}
+                  >
+                    <Pin className={`h-3.5 w-3.5 ${entry.pinned ? 'fill-amber-500' : ''}`} aria-hidden="true" />
+                  </button>
+                ) : entry.pinned ? (
+                  <Pin
+                    className="ml-1 h-3 w-3 text-amber-500 fill-amber-500"
+                    aria-label={t`Pinned`}
+                  />
+                ) : null}
+              </div>
+            </div>
+            {(() => {
+              const trimmedQuery = search.trim();
+              const snippet = trimmedQuery
+                ? buildSearchSnippetHtml(entry.content, trimmedQuery)
+                : null;
+              if (snippet) {
+                return (
+                  <div
+                    className={`${styles.feedSnippet} text-[13px] leading-[1.5] text-muted-foreground`}
+                    dangerouslySetInnerHTML={{ __html: snippet }}
+                  />
+                );
+              }
+              return (
+                <div
+                  className={`${styles.feedTextClamp} ${styles.feedRowRichText} text-[14px] leading-[1.5]`}
+                  dangerouslySetInnerHTML={{ __html: buildFeedSnippetHtml(entry.content) }}
+                />
+              );
+            })()}
+          </li>
+        );
+
+        if (filtered.length === 0) {
+          return (
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 lg:max-h-[420px]">
+              <div className="py-8 text-center text-ui-xs text-muted-foreground">
+                {entries.length === 0
+                  ? t`No notes yet. Use + to add the first one.`
+                  : t`Nothing matches the current filters.`}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <>
+            {/* Pinned section — statically laid out above the scroll area
+                so multiple pinned rows simply stack without overlapping.
+                The amber left-border + drop-shadow on the last row still
+                separate pinned from the unpinned content below. */}
+            {pinnedItems.length > 0 && (
+              <ol className={`flex flex-col pr-2 ${styles.feedPinnedSection}`}>
+                {pinnedItems.map(renderEntry)}
+              </ol>
+            )}
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              // Desktop: cap visible *unpinned* feed to ~5 rows (≈80 px
+              // each) so the scrollable region never grows past one
+              // card-height. Pinned rows above add their own height to
+              // the section. Below `lg`, the parent flex handles
+              // scrolling along with the page.
+              className="flex-1 min-h-0 overflow-y-auto pr-2 lg:max-h-[420px]"
+            >
+              {unpinnedItems.length === 0 ? (
+                <div className="py-8 text-center text-ui-xs text-muted-foreground">
+                  {t`No more notes — everything currently visible is pinned.`}
                 </div>
-                {(() => {
-                  const trimmedQuery = search.trim();
-                  const snippet = trimmedQuery
-                    ? buildSearchSnippetHtml(entry.content, trimmedQuery)
-                    : null;
-                  if (snippet) {
-                    return (
-                      <div
-                        className={`${styles.feedSnippet} text-[13px] leading-[1.5] text-muted-foreground`}
-                        dangerouslySetInnerHTML={{ __html: snippet }}
-                      />
-                    );
-                  }
-                  return (
-                    <div
-                      className={`${styles.feedTextClamp} ${styles.feedRowRichText} text-[14px] leading-[1.5]`}
-                      dangerouslySetInnerHTML={{ __html: buildFeedSnippetHtml(entry.content) }}
-                    />
-                  );
-                })()}
-              </li>
-            ))}
-          </ol>
-        )}
-      </div>
+              ) : (
+                <ol className="flex flex-col">
+                  {unpinnedItems.map(renderEntry)}
+                </ol>
+              )}
+            </div>
+          </>
+        );
+      })()}
 
       {openItem && (
         <ActivityModal

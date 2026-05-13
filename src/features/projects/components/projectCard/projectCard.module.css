@@ -156,44 +156,30 @@
   font-weight: 600;
 }
 
-/* Pinned notes — subtle amber tint, plus `position: sticky` so the row
-   stays glued to the top of the scrollable feed when the user scrolls
-   through older entries (Excel frozen-rows pattern). Multiple pinned
-   items stack one under another in their natural order because each one
-   shares `top: 0` and sticky respects flow until it would scroll past.
-   Solid background + z-index keep unpinned content from showing through. */
+/* Pinned notes are now rendered in a separate static section above the
+   scrollable unpinned area (see `.feedPinnedSection`). They simply stack
+   without overlapping — no sticky positioning. The amber left border
+   keeps the visual cue that the row is pinned. */
 .feedItemPinned {
   background: hsl(var(--card));
   border-left: 2px solid #f59e0b;
-  /* No dashed bottom border — the drop-shadow already separates pinned
-     rows from the unpinned content scrolling underneath. */
   border-bottom: none;
   margin-left: -8px;
   margin-right: -8px;
   padding-left: 10px;
   padding-right: 8px;
   border-radius: 6px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  /* A real drop-shadow below the pinned row(s) so the unpinned content
-     scrolling underneath visually slides "behind" them — same separation
-     trick used on the sticky timeline sidebar. The shadow is asymmetric
-     (offset down only) so it doesn't bleed onto neighbouring pinned rows
-     when several stack at the top. */
-  box-shadow: 0 6px 10px -6px rgba(15, 23, 42, 0.18), 0 2px 4px -2px rgba(15, 23, 42, 0.08);
 }
 
-/* When several pinned rows stack, only the LAST one needs the drop-shadow
-   — the rows above it sit on a solid neighbour, not the scrolling content,
-   so a shadow there would just darken their seam. `:has(+ :not(.feedItemPinned))`
-   targets exactly the last pinned in a contiguous run. Browsers without
-   `:has()` keep the regular shadow above; that's a graceful degrade. */
-.feedItemPinned + .feedItemPinned {
-  box-shadow: none;
-}
-.feedItemPinned:has(+ :not(.feedItemPinned)) {
+/* Drop-shadow under the whole pinned section so the unpinned content
+   below visually slides "behind" it — same separation trick used on the
+   timeline sticky sidebar. We attach the shadow to the section itself
+   (not the last pinned item), so it never bleeds onto neighbouring
+   pinned rows regardless of how many stack. */
+.feedPinnedSection {
   box-shadow: 0 6px 10px -6px rgba(15, 23, 42, 0.18), 0 2px 4px -2px rgba(15, 23, 42, 0.08);
+  margin-bottom: 6px;
+  padding-bottom: 2px;
 }
 
 .feedTextClamp {
