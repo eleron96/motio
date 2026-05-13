@@ -17,6 +17,7 @@ interface TimelineHeaderProps {
   visibleDays: Date[];
   dayWidth: number;
   viewMode: ViewMode;
+  isMobile?: boolean;
   scrollLeft: number;
   viewportWidth: number;
   attentionDate: string | null;
@@ -29,6 +30,7 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   visibleDays,
   dayWidth,
   viewMode,
+  isMobile = false,
   scrollLeft,
   viewportWidth,
   attentionDate,
@@ -86,22 +88,24 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   
   return (
     <div className="relative select-none" style={{ width: totalWidth }}>
-      {/* Month row */}
-      <div className="flex h-10 bg-timeline-header border-b border-border">
-        {monthGroups.map((group) => (
-          <div
-            key={`${group.month}-${group.startIndex}`}
-            className="flex items-center px-2 border-r border-border"
-            style={{ width: group.days * dayWidth }}
-          >
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide truncate">
-              {group.month}
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* Month row — hidden on mobile to reclaim vertical space */}
+      {!isMobile && (
+        <div className="flex h-10 bg-timeline-header border-b border-border">
+          {monthGroups.map((group) => (
+            <div
+              key={`${group.month}-${group.startIndex}`}
+              className="flex items-center px-2 border-r border-border"
+              style={{ width: group.days * dayWidth }}
+            >
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide truncate">
+                {group.month}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {activeMonth && viewportWidth > 0 && (
+      {!isMobile && activeMonth && viewportWidth > 0 && (
         <div
           className="pointer-events-none absolute top-0 z-10 flex h-10 items-center"
           style={{ left: labelLeft, transform: 'translateX(-50%)' }}
@@ -138,6 +142,11 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
                     onDateContextAction && 'cursor-context-menu',
                   )}
                   style={{ width: dayWidth }}
+                  onDoubleClick={
+                    isMobile && onDateContextAction
+                      ? () => onDateContextAction(dayKey)
+                      : undefined
+                  }
                 >
                   <span className={cn(
                     'text-xs uppercase tracking-wide leading-none',

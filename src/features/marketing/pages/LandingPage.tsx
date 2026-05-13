@@ -340,6 +340,24 @@ const LandingPage = () => {
         .db-pie-dot   { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
         .land-reveal  { opacity:0; transform:translateY(20px); }
         .land-reveal.visible { animation:landFadeUp 0.5s ease forwards; }
+
+        /* Demo CTA emphasis: the hero button gently breathes via a
+           transform-only scale pulse — no halo (it was getting visually
+           clipped by the neighbouring "Start for free" button). Pure
+           transform → composited on GPU, smooth on 120Hz displays. */
+        @keyframes demoCtaBreath {
+          0%, 100% { transform: scale(1);     }
+          50%      { transform: scale(1.045); }
+        }
+        .demo-cta-button {
+          animation: demoCtaBreath 2400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+          transform-origin: center;
+          will-change: transform;
+        }
+        .demo-cta-button:hover { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) {
+          .demo-cta-button { animation: none; }
+        }
       `}</style>
 
       {/* ── HEADER ── */}
@@ -376,13 +394,22 @@ const LandingPage = () => {
                 </Button>
               </>
             ) : (
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-              >
-                <Link to="/app">{t`Sign in`}</Link>
-              </Button>
+              <>
+                <Button asChild variant="ghost" size="sm" className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
+                  {/* Hard navigation (not React Router push) so AuthProvider
+                      remounts under /demo and the supabase mock is wired
+                      from the start — never the prod client carrying a
+                      logged-in user's data. */}
+                  <a href="/demo">{t`Try demo`}</a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                >
+                  <Link to="/app">{t`Sign in`}</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -409,12 +436,20 @@ const LandingPage = () => {
             {t`Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets.`}
           </p>
 
-          <div style={{ animation: 'landFadeDown 0.5s 0.25s ease both' }} className="mt-8">
+          <div
+            style={{ animation: 'landFadeDown 0.5s 0.25s ease both' }}
+            className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+          >
+            <Button asChild size="lg">
+              <Link to="/app">{t`Start for free →`}</Link>
+            </Button>
             <Button
               asChild
               size="lg"
+              className="demo-cta-button bg-emerald-500 text-white shadow-md hover:bg-emerald-600"
             >
-              <Link to="/app">{t`Start for free →`}</Link>
+              {/* Hard navigation — see header CTA above. */}
+              <a href="/demo">{t`Try demo — no signup`}</a>
             </Button>
           </div>
 

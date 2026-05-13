@@ -1,0 +1,293 @@
+/* Project Card — design tokens scoped to this surface only.
+   Generic colors come from the global theme (hsl vars); the ONLY thing local
+   to this module is the per-project accent ladder + the milestone-rail dots. */
+
+.accentBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--project-accent);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+.codePill {
+  font-feature-settings: "tnum";
+  background: var(--project-accent-soft);
+}
+
+.sidebarBar {
+  width: 3px;
+  background: var(--project-accent);
+  border-radius: 3px;
+}
+
+/* ---- Milestone vertical timeline ---- */
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.tlItem {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  padding-bottom: 16px;
+}
+
+.tlItem:last-child {
+  padding-bottom: 0;
+}
+
+.tlRail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tlDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: hsl(var(--card));
+  border: 2px solid hsl(var(--border));
+  display: grid;
+  place-items: center;
+  color: transparent;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.tlLine {
+  flex: 1;
+  width: 2px;
+  background: hsl(var(--border) / 0.7);
+  margin-top: 2px;
+  min-height: 18px;
+}
+
+.tlItemDone .tlDot {
+  background: var(--project-accent);
+  border-color: var(--project-accent);
+  color: #fff;
+}
+
+.tlItemDone .tlLine {
+  background: var(--project-accent-line);
+}
+
+.tlItemCurrent .tlDot {
+  background: hsl(var(--card));
+  border-color: var(--project-accent);
+  box-shadow: 0 0 0 4px var(--project-accent-soft);
+}
+
+.tlItemCurrent .tlDot::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--project-accent);
+}
+
+.tlItemUpcoming .tlDot {
+  border-style: dashed;
+}
+
+.tlBody {
+  padding-bottom: 4px;
+  min-width: 0;
+}
+
+.tlDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 2px;
+  font-feature-settings: "tnum";
+}
+
+.tlTitle {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.tlItemUpcoming .tlTitle {
+  color: hsl(var(--muted-foreground));
+}
+
+.tlItemDone .tlTitle {
+  color: hsl(var(--muted-foreground));
+  text-decoration: line-through;
+  text-decoration-color: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* ---- Activity feed ---- */
+.feedItem {
+  padding: 14px 0;
+  border-bottom: 1px dashed hsl(var(--border) / 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feedItem:last-child {
+  border-bottom: 0;
+}
+
+/* Search snippet: trim long notes to a window around the matched word.
+   `<mark>` is rendered by the snippet builder; we style it as a subtle
+   highlight so it reads as "this is the match" without harsh contrast. */
+.feedSnippet {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.feedSnippet mark {
+  background: #fef3c7; /* amber-100 */
+  color: hsl(var(--foreground));
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Pinned notes are now rendered in a separate static section above the
+   scrollable unpinned area (see `.feedPinnedSection`). They simply stack
+   without overlapping — no sticky positioning. The amber left border
+   keeps the visual cue that the row is pinned. */
+.feedItemPinned {
+  background: hsl(var(--card));
+  border-left: 2px solid #f59e0b;
+  border-bottom: none;
+  margin-left: -8px;
+  margin-right: -8px;
+  padding-left: 10px;
+  padding-right: 8px;
+  border-radius: 6px;
+}
+
+/* Drop-shadow under the whole pinned section so the unpinned content
+   below visually slides "behind" it — same separation trick used on the
+   timeline sticky sidebar. We attach the shadow to the section itself
+   (not the last pinned item), so it never bleeds onto neighbouring
+   pinned rows regardless of how many stack. */
+.feedPinnedSection {
+  box-shadow: 0 6px 10px -6px rgba(15, 23, 42, 0.18), 0 2px 4px -2px rgba(15, 23, 42, 0.08);
+  margin-bottom: 6px;
+  padding-bottom: 2px;
+}
+
+.feedTextClamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  /* Snippets are pre-flattened to <br>-separated inline text in
+     `renderFeedSnippetHtml`, so each <br> here counts as one logical line
+     for `-webkit-line-clamp`. */
+}
+
+/* Rich-text rendering for activity entries (matches RTE allowed tags). */
+.feedRichText {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.feedRichText p {
+  margin: 0 0 0.4em;
+}
+
+.feedRichText p:last-child {
+  margin-bottom: 0;
+}
+
+.feedRichText ul,
+.feedRichText ol {
+  margin: 0.25em 0 0.4em;
+  padding-left: 1.4em;
+}
+
+.feedRichText ul {
+  list-style: disc;
+}
+
+.feedRichText ol {
+  list-style: decimal;
+}
+
+.feedRichText li {
+  margin: 0.1em 0;
+}
+
+.feedRichText blockquote {
+  border-left: 3px solid hsl(var(--border));
+  margin: 0.4em 0;
+  padding: 0.05em 0.75em;
+  color: hsl(var(--muted-foreground));
+}
+
+.feedRichText img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 0.35em 0;
+}
+
+.feedRichText strong,
+.feedRichText b {
+  font-weight: 600;
+}
+
+.feedRichText em,
+.feedRichText i {
+  font-style: italic;
+}
+
+.feedRichText u {
+  text-decoration: underline;
+}
+
+.feedRichText s,
+.feedRichText strike {
+  text-decoration: line-through;
+}
+
+/* Compact rich-text styles for the feed *row* preview (clamped to 5 lines
+   via `.feedTextClamp`). Inline formatting (b/strong/i/em/u/s) is kept
+   visible at-a-glance; block tags are pre-flattened to `<br>` by
+   `buildFeedSnippetHtml`, so we don't need block-level CSS here. */
+.feedRowRichText strong,
+.feedRowRichText b {
+  font-weight: 600;
+}
+.feedRowRichText em,
+.feedRowRichText i {
+  font-style: italic;
+}
+.feedRowRichText u {
+  text-decoration: underline;
+}
+.feedRowRichText s,
+.feedRowRichText strike {
+  text-decoration: line-through;
+}
+
+/* Blockquote inside a clamped feed-row preview. We can't use a block-level
+   <blockquote> there (block descendants silently break `-webkit-line-clamp`),
+   so `buildFeedSnippetHtml` emits an inline-block <span> with this class.
+   The left border + italic + muted color make the quote distinguishable from
+   plain text without breaking the clamp. */
+.feedRowBlockquote {
+  display: inline-block;
+  border-left: 2px solid hsl(var(--border));
+  padding-left: 0.5em;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+  vertical-align: top;
+  max-width: 100%;
+}

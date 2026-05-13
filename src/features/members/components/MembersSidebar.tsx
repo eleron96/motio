@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowDownZA, Layers } from 'lucide-react';
+import { ArrowDownAZ, ArrowDownZA, ChevronDown, Layers, Search } from 'lucide-react';
 import { Assignee } from '@/features/planner/types/planner';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -70,6 +70,7 @@ type MembersSidebarProps = {
   onSelectGroup: (groupId: string) => void;
   onStartEditGroup: (group: GroupRecord) => void;
   onDeleteGroup: (group: GroupRecord) => void;
+  hideModeSelector?: boolean;
 };
 
 export const MembersSidebar = ({
@@ -77,6 +78,7 @@ export const MembersSidebar = ({
   mode,
   onModeChange,
   isAdmin,
+  hideModeSelector = false,
   tab,
   onTabChange,
   accessTab,
@@ -114,35 +116,42 @@ export const MembersSidebar = ({
   onStartEditGroup,
   onDeleteGroup,
 }: MembersSidebarProps) => {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const compactFilters = hideModeSelector;
+  const hasActiveTaskFilters = memberSearch.trim().length > 0
+    || memberSort !== 'asc'
+    || memberGroupBy !== 'none';
   return (
     <aside className={cn('w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col', className)}>
-      <div className="px-4 py-3 border-b border-border">
-        <SegmentedControl surface="filled">
-          <SegmentedControlItem
-            active={mode === 'tasks'}
-            onClick={() => onModeChange('tasks')}
-            data-tour="members-people-tab"
-          >
-            {t`People`}
-          </SegmentedControlItem>
-          {isAdmin && (
+      {hideModeSelector ? null : (
+        <div className="px-4 py-3 border-b border-border">
+          <SegmentedControl surface="filled">
             <SegmentedControlItem
-              active={mode === 'access'}
-              onClick={() => onModeChange('access')}
-              data-tour="members-access-tab"
+              active={mode === 'tasks'}
+              onClick={() => onModeChange('tasks')}
+              data-tour="members-people-tab"
             >
-              {t`Access`}
+              {t`People`}
             </SegmentedControlItem>
-          )}
-          <SegmentedControlItem
-            active={mode === 'groups'}
-            onClick={() => onModeChange('groups')}
-            data-tour="members-groups-tab"
-          >
-            {t`Groups`}
-          </SegmentedControlItem>
-        </SegmentedControl>
-      </div>
+            {isAdmin && (
+              <SegmentedControlItem
+                active={mode === 'access'}
+                onClick={() => onModeChange('access')}
+                data-tour="members-access-tab"
+              >
+                {t`Access`}
+              </SegmentedControlItem>
+            )}
+            <SegmentedControlItem
+              active={mode === 'groups'}
+              onClick={() => onModeChange('groups')}
+              data-tour="members-groups-tab"
+            >
+              {t`Groups`}
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
+      )}
 
       {mode === 'tasks' && (
         <Tabs
@@ -150,7 +159,36 @@ export const MembersSidebar = ({
           onValueChange={(value) => onTabChange(value as Tab)}
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="px-4 py-3 border-b border-border">
+          {compactFilters ? (
+            <div className="border-b border-border">
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen((open) => !open)}
+                aria-expanded={mobileFiltersOpen}
+                className="flex w-full items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Search className="h-3.5 w-3.5" />
+                  {t`Search & filters`}
+                  {hasActiveTaskFilters && !mobileFiltersOpen ? (
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                  ) : null}
+                </span>
+                <ChevronDown
+                  className={cn('h-4 w-4 transition-transform', mobileFiltersOpen && 'rotate-180')}
+                />
+              </button>
+            </div>
+          ) : null}
+          <div
+            className={cn(
+              compactFilters
+                ? mobileFiltersOpen
+                  ? 'px-4 pb-3 pt-1 border-b border-border'
+                  : 'hidden'
+                : 'px-4 py-3 border-b border-border',
+            )}
+          >
             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
               <Input
                 className="h-8"

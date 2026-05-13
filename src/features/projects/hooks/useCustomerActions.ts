@@ -22,6 +22,9 @@ export interface UseCustomerActionsResult {
   editingCustomerName: string;
   setEditingCustomerName: Dispatch<SetStateAction<string>>;
   editingCustomerOriginalName: string;
+  editingCustomerIndustry: string;
+  setEditingCustomerIndustry: Dispatch<SetStateAction<string>>;
+  editingCustomerOriginalIndustry: string;
   renameCustomerOpen: boolean;
   setRenameCustomerOpen: Dispatch<SetStateAction<boolean>>;
   renameCustomerConfirmOpen: boolean;
@@ -32,7 +35,7 @@ export interface UseCustomerActionsResult {
   setDeleteCustomerOpen: Dispatch<SetStateAction<boolean>>;
   createCustomerByName: (name: string) => Promise<Customer | null | undefined>;
   handleAddCustomerFromTab: () => Promise<void>;
-  startCustomerEdit: (customerId: string, customerName: string) => void;
+  startCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
   cancelCustomerEdit: () => void;
   handleRenameCustomer: () => Promise<void>;
   requestCloseRenameCustomer: () => void;
@@ -55,6 +58,8 @@ export const useCustomerActions = ({
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
   const [editingCustomerName, setEditingCustomerName] = useState('');
   const [editingCustomerOriginalName, setEditingCustomerOriginalName] = useState('');
+  const [editingCustomerIndustry, setEditingCustomerIndustry] = useState('');
+  const [editingCustomerOriginalIndustry, setEditingCustomerOriginalIndustry] = useState('');
   const [renameCustomerOpen, setRenameCustomerOpen] = useState(false);
   const [renameCustomerConfirmOpen, setRenameCustomerConfirmOpen] = useState(false);
   const [deleteCustomerTarget, setDeleteCustomerTarget] = useState<Customer | null>(null);
@@ -79,11 +84,18 @@ export const useCustomerActions = ({
     setCreateCustomerOpen(false);
   }, [createCustomerByName, newCustomerName, setSelectedCustomerId]);
 
-  const startCustomerEdit = useCallback((customerId: string, customerName: string) => {
+  const startCustomerEdit = useCallback((
+    customerId: string,
+    customerName: string,
+    industry: string | null = null,
+  ) => {
     if (!canEdit) return;
+    const industryValue = industry ?? '';
     setEditingCustomerId(customerId);
     setEditingCustomerName(customerName);
     setEditingCustomerOriginalName(customerName);
+    setEditingCustomerIndustry(industryValue);
+    setEditingCustomerOriginalIndustry(industryValue);
     setRenameCustomerOpen(true);
   }, [canEdit]);
 
@@ -91,6 +103,8 @@ export const useCustomerActions = ({
     setEditingCustomerId(null);
     setEditingCustomerName('');
     setEditingCustomerOriginalName('');
+    setEditingCustomerIndustry('');
+    setEditingCustomerOriginalIndustry('');
   }, []);
 
   const commitCustomerEdit = useCallback(async (customerId: string) => {
@@ -100,14 +114,36 @@ export const useCustomerActions = ({
       cancelCustomerEdit();
       return;
     }
+    const updates: Partial<Customer> = {};
+    if (nextName !== editingCustomerOriginalName.trim()) {
+      updates.name = nextName;
+    }
+    const nextIndustry = editingCustomerIndustry.trim();
+    const normalizedIndustry = nextIndustry ? nextIndustry : null;
+    if (normalizedIndustry !== (editingCustomerOriginalIndustry.trim() || null)) {
+      updates.industry = normalizedIndustry;
+    }
+    if (Object.keys(updates).length === 0) {
+      cancelCustomerEdit();
+      return;
+    }
     setMutationError('');
-    const result = await updateCustomer(customerId, { name: nextName });
+    const result = await updateCustomer(customerId, updates);
     if (result?.error) {
       setMutationError(result.error);
       return;
     }
     cancelCustomerEdit();
-  }, [canEdit, cancelCustomerEdit, editingCustomerName, setMutationError, updateCustomer]);
+  }, [
+    canEdit,
+    cancelCustomerEdit,
+    editingCustomerIndustry,
+    editingCustomerName,
+    editingCustomerOriginalIndustry,
+    editingCustomerOriginalName,
+    setMutationError,
+    updateCustomer,
+  ]);
 
   const handleRenameCustomer = useCallback(async () => {
     if (!editingCustomerId) return;
@@ -116,17 +152,24 @@ export const useCustomerActions = ({
   }, [commitCustomerEdit, editingCustomerId]);
 
   const requestCloseRenameCustomer = useCallback(() => {
-    if (
-      editingCustomerId
-      && editingCustomerName.trim()
-      && editingCustomerName.trim() !== editingCustomerOriginalName.trim()
-    ) {
-      setRenameCustomerConfirmOpen(true);
-      return;
+    if (editingCustomerId && editingCustomerName.trim()) {
+      const nameChanged = editingCustomerName.trim() !== editingCustomerOriginalName.trim();
+      const industryChanged = editingCustomerIndustry.trim() !== editingCustomerOriginalIndustry.trim();
+      if (nameChanged || industryChanged) {
+        setRenameCustomerConfirmOpen(true);
+        return;
+      }
     }
     setRenameCustomerOpen(false);
     cancelCustomerEdit();
-  }, [cancelCustomerEdit, editingCustomerId, editingCustomerName, editingCustomerOriginalName]);
+  }, [
+    cancelCustomerEdit,
+    editingCustomerId,
+    editingCustomerIndustry,
+    editingCustomerName,
+    editingCustomerOriginalIndustry,
+    editingCustomerOriginalName,
+  ]);
 
   const requestDeleteCustomer = useCallback((customer: Customer) => {
     if (!canEdit) return;
@@ -159,6 +202,9 @@ export const useCustomerActions = ({
     editingCustomerName,
     setEditingCustomerName,
     editingCustomerOriginalName,
+    editingCustomerIndustry,
+    setEditingCustomerIndustry,
+    editingCustomerOriginalIndustry,
     renameCustomerOpen,
     setRenameCustomerOpen,
     renameCustomerConfirmOpen,

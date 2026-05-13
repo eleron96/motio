@@ -1,12 +1,18 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
+import { Repeat } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
+import {
+  formatRepeatCadenceLabel,
+  formatRepeatSeriesRemainderLabel,
+} from '@/shared/lib/repeatLabels';
 import { hasRichTags } from '@/shared/domain/taskDescription';
+import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import { Assignee, Customer, Project, Status, Tag, Task, TaskType } from '@/features/planner/types/planner';
 
 type ProjectTaskDetailsDialogProps = {
@@ -15,6 +21,11 @@ type ProjectTaskDetailsDialogProps = {
   selectedTask: Task | null;
   selectedTaskProject: Project | null;
   selectedTaskCustomer: Customer | null;
+  selectedTaskRepeatMeta: {
+    cadence: RepeatCadence;
+    remaining: number;
+    total: number;
+  } | null;
   statusById: Map<string, Status>;
   assigneeById: Map<string, Assignee>;
   taskTypeById: Map<string, TaskType>;
@@ -30,6 +41,7 @@ export const ProjectTaskDetailsDialog: React.FC<ProjectTaskDetailsDialogProps> =
   selectedTask,
   selectedTaskProject,
   selectedTaskCustomer,
+  selectedTaskRepeatMeta,
   statusById,
   assigneeById,
   taskTypeById,
@@ -41,7 +53,15 @@ export const ProjectTaskDetailsDialog: React.FC<ProjectTaskDetailsDialogProps> =
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent className="w-[95vw] max-w-2xl">
       <DialogHeader>
-        <DialogTitle>{selectedTask?.title ?? t`Task details`}</DialogTitle>
+        <DialogTitle className="flex items-start gap-2">
+          {selectedTaskRepeatMeta && (
+            <Repeat
+              className="mt-1 h-4 w-4 flex-shrink-0 text-primary/70"
+              aria-label={formatRepeatCadenceLabel(selectedTaskRepeatMeta.cadence)}
+            />
+          )}
+          <span>{selectedTask?.title ?? t`Task details`}</span>
+        </DialogTitle>
         <DialogDescription className="sr-only">
           {t`View task details linked to this project.`}
         </DialogDescription>
@@ -100,6 +120,20 @@ export const ProjectTaskDetailsDialog: React.FC<ProjectTaskDetailsDialogProps> =
                 {format(parseISO(selectedTask.startDate), 'dd MMM yyyy')} – {format(parseISO(selectedTask.endDate), 'dd MMM yyyy')}
               </div>
             </div>
+            {selectedTaskRepeatMeta && (
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Repeat`}</div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className="gap-1 text-[10px]">
+                    <Repeat className="h-3 w-3" />
+                    {formatRepeatCadenceLabel(selectedTaskRepeatMeta.cadence)}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {t`${selectedTaskRepeatMeta.total} in series`} · {formatRepeatSeriesRemainderLabel(selectedTaskRepeatMeta.remaining)}
+                  </span>
+                </div>
+              </div>
+            )}
             <div>
               <div className="text-xs text-muted-foreground">{t`Type`}</div>
               <div className="text-sm">

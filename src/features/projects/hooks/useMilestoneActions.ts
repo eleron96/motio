@@ -15,11 +15,13 @@ export interface UseMilestoneActionsResult {
   editingMilestone: Milestone | null;
   milestoneDialogOpen: boolean;
   milestoneDialogDate: string | null;
+  milestoneDialogDefaultProjectId: string | null;
   deleteMilestoneTarget: Milestone | null;
   deleteMilestoneOpen: boolean;
   setDeleteMilestoneOpen: Dispatch<SetStateAction<boolean>>;
   setDeleteMilestoneTarget: Dispatch<SetStateAction<Milestone | null>>;
   handleOpenCreateMilestone: () => void;
+  handleOpenCreateMilestoneForProject: (projectId: string) => void;
   handleOpenMilestoneSettings: (milestone: Milestone) => void;
   handleMilestoneDialogOpenChange: (open: boolean) => void;
   requestDeleteMilestone: (milestone: Milestone) => void;
@@ -37,18 +39,28 @@ export const useMilestoneActions = ({
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
+  const [milestoneDialogDefaultProjectId, setMilestoneDialogDefaultProjectId] = useState<string | null>(null);
   const [deleteMilestoneTarget, setDeleteMilestoneTarget] = useState<Milestone | null>(null);
   const [deleteMilestoneOpen, setDeleteMilestoneOpen] = useState(false);
 
   const handleOpenCreateMilestone = useCallback(() => {
     setEditingMilestone(null);
     setMilestoneDialogDate(selectedMilestone?.date ?? format(new Date(), 'yyyy-MM-dd'));
+    setMilestoneDialogDefaultProjectId(null);
     setMilestoneDialogOpen(true);
   }, [selectedMilestone?.date]);
+
+  const handleOpenCreateMilestoneForProject = useCallback((projectId: string) => {
+    setEditingMilestone(null);
+    setMilestoneDialogDate(format(new Date(), 'yyyy-MM-dd'));
+    setMilestoneDialogDefaultProjectId(projectId);
+    setMilestoneDialogOpen(true);
+  }, []);
 
   const handleOpenMilestoneSettings = useCallback((milestone: Milestone) => {
     setEditingMilestone(milestone);
     setMilestoneDialogDate(null);
+    setMilestoneDialogDefaultProjectId(null);
     setMilestoneDialogOpen(true);
   }, []);
 
@@ -57,6 +69,7 @@ export const useMilestoneActions = ({
     if (!open) {
       setEditingMilestone(null);
       setMilestoneDialogDate(null);
+      setMilestoneDialogDefaultProjectId(null);
     }
   }, []);
 
@@ -85,11 +98,13 @@ export const useMilestoneActions = ({
     editingMilestone,
     milestoneDialogOpen,
     milestoneDialogDate,
+    milestoneDialogDefaultProjectId,
     deleteMilestoneTarget,
     deleteMilestoneOpen,
     setDeleteMilestoneOpen,
     setDeleteMilestoneTarget,
     handleOpenCreateMilestone,
+    handleOpenCreateMilestoneForProject,
     handleOpenMilestoneSettings,
     handleMilestoneDialogOpenChange,
     requestDeleteMilestone,

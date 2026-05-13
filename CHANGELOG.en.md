@@ -7,6 +7,169 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-05-13
+### Changed
+- Pinned notes now display **fully without an internal scroll**. The pinned section grows naturally with the number of pinned rows, and the whole Notes block grows taller to fit them — previously the pinned section had its own ~220px desktop cap and 5+ pinned notes meant scrolling within the pinned block. Now every pinned note stays visible at once; only the unpinned area below scrolls (still capped at ~420px on desktop). The parent `<section>`'s `max-h: 640px` was removed so the pinned section can grow freely.
+
+## [0.8.1] - 2026-05-13
+### Fixed
+- Hotfix for 0.8.0: the static pinned section was eating all available space inside the Notes block's flex parent (max-h: 640px), squeezing the unpinned `flex-1 min-h-0` scroll-container down to zero — users couldn't scroll the rest of the feed. Now:
+  - Pinned section gets its own desktop cap (`max-h: 220px`) + `overflow-y-auto` so a long list of pinned notes scrolls inside its own window.
+  - `flex-shrink-0` keeps pinned at its natural / capped height instead of being squeezed.
+  - The unpinned scroll-container gets a guaranteed `min-h: 160px` on desktop so at least ~2 unpinned rows are always visible.
+
+## [0.8.0] - 2026-05-13
+### Changed
+- Pinned notes are no longer **sticky** — they're now rendered in a separate static section above the scrollable feed. Multiple pinned rows simply stack one under another and never overlap (previously `position: sticky; top: 0` caused multiple pinned rows to pile on top of each other during scroll, since they all targeted the same top edge). The block's overall height now grows by the pinned section's height; the scrollable region (for unpinned) keeps its capped max height (~420px on desktop). The drop-shadow moved from the last pinned row to the pinned section as a whole. If every visible note is pinned (e.g. a search matched only pinned ones), an explanatory line "No more notes — everything currently visible is pinned." renders below the pinned section.
+
+## [0.7.9] - 2026-05-13
+### Fixed
+- Blockquotes are now visible in the **feed-row preview** too. Previously the block `<blockquote>` collapsed to plain text with a line break (same fate as other block tags — required to keep `-webkit-line-clamp: 5` working). Now `buildFeedSnippetHtml` wraps the quote contents in an inline `<span class="feedRowBlockquote">` with italic + muted color + left border — clamp keeps working (because `display: inline-block`), and users see at a glance that the chunk is a quote rather than regular text. In the **read modal** quotes already worked since 0.7.8 (full `<blockquote>` with border-left via the `.feedRichText` CSS).
+
+## [0.7.8] - 2026-05-13
+### Fixed
+- Project notes once again render rich-text formatting outside edit mode — previously bold/italic/underline/strikethrough/lists/blockquotes were only visible in the editor and rendered flat everywhere else (read modal + feed-row snippet). Earlier iterations stripped block tags (`<p>`, `<ul>`, `<li>`, `<blockquote>` …) before display to dodge browser-specific line-break quirks and `-webkit-line-clamp` weirdness. Now:
+  - **Read modal** — renders the full sanitized HTML. Lists get bullets/numbers, blockquotes get a left border, inline formatting gets its natural styling. The pre-existing `.feedRichText` CSS class on the wrapper styles every allowed tag.
+  - **Feed-row snippet** — preserves inline formatting (`<b>`, `<strong>`, `<i>`, `<em>`, `<u>`, `<s>`, `<strike>`) and collapses block tags to `<br>` (lists become bulletless lines — bullets break `-webkit-line-clamp`). Images are still stripped from snippets. New `.feedRowRichText` CSS class explicitly styles bold/italic/underline/strike for at-a-glance scanning.
+
+## [0.7.7] - 2026-05-09
+### Changed
+- The milestone count on each sidebar project row now shows **only milestones still ahead** (status `current` + `upcoming`), skipping already-completed ones. Previously the row counted every milestone the project ever had, which buried "what's still left" in noise. The count uses the same `deriveMilestonesWithStatus` helper as the in-card Milestones block — explicit `statusOverride` values are honoured. Projects with only past milestones now hide the counter entirely (same as before when `count === 0`). The counter span gained `title="Milestones still ahead"` for hover context.
+
+## [0.7.6] - 2026-05-09
+### Added
+- The project-card task preview modal (opened by clicking a task in the Tasks block) now surfaces recurrence info: a `↻` icon beside the title in the header plus a dedicated "Repeat" cell in the main grid with an outline badge (cadence: "Daily recurring", "Weekly recurring", …) and a series counter ("N in series · N more / Last in series"). Previously the modal had zero visible signal that the task was part of a repeat series — now it matches the info shown on the row in TasksBlock.
+
+## [0.7.5] - 2026-05-09
+### Fixed
+- The project card Tasks block once again shows a recurring-task indicator: a `↻` icon next to the title and an outline badge with the cadence label ("Daily recurring", "Weekly recurring", "Monthly recurring", "Every 4 weeks", "Yearly recurring") in the meta row. The badge tooltip shows series remainder ("N more" / "Last in series"). Previously, recurring tasks in the new TasksBlock looked identical to regular ones even though `repeatMeta` was already present on each row.
+
+## [0.7.4] - 2026-05-08
+### Added
+- The star (track) icon and `⋯` action menu are now always visible on each sidebar project row — no hover required. The star is an outline when the project is not tracked; click flips it to filled amber and the project moves to the top of the list.
+- The project card header (next to the custom status chip) gains the same star + `⋯` kebab pair. The kebab carries Edit / Archive / Delete (gated on edit permission).
+
+### Changed
+- The notes feed and read modal now honour line breaks from the rich-text editor. The row preview switched to plain text + `white-space: pre-line`, so every Enter the user typed becomes a visual break regardless of which tag the browser chose (`<p>`, `<div>` or `<br>`).
+- The sidebar project row is more compact: owner team, milestone count and status now share a single bottom line (each was on its own row before).
+
+## [0.7.3] - 2026-05-08
+### Added
+- Project tracking ("star") is back in the new sidebar — anyone can pin a project to their personal favourites; tracked projects float to the top of the list with an amber star. Toggle lives in the `⋯` dropdown on each row (works without edit permissions — it's a per-user setting).
+- The Projects page now remembers in the browser: which tab is open (Projects / Milestones / Customers), the active project and customer, customer + owner-team filters, and the Active/Archived toggle. Reopening restores them exactly.
+
+### Changed
+- Notes feed: shows up to 5 lines of body text per row (was 4) and now honors line breaks from the original entry — paragraphs from the rich-text editor are flattened into inline `<br>`-separated text only in the row preview; the full modal keeps proper block layout.
+- Pinned notes no longer carry a dashed bottom border — the drop-shadow alone is enough to separate them from the unpinned content scrolling below.
+
+## [0.7.2] - 2026-05-08
+### Changed
+- The project notes feed now shows up to 4 lines of body text per row (was 2). Longer entries still clip with an ellipsis as before.
+
+## [0.7.1] - 2026-05-08
+### Changed
+- Pinned notes in the feed gain a soft drop-shadow underneath, so the row visually lifts above the unpinned content scrolling behind. The shadow renders only under the last pinned in a stack, so several stacked pinned rows don't darken each other's seams.
+
+## [0.7.0] - 2026-05-08
+### Added
+- Team block now lets you edit external members in full — name, company, role, on top of the existing email / phone / tag fields. Workspace (Motio) members keep their existing project-local edit surface here; their identity still lives on the Members page.
+- Customer block gains a real edit flow for contacts (previously only add and delete shipped). Pencil on each row opens an inline form on desktop or a bottom sheet on mobile — all five fields editable: name, role, tag, email, phone.
+- Pinned notes now stay anchored to the top of the notes feed while you scroll older entries (Excel frozen-row pattern) — they remain visible until you unpin them.
+
+### Changed
+- Opening a project parks the notes feed at the bottom (newest entries) automatically. Scroll up to read older notes; while you're up there, new entries no longer yank your position. If you're already at the bottom, the feed glides to the new entry.
+- On desktop the notes feed is capped to ~5 visible rows. Fewer notes — smaller block; more — internal scroll within the same height instead of pushing the page.
+
+## [0.6.0] - 2026-05-08
+### Added
+- Pin/unpin notes inside a project: any editor can pin a note — it floats to the top of the feed and gains an amber accent. An inline icon on each row (next to the author) toggles the pin in one click without opening the modal; the same action lives behind the `⋯` menu inside the note modal. Migration `0088` adds `project_activity.pinned` with a partial index to keep the pinned-first sort cheap.
+- Note search now shows a snippet centered on the matched word with the match highlighted (`<mark>` in amber). Long entries get `…` ellipses on trimmed edges.
+- The note composer auto-focuses the rich-text editor on desktop, and edit mode auto-focuses on both desktop and mobile — start typing or pasting immediately when the editor opens.
+
+### Changed
+- The notes feed now sorts oldest-first within each group. Pinned notes stay on top (still oldest-first inside the pinned group); unpinned notes follow chronologically.
+- The desktop note modal moves Delete out of the footer into the top-right `⋯` kebab (next to Pin / Unpin). The bottom row keeps only Close + Edit, so destructive actions take a deliberate two-step path.
+- Entering edit mode on a note no longer steals focus to the Pin icon; the editor receives focus directly.
+
+## [0.5.1] - 2026-05-08
+### Changed
+- No documented changes.
+
+## [0.5.0] - 2026-05-08
+### Added
+- Full new project-card UI on desktop and mobile — behind `VITE_FEATURE_PROJECT_CARD` (desktop) and `VITE_FEATURE_PROJECT_CARD_MOBILE` (mobile, implies the first flag). The card stacks into one view: Customer with tagged contacts; Team (Motio + external members, avatars, tags, grouping); Milestones with timeline of past/upcoming and quick add; Notes (formerly "Activity") with rich-text editor, images, search and jump-to-date; project Tasks.
+- Projects sidebar gets: Projects | Milestones | Customers switcher (single source of truth on mobile too), owner-team filter, customer filter with grouping, active / archived toggle.
+- Card header carries an editable custom project status — inline form on desktop, bottom sheet on mobile.
+- Auto-add of group members when an owner team is assigned to a project (idempotent; individual members can still be pruned afterward).
+- All mobile edit flows live in bottom sheets that lift above the on-screen keyboard via the Visual Viewport API.
+- Migrations 0085–0087: GRANTs for the new tables, tag / external columns on project_members, customer_contacts.tag, projects.status.
+
+### Changed
+- Mutation handlers (contacts, members, notes, status) return `Promise<boolean>` so forms stay open with the user's draft on failure instead of "silent success".
+- The top-of-page MobilePillSubnav is gone on mobile; the mode switcher now lives only in the sidebar.
+- Desktop contact popup now clamps to the viewport and flips above the anchor when needed; gains `aria-modal` and a focus trap.
+
+### Fixed
+- The status chip no longer drops an in-progress draft when a live-sync update lands mid-edit.
+- `loadWorkspaceData` skips the project-card-only tables when the feature flag is off — zero cost in prod until the flag flips on.
+- Mobile add-team picker excludes members already on the project.
+
+## [0.4.35] - 2026-05-07
+### Added
+- Test deploy of the redesigned project tab (behind VITE_FEATURE_PROJECT_CARD). Project card with Customer, Team, Milestones, Activity and Tasks blocks instead of the flat task list. Sidebar with project accent bar, code, customer and owner team. Per-project activity journal with composer, search and jump-to-date. Migrations 0080–0084 add project owner team, customer industry and contacts, assignee contact info and explicit project_members, milestone note and status override, project activity feed.
+
+## [0.4.34] - 2026-05-03
+### Changed
+- No documented changes.
+
+## [0.4.33] - 2026-05-03
+### Changed
+- No documented changes.
+
+## [0.4.32] - 2026-05-03
+### Added
+- No-signup demo sandbox at `/demo`: a sample workspace with 13 projects, 52 tasks and 42 milestones pre-distributed ±2 months around today. Visitors can play with the timeline, filters, dashboards and the team page; edits live only in the current tab. The session resets when the tab closes or after 24 hours of inactivity. The landing page gains two "Try demo" entry points (header link and hero outline button). The whole demo runs in the browser — no extra backend.
+
+## [0.4.31] - 2026-04-30
+### Changed
+- No documented changes.
+
+## [0.4.30] - 2026-04-29
+### Changed
+- Desktop header: a small Motio logo appears in the top-left corner; clicking it returns to the Timeline.
+
+## [0.4.29] - 2026-04-29
+### Changed
+- Desktop header: a small Motio logo appears in the top-left corner; clicking it returns to the Timeline (/app).
+
+## [0.4.28] - 2026-04-29
+### Changed
+- Major Q2 release. Mobile UI fully redesigned: round section buttons in the header with an expanding pill, floating primary-action button, collapsible search/filters in Member and Project panels, pill-nav carousels for Projects and Team subsections, and a clean Calendar view without floating buttons. Added 30-day account deletion with full data export delivered as a ZIP with notifications, a morning Daily Brief showing today's tasks and milestones, an extended onboarding tour across all workspace pages, a Terms page, and consent flows for data processing. Timeline: milestones now render as project-colored diamond chips with stacking and a click-through menu; added every-4-weeks repeat interval and explicit scope selection when moving repeating tasks; task comments now sync in real time. Task media moved to object storage with non-ASCII file name support. Security hardened: tightened HTML sanitization, baseline security headers, and workspace invites readable by admins only.
+
+## [0.4.27] - 2026-04-29
+### Changed
+- Mobile: task-list filters inside Member and Project panels (search, statuses, assignees/projects, date range) are now collapsed by default and expand via a chevron — frees up half the screen.
+
+## [0.4.26] - 2026-04-29
+### Changed
+- Mobile view of Projects and Team: search and filters are collapsed under a chevron button and only expand on demand. Opening the side browse sheet no longer auto-focuses the search input and pops the keyboard.
+
+## [0.4.25] - 2026-04-29
+### Changed
+- Mobile header: added a small gap between the menu logo and the section pill buttons for visual separation.
+
+## [0.4.24] - 2026-04-29
+### Changed
+- Mobile: subsections of Projects (Projects/Milestones/Customers) and Team (People/Access/Groups) moved to a top pill-nav carousel instead of the side panel. On Timeline calendar view, the filter and add-task buttons are now hidden.
+
+## [0.4.23] - 2026-04-29
+### Changed
+- Mobile header now shows the Motio brand favicon as the menu logo instead of the abstract mark.
+
+## [0.4.22] - 2026-04-29
+### Changed
+- Mobile header redesigned with round section buttons (Timeline, Dashboard, Projects, Team): the active one expands into a labelled pill, and the page primary action now lives in a floating button at the bottom.
+
 ## [0.4.21] - 2026-04-27
 ### Changed
 - Landing: removed em-dashes, copy reads more naturally.

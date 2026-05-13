@@ -1,6 +1,7 @@
 import {
   Assignee,
   Customer,
+  CustomerContact,
   Filters,
   GroupMode,
   MemberGroup,
@@ -8,6 +9,8 @@ import {
   Milestone,
   PlannerState,
   Project,
+  ProjectActivity,
+  ProjectMember,
   RepeatTaskUpdateScope,
   Status,
   Tag,
@@ -99,7 +102,7 @@ export interface PlannerStore extends PlannerState {
   deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
   fetchTaskDescription: (taskId: string) => Promise<void>;
 
-  addProject: (project: Omit<Project, 'id'>) => Promise<void>;
+  addProject: (project: Omit<Project, 'id'>) => Promise<Project | null>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<MutationResult>;
   deleteProject: (id: string) => Promise<MutationResult>;
   toggleTrackedProject: (projectId: string, isTracked?: boolean) => Promise<void>;
@@ -107,6 +110,34 @@ export interface PlannerStore extends PlannerState {
   addCustomer: (customer: Omit<Customer, 'id'>) => Promise<Customer | null>;
   updateCustomer: (id: string, updates: Partial<Customer>) => Promise<MutationResult>;
   deleteCustomer: (id: string) => Promise<MutationResult>;
+
+  addCustomerContact: (
+    contact: Omit<CustomerContact, 'id' | 'position'>,
+  ) => Promise<CustomerContact | null>;
+  updateCustomerContact: (
+    id: string,
+    updates: Partial<Omit<CustomerContact, 'id' | 'customerId'>>,
+  ) => Promise<MutationResult>;
+  deleteCustomerContact: (id: string) => Promise<MutationResult>;
+
+  addProjectMember: (
+    payload: Omit<ProjectMember, 'id' | 'position'>,
+  ) => Promise<ProjectMember | null>;
+  updateProjectMember: (
+    id: string,
+    updates: Partial<Pick<ProjectMember, 'role' | 'position' | 'tag' | 'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone'>>,
+  ) => Promise<MutationResult>;
+  deleteProjectMember: (id: string) => Promise<MutationResult>;
+
+  addProjectActivity: (
+    payload: { projectId: string; content: string },
+  ) => Promise<ProjectActivity | null>;
+  updateProjectActivity: (
+    id: string,
+    updates: { content: string },
+  ) => Promise<MutationResult>;
+  deleteProjectActivity: (id: string) => Promise<MutationResult>;
+  setProjectActivityPinned: (id: string, pinned: boolean) => Promise<MutationResult>;
 
   addAssignee: (assignee: Omit<Assignee, 'id'>) => Promise<void>;
   updateAssignee: (id: string, updates: Partial<Assignee>) => Promise<MutationResult>;

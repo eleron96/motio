@@ -24,6 +24,8 @@ import { AvatarWithEditButton } from './AvatarWithEditButton';
 import { DeleteAccountWizard } from './DeleteAccountWizard';
 import { DataExportButton } from './DataExportButton';
 import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
+import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
+import { demoStore } from '@/features/demo/lib/demoDataStore';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
@@ -57,7 +59,10 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [localeSaving, setLocaleSaving] = useState(false);
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
   const [deleteWizardOpen, setDeleteWizardOpen] = useState(false);
-  const accountDeletionEnabled = isAccountDeletionEnabled();
+  const isDemo = useIsDemo();
+  // The data tab (account deletion + export) is meaningless for an anon
+  // demo session — the cleanup cron handles "deletion" automatically.
+  const accountDeletionEnabled = isAccountDeletionEnabled() && !isDemo;
   const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
   // When the delete wizard opens the user elsewhere on the Profile tab (to fix their
@@ -283,15 +288,33 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                   {error && <div className="text-sm text-destructive">{error}</div>}
                   {saved && <div className="text-sm text-emerald-600">{t`Saved.`}</div>}
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => signOut()}
-                    className="mt-2 gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    {t`Sign out`}
-                  </Button>
+                  {isDemo ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        demoStore.clear();
+                        onOpenChange(false);
+                        if (typeof window !== 'undefined') {
+                          window.location.href = '/';
+                        }
+                      }}
+                      className="mt-2 gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {t`Exit demo`}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => signOut()}
+                      className="mt-2 gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {t`Sign out`}
+                    </Button>
+                  )}
                 </div>
               </TabsContent>
 
