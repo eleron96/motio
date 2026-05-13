@@ -247,7 +247,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   };
 
   return (
-    <section className="flex min-h-[320px] flex-col rounded-2xl border border-border bg-card p-5 lg:max-h-[640px]">
+    <section className="flex min-h-[320px] flex-col rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center gap-2">
         <h3 className="text-ui-sm font-semibold">{t`Notes`}</h3>
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground tabular-nums">
@@ -433,15 +433,13 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                 The amber left-border + drop-shadow on the last row still
                 separate pinned from the unpinned content below. */}
             {pinnedItems.length > 0 && (
-              // Pinned section gets its own scroll window so it can never
-              // squeeze the unpinned area to zero when there are many
-              // pinned rows. `flex-shrink-0` keeps it at its natural
-              // (or maxed) height while the unpinned scroll-container
-              // claims the remainder of the parent. On desktop pinned
-              // is capped to ~200 px (≈3 rows visible, then scroll);
-              // mobile lets the page scroll handle it.
+              // Pinned section renders at its full natural height — no
+              // internal scroll, no max-height cap. The whole Notes
+              // block grows taller when there are many pinned notes.
+              // `flex-shrink-0` keeps every pinned row visible even if
+              // the parent is constrained.
               <ol
-                className={`flex flex-shrink-0 flex-col pr-2 overflow-y-auto lg:max-h-[220px] ${styles.feedPinnedSection}`}
+                className={`flex flex-shrink-0 flex-col pr-2 ${styles.feedPinnedSection}`}
               >
                 {pinnedItems.map(renderEntry)}
               </ol>
@@ -451,11 +449,11 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
               onScroll={handleScroll}
               // Desktop: cap visible *unpinned* feed to ~5 rows (≈80 px
               // each) so the scrollable region never grows past one
-              // card-height. `min-h-[160px]` guarantees the user always
-              // sees at least ~2 unpinned rows even if pinned filled
-              // its 220 px cap. Below `lg`, the parent flex handles
-              // scrolling along with the page.
-              className="flex-1 min-h-0 overflow-y-auto pr-2 lg:min-h-[160px] lg:max-h-[420px]"
+              // card-height. Pinned section above grows the block as
+              // needed without compressing this scroll window. Below
+              // `lg`, the parent flex handles scrolling along with the
+              // page.
+              className="flex-shrink-0 overflow-y-auto pr-2 lg:max-h-[420px]"
             >
               {unpinnedItems.length === 0 ? (
                 <div className="py-8 text-center text-ui-xs text-muted-foreground">
