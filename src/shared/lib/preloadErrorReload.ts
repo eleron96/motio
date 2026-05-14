@@ -64,7 +64,11 @@ export const maybeReloadForPreloadError = (deps: PreloadReloadDeps = {}): boolea
 export const installPreloadErrorReload = (deps: PreloadReloadDeps = {}): () => void => {
   if (typeof window === 'undefined') return () => undefined;
 
-  const onPreload = () => {
+  const onPreload = (event: Event) => {
+    // Vite suppresses the rejected promise (and the noisy Sentry/Glitchtip
+    // report) when the listener calls preventDefault. We always want that
+    // because we are handling the failure ourselves by reloading.
+    event.preventDefault();
     maybeReloadForPreloadError(deps);
   };
 

@@ -52,7 +52,11 @@ export class PageErrorBoundary extends React.Component<
 
   componentDidCatch(error: unknown, info: React.ErrorInfo): void {
     console.error('[PageErrorBoundary]', error, info.componentStack);
-    Sentry.captureException(error, { contexts: { react: { componentStack: info.componentStack } } });
+    // Stale Vite chunks after a fresh deploy are expected and self-healing
+    // (we reload below). Reporting them to Sentry/Glitchtip is noise.
+    if (!isRecoverableImportError(error)) {
+      Sentry.captureException(error, { contexts: { react: { componentStack: info.componentStack } } });
+    }
     reloadForRecoverableImportError(error);
   }
 
