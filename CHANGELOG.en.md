@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-05-14
 ### Fixed
 - Drop Glitchtip noise: stale-chunk preload failures after deploy no longer reported (auto-reload kept); Google/Yandex translate DOM races suppressed via notranslate + beforeSend filter
 

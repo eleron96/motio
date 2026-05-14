@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-05-14
 ### Fixed
 - Убрали из Glitchtip шум: ошибки устаревших чанков после деплоя теперь не репортятся (auto-reload остаётся), DOM-конфликты от автоперевода Google/Yandex подавляются через notranslate и фильтр beforeSend
 
