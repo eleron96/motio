@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Drop Glitchtip noise: stale-chunk preload failures after deploy no longer reported (auto-reload kept); Google/Yandex translate DOM races suppressed via notranslate + beforeSend filter
+
 ## [0.8.2] - 2026-05-13
 ### Changed
 - Pinned notes now display **fully without an internal scroll**. The pinned section grows naturally with the number of pinned rows, and the whole Notes block grows taller to fit them — previously the pinned section had its own ~220px desktop cap and 5+ pinned notes meant scrolling within the pinned block. Now every pinned note stays visible at once; only the unpinned area below scrolls (still capped at ~420px on desktop). The parent `<section>`'s `max-h: 640px` was removed so the pinned section can grow freely.
