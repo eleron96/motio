@@ -37,7 +37,6 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-charts': ['recharts', 'react-grid-layout'],
           'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-date': ['date-fns'],
           'vendor-radix': [
