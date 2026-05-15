@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.5] - 2026-05-15
 ### Changed
 - DailyBriefController (the daily brief controller mounted at the app root, which renders null until a 9 AM trigger fires) is now wrapped in React.lazy + a null Suspense fallback. With it, DailyBriefModal, the urgent-tasks and milestones renderers, and the brief's react-query data fetch are no longer part of the eager main bundle. Vite's inline <link rel="modulepreload"> polyfill is also disabled — every targeted browser (Chrome 89+, Safari 15+, Firefox 115+) supports modulepreload natively, so the polyfill no longer gets inlined into every HTML page. Main index.js: 711 → 671 KB raw (−40 KB) / 226 → 213 KB gzip (−13 KB transfer).
 - The driver.js tour engine (~26 KB raw / 7.6 KB gzip) and its stylesheet now load dynamically — only at the moment we confirm the current user actually needs to be shown the onboarding tour (i.e. their profile.preferences doesn't yet carry the onboarding_completed flag). Most users already have that flag and will no longer download driver.js on app entry. The useOnboardingTour hook's behaviour and signature are unchanged; the admin-segment test was updated to flush the new dynamic-import microtask chain.
