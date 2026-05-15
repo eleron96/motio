@@ -7,6 +7,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- DailyBriefController (the daily brief controller mounted at the app root, which renders null until a 9 AM trigger fires) is now wrapped in React.lazy + a null Suspense fallback. With it, DailyBriefModal, the urgent-tasks and milestones renderers, and the brief's react-query data fetch are no longer part of the eager main bundle. Vite's inline <link rel="modulepreload"> polyfill is also disabled — every targeted browser (Chrome 89+, Safari 15+, Firefox 115+) supports modulepreload natively, so the polyfill no longer gets inlined into every HTML page. Main index.js: 711 → 671 KB raw (−40 KB) / 226 → 213 KB gzip (−13 KB transfer).
+- The driver.js tour engine (~26 KB raw / 7.6 KB gzip) and its stylesheet now load dynamically — only at the moment we confirm the current user actually needs to be shown the onboarding tour (i.e. their profile.preferences doesn't yet carry the onboarding_completed flag). Most users already have that flag and will no longer download driver.js on app entry. The useOnboardingTour hook's behaviour and signature are unchanged; the admin-segment test was updated to flush the new dynamic-import microtask chain.
+- Drop the vendor-radix manual chunk from the build config. Vite no longer bundles all 21 @radix-ui/* packages into a single 305 KB chunk that was being preloaded on every page. The Radix primitives used eagerly at startup (Toaster, TooltipProvider, page header) fold into the main index.js bundle (+88 KB), and page-specific primitives (dialogs, tabs, selects) move into their own lazy chunks that only download when their UI mounts. Net savings on the /app critical path: −217 KB raw / −70 KB transfer.
+
 ## [0.8.4] - 2026-05-15
 ### Changed
 - Narrowed planner's initial task fetch window from ±6 to ±3 months around the current date. Initial /rest/v1/tasks JSON payload roughly halved (~1 MB → ~500 KB), request time dropped from ~500 ms to ~250 ms. The loadedRange cache continues to suppress in-window refetches; a full reload now fires only when the user scrolls past a quarter from the anchor date (rare). Calendar view (whole-year span) left untouched.
