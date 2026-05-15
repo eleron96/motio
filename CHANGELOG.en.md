@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Narrowed planner's initial task fetch window from ±6 to ±3 months around the current date. Initial /rest/v1/tasks JSON payload roughly halved (~1 MB → ~500 KB), request time dropped from ~500 ms to ~250 ms. The loadedRange cache continues to suppress in-window refetches; a full reload now fires only when the user scrolls past a quarter from the anchor date (rare). Calendar view (whole-year span) left untouched.
+- Faster first /app paint: the Recharts library (~624 KB raw / ~177 KB transfer) is no longer part of the shared preload chunk and is fetched only when the user opens Dashboard. The 1.8s main-thread parsing block disappears from the timeline boot — expected Lighthouse Performance Score boost of +20-25 points and LCP −500-800 ms. No functional change — Dashboard and widgets work as before, just with a ~200 ms micro-pause on first open.
+
+
+### Fixed
+- Removed the mobile header flicker and content jump on first /app load — the sole source of Lighthouse CLS=0.153. useIsMobile() returned false (desktop) on the first render and flipped to true only after useEffect, causing WorkspacePageHeader to mount as desktop and then re-render as mobile (WorkspacePillNav). The header height changed and everything below it shifted down. The correct value is now derived synchronously on the very first render via window.innerWidth; the matchMedia listener for runtime resizes is unchanged. The effect benefits every component using useIsMobile (PlannerPage, MembersPage, etc.).
 ## [0.8.3] - 2026-05-14
 ### Fixed
 - Drop Glitchtip noise: stale-chunk preload failures after deploy no longer reported (auto-reload kept); Google/Yandex translate DOM races suppressed via notranslate + beforeSend filter
