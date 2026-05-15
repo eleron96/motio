@@ -34,6 +34,11 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     sourcemap: true,
+    // Vite ships an inline JS polyfill that emulates <link rel="modulepreload">
+    // for browsers that don't support it natively. Every modern browser we
+    // target (Chrome 89+, Safari 15+, Firefox 115+) ships native support, so
+    // we drop the polyfill from index.html.
+    modulePreload: { polyfill: false },
     rollupOptions: {
       output: {
         manualChunks: {

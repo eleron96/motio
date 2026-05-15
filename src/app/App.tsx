@@ -1,6 +1,5 @@
 import { Toaster } from "@/shared/ui/toaster";
 import { Toaster as Sonner } from "@/shared/ui/sonner";
-import { DailyBriefController } from "@/features/daily-brief";
 import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -15,6 +14,14 @@ import { useLocaleStore } from "@/shared/store/localeStore";
 import { PageErrorBoundary } from "@/app/PageErrorBoundary";
 
 const queryClient = new QueryClient();
+
+// The daily-brief feature pulls in Dialog + urgent-tasks/milestones rendering
+// + their data fetches. The controller is mounted on every authenticated page
+// but renders nothing until a once-per-day trigger fires, so keep it out of
+// the eager main bundle.
+const DailyBriefController = lazy(() =>
+  import("@/features/daily-brief").then((m) => ({ default: m.DailyBriefController }))
+);
 
 const LandingPage = lazy(() => import("@/features/marketing/pages/LandingPage"));
 const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
@@ -40,7 +47,9 @@ const App = () => {
           <Toaster />
           <Sonner />
           <AuthProvider>
-            <DailyBriefController />
+            <Suspense fallback={null}>
+              <DailyBriefController />
+            </Suspense>
             <BrowserRouter
               future={{
                 v7_startTransition: true,
