@@ -14,7 +14,10 @@ const parsePositiveInt = (value: string | undefined, fallback: number) => {
 const MAX_FILE_BYTES = parsePositiveInt(Deno.env.get("TASK_MEDIA_MAX_FILE_BYTES"), 5 * 1024 * 1024);
 const USER_QUOTA_BYTES = parsePositiveInt(Deno.env.get("TASK_MEDIA_USER_QUOTA_BYTES"), 200 * 1024 * 1024);
 const WORKSPACE_QUOTA_BYTES = parsePositiveInt(Deno.env.get("TASK_MEDIA_WORKSPACE_QUOTA_BYTES"), 2 * 1024 * 1024 * 1024);
-const TOKEN_TTL_SECONDS = parsePositiveInt(Deno.env.get("TASK_MEDIA_TOKEN_TTL_SECONDS"), 7 * 24 * 60 * 60);
+// Default: 10 years. Tokens are baked into task description HTML and there is no
+// client-side refresh path, so short TTLs silently break images in older tasks.
+// Override via TASK_MEDIA_TOKEN_TTL_SECONDS if you want tighter rotation.
+const TOKEN_TTL_SECONDS = parsePositiveInt(Deno.env.get("TASK_MEDIA_TOKEN_TTL_SECONDS"), 10 * 365 * 24 * 60 * 60);
 
 const STORAGE_BUCKET = "task-media";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour for signed download URLs

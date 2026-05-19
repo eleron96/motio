@@ -282,7 +282,7 @@ make check-prod-secrets-remote   # проверить .env на удалённо
 - `TASK_MEDIA_MAX_FILE_BYTES` — `5MB` по умолчанию.
 - `TASK_MEDIA_USER_QUOTA_BYTES` — `200MB` по умолчанию.
 - `TASK_MEDIA_WORKSPACE_QUOTA_BYTES` — `2GB` по умолчанию.
-- `TASK_MEDIA_TOKEN_TTL_SECONDS` — `604800` (7 дней) по умолчанию.
+- `TASK_MEDIA_TOKEN_TTL_SECONDS` — `315360000` (10 лет) по умолчанию. Токен зашит в URL внутри HTML описания задачи и не обновляется на клиенте, поэтому короткий TTL ломает картинки в старых задачах.
 
 </details>
 
