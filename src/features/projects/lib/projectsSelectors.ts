@@ -44,6 +44,11 @@ type FilterAndSortMilestonesArgs = {
   trackedProjectIdSet: Set<string>;
   milestoneSearch: string;
   nameSort: NameSort;
+  /** When non-empty, only keep milestones whose parent project's owner
+   * group is in the set. Milestones whose project has no owner group
+   * (or whose project is missing) match the synthetic `'none'` id, so
+   * "No team" works the same way as in the projects filter. */
+  ownerGroupFilterIds?: string[];
 };
 
 export const sortCustomersByName = (customers: Customer[], nameSort: NameSort) => (
@@ -97,13 +102,18 @@ export const filterAndSortMilestones = ({
   trackedProjectIdSet,
   milestoneSearch,
   nameSort,
+  ownerGroupFilterIds = [],
 }: FilterAndSortMilestonesArgs) => {
   const normalizedSearch = milestoneSearch.trim().toLowerCase();
 
   return milestones
     .filter((milestone) => {
-      if (!normalizedSearch) return true;
       const project = projectById.get(milestone.projectId);
+      if (ownerGroupFilterIds.length > 0) {
+        const groupKey = project?.ownerGroupId ?? 'none';
+        if (!ownerGroupFilterIds.includes(groupKey)) return false;
+      }
+      if (!normalizedSearch) return true;
       const customer = project?.customerId ? customerById.get(project.customerId) : null;
       return [
         milestone.title,

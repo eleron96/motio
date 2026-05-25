@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowDownZA, CalendarDays, ChevronDown, Filter, Layers, Search, Star } from 'lucide-react';
+import { ArrowDownAZ, ArrowDownZA, CalendarDays, ChevronDown, Filter, Layers, Search, Star, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/classNames';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -13,7 +13,7 @@ import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-co
 import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { Customer, Milestone, Project } from '@/features/planner/types/planner';
+import { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
 
 type Mode = 'projects' | 'milestones' | 'customers';
 type ProjectTab = 'active' | 'archived';
@@ -53,6 +53,13 @@ type ProjectsSidebarProps = {
   onMilestoneSearchChange: (value: string) => void;
   milestoneGroupLabel: string;
   onCycleMilestoneGroup: () => void;
+  /** Filter milestones by the owner team (member group) of their parent
+   * project. Mirrors the popover used in ProjectCardSidebar so the UX is
+   * consistent between modes. */
+  memberGroups: MemberGroup[];
+  milestoneOwnerGroupFilterIds: string[];
+  onToggleMilestoneOwnerGroupFilter: (groupId: string) => void;
+  onClearMilestoneOwnerGroupFilters: () => void;
   milestones: Milestone[];
   visibleMilestones: Milestone[];
   groupedMilestones: MilestoneGroup[];
@@ -111,6 +118,10 @@ export const ProjectsSidebar = ({
   onMilestoneSearchChange,
   milestoneGroupLabel,
   onCycleMilestoneGroup,
+  memberGroups,
+  milestoneOwnerGroupFilterIds,
+  onToggleMilestoneOwnerGroupFilter,
+  onClearMilestoneOwnerGroupFilters,
   milestones,
   visibleMilestones,
   groupedMilestones,
@@ -463,6 +474,62 @@ export const ProjectsSidebar = ({
                 onChange={(event) => onMilestoneSearchChange(event.target.value)}
               />
               <div className="flex items-center justify-end gap-1">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'h-8 gap-1.5 px-2',
+                        milestoneOwnerGroupFilterIds.length > 0 && 'bg-muted text-foreground',
+                      )}
+                      aria-label={t`Filter milestones by team`}
+                      title={t`Filter by team`}
+                    >
+                      <Users className="h-4 w-4" />
+                      {milestoneOwnerGroupFilterIds.length > 0 && (
+                        <span className="text-[10px] tabular-nums text-muted-foreground">
+                          {milestoneOwnerGroupFilterIds.length}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-60 p-3" align="end">
+                    <div className="flex items-center justify-between pb-2">
+                      <span className="text-[11px] text-muted-foreground">{t`Filter by team`}</span>
+                      <button
+                        type="button"
+                        className="rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground"
+                        onClick={onClearMilestoneOwnerGroupFilters}
+                      >
+                        {t`Clear`}
+                      </button>
+                    </div>
+                    <ScrollArea className="max-h-56 pr-2">
+                      <div className="space-y-1">
+                        <label className="flex cursor-pointer items-center gap-2 py-1">
+                          <Checkbox
+                            checked={milestoneOwnerGroupFilterIds.includes('none')}
+                            onCheckedChange={() => onToggleMilestoneOwnerGroupFilter('none')}
+                          />
+                          <span className="text-sm">{t`No team`}</span>
+                        </label>
+                        {memberGroups.length === 0 && (
+                          <div className="text-xs text-muted-foreground">{t`No teams yet.`}</div>
+                        )}
+                        {memberGroups.map((group) => (
+                          <label key={group.id} className="flex cursor-pointer items-center gap-2 py-1">
+                            <Checkbox
+                              checked={milestoneOwnerGroupFilterIds.includes(group.id)}
+                              onCheckedChange={() => onToggleMilestoneOwnerGroupFilter(group.id)}
+                            />
+                            <span className="truncate text-sm">{group.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
                 <Button
                   variant="ghost"
                   size="sm"
