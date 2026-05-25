@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-05-19
+### Changed
+- Картинки в старых задачах больше не «битые». URL картинки вшит в HTML описания задачи вместе с access-токеном, и при истечении TTL Edge-функция возвращала 401 «Token expired» (клиент сам токен не обновляет). Миграция 0089 продлила `access_token_expires_at` до `now() + 10 лет` для всех не-отозванных записей `task_media` (затронуто 44 строки), а дефолт `TASK_MEDIA_TOKEN_TTL_SECONDS` Edge-функции `task-media` поднят с 7 дней до 10 лет — новые загрузки тоже не будут протухать. Отозванные токены (`access_token_revoked_at IS NOT NULL`) не тронуты, схема таблицы и клиентский код не менялись.
+
 ## [0.8.5] - 2026-05-15
 ### Changed
 - DailyBriefController (контроллер ежедневного брифа, который монтируется в корне приложения, но рендерит null до триггера в 9 утра) теперь обёрнут в React.lazy + Suspense с null-фолбэком. Вместе с ним из главного бандла уходят DailyBriefModal, рендереры срочных задач и вех, а также react-query-запрос данных брифа. Кроме того, отключён inline-полифил Vite для <link rel="modulepreload">: все целевые браузеры (Chrome 89+, Safari 15+, Firefox 115+) поддерживают modulepreload нативно, поэтому полифил больше не врезается в каждую HTML-страницу. Главный index.js: 711 → 671 KB raw (−40 KB) / 226 → 213 KB gzip (−13 KB по сети).
