@@ -32,6 +32,8 @@ interface UseProjectsFilterInput {
   setCustomerFilterIds?: Dispatch<SetStateAction<string[]>>;
   ownerGroupFilterIds?: string[];
   setOwnerGroupFilterIds?: Dispatch<SetStateAction<string[]>>;
+  milestoneOwnerGroupFilterIds?: string[];
+  setMilestoneOwnerGroupFilterIds?: Dispatch<SetStateAction<string[]>>;
 }
 
 export function useProjectsFilter({
@@ -53,15 +55,20 @@ export function useProjectsFilter({
   setCustomerFilterIds: setCustomerFilterIdsProp,
   ownerGroupFilterIds: ownerGroupFilterIdsProp,
   setOwnerGroupFilterIds: setOwnerGroupFilterIdsProp,
+  milestoneOwnerGroupFilterIds: milestoneOwnerGroupFilterIdsProp,
+  setMilestoneOwnerGroupFilterIds: setMilestoneOwnerGroupFilterIdsProp,
 }: UseProjectsFilterInput) {
   const [projectSearch, setProjectSearch] = useState('');
   // Fall back to local state when the caller doesn't pass persisted values.
   const [customerFilterIdsLocal, setCustomerFilterIdsLocal] = useState<string[]>([]);
   const [ownerGroupFilterIdsLocal, setOwnerGroupFilterIdsLocal] = useState<string[]>([]);
+  const [milestoneOwnerGroupFilterIdsLocal, setMilestoneOwnerGroupFilterIdsLocal] = useState<string[]>([]);
   const customerFilterIds = customerFilterIdsProp ?? customerFilterIdsLocal;
   const setCustomerFilterIds = setCustomerFilterIdsProp ?? setCustomerFilterIdsLocal;
   const ownerGroupFilterIds = ownerGroupFilterIdsProp ?? ownerGroupFilterIdsLocal;
   const setOwnerGroupFilterIds = setOwnerGroupFilterIdsProp ?? setOwnerGroupFilterIdsLocal;
+  const milestoneOwnerGroupFilterIds = milestoneOwnerGroupFilterIdsProp ?? milestoneOwnerGroupFilterIdsLocal;
+  const setMilestoneOwnerGroupFilterIds = setMilestoneOwnerGroupFilterIdsProp ?? setMilestoneOwnerGroupFilterIdsLocal;
   const [milestoneSearch, setMilestoneSearch] = useState('');
 
   const filteredActiveProjects = useMemo(
@@ -84,8 +91,17 @@ export function useProjectsFilter({
       trackedProjectIdSet,
       milestoneSearch,
       nameSort,
+      ownerGroupFilterIds: milestoneOwnerGroupFilterIds,
     }),
-    [customerById, milestoneSearch, milestones, nameSort, projectById, trackedProjectIdSet],
+    [
+      customerById,
+      milestoneOwnerGroupFilterIds,
+      milestoneSearch,
+      milestones,
+      nameSort,
+      projectById,
+      trackedProjectIdSet,
+    ],
   );
 
   const { active: filteredActiveMilestones, past: filteredPastMilestones } = useMemo(
@@ -135,6 +151,8 @@ export function useProjectsFilter({
     setCustomerFilterIds,
     ownerGroupFilterIds,
     setOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,

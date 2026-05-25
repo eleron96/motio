@@ -189,6 +189,8 @@ const ProjectsPage = () => {
     setCustomerFilterIds: setPersistedCustomerFilterIds,
     ownerGroupFilterIds: persistedOwnerGroupFilterIds,
     setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds: persistedMilestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds: setPersistedMilestoneOwnerGroupFilterIds,
   } = useProjectsViewPreferences({
     currentWorkspaceId,
     userId: user?.id,
@@ -610,6 +612,8 @@ const ProjectsPage = () => {
     setCustomerFilterIds,
     ownerGroupFilterIds,
     setOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,
@@ -640,6 +644,8 @@ const ProjectsPage = () => {
     setCustomerFilterIds: setPersistedCustomerFilterIds,
     ownerGroupFilterIds: persistedOwnerGroupFilterIds,
     setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds: persistedMilestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds: setPersistedMilestoneOwnerGroupFilterIds,
   });
 
   const {
@@ -758,6 +764,14 @@ const ProjectsPage = () => {
 
   const handleToggleOwnerGroupFilter = (groupId: string) => {
     setOwnerGroupFilterIds((current) => (
+      current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId]
+    ));
+  };
+
+  const handleToggleMilestoneOwnerGroupFilter = (groupId: string) => {
+    setMilestoneOwnerGroupFilterIds((current) => (
       current.includes(groupId)
         ? current.filter((id) => id !== groupId)
         : [...current, groupId]
@@ -1003,6 +1017,10 @@ const ProjectsPage = () => {
               onMilestoneSearchChange={setMilestoneSearch}
               milestoneGroupLabel={milestoneGroupLabel}
               onCycleMilestoneGroup={handleCycleMilestoneGroup}
+              memberGroups={memberGroups}
+              milestoneOwnerGroupFilterIds={milestoneOwnerGroupFilterIds}
+              onToggleMilestoneOwnerGroupFilter={handleToggleMilestoneOwnerGroupFilter}
+              onClearMilestoneOwnerGroupFilters={() => setMilestoneOwnerGroupFilterIds([])}
               milestones={milestones}
               visibleMilestones={visibleMilestones}
               groupedMilestones={groupedMilestones}
@@ -1081,6 +1099,10 @@ const ProjectsPage = () => {
       onMilestoneSearchChange={setMilestoneSearch}
       milestoneGroupLabel={milestoneGroupLabel}
       onCycleMilestoneGroup={handleCycleMilestoneGroup}
+      memberGroups={memberGroups}
+      milestoneOwnerGroupFilterIds={milestoneOwnerGroupFilterIds}
+      onToggleMilestoneOwnerGroupFilter={handleToggleMilestoneOwnerGroupFilter}
+      onClearMilestoneOwnerGroupFilters={() => setMilestoneOwnerGroupFilterIds([])}
       milestones={milestones}
       visibleMilestones={visibleMilestones}
       groupedMilestones={groupedMilestones}
