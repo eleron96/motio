@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-05-19
+### Changed
+- Images in older tasks no longer render as broken. Their URLs carry an access token baked into the task description HTML, and once the TTL lapsed the task-media Edge Function returned 401 "Token expired" with no client-side refresh path. Migration 0089 bumps `access_token_expires_at` to `now() + 10 years` for every non-revoked `task_media` row (44 rows updated), and the default `TASK_MEDIA_TOKEN_TTL_SECONDS` of the `task-media` Edge Function is raised from 7 days to 10 years so newly uploaded media doesn't hit the same wall. Revoked tokens (`access_token_revoked_at IS NOT NULL`) are left untouched; the table schema and client code are unchanged.
+
 ## [0.8.5] - 2026-05-15
 ### Changed
 - DailyBriefController (the daily brief controller mounted at the app root, which renders null until a 9 AM trigger fires) is now wrapped in React.lazy + a null Suspense fallback. With it, DailyBriefModal, the urgent-tasks and milestones renderers, and the brief's react-query data fetch are no longer part of the eager main bundle. Vite's inline <link rel="modulepreload"> polyfill is also disabled — every targeted browser (Chrome 89+, Safari 15+, Firefox 115+) supports modulepreload natively, so the polyfill no longer gets inlined into every HTML page. Main index.js: 711 → 671 KB raw (−40 KB) / 226 → 213 KB gzip (−13 KB transfer).
