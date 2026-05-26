@@ -466,14 +466,14 @@ export const ProjectsSidebar = ({
           className="flex min-h-0 flex-1 flex-col"
         >
           <div className="px-4 py-3 border-b border-border">
-            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <div className="flex flex-col gap-2">
               <Input
                 className="h-8"
                 placeholder={t`Search milestones...`}
                 value={milestoneSearch}
                 onChange={(event) => onMilestoneSearchChange(event.target.value)}
               />
-              <div className="flex items-center justify-end gap-1">
+              <div className="flex items-center gap-1">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -494,7 +494,7 @@ export const ProjectsSidebar = ({
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-60 p-3" align="end">
+                  <PopoverContent className="w-60 p-3" align="start">
                     <div className="flex items-center justify-between pb-2">
                       <span className="text-[11px] text-muted-foreground">{t`Filter by team`}</span>
                       <button

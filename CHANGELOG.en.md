@@ -13,6 +13,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 - In the Projects tab (/app/projects), the search box now temporarily overrides the active customer and team popover filters — previously a matching project belonging to a filtered-out customer or team simply never appeared in the results, forcing the user to clear filters by hand before every lookup. Filter state itself is not reset: as soon as the search box is emptied the filters re-apply. The Milestones tab mirrors the same behavior for consistency.
+
+
+### Changed
+- In the Milestones tab (/app/projects) the toolbar is now laid out the same way as the Projects tab: the search input takes the full width on top, with the row of buttons (team filter, A–Z sort, grouping) moved underneath. Previously the search box shared a row with the buttons and got cramped on narrow sidebars; it no longer shrinks. Filter and search behavior are unchanged.
 ## [0.8.6] - 2026-05-19
 ### Changed
 - Images in older tasks no longer render as broken. Their URLs carry an access token baked into the task description HTML, and once the TTL lapsed the task-media Edge Function returned 401 "Token expired" with no client-side refresh path. Migration 0089 bumps `access_token_expires_at` to `now() + 10 years` for every non-revoked `task_media` row (44 rows updated), and the default `TASK_MEDIA_TOKEN_TTL_SECONDS` of the `task-media` Edge Function is raised from 7 days to 10 years so newly uploaded media doesn't hit the same wall. Revoked tokens (`access_token_revoked_at IS NOT NULL`) are left untouched; the table schema and client code are unchanged.
