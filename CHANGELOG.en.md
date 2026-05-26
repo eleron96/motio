@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-05-26
 ### Added
 - Milestones can now be filtered by team — pick a team in the toolbar and see only its milestones.
 
@@ -17,6 +18,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - In Milestones, the "Open project" button is now labelled "Перейти к проекту" in Russian (English wording unchanged).
 - Milestones and Customers now show a three-dot menu next to their names and in the detail panel — same actions as the right-click menu (Edit, Open project, Delete).
 - In Milestones the search box is now full-width and the filter / sort buttons moved underneath — search no longer gets squeezed on narrow sidebars.
+
 ## [0.8.6] - 2026-05-19
 ### Changed
 - Images in older tasks no longer render as broken. Their URLs carry an access token baked into the task description HTML, and once the TTL lapsed the task-media Edge Function returned 401 "Token expired" with no client-side refresh path. Migration 0089 bumps `access_token_expires_at` to `now() + 10 years` for every non-revoked `task_media` row (44 rows updated), and the default `TASK_MEDIA_TOKEN_TTL_SECONDS` of the `task-media` Edge Function is raised from 7 days to 10 years so newly uploaded media doesn't hit the same wall. Revoked tokens (`access_token_revoked_at IS NOT NULL`) are left untouched; the table schema and client code are unchanged.
