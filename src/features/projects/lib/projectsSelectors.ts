@@ -78,20 +78,24 @@ export const filterProjectsByCustomerAndSearch = (
   statusFilterValues: string[] = [],
 ) => {
   const normalizedQuery = projectSearch.trim().toLowerCase();
+  // When the user is actively searching, the popover filters
+  // (customer / owner team / status) are *suppressed* — otherwise
+  // matches that live outside the current filter selection would
+  // silently never appear, forcing the user to clear filters by hand
+  // every time they want to look something up. Filters re-engage as
+  // soon as the search box is emptied; their state isn't reset.
+  const hasSearchQuery = normalizedQuery.length > 0;
   return projects.filter((project) => {
-    const matchesCustomer = customerFilterIds.length === 0
-      ? true
-      : customerFilterIds.includes(project.customerId ?? 'none');
-    const matchesOwnerGroup = ownerGroupFilterIds.length === 0
-      ? true
-      : ownerGroupFilterIds.includes(project.ownerGroupId ?? 'none');
-    const matchesStatus = statusFilterValues.length === 0
-      ? true
-      : statusFilterValues.includes(project.status ?? '__none__');
-    const matchesSearch = normalizedQuery.length === 0
-      ? true
-      : project.name.toLowerCase().includes(normalizedQuery);
-    return matchesCustomer && matchesOwnerGroup && matchesStatus && matchesSearch;
+    if (!hasSearchQuery) {
+      if (customerFilterIds.length > 0
+        && !customerFilterIds.includes(project.customerId ?? 'none')) return false;
+      if (ownerGroupFilterIds.length > 0
+        && !ownerGroupFilterIds.includes(project.ownerGroupId ?? 'none')) return false;
+      if (statusFilterValues.length > 0
+        && !statusFilterValues.includes(project.status ?? '__none__')) return false;
+      return true;
+    }
+    return project.name.toLowerCase().includes(normalizedQuery);
   });
 };
 
@@ -105,15 +109,21 @@ export const filterAndSortMilestones = ({
   ownerGroupFilterIds = [],
 }: FilterAndSortMilestonesArgs) => {
   const normalizedSearch = milestoneSearch.trim().toLowerCase();
+  // Mirror the projects-mode rule: active search overrides the team
+  // popover so the user always sees every milestone that matches the
+  // query, even if it lives outside their current team selection.
+  const hasSearchQuery = normalizedSearch.length > 0;
 
   return milestones
     .filter((milestone) => {
       const project = projectById.get(milestone.projectId);
-      if (ownerGroupFilterIds.length > 0) {
-        const groupKey = project?.ownerGroupId ?? 'none';
-        if (!ownerGroupFilterIds.includes(groupKey)) return false;
+      if (!hasSearchQuery) {
+        if (ownerGroupFilterIds.length > 0) {
+          const groupKey = project?.ownerGroupId ?? 'none';
+          if (!ownerGroupFilterIds.includes(groupKey)) return false;
+        }
+        return true;
       }
-      if (!normalizedSearch) return true;
       const customer = project?.customerId ? customerById.get(project.customerId) : null;
       return [
         milestone.title,
