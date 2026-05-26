@@ -1,11 +1,18 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowDownZA, CalendarDays, ChevronDown, Filter, Layers, Search, Star, Users } from 'lucide-react';
+import { ArrowDownAZ, ArrowDownZA, CalendarDays, ChevronDown, Filter, Layers, MoreHorizontal, Search, Star, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/classNames';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/shared/ui/context-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
@@ -299,6 +306,39 @@ export const ProjectsSidebar = ({
                 {project?.archived && (
                   <Badge variant="secondary" size="xs">{t`Archived`}</Badge>
                 )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                      aria-label={t`Milestone actions`}
+                      // Stop the click from selecting the row underneath —
+                      // the user is reaching for the kebab, not the item.
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem disabled={!canEdit} onSelect={() => onOpenMilestoneSettings(milestone)}>
+                      {t`Edit`}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={!project}
+                      onSelect={() => onOpenProjectFromMilestone(milestone)}
+                    >
+                      {t`Open project`}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      onSelect={() => onRequestDeleteMilestone(milestone)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      {t`Delete`}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </SelectableListItem>
@@ -433,6 +473,34 @@ export const ProjectsSidebar = ({
                               {t`${projectCount} projects`}
                             </div>
                           </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                                aria-label={t`Customer actions`}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <MoreHorizontal className="h-3.5 w-3.5" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                disabled={!canEdit}
+                                onSelect={() => onStartCustomerEdit(customer.id, customer.name, customer.industry)}
+                              >
+                                {t`Edit`}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                disabled={!canEdit}
+                                onSelect={() => onRequestDeleteCustomer(customer)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                {t`Delete`}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </SelectableListItem>
                       </ContextMenuTrigger>
                       <ContextMenuContent>

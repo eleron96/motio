@@ -1237,6 +1237,8 @@ const ProjectsPage = () => {
       selectedCustomerProjects={selectedCustomerProjects}
       customersCount={customers.length}
       onOpenProjectFromCustomer={handleOpenProjectFromCustomer}
+      onStartCustomerEdit={startCustomerEdit}
+      onRequestDeleteCustomer={requestDeleteCustomer}
       projectMembers={projectMembers}
       projectMilestones={projectMilestones}
       today={today}
