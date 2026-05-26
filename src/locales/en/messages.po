@@ -458,7 +458,7 @@ msgid "Apply your saved template to this workspace (adds missing items by name).
 msgstr "Apply your saved template to this workspace (adds missing items by name)."
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:263
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:451
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:448
 #: src/features/projects/components/ProjectsSidebar.tsx:219
 msgid "Archive"
 msgstr "Archive"
@@ -1185,7 +1185,7 @@ msgid "Delete workspace?"
 msgstr "Delete workspace?"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:273
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:458
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:455
 msgid "Delete..."
 msgstr "Delete..."
 
@@ -1332,6 +1332,7 @@ msgstr "Each morning starts with a short brief. What's on you today, which miles
 #: src/features/planner/components/TaskCommentItem.tsx:150
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:625
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:762
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:445
 #: src/features/projects/components/ProjectsMainPanel.tsx:775
 #: src/features/projects/components/ProjectsMainPanel.tsx:856
 #: src/features/projects/components/ProjectsSidebar.tsx:213
@@ -1377,7 +1378,6 @@ msgid "Edit photo"
 msgstr "Edit photo"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:259
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:448
 #: src/features/projects/components/ProjectsDialogs.tsx:490
 msgid "Edit project"
 msgstr "Edit project"
@@ -3721,7 +3721,6 @@ msgstr "Statuses"
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:231
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:416
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:417
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:443
 #: src/features/projects/components/ProjectsSidebar.tsx:210
 msgid "Stop tracking"
 msgstr "Stop tracking"
@@ -4029,7 +4028,6 @@ msgstr "Total tasks"
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:231
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:416
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:417
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:443
 #: src/features/projects/components/ProjectsSidebar.tsx:210
 msgid "Track"
 msgstr "Track"
@@ -4089,7 +4087,7 @@ msgid "Types"
 msgstr "Types"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:263
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:451
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:448
 msgid "Unarchive"
 msgstr "Unarchive"
 

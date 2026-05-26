@@ -458,7 +458,7 @@ msgid "Apply your saved template to this workspace (adds missing items by name).
 msgstr "Применить сохраненный шаблон к этому рабочему пространству (добавит отсутствующие элементы по имени)."
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:263
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:451
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:448
 #: src/features/projects/components/ProjectsSidebar.tsx:219
 msgid "Archive"
 msgstr "Архивировать"
@@ -1185,7 +1185,7 @@ msgid "Delete workspace?"
 msgstr "Удалить рабочее пространство?"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:273
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:458
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:455
 msgid "Delete..."
 msgstr "Удалить..."
 
@@ -1332,6 +1332,7 @@ msgstr "Каждое утро начинается с короткого бри�
 #: src/features/planner/components/TaskCommentItem.tsx:150
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:625
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:762
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:445
 #: src/features/projects/components/ProjectsMainPanel.tsx:775
 #: src/features/projects/components/ProjectsMainPanel.tsx:856
 #: src/features/projects/components/ProjectsSidebar.tsx:213
@@ -1377,7 +1378,6 @@ msgid "Edit photo"
 msgstr "Редактировать фото"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:259
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:448
 #: src/features/projects/components/ProjectsDialogs.tsx:490
 msgid "Edit project"
 msgstr "Редактировать проект"
@@ -1642,7 +1642,7 @@ msgstr "Фильтр клиентов"
 
 #: src/features/projects/components/ProjectsSidebar.tsx:554
 msgid "Filter milestones by team"
-msgstr ""
+msgstr "Фильтр вех по команде"
 
 #: src/features/dashboard/pages/DashboardPage.tsx:706
 msgid "Filter settings"
@@ -3721,7 +3721,6 @@ msgstr "Статусы"
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:231
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:416
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:417
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:443
 #: src/features/projects/components/ProjectsSidebar.tsx:210
 msgid "Stop tracking"
 msgstr "Перестать отслеживать"
@@ -4029,7 +4028,6 @@ msgstr "Всего задач"
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:231
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:416
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:417
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:443
 #: src/features/projects/components/ProjectsSidebar.tsx:210
 msgid "Track"
 msgstr "Отслеживать"
@@ -4089,7 +4087,7 @@ msgid "Types"
 msgstr "Типы"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:263
-#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:451
+#: src/features/projects/components/projectCard/ProjectCardSidebar.tsx:448
 msgid "Unarchive"
 msgstr "Разархивировать"
 

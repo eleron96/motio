@@ -28,7 +28,7 @@ const makeMilestone = (overrides: Partial<Milestone>): Milestone => ({
 });
 
 describe('projectsSelectors', () => {
-  it('filters milestones by search and keeps tracked projects first', () => {
+  it('filters milestones by search and orders them by date', () => {
     const projects = [
       makeProject({ id: 'p1', name: 'Alpha', customerId: 'c1' }),
       makeProject({ id: 'p2', name: 'Beta', customerId: null }),
@@ -61,6 +61,32 @@ describe('projectsSelectors', () => {
     });
 
     expect(searched.map((milestone) => milestone.id)).toEqual(['m3', 'm2']);
+  });
+
+  // Tracking used to bubble starred milestones to the top of the list,
+  // hiding the chronology. The star is now purely informational —
+  // sorting is strictly by date with the nearest milestone on top.
+  it('does not let tracking override chronological order', () => {
+    const projects = [
+      makeProject({ id: 'tracked', name: 'Tracked one' }),
+      makeProject({ id: 'plain', name: 'Plain one' }),
+    ];
+    const milestones = [
+      makeMilestone({ id: 'tracked-late', projectId: 'tracked', date: '2026-03-15' }),
+      makeMilestone({ id: 'plain-early', projectId: 'plain', date: '2026-02-01' }),
+    ];
+
+    const ordered = filterAndSortMilestones({
+      milestones,
+      projectById: new Map(projects.map((project) => [project.id, project])),
+      customerById: new Map(),
+      trackedProjectIdSet: new Set(['tracked']),
+      milestoneSearch: '',
+      nameSort: 'asc',
+    });
+
+    // Earlier date wins even though the other milestone is tracked.
+    expect(ordered.map((m) => m.id)).toEqual(['plain-early', 'tracked-late']);
   });
 
   it('builds customer milestone groups with fallback buckets', () => {
