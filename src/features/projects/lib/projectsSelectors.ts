@@ -133,10 +133,10 @@ export const filterAndSortMilestones = ({
       ].join(' ').toLowerCase().includes(normalizedSearch);
     })
     .sort((left, right) => {
-      const leftTracked = trackedProjectIdSet.has(left.projectId);
-      const rightTracked = trackedProjectIdSet.has(right.projectId);
-      if (leftTracked !== rightTracked) return leftTracked ? -1 : 1;
-
+      // Date first — nearest milestone on top, farther ones below.
+      // Tracking used to bubble starred milestones to the top here, but
+      // that hid the timeline order; the star next to the row is now
+      // purely informational and doesn't influence position.
       const byDate = left.date.localeCompare(right.date);
       if (byDate !== 0) return byDate;
 
@@ -198,7 +198,12 @@ export const buildGroupedMilestones = ({
   });
 
   if (milestoneGroupBy === 'project') {
-    const orderedProjects = sortProjectsByTracking(projects, trackedProjectIds, nameSort);
+    // Tracking only paints the row's star icon — it shouldn't reshuffle
+    // the chronological list. Sort project groups alphabetically so the
+    // dates inside each group stay the primary signal.
+    const orderedProjects = [...projects].sort((left, right) => (
+      compareNames(left.name, right.name, nameSort)
+    ));
     const result = orderedProjects
       .map((project) => {
         const list = buckets.get(project.id) ?? [];
