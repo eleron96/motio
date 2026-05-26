@@ -8,15 +8,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 
 ### Added
-- The Milestones tab (/app/projects) now has a team filter — a Users-icon popover in the milestones toolbar, next to sort and group-by. It contains a No-team checkbox plus one row per workspace member group; milestones are filtered by the ownerGroupId of their parent project (projects without a team, and orphan milestones, bucket into the No-team row). State lives under its own milestoneOwnerGroupFilterIds key in useProjectsViewPreferences (localStorage), separate from the projects-mode team filter — switching tabs no longer hijacks the other selection. The UI mirrors the existing ProjectCardSidebar pattern; no new translatable strings were added.
-
+- Milestones can now be filtered by team — pick a team in the toolbar and see only its milestones.
 
 ### Fixed
-- In the Projects tab (/app/projects), the search box now temporarily overrides the active customer and team popover filters — previously a matching project belonging to a filtered-out customer or team simply never appeared in the results, forcing the user to clear filters by hand before every lookup. Filter state itself is not reset: as soon as the search box is emptied the filters re-apply. The Milestones tab mirrors the same behavior for consistency.
-
+- Search in Projects and Milestones now finds matches even when filters are set. Filters stay put — clear the search box and they re-apply.
 
 ### Changed
-- In the Milestones tab (/app/projects) the toolbar is now laid out the same way as the Projects tab: the search input takes the full width on top, with the row of buttons (team filter, A–Z sort, grouping) moved underneath. Previously the search box shared a row with the buttons and got cramped on narrow sidebars; it no longer shrinks. Filter and search behavior are unchanged.
+- In Milestones the search box is now full-width and the filter / sort buttons moved underneath — search no longer gets squeezed on narrow sidebars.
 ## [0.8.6] - 2026-05-19
 ### Changed
 - Images in older tasks no longer render as broken. Their URLs carry an access token baked into the task description HTML, and once the TTL lapsed the task-media Edge Function returned 401 "Token expired" with no client-side refresh path. Migration 0089 bumps `access_token_expires_at` to `now() + 10 years` for every non-revoked `task_media` row (44 rows updated), and the default `TASK_MEDIA_TOKEN_TTL_SECONDS` of the `task-media` Edge Function is raised from 7 days to 10 years so newly uploaded media doesn't hit the same wall. Revoked tokens (`access_token_revoked_at IS NOT NULL`) are left untouched; the table schema and client code are unchanged.
