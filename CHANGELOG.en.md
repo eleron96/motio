@@ -14,6 +14,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Search in Projects and Milestones now finds matches even when filters are set. Filters stay put — clear the search box and they re-apply.
 
 ### Changed
+- In Milestones, the "Open project" button is now labelled "Перейти к проекту" in Russian (English wording unchanged).
+- Milestones and Customers now show a three-dot menu next to their names and in the detail panel — same actions as the right-click menu (Edit, Open project, Delete).
 - In Milestones the search box is now full-width and the filter / sort buttons moved underneath — search no longer gets squeezed on narrow sidebars.
 ## [0.8.6] - 2026-05-19
 ### Changed
