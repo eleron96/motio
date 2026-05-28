@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-05-28
 ### Changed
 - The project three-dot menu is shorter: the Track item is gone (the star button next to the menu already does that) and Edit is now the first item.
 - Milestones are now sorted strictly by date — the nearest one on top. The star next to a milestone of a tracked project is now purely informational and no longer pulls the row up.
