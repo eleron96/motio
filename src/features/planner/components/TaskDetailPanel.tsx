@@ -91,6 +91,7 @@ export const TaskDetailPanel: React.FC = () => {
     updateRepeatSeries,
     fetchTaskSubtasks,
     createTaskSubtask,
+    updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
     fetchTaskDescription,
@@ -184,6 +185,7 @@ export const TaskDetailPanel: React.FC = () => {
     subtaskInputRef,
     handleOpenSubtasks,
     handleAddSubtask,
+    handleEditSubtask,
     handleToggleSubtask,
     handleDeleteSubtask,
   } = useTaskSubtasks({
@@ -192,6 +194,7 @@ export const TaskDetailPanel: React.FC = () => {
     canEdit,
     fetchTaskSubtasks,
     createTaskSubtask,
+    updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
   });
@@ -564,6 +567,7 @@ export const TaskDetailPanel: React.FC = () => {
                 onOpen={handleOpenSubtasks}
                 onNewTitleChange={setNewSubtaskTitle}
                 onAdd={() => void handleAddSubtask()}
+                onEdit={handleEditSubtask}
                 onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
                 onDelete={(id) => void handleDeleteSubtask(id)}
               />

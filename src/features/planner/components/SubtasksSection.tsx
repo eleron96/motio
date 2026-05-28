@@ -1,6 +1,6 @@
-import React, { MutableRefObject } from 'react';
+import React, { MutableRefObject, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Plus, X } from 'lucide-react';
+import { Pencil, Plus, X } from 'lucide-react';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -20,6 +20,7 @@ interface SubtasksSectionProps {
   onOpen: () => void;
   onNewTitleChange: (value: string) => void;
   onAdd: () => void;
+  onEdit: (subtaskId: string, title: string) => Promise<boolean>;
   onToggle: (subtaskId: string, isDone: boolean) => void;
   onDelete: (subtaskId: string) => void;
 }
@@ -37,9 +38,28 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onOpen,
   onNewTitleChange,
   onAdd,
+  onEdit,
   onToggle,
   onDelete,
 }) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+
+  const startEditing = (subtaskId: string, title: string) => {
+    setEditingId(subtaskId);
+    setEditingTitle(title);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditingTitle('');
+  };
+
+  const commitEditing = async (subtaskId: string) => {
+    const saved = await onEdit(subtaskId, editingTitle);
+    if (saved) cancelEditing();
+  };
+
   if (!subtasksOpen) {
     return (
       <Button
@@ -105,16 +125,56 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   if (value === 'indeterminate') return;
                   onToggle(subtask.id, value === true);
                 }}
-                disabled={isReadOnly}
+                disabled={isReadOnly || editingId === subtask.id}
               />
-              <span
-                className={cn(
-                  'flex-1 text-sm leading-snug text-foreground',
-                  subtask.isDone && 'line-through text-muted-foreground',
-                )}
-              >
-                {subtask.title}
-              </span>
+              {editingId === subtask.id ? (
+                <Input
+                  autoFocus
+                  value={editingTitle}
+                  onChange={(event) => setEditingTitle(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      void commitEditing(subtask.id);
+                    } else if (event.key === 'Escape') {
+                      event.preventDefault();
+                      cancelEditing();
+                    }
+                  }}
+                  onBlur={() => void commitEditing(subtask.id)}
+                  disabled={isReadOnly}
+                  className="h-7 flex-1 text-sm"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isReadOnly) return;
+                    startEditing(subtask.id, subtask.title);
+                  }}
+                  disabled={isReadOnly}
+                  className={cn(
+                    'flex-1 text-left text-sm leading-snug text-foreground',
+                    !isReadOnly && 'cursor-text',
+                    subtask.isDone && 'line-through text-muted-foreground',
+                  )}
+                >
+                  {subtask.title}
+                </button>
+              )}
+              {editingId !== subtask.id && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={() => startEditing(subtask.id, subtask.title)}
+                  disabled={isReadOnly}
+                  aria-label={t`Edit subtask`}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="ghost"

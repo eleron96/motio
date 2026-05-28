@@ -9,6 +9,7 @@ interface UseTaskSubtasksParams {
   canEdit: boolean;
   fetchTaskSubtasks: (workspaceId: string, taskId: string) => Promise<{ subtasks: TaskSubtask[]; error?: string }>;
   createTaskSubtask: (workspaceId: string, taskId: string, title: string, position: number) => Promise<{ subtask?: TaskSubtask; error?: string }>;
+  updateTaskSubtaskTitle: (workspaceId: string, taskId: string, subtaskId: string, title: string) => Promise<MutationResult>;
   updateTaskSubtaskCompletion: (workspaceId: string, taskId: string, subtaskId: string, isDone: boolean, doneAt: string | null) => Promise<MutationResult>;
   deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
 }
@@ -27,6 +28,7 @@ export interface UseTaskSubtasksResult {
   subtaskInputRef: MutableRefObject<HTMLInputElement | null>;
   handleOpenSubtasks: () => void;
   handleAddSubtask: () => Promise<void>;
+  handleEditSubtask: (subtaskId: string, title: string) => Promise<boolean>;
   handleToggleSubtask: (subtaskId: string, isDone: boolean) => Promise<void>;
   handleDeleteSubtask: (subtaskId: string) => Promise<void>;
 }
@@ -37,6 +39,7 @@ export const useTaskSubtasks = ({
   canEdit,
   fetchTaskSubtasks,
   createTaskSubtask,
+  updateTaskSubtaskTitle,
   updateTaskSubtaskCompletion,
   deleteTaskSubtask,
 }: UseTaskSubtasksParams): UseTaskSubtasksResult => {
@@ -123,6 +126,31 @@ export const useTaskSubtasks = ({
     subtaskInputRef.current?.focus();
   }, [canEdit, createTaskSubtask, currentWorkspaceId, newSubtaskTitle, subtasks, taskId]);
 
+  const handleEditSubtask = useCallback(async (subtaskId: string, title: string) => {
+    if (!taskId || !currentWorkspaceId || !canEdit) return false;
+    const previous = subtasks.find((item) => item.id === subtaskId);
+    if (!previous) return false;
+
+    const nextTitle = title.trim();
+    if (!nextTitle || nextTitle === previous.title) return true;
+
+    setSubtasksError('');
+    setSubtasks((current) => current.map((item) => (
+      item.id === subtaskId ? { ...item, title: nextTitle } : item
+    )));
+
+    const result = await updateTaskSubtaskTitle(currentWorkspaceId, taskId, subtaskId, nextTitle);
+    if (result.error) {
+      setSubtasks((current) => current.map((item) => (
+        item.id === subtaskId ? { ...item, title: previous.title } : item
+      )));
+      setSubtasksError(result.error || t`Failed to update subtask.`);
+      return false;
+    }
+
+    return true;
+  }, [canEdit, currentWorkspaceId, subtasks, taskId, updateTaskSubtaskTitle]);
+
   const handleToggleSubtask = useCallback(async (subtaskId: string, isDone: boolean) => {
     if (!taskId || !currentWorkspaceId || !canEdit) return;
     const previous = subtasks.find((item) => item.id === subtaskId);
@@ -184,6 +212,7 @@ export const useTaskSubtasks = ({
     subtaskInputRef,
     handleOpenSubtasks,
     handleAddSubtask,
+    handleEditSubtask,
     handleToggleSubtask,
     handleDeleteSubtask,
   };
