@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.9] - 2026-05-28
 ### Changed
 - Название подзадачи теперь можно изменить после создания.
 
