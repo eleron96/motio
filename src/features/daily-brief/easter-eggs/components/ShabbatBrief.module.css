@@ -1,0 +1,44 @@
+/* Daily-brief easter egg styling. Class names are consumed via the CSS-module
+   `styles` object (including for imperatively-created icons), so they stay
+   scoped to this feature. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  /* Sits above the dialog dimming (z-50) but below the brief card (z-60),
+     so the icons rain behind the report. See DailyBriefModal. */
+  z-index: 55;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.icon {
+  position: absolute;
+  top: -64px;
+  left: var(--x);
+  font-size: var(--size);
+  line-height: 1;
+  opacity: var(--opacity);
+  color: #f5c96b;
+  text-shadow: 0 0 12px rgba(245, 201, 107, 0.45);
+  animation: shabbatFall var(--duration) linear forwards;
+  will-change: transform;
+  transform: translate3d(0, -80px, 0) rotate(0deg);
+  backface-visibility: hidden;
+}
+
+@keyframes shabbatFall {
+  from {
+    transform: translate3d(0, -80px, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(var(--drift), calc(100vh + 120px), 0) rotate(var(--rotate));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon {
+    animation: none !important;
+  }
+}
