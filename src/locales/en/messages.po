@@ -46,7 +46,7 @@ msgstr "(you)"
 #. placeholder {0}: assigneeIds.length
 #. placeholder {0}: task.assigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx:494
-#: src/features/planner/components/TaskDetailPanel.tsx:205
+#: src/features/planner/components/TaskDetailPanel.tsx:208
 msgid "{0} assignees"
 msgstr "{0} assignees"
 
@@ -287,7 +287,7 @@ msgstr "Active people"
 #~ msgstr "Activity feed lands later"
 
 #: src/features/planner/components/AddTaskDialog.tsx:775
-#: src/features/planner/components/SubtasksSection.tsx:83
+#: src/features/planner/components/SubtasksSection.tsx:103
 #: src/features/projects/components/projectCard/AddContactForm.tsx:77
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:327
 #: src/features/projects/components/projectCard/TeamBlock.tsx:651
@@ -305,7 +305,7 @@ msgid "Add a comment or update..."
 msgstr "Add a comment or update..."
 
 #: src/features/planner/components/AddTaskDialog.tsx:735
-#: src/features/planner/components/TaskDetailPanel.tsx:546
+#: src/features/planner/components/TaskDetailPanel.tsx:549
 msgid "Add a description..."
 msgstr "Add a description..."
 
@@ -352,7 +352,7 @@ msgid "Add rule"
 msgstr "Add rule"
 
 #: src/features/planner/components/AddTaskDialog.tsx:749
-#: src/features/planner/components/SubtasksSection.tsx:52
+#: src/features/planner/components/SubtasksSection.tsx:72
 msgid "Add subtask"
 msgstr "Add subtask"
 
@@ -496,8 +496,8 @@ msgstr "assigned you to task"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:75
 #: src/features/planner/components/AddTaskDialog.tsx:545
-#: src/features/planner/components/TaskDetailPanel.tsx:596
-#: src/features/planner/components/TaskDetailPanel.tsx:599
+#: src/features/planner/components/TaskDetailPanel.tsx:600
+#: src/features/planner/components/TaskDetailPanel.tsx:603
 #: src/features/planner/components/timeline/TaskBar.tsx:595
 #: src/features/projects/components/ProjectsMainPanel.tsx:611
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:100
@@ -760,7 +760,7 @@ msgid "Company"
 msgstr "Company"
 
 #: src/features/marketing/pages/LandingPage.tsx:556
-#: src/features/planner/components/SubtasksSection.tsx:60
+#: src/features/planner/components/SubtasksSection.tsx:80
 msgid "Completed"
 msgstr "Completed"
 
@@ -900,7 +900,7 @@ msgid "Create workspace"
 msgstr "Create workspace"
 
 #. placeholder {0}: result.created ?? 0
-#: src/features/planner/components/TaskDetailPanel.tsx:293
+#: src/features/planner/components/TaskDetailPanel.tsx:296
 msgid "Created {0} tasks."
 msgstr "Created {0} tasks."
 
@@ -928,7 +928,7 @@ msgstr "Current month"
 msgid "Custom"
 msgstr "Custom"
 
-#: src/features/planner/components/TaskDetailPanel.tsx:519
+#: src/features/planner/components/TaskDetailPanel.tsx:522
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:157
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:192
 #: src/features/projects/components/ProjectsDialogs.tsx:408
@@ -1058,7 +1058,7 @@ msgstr "Declined"
 #: src/features/planner/components/TaskCommentItem.tsx:158
 #: src/features/planner/components/TaskCommentItem.tsx:183
 #: src/features/planner/components/TaskDetailDialogs.tsx:150
-#: src/features/planner/components/TaskDetailPanel.tsx:815
+#: src/features/planner/components/TaskDetailPanel.tsx:819
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:275
 #: src/features/planner/components/timeline/TaskBar.tsx:689
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:697
@@ -1211,7 +1211,7 @@ msgstr "Demo sandbox"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:145
 #: src/features/planner/components/AddTaskDialog.tsx:718
-#: src/features/planner/components/TaskDetailPanel.tsx:525
+#: src/features/planner/components/TaskDetailPanel.tsx:528
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:168
 msgid "Description"
 msgstr "Description"
@@ -1303,7 +1303,7 @@ msgstr "Drag & drop or click to select a photo"
 msgid "Drag and drop image files into the description area."
 msgstr "Drag and drop image files into the description area."
 
-#: src/features/planner/components/TaskDetailPanel.tsx:828
+#: src/features/planner/components/TaskDetailPanel.tsx:832
 #: src/features/planner/components/timeline/TaskBar.tsx:485
 msgid "Duplicate task"
 msgstr "Duplicate task"
@@ -1396,6 +1396,10 @@ msgstr "Edit project status"
 msgid "Edit project status: {0}"
 msgstr "Edit project status: {0}"
 
+#: src/features/planner/components/SubtasksSection.tsx:173
+msgid "Edit subtask"
+msgstr "Edit subtask"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:130
 msgid "Edit widget"
 msgstr "Edit widget"
@@ -1432,7 +1436,7 @@ msgstr "Enable member"
 msgid "End date"
 msgstr "End date"
 
-#: src/features/planner/components/TaskDetailPanel.tsx:744
+#: src/features/planner/components/TaskDetailPanel.tsx:748
 msgid "End Date"
 msgstr "End Date"
 
@@ -1465,7 +1469,7 @@ msgid "Enter dashboard name..."
 msgstr "Enter dashboard name..."
 
 #: src/features/planner/components/AddTaskDialog.tsx:327
-#: src/features/planner/components/TaskDetailPanel.tsx:232
+#: src/features/planner/components/TaskDetailPanel.tsx:235
 msgid "Enter how many repeats to create."
 msgstr "Enter how many repeats to create."
 
@@ -1558,7 +1562,7 @@ msgstr "Failed to add customer contact."
 msgid "Failed to add project member."
 msgstr "Failed to add project member."
 
-#: src/features/planner/hooks/useTaskSubtasks.ts:114
+#: src/features/planner/hooks/useTaskSubtasks.ts:117
 msgid "Failed to add subtask."
 msgstr "Failed to add subtask."
 
@@ -1570,7 +1574,7 @@ msgstr "Failed to create task."
 msgid "Failed to delete comment"
 msgstr "Failed to delete comment"
 
-#: src/features/planner/hooks/useTaskSubtasks.ts:169
+#: src/features/planner/hooks/useTaskSubtasks.ts:197
 msgid "Failed to delete subtask."
 msgstr "Failed to delete subtask."
 
@@ -1595,6 +1599,10 @@ msgstr "Failed to publish note."
 #: src/features/planner/components/TaskCommentItem.tsx:78
 msgid "Failed to update comment"
 msgstr "Failed to update comment"
+
+#: src/features/planner/hooks/useTaskSubtasks.ts:147
+msgid "Failed to update subtask."
+msgstr "Failed to update subtask."
 
 #: src/features/planner/components/CommentEditor.tsx:287
 #: src/features/planner/components/RichTextEditor.tsx:227
@@ -1747,7 +1755,7 @@ msgstr "Go to task"
 msgid "Go to timeline"
 msgstr "Go to timeline"
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:52
+#: src/features/daily-brief/components/DailyBriefModal.tsx:54
 msgid "Good morning, {displayName}!"
 msgstr "Good morning, {displayName}!"
 
@@ -1814,7 +1822,7 @@ msgid "Hide past"
 msgstr "Hide past"
 
 #: src/features/planner/components/AddTaskDialog.tsx:662
-#: src/features/planner/components/TaskDetailPanel.tsx:724
+#: src/features/planner/components/TaskDetailPanel.tsx:728
 msgid "High"
 msgstr "High"
 
@@ -2015,7 +2023,7 @@ msgid "Loading data..."
 msgstr "Loading data..."
 
 #: src/features/planner/components/AddTaskDialog.tsx:723
-#: src/features/planner/components/TaskDetailPanel.tsx:531
+#: src/features/planner/components/TaskDetailPanel.tsx:534
 msgid "Loading editor..."
 msgstr "Loading editor..."
 
@@ -2062,7 +2070,7 @@ msgstr "Loading workspaces..."
 msgid "Loading your workspaces…"
 msgstr "Loading your workspaces…"
 
-#: src/features/planner/components/SubtasksSection.tsx:92
+#: src/features/planner/components/SubtasksSection.tsx:112
 #: src/features/planner/components/TaskCommentSection.tsx:176
 msgid "Loading..."
 msgstr "Loading..."
@@ -2072,7 +2080,7 @@ msgid "Loading…"
 msgstr "Loading…"
 
 #: src/features/planner/components/AddTaskDialog.tsx:660
-#: src/features/planner/components/TaskDetailPanel.tsx:722
+#: src/features/planner/components/TaskDetailPanel.tsx:726
 msgid "Low"
 msgstr "Low"
 
@@ -2125,7 +2133,7 @@ msgid "Maximum image size is 5 MB."
 msgstr "Maximum image size is 5 MB."
 
 #: src/features/planner/components/AddTaskDialog.tsx:661
-#: src/features/planner/components/TaskDetailPanel.tsx:723
+#: src/features/planner/components/TaskDetailPanel.tsx:727
 msgid "Medium"
 msgstr "Medium"
 
@@ -2174,7 +2182,7 @@ msgstr "Milestone name..."
 msgid "Milestones"
 msgstr "Milestones"
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:81
+#: src/features/daily-brief/components/DailyBriefModal.tsx:83
 msgid "Milestones in the next 7 days"
 msgstr "Milestones in the next 7 days"
 
@@ -2415,7 +2423,7 @@ msgstr "No advanced filters. Add a group to build custom rules."
 msgid "No archived projects."
 msgstr "No archived projects."
 
-#: src/features/planner/components/TaskDetailPanel.tsx:609
+#: src/features/planner/components/TaskDetailPanel.tsx:613
 msgid "No assignees available."
 msgstr "No assignees available."
 
@@ -2444,7 +2452,7 @@ msgstr "No countries found."
 msgid "No current milestones."
 msgstr "No current milestones."
 
-#: src/features/planner/components/TaskDetailPanel.tsx:519
+#: src/features/planner/components/TaskDetailPanel.tsx:522
 #: src/features/projects/components/CustomerCombobox.tsx:32
 #: src/features/projects/components/CustomerCombobox.tsx:115
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:49
@@ -2582,7 +2590,7 @@ msgstr "No more notes — everything currently visible is pinned."
 #~ msgid "No more workspace assignees to add."
 #~ msgstr "No more workspace assignees to add."
 
-#: src/features/planner/components/TaskDetailPanel.tsx:285
+#: src/features/planner/components/TaskDetailPanel.tsx:288
 msgid "No new repeats were needed."
 msgstr "No new repeats were needed."
 
@@ -2607,7 +2615,7 @@ msgid "No past milestones."
 msgstr "No past milestones."
 
 #: src/features/planner/components/AddTaskDialog.tsx:659
-#: src/features/planner/components/TaskDetailPanel.tsx:721
+#: src/features/planner/components/TaskDetailPanel.tsx:725
 #: src/features/planner/components/timeline/TaskBar.tsx:557
 msgid "No priority"
 msgstr "No priority"
@@ -2664,7 +2672,7 @@ msgstr "No SaaS lock-in"
 #~ msgstr "No statuses yet."
 
 #: src/features/planner/components/AddTaskDialog.tsx:780
-#: src/features/planner/components/SubtasksSection.tsx:94
+#: src/features/planner/components/SubtasksSection.tsx:114
 msgid "No subtasks yet."
 msgstr "No subtasks yet."
 
@@ -2776,7 +2784,7 @@ msgstr "of"
 msgid "Off"
 msgstr "Off"
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:91
+#: src/features/daily-brief/components/DailyBriefModal.tsx:93
 msgid "OK"
 msgstr "OK"
 
@@ -3000,8 +3008,8 @@ msgstr "Previous"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:105
 #: src/features/planner/components/AddTaskDialog.tsx:647
-#: src/features/planner/components/TaskDetailPanel.tsx:708
-#: src/features/planner/components/TaskDetailPanel.tsx:711
+#: src/features/planner/components/TaskDetailPanel.tsx:712
+#: src/features/planner/components/TaskDetailPanel.tsx:715
 #: src/features/planner/components/timeline/TaskBar.tsx:551
 #: src/features/planner/components/timeline/TaskBar.tsx:553
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:144
@@ -3020,7 +3028,7 @@ msgstr "Profile"
 #: src/features/members/components/MemberTasksPanel.tsx:425
 #: src/features/members/components/TaskDetailsDialog.tsx:56
 #: src/features/planner/components/AddTaskDialog.tsx:532
-#: src/features/planner/components/TaskDetailPanel.tsx:505
+#: src/features/planner/components/TaskDetailPanel.tsx:508
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:413
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:494
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:210
@@ -3162,7 +3170,7 @@ msgid "Remove image"
 msgstr "Remove image"
 
 #: src/features/planner/components/AddTaskDialog.tsx:795
-#: src/features/planner/components/SubtasksSection.tsx:125
+#: src/features/planner/components/SubtasksSection.tsx:185
 msgid "Remove subtask"
 msgstr "Remove subtask"
 
@@ -3194,8 +3202,8 @@ msgstr "Rename failed"
 
 #: src/features/planner/components/AddTaskDialog.tsx:693
 #: src/features/planner/components/RepeatSettingsFields.tsx:61
-#: src/features/planner/components/TaskDetailPanel.tsx:498
-#: src/features/planner/components/TaskDetailPanel.tsx:757
+#: src/features/planner/components/TaskDetailPanel.tsx:501
+#: src/features/planner/components/TaskDetailPanel.tsx:761
 #: src/features/planner/components/timeline/TaskBar.tsx:420
 #: src/features/planner/components/timeline/TaskBar.tsx:421
 #: src/features/planner/components/timeline/TaskBar.tsx:591
@@ -3467,7 +3475,7 @@ msgid "Select all tasks"
 msgstr "Select all tasks"
 
 #: src/features/planner/components/AddTaskDialog.tsx:328
-#: src/features/planner/components/TaskDetailPanel.tsx:233
+#: src/features/planner/components/TaskDetailPanel.tsx:236
 msgid "Select an end date."
 msgstr "Select an end date."
 
@@ -3491,7 +3499,7 @@ msgid "Select milestone"
 msgstr "Select milestone"
 
 #: src/features/planner/components/AddTaskDialog.tsx:656
-#: src/features/planner/components/TaskDetailPanel.tsx:718
+#: src/features/planner/components/TaskDetailPanel.tsx:722
 msgid "Select priority"
 msgstr "Select priority"
 
@@ -3500,7 +3508,7 @@ msgid "Select project"
 msgstr "Select project"
 
 #: src/features/planner/components/AddTaskDialog.tsx:615
-#: src/features/planner/components/TaskDetailPanel.tsx:660
+#: src/features/planner/components/TaskDetailPanel.tsx:664
 msgid "Select status"
 msgstr "Select status"
 
@@ -3511,7 +3519,7 @@ msgid "Select task {0}"
 msgstr "Select task {0}"
 
 #: src/features/planner/components/AddTaskDialog.tsx:635
-#: src/features/planner/components/TaskDetailPanel.tsx:690
+#: src/features/planner/components/TaskDetailPanel.tsx:694
 msgid "Select type"
 msgstr "Select type"
 
@@ -3668,7 +3676,7 @@ msgstr "Start"
 msgid "Start date"
 msgstr "Start date"
 
-#: src/features/planner/components/TaskDetailPanel.tsx:733
+#: src/features/planner/components/TaskDetailPanel.tsx:737
 msgid "Start Date"
 msgstr "Start Date"
 
@@ -3695,8 +3703,8 @@ msgstr "Start now →"
 #: src/features/members/components/TaskDetailsDialog.tsx:64
 #: src/features/planner/components/AddTaskDialog.tsx:606
 #: src/features/planner/components/FilterPanel.tsx:390
-#: src/features/planner/components/TaskDetailPanel.tsx:650
-#: src/features/planner/components/TaskDetailPanel.tsx:653
+#: src/features/planner/components/TaskDetailPanel.tsx:654
+#: src/features/planner/components/TaskDetailPanel.tsx:657
 #: src/features/planner/components/timeline/MilestoneDialog.tsx:238
 #: src/features/planner/components/timeline/TaskBar.tsx:471
 #: src/features/planner/components/timeline/TaskBar.tsx:473
@@ -3726,7 +3734,7 @@ msgid "Stop tracking"
 msgstr "Stop tracking"
 
 #: src/features/planner/components/AddTaskDialog.tsx:766
-#: src/features/planner/components/SubtasksSection.tsx:73
+#: src/features/planner/components/SubtasksSection.tsx:93
 msgid "Subtask title"
 msgstr "Subtask title"
 
@@ -3747,7 +3755,7 @@ msgstr "Tag (e.g. subcontractor)"
 #: src/features/members/components/TaskDetailsDialog.tsx:125
 #: src/features/planner/components/AddTaskDialog.tsx:807
 #: src/features/planner/components/FilterPanel.tsx:458
-#: src/features/planner/components/TaskDetailPanel.tsx:777
+#: src/features/planner/components/TaskDetailPanel.tsx:781
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:148
 #: src/features/workspace/components/SettingsPanel.tsx:694
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:401
@@ -3760,7 +3768,7 @@ msgid "Task"
 msgstr "Task"
 
 #: src/features/members/components/TaskDetailsDialog.tsx:44
-#: src/features/planner/components/TaskDetailPanel.tsx:473
+#: src/features/planner/components/TaskDetailPanel.tsx:476
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:63
 msgid "Task details"
 msgstr "Task details"
@@ -3872,7 +3880,7 @@ msgstr "The tool I wanted to use"
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "The workspace and all its data will be deleted permanently."
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:40
+#: src/features/daily-brief/components/DailyBriefModal.tsx:41
 msgid "there"
 msgstr "there"
 
@@ -3983,7 +3991,7 @@ msgstr "Timeline"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx:402
 #: src/features/planner/components/AddTaskDialog.tsx:517
-#: src/features/planner/components/TaskDetailPanel.tsx:479
+#: src/features/planner/components/TaskDetailPanel.tsx:482
 msgid "Title"
 msgstr "Title"
 
@@ -4068,8 +4076,8 @@ msgstr "Try Motio now"
 #: src/features/members/components/TaskDetailsDialog.tsx:99
 #: src/features/planner/components/AddTaskDialog.tsx:626
 #: src/features/planner/components/FilterPanel.tsx:424
-#: src/features/planner/components/TaskDetailPanel.tsx:680
-#: src/features/planner/components/TaskDetailPanel.tsx:683
+#: src/features/planner/components/TaskDetailPanel.tsx:684
+#: src/features/planner/components/TaskDetailPanel.tsx:687
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:138
 msgid "Type"
 msgstr "Type"
@@ -4095,7 +4103,7 @@ msgstr "Unarchive"
 #: src/features/members/components/TaskDetailsDialog.tsx:78
 #: src/features/planner/components/AddTaskDialog.tsx:489
 #: src/features/planner/components/AddTaskDialog.tsx:579
-#: src/features/planner/components/TaskDetailPanel.tsx:200
+#: src/features/planner/components/TaskDetailPanel.tsx:203
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx:103
 #: src/features/planner/components/timeline/TaskBar.tsx:128
 #: src/features/planner/components/timeline/TimelineControls.tsx:287
@@ -4222,7 +4230,7 @@ msgstr "Update the current dashboard name."
 msgid "Upload or remove your profile photo."
 msgstr "Upload or remove your profile photo."
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx:63
+#: src/features/daily-brief/components/DailyBriefModal.tsx:65
 msgid "Urgent tasks"
 msgstr "Urgent tasks"
 
@@ -4267,7 +4275,7 @@ msgstr "User workspaces"
 msgid "View all workspaces where this user is a member."
 msgstr "View all workspaces where this user is a member."
 
-#: src/features/planner/components/TaskDetailPanel.tsx:474
+#: src/features/planner/components/TaskDetailPanel.tsx:477
 msgid "View and edit task details."
 msgstr "View and edit task details."
 

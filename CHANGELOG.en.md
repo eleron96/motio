@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- A subtask's title can now be changed after it's created.
+
 ## [0.8.8] - 2026-05-28
 ### Changed
 - The project three-dot menu is shorter: the Track item is gone (the star button next to the menu already does that) and Edit is now the first item.

@@ -92,6 +92,12 @@ export interface PlannerStore extends PlannerState {
   fetchTaskSubtasks: (workspaceId: string, taskId: string) => Promise<{ subtasks: TaskSubtask[]; error?: string }>;
   createTaskSubtask: (workspaceId: string, taskId: string, title: string, position: number) => Promise<{ subtask?: TaskSubtask; error?: string }>;
   createTaskSubtasks: (workspaceId: string, taskId: string, titles: string[]) => Promise<MutationResult>;
+  updateTaskSubtaskTitle: (
+    workspaceId: string,
+    taskId: string,
+    subtaskId: string,
+    title: string,
+  ) => Promise<MutationResult>;
   updateTaskSubtaskCompletion: (
     workspaceId: string,
     taskId: string,
