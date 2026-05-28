@@ -13,6 +13,7 @@ import {
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useDailyBriefData } from '../hooks/useDailyBriefData';
+import { EasterEggSlot } from '../easter-eggs/EasterEggSlot'; // easter egg — safe to delete
 import { DailyBriefUrgentTasks } from './DailyBriefUrgentTasks';
 import { DailyBriefMilestones } from './DailyBriefMilestones';
 
@@ -46,7 +47,8 @@ export const DailyBriefModal = ({ open, onDismiss, workspaceId, assigneeId }: Pr
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onDismiss(); }}>
-      <DialogContent className="sm:max-w-[480px]" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[480px] z-[60]" onInteractOutside={(e) => e.preventDefault()}>
+        <EasterEggSlot active={open} /> {/* easter egg — safe to delete */}
         <DialogHeader>
           <DialogTitle className="text-primary text-xl">
             {t`Good morning, ${displayName}!`}
