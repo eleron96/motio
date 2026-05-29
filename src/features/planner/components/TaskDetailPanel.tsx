@@ -115,6 +115,7 @@ export const TaskDetailPanel: React.FC = () => {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [subtaskEditingDirty, setSubtaskEditingDirty] = useState(false);
 
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
@@ -208,7 +209,10 @@ export const TaskDetailPanel: React.FC = () => {
     return t`${task.assigneeIds.length} assignees`;
   }, [filteredAssignees, task]);
   const requestClose = () => {
-    if (!isDirty && !repeatConfigDirty) {
+    // A subtask edit in progress, or an unsent new-subtask draft, also counts
+    // as unsaved work — warn before closing so the changes aren't lost.
+    const subtaskDirty = subtaskEditingDirty || newSubtaskTitle.trim().length > 0;
+    if (!isDirty && !repeatConfigDirty && !subtaskDirty) {
       setSelectedTaskId(null);
       return;
     }
@@ -570,6 +574,7 @@ export const TaskDetailPanel: React.FC = () => {
                 onEdit={handleEditSubtask}
                 onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
                 onDelete={(id) => void handleDeleteSubtask(id)}
+                onEditingDirtyChange={setSubtaskEditingDirty}
               />
 
               {/* ── Comments section */}
