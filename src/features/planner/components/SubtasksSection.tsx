@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useState } from 'react';
+import React, { MutableRefObject, useEffect, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Pencil, Plus, X } from 'lucide-react';
 import { TaskSubtask } from '@/features/planner/types/planner';
@@ -23,6 +23,11 @@ interface SubtasksSectionProps {
   onEdit: (subtaskId: string, title: string) => Promise<boolean>;
   onToggle: (subtaskId: string, isDone: boolean) => void;
   onDelete: (subtaskId: string) => void;
+  /**
+   * Fires whenever an inline subtask edit has uncommitted changes, so the
+   * parent (task panel) can warn before closing and losing them.
+   */
+  onEditingDirtyChange?: (dirty: boolean) => void;
 }
 
 export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
@@ -41,9 +46,24 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onEdit,
   onToggle,
   onDelete,
+  onEditingDirtyChange,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+
+  // An inline edit is "dirty" while it's open and the text differs from the
+  // saved subtask title. Reported upward so the task panel can warn before a
+  // close discards it.
+  const editingOriginalTitle = editingId
+    ? subtasks.find((subtask) => subtask.id === editingId)?.title ?? ''
+    : '';
+  const isEditingDirty = editingId !== null
+    && editingTitle.trim() !== editingOriginalTitle.trim();
+
+  useEffect(() => {
+    onEditingDirtyChange?.(isEditingDirty);
+    return () => onEditingDirtyChange?.(false);
+  }, [isEditingDirty, onEditingDirtyChange]);
 
   const startEditing = (subtaskId: string, title: string) => {
     setEditingId(subtaskId);
