@@ -53,6 +53,10 @@ interface AddTaskDialogProps {
   initialEndDate?: string;
   initialProjectId?: string | null;
   initialAssigneeIds?: string[];
+  /** Lock the project field to the initial value (used on the Projects tab). */
+  lockProject?: boolean;
+  /** Called after a task is successfully created (e.g. to refetch a list). */
+  onCreated?: () => void;
 }
 
 const resolveDefaultStatusId = (statuses: Status[]) => {
@@ -103,6 +107,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   initialEndDate,
   initialProjectId,
   initialAssigneeIds,
+  lockProject = false,
+  onCreated,
 }) => {
   const {
     projects,
@@ -411,7 +417,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setSubtasksOpen(false);
     setSubtasks([]);
     setNewSubtaskTitle('');
-    
+
+    onCreated?.();
     onOpenChange(false);
   };
 
@@ -534,6 +541,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 value={projectId}
                 projects={activeProjects}
                 noProjectDisabled={noProjectDisabled}
+                disabled={lockProject}
                 onValueChange={(value) => {
                   markChanged();
                   setProjectId(value);

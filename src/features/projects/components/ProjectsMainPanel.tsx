@@ -1,7 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
-import { CalendarDays, ChevronDown, MoreHorizontal, RefreshCcw, Search } from 'lucide-react';
+import { CalendarDays, ChevronDown, MoreHorizontal, Plus, RefreshCcw, Search } from 'lucide-react';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
@@ -64,6 +64,7 @@ type ProjectsMainPanelProps = {
   onClearFilters: () => void;
   selectedProjectId: string | null;
   onRefreshTasks: () => void;
+  onAddTask?: () => void;
   tasksLoading: boolean;
   tasksError: string;
   displayTaskRows: DisplayTaskRow[];
@@ -170,6 +171,7 @@ export const ProjectsMainPanel = ({
   onClearFilters,
   selectedProjectId,
   onRefreshTasks,
+  onAddTask,
   tasksLoading,
   tasksError,
   displayTaskRows,
@@ -326,6 +328,7 @@ export const ProjectsMainPanel = ({
         onPrevPage={onPrevPage}
         onNextPage={onNextPage}
         totalCount={displayTotalCount}
+        onAddTask={onAddTask}
       />
     );
   }
@@ -382,6 +385,12 @@ export const ProjectsMainPanel = ({
                       </SegmentedControlItem>
                     </SegmentedControl>
                   </div>
+                  {canEdit && onAddTask && (
+                    <Button onClick={onAddTask} size="sm" className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      {t`Add task`}
+                    </Button>
+                  )}
                 </div>
               </div>
 

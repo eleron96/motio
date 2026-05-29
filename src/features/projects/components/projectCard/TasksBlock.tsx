@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { Calendar, RefreshCcw, Repeat, Search } from 'lucide-react';
+import { Calendar, Plus, RefreshCcw, Repeat, Search } from 'lucide-react';
 import type {
   Assignee,
   Status,
@@ -66,6 +66,10 @@ interface TasksBlockProps {
   onNextPage: () => void;
 
   totalCount: number;
+
+  /** Show the "Add task" button (gated by edit permission). */
+  canEdit?: boolean;
+  onAddTask?: () => void;
 }
 
 export const TasksBlock: React.FC<TasksBlockProps> = ({
@@ -76,6 +80,7 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
   onClearFilters, onRefreshTasks, tasksLoading, tasksError,
   displayTaskRows, statusById, assigneeById, onSelectTask,
   pageIndex, totalPages, onPrevPage, onNextPage, totalCount,
+  canEdit = false, onAddTask,
 }) => {
   return (
     <section className="flex max-h-[520px] min-h-[320px] flex-col rounded-2xl border border-border bg-card p-5">
@@ -84,6 +89,17 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
         <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground tabular-nums">
           {totalCount}
         </span>
+        {canEdit && onAddTask && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto gap-1.5"
+            onClick={onAddTask}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t`Add task`}
+          </Button>
+        )}
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">

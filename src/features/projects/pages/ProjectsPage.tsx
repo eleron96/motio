@@ -9,6 +9,7 @@ import { computeGroupMembersToAdd } from '@/features/projects/lib/projectCard/co
 import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 import { ProjectsDialogs } from '@/features/projects/components/ProjectsDialogs';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
+import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
 import { useProjectsPageEffects } from '@/features/projects/hooks/useProjectsPageEffects';
 import { useProjectTasksQuery } from '@/features/projects/hooks/useProjectTasksQuery';
@@ -56,6 +57,7 @@ const ProjectsPage = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [mutationError, setMutationError] = useState('');
   const [search, setSearch] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
@@ -1212,6 +1214,7 @@ const ProjectsPage = () => {
           void refetchTasks();
         }
       }}
+      onAddTask={selectedProjectId ? () => setAddTaskOpen(true) : undefined}
       tasksLoading={tasksLoading}
       tasksError={tasksError}
       displayTaskRows={displayTaskRows}
@@ -1459,6 +1462,18 @@ const ProjectsPage = () => {
         setDeleteCustomerTarget={setDeleteCustomerTarget}
         handleConfirmDeleteCustomer={handleConfirmDeleteCustomer}
       />
+
+      {selectedProjectId && (
+        <AddTaskDialog
+          open={addTaskOpen}
+          onOpenChange={setAddTaskOpen}
+          initialProjectId={selectedProjectId}
+          lockProject
+          onCreated={() => {
+            void refetchTasks();
+          }}
+        />
+      )}
     </div>
   );
 };
