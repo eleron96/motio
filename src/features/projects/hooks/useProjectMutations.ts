@@ -87,7 +87,7 @@ export const useProjectMutations = ({
     if (projectSettingsOwnerGroupId !== (projectSettingsTarget.ownerGroupId ?? null)) {
       updates.ownerGroupId = projectSettingsOwnerGroupId;
     }
-    const nextStatus = projectSettingsStatus.trim() ? projectSettingsStatus.trim() : null;
+    const nextStatus = projectSettingsStatus.trim() ? projectSettingsStatus.trim().toUpperCase() : null;
     if (nextStatus !== (projectSettingsTarget.status ?? null)) {
       updates.status = nextStatus;
     }

@@ -568,8 +568,9 @@ export const ProjectsDialogs = ({
                 <Input
                   placeholder={t`E.g. В работе, Заморожен, Завершен`}
                   value={projectSettingsStatus}
-                  onChange={(event) => setProjectSettingsStatus(event.target.value)}
+                  onChange={(event) => setProjectSettingsStatus(event.target.value.toUpperCase())}
                   disabled={!canEdit}
+                  className="uppercase"
                 />
               </div>
               <div className="flex justify-end gap-2">
