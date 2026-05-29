@@ -206,6 +206,15 @@
   margin-bottom: 0;
 }
 
+/* Preserve blank lines. An empty block (a paragraph or div left empty by
+   pressing Enter on a blank line — common in notes saved before line breaks
+   were normalized to <br>) would otherwise collapse to zero height and the
+   break would vanish in the read view. */
+.feedRichText p:empty,
+.feedRichText div:empty {
+  min-height: 1em;
+}
+
 .feedRichText ul,
 .feedRichText ol {
   margin: 0.25em 0 0.4em;
