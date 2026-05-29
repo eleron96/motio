@@ -25,7 +25,7 @@ export interface UseTaskSubtasksResult {
   newSubtaskTitle: string;
   setNewSubtaskTitle: Dispatch<SetStateAction<string>>;
   completedSubtasksCount: number;
-  subtaskInputRef: MutableRefObject<HTMLInputElement | null>;
+  subtaskInputRef: MutableRefObject<HTMLTextAreaElement | null>;
   handleOpenSubtasks: () => void;
   handleAddSubtask: () => Promise<void>;
   handleEditSubtask: (subtaskId: string, title: string) => Promise<boolean>;
@@ -49,7 +49,7 @@ export const useTaskSubtasks = ({
   const [subtasksError, setSubtasksError] = useState('');
   const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const subtaskInputRef = useRef<HTMLInputElement | null>(null);
+  const subtaskInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     setSubtasksOpen(false);

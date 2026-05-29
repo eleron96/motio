@@ -4,7 +4,7 @@ import { Pencil, Plus, X } from 'lucide-react';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { Input } from '@/shared/ui/input';
+import { Textarea } from '@/shared/ui/textarea';
 import { cn } from '@/shared/lib/classNames';
 
 interface SubtasksSectionProps {
@@ -16,7 +16,7 @@ interface SubtasksSectionProps {
   subtasks: TaskSubtask[];
   newSubtaskTitle: string;
   completedSubtasksCount: number;
-  subtaskInputRef: MutableRefObject<HTMLInputElement | null>;
+  subtaskInputRef: MutableRefObject<HTMLTextAreaElement | null>;
   onOpen: () => void;
   onNewTitleChange: (value: string) => void;
   onAdd: () => void;
@@ -80,23 +80,25 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
         {t`Completed`}: <span className="font-medium text-foreground">{completedSubtasksCount}</span>/{subtasks.length}
       </div>
 
-      <div className="flex items-center gap-2">
-        <Input
+      <div className="flex items-start gap-2">
+        <Textarea
           ref={subtaskInputRef}
           value={newSubtaskTitle}
           onChange={(event) => onNewTitleChange(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key !== 'Enter') return;
+            // Enter adds the subtask; Shift+Enter inserts a newline.
+            if (event.key !== 'Enter' || event.shiftKey) return;
             event.preventDefault();
             onAdd();
           }}
+          rows={2}
           placeholder={t`Subtask title`}
           disabled={isReadOnly || subtasksSaving}
-          className="h-8 text-sm"
+          className="min-h-[56px] flex-1 resize-y text-sm"
         />
         <Button
           type="button"
-          className="h-8 px-3 text-xs"
+          className="h-8 shrink-0 px-3 text-xs"
           onClick={onAdd}
           disabled={isReadOnly || subtasksSaving || !newSubtaskTitle.trim()}
         >
@@ -128,12 +130,13 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                 disabled={isReadOnly || editingId === subtask.id}
               />
               {editingId === subtask.id ? (
-                <Input
+                <Textarea
                   autoFocus
                   value={editingTitle}
                   onChange={(event) => setEditingTitle(event.target.value)}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
+                    // Enter saves; Shift+Enter inserts a newline.
+                    if (event.key === 'Enter' && !event.shiftKey) {
                       event.preventDefault();
                       void commitEditing(subtask.id);
                     } else if (event.key === 'Escape') {
@@ -143,7 +146,8 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   }}
                   onBlur={() => void commitEditing(subtask.id)}
                   disabled={isReadOnly}
-                  className="h-7 flex-1 text-sm"
+                  rows={2}
+                  className="min-h-[56px] flex-1 resize-y text-sm"
                 />
               ) : (
                 <button
@@ -154,7 +158,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   }}
                   disabled={isReadOnly}
                   className={cn(
-                    'flex-1 text-left text-sm leading-snug text-foreground',
+                    'flex-1 whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]',
                     !isReadOnly && 'cursor-text',
                     subtask.isDone && 'line-through text-muted-foreground',
                   )}
