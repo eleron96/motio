@@ -194,6 +194,11 @@
 
 /* Rich-text rendering for activity entries (matches RTE allowed tags). */
 .feedRichText {
+  /* Mirror the editor's `white-space: pre-wrap` (.rich-text-editor) so notes
+     saved with literal newline characters render their line breaks here too.
+     Without it, such notes looked multi-line while editing but collapsed to a
+     single line when viewed. <br>/<p>/<div> markup keeps working as before. */
+  white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
