@@ -5,6 +5,7 @@ import { RepeatSettingsFields } from '@/features/planner/components/RepeatSettin
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
@@ -23,7 +24,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ChevronDown, Plus, X } from 'lucide-react';
+import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
 import { format } from '@/features/planner/lib/dateUtils';
 import { cn } from '@/shared/lib/classNames';
 import { TaskPriority } from '@/features/planner/types/planner';
@@ -169,9 +170,11 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [subtasksOpen, setSubtasksOpen] = useState(false);
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
+  const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
   const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
-  const subtaskInputRef = useRef<HTMLInputElement | null>(null);
+  const subtaskInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -307,6 +310,31 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleRemoveSubtask = (subtaskId: string) => {
     markChanged();
     setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
+  };
+
+  const startEditingSubtask = (subtaskId: string, title: string) => {
+    setEditingSubtaskId(subtaskId);
+    setEditingSubtaskTitle(title);
+  };
+
+  const cancelEditingSubtask = () => {
+    setEditingSubtaskId(null);
+    setEditingSubtaskTitle('');
+  };
+
+  const commitEditingSubtask = (subtaskId: string) => {
+    const title = editingSubtaskTitle.trim();
+    if (!title) {
+      // Empty title on save removes the draft subtask outright.
+      handleRemoveSubtask(subtaskId);
+      cancelEditingSubtask();
+      return;
+    }
+    markChanged();
+    setSubtasks((current) => (
+      current.map((item) => (item.id === subtaskId ? { ...item, title } : item))
+    ));
+    cancelEditingSubtask();
   };
 
   const handleAssigneePopoverOpenChange = useCallback((nextOpen: boolean) => {
@@ -758,8 +786,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </Button>
           ) : (
             <div className="space-y-3 rounded-md border p-3">
-              <div className="flex items-center gap-2">
-                <Input
+              <div className="flex items-start gap-2">
+                <Textarea
                   ref={subtaskInputRef}
                   value={newSubtaskTitle}
                   onChange={(event) => {
@@ -767,16 +795,18 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                     setNewSubtaskTitle(event.target.value);
                   }}
                   onKeyDown={(event) => {
-                    if (event.key !== 'Enter') return;
+                    // Enter adds the subtask; Shift+Enter inserts a newline.
+                    if (event.key !== 'Enter' || event.shiftKey) return;
                     event.preventDefault();
                     handleAddSubtask();
                   }}
+                  rows={2}
                   placeholder={t`Subtask title`}
-                  className="h-8 text-sm"
+                  className="min-h-[56px] flex-1 resize-y text-sm"
                 />
                 <Button
                   type="button"
-                  className="h-8 px-3 text-xs"
+                  className="h-8 shrink-0 px-3 text-xs"
                   onClick={handleAddSubtask}
                   disabled={!newSubtaskTitle.trim()}
                 >
@@ -791,9 +821,48 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   {subtasks.map((subtask) => (
                     <div
                       key={subtask.id}
-                      className="flex items-center justify-between gap-2 rounded-md border px-2.5 py-2"
+                      className="flex items-start justify-between gap-2 rounded-md border px-2.5 py-2"
                     >
-                      <span className="truncate text-sm text-foreground">{subtask.title}</span>
+                      {editingSubtaskId === subtask.id ? (
+                        <Textarea
+                          autoFocus
+                          value={editingSubtaskTitle}
+                          onChange={(event) => setEditingSubtaskTitle(event.target.value)}
+                          onKeyDown={(event) => {
+                            // Enter saves; Shift+Enter inserts a newline.
+                            if (event.key === 'Enter' && !event.shiftKey) {
+                              event.preventDefault();
+                              commitEditingSubtask(subtask.id);
+                            } else if (event.key === 'Escape') {
+                              event.preventDefault();
+                              cancelEditingSubtask();
+                            }
+                          }}
+                          onBlur={() => commitEditingSubtask(subtask.id)}
+                          rows={2}
+                          className="min-h-[56px] flex-1 resize-y text-sm"
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => startEditingSubtask(subtask.id, subtask.title)}
+                          className="flex-1 cursor-text whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]"
+                        >
+                          {subtask.title}
+                        </button>
+                      )}
+                      {editingSubtaskId !== subtask.id && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0"
+                          onClick={() => startEditingSubtask(subtask.id, subtask.title)}
+                          aria-label={t`Edit subtask`}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button
                         type="button"
                         variant="ghost"
