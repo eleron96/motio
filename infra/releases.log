@@ -299,3 +299,4 @@
 2026-05-26T11:46:56Z | 0.8.7 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260526-114555.dump | Milestones can now be filtered by team — pick a team in the toolbar and see only its milestones.
 2026-05-28T15:02:55Z | 0.8.8 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260528-150142.dump | The project three-dot menu is shorter: the Track item is gone (the star button next to the menu already does that) and Edit is now the first item.
 2026-05-28T18:47:39Z | 0.8.9 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260528-184642.dump | A subtask's title can now be changed after it's created.
+2026-05-29T14:21:32Z | 0.8.10 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260529-142010.dump | You can now add tasks from the Projects tab; notes keep their line breaks; project status is always uppercase; subtasks support multiple lines and can be edited right after you create them.

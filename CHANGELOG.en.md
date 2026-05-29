@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.10] - 2026-05-29
 ### Changed
 - You can now add tasks from the Projects tab; notes keep their line breaks; project status is always uppercase; subtasks support multiple lines and can be edited right after you create them.
 
