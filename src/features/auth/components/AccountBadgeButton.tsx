@@ -23,7 +23,7 @@ export const AccountBadgeButton: React.FC<AccountBadgeButtonProps> = ({ onClick,
       variant="ghost"
       size="icon"
       onClick={onClick}
-      className={cn('h-9 w-9 rounded-full p-0', className)}
+      className={cn('h-[34px] w-[34px] rounded-full p-0', className)}
       aria-label={t`Account settings`}
       title={signedInLabel}
     >
@@ -32,6 +32,7 @@ export const AccountBadgeButton: React.FC<AccountBadgeButtonProps> = ({ onClick,
         initials={initials}
         colorSeed={user?.id}
         size="md"
+        className="h-full w-full"
       />
     </Button>
   );

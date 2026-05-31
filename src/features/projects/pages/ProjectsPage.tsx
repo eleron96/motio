@@ -22,7 +22,7 @@ import { useMilestoneActions } from '@/features/projects/hooks/useMilestoneActio
 import { useProjectMutations } from '@/features/projects/hooks/useProjectMutations';
 import { useCustomerActions } from '@/features/projects/hooks/useCustomerActions';
 import { useProjectCreateForm } from '@/features/projects/hooks/useProjectCreateForm';
-import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
@@ -1274,51 +1274,55 @@ const ProjectsPage = () => {
     />
   );
 
+  useWorkspaceHeader(
+    {
+      primaryAction: mode === 'customers' ? (
+        <Button
+          data-tour="projects-primary-action"
+          onClick={() => setCreateCustomerOpen(true)}
+          size="sm"
+          className="gap-2"
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`New customer`}
+        </Button>
+      ) : mode === 'milestones' ? (
+        <Button
+          data-tour="projects-primary-action"
+          onClick={handleOpenCreateMilestone}
+          size="sm"
+          className="gap-2"
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`New milestone`}
+        </Button>
+      ) : (
+        <Button
+          data-tour="projects-primary-action"
+          onClick={() => setCreateProjectOpen(true)}
+          size="sm"
+          className="gap-2"
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`New project`}
+        </Button>
+      ),
+      onOpenSettings: () => setShowSettings(true),
+      onOpenAccountSettings: () => setShowAccountSettings(true),
+      settingsDisabled: !canEdit,
+    },
+    [mode, canEdit],
+  );
+
   if (isSuperAdmin) {
     return <Navigate to="/app/admin/users" replace />;
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <WorkspacePageHeader
-        primaryAction={mode === 'customers' ? (
-          <Button
-            data-tour="projects-primary-action"
-            onClick={() => setCreateCustomerOpen(true)}
-            size="sm"
-            className="gap-2"
-            disabled={!canEdit}
-          >
-            <Plus className="h-4 w-4" />
-            {t`New customer`}
-          </Button>
-        ) : mode === 'milestones' ? (
-          <Button
-            data-tour="projects-primary-action"
-            onClick={handleOpenCreateMilestone}
-            size="sm"
-            className="gap-2"
-            disabled={!canEdit}
-          >
-            <Plus className="h-4 w-4" />
-            {t`New milestone`}
-          </Button>
-        ) : (
-          <Button
-            data-tour="projects-primary-action"
-            onClick={() => setCreateProjectOpen(true)}
-            size="sm"
-            className="gap-2"
-            disabled={!canEdit}
-          >
-            <Plus className="h-4 w-4" />
-            {t`New project`}
-          </Button>
-        )}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenAccountSettings={() => setShowAccountSettings(true)}
-        settingsDisabled={!canEdit}
-      />
+    <>
 
       {mutationError && (
         <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
@@ -1474,7 +1478,7 @@ const ProjectsPage = () => {
           }}
         />
       )}
-    </div>
+    </>
   );
 };
 

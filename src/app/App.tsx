@@ -9,6 +9,7 @@ import { Suspense, lazy } from "react";
 import NotFoundPage from "@/app/NotFoundPage";
 import { AuthProvider } from "@/features/auth/providers/AuthProvider";
 import { ProtectedRoute } from "@/app/ProtectedRoute";
+import { WorkspaceLayout } from "@/features/workspace/components/WorkspaceLayout";
 import { i18n } from "@/shared/lib/i18n";
 import { useLocaleStore } from "@/shared/store/localeStore";
 import { PageErrorBoundary } from "@/app/PageErrorBoundary";
@@ -80,37 +81,17 @@ const App = () => {
                     )}
                   />
                   <Route
-                    path="/app"
                     element={(
                       <ProtectedRoute>
-                        <PlannerPage />
+                        <WorkspaceLayout />
                       </ProtectedRoute>
                     )}
-                  />
-                  <Route
-                    path="/app/dashboard"
-                    element={(
-                      <ProtectedRoute>
-                        <DashboardPage />
-                      </ProtectedRoute>
-                    )}
-                  />
-                  <Route
-                    path="/app/projects"
-                    element={(
-                      <ProtectedRoute>
-                        <ProjectsPage />
-                      </ProtectedRoute>
-                    )}
-                  />
-                  <Route
-                    path="/app/members"
-                    element={(
-                      <ProtectedRoute>
-                        <MembersPage />
-                      </ProtectedRoute>
-                    )}
-                  />
+                  >
+                    <Route path="/app" element={<PlannerPage />} />
+                    <Route path="/app/dashboard" element={<DashboardPage />} />
+                    <Route path="/app/projects" element={<ProjectsPage />} />
+                    <Route path="/app/members" element={<MembersPage />} />
+                  </Route>
                   <Route path="/admin/users" element={<Navigate to="/app/admin/users" replace />} />
                   <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
                   <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
