@@ -36,7 +36,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { cn } from '@/shared/lib/classNames';
 import {
@@ -517,6 +517,29 @@ const DashboardPage = () => {
     isTouchReorderMode,
   ]);
 
+  useWorkspaceHeader(
+    {
+      primaryAction: canEdit ? (
+        <Button
+          data-tour="dashboard-add-widget"
+          size="sm"
+          className="gap-2"
+          onClick={() => {
+            setEditingWidget(null);
+            setEditorOpen(true);
+          }}
+          disabled={!canAddWidget}
+        >
+          <Plus className="h-4 w-4" />
+          {t`Widget`}
+        </Button>
+      ) : null,
+      onOpenSettings: () => setShowSettings(true),
+      onOpenAccountSettings: () => setShowAccountSettings(true),
+    },
+    [canEdit, canAddWidget],
+  );
+
   if (isSuperAdmin) {
     return <Navigate to="/app/admin/users" replace />;
   }
@@ -868,23 +891,7 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <WorkspacePageHeader
-        primaryAction={canEdit ? (
-          <Button
-            data-tour="dashboard-add-widget"
-            size="sm"
-            className="gap-2"
-            onClick={handleAddWidget}
-            disabled={!canAddWidget}
-          >
-            <Plus className="h-4 w-4" />
-            {t`Widget`}
-          </Button>
-        ) : null}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenAccountSettings={() => setShowAccountSettings(true)}
-      />
+    <>
 
       <div className="flex items-center justify-between px-4 py-2 border-b border-border text-xs text-muted-foreground">
         <div>
@@ -1021,7 +1028,7 @@ const DashboardPage = () => {
         showAccountSettings={showAccountSettings}
         onShowAccountSettingsChange={setShowAccountSettings}
       />
-    </div>
+    </>
   );
 };
 

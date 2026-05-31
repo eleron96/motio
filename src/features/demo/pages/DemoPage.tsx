@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Trans } from '@lingui/macro';
+import { WorkspaceLayout } from '@/features/workspace/components/WorkspaceLayout';
 import { DemoBootstrap } from '../providers/DemoBootstrap';
 
 const PlannerPage = lazy(() => import('@/features/planner/pages/PlannerPage'));
@@ -18,10 +19,12 @@ const DemoPage = () => (
   <DemoBootstrap>
     <Suspense fallback={<DemoFallback />}>
       <Routes>
-        <Route index element={<PlannerPage />} />
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="projects" element={<ProjectsPage />} />
-        <Route path="members" element={<MembersPage />} />
+        <Route element={<WorkspaceLayout />}>
+          <Route index element={<PlannerPage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="projects" element={<ProjectsPage />} />
+          <Route path="members" element={<MembersPage />} />
+        </Route>
         <Route path="*" element={<Navigate to="/demo" replace />} />
       </Routes>
     </Suspense>

@@ -693,8 +693,14 @@ export const InviteNotifications: React.FC = () => {
         <Button variant="ghost" size="icon" className="relative h-9 w-9" aria-label={t`Notifications`}>
           <Bell className="h-4 w-4" />
           {hasBadge && (
-            <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground">
-              {badgeLabel}
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center">
+              <span
+                aria-hidden="true"
+                className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75"
+              />
+              <span className="relative inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-medium text-destructive-foreground ring-2 ring-card">
+                {badgeLabel}
+              </span>
             </span>
           )}
         </Button>
