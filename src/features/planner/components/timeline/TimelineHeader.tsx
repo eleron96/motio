@@ -18,8 +18,6 @@ interface TimelineHeaderProps {
   dayWidth: number;
   viewMode: ViewMode;
   isMobile?: boolean;
-  scrollLeft: number;
-  viewportWidth: number;
   attentionDate: string | null;
   todayKey: string;
   holidayDates?: Set<string>;
@@ -31,8 +29,6 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   dayWidth,
   viewMode,
   isMobile = false,
-  scrollLeft,
-  viewportWidth,
   attentionDate,
   todayKey,
   holidayDates,
@@ -41,82 +37,11 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
 
-  // Group days by month for month labels
-  const monthGroups = React.useMemo(() => {
-    const groups: { month: string; days: number; startIndex: number }[] = [];
-    let currentMonth = '';
-    let currentCount = 0;
-    let startIndex = 0;
-    
-    visibleDays.forEach((day, index) => {
-      const monthKey = format(day, 'MMMM yyyy', { locale: dateLocale });
-      if (monthKey !== currentMonth) {
-        if (currentMonth) {
-          groups.push({ month: currentMonth, days: currentCount, startIndex });
-        }
-        currentMonth = monthKey;
-        currentCount = 1;
-        startIndex = index;
-      } else {
-        currentCount++;
-      }
-    });
-    
-    if (currentMonth) {
-      groups.push({ month: currentMonth, days: currentCount, startIndex });
-    }
-    
-    return groups;
-  }, [visibleDays, dateLocale]);
-
   const totalWidth = visibleDays.length * dayWidth;
-  const activeMonth = React.useMemo(() => {
-    if (visibleDays.length === 0) return '';
-    if (!dayWidth) return format(visibleDays[0], 'MMMM yyyy', { locale: dateLocale });
-    const centerPx = scrollLeft + viewportWidth / 2;
-    const centerIndex = Math.min(
-      visibleDays.length - 1,
-      Math.max(0, Math.floor(centerPx / dayWidth))
-    );
-    return format(visibleDays[centerIndex], 'MMMM yyyy', { locale: dateLocale });
-  }, [visibleDays, dayWidth, scrollLeft, viewportWidth, dateLocale]);
 
-  const labelLeft = Math.min(
-    totalWidth,
-    Math.max(0, scrollLeft + viewportWidth / 2)
-  );
-  
   return (
     <div className="relative select-none" style={{ width: totalWidth }}>
-      {/* Month row — hidden on mobile to reclaim vertical space */}
-      {!isMobile && (
-        <div className="flex h-10 bg-timeline-header border-b border-border">
-          {monthGroups.map((group) => (
-            <div
-              key={`${group.month}-${group.startIndex}`}
-              className="flex items-center px-2 border-r border-border"
-              style={{ width: group.days * dayWidth }}
-            >
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide truncate">
-                {group.month}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!isMobile && activeMonth && viewportWidth > 0 && (
-        <div
-          className="pointer-events-none absolute top-0 z-10 flex h-10 items-center"
-          style={{ left: labelLeft, transform: 'translateX(-50%)' }}
-        >
-          <span className="rounded-full bg-background/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-foreground/80 shadow-sm backdrop-blur">
-            {activeMonth}
-          </span>
-        </div>
-      )}
-      
-      {/* Day row */}
+      {/* Day row (month context lives in the toolbar's scroll-aware label) */}
       <div className="flex h-14">
         {visibleDays.map((day, index) => {
           const { day: dayName, date } = formatDayHeader(day, viewMode, dateLocale, locale);
