@@ -7,6 +7,15 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.12] - 2026-05-31
+### Changed
+- Removed the redundant month row from the timeline — the month is shown in the toolbar and by the day numbers.
+- Redesigned the app header: the workspace switcher and its settings are grouped together, and switching sections animates with a sliding highlight.
+
+## [0.8.11] - 2026-05-30
+### Changed
+- No documented changes.
+
 ## [0.8.10] - 2026-05-29
 ### Changed
 - You can now add tasks from the Projects tab; notes keep their line breaks; project status is always uppercase; subtasks support multiple lines and can be edited right after you create them.
