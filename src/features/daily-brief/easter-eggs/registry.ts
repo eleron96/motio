@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 
 export interface EasterEgg {
-  /** User email this egg targets (compared case-insensitively). */
+  /** Supabase auth user id (auth.users.id) this egg targets. */
   match: string;
   /** Flip to false to turn this egg off without removing the entry. */
   enabled: boolean;
@@ -23,7 +23,8 @@ export const EASTER_EGGS_ENABLED = true;
  */
 export const EASTER_EGGS: EasterEgg[] = [
   {
-    match: 'a.kuprina@speech.su',
+    // a.kuprina@speech.su (Nastya) — matched by user id so SSO email quirks don't matter.
+    match: 'f3d2d05e-9475-4d4c-813b-669b9eb32592',
     enabled: true,
     Component: lazy<ComponentType>(() =>
       import('./components/ShabbatBrief').then((m) => ({ default: m.ShabbatBrief })),
