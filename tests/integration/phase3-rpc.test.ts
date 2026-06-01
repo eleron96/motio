@@ -11,6 +11,26 @@ import {
   withRollback,
 } from "../helpers/setup-test-db";
 
+interface ProfilePurgeResult {
+  status: string;
+  synthetic_email: string;
+}
+
+interface ExportRequestResult {
+  status: string;
+}
+
+interface DataExportRequest {
+  status: string;
+  request_id?: string;
+}
+
+interface DataExportStatus {
+  status: string;
+  file_path?: string | null;
+  error_message?: string | null;
+}
+
 const RU_PHRASE =
   "Я понимаю, что удаляю свой аккаунт навсегда и теряю доступ ко всем рабочим пространствам";
 
@@ -128,7 +148,7 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
       await withFixture(async (client) => {
         await markPending(client, TEST_USER_IDS.alice, "now() - interval '1 day'");
 
-        const result = await client.query<{ _finalize_profile_purge: any }>(
+        const result = await client.query<{ _finalize_profile_purge: ProfilePurgeResult }>(
           `select public._finalize_profile_purge($1::uuid, $2, $3::jsonb)`,
           [TEST_USER_IDS.alice, "abc123hash", JSON.stringify({ origin: "test" })],
         );
@@ -373,7 +393,7 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
       await withFixture(async (client) => {
         const id = await createPendingRequest(client, TEST_USER_IDS.alice);
 
-        const { rows: result } = await client.query<{ _finalize_export_request: any }>(
+        const { rows: result } = await client.query<{ _finalize_export_request: ExportRequestResult }>(
           `select public._finalize_export_request($1::uuid, 'ready', $2, null)`,
           [id, "alice-folder/request.json"],
         );
@@ -529,7 +549,7 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
     it("request_data_export → _pick_export_request → _finalize_export_request(ready)", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.alice);
-        const { rows: requested } = await client.query<{ request_data_export: any }>(
+        const { rows: requested } = await client.query<{ request_data_export: DataExportRequest }>(
           `select public.request_data_export()`,
         );
         const requestId = (requested[0]?.request_data_export as { request_id?: string })?.request_id;
@@ -546,7 +566,7 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
           [requestId, `${TEST_USER_IDS.alice}/${requestId}.json`],
         );
 
-        const { rows: status } = await client.query<{ get_data_export_status: any }>(
+        const { rows: status } = await client.query<{ get_data_export_status: DataExportStatus }>(
           `select public.get_data_export_status()`,
         );
         const payload = status[0]?.get_data_export_status;
@@ -558,7 +578,7 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
     it("end-to-end: request → pick → finalize(failed) reveals error_message", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.alice);
-        const { rows: requested } = await client.query<{ request_data_export: any }>(
+        const { rows: requested } = await client.query<{ request_data_export: DataExportRequest }>(
           `select public.request_data_export()`,
         );
         const requestId = (requested[0]?.request_data_export as { request_id?: string })?.request_id;
@@ -569,7 +589,7 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
           [requestId],
         );
 
-        const { rows: status } = await client.query<{ get_data_export_status: any }>(
+        const { rows: status } = await client.query<{ get_data_export_status: DataExportStatus }>(
           `select public.get_data_export_status()`,
         );
         const payload = status[0]?.get_data_export_status;
