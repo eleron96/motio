@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.13] - 2026-06-01
+### Changed
+- Нет зафиксированных изменений.
+
 ## [0.8.12] - 2026-05-31
 ### Changed
 - На таймлайне убрана лишняя строка с месяцем — месяц виден в панели сверху и по числам.
