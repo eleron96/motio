@@ -6,7 +6,7 @@
 
 **Командное планирование задач на таймлайне.**
 
-[![Version](https://img.shields.io/badge/version-0.4.2-blue.svg)](./VERSION)
+[![Version](https://img.shields.io/badge/version-0.8.12-blue.svg)](./VERSION)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5-646cff.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -154,9 +154,7 @@ make release-testing MSG="feat(...): ..." RU="..." EN="..." [TYPE=changed] [NEXT
 ```
 .
 ├── src/                                 — frontend (Vite + React + TS)
-├── docs/
-│   ├── architecture/                    — frontend boundaries
-│   └── specifications/                  — specification by example
+├── docs/                                — внутренние материалы (локально, не в git)
 ├── infra/
 │   ├── docker-compose.yml               — dev-контур
 │   ├── docker-compose.prod.yml          — production-контур
@@ -513,13 +511,13 @@ infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeli
 
 ## 📚 Документация
 
-- [`docs/overview-for-ai.md`](./docs/overview-for-ai.md) — обзор продукта простым языком (для ИИ-агента и быстрого онбординга).
-- [`docs/architecture/frontend-boundaries.md`](./docs/architecture/frontend-boundaries.md) — архитектурные границы frontend.
-- [`docs/specifications/planner-behavior-by-example.md`](./docs/specifications/planner-behavior-by-example.md) — спецификация поведения планировщика (Specification by Example).
-- [`docs/specifications/task-media-storage-behavior-by-example.md`](./docs/specifications/task-media-storage-behavior-by-example.md) — спецификация хранения task media.
 - [`CHANGELOG.md`](./CHANGELOG.md) · [`CHANGELOG.en.md`](./CHANGELOG.en.md) — история изменений.
 - [`MANIFESTO.md`](./MANIFESTO.md) — продуктовые принципы.
-- [`AGENTS.md`](./AGENTS.md) — заметки для AI-ассистентов при работе с репозиторием.
+- [`AGENTS.md`](./AGENTS.md) — рабочая инструкция для AI-ассистентов при работе с репозиторием.
+
+> Внутренние материалы для онбординга и ИИ-агента (обзор продукта, архитектурные
+> границы, specification-by-example) лежат локально в `docs/` и **не входят в
+> репозиторий** (`.gitignore`).
 
 ---
 
