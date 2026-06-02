@@ -491,6 +491,63 @@ describe('usePlannerLiveSync', () => {
     view.unmount();
   });
 
+  it('rebuilds the channel and recovers when the tab/network returns after a disconnect', async () => {
+    usePlannerStore.setState({ timelineInteractingUntil: 0 });
+
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
+      taskDelta: async () => emptyResult,
+      taskIds: async () => emptyResult,
+      milestoneDelta: async () => emptyResult,
+      milestoneIds: async () => emptyResult,
+    }));
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    // Connection drops -> the hook marks sync as unhealthy.
+    act(() => {
+      supabaseMocks.emitStatus('CHANNEL_ERROR');
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(usePlannerStore.getState().syncHealthy).toBe(false);
+
+    supabaseMocks.channel.mockClear();
+    supabaseMocks.removeChannel.mockClear();
+
+    // Network returns -> the hook tears the stale channel down and rebuilds it
+    // instead of waiting on the throttled internal reconnect timers.
+    await act(async () => {
+      window.dispatchEvent(new Event('online'));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(supabaseMocks.removeChannel).toHaveBeenCalledTimes(1);
+    expect(supabaseMocks.channel).toHaveBeenCalledTimes(1);
+
+    // The fresh channel subscribes successfully -> the banner clears.
+    act(() => {
+      supabaseMocks.emitStatus('SUBSCRIBED');
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(usePlannerStore.getState().syncHealthy).toBe(true);
+
+    view.unmount();
+  });
+
   it('uses a single workspace-level delta query for task comments during reconcile', async () => {
     let taskCommentDeltaCallCount = 0;
     const visibleTaskIds = Array.from(
