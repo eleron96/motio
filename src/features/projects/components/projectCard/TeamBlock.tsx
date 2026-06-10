@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
 import { ExternalLink, Group, Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
@@ -20,6 +20,9 @@ import { Input } from '@/shared/ui/input';
 
 const UNTAGGED_KEY = '__no_tag__';
 const UNTAGGED_LABEL_PROVIDER = () => t`Untagged`;
+// Persist the "group team by tag" toggle so it survives tab/project switches
+// (the project panel unmounts on navigation, which used to reset this state).
+const TEAM_GROUP_BY_TAG_KEY = 'projects-team-group-by-tag';
 
 interface TeamBlockProps {
   members: ProjectMember[];
@@ -120,7 +123,14 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   const [addExternalPhone, setAddExternalPhone] = useState('');
   const [addSubmitting, setAddSubmitting] = useState(false);
 
-  const [groupByTag, setGroupByTag] = useState(false);
+  const [groupByTag, setGroupByTag] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(TEAM_GROUP_BY_TAG_KEY) === '1';
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(TEAM_GROUP_BY_TAG_KEY, groupByTag ? '1' : '0');
+  }, [groupByTag]);
   const [collapsedTags, setCollapsedTags] = useState<Set<string>>(new Set());
 
   const explicitMode = members.length > 0;

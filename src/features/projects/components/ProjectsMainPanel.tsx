@@ -1,13 +1,20 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
-import { CalendarDays, ChevronDown, RefreshCcw, Search } from 'lucide-react';
+import { CalendarDays, ChevronDown, MoreHorizontal, Plus, RefreshCcw, Search } from 'lucide-react';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
@@ -57,6 +64,7 @@ type ProjectsMainPanelProps = {
   onClearFilters: () => void;
   selectedProjectId: string | null;
   onRefreshTasks: () => void;
+  onAddTask?: () => void;
   tasksLoading: boolean;
   tasksError: string;
   displayTaskRows: DisplayTaskRow[];
@@ -82,6 +90,10 @@ type ProjectsMainPanelProps = {
   selectedCustomerProjects: Project[];
   customersCount: number;
   onOpenProjectFromCustomer: (project: Project) => void;
+  /** Same handlers the customers-sidebar context menu uses — wired through
+   * here so the detail panel can render its own kebab dropdown. */
+  onStartCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
+  onRequestDeleteCustomer: (customer: Customer) => void;
   /**
    * Only consumed when `isProjectCardEnabled()` is on and `mode === 'projects'`.
    * Computed in ProjectsPage from existing data.
@@ -159,6 +171,7 @@ export const ProjectsMainPanel = ({
   onClearFilters,
   selectedProjectId,
   onRefreshTasks,
+  onAddTask,
   tasksLoading,
   tasksError,
   displayTaskRows,
@@ -184,6 +197,8 @@ export const ProjectsMainPanel = ({
   selectedCustomerProjects,
   customersCount,
   onOpenProjectFromCustomer,
+  onStartCustomerEdit,
+  onRequestDeleteCustomer,
   projectMembers,
   projectMilestones,
   today,
@@ -313,6 +328,7 @@ export const ProjectsMainPanel = ({
         onPrevPage={onPrevPage}
         onNextPage={onNextPage}
         totalCount={displayTotalCount}
+        onAddTask={onAddTask}
       />
     );
   }
@@ -369,6 +385,12 @@ export const ProjectsMainPanel = ({
                       </SegmentedControlItem>
                     </SegmentedControl>
                   </div>
+                  {canEdit && onAddTask && (
+                    <Button onClick={onAddTask} size="sm" className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      {t`Add task`}
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -741,22 +763,36 @@ export const ProjectsMainPanel = ({
                     >
                       {t`Open project`}
                     </Button>
-                    <Button
-                      variant="outline"
-                      className={isMobile ? 'w-full' : undefined}
-                      onClick={() => onOpenMilestoneSettings(selectedMilestone)}
-                      disabled={!canEdit}
-                    >
-                      {t`Edit`}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      className={isMobile ? 'w-full' : undefined}
-                      onClick={() => onRequestDeleteMilestone(selectedMilestone)}
-                      disabled={!canEdit}
-                    >
-                      {t`Delete`}
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size={isMobile ? undefined : 'icon'}
+                          className={isMobile ? 'w-full' : undefined}
+                          aria-label={t`Milestone actions`}
+                          disabled={!canEdit}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          {isMobile && <span className="ml-2">{t`Actions`}</span>}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem
+                          disabled={!canEdit}
+                          onSelect={() => onOpenMilestoneSettings(selectedMilestone)}
+                        >
+                          {t`Edit`}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          disabled={!canEdit}
+                          onSelect={() => onRequestDeleteMilestone(selectedMilestone)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          {t`Delete`}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>
@@ -795,8 +831,8 @@ export const ProjectsMainPanel = ({
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className={`border-b border-border ${sectionPadding}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-lg font-semibold">
+              <div className="min-w-0">
+                <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">
                   {selectedCustomer?.name ?? t`Select a customer`}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -805,6 +841,40 @@ export const ProjectsMainPanel = ({
                     : t`${customersCount} customers`}
                 </div>
               </div>
+              {selectedCustomer && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      aria-label={t`Customer actions`}
+                      disabled={!canEdit}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      onSelect={() => onStartCustomerEdit(
+                        selectedCustomer.id,
+                        selectedCustomer.name,
+                        selectedCustomer.industry,
+                      )}
+                    >
+                      {t`Edit`}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      onSelect={() => onRequestDeleteCustomer(selectedCustomer)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      {t`Delete`}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
           <div className={`flex-1 overflow-auto ${sectionPadding}`}>

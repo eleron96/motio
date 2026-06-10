@@ -110,6 +110,20 @@ describe('installPreloadErrorReload', () => {
     uninstall();
   });
 
+  it('calls preventDefault on vite:preloadError so Vite suppresses the rejection', () => {
+    const reload = vi.fn();
+    const uninstall = installPreloadErrorReload({
+      now: () => 42,
+      reloader: { reload },
+    });
+
+    const event = new Event('vite:preloadError', { cancelable: true });
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+
+    uninstall();
+  });
+
   it('reloads on unhandledrejection whose reason matches a preload error', () => {
     const reload = vi.fn();
     const uninstall = installPreloadErrorReload({

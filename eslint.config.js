@@ -23,4 +23,24 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // Architecture boundary (AGENTS.md §3): pages and feature UI components must not
+    // talk to Supabase directly — data access belongs in stores/application services
+    // and infrastructure repositories.
+    files: ["src/features/*/pages/**/*.{ts,tsx}", "src/features/*/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@/shared/lib/supabaseClient",
+              message:
+                "Pages and feature UI components must not access Supabase directly. Use a store action or an infrastructure repository (see AGENTS.md, section 3).",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

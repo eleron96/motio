@@ -9,6 +9,7 @@ import { computeGroupMembersToAdd } from '@/features/projects/lib/projectCard/co
 import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 import { ProjectsDialogs } from '@/features/projects/components/ProjectsDialogs';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
+import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { useProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
 import { useProjectsPageEffects } from '@/features/projects/hooks/useProjectsPageEffects';
 import { useProjectTasksQuery } from '@/features/projects/hooks/useProjectTasksQuery';
@@ -21,7 +22,7 @@ import { useMilestoneActions } from '@/features/projects/hooks/useMilestoneActio
 import { useProjectMutations } from '@/features/projects/hooks/useProjectMutations';
 import { useCustomerActions } from '@/features/projects/hooks/useCustomerActions';
 import { useProjectCreateForm } from '@/features/projects/hooks/useProjectCreateForm';
-import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
@@ -56,6 +57,7 @@ const ProjectsPage = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [mutationError, setMutationError] = useState('');
   const [search, setSearch] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
@@ -189,6 +191,8 @@ const ProjectsPage = () => {
     setCustomerFilterIds: setPersistedCustomerFilterIds,
     ownerGroupFilterIds: persistedOwnerGroupFilterIds,
     setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds: persistedMilestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds: setPersistedMilestoneOwnerGroupFilterIds,
   } = useProjectsViewPreferences({
     currentWorkspaceId,
     userId: user?.id,
@@ -610,6 +614,8 @@ const ProjectsPage = () => {
     setCustomerFilterIds,
     ownerGroupFilterIds,
     setOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds,
     milestoneSearch,
     setMilestoneSearch,
     filteredActiveProjects,
@@ -640,6 +646,8 @@ const ProjectsPage = () => {
     setCustomerFilterIds: setPersistedCustomerFilterIds,
     ownerGroupFilterIds: persistedOwnerGroupFilterIds,
     setOwnerGroupFilterIds: setPersistedOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds: persistedMilestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds: setPersistedMilestoneOwnerGroupFilterIds,
   });
 
   const {
@@ -708,7 +716,7 @@ const ProjectsPage = () => {
     if (user?.id && typeof window !== 'undefined') {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
-    setViewMode('week');
+    setViewMode('day');
     setCurrentDate(selectedTask.startDate);
     requestScrollToDate(selectedTask.startDate);
     setSelectedTaskId(null);
@@ -758,6 +766,14 @@ const ProjectsPage = () => {
 
   const handleToggleOwnerGroupFilter = (groupId: string) => {
     setOwnerGroupFilterIds((current) => (
+      current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId]
+    ));
+  };
+
+  const handleToggleMilestoneOwnerGroupFilter = (groupId: string) => {
+    setMilestoneOwnerGroupFilterIds((current) => (
       current.includes(groupId)
         ? current.filter((id) => id !== groupId)
         : [...current, groupId]
@@ -1003,6 +1019,10 @@ const ProjectsPage = () => {
               onMilestoneSearchChange={setMilestoneSearch}
               milestoneGroupLabel={milestoneGroupLabel}
               onCycleMilestoneGroup={handleCycleMilestoneGroup}
+              memberGroups={memberGroups}
+              milestoneOwnerGroupFilterIds={milestoneOwnerGroupFilterIds}
+              onToggleMilestoneOwnerGroupFilter={handleToggleMilestoneOwnerGroupFilter}
+              onClearMilestoneOwnerGroupFilters={() => setMilestoneOwnerGroupFilterIds([])}
               milestones={milestones}
               visibleMilestones={visibleMilestones}
               groupedMilestones={groupedMilestones}
@@ -1081,6 +1101,10 @@ const ProjectsPage = () => {
       onMilestoneSearchChange={setMilestoneSearch}
       milestoneGroupLabel={milestoneGroupLabel}
       onCycleMilestoneGroup={handleCycleMilestoneGroup}
+      memberGroups={memberGroups}
+      milestoneOwnerGroupFilterIds={milestoneOwnerGroupFilterIds}
+      onToggleMilestoneOwnerGroupFilter={handleToggleMilestoneOwnerGroupFilter}
+      onClearMilestoneOwnerGroupFilters={() => setMilestoneOwnerGroupFilterIds([])}
       milestones={milestones}
       visibleMilestones={visibleMilestones}
       groupedMilestones={groupedMilestones}
@@ -1190,6 +1214,7 @@ const ProjectsPage = () => {
           void refetchTasks();
         }
       }}
+      onAddTask={selectedProjectId ? () => setAddTaskOpen(true) : undefined}
       tasksLoading={tasksLoading}
       tasksError={tasksError}
       displayTaskRows={displayTaskRows}
@@ -1215,6 +1240,8 @@ const ProjectsPage = () => {
       selectedCustomerProjects={selectedCustomerProjects}
       customersCount={customers.length}
       onOpenProjectFromCustomer={handleOpenProjectFromCustomer}
+      onStartCustomerEdit={startCustomerEdit}
+      onRequestDeleteCustomer={requestDeleteCustomer}
       projectMembers={projectMembers}
       projectMilestones={projectMilestones}
       today={today}
@@ -1247,51 +1274,55 @@ const ProjectsPage = () => {
     />
   );
 
+  useWorkspaceHeader(
+    {
+      primaryAction: mode === 'customers' ? (
+        <Button
+          data-tour="projects-primary-action"
+          onClick={() => setCreateCustomerOpen(true)}
+          size="sm"
+          className="gap-2"
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`New customer`}
+        </Button>
+      ) : mode === 'milestones' ? (
+        <Button
+          data-tour="projects-primary-action"
+          onClick={handleOpenCreateMilestone}
+          size="sm"
+          className="gap-2"
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`New milestone`}
+        </Button>
+      ) : (
+        <Button
+          data-tour="projects-primary-action"
+          onClick={() => setCreateProjectOpen(true)}
+          size="sm"
+          className="gap-2"
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`New project`}
+        </Button>
+      ),
+      onOpenSettings: () => setShowSettings(true),
+      onOpenAccountSettings: () => setShowAccountSettings(true),
+      settingsDisabled: !canEdit,
+    },
+    [mode, canEdit],
+  );
+
   if (isSuperAdmin) {
     return <Navigate to="/app/admin/users" replace />;
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <WorkspacePageHeader
-        primaryAction={mode === 'customers' ? (
-          <Button
-            data-tour="projects-primary-action"
-            onClick={() => setCreateCustomerOpen(true)}
-            size="sm"
-            className="gap-2"
-            disabled={!canEdit}
-          >
-            <Plus className="h-4 w-4" />
-            {t`New customer`}
-          </Button>
-        ) : mode === 'milestones' ? (
-          <Button
-            data-tour="projects-primary-action"
-            onClick={handleOpenCreateMilestone}
-            size="sm"
-            className="gap-2"
-            disabled={!canEdit}
-          >
-            <Plus className="h-4 w-4" />
-            {t`New milestone`}
-          </Button>
-        ) : (
-          <Button
-            data-tour="projects-primary-action"
-            onClick={() => setCreateProjectOpen(true)}
-            size="sm"
-            className="gap-2"
-            disabled={!canEdit}
-          >
-            <Plus className="h-4 w-4" />
-            {t`New project`}
-          </Button>
-        )}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenAccountSettings={() => setShowAccountSettings(true)}
-        settingsDisabled={!canEdit}
-      />
+    <>
 
       {mutationError && (
         <div className="border-b border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
@@ -1435,7 +1466,19 @@ const ProjectsPage = () => {
         setDeleteCustomerTarget={setDeleteCustomerTarget}
         handleConfirmDeleteCustomer={handleConfirmDeleteCustomer}
       />
-    </div>
+
+      {selectedProjectId && (
+        <AddTaskDialog
+          open={addTaskOpen}
+          onOpenChange={setAddTaskOpen}
+          initialProjectId={selectedProjectId}
+          lockProject
+          onCreated={() => {
+            void refetchTasks();
+          }}
+        />
+      )}
+    </>
   );
 };
 

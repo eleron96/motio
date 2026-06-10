@@ -29,6 +29,10 @@ vi.mock('@/features/onboarding/lib/onboardingTour', () => ({
   createOnboardingTour: (...args: unknown[]) => createOnboardingTourMock(...args),
 }));
 
+// driver.js styles are dynamically imported alongside the tour module; stub
+// the CSS module out so the dynamic import doesn't throw in the jsdom env.
+vi.mock('driver.js/dist/driver.css', () => ({}));
+
 vi.mock('@/infrastructure/auth/onboardingPreferencesRepository', () => ({
   fetchProfilePreferences: (...args: unknown[]) => fetchProfilePreferencesMock(...args),
   updateProfilePreferences: (...args: unknown[]) => updateProfilePreferencesMock(...args),
@@ -97,6 +101,10 @@ describe('useOnboardingTour', () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(800);
+      // The hook now dynamically imports the tour module after the 800ms
+      // delay; flush the resulting microtask chain before asserting.
+      await Promise.resolve();
+      await Promise.resolve();
     });
 
     expect(createOnboardingTourMock).toHaveBeenCalledTimes(1);

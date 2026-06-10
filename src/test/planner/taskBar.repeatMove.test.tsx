@@ -235,4 +235,34 @@ describe('TaskBar repeat move flow', () => {
     expect(screen.queryByText('Apply changes to repeating tasks?')).not.toBeInTheDocument();
     expect(moveTask).toHaveBeenCalledWith('task-1', '2026-02-02', '2026-02-02', 'single');
   });
+
+  it('detaches the occurrence from its series when choosing "Only this task"', async () => {
+    const { container } = render(
+      <TaskBar
+        canEdit
+        dayWidth={10}
+        lane={0}
+        position={{ left: 0, width: 16 }}
+        task={{ ...baseTask }}
+        visibleDays={[]}
+      />,
+    );
+
+    const bar = container.querySelector('[data-task-id="task-1"]');
+    fireEvent.mouseDown(bar!, { button: 0, clientX: 10 });
+    fireEvent.mouseMove(document, { clientX: 20 });
+    fireEvent.mouseUp(document);
+
+    expect(await screen.findByText('Apply changes to repeating tasks?')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Only this task'));
+
+    // Detaching writes the move AND clears repeatId in one update, so the task
+    // is standalone afterwards and won't re-open the scope dialog on next edit.
+    expect(plannerState.updateTask).toHaveBeenCalledWith(
+      'task-1',
+      { startDate: '2026-02-02', endDate: '2026-02-02', repeatId: null },
+      'single',
+    );
+    expect(moveTask).not.toHaveBeenCalled();
+  });
 });

@@ -1,6 +1,5 @@
 import { startTransition, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Driver } from 'driver.js';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import {
   getOnboardingPagePath,
@@ -8,12 +7,24 @@ import {
   ONBOARDING_PENDING_PAGE_STORAGE_KEY,
   type OnboardingPageId,
 } from '@/features/onboarding/lib/onboardingFlow';
-import { createOnboardingTour } from '@/features/onboarding/lib/onboardingTour';
 import {
   fetchProfilePreferences,
   updateProfilePreferences,
 } from '@/infrastructure/auth/onboardingPreferencesRepository';
-import 'driver.js/dist/driver.css';
+
+// driver.js (the tour engine) plus its CSS weigh ~290 KB raw. Most users
+// have already completed the tour, so we postpone fetching that bundle
+// until we know the current user genuinely needs it.
+type Driver = Awaited<ReturnType<typeof loadTourModule>>['createOnboardingTour'] extends
+  (...args: never[]) => infer R ? R : never;
+
+const loadTourModule = async () => {
+  const [tourMod] = await Promise.all([
+    import('@/features/onboarding/lib/onboardingTour'),
+    import('driver.js/dist/driver.css'),
+  ]);
+  return tourMod;
+};
 
 type UseOnboardingTourOptions = {
   pageId: OnboardingPageId;
@@ -90,27 +101,31 @@ export const useOnboardingTour = ({
         if (cancelled) return;
         started.current = true;
 
-        activeTour.current = createOnboardingTour({
-          pageId,
-          canEdit: canEditRef.current,
-          hasProjectAssigneeTarget: hasProjectAssigneeTargetRef.current,
-          isAdmin: isAdminRef.current,
-          onAdvance: (nextPage) => {
-            writePendingPage(nextPage);
-            startTransition(() => {
-              navigate(getOnboardingPagePath(nextPage));
-            });
-          },
-          onDismiss: () => {
-            void markCompleted();
-          },
-          onComplete: () => {
-            void markCompleted();
-          },
-          prepareMembersAccess: prepareMembersAccessRef.current,
-        });
+        void loadTourModule().then(({ createOnboardingTour }) => {
+          if (cancelled) return;
 
-        activeTour.current.drive();
+          activeTour.current = createOnboardingTour({
+            pageId,
+            canEdit: canEditRef.current,
+            hasProjectAssigneeTarget: hasProjectAssigneeTargetRef.current,
+            isAdmin: isAdminRef.current,
+            onAdvance: (nextPage) => {
+              writePendingPage(nextPage);
+              startTransition(() => {
+                navigate(getOnboardingPagePath(nextPage));
+              });
+            },
+            onDismiss: () => {
+              void markCompleted();
+            },
+            onComplete: () => {
+              void markCompleted();
+            },
+            prepareMembersAccess: prepareMembersAccessRef.current,
+          });
+
+          activeTour.current.drive();
+        });
       }, 800);
     };
 

@@ -434,8 +434,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                       dayWidth={dayWidth}
                       viewMode={viewMode}
                       isMobile={isMobile}
-                      scrollLeft={scrollLeft}
-                      viewportWidth={viewportWidth}
                       attentionDate={timelineAttentionDate}
                       todayKey={todayKey}
                       holidayDates={holidayDates}
@@ -515,7 +513,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         date={milestoneDialogDate}
         milestone={editingMilestone}
         canEdit={canEdit}
-        allowDateEdit={Boolean(editingMilestone)}
       />
     </div>
   );

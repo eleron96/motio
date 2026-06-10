@@ -105,6 +105,7 @@ interface ProjectCardLayoutProps {
   onPrevPage: () => void;
   onNextPage: () => void;
   totalCount: number;
+  onAddTask?: () => void;
 }
 
 export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
@@ -203,7 +204,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
           workspaceId={workspaceId}
         />
 
-        <TasksBlock {...taskProps} />
+        <TasksBlock {...taskProps} canEdit={canEdit} />
       </div>
     </div>
   );

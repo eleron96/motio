@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
-import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
 import { format } from 'date-fns';
@@ -387,7 +387,7 @@ const MembersPage = () => {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
     setGroupMode('assignee');
-    setViewMode('week');
+    setViewMode('day');
     setCurrentDate(timelineTask.startDate);
     requestScrollToDate(timelineTask.startDate);
     setSelectedTaskId(null);
@@ -673,23 +673,27 @@ const MembersPage = () => {
     </section>
   );
 
+  useWorkspaceHeader(
+    {
+      primaryAction: mode === 'groups' && isAdmin ? (
+        <Button size="sm" className="gap-2" onClick={() => setCreatingGroup(true)}>
+          <Plus className="h-4 w-4" />
+          {t`New group`}
+        </Button>
+      ) : null,
+      onOpenSettings: () => setShowSettings(true),
+      onOpenAccountSettings: () => setShowAccountSettings(true),
+      settingsDisabled: !canEdit,
+    },
+    [mode, isAdmin, canEdit],
+  );
+
   if (isSuperAdmin) {
     return <Navigate to="/app/admin/users" replace />;
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <WorkspacePageHeader
-        primaryAction={mode === 'groups' && isAdmin ? (
-          <Button size="sm" className="gap-2" onClick={() => setCreatingGroup(true)}>
-            <Plus className="h-4 w-4" />
-            {t`New group`}
-          </Button>
-        ) : null}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenAccountSettings={() => setShowAccountSettings(true)}
-        settingsDisabled={!canEdit}
-      />
+    <>
 
       {isMobile ? (
         <>
@@ -753,7 +757,7 @@ const MembersPage = () => {
         showAccountSettings={showAccountSettings}
         setShowAccountSettings={setShowAccountSettings}
       />
-    </div>
+    </>
   );
 };
 

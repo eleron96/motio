@@ -11,6 +11,7 @@ import { AccountBadgeButton } from '@/features/auth/components/AccountBadgeButto
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { Button } from '@/shared/ui/button';
+import { Separator } from '@/shared/ui/separator';
 import { MobileFab } from '@/shared/ui/mobile-fab';
 
 interface WorkspacePageHeaderProps {
@@ -67,24 +68,28 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
               draggable={false}
             />
           </Link>
-          <WorkspaceSwitcher />
+          <div className="inline-flex items-center gap-0.5 rounded-lg bg-muted p-1">
+            <WorkspaceSwitcher inCapsule />
+            {showSettingsButton && (
+              <Button
+                data-tour="settings-btn"
+                variant="ghost"
+                size="icon"
+                onClick={onOpenSettings}
+                className="h-8 w-8 rounded-md text-muted-foreground hover:bg-background hover:text-foreground hover:shadow-sm"
+                disabled={settingsDisabled}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <Separator orientation="vertical" className="h-6" />
           <WorkspaceNav />
         </div>
 
         <div className="flex items-center gap-2">
           {primaryAction}
-          {showSettingsButton && (
-            <Button
-              data-tour="settings-btn"
-              variant="outline"
-              size="icon"
-              onClick={onOpenSettings}
-              className="h-9 w-9"
-              disabled={settingsDisabled}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          )}
+          {primaryAction ? <Separator orientation="vertical" className="h-6" /> : null}
           {basePath === '/app' && <InviteNotifications />}
           <AccountBadgeButton onClick={onOpenAccountSettings} />
         </div>

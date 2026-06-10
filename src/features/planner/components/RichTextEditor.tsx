@@ -365,20 +365,52 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, [contextMenu]);
 
+  const isSelectionInsideList = useCallback(() => {
+    const editor = editorRef.current;
+    const selection = window.getSelection();
+    if (!editor || !selection || selection.rangeCount === 0) return false;
+    let node: Node | null = selection.getRangeAt(0).startContainer;
+    if (!node || !editor.contains(node)) return false;
+    while (node && node !== editor) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const tag = (node as Element).tagName;
+        if (tag === 'LI' || tag === 'UL' || tag === 'OL') return true;
+      }
+      node = node.parentNode;
+    }
+    return false;
+  }, []);
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (disabled) return;
     const isModifier = event.metaKey || event.ctrlKey;
-    if (!isModifier) return;
-    const key = event.key.toLowerCase();
-    if (key === 'b') {
+    if (isModifier) {
+      const key = event.key.toLowerCase();
+      if (key === 'b') {
+        event.preventDefault();
+        applyCommand('bold');
+      } else if (key === 'i') {
+        event.preventDefault();
+        applyCommand('italic');
+      } else if (key === 'u') {
+        event.preventDefault();
+        applyCommand('underline');
+      }
+      return;
+    }
+    // Enter and Shift+Enter both insert a single <br> line break. A <br> is in
+    // the sanitizer allowlist, round-trips through setEditorValue/
+    // extractEditorValue without structural drift, and renders identically in
+    // every read view (note modal + clamped feed row) without depending on
+    // per-tag margins or risking empty-<div> collapse — which is why some line
+    // breaks previously vanished in the project Notes feed.
+    // Inside a list we defer to the browser so Enter still creates a new list
+    // item (and a trailing empty item exits the list).
+    if (event.key === 'Enter') {
+      if (isSelectionInsideList()) return;
       event.preventDefault();
-      applyCommand('bold');
-    } else if (key === 'i') {
-      event.preventDefault();
-      applyCommand('italic');
-    } else if (key === 'u') {
-      event.preventDefault();
-      applyCommand('underline');
+      document.execCommand('insertLineBreak');
+      syncFromEditor();
     }
   };
 

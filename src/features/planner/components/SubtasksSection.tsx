@@ -1,10 +1,26 @@
-import React, { MutableRefObject } from 'react';
+import React, { MutableRefObject, useEffect, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Plus, X } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { Input } from '@/shared/ui/input';
+import { Textarea } from '@/shared/ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/alert-dialog';
 import { cn } from '@/shared/lib/classNames';
 
 interface SubtasksSectionProps {
@@ -16,12 +32,18 @@ interface SubtasksSectionProps {
   subtasks: TaskSubtask[];
   newSubtaskTitle: string;
   completedSubtasksCount: number;
-  subtaskInputRef: MutableRefObject<HTMLInputElement | null>;
+  subtaskInputRef: MutableRefObject<HTMLTextAreaElement | null>;
   onOpen: () => void;
   onNewTitleChange: (value: string) => void;
   onAdd: () => void;
+  onEdit: (subtaskId: string, title: string) => Promise<boolean>;
   onToggle: (subtaskId: string, isDone: boolean) => void;
   onDelete: (subtaskId: string) => void;
+  /**
+   * Fires whenever an inline subtask edit has uncommitted changes, so the
+   * parent (task panel) can warn before closing and losing them.
+   */
+  onEditingDirtyChange?: (dirty: boolean) => void;
 }
 
 export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
@@ -37,9 +59,44 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onOpen,
   onNewTitleChange,
   onAdd,
+  onEdit,
   onToggle,
   onDelete,
+  onEditingDirtyChange,
 }) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  // An inline edit is "dirty" while it's open and the text differs from the
+  // saved subtask title. Reported upward so the task panel can warn before a
+  // close discards it.
+  const editingOriginalTitle = editingId
+    ? subtasks.find((subtask) => subtask.id === editingId)?.title ?? ''
+    : '';
+  const isEditingDirty = editingId !== null
+    && editingTitle.trim() !== editingOriginalTitle.trim();
+
+  useEffect(() => {
+    onEditingDirtyChange?.(isEditingDirty);
+    return () => onEditingDirtyChange?.(false);
+  }, [isEditingDirty, onEditingDirtyChange]);
+
+  const startEditing = (subtaskId: string, title: string) => {
+    setEditingId(subtaskId);
+    setEditingTitle(title);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditingTitle('');
+  };
+
+  const commitEditing = async (subtaskId: string) => {
+    const saved = await onEdit(subtaskId, editingTitle);
+    if (saved) cancelEditing();
+  };
+
   if (!subtasksOpen) {
     return (
       <Button
@@ -60,23 +117,25 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
         {t`Completed`}: <span className="font-medium text-foreground">{completedSubtasksCount}</span>/{subtasks.length}
       </div>
 
-      <div className="flex items-center gap-2">
-        <Input
+      <div className="flex items-start gap-2">
+        <Textarea
           ref={subtaskInputRef}
           value={newSubtaskTitle}
           onChange={(event) => onNewTitleChange(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key !== 'Enter') return;
+            // Enter adds the subtask; Shift+Enter inserts a newline.
+            if (event.key !== 'Enter' || event.shiftKey) return;
             event.preventDefault();
             onAdd();
           }}
+          rows={2}
           placeholder={t`Subtask title`}
           disabled={isReadOnly || subtasksSaving}
-          className="h-8 text-sm"
+          className="min-h-[56px] flex-1 resize-y text-sm"
         />
         <Button
           type="button"
-          className="h-8 px-3 text-xs"
+          className="h-8 shrink-0 px-3 text-xs"
           onClick={onAdd}
           disabled={isReadOnly || subtasksSaving || !newSubtaskTitle.trim()}
         >
@@ -105,31 +164,108 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   if (value === 'indeterminate') return;
                   onToggle(subtask.id, value === true);
                 }}
-                disabled={isReadOnly}
+                disabled={isReadOnly || editingId === subtask.id}
               />
-              <span
-                className={cn(
-                  'flex-1 text-sm leading-snug text-foreground',
-                  subtask.isDone && 'line-through text-muted-foreground',
-                )}
-              >
-                {subtask.title}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0"
-                onClick={() => onDelete(subtask.id)}
-                disabled={isReadOnly}
-                aria-label={t`Remove subtask`}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+              {editingId === subtask.id ? (
+                <Textarea
+                  autoFocus
+                  value={editingTitle}
+                  onChange={(event) => setEditingTitle(event.target.value)}
+                  onKeyDown={(event) => {
+                    // Enter saves; Shift+Enter inserts a newline.
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault();
+                      void commitEditing(subtask.id);
+                    } else if (event.key === 'Escape') {
+                      event.preventDefault();
+                      cancelEditing();
+                    }
+                  }}
+                  onBlur={() => void commitEditing(subtask.id)}
+                  disabled={isReadOnly}
+                  rows={2}
+                  className="min-h-[56px] flex-1 resize-y text-sm"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isReadOnly) return;
+                    startEditing(subtask.id, subtask.title);
+                  }}
+                  disabled={isReadOnly}
+                  className={cn(
+                    'flex-1 whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]',
+                    !isReadOnly && 'cursor-text',
+                    subtask.isDone && 'line-through text-muted-foreground',
+                  )}
+                >
+                  {subtask.title}
+                </button>
+              )}
+              {editingId !== subtask.id && !isReadOnly && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      aria-label={t`Subtask actions`}
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onSelect={() => startEditing(subtask.id, subtask.title)}>
+                      <Pencil className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                      {t`Edit`}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        setPendingDeleteId(subtask.id);
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                      {t`Delete`}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           ))}
         </div>
       )}
+
+      <AlertDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Delete subtask?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (pendingDeleteId) onDelete(pendingDeleteId);
+                setPendingDeleteId(null);
+              }}
+            >
+              {t`Delete`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

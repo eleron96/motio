@@ -1,11 +1,18 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowDownZA, CalendarDays, ChevronDown, Filter, Layers, Search, Star } from 'lucide-react';
+import { ArrowDownAZ, ArrowDownZA, CalendarDays, ChevronDown, Filter, Layers, MoreHorizontal, Search, Star, Users } from 'lucide-react';
 import { cn } from '@/shared/lib/classNames';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/shared/ui/context-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
@@ -13,7 +20,7 @@ import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-co
 import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { Customer, Milestone, Project } from '@/features/planner/types/planner';
+import { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
 
 type Mode = 'projects' | 'milestones' | 'customers';
 type ProjectTab = 'active' | 'archived';
@@ -53,6 +60,13 @@ type ProjectsSidebarProps = {
   onMilestoneSearchChange: (value: string) => void;
   milestoneGroupLabel: string;
   onCycleMilestoneGroup: () => void;
+  /** Filter milestones by the owner team (member group) of their parent
+   * project. Mirrors the popover used in ProjectCardSidebar so the UX is
+   * consistent between modes. */
+  memberGroups: MemberGroup[];
+  milestoneOwnerGroupFilterIds: string[];
+  onToggleMilestoneOwnerGroupFilter: (groupId: string) => void;
+  onClearMilestoneOwnerGroupFilters: () => void;
   milestones: Milestone[];
   visibleMilestones: Milestone[];
   groupedMilestones: MilestoneGroup[];
@@ -111,6 +125,10 @@ export const ProjectsSidebar = ({
   onMilestoneSearchChange,
   milestoneGroupLabel,
   onCycleMilestoneGroup,
+  memberGroups,
+  milestoneOwnerGroupFilterIds,
+  onToggleMilestoneOwnerGroupFilter,
+  onClearMilestoneOwnerGroupFilters,
   milestones,
   visibleMilestones,
   groupedMilestones,
@@ -288,6 +306,39 @@ export const ProjectsSidebar = ({
                 {project?.archived && (
                   <Badge variant="secondary" size="xs">{t`Archived`}</Badge>
                 )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                      aria-label={t`Milestone actions`}
+                      // Stop the click from selecting the row underneath —
+                      // the user is reaching for the kebab, not the item.
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem disabled={!canEdit} onSelect={() => onOpenMilestoneSettings(milestone)}>
+                      {t`Edit`}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={!project}
+                      onSelect={() => onOpenProjectFromMilestone(milestone)}
+                    >
+                      {t`Open project`}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      onSelect={() => onRequestDeleteMilestone(milestone)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      {t`Delete`}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </SelectableListItem>
@@ -422,6 +473,34 @@ export const ProjectsSidebar = ({
                               {t`${projectCount} projects`}
                             </div>
                           </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground"
+                                aria-label={t`Customer actions`}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                <MoreHorizontal className="h-3.5 w-3.5" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                disabled={!canEdit}
+                                onSelect={() => onStartCustomerEdit(customer.id, customer.name, customer.industry)}
+                              >
+                                {t`Edit`}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                disabled={!canEdit}
+                                onSelect={() => onRequestDeleteCustomer(customer)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                {t`Delete`}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </SelectableListItem>
                       </ContextMenuTrigger>
                       <ContextMenuContent>
@@ -455,14 +534,70 @@ export const ProjectsSidebar = ({
           className="flex min-h-0 flex-1 flex-col"
         >
           <div className="px-4 py-3 border-b border-border">
-            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <div className="flex flex-col gap-2">
               <Input
                 className="h-8"
                 placeholder={t`Search milestones...`}
                 value={milestoneSearch}
                 onChange={(event) => onMilestoneSearchChange(event.target.value)}
               />
-              <div className="flex items-center justify-end gap-1">
+              <div className="flex items-center gap-1">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'h-8 gap-1.5 px-2',
+                        milestoneOwnerGroupFilterIds.length > 0 && 'bg-muted text-foreground',
+                      )}
+                      aria-label={t`Filter milestones by team`}
+                      title={t`Filter by team`}
+                    >
+                      <Users className="h-4 w-4" />
+                      {milestoneOwnerGroupFilterIds.length > 0 && (
+                        <span className="text-[10px] tabular-nums text-muted-foreground">
+                          {milestoneOwnerGroupFilterIds.length}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-60 p-3" align="start">
+                    <div className="flex items-center justify-between pb-2">
+                      <span className="text-[11px] text-muted-foreground">{t`Filter by team`}</span>
+                      <button
+                        type="button"
+                        className="rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground"
+                        onClick={onClearMilestoneOwnerGroupFilters}
+                      >
+                        {t`Clear`}
+                      </button>
+                    </div>
+                    <ScrollArea className="max-h-56 pr-2">
+                      <div className="space-y-1">
+                        <label className="flex cursor-pointer items-center gap-2 py-1">
+                          <Checkbox
+                            checked={milestoneOwnerGroupFilterIds.includes('none')}
+                            onCheckedChange={() => onToggleMilestoneOwnerGroupFilter('none')}
+                          />
+                          <span className="text-sm">{t`No team`}</span>
+                        </label>
+                        {memberGroups.length === 0 && (
+                          <div className="text-xs text-muted-foreground">{t`No teams yet.`}</div>
+                        )}
+                        {memberGroups.map((group) => (
+                          <label key={group.id} className="flex cursor-pointer items-center gap-2 py-1">
+                            <Checkbox
+                              checked={milestoneOwnerGroupFilterIds.includes(group.id)}
+                              onCheckedChange={() => onToggleMilestoneOwnerGroupFilter(group.id)}
+                            />
+                            <span className="truncate text-sm">{group.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
                 <Button
                   variant="ghost"
                   size="sm"

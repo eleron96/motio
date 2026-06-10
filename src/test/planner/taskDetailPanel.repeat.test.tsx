@@ -83,6 +83,7 @@ const mocks = vi.hoisted(() => ({
     updateRepeatSeries: vi.fn(async () => ({ created: 0, deleted: 0, updated: 1 })),
     updateTask: vi.fn(async () => ({})),
     updateTaskSubtaskCompletion: vi.fn(async () => ({})),
+    updateTaskSubtaskTitle: vi.fn(async () => ({})),
   },
 }));
 

@@ -11,6 +11,38 @@ import {
   withRollback,
 } from "../helpers/setup-test-db";
 
+interface WorkspaceCandidate {
+  user_id: string;
+}
+
+interface WorkspaceRequiringAction {
+  id: string;
+  candidates: WorkspaceCandidate[];
+}
+
+interface AccountDeletionPreview {
+  workspacesRequiringAction: WorkspaceRequiringAction[];
+  workspacesAutoHandled: { id: string }[];
+  purgeDelayDays: number;
+}
+
+interface AccountDeletionResult {
+  transferred_workspaces: number;
+  deleted_workspaces: number;
+  purge_after: string | null;
+}
+
+interface DataExportRequest {
+  status: string;
+  request_id?: string;
+}
+
+interface DataExportStatus {
+  status: string;
+  file_path?: string | null;
+  error_message?: string | null;
+}
+
 const RU_PHRASE =
   "Я понимаю, что удаляю свой аккаунт навсегда и теряю доступ ко всем рабочим пространствам";
 const EN_PHRASE =
@@ -56,7 +88,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
     it("Alice is sole admin of aliceSolo → requiringAction with Charlie as candidate", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.alice);
-        const { rows } = await client.query<{ preview_account_deletion: any }>(
+        const { rows } = await client.query<{ preview_account_deletion: AccountDeletionPreview }>(
           `select public.preview_account_deletion()`,
         );
         const preview = rows[0].preview_account_deletion;
@@ -76,7 +108,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
     it("Bob has co-admin Charlie in bobShared → autoHandled", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.bob);
-        const { rows } = await client.query<{ preview_account_deletion: any }>(
+        const { rows } = await client.query<{ preview_account_deletion: AccountDeletionPreview }>(
           `select public.preview_account_deletion()`,
         );
         const preview = rows[0].preview_account_deletion;
@@ -91,12 +123,12 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
     it("Charlie is member of aliceSolo + co-admin of bobShared → both autoHandled", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.charlie);
-        const { rows } = await client.query<{ preview_account_deletion: any }>(
+        const { rows } = await client.query<{ preview_account_deletion: AccountDeletionPreview }>(
           `select public.preview_account_deletion()`,
         );
         const preview = rows[0].preview_account_deletion;
         expect(preview.workspacesRequiringAction).toEqual([]);
-        expect(preview.workspacesAutoHandled.map((w: any) => w.id).sort()).toEqual(
+        expect(preview.workspacesAutoHandled.map((w) => w.id).sort()).toEqual(
           [TEST_WORKSPACE_IDS.aliceSolo, TEST_WORKSPACE_IDS.bobShared].sort(),
         );
       });
@@ -105,7 +137,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
     it("David is alone in davidAlone → requiringAction with empty candidates", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.david);
-        const { rows } = await client.query<{ preview_account_deletion: any }>(
+        const { rows } = await client.query<{ preview_account_deletion: AccountDeletionPreview }>(
           `select public.preview_account_deletion()`,
         );
         const preview = rows[0].preview_account_deletion;
@@ -133,7 +165,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
     it("Alice (en) transfers aliceSolo to Charlie → PENDING_DELETION, ownership flips", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.alice);
-        const { rows } = await client.query<{ request_account_deletion: any }>(
+        const { rows } = await client.query<{ request_account_deletion: AccountDeletionResult }>(
           `select public.request_account_deletion($1::jsonb, $2)`,
           [
             JSON.stringify([
@@ -179,7 +211,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
           [TEST_USER_IDS.alice],
         );
         await actAs(client, TEST_USER_IDS.alice);
-        const { rows } = await client.query<{ request_account_deletion: any }>(
+        const { rows } = await client.query<{ request_account_deletion: AccountDeletionResult }>(
           `select public.request_account_deletion($1::jsonb, $2)`,
           [
             JSON.stringify([
@@ -250,7 +282,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
         const { rows } = await client.query<{
           event_type: string;
           email_hash: string;
-          metadata: any;
+          metadata: Record<string, unknown>;
         }>(
           `select event_type, email_hash, metadata from public.account_deletion_events
             where user_id=$1 order by created_at desc limit 1`,
@@ -479,11 +511,11 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
     it("first request succeeds and status is pending", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.alice);
-        const req = await client.query<{ request_data_export: any }>(
+        const req = await client.query<{ request_data_export: DataExportRequest }>(
           `select public.request_data_export()`,
         );
         expect(req.rows[0].request_data_export.status).toBe("pending");
-        const stat = await client.query<{ get_data_export_status: any }>(
+        const stat = await client.query<{ get_data_export_status: DataExportStatus }>(
           `select public.get_data_export_status()`,
         );
         expect(stat.rows[0].get_data_export_status.status).toBe("pending");
@@ -511,7 +543,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
             where user_id=$1`,
           [TEST_USER_IDS.alice],
         );
-        const { rows } = await client.query<{ request_data_export: any }>(
+        const { rows } = await client.query<{ request_data_export: DataExportRequest }>(
           `select public.request_data_export()`,
         );
         expect(rows[0].request_data_export.status).toBe("pending");
@@ -525,7 +557,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
           `select public.request_account_deletion('[]'::jsonb, $1)`,
           [EN_PHRASE],
         );
-        const { rows } = await client.query<{ request_data_export: any }>(
+        const { rows } = await client.query<{ request_data_export: DataExportRequest }>(
           `select public.request_data_export()`,
         );
         expect(rows[0].request_data_export.status).toBe("pending");
@@ -548,7 +580,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
     it("get_status returns {status:'none'} when no requests exist", async () => {
       await withFixture(async (client) => {
         await actAs(client, TEST_USER_IDS.alice);
-        const { rows } = await client.query<{ get_data_export_status: any }>(
+        const { rows } = await client.query<{ get_data_export_status: DataExportStatus }>(
           `select public.get_data_export_status()`,
         );
         expect(rows[0].get_data_export_status).toEqual({ status: "none" });
@@ -561,7 +593,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
         await client.query(`select public.request_data_export()`);
 
         // Simulate pending → no file_path.
-        let stat = await client.query<{ get_data_export_status: any }>(
+        let stat = await client.query<{ get_data_export_status: DataExportStatus }>(
           `select public.get_data_export_status()`,
         );
         expect(stat.rows[0].get_data_export_status.file_path).toBeNull();
@@ -574,7 +606,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
             where user_id=$1`,
           [TEST_USER_IDS.alice],
         );
-        stat = await client.query<{ get_data_export_status: any }>(
+        stat = await client.query<{ get_data_export_status: DataExportStatus }>(
           `select public.get_data_export_status()`,
         );
         expect(stat.rows[0].get_data_export_status.file_path).toBe(

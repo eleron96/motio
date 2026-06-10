@@ -23,6 +23,7 @@ dist-ssr
 .env.compose
 .env.*
 !.env.example
+!.env.test
 !.env.compose.example
 !infra/metabase/.env.metabase.example
 .supabase

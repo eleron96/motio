@@ -26,6 +26,10 @@ export const useProjectsViewPreferences = ({
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [customerFilterIds, setCustomerFilterIds] = useState<string[]>([]);
   const [ownerGroupFilterIds, setOwnerGroupFilterIds] = useState<string[]>([]);
+  // Independent from `ownerGroupFilterIds`: switching modes shouldn't
+  // accidentally reuse the projects filter for the milestones list and
+  // vice-versa. Same shape, same storage key, separate value.
+  const [milestoneOwnerGroupFilterIds, setMilestoneOwnerGroupFilterIds] = useState<string[]>([]);
 
   const projectsViewPrefsStorageKey = currentWorkspaceId
     ? `projects-view-prefs-${currentWorkspaceId}`
@@ -51,6 +55,7 @@ export const useProjectsViewPreferences = ({
           selectedCustomerId: string | null;
           customerFilterIds: string[];
           ownerGroupFilterIds: string[];
+          milestoneOwnerGroupFilterIds: string[];
         }>;
         if (parsed.nameSort === 'asc' || parsed.nameSort === 'desc') {
           setNameSort(parsed.nameSort);
@@ -82,6 +87,12 @@ export const useProjectsViewPreferences = ({
         if (Array.isArray(parsed.ownerGroupFilterIds) && parsed.ownerGroupFilterIds.every((id) => typeof id === 'string')) {
           setOwnerGroupFilterIds(parsed.ownerGroupFilterIds);
         }
+        if (
+          Array.isArray(parsed.milestoneOwnerGroupFilterIds)
+          && parsed.milestoneOwnerGroupFilterIds.every((id) => typeof id === 'string')
+        ) {
+          setMilestoneOwnerGroupFilterIds(parsed.milestoneOwnerGroupFilterIds);
+        }
       } catch {
         // Ignore invalid localStorage payload and keep defaults.
       }
@@ -103,6 +114,7 @@ export const useProjectsViewPreferences = ({
       selectedCustomerId,
       customerFilterIds,
       ownerGroupFilterIds,
+      milestoneOwnerGroupFilterIds,
     }));
   }, [
     groupByCustomer,
@@ -115,6 +127,7 @@ export const useProjectsViewPreferences = ({
     selectedCustomerId,
     customerFilterIds,
     ownerGroupFilterIds,
+    milestoneOwnerGroupFilterIds,
     projectsViewPrefsStorageKey,
   ]);
 
@@ -139,5 +152,7 @@ export const useProjectsViewPreferences = ({
     setCustomerFilterIds,
     ownerGroupFilterIds,
     setOwnerGroupFilterIds,
+    milestoneOwnerGroupFilterIds,
+    setMilestoneOwnerGroupFilterIds,
   };
 };

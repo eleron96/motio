@@ -23,9 +23,15 @@ import { Checkbox } from '@/shared/ui/checkbox';
 import { buildWorkspaceTemplateFromCatalog, type WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 import { splitStatusLabel } from '@/shared/lib/statusLabels';
 import { t } from '@lingui/macro';
+import { cn } from '@/shared/lib/classNames';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 
-export const WorkspaceSwitcher: React.FC = () => {
+interface WorkspaceSwitcherProps {
+  /** Render the trigger borderless to sit inside the workspace capsule. */
+  inCapsule?: boolean;
+}
+
+export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ inCapsule = false }) => {
   const {
     workspaces,
     currentWorkspaceId,
@@ -173,7 +179,14 @@ export const WorkspaceSwitcher: React.FC = () => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant={inCapsule ? 'ghost' : 'outline'}
+            className={cn(
+              'gap-2',
+              inCapsule &&
+                'h-8 rounded-md px-2.5 text-foreground hover:bg-background hover:shadow-sm',
+            )}
+          >
             <span className="max-w-[180px] truncate">{currentWorkspace?.name ?? t`Select workspace`}</span>
             <ChevronDown className="h-4 w-4" />
           </Button>

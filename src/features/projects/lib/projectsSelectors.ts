@@ -44,6 +44,11 @@ type FilterAndSortMilestonesArgs = {
   trackedProjectIdSet: Set<string>;
   milestoneSearch: string;
   nameSort: NameSort;
+  /** When non-empty, only keep milestones whose parent project's owner
+   * group is in the set. Milestones whose project has no owner group
+   * (or whose project is missing) match the synthetic `'none'` id, so
+   * "No team" works the same way as in the projects filter. */
+  ownerGroupFilterIds?: string[];
 };
 
 export const sortCustomersByName = (customers: Customer[], nameSort: NameSort) => (
@@ -73,20 +78,24 @@ export const filterProjectsByCustomerAndSearch = (
   statusFilterValues: string[] = [],
 ) => {
   const normalizedQuery = projectSearch.trim().toLowerCase();
+  // When the user is actively searching, the popover filters
+  // (customer / owner team / status) are *suppressed* — otherwise
+  // matches that live outside the current filter selection would
+  // silently never appear, forcing the user to clear filters by hand
+  // every time they want to look something up. Filters re-engage as
+  // soon as the search box is emptied; their state isn't reset.
+  const hasSearchQuery = normalizedQuery.length > 0;
   return projects.filter((project) => {
-    const matchesCustomer = customerFilterIds.length === 0
-      ? true
-      : customerFilterIds.includes(project.customerId ?? 'none');
-    const matchesOwnerGroup = ownerGroupFilterIds.length === 0
-      ? true
-      : ownerGroupFilterIds.includes(project.ownerGroupId ?? 'none');
-    const matchesStatus = statusFilterValues.length === 0
-      ? true
-      : statusFilterValues.includes(project.status ?? '__none__');
-    const matchesSearch = normalizedQuery.length === 0
-      ? true
-      : project.name.toLowerCase().includes(normalizedQuery);
-    return matchesCustomer && matchesOwnerGroup && matchesStatus && matchesSearch;
+    if (!hasSearchQuery) {
+      if (customerFilterIds.length > 0
+        && !customerFilterIds.includes(project.customerId ?? 'none')) return false;
+      if (ownerGroupFilterIds.length > 0
+        && !ownerGroupFilterIds.includes(project.ownerGroupId ?? 'none')) return false;
+      if (statusFilterValues.length > 0
+        && !statusFilterValues.includes(project.status ?? '__none__')) return false;
+      return true;
+    }
+    return project.name.toLowerCase().includes(normalizedQuery);
   });
 };
 
@@ -97,13 +106,24 @@ export const filterAndSortMilestones = ({
   trackedProjectIdSet,
   milestoneSearch,
   nameSort,
+  ownerGroupFilterIds = [],
 }: FilterAndSortMilestonesArgs) => {
   const normalizedSearch = milestoneSearch.trim().toLowerCase();
+  // Mirror the projects-mode rule: active search overrides the team
+  // popover so the user always sees every milestone that matches the
+  // query, even if it lives outside their current team selection.
+  const hasSearchQuery = normalizedSearch.length > 0;
 
   return milestones
     .filter((milestone) => {
-      if (!normalizedSearch) return true;
       const project = projectById.get(milestone.projectId);
+      if (!hasSearchQuery) {
+        if (ownerGroupFilterIds.length > 0) {
+          const groupKey = project?.ownerGroupId ?? 'none';
+          if (!ownerGroupFilterIds.includes(groupKey)) return false;
+        }
+        return true;
+      }
       const customer = project?.customerId ? customerById.get(project.customerId) : null;
       return [
         milestone.title,
@@ -113,10 +133,10 @@ export const filterAndSortMilestones = ({
       ].join(' ').toLowerCase().includes(normalizedSearch);
     })
     .sort((left, right) => {
-      const leftTracked = trackedProjectIdSet.has(left.projectId);
-      const rightTracked = trackedProjectIdSet.has(right.projectId);
-      if (leftTracked !== rightTracked) return leftTracked ? -1 : 1;
-
+      // Date first — nearest milestone on top, farther ones below.
+      // Tracking used to bubble starred milestones to the top here, but
+      // that hid the timeline order; the star next to the row is now
+      // purely informational and doesn't influence position.
       const byDate = left.date.localeCompare(right.date);
       if (byDate !== 0) return byDate;
 
@@ -178,7 +198,12 @@ export const buildGroupedMilestones = ({
   });
 
   if (milestoneGroupBy === 'project') {
-    const orderedProjects = sortProjectsByTracking(projects, trackedProjectIds, nameSort);
+    // Tracking only paints the row's star icon — it shouldn't reshuffle
+    // the chronological list. Sort project groups alphabetically so the
+    // dates inside each group stay the primary signal.
+    const orderedProjects = [...projects].sort((left, right) => (
+      compareNames(left.name, right.name, nameSort)
+    ));
     const result = orderedProjects
       .map((project) => {
         const list = buckets.get(project.id) ?? [];
