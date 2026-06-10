@@ -8,6 +8,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 ### Changed
 - The timeline is much faster for large teams: only visible rows and tasks are rendered now, so scrolling and opening the planner sped up significantly.
+- Hardened protection against malicious scripts: the browser is now explicitly told where the app may load code from and where it may send data.
 - Updated internal libraries; fixed a link-redirect vulnerability in in-app navigation.
 
 ## [0.8.13] - 2026-06-01
