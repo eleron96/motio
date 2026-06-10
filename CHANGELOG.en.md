@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- In Calendar view you can right-click a day to add a milestone — the create dialog opens with that date prefilled.
+
 ### Changed
 - Milestones now use the same dialog everywhere: the date field is editable on the timeline and calendar too, matching the Projects tab.
 - Editing a repeating task with "Only this task" now detaches it from the series — later edits no longer ask which tasks to apply to.

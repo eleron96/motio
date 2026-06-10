@@ -264,6 +264,13 @@ export const CalendarTimeline: React.FC = () => {
     setMilestoneDialogOpen(true);
   }, []);
 
+  const handleCreateMilestoneOnDate = useCallback((day: Date) => {
+    if (!canEdit) return;
+    setEditingMilestone(null);
+    setMilestoneDialogDate(format(day, 'yyyy-MM-dd'));
+    setMilestoneDialogOpen(true);
+  }, [canEdit]);
+
   return (
     <div className="flex h-full flex-1 min-h-0 overflow-hidden">
       <TooltipProvider delayDuration={350}>
@@ -339,6 +346,13 @@ export const CalendarTimeline: React.FC = () => {
                               <div
                                 key={key}
                                 className="relative flex h-11 w-9 flex-col items-center justify-start pt-0.5"
+                                onContextMenu={inMonth && canEdit ? (event) => {
+                                  // Right-click an empty part of the day cell to add a milestone.
+                                  // Clicking an existing milestone dot/dropdown edits it instead
+                                  // (those handlers stop propagation before this fires).
+                                  event.preventDefault();
+                                  handleCreateMilestoneOnDate(day);
+                                } : undefined}
                               >
                                 {isHoliday && (
                                   <div
