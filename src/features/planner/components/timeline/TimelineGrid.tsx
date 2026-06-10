@@ -453,6 +453,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           data-tour="timeline-grid"
           data-timeline-scroll-owner="vertical"
           className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}`}
+          // Virtualized rows replace spacer pixels as they mount; the browser's
+          // scroll anchoring reacts to those mutations with scroll jumps.
+          style={{ overflowAnchor: 'none' }}
           onScroll={(event) => {
             handleScroll(event);
             handleScrollTopChange(event.currentTarget.scrollTop);
