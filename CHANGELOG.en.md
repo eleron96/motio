@@ -8,6 +8,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 ### Changed
 - Milestones now use the same dialog everywhere: the date field is editable on the timeline and calendar too, matching the Projects tab.
+- Editing a repeating task with "Only this task" now detaches it from the series — later edits no longer ask which tasks to apply to.
 
 ## [0.8.16] - 2026-06-10
 ### Changed
