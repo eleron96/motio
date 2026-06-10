@@ -396,6 +396,31 @@ node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
 3. восстанавливает права для `auth` роли;
 4. сбрасывает соединения GoTrue к БД.
 
+**Disaster recovery (восстановление на чистый сервер).** Штатный restore рассчитан
+на базу с совпадающей схемой (тот же сервер). На свежеинициализированной БД
+`pg_restore --clean --exit-on-error` падает, поэтому перед загрузкой дампа нужно:
+
+1. Удалить предсозданные образом объекты и создать пустые схемы
+   (`pg_restore --schema` не создаёт сами схемы):
+   ```sql
+   DROP SCHEMA IF EXISTS storage CASCADE;
+   DROP SCHEMA IF EXISTS auth CASCADE;
+   DROP SCHEMA IF EXISTS public CASCADE;
+   CREATE SCHEMA public; CREATE SCHEMA auth; CREATE SCHEMA storage;
+   ```
+2. Создать недостающие роли, на которые есть GRANT в дампе:
+   `CREATE ROLE metabase_ro NOLOGIN;`
+3. Загрузить дамп **без** `--clean`:
+   ```bash
+   pg_restore --single-transaction --exit-on-error --no-owner \
+     --schema public --schema auth --schema storage \
+     --dbname "$DB_URL" <файл>.dump
+   ```
+4. Дальше — шаги 3–4 штатного restore (права `auth`, перезапуск GoTrue/storage).
+
+Процедура проверена на копии прод-дампа (июнь 2026): после подготовки дамп
+встаёт без ошибок, повторный штатный restore поверх — тоже.
+
 ---
 
 ## 🗃 Миграции (Liquibase)
