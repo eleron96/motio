@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.16] - 2026-06-10
 ### Changed
 - The timeline is back to its previous rendering mode: all rows and tasks are drawn upfront again, with no load-as-you-scroll.
 
