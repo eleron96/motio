@@ -13,6 +13,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Milestones now use the same dialog everywhere: the date field is editable on the timeline and calendar too, matching the Projects tab.
 - Editing a repeating task with "Only this task" now detaches it from the series — later edits no longer ask which tasks to apply to.
 
+### Fixed
+- On the Projects tab, grouping the team by tags no longer resets when you switch to another tab and back.
+
 ## [0.8.16] - 2026-06-10
 ### Changed
 - The timeline is back to its previous rendering mode: all rows and tasks are drawn upfront again, with no load-as-you-scroll.
