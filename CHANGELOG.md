@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Обновлены внутренние библиотеки, закрыта уязвимость с подменой ссылок при переходах внутри приложения.
 
 ## [0.8.13] - 2026-06-01
 ### Changed
