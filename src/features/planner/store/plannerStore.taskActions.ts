@@ -985,6 +985,21 @@ export const createTaskActions = (
     return {};
   },
 
+  updateTaskSubtaskTitle: async (workspaceId, taskId, subtaskId, title) => {
+    const { error } = await supabase
+      .from('task_subtasks')
+      .update({ title })
+      .eq('workspace_id', workspaceId)
+      .eq('task_id', taskId)
+      .eq('id', subtaskId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {};
+  },
+
   updateTaskSubtaskCompletion: async (workspaceId, taskId, subtaskId, isDone, doneAt) => {
     const { error } = await supabase
       .from('task_subtasks')

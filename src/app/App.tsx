@@ -1,6 +1,5 @@
 import { Toaster } from "@/shared/ui/toaster";
 import { Toaster as Sonner } from "@/shared/ui/sonner";
-import { DailyBriefController } from "@/features/daily-brief";
 import { TooltipProvider } from "@/shared/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -10,11 +9,20 @@ import { Suspense, lazy } from "react";
 import NotFoundPage from "@/app/NotFoundPage";
 import { AuthProvider } from "@/features/auth/providers/AuthProvider";
 import { ProtectedRoute } from "@/app/ProtectedRoute";
+import { WorkspaceLayout } from "@/features/workspace/components/WorkspaceLayout";
 import { i18n } from "@/shared/lib/i18n";
 import { useLocaleStore } from "@/shared/store/localeStore";
 import { PageErrorBoundary } from "@/app/PageErrorBoundary";
 
 const queryClient = new QueryClient();
+
+// The daily-brief feature pulls in Dialog + urgent-tasks/milestones rendering
+// + their data fetches. The controller is mounted on every authenticated page
+// but renders nothing until a once-per-day trigger fires, so keep it out of
+// the eager main bundle.
+const DailyBriefController = lazy(() =>
+  import("@/features/daily-brief").then((m) => ({ default: m.DailyBriefController }))
+);
 
 const LandingPage = lazy(() => import("@/features/marketing/pages/LandingPage"));
 const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
@@ -40,7 +48,9 @@ const App = () => {
           <Toaster />
           <Sonner />
           <AuthProvider>
-            <DailyBriefController />
+            <Suspense fallback={null}>
+              <DailyBriefController />
+            </Suspense>
             <BrowserRouter
               future={{
                 v7_startTransition: true,
@@ -71,37 +81,17 @@ const App = () => {
                     )}
                   />
                   <Route
-                    path="/app"
                     element={(
                       <ProtectedRoute>
-                        <PlannerPage />
+                        <WorkspaceLayout />
                       </ProtectedRoute>
                     )}
-                  />
-                  <Route
-                    path="/app/dashboard"
-                    element={(
-                      <ProtectedRoute>
-                        <DashboardPage />
-                      </ProtectedRoute>
-                    )}
-                  />
-                  <Route
-                    path="/app/projects"
-                    element={(
-                      <ProtectedRoute>
-                        <ProjectsPage />
-                      </ProtectedRoute>
-                    )}
-                  />
-                  <Route
-                    path="/app/members"
-                    element={(
-                      <ProtectedRoute>
-                        <MembersPage />
-                      </ProtectedRoute>
-                    )}
-                  />
+                  >
+                    <Route path="/app" element={<PlannerPage />} />
+                    <Route path="/app/dashboard" element={<DashboardPage />} />
+                    <Route path="/app/projects" element={<ProjectsPage />} />
+                    <Route path="/app/members" element={<MembersPage />} />
+                  </Route>
                   <Route path="/admin/users" element={<Navigate to="/app/admin/users" replace />} />
                   <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
                   <Route path="/projects" element={<Navigate to="/app/projects" replace />} />

@@ -174,7 +174,7 @@ export type AssigneeUniqueTaskCountRow = {
   total: number | string | null;
 };
 
-const LOAD_WINDOW_MONTHS = 6;
+const LOAD_WINDOW_MONTHS = 3;
 
 export const initialFilters: Filters = {
   projectIds: [],

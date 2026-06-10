@@ -10,7 +10,7 @@ import { Button } from '@/shared/ui/button';
 import { Filter, Plus } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { Filters, ViewMode } from '@/features/planner/types/planner';
 import { format } from 'date-fns';
@@ -326,38 +326,41 @@ const PlannerPage = () => {
     setTimelineSidebarWidth(null);
   }, []);
 
-  if (isSuperAdmin) {
-    return <Navigate to="/app/admin/users" replace />;
-  }
-
   // On mobile in calendar mode, hide the FAB ("Add task") and the floating
   // filter trigger — the calendar view is read-only by design and these
   // controls would float over the month grid.
   const hideTimelineActions = isMobile && viewMode === 'calendar';
 
+  useWorkspaceHeader(
+    {
+      primaryAction: hideTimelineActions ? undefined : (
+        <Button
+          data-tour="add-task-btn"
+          onClick={() => {
+            setAddTaskDefaults(null);
+            setShowAddTask(true);
+          }}
+          size="sm"
+          className="gap-2"
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`Add task`}
+        </Button>
+      ),
+      onOpenSettings: () => setShowSettings(true),
+      onOpenAccountSettings: () => setShowAccountSettings(true),
+      settingsDisabled: !canEdit,
+    },
+    [hideTimelineActions, canEdit],
+  );
+
+  if (isSuperAdmin) {
+    return <Navigate to="/app/admin/users" replace />;
+  }
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      {/* Header */}
-      <WorkspacePageHeader
-        primaryAction={hideTimelineActions ? undefined : (
-          <Button
-            data-tour="add-task-btn"
-            onClick={() => {
-              setAddTaskDefaults(null);
-              setShowAddTask(true);
-            }}
-            size="sm"
-            className="gap-2"
-            disabled={!canEdit}
-          >
-            <Plus className="h-4 w-4" />
-            {t`Add task`}
-          </Button>
-        )}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenAccountSettings={() => setShowAccountSettings(true)}
-        settingsDisabled={!canEdit}
-      />
+    <>
 
       {hasActiveFilters && (
         <div className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-500 bg-sky-50 text-sm text-sky-700">
@@ -465,7 +468,7 @@ const PlannerPage = () => {
         initialProjectId={addTaskDefaults?.projectId}
         initialAssigneeIds={addTaskDefaults?.assigneeIds}
       />
-    </div>
+    </>
   );
 };
 

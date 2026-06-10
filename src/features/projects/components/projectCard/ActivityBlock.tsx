@@ -136,6 +136,10 @@ const buildFeedSnippetHtml = (raw: string): string => {
   // demote it to inline + use border-left on inline-block via CSS.
   const blockquoteClass = styles.feedRowBlockquote;
   return sanitized
+    // Literal newlines (notes saved as rich HTML can still carry "\n" inside
+    // text nodes) become explicit <br> so the clamped preview keeps the breaks
+    // instead of collapsing them onto one line — matching the plain-text path.
+    .replace(/\n/g, '<br>')
     .replace(/<blockquote[^>]*>/gi, `<span class="${blockquoteClass}">`)
     .replace(/<\/blockquote>/gi, '</span><br>')
     // Other block boundaries become explicit <br>.

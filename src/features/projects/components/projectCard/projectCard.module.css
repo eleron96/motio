@@ -194,6 +194,11 @@
 
 /* Rich-text rendering for activity entries (matches RTE allowed tags). */
 .feedRichText {
+  /* Mirror the editor's `white-space: pre-wrap` (.rich-text-editor) so notes
+     saved with literal newline characters render their line breaks here too.
+     Without it, such notes looked multi-line while editing but collapsed to a
+     single line when viewed. <br>/<p>/<div> markup keeps working as before. */
+  white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -204,6 +209,15 @@
 
 .feedRichText p:last-child {
   margin-bottom: 0;
+}
+
+/* Preserve blank lines. An empty block (a paragraph or div left empty by
+   pressing Enter on a blank line — common in notes saved before line breaks
+   were normalized to <br>) would otherwise collapse to zero height and the
+   break would vanish in the read view. */
+.feedRichText p:empty,
+.feedRichText div:empty {
+  min-height: 1em;
 }
 
 .feedRichText ul,

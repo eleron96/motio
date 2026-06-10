@@ -437,15 +437,12 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
-                {/* Tracking is per-user — non-editors can still pin
-                    their own favourite projects to the top of the list. */}
-                <DropdownMenuItem onSelect={() => onToggleTrackedProject(project.id, !isTracked)}>
-                  {isTracked ? t`Stop tracking` : t`Track`}
-                </DropdownMenuItem>
+                {/* Track / Stop tracking lives on the Star button beside
+                    this kebab — no need to duplicate it here. */}
                 {canEdit && (
                   <>
                     <DropdownMenuItem onSelect={() => onOpenProjectSettings(project)}>
-                      {t`Edit project`}
+                      {t`Edit`}
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => onToggleProjectArchived(project)}>
                       {project.archived ? t`Unarchive` : t`Archive`}

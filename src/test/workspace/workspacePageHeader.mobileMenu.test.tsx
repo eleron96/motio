@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
@@ -75,15 +75,22 @@ describe('WorkspacePageHeader mobile menu', () => {
 
     renderHeader('/app');
 
-    expect(screen.getByText('Timeline')).toBeInTheDocument();
+    // Section navigation now lives in the always-visible pill nav, not the drawer.
+    // Capture the link before opening the drawer: the modal marks the rest of
+    // the page aria-hidden, which would hide it from role queries afterwards.
+    const projectsLink = screen.getByRole('link', { name: 'Projects' });
 
-    await user.click(screen.getByRole('button', { name: 'Open navigation menu' }));
+    await user.click(screen.getByRole('button', { name: 'Open menu' }));
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Workspace switcher')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Workspace settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Account settings' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('link', { name: 'Projects' }));
+    // Navigating to another section auto-closes the drawer. Dispatch the click
+    // directly to exercise the route-change handler rather than the overlay's
+    // hit-testing.
+    fireEvent.click(projectsLink);
 
     await waitFor(() => {
       expect(screen.getByTestId('location')).toHaveTextContent('/app/projects');
@@ -92,8 +99,6 @@ describe('WorkspacePageHeader mobile menu', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
-
-    expect(screen.getByText('Projects')).toBeInTheDocument();
   });
 
   it('keeps long workspace actions readable in the mobile drawer', async () => {
@@ -102,14 +107,14 @@ describe('WorkspacePageHeader mobile menu', () => {
 
     renderHeader('/app');
 
-    await user.click(screen.getByRole('button', { name: 'Open navigation menu' }));
+    await user.click(screen.getByRole('button', { name: 'Open menu' }));
 
     const settingsButton = await screen.findByRole('button', { name: 'Workspace settings' });
     const accountButton = screen.getByRole('button', { name: 'Account settings' });
 
     expect(settingsButton).toHaveClass('h-auto', 'whitespace-normal', 'text-left');
     expect(accountButton).toHaveClass('h-auto', 'whitespace-normal', 'text-left');
-    expect(screen.getByText('Sections')).toBeInTheDocument();
+    expect(screen.getByText('Workspace')).toBeInTheDocument();
     expect(screen.getByText('Tools')).toBeInTheDocument();
     expect(screen.queryByText('Navigate between workspace sections and account tools.')).not.toBeInTheDocument();
   });
@@ -119,7 +124,7 @@ describe('WorkspacePageHeader mobile menu', () => {
 
     renderHeader('/app/dashboard');
 
-    expect(screen.queryByRole('button', { name: 'Open navigation menu' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open menu' })).not.toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Workspace sections' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByText('Workspace switcher')).toBeInTheDocument();

@@ -256,7 +256,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuItem onSelect={onOpenSettings}>
-                  {t`Edit project`}
+                  {t`Edit`}
                 </DropdownMenuItem>
                 {onToggleArchived && (
                   <DropdownMenuItem onSelect={onToggleArchived}>

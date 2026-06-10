@@ -19,10 +19,8 @@ import { Textarea } from '@/shared/ui/textarea';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Milestone } from '@/features/planner/types/planner';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { t } from '@lingui/macro';
-import { useLocaleStore } from '@/shared/store/localeStore';
-import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 
 interface MilestoneDialogProps {
   open: boolean;
@@ -30,7 +28,6 @@ interface MilestoneDialogProps {
   date: string | null;
   milestone: Milestone | null;
   canEdit: boolean;
-  allowDateEdit?: boolean;
   /**
    * Phase 7: pre-selects the project on create (e.g. when adding a milestone
    * straight from a project's card). Ignored when editing an existing one.
@@ -44,11 +41,8 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   date,
   milestone,
   canEdit,
-  allowDateEdit = false,
   defaultProjectId = null,
 }) => {
-  const locale = useLocaleStore((state) => state.locale);
-  const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const { projects, trackedProjectIds, addMilestone, updateMilestone, deleteMilestone } = usePlannerStore();
   const [title, setTitle] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -79,10 +73,6 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     return [archivedProject, ...activeProjects.filter((project) => project.id !== archivedProject.id)];
   }, [activeProjects, archivedProject]);
   const hasProjects = activeProjects.length > 0 || Boolean(archivedProject);
-  const formattedDate = useMemo(() => {
-    if (!milestoneDate) return '';
-    return format(parseISO(milestoneDate), 'd MMM yyyy', { locale: dateLocale });
-  }, [milestoneDate, dateLocale]);
 
   useEffect(() => {
     if (!open) return;
@@ -172,27 +162,19 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {allowDateEdit ? (
-            <div className="space-y-2">
-              <Label htmlFor="milestone-date">{t`Date`}</Label>
-              <Input
-                id="milestone-date"
-                type="date"
-                value={milestoneDate}
-                onChange={(event) => {
-                  setMilestoneDate(event.target.value);
-                  setHasChanges(true);
-                }}
-                disabled={!canEdit}
-              />
-            </div>
-          ) : (
-            milestoneDate ? (
-            <div className="text-sm text-muted-foreground">
-              {t`Date`}: <span className="text-foreground font-medium">{formattedDate}</span>
-            </div>
-            ) : null
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="milestone-date">{t`Date`}</Label>
+            <Input
+              id="milestone-date"
+              type="date"
+              value={milestoneDate}
+              onChange={(event) => {
+                setMilestoneDate(event.target.value);
+                setHasChanges(true);
+              }}
+              disabled={!canEdit}
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="milestone-title">{t`Name`}</Label>
             <Input

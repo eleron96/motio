@@ -154,6 +154,9 @@ export const usePlannerLiveSync = (
     let channelHealthy = true;
     let hasSubscribedOnce = false;
     let disconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let channelEpoch = 0;
+    let reconnectInFlight = false;
+    let lastReconnectAttemptAt = 0;
     const rangeRef: LoadedRange = loadedRange;
     const workspaceRef = workspaceId;
 
@@ -561,7 +564,62 @@ export const usePlannerLiveSync = (
       scheduleFlush();
     };
 
-    const channel = supabase
+    const handleChannelStatus = (status: string, epoch: number) => {
+      if (!active || epoch !== channelEpoch) return;
+      if (status === 'SUBSCRIBED') {
+        if (disconnectTimer) {
+          clearTimeout(disconnectTimer);
+          disconnectTimer = null;
+        } else if (!channelHealthy) {
+          toast.success(t`Соединение восстановлено`, {
+            id: 'sync-status',
+            position: 'bottom-right',
+            duration: 3000,
+          });
+        }
+        channelHealthy = true;
+        usePlannerStore.getState().setSyncHealthy(true);
+        resetFallbackFailures();
+        clearFallbackTimer();
+        if (!hasSubscribedOnce) {
+          hasSubscribedOnce = true;
+          if (typeof window === 'undefined') {
+            requestReconcile('resubscribe');
+            return;
+          }
+          clearInitialReconcileTimer();
+          initialReconcileTimer = window.setTimeout(() => {
+            initialReconcileTimer = null;
+            requestReconcile('resubscribe');
+          }, INITIAL_RECONCILE_DELAY_MS);
+          return;
+        }
+        requestReconcile('resubscribe');
+        return;
+      }
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        channelHealthy = false;
+        usePlannerStore.getState().setSyncHealthy(false);
+        if (!disconnectTimer) {
+          disconnectTimer = setTimeout(() => {
+            disconnectTimer = null;
+            toast.error(t`Нет соединения`, {
+              id: 'sync-status',
+              position: 'bottom-right',
+              duration: Infinity,
+            });
+          }, 5000);
+        }
+        clearInitialReconcileTimer();
+        growFallbackFailures();
+        requestReconcile('channel');
+        scheduleFallbackPoll();
+      }
+    };
+
+    const buildChannel = () => {
+      const epoch = channelEpoch;
+      return supabase
       .channel(`planner-live-${workspaceRef}`)
       .on(
         'postgres_changes',
@@ -627,70 +685,59 @@ export const usePlannerLiveSync = (
           }
         },
       )
-      .subscribe((status) => {
-        if (!active) return;
-        if (status === 'SUBSCRIBED') {
-          if (disconnectTimer) {
-            clearTimeout(disconnectTimer);
-            disconnectTimer = null;
-          } else if (!channelHealthy) {
-            toast.success(t`Соединение восстановлено`, {
-              id: 'sync-status',
-              position: 'bottom-right',
-              duration: 3000,
-            });
-          }
-          channelHealthy = true;
-          usePlannerStore.getState().setSyncHealthy(true);
-          resetFallbackFailures();
-          clearFallbackTimer();
-          if (!hasSubscribedOnce) {
-            hasSubscribedOnce = true;
-            if (typeof window === 'undefined') {
-              requestReconcile('resubscribe');
-              return;
-            }
-            clearInitialReconcileTimer();
-            initialReconcileTimer = window.setTimeout(() => {
-              initialReconcileTimer = null;
-              requestReconcile('resubscribe');
-            }, INITIAL_RECONCILE_DELAY_MS);
-            return;
-          }
-          requestReconcile('resubscribe');
-          return;
-        }
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          channelHealthy = false;
-          usePlannerStore.getState().setSyncHealthy(false);
-          if (!disconnectTimer) {
-            disconnectTimer = setTimeout(() => {
-              disconnectTimer = null;
-              toast.error(t`Нет соединения`, {
-                id: 'sync-status',
-                position: 'bottom-right',
-                duration: Infinity,
-              });
-            }, 5000);
-          }
-          clearInitialReconcileTimer();
-          growFallbackFailures();
-          requestReconcile('channel');
-          scheduleFallbackPoll();
-        }
-      });
+      .subscribe((status) => handleChannelStatus(status, epoch));
+    };
+
+    let channel = buildChannel();
+
+    // When the tab regains focus or the network comes back, the realtime
+    // client's internal reconnect/heartbeat timers may still be on a long
+    // (background-throttled) backoff, leaving the "Нет соединения" banner
+    // stuck until a manual reload. Tearing the channel down and rebuilding it
+    // forces an immediate fresh JOIN — the same recovery a reload would do —
+    // after which the SUBSCRIBED handler clears the banner.
+    const forceReconnectChannel = async () => {
+      if (!active || reconnectInFlight || channelHealthy) return;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+      const now = Date.now();
+      if (now - lastReconnectAttemptAt < 4000) return;
+      lastReconnectAttemptAt = now;
+      reconnectInFlight = true;
+      const staleChannel = channel;
+      channelEpoch += 1;
+      try {
+        await supabase.removeChannel(staleChannel);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        reconnectInFlight = false;
+      }
+      if (!active) return;
+      channel = buildChannel();
+    };
 
     const handleVisibilityOrFocus = () => {
       if (!canRunReconcileNow()) return;
       requestReconcile('focus');
       if (!channelHealthy) {
+        void forceReconnectChannel();
         scheduleFallbackPoll();
+      }
+    };
+
+    const handleOnline = () => {
+      if (!channelHealthy) {
+        void forceReconnectChannel();
+      }
+      if (canRunReconcileNow()) {
+        requestReconcile('focus');
       }
     };
 
     if (typeof window !== 'undefined') {
       window.addEventListener('focus', handleVisibilityOrFocus);
       window.addEventListener('pageshow', handleVisibilityOrFocus);
+      window.addEventListener('online', handleOnline);
       if (typeof document !== 'undefined') {
         document.addEventListener('visibilitychange', handleVisibilityOrFocus);
       }
@@ -709,6 +756,7 @@ export const usePlannerLiveSync = (
       if (typeof window !== 'undefined') {
         window.removeEventListener('focus', handleVisibilityOrFocus);
         window.removeEventListener('pageshow', handleVisibilityOrFocus);
+        window.removeEventListener('online', handleOnline);
         if (typeof document !== 'undefined') {
           document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
         }

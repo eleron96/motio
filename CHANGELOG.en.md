@@ -7,6 +7,93 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.17] - 2026-06-10
+### Added
+- In Calendar view you can right-click a day to add a milestone — the create dialog opens with that date prefilled.
+
+### Changed
+- Milestones now use the same dialog everywhere: the date field is editable on the timeline and calendar too, matching the Projects tab.
+- Editing a repeating task with "Only this task" now detaches it from the series — later edits no longer ask which tasks to apply to.
+- Removed the "Week" timeline view — only "Day" and "Calendar" remain.
+
+### Fixed
+- On the Projects tab, grouping the team by tags no longer resets when you switch to another tab and back.
+
+## [0.8.16] - 2026-06-10
+### Changed
+- The timeline is back to its previous rendering mode: all rows and tasks are drawn upfront again, with no load-as-you-scroll.
+
+## [0.8.15] - 2026-06-10
+### Fixed
+- Fixed blank gaps and a visible jump when scrolling the timeline quickly: tasks now load ahead of the user reaching them.
+
+## [0.8.14] - 2026-06-10
+### Changed
+- The timeline is much faster for large teams: only visible rows and tasks are rendered now, so scrolling and opening the planner sped up significantly.
+- Hardened protection against malicious scripts: the browser is now explicitly told where the app may load code from and where it may send data.
+- Updated internal libraries; fixed a link-redirect vulnerability in in-app navigation.
+
+## [0.8.13] - 2026-06-01
+### Changed
+- No documented changes.
+
+## [0.8.12] - 2026-05-31
+### Changed
+- Removed the redundant month row from the timeline — the month is shown in the toolbar and by the day numbers.
+- Redesigned the app header: the workspace switcher and its settings are grouped together, and switching sections animates with a sliding highlight.
+
+## [0.8.11] - 2026-05-30
+### Changed
+- No documented changes.
+
+## [0.8.10] - 2026-05-29
+### Changed
+- You can now add tasks from the Projects tab; notes keep their line breaks; project status is always uppercase; subtasks support multiple lines and can be edited right after you create them.
+
+## [0.8.9] - 2026-05-28
+### Changed
+- A subtask's title can now be changed after it's created.
+
+## [0.8.8] - 2026-05-28
+### Changed
+- The project three-dot menu is shorter: the Track item is gone (the star button next to the menu already does that) and Edit is now the first item.
+- Milestones are now sorted strictly by date — the nearest one on top. The star next to a milestone of a tracked project is now purely informational and no longer pulls the row up.
+
+## [0.8.7] - 2026-05-26
+### Added
+- Milestones can now be filtered by team — pick a team in the toolbar and see only its milestones.
+
+### Fixed
+- Search in Projects and Milestones now finds matches even when filters are set. Filters stay put — clear the search box and they re-apply.
+
+### Changed
+- In Milestones, the "Open project" button is now labelled "Перейти к проекту" in Russian (English wording unchanged).
+- Milestones and Customers now show a three-dot menu next to their names and in the detail panel — same actions as the right-click menu (Edit, Open project, Delete).
+- In Milestones the search box is now full-width and the filter / sort buttons moved underneath — search no longer gets squeezed on narrow sidebars.
+
+## [0.8.6] - 2026-05-19
+### Changed
+- Images in older tasks no longer render as broken. Their URLs carry an access token baked into the task description HTML, and once the TTL lapsed the task-media Edge Function returned 401 "Token expired" with no client-side refresh path. Migration 0089 bumps `access_token_expires_at` to `now() + 10 years` for every non-revoked `task_media` row (44 rows updated), and the default `TASK_MEDIA_TOKEN_TTL_SECONDS` of the `task-media` Edge Function is raised from 7 days to 10 years so newly uploaded media doesn't hit the same wall. Revoked tokens (`access_token_revoked_at IS NOT NULL`) are left untouched; the table schema and client code are unchanged.
+
+## [0.8.5] - 2026-05-15
+### Changed
+- DailyBriefController (the daily brief controller mounted at the app root, which renders null until a 9 AM trigger fires) is now wrapped in React.lazy + a null Suspense fallback. With it, DailyBriefModal, the urgent-tasks and milestones renderers, and the brief's react-query data fetch are no longer part of the eager main bundle. Vite's inline <link rel="modulepreload"> polyfill is also disabled — every targeted browser (Chrome 89+, Safari 15+, Firefox 115+) supports modulepreload natively, so the polyfill no longer gets inlined into every HTML page. Main index.js: 711 → 671 KB raw (−40 KB) / 226 → 213 KB gzip (−13 KB transfer).
+- The driver.js tour engine (~26 KB raw / 7.6 KB gzip) and its stylesheet now load dynamically — only at the moment we confirm the current user actually needs to be shown the onboarding tour (i.e. their profile.preferences doesn't yet carry the onboarding_completed flag). Most users already have that flag and will no longer download driver.js on app entry. The useOnboardingTour hook's behaviour and signature are unchanged; the admin-segment test was updated to flush the new dynamic-import microtask chain.
+- Drop the vendor-radix manual chunk from the build config. Vite no longer bundles all 21 @radix-ui/* packages into a single 305 KB chunk that was being preloaded on every page. The Radix primitives used eagerly at startup (Toaster, TooltipProvider, page header) fold into the main index.js bundle (+88 KB), and page-specific primitives (dialogs, tabs, selects) move into their own lazy chunks that only download when their UI mounts. Net savings on the /app critical path: −217 KB raw / −70 KB transfer.
+
+## [0.8.4] - 2026-05-15
+### Changed
+- Narrowed planner's initial task fetch window from ±6 to ±3 months around the current date. Initial /rest/v1/tasks JSON payload roughly halved (~1 MB → ~500 KB), request time dropped from ~500 ms to ~250 ms. The loadedRange cache continues to suppress in-window refetches; a full reload now fires only when the user scrolls past a quarter from the anchor date (rare). Calendar view (whole-year span) left untouched.
+- Faster first /app paint: the Recharts library (~624 KB raw / ~177 KB transfer) is no longer part of the shared preload chunk and is fetched only when the user opens Dashboard. The 1.8s main-thread parsing block disappears from the timeline boot — expected Lighthouse Performance Score boost of +20-25 points and LCP −500-800 ms. No functional change — Dashboard and widgets work as before, just with a ~200 ms micro-pause on first open.
+
+
+### Fixed
+- Removed the mobile header flicker and content jump on first /app load — the sole source of Lighthouse CLS=0.153. useIsMobile() returned false (desktop) on the first render and flipped to true only after useEffect, causing WorkspacePageHeader to mount as desktop and then re-render as mobile (WorkspacePillNav). The header height changed and everything below it shifted down. The correct value is now derived synchronously on the very first render via window.innerWidth; the matchMedia listener for runtime resizes is unchanged. The effect benefits every component using useIsMobile (PlannerPage, MembersPage, etc.).
+
+## [0.8.3] - 2026-05-14
+### Fixed
+- Drop Glitchtip noise: stale-chunk preload failures after deploy no longer reported (auto-reload kept); Google/Yandex translate DOM races suppressed via notranslate + beforeSend filter
+
 ## [0.8.2] - 2026-05-13
 ### Changed
 - Pinned notes now display **fully without an internal scroll**. The pinned section grows naturally with the number of pinned rows, and the whole Notes block grows taller to fit them — previously the pinned section had its own ~220px desktop cap and 5+ pinned notes meant scrolling within the pinned block. Now every pinned note stays visible at once; only the unpinned area below scrolls (still capped at ~420px on desktop). The parent `<section>`'s `max-h: 640px` was removed so the pinned section can grow freely.

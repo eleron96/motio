@@ -236,10 +236,10 @@ export const CalendarTimeline: React.FC = () => {
 
   const handleDateClick = useCallback((day: Date) => {
     const nextDate = format(day, 'yyyy-MM-dd');
-    // Force retrigger of the same attention animation when opening week timeline from calendar.
+    // Force retrigger of the same attention animation when opening the day timeline from calendar.
     setTimelineAttentionDate(null);
     setCurrentDate(nextDate);
-    setViewMode('week');
+    setViewMode('day');
     requestScrollToDate(nextDate);
     if (typeof window === 'undefined') {
       setTimelineAttentionDate(nextDate);
@@ -263,6 +263,13 @@ export const CalendarTimeline: React.FC = () => {
     setMilestoneDialogDate(null);
     setMilestoneDialogOpen(true);
   }, []);
+
+  const handleCreateMilestoneOnDate = useCallback((day: Date) => {
+    if (!canEdit) return;
+    setEditingMilestone(null);
+    setMilestoneDialogDate(format(day, 'yyyy-MM-dd'));
+    setMilestoneDialogOpen(true);
+  }, [canEdit]);
 
   return (
     <div className="flex h-full flex-1 min-h-0 overflow-hidden">
@@ -339,6 +346,13 @@ export const CalendarTimeline: React.FC = () => {
                               <div
                                 key={key}
                                 className="relative flex h-11 w-9 flex-col items-center justify-start pt-0.5"
+                                onContextMenu={inMonth && canEdit ? (event) => {
+                                  // Right-click an empty part of the day cell to add a milestone.
+                                  // Clicking an existing milestone dot/dropdown edits it instead
+                                  // (those handlers stop propagation before this fires).
+                                  event.preventDefault();
+                                  handleCreateMilestoneOnDate(day);
+                                } : undefined}
                               >
                                 {isHoliday && (
                                   <div
@@ -567,7 +581,6 @@ export const CalendarTimeline: React.FC = () => {
           date={milestoneDialogDate}
           milestone={editingMilestone}
           canEdit={canEdit}
-          allowDateEdit={Boolean(editingMilestone)}
         />
       </TooltipProvider>
     </div>

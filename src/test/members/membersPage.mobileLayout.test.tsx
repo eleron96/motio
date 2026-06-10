@@ -109,7 +109,15 @@ describe('MembersPage mobile layout', () => {
     expect(screen.getByText('Member tasks panel')).toBeInTheDocument();
     expect(screen.getByText('Select a person')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'People' }));
+    // Two controls are labelled "People": the section pill (inside the subnav)
+    // and the sheet "browse" trigger. Target the browse trigger that opens the
+    // sidebar sheet.
+    const subnav = screen.getByRole('navigation', { name: 'People sections' });
+    const browseButton = screen
+      .getAllByRole('button', { name: 'People' })
+      .find((button) => !subnav.contains(button));
+    expect(browseButton).toBeDefined();
+    await user.click(browseButton as HTMLElement);
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Members sidebar')).toBeInTheDocument();

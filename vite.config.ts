@@ -34,35 +34,16 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     sourcemap: true,
+    // Vite ships an inline JS polyfill that emulates <link rel="modulepreload">
+    // for browsers that don't support it natively. Every modern browser we
+    // target (Chrome 89+, Safari 15+, Firefox 115+) ships native support, so
+    // we drop the polyfill from index.html.
+    modulePreload: { polyfill: false },
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-charts': ['recharts', 'react-grid-layout'],
           'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-date': ['date-fns'],
-          'vendor-radix': [
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-context-menu',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-hover-card',
-            '@radix-ui/react-label',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-radio-group',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tooltip',
-          ],
         },
       },
     },
