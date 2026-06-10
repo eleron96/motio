@@ -30,12 +30,6 @@ interface UseTimelineScrollOptions {
   setCurrentDate: (date: string) => void;
   markTimelineInteraction: (ms: number) => void;
   isDragScrolling?: boolean;
-  /**
-   * Data-driven scroll target for the highlighted task. Used when the task's
-   * row is virtualized out of the DOM: scrolling to this position mounts the
-   * row, after which the element-based centering takes over.
-   */
-  getHighlightFallbackTarget?: () => { top: number; left: number } | null;
 }
 
 interface UseTimelineScrollResult {
@@ -63,7 +57,6 @@ export function useTimelineScroll({
   setCurrentDate,
   markTimelineInteraction,
   isDragScrolling = false,
-  getHighlightFallbackTarget,
 }: UseTimelineScrollOptions): UseTimelineScrollResult {
   const [scrollLeft, setScrollLeft] = useState(0);
 
@@ -281,7 +274,6 @@ export function useTimelineScroll({
 
     let cancelled = false;
     let attempts = 0;
-    let fallbackApplied = false;
 
     const scrollToHighlightedTask = () => {
       if (cancelled) return;
@@ -290,16 +282,6 @@ export function useTimelineScroll({
         : `[data-task-id="${highlightedTaskId}"]`;
       const taskElement = container.querySelector<HTMLElement>(taskSelector)
         ?? container.querySelector<HTMLElement>(`[data-task-id="${highlightedTaskId}"]`);
-      if (!taskElement && !fallbackApplied) {
-        // The task's row may be virtualized out of the DOM. Scroll to the
-        // computed position so the row mounts, then keep retrying: the
-        // element-based pass below fine-tunes the final placement.
-        const fallbackTarget = getHighlightFallbackTarget?.() ?? null;
-        if (fallbackTarget) {
-          fallbackApplied = true;
-          container.scrollTo({ left: fallbackTarget.left, top: fallbackTarget.top, behavior: 'smooth' });
-        }
-      }
       if (taskElement) {
         const containerRect = container.getBoundingClientRect();
         const taskRect = taskElement.getBoundingClientRect();
