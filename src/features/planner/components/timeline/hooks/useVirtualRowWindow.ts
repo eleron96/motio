@@ -1,4 +1,4 @@
-import React, { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Render only the timeline rows that intersect the vertical viewport plus an
 // overscan band. Rows outside the window are replaced by two spacer blocks so
@@ -7,7 +7,13 @@ import React, { startTransition, useCallback, useEffect, useMemo, useState } fro
 // Scroll position is quantized into buckets: the rendered slice changes only
 // when the user crosses a bucket boundary, not on every scrolled pixel.
 const SCROLL_BUCKET_PX = 240;
-const OVERSCAN_PX = 600;
+const OVERSCAN_PX = 1000;
+// While the viewport stays this far inside the committed overscan band, window
+// shifts run as interruptible transitions (cheap prefetch). Once the viewport
+// drifts closer to the band's edge than this, the shift becomes urgent —
+// otherwise continuous scrolling starves the transition and the user reaches
+// blank spacer space.
+const URGENT_EDGE_PX = SCROLL_BUCKET_PX * 2;
 
 type RowLike = { id: string; height: number };
 
@@ -61,11 +67,34 @@ export function useVirtualRowWindow<Row extends RowLike>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Mirrors of committed state, so the scroll handler can stay referentially
+  // stable while still reading the latest rendered window.
+  const committedBucketRef = useRef(0);
+  const viewportHeightRef = useRef(viewportHeight);
+  useEffect(() => {
+    committedBucketRef.current = scrollTopBucket;
+    viewportHeightRef.current = viewportHeight;
+  });
+
   const handleScrollTopChange = useCallback((scrollTop: number) => {
     const bucket = Math.max(0, Math.floor(scrollTop / SCROLL_BUCKET_PX));
-    // Mounting the entering rows is the expensive part of a window shift, so
-    // run it as a transition: React time-slices the work instead of blocking
-    // the scroll frame. The overscan band hides the slightly later mount.
+    if (bucket === committedBucketRef.current) return;
+
+    // How far the live scroll position has drifted from the anchor of the
+    // currently COMMITTED window (not the pending one — transitions may never
+    // commit while scroll events keep arriving).
+    const committedAnchor = committedBucketRef.current * SCROLL_BUCKET_PX;
+    const drift = Math.abs(scrollTop - committedAnchor);
+
+    if (drift > OVERSCAN_PX - URGENT_EDGE_PX) {
+      // Viewport is about to leave the mounted band: render synchronously so
+      // the user never scrolls into blank spacer space.
+      setScrollTopBucket((prev) => (prev === bucket ? prev : bucket));
+      return;
+    }
+
+    // Still well inside the band: prefetch the shifted window as a transition
+    // so mounting the entering rows never blocks the scroll frame.
     startTransition(() => {
       setScrollTopBucket((prev) => (prev === bucket ? prev : bucket));
     });
