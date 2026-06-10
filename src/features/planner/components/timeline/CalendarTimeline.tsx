@@ -567,7 +567,6 @@ export const CalendarTimeline: React.FC = () => {
           date={milestoneDialogDate}
           milestone={editingMilestone}
           canEdit={canEdit}
-          allowDateEdit={Boolean(editingMilestone)}
         />
       </TooltipProvider>
     </div>

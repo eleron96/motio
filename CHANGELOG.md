@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Веху теперь можно создавать с одинаковым окном везде: на таймлайне и в календаре поле даты стало редактируемым, как на вкладке «Проекты».
 
 ## [0.8.16] - 2026-06-10
 ### Changed

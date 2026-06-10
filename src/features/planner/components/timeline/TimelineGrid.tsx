@@ -513,7 +513,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         date={milestoneDialogDate}
         milestone={editingMilestone}
         canEdit={canEdit}
-        allowDateEdit={Boolean(editingMilestone)}
       />
     </div>
   );

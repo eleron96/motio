@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Milestones now use the same dialog everywhere: the date field is editable on the timeline and calendar too, matching the Projects tab.
 
 ## [0.8.16] - 2026-06-10
 ### Changed
