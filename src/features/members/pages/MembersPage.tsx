@@ -387,7 +387,7 @@ const MembersPage = () => {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
     setGroupMode('assignee');
-    setViewMode('week');
+    setViewMode('day');
     setCurrentDate(timelineTask.startDate);
     requestScrollToDate(timelineTask.startDate);
     setSelectedTaskId(null);

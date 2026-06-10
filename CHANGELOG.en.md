@@ -12,6 +12,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 - Milestones now use the same dialog everywhere: the date field is editable on the timeline and calendar too, matching the Projects tab.
 - Editing a repeating task with "Only this task" now detaches it from the series — later edits no longer ask which tasks to apply to.
+- Removed the "Week" timeline view — only "Day" and "Calendar" remain.
 
 ### Fixed
 - On the Projects tab, grouping the team by tags no longer resets when you switch to another tab and back.

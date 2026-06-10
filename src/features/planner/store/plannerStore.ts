@@ -27,7 +27,7 @@ export const usePlannerStore = create<PlannerStore>()(
       statuses: [],
       taskTypes: [],
       tags: [],
-      viewMode: 'week',
+      viewMode: 'day',
       groupMode: 'assignee',
       currentDate: format(new Date(), 'yyyy-MM-dd'),
       filters: initialFilters,
@@ -239,6 +239,14 @@ export const usePlannerStore = create<PlannerStore>()(
     }),
     {
       name: 'planner-storage',
+      // The "week" timeline view was removed. Coerce any persisted 'week' back
+      // to 'day' on every rehydrate (version-independent) so returning users
+      // don't land on a view with no matching toggle button.
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<typeof current>;
+        const viewMode = saved.viewMode === 'week' ? 'day' : (saved.viewMode ?? current.viewMode);
+        return { ...current, ...saved, viewMode };
+      },
       partialize: (state) => ({
         viewMode: state.viewMode,
         groupMode: state.groupMode,

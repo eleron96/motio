@@ -716,7 +716,7 @@ const ProjectsPage = () => {
     if (user?.id && typeof window !== 'undefined') {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
-    setViewMode('week');
+    setViewMode('day');
     setCurrentDate(selectedTask.startDate);
     requestScrollToDate(selectedTask.startDate);
     setSelectedTaskId(null);
