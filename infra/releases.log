@@ -303,3 +303,4 @@
 2026-05-30T09:16:23Z | 0.8.11 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260530-091534.dump | No documented changes.
 2026-05-31T21:31:56Z | 0.8.12 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260531-213109.dump | Removed the redundant month row from the timeline — the month is shown in the toolbar and by the day numbers.
 2026-06-01T16:38:53Z | 0.8.13 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260601-163758.dump | No documented changes.
+2026-06-10T15:46:07Z | 0.8.14 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260610-154509.dump | The timeline is much faster for large teams: only visible rows and tasks are rendered now, so scrolling and opening the planner sped up significantly.

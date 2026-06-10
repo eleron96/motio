@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.14] - 2026-06-10
 ### Changed
 - The timeline is much faster for large teams: only visible rows and tasks are rendered now, so scrolling and opening the planner sped up significantly.
 - Hardened protection against malicious scripts: the browser is now explicitly told where the app may load code from and where it may send data.
