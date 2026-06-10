@@ -4,9 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
-import { supabase } from '@/shared/lib/supabaseClient';
-import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { cn } from '@/shared/lib/classNames';
+import {
+  declineInvite,
+  deleteAllTaskNotifications,
+  fetchInbox,
+  isExportNotification,
+  markAllTaskNotificationsRead,
+  subscribeToInboxChanges,
+  updateTaskNotificationStatus,
+  type PendingInvite,
+  type SentInviteSummary,
+  type TaskNotification,
+} from '@/infrastructure/notifications/inboxRepository';
 import {
   markAllNotificationsAsRead,
   removeNotificationsByIds,
@@ -16,107 +26,6 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import type { WorkspaceRole } from '@/features/auth/store/authStore';
 import { toast } from '@/shared/ui/sonner';
 import { t } from '@lingui/macro';
-
-type PendingInvite = {
-  token: string;
-  workspaceId: string;
-  workspaceName: string;
-  role: WorkspaceRole;
-  inviterDisplayName: string | null;
-  inviterEmail: string | null;
-};
-
-type SentInviteSummary = {
-  token: string;
-  workspaceId: string;
-  workspaceName: string;
-  email: string;
-  status: 'pending' | 'accepted' | 'declined' | 'canceled' | 'expired';
-  respondedAt: string | null;
-};
-
-type TaskNotification = {
-  id: string;
-  type: 'task_assigned' | 'comment_mention' | 'export_ready' | 'export_failed';
-  // Null for account-level notifications (data export lifecycle).
-  workspaceId: string | null;
-  workspaceName: string;
-  actorUserId: string | null;
-  actorDisplayName: string | null;
-  actorEmail: string | null;
-  taskId: string | null;
-  taskTitle: string;
-  taskStartDate: string | null;
-  taskExists: boolean;
-  commentId: string | null;
-  commentPreview: string | null;
-  createdAt: string;
-  readAt: string | null;
-};
-
-const NOTIFICATION_TYPES: ReadonlySet<TaskNotification['type']> = new Set([
-  'task_assigned',
-  'comment_mention',
-  'export_ready',
-  'export_failed',
-]);
-
-const isExportNotification = (notification: Pick<TaskNotification, 'type'>) => (
-  notification.type === 'export_ready' || notification.type === 'export_failed'
-);
-
-const isPendingInvite = (value: unknown): value is PendingInvite => {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<PendingInvite>;
-  return (
-    typeof candidate.token === 'string'
-    && typeof candidate.workspaceId === 'string'
-    && typeof candidate.workspaceName === 'string'
-    && typeof candidate.role === 'string'
-  );
-};
-
-const parsePendingInvites = (value: unknown): PendingInvite[] => {
-  if (!Array.isArray(value)) return [];
-  return value.filter(isPendingInvite);
-};
-
-const isSentInviteSummary = (value: unknown): value is SentInviteSummary => {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<SentInviteSummary>;
-  return (
-    typeof candidate.token === 'string'
-    && typeof candidate.workspaceId === 'string'
-    && typeof candidate.workspaceName === 'string'
-    && typeof candidate.email === 'string'
-    && typeof candidate.status === 'string'
-  );
-};
-
-const parseSentInvites = (value: unknown): SentInviteSummary[] => {
-  if (!Array.isArray(value)) return [];
-  return value.filter(isSentInviteSummary);
-};
-
-const isTaskNotification = (value: unknown): value is TaskNotification => {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<TaskNotification>;
-  return (
-    typeof candidate.id === 'string'
-    && typeof candidate.type === 'string'
-    && NOTIFICATION_TYPES.has(candidate.type as TaskNotification['type'])
-    // workspaceId is string for workspace-scoped types and null for export_* types.
-    && (typeof candidate.workspaceId === 'string' || candidate.workspaceId === null)
-    && typeof candidate.workspaceName === 'string'
-    && typeof candidate.taskTitle === 'string'
-    && typeof candidate.createdAt === 'string'
-  );
-};
-
-const parseTaskNotifications = (value: unknown): TaskNotification[] => {
-  if (!Array.isArray(value)) return [];
-  return value.filter(isTaskNotification);
-};
 
 const roleLabel = (role: WorkspaceRole) => {
   if (role === 'admin') return t`Admin`;
@@ -243,35 +152,26 @@ export const InviteNotifications: React.FC = () => {
 
     setErrorMessage('');
 
-    const { data, error, response } = await supabase.functions.invoke('inbox', {
-      body: {
-        action: 'list',
-        limit: 60,
-        pendingInviteLimit: 80,
-        sentLimit: 140,
-        includeSentUpdates,
-      },
+    const { data, error } = await fetchInbox({
+      limit: 60,
+      pendingInviteLimit: 80,
+      sentLimit: 140,
+      includeSentUpdates,
     });
 
-    if (error) {
-      setErrorMessage(await parseInvokeError(error, response));
+    if (error || !data) {
+      setErrorMessage(error ?? t`Failed to load notifications.`);
       if (showLoading) {
         setLoading(false);
       }
       return false;
     }
 
-    const payload = (data as {
-      invites?: unknown;
-      notifications?: unknown;
-      sentInvites?: unknown;
-    } | null) ?? null;
-
-    setPendingInvites(parsePendingInvites(payload?.invites));
-    setTaskNotifications(parseTaskNotifications(payload?.notifications));
+    setPendingInvites(data.pendingInvites);
+    setTaskNotifications(data.taskNotifications);
 
     if (includeSentUpdates) {
-      applyInviteUpdateToasts(parseSentInvites(payload?.sentInvites));
+      applyInviteUpdateToasts(data.sentInvites);
     }
 
     if (showLoading) {
@@ -458,29 +358,11 @@ export const InviteNotifications: React.FC = () => {
       return;
     }
 
-    const notificationsChannel = supabase
-      .channel(`notifications-inbox-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_notifications',
-          filter: `recipient_user_id=eq.${user.id}`,
-        },
-        () => {
-          scheduleRealtimeRefresh();
-        },
-      )
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          scheduleRealtimeRefresh();
-        }
-      });
+    const unsubscribe = subscribeToInboxChanges(user.id, scheduleRealtimeRefresh);
 
     return () => {
       clearRealtimeRefreshTimer();
-      void supabase.removeChannel(notificationsChannel);
+      unsubscribe();
     };
   }, [clearRealtimeRefreshTimer, scheduleRealtimeRefresh, user]);
 
@@ -525,12 +407,10 @@ export const InviteNotifications: React.FC = () => {
     setBusyToken(token);
     setErrorMessage('');
 
-    const { error, response } = await supabase.functions.invoke('invite', {
-      body: { action: 'decline', token },
-    });
+    const { error } = await declineInvite(token);
 
     if (error) {
-      setErrorMessage(await parseInvokeError(error, response));
+      setErrorMessage(error);
       setBusyToken(null);
       return;
     }
@@ -546,12 +426,10 @@ export const InviteNotifications: React.FC = () => {
     setBusyNotificationId(notificationId);
     setErrorMessage('');
 
-    const { error, response } = await supabase.functions.invoke('notifications', {
-      body: { action, notificationId },
-    });
+    const { error } = await updateTaskNotificationStatus(notificationId, action);
 
     if (error) {
-      setErrorMessage(await parseInvokeError(error, response));
+      setErrorMessage(error);
       setBusyNotificationId(null);
       return false;
     }
@@ -580,12 +458,10 @@ export const InviteNotifications: React.FC = () => {
     setBulkTaskAction('markAllRead');
     setErrorMessage('');
 
-    const { error, response } = await supabase.functions.invoke('notifications', {
-      body: { action: 'markAllRead' },
-    });
+    const { error } = await markAllTaskNotificationsRead();
 
     if (error) {
-      setErrorMessage(await parseInvokeError(error, response));
+      setErrorMessage(error);
       setBulkTaskAction(null);
       return;
     }
@@ -602,12 +478,10 @@ export const InviteNotifications: React.FC = () => {
     setErrorMessage('');
 
     const notificationIds = taskNotifications.map((notification) => notification.id);
-    const { error, response } = await supabase.functions.invoke('notifications', {
-      body: { action: 'deleteAll' },
-    });
+    const { error } = await deleteAllTaskNotifications();
 
     if (error) {
-      setErrorMessage(await parseInvokeError(error, response));
+      setErrorMessage(error);
       setBulkTaskAction(null);
       return;
     }

@@ -251,6 +251,13 @@ interface AuthState {
   updateDisplayName: (displayName: string) => Promise<{ error?: string }>;
   updateLocale: (locale: Locale) => Promise<{ error?: string }>;
   updateAvatarUrl: (url: string | null) => void;
+  fetchProfileSettings: () => Promise<{
+    data?: { displayName: string; preferences: Record<string, unknown> };
+    error?: string;
+  }>;
+  updateProfilePreferences: (
+    preferences: Record<string, unknown>,
+  ) => Promise<{ error?: string }>;
   previewAccountDeletion: () => Promise<{ data?: DeletionPreview; error?: string }>;
   requestAccountDeletion: (
     transfers: DeletionTransfer[],
@@ -1365,6 +1372,42 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         )
       : get().members;
     set({ profileAvatarUrl: url, members: updatedMembers });
+  },
+  fetchProfileSettings: async () => {
+    const user = get().user;
+    if (!user) return { error: 'You are not signed in.' };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('display_name, preferences')
+      .eq('id', user.id)
+      .single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {
+      data: {
+        displayName: data?.display_name ?? '',
+        preferences: (data?.preferences ?? {}) as Record<string, unknown>,
+      },
+    };
+  },
+  updateProfilePreferences: async (preferences) => {
+    const user = get().user;
+    if (!user) return { error: 'You are not signed in.' };
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ preferences })
+      .eq('id', user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {};
   },
   previewAccountDeletion: async () => {
     const { data, error } = await supabase.rpc('preview_account_deletion');

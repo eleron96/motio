@@ -14,7 +14,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { AlertTriangle, Database, LogOut, Pencil, Sliders, Trash2, User } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { supabase } from '@/shared/lib/supabaseClient';
 import { Switch } from '@/shared/ui/switch';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
@@ -47,7 +46,16 @@ const TAB_TRIGGER_CLASS = [
 ].join(' ');
 
 export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ open, onOpenChange }) => {
-  const { user, updateDisplayName, updateLocale, updateAvatarUrl, profileAvatarUrl, signOut } = useAuthStore();
+  const {
+    user,
+    updateDisplayName,
+    updateLocale,
+    updateAvatarUrl,
+    profileAvatarUrl,
+    signOut,
+    fetchProfileSettings,
+    updateProfilePreferences,
+  } = useAuthStore();
   const locale = useLocaleStore((state) => state.locale);
   const setLocale = useLocaleStore((state) => state.setLocale);
   const [displayName, setDisplayName] = useState('');
@@ -77,26 +85,21 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setLoading(true);
       setError('');
       setSaved(false);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('display_name, preferences')
-        .eq('id', user.id)
-        .single();
+      const { data, error } = await fetchProfileSettings();
 
       if (!active) return;
-      if (error) {
-        setError(error.message);
+      if (error || !data) {
+        setError(error ?? t`Failed to load profile.`);
         setLoading(false);
         return;
       }
-      const nextDisplayName = data?.display_name ?? '';
+      const nextDisplayName = data.displayName;
       setDisplayName(nextDisplayName);
       setInitialDisplayName(nextDisplayName);
       setIsEditingName(!nextDisplayName.trim());
 
-      const prefs = (data?.preferences ?? {}) as Record<string, unknown>;
-      setCurrentPrefs(prefs);
-      setDailyBriefEnabled(prefs.daily_brief_enabled !== false);
+      setCurrentPrefs(data.preferences);
+      setDailyBriefEnabled(data.preferences.daily_brief_enabled !== false);
 
       setLoading(false);
     };
@@ -105,7 +108,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     return () => {
       active = false;
     };
-  }, [open, user]);
+  }, [open, user, fetchProfileSettings]);
 
   useEffect(() => {
     if (open) return;
@@ -167,16 +170,13 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     const updatedPrefs = { ...currentPrefs, daily_brief_enabled: checked };
     setCurrentPrefs(updatedPrefs);
 
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ preferences: updatedPrefs })
-      .eq('id', user.id);
+    const { error: updateError } = await updateProfilePreferences(updatedPrefs);
 
     if (updateError) {
       // Откат при ошибке
       setDailyBriefEnabled(previousEnabled);
       setCurrentPrefs(previousPrefs);
-      setError(updateError.message);
+      setError(updateError);
     }
   };
 
