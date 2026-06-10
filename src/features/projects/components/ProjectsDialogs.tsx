@@ -617,7 +617,6 @@ export const ProjectsDialogs = ({
         date={milestoneDialogDate}
         milestone={editingMilestone}
         canEdit={canEdit}
-        allowDateEdit
         defaultProjectId={milestoneDialogDefaultProjectId}
       />
 
