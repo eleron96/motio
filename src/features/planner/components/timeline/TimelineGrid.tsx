@@ -6,15 +6,7 @@ import { TimelineHeader } from './TimelineHeader';
 import { TimelineRow } from './TimelineRow';
 import { MilestoneDialog } from './MilestoneDialog';
 import { MilestoneLayer } from './MilestoneLayer';
-import {
-  getVisibleDays,
-  getDayWidth,
-  getTaskPosition,
-  SIDEBAR_WIDTH,
-  ROW_TOP_PADDING,
-  TASK_HEIGHT,
-  TASK_GAP,
-} from '@/features/planner/lib/dateUtils';
+import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
 import {
   buildAssigneeGroupMap,
@@ -36,8 +28,7 @@ import { useSidebarResize } from './hooks/useSidebarResize';
 import { useTimelineViewport } from './hooks/useTimelineViewport';
 import { useTimelineScroll, LEFT_CONTEXT_DAYS } from './hooks/useTimelineScroll';
 import { useMilestoneDisplay } from './hooks/useMilestoneDisplay';
-import { useTaskDisplayRows, type HorizontalCullWindow } from './hooks/useTaskDisplayRows';
-import { useVirtualRowWindow } from './hooks/useVirtualRowWindow';
+import { useTaskDisplayRows } from './hooks/useTaskDisplayRows';
 import { TimelineSidebarRow } from './TimelineSidebarRow';
 
 const SCROLL_REANCHOR_MIN_SHIFT_DAYS: Record<ViewMode, number> = {
@@ -188,14 +179,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     sidebarWidthKey: resolvedSidebarWidth,
   });
 
-  // Filled in below once row geometry is known; the stable wrapper lets the
-  // scroll hook consume it without re-running its effects on every render.
-  const highlightFallbackTargetRef = useRef<() => { top: number; left: number } | null>(() => null);
-  const getHighlightFallbackTarget = useCallback(
-    () => highlightFallbackTargetRef.current(),
-    [],
-  );
-
   const { scrollLeft, handleScroll } = useTimelineScroll({
     scrollContainerRef,
     sidebarViewportWidth,
@@ -215,7 +198,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setCurrentDate,
     markTimelineInteraction,
     isDragScrolling,
-    getHighlightFallbackTarget,
   });
 
   // ─── Derived display values ────────────────────────────────────────────────
@@ -280,23 +262,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   // ─── Task display ──────────────────────────────────────────────────────────
 
-  // Horizontal culling: skip TaskBars more than one viewport away from the
-  // visible day window. Quantized to half-viewport buckets so each crossing
-  // swaps a small slice of bars instead of a full viewport's worth at once.
-  const effectiveViewportWidth = viewportWidth
-    || (typeof window !== 'undefined' ? window.innerWidth : 0);
-  const horizontalBucketSize = Math.max(1, Math.floor(effectiveViewportWidth / 2));
-  const horizontalBucket = effectiveViewportWidth > 0
-    ? Math.floor(scrollLeft / horizontalBucketSize)
-    : 0;
-  const horizontalCullWindow = useMemo<HorizontalCullWindow | null>(() => {
-    if (effectiveViewportWidth <= 0) return null;
-    return {
-      startPx: (horizontalBucket - 2) * horizontalBucketSize,
-      endPx: (horizontalBucket + 4) * horizontalBucketSize,
-    };
-  }, [effectiveViewportWidth, horizontalBucket, horizontalBucketSize]);
-
   const { displayRows, rowTaskElementsById } = useTaskDisplayRows({
     tasks,
     filters,
@@ -310,62 +275,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     dayWidth,
     canEdit,
     sidebarViewportWidth,
-    horizontalCullWindow,
-    forcedTaskId: highlightedTaskId,
-  });
-
-  // Vertical virtualization: only rows intersecting the viewport (plus an
-  // overscan band) are mounted; spacers preserve the scrollbar geometry.
-  const {
-    visibleRows,
-    firstRowIndex,
-    topSpacerHeight,
-    bottomSpacerHeight,
-    viewportHeight,
-    getRowOffset,
-    handleScrollTopChange,
-  } = useVirtualRowWindow({
-    scrollContainerRef,
-    rows: displayRows,
-  });
-
-  useEffect(() => {
-    highlightFallbackTargetRef.current = () => {
-      if (!highlightedTaskId) return null;
-
-      let targetRow: (typeof displayRows)[number] | null = null;
-      let targetTask: (typeof displayRows)[number]['tasks'][number] | null = null;
-      if (highlightedTaskRowAssigneeId) {
-        const preferredRow = displayRows.find((row) => row.id === highlightedTaskRowAssigneeId) ?? null;
-        const preferredTask = preferredRow?.tasks.find((task) => task.id === highlightedTaskId) ?? null;
-        if (preferredRow && preferredTask) {
-          targetRow = preferredRow;
-          targetTask = preferredTask;
-        }
-      }
-      if (!targetRow || !targetTask) {
-        for (const row of displayRows) {
-          const task = row.tasks.find((item) => item.id === highlightedTaskId);
-          if (task) {
-            targetRow = row;
-            targetTask = task;
-            break;
-          }
-        }
-      }
-      if (!targetRow || !targetTask) return null;
-
-      const position = getTaskPosition(targetTask.startDate, targetTask.endDate, visibleDays, dayWidth);
-      const rowOffset = getRowOffset(targetRow.id);
-      if (!position || rowOffset === null) return null;
-
-      const headerBlockHeight = effectiveHeaderHeight + milestoneRowHeight;
-      const laneTop = ROW_TOP_PADDING + targetTask.lane * (TASK_HEIGHT + TASK_GAP);
-      return {
-        left: Math.max(0, position.left + position.width / 2 - effectiveViewportWidth / 2),
-        top: Math.max(0, headerBlockHeight + rowOffset + laneTop + TASK_HEIGHT / 2 - viewportHeight / 2),
-      };
-    };
   });
 
   // ─── Other handlers ────────────────────────────────────────────────────────
@@ -453,13 +362,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           data-tour="timeline-grid"
           data-timeline-scroll-owner="vertical"
           className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}`}
-          // Virtualized rows replace spacer pixels as they mount; the browser's
-          // scroll anchoring reacts to those mutations with scroll jumps.
-          style={{ overflowAnchor: 'none' }}
-          onScroll={(event) => {
-            handleScroll(event);
-            handleScrollTopChange(event.currentTarget.scrollTop);
-          }}
+          onScroll={handleScroll}
           onMouseDown={handleDragStart}
         >
           <div className="relative min-h-full" style={{ width: totalSurfaceWidth }}>
@@ -541,9 +444,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
               </div>
             </div>
 
-            {/* Timeline rows (virtualized: spacers stand in for off-screen rows) */}
-            {topSpacerHeight > 0 && <div aria-hidden="true" style={{ height: topSpacerHeight }} />}
-            {visibleRows.map((row, index) => (
+            {/* Timeline rows */}
+            {displayRows.map((row, rowIndex) => (
               <div key={row.id} className="flex">
                 <TimelineSidebarRow
                   row={row}
@@ -562,7 +464,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 >
                   <TimelineRow
                     rowId={row.id}
-                    rowIndex={firstRowIndex + index}
+                    rowIndex={rowIndex}
                     visibleDays={visibleDays}
                     dayWidth={dayWidth}
                     viewMode={viewMode}
@@ -577,7 +479,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 </div>
               </div>
             ))}
-            {bottomSpacerHeight > 0 && <div aria-hidden="true" style={{ height: bottomSpacerHeight }} />}
           </div>
         </div>
       </div>

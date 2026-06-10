@@ -15,13 +15,6 @@ import { resolveAssigneeMinRowHeight } from '../TimelineSidebarRow';
 
 const ASSIGNEE_ROW_GAP = 20;
 
-// Day-area pixel window outside of which TaskBars are skipped entirely.
-// `null` disables culling (e.g. before the viewport has been measured).
-export interface HorizontalCullWindow {
-  startPx: number;
-  endPx: number;
-}
-
 interface UseTaskDisplayRowsParams {
   tasks: Task[];
   filters: Filters;
@@ -35,10 +28,6 @@ interface UseTaskDisplayRowsParams {
   dayWidth: number;
   canEdit: boolean;
   sidebarViewportWidth: number;
-  horizontalCullWindow?: HorizontalCullWindow | null;
-  // Tasks that must stay mounted even outside the cull window (e.g. the
-  // highlighted task that scroll-to-task is about to bring into view).
-  forcedTaskId?: string | null;
 }
 
 export const useTaskDisplayRows = ({
@@ -54,8 +43,6 @@ export const useTaskDisplayRows = ({
   dayWidth,
   canEdit,
   sidebarViewportWidth,
-  horizontalCullWindow = null,
-  forcedTaskId = null,
 }: UseTaskDisplayRowsParams) => {
   const filteredTasks = useMemo(
     () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
@@ -135,14 +122,6 @@ export const useTaskDisplayRows = ({
           dayWidth,
         );
         if (!position) return;
-        if (
-          horizontalCullWindow
-          && task.id !== forcedTaskId
-          && (position.left + position.width < horizontalCullWindow.startPx
-            || position.left > horizontalCullWindow.endPx)
-        ) {
-          return;
-        }
         taskElements.push(
           <TaskBar
             key={task.id}
@@ -159,7 +138,7 @@ export const useTaskDisplayRows = ({
       elementsByRowId.set(row.id, taskElements);
     });
     return elementsByRowId;
-  }, [canEdit, dayWidth, displayRows, forcedTaskId, groupMode, horizontalCullWindow, visibleDays]);
+  }, [canEdit, dayWidth, displayRows, groupMode, visibleDays]);
 
   return { displayRows, rowTaskElementsById };
 };
