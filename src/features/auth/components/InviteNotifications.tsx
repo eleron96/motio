@@ -529,7 +529,7 @@ export const InviteNotifications: React.FC = () => {
     }
 
     const scrollDate = notification.taskStartDate || getTodayIso();
-    setViewMode('week');
+    setViewMode('day');
     setCurrentDate(scrollDate);
     requestScrollToDate(scrollDate);
 

@@ -236,10 +236,10 @@ export const CalendarTimeline: React.FC = () => {
 
   const handleDateClick = useCallback((day: Date) => {
     const nextDate = format(day, 'yyyy-MM-dd');
-    // Force retrigger of the same attention animation when opening week timeline from calendar.
+    // Force retrigger of the same attention animation when opening the day timeline from calendar.
     setTimelineAttentionDate(null);
     setCurrentDate(nextDate);
-    setViewMode('week');
+    setViewMode('day');
     requestScrollToDate(nextDate);
     if (typeof window === 'undefined') {
       setTimelineAttentionDate(nextDate);

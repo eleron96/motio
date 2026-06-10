@@ -12,7 +12,7 @@ import {
   Users,
   FolderKanban,
 } from 'lucide-react';
-import { format, parseISO, addDays, subDays, addWeeks, subWeeks } from '@/features/planner/lib/dateUtils';
+import { format, parseISO, addDays, subDays } from '@/features/planner/lib/dateUtils';
 import { addMonths, setMonth, setYear, subMonths } from 'date-fns';
 import { cn } from '@/shared/lib/classNames';
 import { t } from '@lingui/macro';
@@ -113,21 +113,17 @@ export const TimelineControls: React.FC = () => {
 
   const handlePrev = () => {
     const date = parseISO(currentDate);
-    const newDate = viewMode === 'day'
-      ? subDays(date, 7)
-      : viewMode === 'calendar'
+    const newDate = viewMode === 'calendar'
       ? subMonths(date, 1)
-      : subWeeks(date, 2);
+      : subDays(date, 7);
     setCurrentDate(format(newDate, 'yyyy-MM-dd'));
   };
 
   const handleNext = () => {
     const date = parseISO(currentDate);
-    const newDate = viewMode === 'day'
-      ? addDays(date, 7)
-      : viewMode === 'calendar'
+    const newDate = viewMode === 'calendar'
       ? addMonths(date, 1)
-      : addWeeks(date, 2);
+      : addDays(date, 7);
     setCurrentDate(format(newDate, 'yyyy-MM-dd'));
   };
 
@@ -227,12 +223,6 @@ export const TimelineControls: React.FC = () => {
             onClick={() => setViewMode('day')}
           >
             {t`Day`}
-          </SegmentedControlItem>
-          <SegmentedControlItem
-            active={viewMode === 'week'}
-            onClick={() => setViewMode('week')}
-          >
-            {t`Week`}
           </SegmentedControlItem>
           <SegmentedControlItem
             active={viewMode === 'calendar'}

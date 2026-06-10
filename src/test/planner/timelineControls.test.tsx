@@ -9,7 +9,7 @@ vi.mock('@lingui/macro', () => ({
 
 const { plannerState } = vi.hoisted(() => ({
   plannerState: {
-    viewMode: 'week',
+    viewMode: 'day',
     setViewMode: vi.fn(),
     groupMode: 'project',
     setGroupMode: vi.fn(),
@@ -39,7 +39,7 @@ vi.mock('@/shared/lib/dateFnsLocale', () => ({
 
 describe('TimelineControls', () => {
   beforeEach(() => {
-    plannerState.viewMode = 'week';
+    plannerState.viewMode = 'day';
     plannerState.groupMode = 'project';
     plannerState.currentDate = '2026-03-20';
     plannerState.filters.hideUnassigned = false;
@@ -49,12 +49,19 @@ describe('TimelineControls', () => {
   it('uses the shared dark active style for the selected timeline mode buttons', () => {
     render(<TimelineControls />);
 
-    const weekButton = screen.getByRole('button', { name: 'Week' });
+    const dayButton = screen.getByRole('button', { name: 'Day' });
     const projectsButton = screen.getByRole('button', { name: 'Projects' });
 
-    expect(weekButton).toHaveClass('bg-foreground', 'text-background', 'shadow-sm');
-    expect(weekButton).not.toHaveClass('bg-background');
+    expect(dayButton).toHaveClass('bg-foreground', 'text-background', 'shadow-sm');
+    expect(dayButton).not.toHaveClass('bg-background');
     expect(projectsButton).toHaveClass('bg-foreground', 'text-background', 'shadow-sm');
     expect(projectsButton).not.toHaveClass('bg-background');
+  });
+
+  it('no longer offers a Week view button', () => {
+    render(<TimelineControls />);
+    expect(screen.queryByRole('button', { name: 'Week' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Day' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Calendar' })).toBeInTheDocument();
   });
 });

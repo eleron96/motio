@@ -183,7 +183,7 @@ describe('MembersPage open task in timeline', () => {
       expect(plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
       expect(plannerState.setHighlightedTaskTarget).toHaveBeenCalledWith('task-1', 'assignee-1');
       expect(plannerState.setGroupMode).toHaveBeenCalledWith('assignee');
-      expect(plannerState.setViewMode).toHaveBeenCalledWith('week');
+      expect(plannerState.setViewMode).toHaveBeenCalledWith('day');
       expect(plannerState.setCurrentDate).toHaveBeenCalledWith('2026-03-20');
       expect(plannerState.requestScrollToDate).toHaveBeenCalledWith('2026-03-20');
       expect(plannerState.clearFilters).toHaveBeenCalled();
