@@ -361,7 +361,12 @@ export const TaskDetailPanel: React.FC = () => {
     setPendingRepeatUpdate(null);
     setRepeatScopeOpen(false);
     if (pending.kind === 'task-update') {
-      await updateTask(pending.taskId, pending.updates ?? {}, scope);
+      // "Only this task" detaches the occurrence from its series (repeatId: null)
+      // so future edits treat it as a standalone task and never ask for scope again.
+      const updates = scope === 'single'
+        ? { ...(pending.updates ?? {}), repeatId: null }
+        : (pending.updates ?? {});
+      await updateTask(pending.taskId, updates, scope);
       return;
     }
     if (scope === 'single' || !task || !pending.options) return;
