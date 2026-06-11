@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- In Calendar view, opening a day is now a double-click.
+- In Calendar view, the day's milestone menu now appears on hover after a short delay (instead of on click), and you can pick a milestone right from it.
 
 ## [0.8.17] - 2026-06-10
 ### Added
