@@ -307,3 +307,4 @@
 2026-06-10T16:18:01Z | 0.8.15 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260610-161715.dump | Fixed blank gaps and a visible jump when scrolling the timeline quickly: tasks now load ahead of the user reaching them.
 2026-06-10T16:32:50Z | 0.8.16 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260610-163204.dump | The timeline is back to its previous rendering mode: all rows and tasks are drawn upfront again, with no load-as-you-scroll.
 2026-06-10T22:13:20Z | 0.8.17 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260610-221237.dump | In Calendar view you can right-click a day to add a milestone — the create dialog opens with that date prefilled.
+2026-06-11T15:36:56Z | 0.8.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260611-153607.dump | In Calendar view, opening a day is now a double-click.
