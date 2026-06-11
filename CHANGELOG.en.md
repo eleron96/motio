@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.19] - 2026-06-11
+### Added
+- The "Week" timeline view is now optional — turn it on with a toggle in Account settings → Preferences. Off by default.
+
 ## [0.8.18] - 2026-06-11
 ### Changed
 - In Calendar view, opening a day is now a double-click.

@@ -10,6 +10,7 @@ import { Button } from '@/shared/ui/button';
 import { Filter, Plus } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { Filters, ViewMode } from '@/features/planner/types/planner';
@@ -135,6 +136,7 @@ const PlannerPage = () => {
   const clearFilterCriteria = usePlannerStore((state) => state.clearFilterCriteria);
   const clearFilters = usePlannerStore((state) => state.clearFilters);
   const viewMode = usePlannerStore((state) => state.viewMode);
+  const setViewMode = usePlannerStore((state) => state.setViewMode);
   const groupMode = usePlannerStore((state) => state.groupMode);
   const currentDate = usePlannerStore((state) => state.currentDate);
   const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
@@ -149,7 +151,24 @@ const PlannerPage = () => {
   const fetchMembers = useAuthStore((state) => state.fetchMembers);
   const membersLoading = useAuthStore((state) => state.membersLoading);
   const membersWorkspaceId = useAuthStore((state) => state.membersWorkspaceId);
+  const profilePreferences = useAuthStore((state) => state.profilePreferences);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
+
+  // The Week view is optional (per-user "week_view_enabled" preference). If a
+  // user is on 'week' but the preference is off — e.g. they had it enabled and
+  // turned it off, or carry a 'week' value persisted before the view became
+  // optional — fall back to 'day'. Gated on profilePreferences !== null so it
+  // only runs after the profile loads (avoids resetting an enabled user during
+  // the initial async fetch).
+  useEffect(() => {
+    if (
+      profilePreferences !== null
+      && viewMode === 'week'
+      && !isWeekViewEnabled(profilePreferences)
+    ) {
+      setViewMode('day');
+    }
+  }, [profilePreferences, viewMode, setViewMode]);
 
   useOnboardingTour({
     pageId: 'planner',

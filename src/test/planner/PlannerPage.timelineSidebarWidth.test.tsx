@@ -35,7 +35,8 @@ const { plannerState, authState } = vi.hoisted(() => ({
     setFilters: vi.fn(),
     clearFilterCriteria: vi.fn(),
     clearFilters: vi.fn(),
-    viewMode: 'week',
+    viewMode: 'day',
+    setViewMode: vi.fn(),
     currentDate: '2026-03-14',
     setCurrentDate: vi.fn(),
     requestScrollToDate: vi.fn(),
@@ -52,6 +53,7 @@ const { plannerState, authState } = vi.hoisted(() => ({
     fetchMembers: vi.fn(),
     membersLoading: false,
     membersWorkspaceId: null,
+    profilePreferences: null,
   },
 }));
 
