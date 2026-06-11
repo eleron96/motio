@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
 
 vi.mock('@lingui/macro', () => ({
@@ -7,7 +7,7 @@ vi.mock('@lingui/macro', () => ({
     strings.reduce((acc, str, index) => acc + str + (values[index] ?? ''), ''),
 }));
 
-const { plannerState } = vi.hoisted(() => ({
+const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
     viewMode: 'day',
     setViewMode: vi.fn(),
@@ -21,12 +21,19 @@ const { plannerState } = vi.hoisted(() => ({
     },
     setFilters: vi.fn(),
   },
+  authState: {
+    profilePreferences: null as Record<string, unknown> | null,
+  },
 }));
 
 vi.mock('@/features/planner/store/plannerStore', () => ({
   usePlannerStore: (selector?: (state: typeof plannerState) => unknown) => (
     typeof selector === 'function' ? selector(plannerState) : plannerState
   ),
+}));
+
+vi.mock('@/features/auth/store/authStore', () => ({
+  useAuthStore: (selector: (state: typeof authState) => unknown) => selector(authState),
 }));
 
 vi.mock('@/shared/store/localeStore', () => ({
@@ -43,6 +50,7 @@ describe('TimelineControls', () => {
     plannerState.groupMode = 'project';
     plannerState.currentDate = '2026-03-20';
     plannerState.filters.hideUnassigned = false;
+    authState.profilePreferences = null;
     vi.clearAllMocks();
   });
 
@@ -58,10 +66,20 @@ describe('TimelineControls', () => {
     expect(projectsButton).not.toHaveClass('bg-background');
   });
 
-  it('no longer offers a Week view button', () => {
+  it('hides the Week view button when the preference is off', () => {
+    authState.profilePreferences = { week_view_enabled: false };
     render(<TimelineControls />);
     expect(screen.queryByRole('button', { name: 'Week' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Day' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Calendar' })).toBeInTheDocument();
+  });
+
+  it('shows the Week view button when the preference is on', () => {
+    authState.profilePreferences = { week_view_enabled: true };
+    render(<TimelineControls />);
+    const weekButton = screen.getByRole('button', { name: 'Week' });
+    expect(weekButton).toBeInTheDocument();
+    fireEvent.click(weekButton);
+    expect(plannerState.setViewMode).toHaveBeenCalledWith('week');
   });
 });

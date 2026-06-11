@@ -185,6 +185,9 @@ interface AuthState {
   profileDisplayName: string | null;
   profileLocale: Locale | null;
   profileAvatarUrl: string | null;
+  // null until the profile has been fetched; lets preference-driven UI
+  // distinguish "not loaded yet" from "loaded, flag absent/false".
+  profilePreferences: Record<string, unknown> | null;
   profileStatus: AccountStatus;
   profilePurgeAfter: string | null;
   isSuperAdmin: boolean;
@@ -423,6 +426,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profileDisplayName: null,
   profileLocale: null,
   profileAvatarUrl: null,
+  profilePreferences: null,
   profileStatus: 'ACTIVE',
   profilePurgeAfter: null,
   isSuperAdmin: false,
@@ -450,6 +454,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profileDisplayName: null,
       profileLocale: null,
       profileAvatarUrl: null,
+      profilePreferences: null,
       profileStatus: 'ACTIVE',
       profilePurgeAfter: null,
       isSuperAdmin: false,
@@ -795,6 +800,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       backupsError: null,
       profileDisplayName: null,
       profileLocale: null,
+      profilePreferences: null,
       isSuperAdmin: false,
       superAdminLoading: false,
       signOutRedirectInProgress: true,
@@ -887,7 +893,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, locale, avatar_url, status, purge_after')
+      .select('display_name, locale, avatar_url, status, purge_after, preferences')
       .eq('id', user.id)
       .single();
 
@@ -909,6 +915,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profileDisplayName: displayName ? displayName : null,
       profileLocale: nextLocale,
       profileAvatarUrl: (data?.avatar_url as string | null) ?? null,
+      profilePreferences: (data?.preferences ?? {}) as Record<string, unknown>,
       profileStatus,
       profilePurgeAfter: (data?.purge_after as string | null) ?? null,
     });
@@ -1407,6 +1414,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { error: error.message };
     }
 
+    // Keep the reactive copy in sync so preference-driven UI (e.g. the optional
+    // Week timeline view) updates without a refetch.
+    set({ profilePreferences: preferences });
     return {};
   },
   previewAccountDeletion: async () => {
