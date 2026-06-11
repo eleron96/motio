@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.19] - 2026-06-11
 ### Added
 - Режим «Неделя» на таймлайне теперь опциональный: включается тумблером в «Предпочтениях» настроек аккаунта. По умолчанию выключен.
 
