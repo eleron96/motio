@@ -25,6 +25,7 @@ import { DataExportButton } from './DataExportButton';
 import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { demoStore } from '@/features/demo/lib/demoDataStore';
+import { isWeekViewEnabled, WEEK_VIEW_PREFERENCE_KEY } from '@/features/planner/lib/weekViewPreference';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
@@ -72,6 +73,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   // demo session — the cleanup cron handles "deletion" automatically.
   const accountDeletionEnabled = isAccountDeletionEnabled() && !isDemo;
   const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
+  const [weekViewEnabled, setWeekViewEnabled] = useState(false);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
   // When the delete wizard opens the user elsewhere on the Profile tab (to fix their
   // display name), we need to switch tabs. Controlled value lets us do that.
@@ -100,6 +102,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
       setCurrentPrefs(data.preferences);
       setDailyBriefEnabled(data.preferences.daily_brief_enabled !== false);
+      setWeekViewEnabled(isWeekViewEnabled(data.preferences));
 
       setLoading(false);
     };
@@ -175,6 +178,26 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     if (updateError) {
       // Откат при ошибке
       setDailyBriefEnabled(previousEnabled);
+      setCurrentPrefs(previousPrefs);
+      setError(updateError);
+    }
+  };
+
+  const handleWeekViewToggle = async (checked: boolean) => {
+    if (!user) return;
+    const previousEnabled = weekViewEnabled;
+    const previousPrefs = currentPrefs;
+
+    // Optimistic update — toggles instantly; the planner reads the same
+    // preference from the store and shows/hides the Week button reactively.
+    setWeekViewEnabled(checked);
+    const updatedPrefs = { ...currentPrefs, [WEEK_VIEW_PREFERENCE_KEY]: checked };
+    setCurrentPrefs(updatedPrefs);
+
+    const { error: updateError } = await updateProfilePreferences(updatedPrefs);
+
+    if (updateError) {
+      setWeekViewEnabled(previousEnabled);
       setCurrentPrefs(previousPrefs);
       setError(updateError);
     }
@@ -351,6 +374,23 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {t`Show daily task summary each morning`}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 border-t pt-4 text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="week-view-toggle" className="cursor-pointer">
+                        {t`Week view on the timeline`}
+                      </Label>
+                      <Switch
+                        id="week-view-toggle"
+                        checked={weekViewEnabled}
+                        onCheckedChange={handleWeekViewToggle}
+                        disabled={!user || loading}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t`Add a "Week" button next to Day and Calendar`}
                     </p>
                   </div>
 
