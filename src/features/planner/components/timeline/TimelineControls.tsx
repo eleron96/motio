@@ -1,6 +1,8 @@
 import React from 'react';
 import { CaptionProps, useNavigation } from 'react-day-picker';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Calendar as CalendarComponent } from '@/shared/ui/calendar';
@@ -107,6 +109,7 @@ export const TimelineControls: React.FC = () => {
     filters,
     setFilters,
   } = usePlannerStore();
+  const weekViewEnabled = useAuthStore((state) => isWeekViewEnabled(state.profilePreferences));
   const hideUnassignedId = 'hide-unassigned-toggle';
   const showUnassigned = !filters.hideUnassigned;
   const unassignedDisabled = viewMode === 'calendar' || groupMode === 'project';
@@ -224,6 +227,14 @@ export const TimelineControls: React.FC = () => {
           >
             {t`Day`}
           </SegmentedControlItem>
+          {weekViewEnabled && (
+            <SegmentedControlItem
+              active={viewMode === 'week'}
+              onClick={() => setViewMode('week')}
+            >
+              {t`Week`}
+            </SegmentedControlItem>
+          )}
           <SegmentedControlItem
             active={viewMode === 'calendar'}
             onClick={() => setViewMode('calendar')}

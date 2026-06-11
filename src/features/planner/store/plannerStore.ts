@@ -239,14 +239,10 @@ export const usePlannerStore = create<PlannerStore>()(
     }),
     {
       name: 'planner-storage',
-      // The "week" timeline view was removed. Coerce any persisted 'week' back
-      // to 'day' on every rehydrate (version-independent) so returning users
-      // don't land on a view with no matching toggle button.
-      merge: (persisted, current) => {
-        const saved = (persisted ?? {}) as Partial<typeof current>;
-        const viewMode = saved.viewMode === 'week' ? 'day' : (saved.viewMode ?? current.viewMode);
-        return { ...current, ...saved, viewMode };
-      },
+      // 'week' is an optional view, gated by the per-user "week_view_enabled"
+      // preference. PlannerPage resets viewMode to 'day' once the profile loads
+      // if the user lands on 'week' without the preference enabled, so we no
+      // longer coerce the persisted value here.
       partialize: (state) => ({
         viewMode: state.viewMode,
         groupMode: state.groupMode,
