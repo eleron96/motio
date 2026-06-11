@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- В режиме «Календарь» переход к дню теперь выполняется двойным кликом.
+- В режиме «Календарь» меню дня со списком вех открывается по наведению с небольшой задержкой (раньше — по клику); веху можно выбрать прямо из него.
 
 ## [0.8.17] - 2026-06-10
 ### Added
