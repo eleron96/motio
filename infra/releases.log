@@ -310,3 +310,4 @@
 2026-06-11T15:36:56Z | 0.8.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260611-153607.dump | In Calendar view, opening a day is now a double-click.
 2026-06-11T16:38:54Z | 0.8.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260611-163806.dump | The "Week" timeline view is now optional — turn it on with a toggle in Account settings → Preferences. Off by default.
 2026-06-12T18:30:30Z | 0.8.26 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260612-182942.dump | No documented changes.
+2026-06-12T20:29:41Z | 0.8.28 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260612-202857.dump | No documented changes.
