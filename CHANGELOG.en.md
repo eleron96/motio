@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.26] - 2026-06-12
+### Changed
+- No documented changes.
+
 ## [0.8.25] - 2026-06-12
 ### Changed
 - Polished the task window: accent gray panels and formatting strips (including comments), adaptive spacing around the card, and no stray blue outline when opening.
