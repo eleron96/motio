@@ -63,12 +63,15 @@ const DialogScrollContent = React.forwardRef<
   <DialogPortal>
     <DialogPrimitive.Overlay className="fixed inset-0 z-50 overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
       {/* Non-scrolling wrapper: scroll containers collapse their own bottom
-          padding and item margins, padding of an inner block always counts. */}
-      <div className="grid min-h-full items-start justify-items-center px-4 py-10">
+          padding and item margins, padding of an inner block always counts.
+          The gap around the card scales with the viewport. */}
+      <div className="grid min-h-full items-start justify-items-center px-3 py-4 sm:px-4 sm:py-6 lg:py-10">
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
-            "relative z-50 w-full max-w-lg border bg-background shadow-lg overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
+            // outline-none: with onOpenAutoFocus prevented, focus lands on the
+            // card itself — without this the browser draws a focus ring around it.
+            "relative z-50 w-full max-w-lg border bg-background shadow-lg outline-none overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
             className,
           )}
           {...props}

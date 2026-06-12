@@ -80,15 +80,23 @@ const setEditorValue = (editor: HTMLDivElement, value: string) => {
   editor.textContent = value;
 };
 
-const toolbarItems = [
-  { label: 'Bold', command: 'bold', icon: Bold },
-  { label: 'Italic', command: 'italic', icon: Italic },
-  { label: 'Underline', command: 'underline', icon: Underline },
-  { label: 'Strike', command: 'strikeThrough', icon: Strikethrough },
-  { label: 'Bulleted list', command: 'insertUnorderedList', icon: List },
-  { label: 'Numbered list', command: 'insertOrderedList', icon: ListOrdered },
-  { label: 'Quote', command: 'formatBlock', value: 'blockquote', icon: Quote },
-];
+// Mockup-style toolbar: related commands sit in groups separated by a thin
+// vertical divider (text formatting | lists | blocks).
+const toolbarGroups = [
+  [
+    { label: 'Bold', command: 'bold', icon: Bold },
+    { label: 'Italic', command: 'italic', icon: Italic },
+    { label: 'Underline', command: 'underline', icon: Underline },
+    { label: 'Strike', command: 'strikeThrough', icon: Strikethrough },
+  ],
+  [
+    { label: 'Bulleted list', command: 'insertUnorderedList', icon: List },
+    { label: 'Numbered list', command: 'insertOrderedList', icon: ListOrdered },
+  ],
+  [
+    { label: 'Quote', command: 'formatBlock', value: 'blockquote', icon: Quote },
+  ],
+] as Array<Array<{ label: string; command: string; value?: string; icon: typeof Bold }>>;
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   id,
@@ -700,31 +708,38 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     >
       <div
         className={cn(
-          'flex flex-wrap items-center gap-1',
+          'flex flex-wrap items-center gap-0.5',
           framed
-            ? 'border-b border-border bg-muted/40 px-1.5 py-1'
+            ? 'border-b border-border/60 bg-secondary/70 px-2 py-1.5'
             : 'rounded-md border border-input bg-muted/30 p-1',
         )}
       >
-        {toolbarItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Button
-              key={item.label}
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              disabled={disabled}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => applyCommand(item.command, item.value)}
-              aria-label={item.label}
-              title={item.label}
-            >
-              <Icon className="h-4 w-4" />
-            </Button>
-          );
-        })}
+        {toolbarGroups.map((group, groupIndex) => (
+          <React.Fragment key={groupIndex}>
+            {groupIndex > 0 && (
+              <span aria-hidden="true" className="mx-1 h-4 w-px shrink-0 bg-border" />
+            )}
+            {group.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Button
+                  key={item.label}
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={disabled}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => applyCommand(item.command, item.value)}
+                  aria-label={item.label}
+                  title={item.label}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              );
+            })}
+          </React.Fragment>
+        ))}
         <Button
           type="button"
           variant="ghost"
@@ -751,7 +766,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         ref={editorRef}
         className={cn(
           'rich-text-editor',
-          framed && 'rounded-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0',
+          // ! needed: .rich-text-editor lives in @layer utilities too and wins
+          // the source-order tie against plain utility overrides.
+          framed && '!rounded-none !border-0 focus-visible:!ring-0 focus-visible:!ring-offset-0',
           disabled && 'bg-muted/40',
           isFileDragOver && !disabled && 'border-primary/60 bg-primary/5 ring-2 ring-primary/30',
           className
