@@ -14,6 +14,9 @@ export interface Task {
   tagIds: string[];
   description: string | null | undefined;
   repeatId: string | null;
+  /** ISO timestamps; optional because older fixtures/partial fetches may omit them. */
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TaskSubtask {
