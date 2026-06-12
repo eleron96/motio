@@ -1,14 +1,15 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
-import { RepeatSettingsFields } from '@/features/planner/components/RepeatSettingsFields';
+import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
+import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
+import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
-import { Textarea } from '@/shared/ui/textarea';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
+import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,13 +21,12 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { Switch } from '@/shared/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ChevronDown, Pencil, Plus, X } from 'lucide-react';
+import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { getPersonMonogram } from '@/shared/domain/personName';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { format } from '@/features/planner/lib/dateUtils';
-import { cn } from '@/shared/lib/classNames';
 import { TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -141,7 +141,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   }, [statuses]);
   const noProjectDisabled = groupMode === 'project';
   const fallbackProjectId = activeProjects[0]?.id;
-  
+
   const today = new Date();
   const defaultStart = format(today, 'yyyy-MM-dd');
   const initialStart = initialStartDate ?? defaultStart;
@@ -164,17 +164,12 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [repeatCount, setRepeatCount] = useState(4);
   const [repeatError, setRepeatError] = useState('');
   const [repeatCreating, setRepeatCreating] = useState(false);
-  const [repeatOpen, setRepeatOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
-  const [subtasksOpen, setSubtasksOpen] = useState(false);
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
-  const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
   const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
-  const subtaskInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const focusSubtaskIdRef = useRef<string | null>(null);
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -237,18 +232,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatUntil(nextUntil);
   };
 
-  const handleRepeatToggle = (enabled: boolean) => {
-    markChanged();
-    setRepeatOpen(enabled);
-    if (enabled) return;
-    setRepeatFrequency('none');
-    setRepeatEnds('never');
-    repeatUntilAutoRef.current = true;
-    setRepeatUntil(getDefaultRepeatUntil(startDate));
-    setRepeatCount(4);
-    setRepeatError('');
-  };
-
   const handleRepeatUntilChange = (value: string) => {
     markChanged();
     repeatUntilAutoRef.current = false;
@@ -289,52 +272,23 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatUntil(getDefaultRepeatUntil(value));
   };
 
-  const handleOpenSubtasks = () => {
-    setSubtasksOpen(true);
-    if (typeof window !== 'undefined') {
-      window.requestAnimationFrame(() => {
-        subtaskInputRef.current?.focus();
-      });
-    }
+  const handleAddDraftSubtask = () => {
+    markChanged();
+    const id = createDraftSubtaskId();
+    focusSubtaskIdRef.current = id;
+    setSubtasks((current) => [...current, { id, title: '' }]);
   };
 
-  const handleAddSubtask = () => {
-    const title = newSubtaskTitle.trim();
-    if (!title) return;
+  const handleDraftSubtaskTitleChange = (subtaskId: string, value: string) => {
     markChanged();
-    setSubtasks((current) => [...current, { id: createDraftSubtaskId(), title }]);
-    setNewSubtaskTitle('');
-    subtaskInputRef.current?.focus();
+    setSubtasks((current) => (
+      current.map((item) => (item.id === subtaskId ? { ...item, title: value } : item))
+    ));
   };
 
   const handleRemoveSubtask = (subtaskId: string) => {
     markChanged();
     setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
-  };
-
-  const startEditingSubtask = (subtaskId: string, title: string) => {
-    setEditingSubtaskId(subtaskId);
-    setEditingSubtaskTitle(title);
-  };
-
-  const cancelEditingSubtask = () => {
-    setEditingSubtaskId(null);
-    setEditingSubtaskTitle('');
-  };
-
-  const commitEditingSubtask = (subtaskId: string) => {
-    const title = editingSubtaskTitle.trim();
-    if (!title) {
-      // Empty title on save removes the draft subtask outright.
-      handleRemoveSubtask(subtaskId);
-      cancelEditingSubtask();
-      return;
-    }
-    markChanged();
-    setSubtasks((current) => (
-      current.map((item) => (item.id === subtaskId ? { ...item, title } : item))
-    ));
-    cancelEditingSubtask();
   };
 
   const handleAssigneePopoverOpenChange = useCallback((nextOpen: boolean) => {
@@ -345,10 +299,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     }
     setAssigneePopoverFrozenOrderIds(null);
   }, [selectableAssignees]);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !statusId || !typeId) return;
 
     setRepeatError('');
@@ -387,11 +341,14 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       return;
     }
 
-    if (subtasks.length > 0 && currentWorkspaceId) {
+    const subtaskTitles = subtasks
+      .map((subtask) => subtask.title.trim())
+      .filter(Boolean);
+    if (subtaskTitles.length > 0 && currentWorkspaceId) {
       const subtaskResult = await createTaskSubtasks(
         currentWorkspaceId,
         createdTask.id,
-        subtasks.map((subtask) => subtask.title),
+        subtaskTitles,
       );
       if (subtaskResult.error) {
         console.error(subtaskResult.error);
@@ -415,7 +372,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
         return;
       }
     }
-    
+
     // Reset form
     setTitle('');
     setProjectId(resolveAddTaskProjectValue({
@@ -438,13 +395,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatCount(4);
     setRepeatError('');
     setRepeatCreating(false);
-    setRepeatOpen(false);
     setHasChanges(false);
     setAssigneePopoverOpen(false);
     setAssigneePopoverFrozenOrderIds(null);
-    setSubtasksOpen(false);
     setSubtasks([]);
-    setNewSubtaskTitle('');
 
     onCreated?.();
     onOpenChange(false);
@@ -460,13 +414,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!open) {
       setProjectInitialized(false);
       setHasChanges(false);
-      setRepeatOpen(false);
       setConfirmCloseOpen(false);
       setAssigneePopoverOpen(false);
       setAssigneePopoverFrozenOrderIds(null);
-      setSubtasksOpen(false);
       setSubtasks([]);
-      setNewSubtaskTitle('');
       return;
     }
     if (projectInitialized) return;
@@ -491,13 +442,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setRepeatUntil(getDefaultRepeatUntil(nextStart));
     setRepeatCount(4);
     setRepeatError('');
-    setRepeatOpen(false);
     setHasChanges(false);
     setAssigneePopoverOpen(false);
     setAssigneePopoverFrozenOrderIds(null);
-    setSubtasksOpen(false);
     setSubtasks([]);
-    setNewSubtaskTitle('');
     setProjectInitialized(true);
   }, [
     defaultStart,
@@ -536,384 +484,333 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       frozenOrderIds: assigneePopoverOpen ? assigneePopoverFrozenOrderIds : null,
     });
   }, [assigneeIds, assigneePopoverFrozenOrderIds, assigneePopoverOpen, selectableAssignees]);
-  
+
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t`Create new task`}</DialogTitle>
+      <DialogScrollContent className="flex w-full max-w-[880px] flex-col gap-0 p-0">
+        {/* Full-height tint behind the parameters column, header and footer included. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 md:block"
+        />
+        <DialogHeader className="relative px-6 pb-4 pr-12 pt-5">
+          <DialogTitle className="text-lg font-semibold tracking-tight">{t`Create new task`}</DialogTitle>
           <DialogDescription className="sr-only">
             {t`Fill out task fields and create a new task.`}
           </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-3 mt-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="new-title">{t`Title`} *</Label>
-            <Input
-              id="new-title"
-              value={title}
-              onChange={(e) => {
-                markChanged();
-                setTitle(e.target.value);
-              }}
-              placeholder={t`Enter task title...`}
-              autoFocus
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>{t`Project`}</Label>
-              <TaskProjectSelect
-                value={projectId}
-                projects={activeProjects}
-                noProjectDisabled={noProjectDisabled}
-                disabled={lockProject}
-                onValueChange={(value) => {
-                  markChanged();
-                  setProjectId(value);
-                }}
-              />
-            </div>
-            
-            <div className="space-y-1.5">
-              <Label>{t`Assignees`}</Label>
-              <Popover open={assigneePopoverOpen} onOpenChange={handleAssigneePopoverOpenChange}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <span className="truncate">{assigneeLabel}</span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-2" align="start">
-                  {selectableAssignees.length === 0 ? (
-                    <div className="text-xs text-muted-foreground">{t`No assignees yet.`}</div>
-                  ) : (
-                    <div
-                      className="max-h-48 overflow-y-auto overscroll-contain pr-2"
-                      onWheelCapture={(e) => e.stopPropagation()}
-                    >
-                      <div className="space-y-1">
-                        <button
-                          type="button"
-                          className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
-                          onClick={() => {
-                            markChanged();
-                            setAssigneeIds([]);
-                          }}
-                        >
-                          <Checkbox
-                            checked={assigneeIds.length === 0}
-                            onClick={(event) => event.stopPropagation()}
-                            onCheckedChange={(checked) => {
-                              if (checked !== true) return;
-                              markChanged();
-                              setAssigneeIds([]);
-                            }}
-                          />
-                          <span className="text-sm truncate">{t`Unassigned`}</span>
-                        </button>
-                        {orderedSelectableAssignees.map((assignee) => (
-                          <button
-                            key={assignee.id}
-                            type="button"
-                            className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
-                            onClick={() => setAssigneeChecked(assignee.id, !assigneeIds.includes(assignee.id))}
-                          >
-                            <Checkbox
-                              checked={assigneeIds.includes(assignee.id)}
-                              onClick={(event) => event.stopPropagation()}
-                              onCheckedChange={(checked) => setAssigneeChecked(assignee.id, checked === true)}
-                            />
-                            <span className="text-sm truncate">{assignee.name}</span>
-                          </button>
-                        ))}
+
+        <form onSubmit={handleSubmit} className="relative flex flex-col">
+          <div className="grid md:grid-cols-[minmax(0,1fr)_340px]">
+            {/* ── Left column: content */}
+            <div className="space-y-4 px-6 pb-6">
+              <ComposerEyebrow>{t`Information`}</ComposerEyebrow>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="new-title">{t`Title`} *</Label>
+                <Input
+                  id="new-title"
+                  value={title}
+                  onChange={(e) => {
+                    markChanged();
+                    setTitle(e.target.value);
+                  }}
+                  placeholder={t`Enter task title...`}
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="new-description">{t`Description`}</Label>
+                {open && (
+                  <Suspense
+                    fallback={(
+                      <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                        {t`Loading editor...`}
                       </div>
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>{t`Status`}</Label>
-              <Select
-                value={statusId}
-                onValueChange={(value) => {
-                  markChanged();
-                  setStatusId(value);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t`Select status`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {statuses.map(s => (
-                    <SelectItem key={s.id} value={s.id}>{formatStatusLabel(s.name, s.emoji)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-1.5">
-              <Label>{t`Type`}</Label>
-              <Select
-                value={typeId}
-                onValueChange={(value) => {
-                  markChanged();
-                  setTypeId(value);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t`Select type`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {taskTypes.map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Priority`}</Label>
-            <Select
-              value={priority}
-              onValueChange={(value) => {
-                markChanged();
-                setPriority(value as TaskPriority | 'none');
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t`Select priority`} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t`No priority`}</SelectItem>
-                <SelectItem value="low">{t`Low`}</SelectItem>
-                <SelectItem value="medium">{t`Medium`}</SelectItem>
-                <SelectItem value="high">{t`High`}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="new-start">{t`Start date`}</Label>
-              <Input
-                id="new-start"
-                type="date"
-                value={startDate}
-                onChange={(e) => handleStartDateChange(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-end">{t`End date`}</Label>
-              <Input
-                id="new-end"
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  markChanged();
-                  setEndDate(e.target.value);
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>{t`Repeat`}</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {repeatOpen ? t`On` : t`Off`}
-                </span>
-                <Switch checked={repeatOpen} onCheckedChange={handleRepeatToggle} />
-              </div>
-            </div>
-            {repeatOpen && (
-              <RepeatSettingsFields
-                count={repeatCount}
-                ends={repeatEnds}
-                error={repeatError}
-                frequency={repeatFrequency}
-                idPrefix="new"
-                onCountInputChange={handleRepeatCountInputChange}
-                onEndsChange={handleRepeatEndsChange}
-                onFrequencyChange={handleRepeatFrequencyChange}
-                onUntilChange={handleRepeatUntilChange}
-                until={repeatUntil}
-              />
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="new-description">{t`Description`}</Label>
-            {open && (
-              <Suspense
-                fallback={(
-                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                    {t`Loading editor...`}
-                  </div>
+                    )}
+                  >
+                    <LazyRichTextEditor
+                      id="new-description"
+                      framed
+                      value={description}
+                      workspaceId={currentWorkspaceId}
+                      onChange={(value) => {
+                        markChanged();
+                        setDescription(value);
+                      }}
+                      placeholder={t`Add a description...`}
+                    />
+                  </Suspense>
                 )}
-              >
-                <LazyRichTextEditor
-                  id="new-description"
-                  value={description}
-                  workspaceId={currentWorkspaceId}
-                  onChange={(value) => {
-                    markChanged();
-                    setDescription(value);
-                  }}
-                  placeholder={t`Add a description...`}
-                />
-              </Suspense>
-            )}
-          </div>
-
-          {!subtasksOpen ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 w-fit gap-1.5 text-xs"
-              onClick={handleOpenSubtasks}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t`Add subtask`}
-            </Button>
-          ) : (
-            <div className="space-y-3 rounded-md border p-3">
-              <div className="flex items-start gap-2">
-                <Textarea
-                  ref={subtaskInputRef}
-                  value={newSubtaskTitle}
-                  onChange={(event) => {
-                    markChanged();
-                    setNewSubtaskTitle(event.target.value);
-                  }}
-                  onKeyDown={(event) => {
-                    // Enter adds the subtask; Shift+Enter inserts a newline.
-                    if (event.key !== 'Enter' || event.shiftKey) return;
-                    event.preventDefault();
-                    handleAddSubtask();
-                  }}
-                  rows={2}
-                  placeholder={t`Subtask title`}
-                  className="min-h-[56px] flex-1 resize-y text-sm"
-                />
-                <Button
-                  type="button"
-                  className="h-8 shrink-0 px-3 text-xs"
-                  onClick={handleAddSubtask}
-                  disabled={!newSubtaskTitle.trim()}
-                >
-                  {t`Add`}
-                </Button>
+                <p className="text-xs text-muted-foreground">
+                  {t`Drag and drop image files into the description area.`}
+                </p>
               </div>
 
-              {subtasks.length === 0 ? (
-                <div className="text-xs text-muted-foreground">{t`No subtasks yet.`}</div>
-              ) : (
-                <div className="space-y-1.5">
-                  {subtasks.map((subtask) => (
-                    <div
-                      key={subtask.id}
-                      className="flex items-start justify-between gap-2 rounded-md border px-2.5 py-2"
-                    >
-                      {editingSubtaskId === subtask.id ? (
-                        <Textarea
-                          autoFocus
-                          value={editingSubtaskTitle}
-                          onChange={(event) => setEditingSubtaskTitle(event.target.value)}
-                          onKeyDown={(event) => {
-                            // Enter saves; Shift+Enter inserts a newline.
-                            if (event.key === 'Enter' && !event.shiftKey) {
-                              event.preventDefault();
-                              commitEditingSubtask(subtask.id);
-                            } else if (event.key === 'Escape') {
-                              event.preventDefault();
-                              cancelEditingSubtask();
+              <div className="space-y-1.5">
+                <Label className="block">{t`Subtasks`}</Label>
+                {subtasks.length > 0 && (
+                  <div className="space-y-0.5">
+                    {subtasks.map((subtask) => (
+                      <div
+                        key={subtask.id}
+                        className="group flex items-center gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
+                      >
+                        <span
+                          className="h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
+                          aria-hidden="true"
+                        />
+                        <input
+                          ref={(element) => {
+                            if (element && focusSubtaskIdRef.current === subtask.id) {
+                              element.focus();
+                              focusSubtaskIdRef.current = null;
                             }
                           }}
-                          onBlur={() => commitEditingSubtask(subtask.id)}
-                          rows={2}
-                          className="min-h-[56px] flex-1 resize-y text-sm"
+                          value={subtask.title}
+                          onChange={(event) => handleDraftSubtaskTitleChange(subtask.id, event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              event.preventDefault();
+                              handleAddDraftSubtask();
+                              return;
+                            }
+                            if (event.key === 'Backspace' && subtask.title === '') {
+                              event.preventDefault();
+                              handleRemoveSubtask(subtask.id);
+                            }
+                          }}
+                          placeholder={t`Subtask title`}
+                          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                         />
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => startEditingSubtask(subtask.id, subtask.title)}
-                          className="flex-1 cursor-text whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]"
-                        >
-                          {subtask.title}
-                        </button>
-                      )}
-                      {editingSubtaskId !== subtask.id && (
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 shrink-0"
-                          onClick={() => startEditingSubtask(subtask.id, subtask.title)}
-                          aria-label={t`Edit subtask`}
+                          className="h-6 w-6 shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+                          onClick={() => handleRemoveSubtask(subtask.id)}
+                          aria-label={t`Remove subtask`}
                         >
-                          <Pencil className="h-3.5 w-3.5" />
+                          <X className="h-3.5 w-3.5" />
                         </Button>
-                      )}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 shrink-0"
-                        onClick={() => handleRemoveSubtask(subtask.id)}
-                        aria-label={t`Remove subtask`}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label>{t`Tags`}</Label>
-            {tags.length === 0 ? (
-              <p className="text-xs text-muted-foreground">{t`No tags available yet.`}</p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map(tag => {
-                  const isSelected = tagIds.includes(tag.id);
-                  return (
-                    <Badge
-                      key={tag.id}
-                      variant={isSelected ? 'default' : 'outline'}
-                      className={cn('transition-all cursor-pointer')}
-                      style={isSelected ? { 
-                        backgroundColor: tag.color,
-                        borderColor: tag.color,
-                      } : {
-                        borderColor: tag.color,
-                        color: tag.color,
-                      }}
-                      onClick={() => handleTagToggle(tag.id)}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tag.color }} />
-                        {tag.name}
-                      </span>
-                    </Badge>
-                  );
-                })}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={handleAddDraftSubtask}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {t`Add subtask`}
+                </Button>
               </div>
-            )}
+            </div>
+
+            {/* ── Right column: parameters panel */}
+            <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
+              <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
+
+              <div className="space-y-1.5">
+                <Label>{t`Project`}</Label>
+                <TaskProjectSelect
+                  value={projectId}
+                  projects={activeProjects}
+                  noProjectDisabled={noProjectDisabled}
+                  disabled={lockProject}
+                  triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
+                  onValueChange={(value) => {
+                    markChanged();
+                    setProjectId(value);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t`Assignees`}</Label>
+                <Popover open={assigneePopoverOpen} onOpenChange={handleAssigneePopoverOpenChange}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between bg-background font-normal">
+                      <span className="truncate">{assigneeLabel}</span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-2" align="start">
+                    {selectableAssignees.length === 0 ? (
+                      <div className="text-xs text-muted-foreground">{t`No assignees yet.`}</div>
+                    ) : (
+                      <div
+                        className="max-h-48 overflow-y-auto overscroll-contain pr-2"
+                        onWheelCapture={(e) => e.stopPropagation()}
+                      >
+                        <div className="space-y-1">
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
+                            onClick={() => {
+                              markChanged();
+                              setAssigneeIds([]);
+                            }}
+                          >
+                            <Checkbox
+                              checked={assigneeIds.length === 0}
+                              onClick={(event) => event.stopPropagation()}
+                              onCheckedChange={(checked) => {
+                                if (checked !== true) return;
+                                markChanged();
+                                setAssigneeIds([]);
+                              }}
+                            />
+                            <span className="text-sm truncate">{t`Unassigned`}</span>
+                          </button>
+                          {orderedSelectableAssignees.map((assignee) => (
+                            <button
+                              key={assignee.id}
+                              type="button"
+                              className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
+                              onClick={() => setAssigneeChecked(assignee.id, !assigneeIds.includes(assignee.id))}
+                            >
+                              <Checkbox
+                                checked={assigneeIds.includes(assignee.id)}
+                                onClick={(event) => event.stopPropagation()}
+                                onCheckedChange={(checked) => setAssigneeChecked(assignee.id, checked === true)}
+                              />
+                              <UserAvatar
+                                avatarUrl={assignee.avatar}
+                                initials={getPersonMonogram(assignee.name, 'U')}
+                                colorSeed={assignee.userId ?? assignee.id}
+                                size="xs"
+                              />
+                              <span className="text-sm truncate">{assignee.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5 min-w-0">
+                  <Label>{t`Status`}</Label>
+                  <Select
+                    value={statusId}
+                    onValueChange={(value) => {
+                      markChanged();
+                      setStatusId(value);
+                    }}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder={t`Select status`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map(s => (
+                        <SelectItem key={s.id} value={s.id}>{formatStatusLabel(s.name, s.emoji)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5 min-w-0">
+                  <Label>{t`Priority`}</Label>
+                  <Select
+                    value={priority}
+                    onValueChange={(value) => {
+                      markChanged();
+                      setPriority(value as TaskPriority | 'none');
+                    }}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder={t`Select priority`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t`No priority`}</SelectItem>
+                      <SelectItem value="low">{t`Low`}</SelectItem>
+                      <SelectItem value="medium">{t`Medium`}</SelectItem>
+                      <SelectItem value="high">{t`High`}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t`Type`}</Label>
+                <Select
+                  value={typeId}
+                  onValueChange={(value) => {
+                    markChanged();
+                    setTypeId(value);
+                  }}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder={t`Select type`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {taskTypes.map(t => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5 min-w-0">
+                  <Label htmlFor="new-start">{t`Start date`}</Label>
+                  <Input
+                    id="new-start"
+                    type="date"
+                    className="bg-background px-2 text-sm tabular-nums"
+                    value={startDate}
+                    onChange={(e) => handleStartDateChange(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5 min-w-0">
+                  <Label htmlFor="new-end">{t`End date`}</Label>
+                  <Input
+                    id="new-end"
+                    type="date"
+                    className="bg-background px-2 text-sm tabular-nums"
+                    value={endDate}
+                    onChange={(e) => {
+                      markChanged();
+                      setEndDate(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t`Repeat`}</Label>
+                <RepeatPopoverField
+                  count={repeatCount}
+                  ends={repeatEnds}
+                  error={repeatError}
+                  frequency={repeatFrequency}
+                  idPrefix="new"
+                  onCountInputChange={handleRepeatCountInputChange}
+                  onEndsChange={handleRepeatEndsChange}
+                  onFrequencyChange={handleRepeatFrequencyChange}
+                  onUntilChange={handleRepeatUntilChange}
+                  until={repeatUntil}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t`Tags`}</Label>
+                <TagMultiSelect
+                  tags={tags}
+                  selectedTagIds={tagIds}
+                  onToggleTag={handleTagToggle}
+                />
+              </div>
+            </div>
           </div>
-          
-          <DialogFooter>
+
+          <DialogFooter className="gap-2 px-6 py-3.5">
             <Button type="button" variant="outline" onClick={requestClose}>
               {t`Cancel`}
             </Button>
@@ -946,7 +843,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </DialogContent>
+      </DialogScrollContent>
     </Dialog>
   );
 };

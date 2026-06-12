@@ -557,43 +557,57 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     }
   }, [onSave, plainLength]);
 
-  const toolbarButtons = [
-    { label: 'Bold', command: 'bold', icon: Bold },
-    { label: 'Italic', command: 'italic', icon: Italic },
-    { label: 'Underline', command: 'underline', icon: Underline },
-    { label: 'Strike', command: 'strikeThrough', icon: Strikethrough },
-    { label: 'Bulleted list', command: 'insertUnorderedList', icon: List },
-    { label: 'Numbered list', command: 'insertOrderedList', icon: ListOrdered },
-    { label: 'Quote', command: 'formatBlock', value: 'blockquote', icon: Quote },
-  ];
+  // Same grouping as the description editor toolbar: formatting | lists | blocks.
+  const toolbarGroups = [
+    [
+      { label: 'Bold', command: 'bold', icon: Bold },
+      { label: 'Italic', command: 'italic', icon: Italic },
+      { label: 'Underline', command: 'underline', icon: Underline },
+      { label: 'Strike', command: 'strikeThrough', icon: Strikethrough },
+    ],
+    [
+      { label: 'Bulleted list', command: 'insertUnorderedList', icon: List },
+      { label: 'Numbered list', command: 'insertOrderedList', icon: ListOrdered },
+    ],
+    [
+      { label: 'Quote', command: 'formatBlock', value: 'blockquote', icon: Quote },
+    ],
+  ] as Array<Array<{ label: string; command: string; value?: string; icon: typeof Bold }>>;
 
   const isOverLimit = plainLength > COMMENT_MAX_PLAIN_LENGTH;
 
   return (
-    <div className="rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+    <div className="overflow-hidden rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring">
       {/* toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-input px-2 py-1">
-        {toolbarButtons.map((btn) => (
-          <button
-            key={btn.command}
-            type="button"
-            title={btn.label}
-            className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              saveSelection();
-              applyCommand(btn.command, btn.value);
-            }}
-            disabled={disabled}
-          >
-            <btn.icon className="h-3.5 w-3.5" />
-          </button>
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-border/60 bg-secondary/70 px-2 py-1.5">
+        {toolbarGroups.map((group, groupIndex) => (
+          <React.Fragment key={groupIndex}>
+            {groupIndex > 0 && (
+              <span aria-hidden="true" className="mx-1 h-4 w-px shrink-0 bg-border" />
+            )}
+            {group.map((btn) => (
+              <button
+                key={btn.command}
+                type="button"
+                title={btn.label}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  saveSelection();
+                  applyCommand(btn.command, btn.value);
+                }}
+                disabled={disabled}
+              >
+                <btn.icon className="h-3.5 w-3.5" />
+              </button>
+            ))}
+          </React.Fragment>
         ))}
         {/* image */}
         <button
           type="button"
           title={t`Insert image`}
-          className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
           onMouseDown={(e) => { e.preventDefault(); saveSelection(); }}
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
@@ -605,7 +619,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
           ref={mentionButtonRef}
           type="button"
           title={t`Mention a person`}
-          className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
           onMouseDown={(e) => { e.preventDefault(); saveSelection(); }}
           onClick={() => {
             const editor = editorRef.current;
@@ -644,8 +658,10 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
         suppressContentEditableWarning
         data-placeholder={placeholder ?? t`Add a comment or update...`}
         className={cn(
-          'rich-text-editor comment-editor-input border-0 ring-0 focus-visible:ring-0 max-h-[40vh] overflow-y-auto leading-5',
-          isFileDragOver && 'border-primary/60 bg-primary/5 ring-2 ring-primary/30',
+          // ! needed: .rich-text-editor lives in @layer utilities too and wins
+          // the source-order tie against plain utility overrides.
+          'rich-text-editor comment-editor-input !rounded-none !border-0 !ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 max-h-[40vh] overflow-y-auto leading-5',
+          isFileDragOver && 'bg-primary/5',
           disabled && 'opacity-60 cursor-not-allowed',
         )}
         onInput={() => {
@@ -816,7 +832,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
       , document.body)}
 
       {/* footer: char counter + actions */}
-      <div className="flex items-center justify-between border-t border-input px-3 py-1.5">
+      <div className="flex items-center justify-between border-t border-border/60 bg-secondary/70 px-3 py-1.5">
         <span
           className={cn(
             'text-[10px] tabular-nums',

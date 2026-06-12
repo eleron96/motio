@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { cn } from '@/shared/lib/classNames';
+import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 
 interface SubtasksSectionProps {
   isReadOnly: boolean;
@@ -101,8 +102,8 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
     return (
       <Button
         type="button"
-        variant="outline"
-        className="h-8 w-fit gap-1.5 text-xs"
+        variant="ghost"
+        className="h-8 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
         onClick={onOpen}
       >
         <Plus className="h-3.5 w-3.5" />
@@ -112,36 +113,15 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   }
 
   return (
-    <div className="space-y-3 rounded-md border p-3">
-      <div className="text-xs text-muted-foreground">
-        {t`Completed`}: <span className="font-medium text-foreground">{completedSubtasksCount}</span>/{subtasks.length}
-      </div>
-
-      <div className="flex items-start gap-2">
-        <Textarea
-          ref={subtaskInputRef}
-          value={newSubtaskTitle}
-          onChange={(event) => onNewTitleChange(event.target.value)}
-          onKeyDown={(event) => {
-            // Enter adds the subtask; Shift+Enter inserts a newline.
-            if (event.key !== 'Enter' || event.shiftKey) return;
-            event.preventDefault();
-            onAdd();
-          }}
-          rows={2}
-          placeholder={t`Subtask title`}
-          disabled={isReadOnly || subtasksSaving}
-          className="min-h-[56px] flex-1 resize-y text-sm"
-        />
-        <Button
-          type="button"
-          className="h-8 shrink-0 px-3 text-xs"
-          onClick={onAdd}
-          disabled={isReadOnly || subtasksSaving || !newSubtaskTitle.trim()}
-        >
-          {t`Add`}
-        </Button>
-      </div>
+    <div className="space-y-2">
+      <ComposerEyebrow>
+        {t`Subtasks`}
+        {subtasks.length > 0 && (
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold tabular-nums tracking-normal text-secondary-foreground/80">
+            {completedSubtasksCount}/{subtasks.length}
+          </span>
+        )}
+      </ComposerEyebrow>
 
       {subtasksError && (
         <div className="text-xs text-destructive">{subtasksError}</div>
@@ -152,11 +132,11 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
       ) : subtasks.length === 0 ? (
         <div className="text-xs text-muted-foreground">{t`No subtasks yet.`}</div>
       ) : (
-        <div className="space-y-1.5">
+        <div className="space-y-0.5">
           {subtasks.map((subtask) => (
             <div
               key={subtask.id}
-              className="flex items-start gap-2 rounded-md border px-2.5 py-2"
+              className="group flex items-start gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
             >
               <Checkbox
                 checked={subtask.isDone}
@@ -236,6 +216,36 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {!isReadOnly && (
+        <div className="flex items-start gap-2 pt-0.5">
+          <Textarea
+            ref={subtaskInputRef}
+            value={newSubtaskTitle}
+            onChange={(event) => onNewTitleChange(event.target.value)}
+            onKeyDown={(event) => {
+              // Enter adds the subtask; Shift+Enter inserts a newline.
+              if (event.key !== 'Enter' || event.shiftKey) return;
+              event.preventDefault();
+              onAdd();
+            }}
+            rows={1}
+            placeholder={t`Subtask title`}
+            disabled={subtasksSaving}
+            className="min-h-[36px] flex-1 resize-y text-sm"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 shrink-0 px-3 text-xs"
+            onClick={onAdd}
+            disabled={subtasksSaving || !newSubtaskTitle.trim()}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            {t`Add`}
+          </Button>
         </div>
       )}
 

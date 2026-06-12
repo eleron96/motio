@@ -7,6 +7,34 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.26] - 2026-06-12
+### Changed
+- No documented changes.
+
+## [0.8.25] - 2026-06-12
+### Changed
+- Polished the task window: accent gray panels and formatting strips (including comments), adaptive spacing around the card, and no stray blue outline when opening.
+
+## [0.8.24] - 2026-06-12
+### Changed
+- The task window now has breathing room below the card, a subtle 'Created … · updated …' note sits bottom-left, and opening a task no longer auto-focuses the title.
+
+## [0.8.23] - 2026-06-12
+### Fixed
+- The task title no longer overflows into the parameters panel.
+
+## [0.8.22] - 2026-06-12
+### Changed
+- The task window no longer scrolls internally — the card grows with its content. Long project names wrap to a second line, date fields fit fully, and the divider above the buttons is gone.
+
+## [0.8.21] - 2026-06-12
+### Changed
+- Polished the task window: the parameters panel tint now spans the full height, and repeat is configured via a compact toggle menu. Fixed tag picking on the first click and date field sizing.
+
+## [0.8.20] - 2026-06-12
+### Changed
+- Redesigned task window: title, description and subtasks on the left, a parameters panel on the right. Tags are picked via a suggestions field, and repeat settings live in a compact popover.
+
 ## [0.8.19] - 2026-06-11
 ### Added
 - The "Week" timeline view is now optional — turn it on with a toggle in Account settings → Preferences. Off by default.

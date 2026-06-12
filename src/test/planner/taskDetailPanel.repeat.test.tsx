@@ -4,8 +4,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('@lingui/macro', () => ({
-  t: (strings: TemplateStringsArray, ...values: unknown[]) => (
-    strings.reduce((acc, str, index) => acc + str + (values[index] ?? ''), '')
+  t: (input: TemplateStringsArray | { message?: string }, ...values: unknown[]) => (
+    Array.isArray(input)
+      ? input.reduce((acc: string, str, index) => acc + str + (values[index] ?? ''), '')
+      : (input as { message?: string }).message ?? ''
   ),
 }));
 
@@ -103,50 +105,6 @@ vi.mock('@/features/planner/hooks/useFilteredAssignees', () => ({
   useFilteredAssignees: (assignees: typeof mocks.plannerState.assignees) => assignees,
 }));
 
-vi.mock('@/features/planner/components/RepeatSettingsFields', () => ({
-  RepeatSettingsFields: ({
-    count,
-    ends,
-    frequency,
-    onFrequencyChange,
-    until,
-  }: {
-    count: number;
-    ends: 'never' | 'on' | 'after';
-    frequency: 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
-    onFrequencyChange: (value: 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly') => void;
-    until: string;
-  }) => (
-    <div>
-      <span>
-        {{
-          none: 'Does not repeat',
-          daily: 'Daily',
-          weekly: 'Weekly',
-          biweekly: 'Biweekly (every 2 weeks)',
-          monthly: 'Monthly',
-          yearly: 'Yearly',
-        }[frequency]}
-      </span>
-      {frequency !== 'none' && ends === 'after' && (
-        <>
-          <span>Count</span>
-          <input aria-label="Occurrences" readOnly value={count} />
-        </>
-      )}
-      {frequency !== 'none' && ends === 'on' && (
-        <input aria-label="End date" readOnly value={until} />
-      )}
-      <button type="button" onClick={() => onFrequencyChange('weekly')}>
-        Set weekly
-      </button>
-      <button type="button" onClick={() => onFrequencyChange('biweekly')}>
-        Set biweekly
-      </button>
-    </div>
-  ),
-}));
-
 vi.mock('@/features/planner/components/TaskProjectSelect', () => ({
   TaskProjectSelect: () => <div data-testid="task-project-select" />,
 }));
@@ -224,7 +182,8 @@ describe('TaskDetailPanel repeat block', () => {
     mocks.plannerState.tasks = [{ ...baseTask }];
   });
 
-  it('prefills repeat settings from an existing repeat series', () => {
+  it('prefills repeat settings from an existing repeat series', async () => {
+    const user = userEvent.setup();
     mocks.plannerState.tasks = [
       { ...baseTask, repeatId: 'repeat-1', startDate: '2026-02-01', endDate: '2026-02-01' },
       { ...baseTask, id: 'task-2', repeatId: 'repeat-1', startDate: '2026-02-15', endDate: '2026-02-15' },
@@ -232,9 +191,13 @@ describe('TaskDetailPanel repeat block', () => {
 
     render(<TaskDetailPanel />);
 
-    expect(screen.getByText('Biweekly (every 2 weeks)')).toBeInTheDocument();
-    expect(screen.getByText('Count')).toBeInTheDocument();
-    expect(screen.getByLabelText('Occurrences')).toHaveValue('2');
+    // The trigger summarizes the series; full settings live in the popover.
+    expect(screen.getByRole('button', { name: 'Repeat settings' })).toHaveTextContent('Biweekly (every 2 weeks)');
+
+    await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
+
+    expect(screen.getByRole('button', { name: 'Count' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Occurrences')).toHaveValue(2);
     expect(screen.queryByText('Creates repeats for the next 12 months.')).not.toBeInTheDocument();
   });
 
@@ -255,8 +218,9 @@ describe('TaskDetailPanel repeat block', () => {
 
     render(<TaskDetailPanel />);
 
-    await user.click(screen.getByRole('button', { name: 'Set biweekly' }));
-    await user.click(screen.getByRole('button', { name: 'OK' }));
+    await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
+    await user.click(screen.getByRole('button', { name: 'Biweekly (every 2 weeks)' }));
+    await user.click(screen.getByRole('button', { name: 'Done' }));
 
     expect(mocks.plannerState.createRepeats).not.toHaveBeenCalled();
     expect(screen.getByTestId('repeat-scope-options')).toHaveTextContent('all,following');
