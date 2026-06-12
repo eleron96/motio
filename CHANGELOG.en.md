@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.21] - 2026-06-12
+### Changed
+- Polished the task window: the parameters panel tint now spans the full height, and repeat is configured via a compact toggle menu. Fixed tag picking on the first click and date field sizing.
+
 ## [0.8.20] - 2026-06-12
 ### Changed
 - Redesigned task window: title, description and subtasks on the left, a parameters panel on the right. Tags are picked via a suggestions field, and repeat settings live in a compact popover.

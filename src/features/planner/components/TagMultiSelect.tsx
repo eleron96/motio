@@ -26,6 +26,7 @@ export const TagMultiSelect: React.FC<TagMultiSelectProps> = ({
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const selectedTags = useMemo(
     () => tags.filter((tag) => selectedTagIds.includes(tag.id)),
@@ -69,6 +70,7 @@ export const TagMultiSelect: React.FC<TagMultiSelectProps> = ({
     <Popover open={open && !disabled} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
         <div
+          ref={containerRef}
           className={cn(
             'flex min-h-[40px] w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1.5',
             !disabled && 'focus-within:ring-1 focus-within:ring-ring',
@@ -124,6 +126,16 @@ export const TagMultiSelect: React.FC<TagMultiSelectProps> = ({
         className="w-[--radix-popover-trigger-width] min-w-[220px] p-1"
         align="start"
         onOpenAutoFocus={(event) => event.preventDefault()}
+        // Focus lives in the anchor's input (outside the content), so Radix
+        // would otherwise dismiss on the first focusout and swallow option
+        // clicks. Keep the popover open unless the interaction is truly
+        // outside both the content and the anchor.
+        onFocusOutside={(event) => event.preventDefault()}
+        onInteractOutside={(event) => {
+          if (containerRef.current?.contains(event.target as Node)) {
+            event.preventDefault();
+          }
+        }}
       >
         {suggestions.length === 0 ? (
           <div className="px-2 py-1.5 text-xs text-muted-foreground">{t`No matching tags.`}</div>
