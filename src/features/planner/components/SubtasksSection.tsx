@@ -117,7 +117,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
       <ComposerEyebrow>
         {t`Subtasks`}
         {subtasks.length > 0 && (
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold tabular-nums tracking-normal">
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold tabular-nums tracking-normal text-secondary-foreground/80">
             {completedSubtasksCount}/{subtasks.length}
           </span>
         )}

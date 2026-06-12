@@ -532,7 +532,7 @@ export const TaskDetailPanel: React.FC = () => {
           {/* Full-height tint behind the parameters column, header and footer included. */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-muted/40 lg:block"
+            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 lg:block"
           />
 
           {/* ── Header: project crumb, large title, actions.
@@ -689,7 +689,7 @@ export const TaskDetailPanel: React.FC = () => {
             </div>
 
             {/* ── Right column: parameters panel */}
-            <div className="space-y-3.5 border-t border-border bg-muted/40 px-5 pb-6 pt-4 lg:border-0 lg:bg-transparent lg:pt-1">
+            <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 lg:border-0 lg:bg-transparent lg:pt-1">
               <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
 
               <div className="space-y-1.5">

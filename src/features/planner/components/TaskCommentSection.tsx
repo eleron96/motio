@@ -153,7 +153,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
           {t`Comments`}
         </span>
         {taskCommentCount > 0 && (
-          <span className="text-[9px] text-muted-foreground/70 tabular-nums">
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold tabular-nums text-secondary-foreground/80">
             {taskCommentCount}
           </span>
         )}

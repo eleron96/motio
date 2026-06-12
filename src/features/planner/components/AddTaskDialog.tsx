@@ -491,7 +491,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
         {/* Full-height tint behind the parameters column, header and footer included. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-muted/40 md:block"
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 md:block"
         />
         <DialogHeader className="relative px-6 pb-4 pr-12 pt-5">
           <DialogTitle className="text-lg font-semibold tracking-tight">{t`Create new task`}</DialogTitle>
@@ -611,7 +611,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </div>
 
             {/* ── Right column: parameters panel */}
-            <div className="space-y-3.5 border-t border-border bg-muted/40 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
+            <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
               <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
 
               <div className="space-y-1.5">
