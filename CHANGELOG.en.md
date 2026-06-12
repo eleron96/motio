@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.28] - 2026-06-12
+### Changed
+- No documented changes.
+
+## [0.8.27] - 2026-06-12
+### Changed
+- The interface accent switched from teal to ink: primary buttons are now near-black in the light theme and white in the dark theme, with focus highlights to match.
+
 ## [0.8.26] - 2026-06-12
 ### Changed
 - No documented changes.
