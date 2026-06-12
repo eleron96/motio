@@ -16,8 +16,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    /* Primary - Professional teal */
-    --primary: 187 70% 42%;
+    /* Primary - Ink */
+    --primary: 240 6% 10%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 15% 93%;
@@ -40,7 +40,7 @@
 
     --border: 210 20% 90%;
     --input: 210 20% 90%;
-    --ring: 187 70% 42%;
+    --ring: 240 6% 10%;
 
     --radius: 0.5rem;
     --surface-sunken: 210 16% 94%;
@@ -53,7 +53,7 @@
 
     /* Timeline-specific tokens */
     --timeline-grid: 210 20% 92%;
-    --timeline-today: 187 70% 42%;
+    --timeline-today: 240 6% 10%;
     --timeline-weekend: 210 12% 90%;
     --timeline-header: 210 15% 97%;
     --timeline-row-hover: 210 20% 96%;
@@ -64,12 +64,12 @@
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 20% 25%;
-    --sidebar-primary: 187 70% 42%;
+    --sidebar-primary: 240 6% 10%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 15% 96%;
     --sidebar-accent-foreground: 220 20% 15%;
     --sidebar-border: 210 20% 92%;
-    --sidebar-ring: 187 70% 42%;
+    --sidebar-ring: 240 6% 10%;
 
     /* Project default colors */
     --project-blue: 217 91% 60%;
@@ -92,7 +92,7 @@
     --popover: 220 20% 13%;
     --popover-foreground: 210 20% 98%;
 
-    --primary: 187 70% 50%;
+    --primary: 0 0% 98%;
     --primary-foreground: 220 20% 10%;
 
     --secondary: 220 15% 20%;
@@ -109,7 +109,7 @@
 
     --border: 220 15% 22%;
     --input: 220 15% 22%;
-    --ring: 187 70% 50%;
+    --ring: 0 0% 98%;
     --surface-sunken: 220 15% 14%;
     --surface-subtle: 220 15% 18%;
     --surface-raised: 220 20% 13%;
@@ -119,19 +119,19 @@
     --shadow-focus-ring: 0 0 0 3px hsl(var(--ring) / 0.28);
 
     --timeline-grid: 220 15% 18%;
-    --timeline-today: 187 70% 50%;
+    --timeline-today: 0 0% 98%;
     --timeline-weekend: 220 15% 12%;
     --timeline-header: 220 15% 15%;
     --timeline-row-hover: 220 15% 16%;
 
     --sidebar-background: 220 20% 12%;
     --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 187 70% 50%;
+    --sidebar-primary: 0 0% 98%;
     --sidebar-primary-foreground: 220 20% 10%;
     --sidebar-accent: 220 15% 18%;
     --sidebar-accent-foreground: 210 20% 95%;
     --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 187 70% 50%;
+    --sidebar-ring: 0 0% 98%;
   }
 }
 
