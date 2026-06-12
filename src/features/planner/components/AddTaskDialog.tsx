@@ -9,7 +9,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
+import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -487,21 +487,21 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="flex max-h-[85vh] w-[95vw] max-w-[880px] flex-col gap-0 overflow-hidden p-0">
+      <DialogScrollContent className="flex w-full max-w-[880px] flex-col gap-0 p-0">
         {/* Full-height tint behind the parameters column, header and footer included. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-muted/40 md:block"
         />
-        <DialogHeader className="relative shrink-0 px-6 pb-4 pr-12 pt-5">
+        <DialogHeader className="relative px-6 pb-4 pr-12 pt-5">
           <DialogTitle className="text-lg font-semibold tracking-tight">{t`Create new task`}</DialogTitle>
           <DialogDescription className="sr-only">
             {t`Fill out task fields and create a new task.`}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="relative flex min-h-0 flex-1 flex-col">
-          <div className="grid min-h-0 flex-1 overflow-y-auto md:grid-cols-[minmax(0,1fr)_340px]">
+        <form onSubmit={handleSubmit} className="relative flex flex-col">
+          <div className="grid md:grid-cols-[minmax(0,1fr)_340px]">
             {/* ── Left column: content */}
             <div className="space-y-4 px-6 pb-6">
               <ComposerEyebrow>{t`Information`}</ComposerEyebrow>
@@ -621,7 +621,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   projects={activeProjects}
                   noProjectDisabled={noProjectDisabled}
                   disabled={lockProject}
-                  triggerClassName="bg-background"
+                  triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
                   onValueChange={(value) => {
                     markChanged();
                     setProjectId(value);
@@ -763,7 +763,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   <Input
                     id="new-start"
                     type="date"
-                    className="bg-background px-2 tabular-nums"
+                    className="bg-background px-2 text-sm tabular-nums"
                     value={startDate}
                     onChange={(e) => handleStartDateChange(e.target.value)}
                   />
@@ -773,7 +773,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   <Input
                     id="new-end"
                     type="date"
-                    className="bg-background px-2 tabular-nums"
+                    className="bg-background px-2 text-sm tabular-nums"
                     value={endDate}
                     onChange={(e) => {
                       markChanged();
@@ -810,7 +810,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </div>
           </div>
 
-          <DialogFooter className="shrink-0 gap-2 border-t border-border px-6 py-3.5">
+          <DialogFooter className="gap-2 px-6 py-3.5">
             <Button type="button" variant="outline" onClick={requestClose}>
               {t`Cancel`}
             </Button>
@@ -843,7 +843,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </DialogContent>
+      </DialogScrollContent>
     </Dialog>
   );
 };
