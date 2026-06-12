@@ -5,7 +5,7 @@ import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverF
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
 import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle } from '@/shared/ui/dialog';
 import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -484,8 +484,8 @@ export const TaskDetailPanel: React.FC = () => {
   return (
     <>
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
-        <DialogContent
-          className="flex max-h-[85vh] w-[95vw] max-w-[940px] flex-col gap-0 overflow-hidden p-0"
+        <DialogScrollContent
+          className="flex w-full max-w-[940px] flex-col gap-0 p-0"
           onInteractOutside={(e) => {
             if (shouldIgnoreOutsideInteraction(e.target)) {
               e.preventDefault();
@@ -505,11 +505,11 @@ export const TaskDetailPanel: React.FC = () => {
           {/* Full-height tint behind the parameters column, header and footer included. */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[320px] border-l border-border bg-muted/40 lg:block"
+            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-muted/40 lg:block"
           />
 
           {/* ── Header: project crumb, large title, actions */}
-          <div className="relative shrink-0 px-6 pb-3 pr-20 pt-5">
+          <div className="relative px-6 pb-3 pr-20 pt-5">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {currentProject ? (
                 <>
@@ -591,7 +591,7 @@ export const TaskDetailPanel: React.FC = () => {
             </DropdownMenu>
           )}
 
-          <div className="relative grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="relative grid lg:grid-cols-[minmax(0,1fr)_340px]">
             {/* ── Left column: description, subtasks, comments */}
             <div className="space-y-5 px-6 pb-6 pt-1">
               <div className="space-y-2">
@@ -619,7 +619,6 @@ export const TaskDetailPanel: React.FC = () => {
                       }}
                       placeholder={t`Add a description...`}
                       disabled={isReadOnly}
-                      className="max-h-[45vh] overflow-y-auto"
                     />
                   </Suspense>
                 )}
@@ -672,7 +671,7 @@ export const TaskDetailPanel: React.FC = () => {
                   disabled={isReadOnly}
                   noProjectDisabled={noProjectDisabled}
                   showArchivedBadge
-                  triggerClassName="bg-background"
+                  triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
                   onValueChange={(v) => {
                     if (noProjectDisabled && v === 'none') return;
                     handleUpdate('projectId', v === 'none' ? null : v);
@@ -802,7 +801,7 @@ export const TaskDetailPanel: React.FC = () => {
                     value={task.startDate}
                     onChange={(e) => handleUpdate('startDate', e.target.value)}
                     disabled={isReadOnly}
-                    className="bg-background px-2 tabular-nums"
+                    className="bg-background px-2 text-sm tabular-nums"
                   />
                 </div>
                 <div className="space-y-1.5 min-w-0">
@@ -813,7 +812,7 @@ export const TaskDetailPanel: React.FC = () => {
                     value={task.endDate}
                     onChange={(e) => handleUpdate('endDate', e.target.value)}
                     disabled={isReadOnly}
-                    className="bg-background px-2 tabular-nums"
+                    className="bg-background px-2 text-sm tabular-nums"
                   />
                 </div>
               </div>
@@ -850,7 +849,7 @@ export const TaskDetailPanel: React.FC = () => {
           </div>
 
           {/* ── Footer */}
-          <div className="relative flex shrink-0 items-center justify-end gap-2 border-t border-border px-6 py-3.5">
+          <div className="relative flex items-center justify-end gap-2 px-6 py-3.5">
             <Button variant="outline" onClick={handleCancelClose}>
               {t`Cancel`}
             </Button>
@@ -864,7 +863,7 @@ export const TaskDetailPanel: React.FC = () => {
               {t({ id: 'taskDetail.footer.done', message: 'Done' })}
             </Button>
           </div>
-        </DialogContent>
+        </DialogScrollContent>
       </Dialog>
       <TaskDetailAlerts
         confirmOpen={confirmOpen}

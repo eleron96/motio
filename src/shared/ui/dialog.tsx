@@ -51,6 +51,36 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
+/**
+ * Dialog variant for tall content: the card grows with its content and the
+ * OVERLAY scrolls (mockup-style backdrop scrolling) instead of pinning the
+ * card to the viewport and scrolling inside it.
+ */
+const DialogScrollContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogPrimitive.Overlay className="fixed inset-0 z-50 grid items-start justify-items-center overflow-y-auto bg-black/80 px-4 py-10 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "relative z-50 w-full max-w-lg border bg-background shadow-lg overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Overlay>
+  </DialogPortal>
+));
+DialogScrollContent.displayName = "DialogScrollContent";
+
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
 );
@@ -88,6 +118,7 @@ export {
   DialogClose,
   DialogTrigger,
   DialogContent,
+  DialogScrollContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
