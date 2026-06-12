@@ -502,8 +502,14 @@ export const TaskDetailPanel: React.FC = () => {
             <DialogDescription>{t`View and edit task details.`}</DialogDescription>
           </DialogHeader>
 
+          {/* Full-height tint behind the parameters column, header and footer included. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[320px] border-l border-border bg-muted/40 lg:block"
+          />
+
           {/* ── Header: project crumb, large title, actions */}
-          <div className="shrink-0 px-6 pb-3 pr-20 pt-5">
+          <div className="relative shrink-0 px-6 pb-3 pr-20 pt-5">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {currentProject ? (
                 <>
@@ -585,7 +591,7 @@ export const TaskDetailPanel: React.FC = () => {
             </DropdownMenu>
           )}
 
-          <div className="grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="relative grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px]">
             {/* ── Left column: description, subtasks, comments */}
             <div className="space-y-5 px-6 pb-6 pt-1">
               <div className="space-y-2">
@@ -655,7 +661,7 @@ export const TaskDetailPanel: React.FC = () => {
             </div>
 
             {/* ── Right column: parameters panel */}
-            <div className="space-y-3.5 border-t border-border bg-muted/40 px-5 pb-6 pt-4 lg:border-l lg:border-t-0 lg:pt-1">
+            <div className="space-y-3.5 border-t border-border bg-muted/40 px-5 pb-6 pt-4 lg:border-0 lg:bg-transparent lg:pt-1">
               <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
 
               <div className="space-y-1.5">
@@ -796,7 +802,7 @@ export const TaskDetailPanel: React.FC = () => {
                     value={task.startDate}
                     onChange={(e) => handleUpdate('startDate', e.target.value)}
                     disabled={isReadOnly}
-                    className="bg-background"
+                    className="bg-background px-2 tabular-nums"
                   />
                 </div>
                 <div className="space-y-1.5 min-w-0">
@@ -807,7 +813,7 @@ export const TaskDetailPanel: React.FC = () => {
                     value={task.endDate}
                     onChange={(e) => handleUpdate('endDate', e.target.value)}
                     disabled={isReadOnly}
-                    className="bg-background"
+                    className="bg-background px-2 tabular-nums"
                   />
                 </div>
               </div>
@@ -844,7 +850,7 @@ export const TaskDetailPanel: React.FC = () => {
           </div>
 
           {/* ── Footer */}
-          <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-6 py-3.5">
+          <div className="relative flex shrink-0 items-center justify-end gap-2 border-t border-border px-6 py-3.5">
             <Button variant="outline" onClick={handleCancelClose}>
               {t`Cancel`}
             </Button>

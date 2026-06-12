@@ -105,50 +105,6 @@ vi.mock('@/features/planner/hooks/useFilteredAssignees', () => ({
   useFilteredAssignees: (assignees: typeof mocks.plannerState.assignees) => assignees,
 }));
 
-vi.mock('@/features/planner/components/RepeatSettingsFields', () => ({
-  RepeatSettingsFields: ({
-    count,
-    ends,
-    frequency,
-    onFrequencyChange,
-    until,
-  }: {
-    count: number;
-    ends: 'never' | 'on' | 'after';
-    frequency: 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
-    onFrequencyChange: (value: 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly') => void;
-    until: string;
-  }) => (
-    <div>
-      <span>
-        {{
-          none: 'Does not repeat',
-          daily: 'Daily',
-          weekly: 'Weekly',
-          biweekly: 'Biweekly (every 2 weeks)',
-          monthly: 'Monthly',
-          yearly: 'Yearly',
-        }[frequency]}
-      </span>
-      {frequency !== 'none' && ends === 'after' && (
-        <>
-          <span>Count</span>
-          <input aria-label="Occurrences" readOnly value={count} />
-        </>
-      )}
-      {frequency !== 'none' && ends === 'on' && (
-        <input aria-label="End date" readOnly value={until} />
-      )}
-      <button type="button" onClick={() => onFrequencyChange('weekly')}>
-        Set weekly
-      </button>
-      <button type="button" onClick={() => onFrequencyChange('biweekly')}>
-        Set biweekly
-      </button>
-    </div>
-  ),
-}));
-
 vi.mock('@/features/planner/components/TaskProjectSelect', () => ({
   TaskProjectSelect: () => <div data-testid="task-project-select" />,
 }));
@@ -240,8 +196,8 @@ describe('TaskDetailPanel repeat block', () => {
 
     await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
 
-    expect(screen.getByText('Count')).toBeInTheDocument();
-    expect(screen.getByLabelText('Occurrences')).toHaveValue('2');
+    expect(screen.getByRole('button', { name: 'Count' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Occurrences')).toHaveValue(2);
     expect(screen.queryByText('Creates repeats for the next 12 months.')).not.toBeInTheDocument();
   });
 
@@ -263,7 +219,7 @@ describe('TaskDetailPanel repeat block', () => {
     render(<TaskDetailPanel />);
 
     await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
-    await user.click(screen.getByRole('button', { name: 'Set biweekly' }));
+    await user.click(screen.getByRole('button', { name: 'Biweekly (every 2 weeks)' }));
     await user.click(screen.getByRole('button', { name: 'Done' }));
 
     expect(mocks.plannerState.createRepeats).not.toHaveBeenCalled();

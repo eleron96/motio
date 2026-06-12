@@ -488,14 +488,19 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="flex max-h-[85vh] w-[95vw] max-w-[880px] flex-col gap-0 overflow-hidden p-0">
-        <DialogHeader className="shrink-0 px-6 pb-4 pr-12 pt-5">
+        {/* Full-height tint behind the parameters column, header and footer included. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-muted/40 md:block"
+        />
+        <DialogHeader className="relative shrink-0 px-6 pb-4 pr-12 pt-5">
           <DialogTitle className="text-lg font-semibold tracking-tight">{t`Create new task`}</DialogTitle>
           <DialogDescription className="sr-only">
             {t`Fill out task fields and create a new task.`}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <form onSubmit={handleSubmit} className="relative flex min-h-0 flex-1 flex-col">
           <div className="grid min-h-0 flex-1 overflow-y-auto md:grid-cols-[minmax(0,1fr)_340px]">
             {/* ── Left column: content */}
             <div className="space-y-4 px-6 pb-6">
@@ -606,7 +611,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </div>
 
             {/* ── Right column: parameters panel */}
-            <div className="space-y-3.5 border-t border-border bg-muted/40 px-5 pb-6 pt-4 md:border-l md:border-t-0 md:pt-0">
+            <div className="space-y-3.5 border-t border-border bg-muted/40 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
               <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
 
               <div className="space-y-1.5">
@@ -758,7 +763,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   <Input
                     id="new-start"
                     type="date"
-                    className="bg-background"
+                    className="bg-background px-2 tabular-nums"
                     value={startDate}
                     onChange={(e) => handleStartDateChange(e.target.value)}
                   />
@@ -768,7 +773,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   <Input
                     id="new-end"
                     type="date"
-                    className="bg-background"
+                    className="bg-background px-2 tabular-nums"
                     value={endDate}
                     onChange={(e) => {
                       markChanged();
