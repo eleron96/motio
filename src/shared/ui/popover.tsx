@@ -7,6 +7,8 @@ const Popover = PopoverPrimitive.Root;
 
 const PopoverTrigger = PopoverPrimitive.Trigger;
 
+const PopoverAnchor = PopoverPrimitive.Anchor;
+
 type PopoverContentProps = React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
   portalled?: boolean;
   container?: HTMLElement | null;
@@ -37,4 +39,4 @@ const PopoverContent = React.forwardRef<
 });
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { Popover, PopoverTrigger, PopoverContent };
+export { Popover, PopoverTrigger, PopoverAnchor, PopoverContent };

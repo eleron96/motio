@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.20] - 2026-06-12
+### Changed
+- Redesigned task window: title, description and subtasks on the left, a parameters panel on the right. Tags are picked via a suggestions field, and repeat settings live in a compact popover.
+
 ## [0.8.19] - 2026-06-11
 ### Added
 - The "Week" timeline view is now optional — turn it on with a toggle in Account settings → Preferences. Off by default.
