@@ -14,6 +14,8 @@ export type TaskMappedRow = {
   tag_ids: string[] | null;
   description: string | null | undefined;
   repeat_id: string | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export const normalizeAssigneeIds = (
@@ -40,4 +42,6 @@ export const mapTaskRow = (row: TaskMappedRow): Task => ({
   tagIds: row.tag_ids ?? [],
   description: row.description,
   repeatId: row.repeat_id ?? null,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
 });

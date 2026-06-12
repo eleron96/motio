@@ -98,7 +98,8 @@ export const TaskProjectSelect: React.FC<TaskProjectSelectProps> = ({
                   className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: project.color }}
                 />
-                <span className="truncate">{formatProjectLabel(project.name, project.code)}</span>
+                {/* Long names wrap to a second line (clamped) instead of truncating. */}
+                <span className="line-clamp-2 break-words">{formatProjectLabel(project.name, project.code)}</span>
                 {showArchivedBadge && project.archived && (
                   <span className="shrink-0 text-[10px] text-muted-foreground">
                     ({t`Archived`})

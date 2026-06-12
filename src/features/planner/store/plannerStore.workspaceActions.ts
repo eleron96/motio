@@ -144,6 +144,8 @@ export const createWorkspaceActions = (
           'priority',
           'tag_ids',
           'repeat_id',
+          'created_at',
+          'updated_at',
         ].join(','),
       )
       .eq('workspace_id', workspaceId)
