@@ -22,6 +22,12 @@ interface RichTextEditorProps {
    * typing immediately when opened.
    */
   autoFocus?: boolean;
+  /**
+   * Render the toolbar and the editable area inside a single bordered frame
+   * (task-composer style) instead of two stacked blocks. Hides the inline
+   * drag-and-drop hint — the parent provides its own.
+   */
+  framed?: boolean;
 }
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -94,6 +100,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   disabled = false,
   className,
   autoFocus = false,
+  framed = false,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -680,13 +687,25 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative space-y-2"
+      className={cn(
+        'relative',
+        framed
+          ? 'overflow-hidden rounded-md border border-input focus-within:ring-1 focus-within:ring-ring'
+          : 'space-y-2',
+      )}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="flex flex-wrap items-center gap-1 rounded-md border border-input bg-muted/30 p-1">
+      <div
+        className={cn(
+          'flex flex-wrap items-center gap-1',
+          framed
+            ? 'border-b border-border bg-muted/40 px-1.5 py-1'
+            : 'rounded-md border border-input bg-muted/30 p-1',
+        )}
+      >
         {toolbarItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -732,6 +751,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         ref={editorRef}
         className={cn(
           'rich-text-editor',
+          framed && 'rounded-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0',
           disabled && 'bg-muted/40',
           isFileDragOver && !disabled && 'border-primary/60 bg-primary/5 ring-2 ring-primary/30',
           className
@@ -753,7 +773,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onDragEnd={handleDragEnd}
         suppressContentEditableWarning
       />
-      {!disabled && (
+      {!disabled && !framed && (
         <p className="text-xs text-muted-foreground">
           {t`Drag and drop image files into the description area.`}
         </p>
