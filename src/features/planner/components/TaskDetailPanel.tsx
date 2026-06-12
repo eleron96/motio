@@ -39,6 +39,11 @@ import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
 import { useTaskDrafts, areArraysEqual } from '@/features/planner/hooks/useTaskDrafts';
 import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
 import { t } from '@lingui/macro';
+import { i18n } from '@lingui/core';
+import { format, isSameDay, isSameYear, parseISO, subDays } from 'date-fns';
+import type { Locale as DateFnsLocale } from 'date-fns';
+import { isSupportedLocale } from '@/shared/lib/locale';
+import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import {
   buildCreateRepeatsOptions,
   resolveRepeatValidationMessage,
@@ -66,6 +71,13 @@ const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
   })
 );
 
+
+const formatTimestampLabel = (iso: string, now: Date, locale: DateFnsLocale) => {
+  const date = parseISO(iso);
+  if (isSameDay(date, now)) return t`today`;
+  if (isSameDay(date, subDays(now, 1))) return t`yesterday`;
+  return format(date, isSameYear(date, now) ? 'd MMMM' : 'd MMMM yyyy', { locale });
+};
 
 const resolveScopedRepeatCount = (params: {
   repeatCount: number;
@@ -216,6 +228,19 @@ export const TaskDetailPanel: React.FC = () => {
     if (selected.length === 1 && task.assigneeIds.length === 1) return selected[0];
     return t`${task.assigneeIds.length} assignees`;
   }, [filteredAssignees, task]);
+
+  // Mockup-style footer meta: «Создано 9 июня · обновлено сегодня».
+  const taskCreatedAt = task?.createdAt;
+  const taskUpdatedAt = task?.updatedAt;
+  const timestampsMeta = useMemo(() => {
+    if (!taskCreatedAt) return null;
+    const locale = resolveDateFnsLocale(isSupportedLocale(i18n.locale) ? i18n.locale : 'en');
+    const now = new Date();
+    const created = formatTimestampLabel(taskCreatedAt, now, locale);
+    if (!taskUpdatedAt) return t`Created ${created}`;
+    const updated = formatTimestampLabel(taskUpdatedAt, now, locale);
+    return t`Created ${created} · updated ${updated}`;
+  }, [taskCreatedAt, taskUpdatedAt]);
   const requestClose = () => {
     // A subtask edit in progress, or an unsent new-subtask draft, also counts
     // as unsaved work — warn before closing so the changes aren't lost.
@@ -486,6 +511,8 @@ export const TaskDetailPanel: React.FC = () => {
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
         <DialogScrollContent
           className="flex w-full max-w-[940px] flex-col gap-0 p-0"
+          // Don't auto-focus (and select) the title input when the panel opens.
+          onOpenAutoFocus={(e) => e.preventDefault()}
           onInteractOutside={(e) => {
             if (shouldIgnoreOutsideInteraction(e.target)) {
               e.preventDefault();
@@ -851,7 +878,9 @@ export const TaskDetailPanel: React.FC = () => {
           </div>
 
           {/* ── Footer */}
-          <div className="relative flex items-center justify-end gap-2 px-6 py-3.5">
+          <div className="relative flex items-center justify-between gap-3 px-6 py-3.5">
+            <span className="min-w-0 truncate text-xs text-muted-foreground">{timestampsMeta}</span>
+            <div className="flex shrink-0 gap-2">
             <Button variant="outline" onClick={handleCancelClose}>
               {t`Cancel`}
             </Button>
@@ -864,6 +893,7 @@ export const TaskDetailPanel: React.FC = () => {
               {/* Distinct id: the bare "Done" msgid is a task status («Завершено»). */}
               {t({ id: 'taskDetail.footer.done', message: 'Done' })}
             </Button>
+            </div>
           </div>
         </DialogScrollContent>
       </Dialog>

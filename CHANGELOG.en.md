@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.24] - 2026-06-12
+### Changed
+- The task window now has breathing room below the card, a subtle 'Created … · updated …' note sits bottom-left, and opening a task no longer auto-focuses the title.
+
 ## [0.8.23] - 2026-06-12
 ### Fixed
 - The task title no longer overflows into the parameters panel.
