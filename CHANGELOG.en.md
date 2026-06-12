@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.23] - 2026-06-12
+### Fixed
+- The task title no longer overflows into the parameters panel.
+
 ## [0.8.22] - 2026-06-12
 ### Changed
 - The task window no longer scrolls internally — the card grows with its content. Long project names wrap to a second line, date fields fit fully, and the divider above the buttons is gone.

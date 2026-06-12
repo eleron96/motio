@@ -508,8 +508,10 @@ export const TaskDetailPanel: React.FC = () => {
             className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-muted/40 lg:block"
           />
 
-          {/* ── Header: project crumb, large title, actions */}
-          <div className="relative px-6 pb-3 pr-20 pt-5">
+          {/* ── Header: project crumb, large title, actions.
+              On wide screens the header block stops where the tinted
+              parameters panel begins, so the title never crosses into it. */}
+          <div className="relative px-6 pb-3 pr-20 pt-5 lg:mr-[340px] lg:pr-6">
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {currentProject ? (
                 <>
