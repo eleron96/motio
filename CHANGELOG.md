@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.37] - 2026-06-13
+### Changed
+- Нет зафиксированных изменений.
+
 ## [0.8.36] - 2026-06-13
 ### Changed
 - Большие числа в сводке профиля теперь сокращаются: тысячи — как «К», миллионы — как «М».
