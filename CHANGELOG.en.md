@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.35] - 2026-06-13
+### Changed
+- No documented changes.
+
 ## [0.8.34] - 2026-06-13
 ### Added
 - The Profile tab in account settings now shows a short summary of your tasks: completion progress, what's in progress and overdue, weekly activity, and how long you've been in Motio.
