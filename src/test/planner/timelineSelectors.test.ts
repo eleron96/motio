@@ -29,6 +29,8 @@ const makeAssignee = (overrides: Partial<Assignee>): Assignee => ({
   id: 'assignee-id',
   name: 'Assignee',
   isActive: true,
+  email: null,
+  phone: null,
   ...overrides,
 });
 
@@ -39,6 +41,8 @@ const makeProject = (overrides: Partial<Project>): Project => ({
   color: '#000000',
   archived: false,
   customerId: null,
+  ownerGroupId: null,
+  status: null,
   ...overrides,
 });
 

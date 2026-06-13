@@ -3,11 +3,22 @@ const normalizeStatus = (name: string) =>
 
 const emojiSegmentRegex = /\p{Extended_Pictographic}/u;
 
+// Intl.Segmenter is not in the ES2020 lib typings; declare the minimal shape we use
+// and feature-detect at runtime (older Safari/engines lack it — regex fallback below).
+type GraphemeSegmenter = {
+  segment(input: string): { [Symbol.iterator](): Iterator<{ segment: string }> };
+};
+type GraphemeSegmenterCtor = new (
+  locales?: string | string[],
+  options?: { granularity?: 'grapheme' | 'word' | 'sentence' },
+) => GraphemeSegmenter;
+
 const getLeadingEmoji = (value: string) => {
   const trimmed = value.trim();
   if (!trimmed) return null;
-  if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
-    const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+  const SegmenterCtor = (Intl as { Segmenter?: GraphemeSegmenterCtor }).Segmenter;
+  if (SegmenterCtor) {
+    const segmenter = new SegmenterCtor(undefined, { granularity: 'grapheme' });
     const iterator = segmenter.segment(trimmed)[Symbol.iterator]();
     const first = iterator.next().value?.segment as string | undefined;
     if (first && emojiSegmentRegex.test(first)) {

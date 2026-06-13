@@ -341,7 +341,7 @@ const fetchWorkspaceMemberSnapshot = async (
     return { member: null as WorkspaceMember | null, error: error?.message };
   }
 
-  const row = data as WorkspaceMemberProfileRow;
+  const row = data as unknown as WorkspaceMemberProfileRow;
   return {
     member: {
       userId: row.user_id,
@@ -843,7 +843,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return null;
       }
 
-      return mapWorkspaceRows((data ?? []) as WorkspaceMemberRow[]);
+      return mapWorkspaceRows((data ?? []) as unknown as WorkspaceMemberRow[]);
     };
 
     let workspaces = await loadWorkspaces();
@@ -1058,7 +1058,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    const rows = (data ?? []) as WorkspaceMemberProfileRow[];
+    const rows = (data ?? []) as unknown as WorkspaceMemberProfileRow[];
     const members: WorkspaceMember[] = rows.map((row) => ({
       userId: row.user_id,
       role: row.role as WorkspaceRole,

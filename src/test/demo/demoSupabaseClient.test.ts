@@ -47,7 +47,7 @@ describe('demoSupabaseClient', () => {
       .select()
       .single();
     expect(inserted.error).toBeNull();
-    const newId = (inserted.data as { id: string }).id;
+    const newId = (inserted.data as unknown as { id: string }).id;
     expect(newId).toBeTruthy();
 
     const after = await demoSupabaseClient
@@ -65,7 +65,7 @@ describe('demoSupabaseClient', () => {
       .select('*')
       .eq('id', newId)
       .single();
-    expect((reloaded.data as { title: string }).title).toBe('Renamed');
+    expect((reloaded.data as unknown as { title: string }).title).toBe('Renamed');
 
     await demoSupabaseClient.from('tasks').delete().eq('id', newId);
     const final = await demoSupabaseClient

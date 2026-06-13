@@ -47,6 +47,7 @@ type TaskActions = Pick<
   | 'createTaskSubtask'
   | 'createTaskSubtasks'
   | 'updateTaskSubtaskCompletion'
+  | 'updateTaskSubtaskTitle'
   | 'deleteTaskSubtask'
   | 'fetchTaskDescription'
 >;

@@ -87,6 +87,34 @@ describe('ProjectsMainPanel mobile', () => {
         selectedCustomerProjects={[]}
         customersCount={1}
         onOpenProjectFromCustomer={vi.fn()}
+        onStartCustomerEdit={vi.fn()}
+        onRequestDeleteCustomer={vi.fn()}
+        projectMembers={[]}
+        projectMilestones={[]}
+        today={new Date('2026-03-10')}
+        onCreateMilestoneForProject={vi.fn()}
+        onEditMilestone={vi.fn()}
+        onSaveProjectStatus={vi.fn()}
+        onToggleProjectTracked={vi.fn()}
+        onOpenProjectSettings={vi.fn()}
+        onToggleProjectArchived={vi.fn()}
+        onRequestDeleteProject={vi.fn()}
+        customerContacts={[]}
+        onAddCustomerContact={vi.fn()}
+        onDeleteCustomerContact={vi.fn()}
+        onUpdateCustomerContact={vi.fn()}
+        projectMemberRows={[]}
+        workspaceAssignees={[]}
+        onAddProjectMember={vi.fn()}
+        onRemoveProjectMember={vi.fn()}
+        onUpdateAssigneeContact={vi.fn()}
+        onUpdateExternalMember={vi.fn()}
+        projectActivity={[]}
+        formatActivityTimestamp={vi.fn()}
+        onAddProjectActivity={vi.fn()}
+        onUpdateProjectActivity={vi.fn()}
+        onDeleteProjectActivity={vi.fn()}
+        onSetProjectActivityPinned={vi.fn()}
       />,
     );
 

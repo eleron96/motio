@@ -6,6 +6,8 @@ const makeAssignee = (id: string, name: string): Assignee => ({
   id,
   name,
   isActive: true,
+  email: null,
+  phone: null,
 });
 
 describe('assigneePopoverOrder', () => {

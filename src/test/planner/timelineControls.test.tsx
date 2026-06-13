@@ -54,16 +54,16 @@ describe('TimelineControls', () => {
     vi.clearAllMocks();
   });
 
-  it('uses the shared dark active style for the selected timeline mode buttons', () => {
+  it('uses the accent active style for the selected timeline mode buttons', () => {
     render(<TimelineControls />);
 
     const dayButton = screen.getByRole('button', { name: 'Day' });
     const projectsButton = screen.getByRole('button', { name: 'Projects' });
 
-    expect(dayButton).toHaveClass('bg-foreground', 'text-background', 'shadow-sm');
-    expect(dayButton).not.toHaveClass('bg-background');
-    expect(projectsButton).toHaveClass('bg-foreground', 'text-background', 'shadow-sm');
-    expect(projectsButton).not.toHaveClass('bg-background');
+    expect(dayButton).toHaveClass('bg-primary/15', 'text-primary');
+    expect(dayButton).not.toHaveClass('bg-foreground');
+    expect(projectsButton).toHaveClass('bg-primary/15', 'text-primary');
+    expect(projectsButton).not.toHaveClass('bg-foreground');
   });
 
   it('hides the Week view button when the preference is off', () => {
