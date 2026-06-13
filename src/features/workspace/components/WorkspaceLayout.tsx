@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { PendingDeletionBanner } from '@/shared/components/PendingDeletionBanner';
 
 /**
  * Header configuration a page contributes to the persistent workspace header.
@@ -48,6 +49,7 @@ export const WorkspaceLayout: React.FC = () => {
   return (
     <HeaderConfigContext.Provider value={setConfig}>
       <div className="flex flex-col h-screen overflow-hidden bg-background">
+        <PendingDeletionBanner />
         <WorkspacePageHeader
           primaryAction={config?.primaryAction}
           onOpenSettings={config?.onOpenSettings ?? (() => {})}
