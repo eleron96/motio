@@ -112,7 +112,6 @@ export const RenamePurgedDialog: React.FC<RenamePurgedDialogProps> = ({
                 setName(event.target.value);
                 setTouched(true);
               }}
-              autoFocus
               disabled={submitting}
               aria-invalid={Boolean(showValidationError)}
               data-testid="rename-purged-input"

@@ -102,7 +102,7 @@ const HorizontalNav: React.FC<NavBodyProps> = ({ items, basePath, onNavigate }) 
       <span
         aria-hidden="true"
         className={cn(
-          'seg-thumb pointer-events-none absolute rounded-md bg-foreground shadow-sm',
+          'seg-thumb pointer-events-none absolute rounded-md bg-primary/15',
           animate && 'transition-[left,width] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
         )}
         style={
@@ -129,7 +129,7 @@ const HorizontalNav: React.FC<NavBodyProps> = ({ items, basePath, onNavigate }) 
               // Whitening is delayed so the label turns white roughly as the
               // sliding thumb arrives underneath it, not before.
               isActive
-                ? 'text-background [transition-delay:120ms]'
+                ? 'text-primary [transition-delay:120ms]'
                 : 'text-foreground/80 hover:text-foreground',
             )}
           >
@@ -157,7 +157,7 @@ const VerticalNav: React.FC<NavBodyProps> = ({ items, basePath, onNavigate }) =>
           className={({ isActive }) =>
             cn(
               'inline-flex h-8 w-full items-center gap-1.5 rounded-md px-3 text-ui-sm font-medium transition-colors duration-200',
-              isActive ? 'bg-foreground text-background' : 'text-foreground/80 hover:text-foreground',
+              isActive ? 'bg-primary/15 text-primary' : 'text-foreground/80 hover:text-foreground',
             )
           }
         >
