@@ -2,7 +2,8 @@ import React from 'react';
 import { Flame, Star } from 'lucide-react';
 import { plural, t } from '@lingui/macro';
 import { useCountUp } from '@/shared/hooks/useCountUp';
-import type { ProfileSummaryData } from '@/features/auth/lib/profileSummary';
+import { useLocaleStore } from '@/shared/store/localeStore';
+import { formatCompactCount, type ProfileSummaryData } from '@/features/auth/lib/profileSummary';
 import { cn } from '@/shared/lib/classNames';
 
 interface ProfileSummaryProps {
@@ -15,6 +16,7 @@ const RING_RADIUS = 36;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export const ProfileSummary: React.FC<ProfileSummaryProps> = ({ summary, animate }) => {
+  const locale = useLocaleStore((state) => state.locale);
   const rate = useCountUp(summary.completionRate, animate);
   const active = useCountUp(summary.active, animate);
   const overdue = useCountUp(summary.overdue, animate);
@@ -60,7 +62,7 @@ export const ProfileSummary: React.FC<ProfileSummaryProps> = ({ summary, animate
 
       <div className="flex items-center justify-around text-center">
         <div className="flex-1">
-          <div className="text-xl font-semibold leading-none text-foreground">{Math.round(active)}</div>
+          <div className="text-xl font-semibold leading-none text-foreground">{formatCompactCount(active, locale)}</div>
           <div className="mt-1 text-[11px] text-muted-foreground">{t`in progress`}</div>
         </div>
         <div className="flex-1 border-x border-border">
@@ -70,12 +72,12 @@ export const ProfileSummary: React.FC<ProfileSummaryProps> = ({ summary, animate
               summary.overdue > 0 ? 'text-destructive' : 'text-foreground',
             )}
           >
-            {Math.round(overdue)}
+            {formatCompactCount(overdue, locale)}
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground">{t`overdue`}</div>
         </div>
         <div className="flex-1">
-          <div className="text-xl font-semibold leading-none text-foreground">{Math.round(thisWeek)}</div>
+          <div className="text-xl font-semibold leading-none text-foreground">{formatCompactCount(thisWeek, locale)}</div>
           <div className="mt-1 text-[11px] text-muted-foreground">{t`this week`}</div>
         </div>
       </div>
@@ -84,7 +86,7 @@ export const ProfileSummary: React.FC<ProfileSummaryProps> = ({ summary, animate
 
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         <span>
-          <span className="font-medium text-foreground/80">{summary.completed}</span> {t`closed`}
+          <span className="font-medium text-foreground/80">{formatCompactCount(summary.completed, locale)}</span> {t`closed`}
         </span>
         <span aria-hidden="true" className="opacity-50">·</span>
         <span>{plural(summary.projectCount, { one: '# project', other: '# projects' })}</span>

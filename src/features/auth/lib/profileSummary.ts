@@ -158,3 +158,22 @@ export const computeProfileSummary = ({
     monthsInMotio,
   };
 };
+
+const stripTrailingZero = (value: number): string => {
+  const fixed = value.toFixed(1);
+  return fixed.endsWith('.0') ? fixed.slice(0, -2) : fixed;
+};
+
+/**
+ * Keeps the stat tiles narrow once counts grow: 1_500 → "1.5K",
+ * 2_000_000 → "2M". Below 1000 the raw integer is returned. The suffix is
+ * localized — Cyrillic К/М for Russian, Latin K/M otherwise.
+ */
+export const formatCompactCount = (value: number, locale = 'en'): string => {
+  const rounded = Math.round(value);
+  const abs = Math.abs(rounded);
+  const [thousands, millions] = locale.startsWith('ru') ? ['К', 'М'] : ['K', 'M'];
+  if (abs >= 1_000_000) return `${stripTrailingZero(rounded / 1_000_000)}${millions}`;
+  if (abs >= 1_000) return `${stripTrailingZero(rounded / 1_000)}${thousands}`;
+  return String(rounded);
+};
