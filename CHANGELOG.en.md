@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.29] - 2026-06-13
+### Fixed
+- Opening the task window and other dialogs no longer outlines the first field.
+
+
+### Changed
+- The main accent is now terracotta: the add button is a warm clay color, and active menu items and tabs use a soft terracotta tint.
+
 ## [0.8.28] - 2026-06-12
 ### Changed
 - No documented changes.
