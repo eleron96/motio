@@ -19,7 +19,7 @@ export const useProjectQueryInput = () => {
     const nextQuery = resolveProjectQueryFromKeyDown({
       currentQuery: projectQuery,
       key: event.key,
-      isComposing: event.isComposing,
+      isComposing: event.nativeEvent.isComposing,
       altKey: event.altKey,
       ctrlKey: event.ctrlKey,
       metaKey: event.metaKey,

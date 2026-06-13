@@ -126,16 +126,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
       </ContextMenuItem>
       <ContextMenuSub open={projectSubOpen} onOpenChange={setProjectSubOpen}>
         <ContextMenuSubTrigger className="py-1 text-xs">{t`Assign project`}</ContextMenuSubTrigger>
-        <ContextMenuSubContent
-          className="w-64 p-1"
-          onOpenAutoFocus={(event) => {
-            event.preventDefault();
-            requestAnimationFrame(() => {
-              projectSearchInputRef.current?.focus();
-              projectSearchInputRef.current?.select();
-            });
-          }}
-        >
+        <ContextMenuSubContent className="w-64 p-1">
           <div className="px-1 pb-1">
             <Input
               ref={projectSearchInputRef}

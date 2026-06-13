@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { toast } from 'sonner';
 import { t } from '@lingui/macro';
-import { Milestone, TaskPriority, ViewMode } from '@/features/planner/types/planner';
+import { Milestone, MilestoneStatusOverride, TaskPriority, ViewMode } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 
 import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
@@ -26,6 +26,8 @@ type MilestoneSyncRow = {
   title: string;
   project_id: string;
   date: string;
+  note: string | null;
+  status_override: MilestoneStatusOverride | null;
   updated_at: string;
 };
 
@@ -59,6 +61,8 @@ const MILESTONE_SELECT = [
   'title',
   'project_id',
   'date',
+  'note',
+  'status_override',
   'updated_at',
 ].join(',');
 
@@ -76,6 +80,8 @@ const mapMilestoneRow = (row: MilestoneSyncRow): Milestone => ({
   title: row.title,
   projectId: row.project_id,
   date: row.date,
+  note: row.note,
+  statusOverride: row.status_override,
 });
 
 const inTaskRange = (row: TaskSyncRow, range: LoadedRange) => (
@@ -253,7 +259,7 @@ export const usePlannerLiveSync = (
                   taskUpsertIds.forEach((id) => pendingTaskUpserts.add(id));
                   reconcileRequested = true;
                 } else {
-                  const rows = (data ?? []) as TaskSyncRow[];
+                  const rows = (data ?? []) as unknown as TaskSyncRow[];
                   const byId = new Map(rows.map((row) => [row.id, row]));
                   const upsertRows = rows.filter((row) => inTaskRange(row, rangeRef));
                   if (upsertRows.length > 0) {
@@ -289,7 +295,7 @@ export const usePlannerLiveSync = (
                   milestoneUpsertIds.forEach((id) => pendingMilestoneUpserts.add(id));
                   reconcileRequested = true;
                 } else {
-                  const rows = (data ?? []) as MilestoneSyncRow[];
+                  const rows = (data ?? []) as unknown as MilestoneSyncRow[];
                   const byId = new Map(rows.map((row) => [row.id, row]));
                   const upsertRows = rows.filter((row) => inMilestoneRange(row, rangeRef));
                   if (upsertRows.length > 0) {
@@ -435,8 +441,8 @@ export const usePlannerLiveSync = (
               continue;
             }
 
-            const taskRows = (taskDeltaRes.data ?? []) as TaskSyncRow[];
-            const milestoneRows = (milestoneDeltaRes.data ?? []) as MilestoneSyncRow[];
+            const taskRows = (taskDeltaRes.data ?? []) as unknown as TaskSyncRow[];
+            const milestoneRows = (milestoneDeltaRes.data ?? []) as unknown as MilestoneSyncRow[];
             const taskCommentRows = (taskCommentDeltaRes.data ?? []) as TaskCommentSyncRow[];
 
             if (taskRows.length > 0) {

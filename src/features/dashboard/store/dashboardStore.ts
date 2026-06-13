@@ -131,6 +131,8 @@ const getLayoutBoundsForSize = (cols: number, minSize: DashboardWidgetSize) => {
   const min = getSizeForCols(SIZE_PRESETS[minSize], cols);
   const max = getSizeForCols(SIZE_PRESETS.large, cols);
   return {
+    w: min.w,
+    h: min.h,
     minW: min.w,
     minH: min.h,
     maxW: max.w,

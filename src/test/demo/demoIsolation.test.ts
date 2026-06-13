@@ -141,7 +141,7 @@ describe('demo isolation', () => {
       .eq('workspace_id', wsId)
       .eq('id', rows[0].id)
       .single();
-    expect((after.data as { title: string }).title).toBe(originalTitle);
+    expect((after.data as unknown as { title: string }).title).toBe(originalTitle);
   });
 
   it('removeChannel does nothing observable and never throws', async () => {

@@ -1129,10 +1129,7 @@ const AdminUsersPage: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Restore backup?</AlertDialogTitle>
             <AlertDialogDescription>
-              {t({
-                message: 'The database will be replaced with backup {name}.',
-                values: { name: backupRestoreTarget?.name ?? '—' },
-              })}
+              {t`The database will be replaced with backup ${{ name: backupRestoreTarget?.name ?? '—' }}.`}
               {' '}
               {t`All current data will be lost.`}
             </AlertDialogDescription>

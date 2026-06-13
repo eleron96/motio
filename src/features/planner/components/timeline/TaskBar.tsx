@@ -335,14 +335,13 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                 </span>
               )}
               {appearance.isCancelled && (
-                <Ban className="h-3 w-3 text-red-500" aria-label={t`Cancelled`} title={t`Cancelled`} />
+                <Ban className="h-3 w-3 text-red-500" aria-label={t`Cancelled`} />
               )}
               {isRepeating && (
                 <RotateCw
                   className="h-3 w-3 shrink-0 opacity-80"
                   style={{ color: appearance.textColor }}
                   aria-label={t`Repeat`}
-                  title={t`Repeat`}
                 />
               )}
               {priorityMeta && (

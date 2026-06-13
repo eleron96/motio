@@ -334,6 +334,8 @@ describe('Smoke: key user workflows', () => {
           color: '#111111',
           archived: false,
           customerId: null,
+          ownerGroupId: null,
+          status: null,
         },
       ],
       tasks: [
@@ -379,6 +381,8 @@ describe('Smoke: key user workflows', () => {
           title: 'Milestone 1',
           projectId: 'project-1',
           date: '2026-02-10',
+          note: null,
+          statusOverride: null,
         },
       ],
     }));
