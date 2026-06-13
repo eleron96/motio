@@ -35,8 +35,12 @@ const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
+      // Don't pull focus onto the first field on open — that draws a focus ring
+      // around it (now ink, so very loud). Focus stays put; outline-none keeps the
+      // card ringless if focus lands on it. Consumers can override via props.
+      onOpenAutoFocus={(event) => event.preventDefault()}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg outline-none overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
         className,
       )}
       {...props}
@@ -68,9 +72,10 @@ const DialogScrollContent = React.forwardRef<
       <div className="grid min-h-full items-start justify-items-center px-3 py-4 sm:px-4 sm:py-6 lg:py-10">
         <DialogPrimitive.Content
           ref={ref}
+          // See DialogContent: prevent the open-focus ring by default. outline-none
+          // keeps the card ringless when focus lands on it. Consumers can override.
+          onOpenAutoFocus={(event) => event.preventDefault()}
           className={cn(
-            // outline-none: with onOpenAutoFocus prevented, focus lands on the
-            // card itself — without this the browser draws a focus ring around it.
             "relative z-50 w-full max-w-lg border bg-background shadow-lg outline-none overflow-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
             className,
           )}
