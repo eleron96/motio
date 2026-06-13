@@ -52,6 +52,9 @@
 1. Прямой `supabase`/HTTP доступ из `pages` и feature-UI компонентов.
 2. Копирование одной и той же бизнес-логики в несколько экранов/диалогов.
 3. Смешивание API контракта и UI-форматирования в одном месте.
+4. Импорт `react`/`react-dom`/`@supabase`/`@tanstack`/`@/infrastructure` в `shared/domain` — слой обязан оставаться чистым.
+
+Границы (1) и (4) защищены статически правилом ESLint `no-restricted-imports` (см. `eslint.config.js`): нарушение валит линт, а значит и CI.
 
 ## 4. Правило изменений
 
@@ -258,8 +261,18 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 ## 7.3. Перед коммитом
 
 1. `npm run lint`
-2. `npm run test`
-3. Проверить diff на случайные debug-логи и закомментированный код.
+2. `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`)
+3. `npm run test`
+4. Проверить diff на случайные debug-логи и закомментированный код.
+
+## 7.4. CI и гейты качества
+
+CI (`.github/workflows/ci.yml`) на каждый push и pull request прогоняет блокирующие шаги по порядку: **lint → typecheck → test → build**. Любой красный шаг останавливает пайплайн.
+
+1. `vite build` НЕ проверяет типы (esbuild). Проверку типов даёт отдельный шаг `npm run typecheck`.
+2. `tsconfig` пока со `strict: false` — компилятор не ловит неявные any и null-разыменования; новый код держать типобезопасным вручную. Включение `strict` — отдельная постепенная задача (начинать с `shared/domain`).
+3. Результаты Supabase-запросов со строковым `select` кастовать как `... as unknown as <Row>` (Supabase не выводит тип такого select — принятый паттерн границы).
+4. Интеграционные тесты (`npm run test:integration`, каталог `tests/`) в CI **не** запускаются — гонять вручную при изменениях в RPC/RLS/cron.
 
 ## 8. Definition of Done
 
@@ -268,7 +281,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 1. Соблюдены слоевые границы.
 2. Нет дублирования ключевой бизнес-логики.
 3. Ошибки обрабатываются предсказуемо.
-4. Пройдены lint/test.
+4. Пройдены lint, typecheck и test.
 5. Обновлены docs/spec при изменении пользовательского поведения.
 
 ## 9. Правила инфраструктуры
