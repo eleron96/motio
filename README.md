@@ -4,7 +4,7 @@
 
 # Motio
 
-**Командное планирование задач на таймлайне.**
+**Team task planning on a timeline.**
 
 [![Version](https://img.shields.io/badge/version-0.8.31-blue.svg)](./VERSION)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg?logo=react&logoColor=white)](https://react.dev/)
@@ -13,91 +13,91 @@
 [![Supabase](https://img.shields.io/badge/Supabase-self--hosted-3ecf8e.svg?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Keycloak](https://img.shields.io/badge/Keycloak-SSO-0096d6.svg?logo=keycloak&logoColor=white)](https://www.keycloak.org/)
 
-[Возможности](#-возможности) · [Быстрый старт](#-быстрый-старт) · [Архитектура](#-архитектура) · [Документация](#-документация) · [Troubleshooting](#-troubleshooting)
+[Features](#-features) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [Documentation](#-documentation) · [Troubleshooting](#-troubleshooting)
 
 </div>
 
 ---
 
-## 📌 О проекте
+## 📌 About
 
-**Motio** — self-hosted приложение для командного планирования задач на таймлайне с календарным режимом, проектами, ролями workspace и SSO-аутентификацией через Keycloak.
+**Motio** is a self-hosted app for team task planning on a timeline, with a calendar view, projects, workspace roles, and SSO authentication via Keycloak.
 
-### Стек
+### Stack
 
-| Слой | Технологии |
+| Layer | Technologies |
 |---|---|
 | **Frontend** | Vite · React 18 · TypeScript · Zustand · TanStack Query · Tailwind · Radix UI |
 | **Backend** | Supabase (Postgres · GoTrue · PostgREST · Edge Functions) |
 | **Auth / SSO** | Keycloak · oauth2-proxy |
-| **Миграции БД** | Liquibase |
-| **Инфраструктура** | Docker Compose · Nginx · отдельный backup-service |
+| **DB migrations** | Liquibase |
+| **Infrastructure** | Docker Compose · Nginx · standalone backup-service |
 | **i18n** | Lingui (ru / en) |
 
 ---
 
-## ✨ Возможности
+## ✨ Features
 
-- 📅 **Таймлайн и календарь** — интерактивный планировщик с панелью деталей задачи.
-- 👥 **Workspace и роли** — `viewer` / `editor` / `admin`, приглашения через Keycloak identity link.
-- 🖼 **Task media** — загрузка изображений в описание задачи (кнопка, paste из буфера, drag-and-drop), приватный Storage bucket, per-user / per-workspace квоты.
-- 🛡 **Keycloak-only auth** — вход через `oauth2-proxy`, lifecycle пользователей полностью в Keycloak Admin Console.
-- 🗄 **Super-admin консоль** — обзор пользователей, управление workspace, backup/restore.
-- 💾 **Backup / restore** — отдельный сервис с расписанием, upload/download, safety backup перед restore.
-- 🔄 **Realm-as-Code** — baseline-export Keycloak realm + drift audit на каждом production-деплое.
-- 🚀 **Release automation** — автоинкремент версии, синхронизация `CHANGELOG.md` / `CHANGELOG.en.md`, лог релизов.
+- 📅 **Timeline and calendar** — an interactive planner with a task detail panel.
+- 👥 **Workspaces and roles** — `viewer` / `editor` / `admin`, invitations via Keycloak identity link.
+- 🖼 **Task media** — upload images into a task description (button, clipboard paste, drag-and-drop), private Storage bucket, per-user / per-workspace quotas.
+- 🛡 **Keycloak-only auth** — sign-in through `oauth2-proxy`; user lifecycle lives entirely in the Keycloak Admin Console.
+- 🗄 **Super-admin console** — user overview, workspace management, backup/restore.
+- 💾 **Backup / restore** — a standalone service with a schedule, upload/download, and a safety backup before every restore.
+- 🔄 **Realm-as-Code** — Keycloak realm baseline export + drift audit on every production deploy.
+- 🚀 **Release automation** — automatic version bump, `CHANGELOG.md` / `CHANGELOG.en.md` sync, release log.
 
 ---
 
-## 📋 Требования
+## 📋 Requirements
 
 - **Node.js** 20+
 - **Docker Desktop**
-- *(опционально)* **Supabase CLI** — для режима `dev:local`
+- *(optional)* **Supabase CLI** — for the `dev:local` mode
 
 ---
 
-## 🚀 Быстрый старт
+## 🚀 Quick start
 
-### 1. Локальный полный контур
+### 1. Full local stack
 
 ```bash
 make up
 ```
 
-Команда:
-- создаёт/обновляет `.env`;
-- генерирует `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `OAUTH2_PROXY_COOKIE_SECRET`;
-- поднимает `db`, `keycloak`, `auth`, `rest`, `functions`, `gateway`, `web`, `oauth2-proxy` (`backup` / `realtime` / `storage` стартуют только в `up-prod`);
-- применяет Liquibase миграции;
-- вызывает `bootstrap.sync` для синхронизации Keycloak ↔ Supabase.
+This command:
+- creates/updates `.env`;
+- generates `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `OAUTH2_PROXY_COOKIE_SECRET`;
+- brings up `db`, `keycloak`, `auth`, `rest`, `functions`, `gateway`, `web`, `oauth2-proxy` (`backup` / `realtime` / `storage` start only in `up-prod`);
+- applies Liquibase migrations;
+- calls `bootstrap.sync` to synchronize Keycloak ↔ Supabase.
 
 ### 2. URLs
 
-| Сервис | URL |
+| Service | URL |
 |---|---|
-| Приложение | http://localhost:5173 |
-| Публичный лендинг | http://localhost:5173/ |
-| Приватное приложение | http://localhost:5173/app |
+| App | http://localhost:5173 |
+| Public landing | http://localhost:5173/ |
+| Private app | http://localhost:5173/app |
 | Keycloak | http://localhost:8081 |
 | Supabase Gateway health | http://localhost:8080/health |
 | Supabase Auth health | http://localhost:8080/auth/v1/health |
 | Postgres | `localhost:54322` |
 
-### 3. Остановка и логи
+### 3. Stop and logs
 
 ```bash
 make down
 make logs
 ```
 
-### 4. Альтернативный режим — Supabase CLI
+### 4. Alternative mode — Supabase CLI
 
 ```bash
 npm run dev:local
 ```
 
-> Если `supabase` CLI не найден, скрипт автоматически переключится на `dev-compose`. Для полного соответствия production-поведению используйте `make up`.
+> If the `supabase` CLI is not found, the script falls back to `dev-compose`. For full parity with production behavior, use `make up`.
 
 ---
 
@@ -107,17 +107,17 @@ npm run dev:local
 make up-prod
 ```
 
-Что делает `up-prod`:
-- требует полностью заполненный `.env`;
-- проверяет обязательные переменные invite-only режима;
-- делает backup `keycloak-db` перед realm-аудитом (если `AUTO_KEYCLOAK_PRE_SYNC_BACKUP=true`);
-- запускает Keycloak realm drift audit (audit-only по умолчанию);
-- делает pre-migration backup (если `AUTO_PRE_MIGRATION_BACKUP=true`);
-- применяет Liquibase миграции;
-- собирает frontend образ (`infra/web/Dockerfile`) и запускает `web + oauth2-proxy`;
-- автоматически повышает patch-версию в `VERSION`, переносит `Unreleased` в `CHANGELOG.md` / `CHANGELOG.en.md`, добавляет запись в `infra/releases.log`.
+What `up-prod` does:
+- requires a fully populated `.env`;
+- validates the required invite-only variables;
+- backs up `keycloak-db` before the realm audit (if `AUTO_KEYCLOAK_PRE_SYNC_BACKUP=true`);
+- runs the Keycloak realm drift audit (audit-only by default);
+- takes a pre-migration backup (if `AUTO_PRE_MIGRATION_BACKUP=true`);
+- applies Liquibase migrations;
+- builds the frontend image (`infra/web/Dockerfile`) and starts `web + oauth2-proxy`;
+- automatically bumps the patch version in `VERSION`, moves `Unreleased` into `CHANGELOG.md` / `CHANGELOG.en.md`, and appends an entry to `infra/releases.log`.
 
-### Команды
+### Commands
 
 ```bash
 make down-prod
@@ -127,80 +127,80 @@ make keycloak-audit-realm
 make keycloak-export-realm
 ```
 
-### Удалённый деплой
+### Remote deploy
 
 ```bash
 make deploy-remote
-# либо с явной версией
+# or with an explicit version
 NEXT_VERSION=0.3.0 make deploy-remote
 ```
 
-`infra/scripts/deploy-remote.sh` синхронизирует код, запускает `prod-compose.sh` на сервере и возвращает обновлённые `VERSION`, `CHANGELOG*.md`, `infra/releases.log` в локальный репозиторий.
+`infra/scripts/deploy-remote.sh` syncs the code, runs `prod-compose.sh` on the server, and pulls the updated `VERSION`, `CHANGELOG*.md`, and `infra/releases.log` back into the local repo.
 
-### Tracked release на testing
+### Tracked release on testing
 
 ```bash
 make release-testing MSG="feat(...): ..." RU="..." EN="..." [TYPE=changed] [NEXT_VERSION=0.3.0]
 ```
 
-Повышает `VERSION`, переносит `Unreleased` в оба чейнжлога, пишет историю в `infra/testing-releases.log`, коммитит/пушит артефакты и запускает `make deploy-testing` без касания production.
+Bumps `VERSION`, moves `Unreleased` into both changelogs, records history in `infra/testing-releases.log`, commits/pushes the artifacts, and runs `make deploy-testing` without touching production.
 
 ---
 
-## 🏗 Архитектура
+## 🏗 Architecture
 
-### Структура репозитория
+### Repository structure
 
 ```
 .
 ├── src/                                 — frontend (Vite + React + TS)
-├── docs/                                — внутренние материалы (локально, не в git)
+├── docs/                                — internal working notes (local, gitignored)
 ├── infra/
-│   ├── docker-compose.yml               — dev-контур
-│   ├── docker-compose.prod.yml          — production-контур
+│   ├── docker-compose.yml               — dev stack
+│   ├── docker-compose.prod.yml          — production stack
 │   ├── supabase/
-│   │   ├── migrations/                  — SQL миграции
+│   │   ├── migrations/                  — SQL migrations
 │   │   ├── liquibase/changelog-master.xml
 │   │   ├── functions/                   — Edge Functions: main, admin, invite, task-media, inbox, notifications, holidays, data-export, account-purge
 │   │   └── nginx.conf                   — gateway: /auth/v1, /rest/v1, /functions/v1, /backup
 │   ├── keycloak/realm/
 │   │   ├── timeline-realm.json          — dev realm
 │   │   └── timeline-realm.prod.json     — production baseline
-│   ├── backup-service/                  — backup/restore сервис
+│   ├── backup-service/                  — backup/restore service
 │   └── scripts/                         — dev/prod compose, Keycloak realm sync
 └── Makefile
 ```
 
-### Auth-поток
+### Auth flow
 
 ```
 Browser → oauth2-proxy → Keycloak (OIDC) → Supabase (identity link)
 Logout  : /oauth2/sign_out → oauth2-proxy backend logout → Keycloak end-session (id_token_hint) → /
 ```
 
-> **Важно.** Lifecycle пользователей (create / edit / delete / password reset) управляется **только в Keycloak Admin Console**. Админка приложения показывает пользователей как обзор (доступы + storage) и не заменяет IAM.
+> **Important.** User lifecycle (create / edit / delete / password reset) is managed **only in the Keycloak Admin Console**. The app's admin panel shows users as an overview (access + storage) and does not replace IAM.
 
 ### Keycloak Realm-as-Code
 
-Baseline-экспорт текущего production realm:
+Baseline export of the current production realm:
 
 ```bash
 infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeline-realm.prod.json
 ```
 
-Ручная проверка drift:
+Manual drift check:
 
 ```bash
 infra/scripts/keycloak-realm-drift-audit.sh .env
 ```
 
-Client `rootUrl / baseUrl / redirectUris / webOrigins` и realm `attributes.frontendUrl` нормализуются из текущего `.env` через `keycloak-ensure-client-urls.sh` и `keycloak-ensure-realm-frontend-url.sh` — это позволяет testing-контуру оставаться автономным при импорте production baseline.
+The client's `rootUrl / baseUrl / redirectUris / webOrigins` and the realm's `attributes.frontendUrl` are normalized from the current `.env` via `keycloak-ensure-client-urls.sh` and `keycloak-ensure-realm-frontend-url.sh` — this lets the testing stack stay self-contained when importing the production baseline.
 
 ---
 
-## ⚙️ Конфигурация
+## ⚙️ Configuration
 
-### Обязательные переменные для production
+### Required variables for production
 
 ```
 RESERVE_ADMIN_EMAIL
@@ -214,31 +214,31 @@ OAUTH2_PROXY_CLIENT_SECRET
 OAUTH2_PROXY_COOKIE_SECRET
 ```
 
-Шаблон: [`.env.example`](./.env.example)
+Template: [`.env.example`](./.env.example)
 
-Проверка перед деплоем:
+Pre-deploy check:
 
 ```bash
 make check-prod-secrets
-make check-prod-secrets-remote   # проверить .env на удалённом сервере
+make check-prod-secrets-remote   # check .env on the remote server
 ```
 
-> Production-деплой **блокируется**, если OIDC-секреты пустые или используют dev/default значения.
+> The production deploy is **blocked** if OIDC secrets are empty or use dev/default values.
 
-### Ключевые группы переменных
+### Key variable groups
 
 <details>
 <summary><strong>Auth · Keycloak · oauth2-proxy</strong></summary>
 
-- `GOTRUE_EXTERNAL_KEYCLOAK_*` — OIDC провайдер для Supabase Auth.
-- `KEYCLOAK_INTERNAL_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ADMIN_REALM`, `KEYCLOAK_ADMIN_CLIENT_ID` — доступ Edge Functions к Keycloak Admin API.
-- `KEYCLOAK_ADMIN_BASE_URL` — base URL для infra-скриптов (`http://127.0.0.1:8081` по умолчанию).
-- `KEYCLOAK_MANAGED_CLIENT_IDS` — clientId (через запятую) для baseline-экспорта realm.
-- `KEYCLOAK_REALM_AUDIT_FILE` — путь к managed realm JSON для drift audit.
-- `KEYCLOAK_REALM_AUDIT_ENABLED` · `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT` — управление поведением audit в `up-prod`.
-- `OAUTH2_PROXY_*` — проксирование входа на фронт.
-- `OAUTH2_PROXY_BACKEND_LOGOUT_URL` — URL Keycloak end-session с `id_token_hint={id_token}`.
-- `OAUTH2_PROXY_WHITELIST_DOMAINS` — allowlist для `rd` redirect после `/oauth2/sign_out`.
+- `GOTRUE_EXTERNAL_KEYCLOAK_*` — OIDC provider for Supabase Auth.
+- `KEYCLOAK_INTERNAL_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ADMIN_REALM`, `KEYCLOAK_ADMIN_CLIENT_ID` — Edge Functions' access to the Keycloak Admin API.
+- `KEYCLOAK_ADMIN_BASE_URL` — base URL for infra scripts (`http://127.0.0.1:8081` by default).
+- `KEYCLOAK_MANAGED_CLIENT_IDS` — comma-separated clientIds for the realm baseline export.
+- `KEYCLOAK_REALM_AUDIT_FILE` — path to the managed realm JSON for the drift audit.
+- `KEYCLOAK_REALM_AUDIT_ENABLED` · `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT` — control the audit behavior in `up-prod`.
+- `OAUTH2_PROXY_*` — proxying sign-in to the frontend.
+- `OAUTH2_PROXY_BACKEND_LOGOUT_URL` — Keycloak end-session URL with `id_token_hint={id_token}`.
+- `OAUTH2_PROXY_WHITELIST_DOMAINS` — allowlist for the `rd` redirect after `/oauth2/sign_out`.
 
 </details>
 
@@ -248,7 +248,7 @@ make check-prod-secrets-remote   # проверить .env на удалённо
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_DB_URL`, `SUPABASE_INTERNAL_URL`
 - `PGRST_DB_URI`, `GOTRUE_DB_DATABASE_URL`
-- `POSTGRES_WAL_LEVEL` — должен быть `logical` для Supabase Realtime CDC.
+- `POSTGRES_WAL_LEVEL` — must be `logical` for Supabase Realtime CDC.
 
 </details>
 
@@ -257,9 +257,9 @@ make check-prod-secrets-remote   # проверить .env на удалённо
 
 - `BACKUP_CRON`
 - `BACKUP_RETENTION_COUNT`
-- `BACKUP_SCHEMAS` (по умолчанию `public,auth,storage`)
+- `BACKUP_SCHEMAS` (default `public,auth,storage`)
 - `BACKUP_MAX_UPLOAD_MB`
-- `BACKUP_RESTORE_DB_URL` *(опционально)*
+- `BACKUP_RESTORE_DB_URL` *(optional)*
 - `BACKUP_AUTH_DB_USER`, `BACKUP_AUTH_HOST`
 
 </details>
@@ -277,24 +277,24 @@ make check-prod-secrets-remote   # проверить .env на удалённо
 <details>
 <summary><strong>Task media quotas</strong></summary>
 
-- `TASK_MEDIA_MAX_FILE_BYTES` — `5MB` по умолчанию.
-- `TASK_MEDIA_USER_QUOTA_BYTES` — `200MB` по умолчанию.
-- `TASK_MEDIA_WORKSPACE_QUOTA_BYTES` — `2GB` по умолчанию.
-- `TASK_MEDIA_TOKEN_TTL_SECONDS` — `315360000` (10 лет) по умолчанию. Токен зашит в URL внутри HTML описания задачи и не обновляется на клиенте, поэтому TTL держим длинным: короткое значение тихо ломает картинки в старых задачах.
+- `TASK_MEDIA_MAX_FILE_BYTES` — `5MB` by default.
+- `TASK_MEDIA_USER_QUOTA_BYTES` — `200MB` by default.
+- `TASK_MEDIA_WORKSPACE_QUOTA_BYTES` — `2GB` by default.
+- `TASK_MEDIA_TOKEN_TTL_SECONDS` — `315360000` (10 years) by default. The token is baked into the URL inside the task description HTML and is not refreshed on the client, so keep the TTL long: a short value silently breaks images in older tasks.
 
 </details>
 
 ---
 
-## 🧪 Скрипты
+## 🧪 Scripts
 
 ### Make
 
 ```bash
-make up              # локальный полный контур
-make down            # остановить
-make logs            # логи
-make up-prod         # production запуск
+make up              # full local stack
+make down            # stop
+make logs            # logs
+make up-prod         # production startup
 make down-prod
 make logs-prod
 ```
@@ -303,62 +303,62 @@ make logs-prod
 
 ```bash
 npm run dev               # Vite dev server
-npm run dev:compose       # полный dev-контур через docker compose
-npm run dev:local         # Supabase CLI режим (fallback → dev:compose)
+npm run dev:compose       # full dev stack via docker compose
+npm run dev:local         # Supabase CLI mode (fallback → dev:compose)
 npm run build
 npm run lint
-npm run typecheck         # tsc --noEmit (входит в CI-гейт)
+npm run typecheck         # tsc --noEmit (part of the CI gate)
 npm run test              # unit + component
 npm run test:watch
 npm run test:integration
-npm run lingui:extract    # извлечь строки для переводов
-npm run lingui:compile    # скомпилировать .po → .js
+npm run lingui:extract    # extract translatable strings
+npm run lingui:compile    # compile .po → .js
 ```
 
 ---
 
 ## 🔌 Edge Functions
 
-Роутятся через `main` на `/functions/v1/`:
+Routed through `main` under `/functions/v1/`:
 
 ### `admin`
 
-| Action | Назначение |
+| Action | Purpose |
 |---|---|
-| `bootstrap.sync` | начальная синхронизация Keycloak ↔ Supabase |
-| `users.list` | обзор пользователей |
-| `workspaces.list` / `workspaces.update` / `workspaces.delete` | управление workspace |
-| `superAdmins.list` | обзор супер-админов |
-| `keycloak.sync` | ресинх ролей |
+| `bootstrap.sync` | initial Keycloak ↔ Supabase synchronization |
+| `users.list` | user overview |
+| `workspaces.list` / `workspaces.update` / `workspaces.delete` | workspace management |
+| `superAdmins.list` | super-admin overview |
+| `keycloak.sync` | role resync |
 
-> `users.create` / `users.update` / `users.delete` / `users.resetPassword` и `superAdmins.create` / `superAdmins.delete` **возвращают ошибку по дизайну** — lifecycle пользователей и назначение прав управляются в Keycloak.
+> `users.create` / `users.update` / `users.delete` / `users.resetPassword` and `superAdmins.create` / `superAdmins.delete` **return an error by design** — user lifecycle and privilege assignment are managed in Keycloak.
 
 ### `invite`
 
-- Добавляет пользователя в workspace;
-- создаёт / линкует Keycloak + Supabase identity;
-- синхронизирует realm-роли по workspace-ролям.
+- adds a user to a workspace;
+- creates / links the Keycloak + Supabase identity;
+- syncs realm roles to workspace roles.
 
 ### `task-media`
 
-| Endpoint | Описание |
+| Endpoint | Description |
 |---|---|
-| `POST /functions/v1/task-media` | загрузка image; валидация membership + квоты; запись в private bucket `task-media` и metadata в `public.task_media` |
-| `GET /functions/v1/task-media/:id?token=…` | валидация токена, редирект на short-lived signed Storage URL; fallback на legacy `bytea` |
-| `POST /functions/v1/task-media/:id/revoke` | отзыв access token (owner или workspace admin) |
-| `DELETE /functions/v1/task-media/:id` | удаление blob из Storage + строки из `public.task_media` (owner или workspace admin) |
+| `POST /functions/v1/task-media` | upload an image; validates membership + quotas; writes to the private bucket `task-media` and metadata to `public.task_media` |
+| `GET /functions/v1/task-media/:id?token=…` | validates the token, redirects to a short-lived signed Storage URL; falls back to legacy `bytea` |
+| `POST /functions/v1/task-media/:id/revoke` | revokes the access token (owner or workspace admin) |
+| `DELETE /functions/v1/task-media/:id` | deletes the blob from Storage + the row from `public.task_media` (owner or workspace admin) |
 
-**Хранение:**
-- `tasks.description` хранит URL на `task-media` endpoint;
-- metadata (`workspace_id`, `owner_id`, `byte_size`, `storage_path`, access token hash) — в `public.task_media`;
-- бинарные данные — в private bucket `task-media`.
+**Storage:**
+- `tasks.description` stores the URL to the `task-media` endpoint;
+- metadata (`workspace_id`, `owner_id`, `byte_size`, `storage_path`, access token hash) lives in `public.task_media`;
+- binary data lives in the private bucket `task-media`.
 
 **Garbage collection:**
-- при сохранении описания задачи фронт диффит `description` и удаляет пропавшие `task-media`;
-- при удалении задачи (single / bulk / series) все связанные картинки удаляются вместе с ней;
-- cleanup-вызовы fire-and-forget — сбой GC не блокирует основную операцию, задача остаётся консистентной.
+- when a task description is saved, the frontend diffs `description` and deletes the `task-media` that disappeared;
+- when a task is deleted (single / bulk / series), all linked images are removed with it;
+- cleanup calls are fire-and-forget — a GC failure does not block the main operation, and the task stays consistent.
 
-**Legacy migration (из `bytea` в Storage):**
+**Legacy migration (from `bytea` to Storage):**
 
 ```bash
 node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
@@ -368,11 +368,11 @@ node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
 
 ## 🛠 Admin Console
 
-Страница: `/admin/users`
+Page: `/admin/users`
 
-| Вкладка | Возможности |
+| Tab | Capabilities |
 |---|---|
-| **Users** | обзор пользователей, workspace ownership, storage usage |
+| **Users** | user overview, workspace ownership, storage usage |
 | **Workspaces** | rename / delete workspace |
 | **Backups** | create / upload / download / rename / delete / restore |
 
@@ -380,68 +380,68 @@ node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
 
 ## 💾 Backup / Restore
 
-`backup-service` через `/backup`:
+`backup-service` under `/backup`:
 
-| Метод | Endpoint |
+| Method | Endpoint |
 |---|---|
 | `GET` | `/backup/backups` |
 | `POST` | `/backup/backups` |
-| `POST` | `/backup/backups/upload` *(binary, имя в `x-backup-name`)* |
+| `POST` | `/backup/backups/upload` *(binary, name in `x-backup-name`)* |
 | `GET` | `/backup/backups/:name/download` |
 | `PATCH` | `/backup/backups/:name` |
 | `DELETE` | `/backup/backups/:name` |
 | `POST` | `/backup/backups/:name/restore` |
-| `POST` | `/backup/storage-backups` *(ручной бэкап Storage-блобов; требует `STORAGE_BLOBS_DIR`, иначе 501)* |
+| `POST` | `/backup/storage-backups` *(manual backup of Storage blobs; requires `STORAGE_BLOBS_DIR`, otherwise 501)* |
 
-**Restore-поток:**
-1. создаёт safety backup `pre-restore-*`;
-2. делает `pg_restore` по схемам из `BACKUP_SCHEMAS`;
-3. восстанавливает права для `auth` роли;
-4. сбрасывает соединения GoTrue к БД.
+**Restore flow:**
+1. creates a safety backup `pre-restore-*`;
+2. runs `pg_restore` for the schemas in `BACKUP_SCHEMAS`;
+3. restores grants for the `auth` role;
+4. drops GoTrue's connections to the DB.
 
-**Disaster recovery (восстановление на чистый сервер).** Штатный restore рассчитан
-на базу с совпадающей схемой (тот же сервер). На свежеинициализированной БД
-`pg_restore --clean --exit-on-error` падает, поэтому перед загрузкой дампа нужно:
+**Disaster recovery (restoring onto a clean server).** The standard restore assumes a
+database with a matching schema (the same server). On a freshly initialized DB
+`pg_restore --clean --exit-on-error` fails, so before loading the dump you need to:
 
-1. Удалить предсозданные образом объекты и создать пустые схемы
-   (`pg_restore --schema` не создаёт сами схемы):
+1. Drop the objects pre-created by the image and create empty schemas
+   (`pg_restore --schema` does not create the schemas themselves):
    ```sql
    DROP SCHEMA IF EXISTS storage CASCADE;
    DROP SCHEMA IF EXISTS auth CASCADE;
    DROP SCHEMA IF EXISTS public CASCADE;
    CREATE SCHEMA public; CREATE SCHEMA auth; CREATE SCHEMA storage;
    ```
-2. Создать недостающие роли, на которые есть GRANT в дампе:
+2. Create the missing roles that the dump GRANTs to:
    `CREATE ROLE metabase_ro NOLOGIN;`
-3. Загрузить дамп **без** `--clean`:
+3. Load the dump **without** `--clean`:
    ```bash
    pg_restore --single-transaction --exit-on-error --no-owner \
      --schema public --schema auth --schema storage \
-     --dbname "$DB_URL" <файл>.dump
+     --dbname "$DB_URL" <file>.dump
    ```
-4. Дальше — шаги 3–4 штатного restore (права `auth`, перезапуск GoTrue/storage).
+4. Then follow steps 3–4 of the standard restore (`auth` grants, restart GoTrue/storage).
 
-Процедура проверена на копии прод-дампа (июнь 2026): после подготовки дамп
-встаёт без ошибок, повторный штатный restore поверх — тоже.
+Verified against a copy of the production dump (June 2026): after preparation the dump
+loads without errors, and a subsequent standard restore on top works too.
 
 ---
 
-## 🗃 Миграции (Liquibase)
+## 🗃 Migrations (Liquibase)
 
-- SQL файлы: `infra/supabase/migrations/*.sql`
-- Мастер-чейнжлог: `infra/supabase/liquibase/changelog-master.xml`
+- SQL files: `infra/supabase/migrations/*.sql`
+- Master changelog: `infra/supabase/liquibase/changelog-master.xml`
 
-Ручной прогон:
+Manual run:
 
 ```bash
 docker compose -f infra/docker-compose.prod.yml --env-file .env run --rm migrate
 ```
 
-**Добавить новую миграцию:**
+**Add a new migration:**
 
-1. Создать `infra/supabase/migrations/00xx_name.sql`.
-2. Добавить `changeSet` в `infra/supabase/liquibase/changelog-master.xml`.
-3. Прогнать `migrate`.
+1. Create `infra/supabase/migrations/00xx_name.sql`.
+2. Add a `changeSet` to `infra/supabase/liquibase/changelog-master.xml`.
+3. Run `migrate`.
 
 ---
 
@@ -450,7 +450,7 @@ docker compose -f infra/docker-compose.prod.yml --env-file .env run --rm migrate
 <details>
 <summary><code>OAUTH2_PROXY_COOKIE_SECRET is required for oauth2-proxy</code></summary>
 
-Пустая переменная `OAUTH2_PROXY_COOKIE_SECRET`. `make up` обычно генерирует её автоматически; для `make up-prod` задайте значение в `.env` или дайте скрипту сгенерировать.
+The `OAUTH2_PROXY_COOKIE_SECRET` variable is empty. `make up` usually generates it automatically; for `make up-prod` set the value in `.env` or let the script generate it.
 
 </details>
 
@@ -461,39 +461,39 @@ docker compose -f infra/docker-compose.prod.yml --env-file .env run --rm migrate
 docker compose -f infra/docker-compose.prod.yml --env-file .env ps
 ```
 
-`oauth2-proxy` и `web` должны быть в статусе `Up`.
+`oauth2-proxy` and `web` should be in the `Up` state.
 
 </details>
 
 <details>
 <summary><code>Warning: could not confirm Keycloak sync bootstrap</code></summary>
 
-Миграции применились, но `bootstrap.sync` не вернул `200`. Обычно причина — неверные `KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD`. Проверьте лог `functions` на `Invalid user credentials`.
+Migrations applied, but `bootstrap.sync` did not return `200`. The usual cause is wrong `KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD`. Check the `functions` log for `Invalid user credentials`.
 
 </details>
 
 <details>
-<summary><code>Invalid user credentials</code> в admin sync</summary>
+<summary><code>Invalid user credentials</code> in admin sync</summary>
 
-Admin-учётка в `.env` должна совпадать с master admin в Keycloak. После исправления перезапустите: `keycloak`, `functions`, `gateway`.
+The admin account in `.env` must match the master admin in Keycloak. After fixing it, restart: `keycloak`, `functions`, `gateway`.
 
 </details>
 
 <details>
 <summary><code>The schema must be one of the following: public</code></summary>
 
-Где-то остался запрос к non-public schema через PostgREST. В актуальной версии users storage считается через `public.task_media`.
+Somewhere a query still targets a non-public schema via PostgREST. In the current version user storage is computed through `public.task_media`.
 
 </details>
 
 <details>
-<summary>Bad Request в редиректе на Keycloak</summary>
+<summary>Bad Request on the Keycloak redirect</summary>
 
-Проверьте согласованность:
+Check consistency of:
 - `OAUTH2_PROXY_CLIENT_ID`, `OAUTH2_PROXY_REDIRECT_URL`;
 - `SITE_URL` / `APP_URL` / `GOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI`;
-- результат `keycloak-ensure-client-urls.sh` (redirect URIs);
-- результат `keycloak-ensure-realm-frontend-url.sh` (realm `frontendUrl`).
+- the output of `keycloak-ensure-client-urls.sh` (redirect URIs);
+- the output of `keycloak-ensure-realm-frontend-url.sh` (realm `frontendUrl`).
 
 </details>
 
@@ -509,14 +509,14 @@ docker volume create supabase_db_data
 <details>
 <summary><code>Warning: Keycloak realm drift detected</code></summary>
 
-Текущий realm на сервере не совпадает с managed JSON (деплой продолжен в audit-only при `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT=false`).
+The realm currently on the server does not match the managed JSON (the deploy continued in audit-only mode when `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT=false`).
 
-Проверить:
+Check:
 ```bash
 infra/scripts/keycloak-realm-drift-audit.sh .env
 ```
 
-Обновить baseline:
+Update the baseline:
 ```bash
 infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeline-realm.prod.json
 ```
@@ -525,41 +525,41 @@ infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeli
 
 ---
 
-## 🔐 Безопасность
+## 🔐 Security
 
-Перед production-запуском:
+Before going to production:
 
-- ✅ сменить все dev secrets в `.env`;
-- ✅ задать сильные пароли и cookie secrets;
-- ✅ ограничить CORS / origins;
-- ✅ включить HTTPS и `OAUTH2_PROXY_COOKIE_SECURE=true`;
-- ✅ ограничить backup endpoint сетевыми правилами.
+- ✅ rotate all dev secrets in `.env`;
+- ✅ set strong passwords and cookie secrets;
+- ✅ restrict CORS / origins;
+- ✅ enable HTTPS and `OAUTH2_PROXY_COOKIE_SECURE=true`;
+- ✅ restrict the backup endpoint with network rules.
 
 ---
 
-## 📚 Документация
+## 📚 Documentation
 
-- [`CHANGELOG.md`](./CHANGELOG.md) · [`CHANGELOG.en.md`](./CHANGELOG.en.md) — история изменений.
-- [`MANIFESTO.md`](./MANIFESTO.md) — продуктовые принципы.
-- [`AGENTS.md`](./AGENTS.md) — рабочая инструкция для AI-ассистентов при работе с репозиторием.
+- [`CHANGELOG.md`](./CHANGELOG.md) · [`CHANGELOG.en.md`](./CHANGELOG.en.md) — change history.
+- [`MANIFESTO.md`](./MANIFESTO.md) — product principles.
+- [`AGENTS.md`](./AGENTS.md) — working instructions for AI assistants in this repository.
 
-> Внутренние материалы для онбординга и ИИ-агента (обзор продукта, архитектурные
-> границы, specification-by-example) лежат локально в `docs/` и **не входят в
-> репозиторий** (`.gitignore`).
+> Internal onboarding and AI-agent materials (product overview, architectural
+> boundaries, specification-by-example) live locally in `docs/` and are **not part of
+> the repository** (`.gitignore`).
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork и создайте feature-бранч: `git checkout -b feature/my-feature`.
-2. Установите зависимости: `npm install`.
-3. Поднимите локальный контур: `make up`.
-4. Добавьте тесты (`npm run test` / `npm run test:integration`) и убедитесь, что чисто: `npm run lint` и `npm run typecheck`.
-5. При добавлении новых переводимых строк обновите каталоги Lingui: `npm run lingui:extract && npm run lingui:compile`.
-6. Отправьте PR с понятным описанием и ссылкой на запись в `CHANGELOG.md` (секция `Unreleased`).
+1. Fork and create a feature branch: `git checkout -b feature/my-feature`.
+2. Install dependencies: `npm install`.
+3. Bring up the local stack: `make up`.
+4. Add tests (`npm run test` / `npm run test:integration`) and make sure it's clean: `npm run lint` and `npm run typecheck`.
+5. When adding new translatable strings, update the Lingui catalogs: `npm run lingui:extract && npm run lingui:compile`.
+6. Open a PR with a clear description and a link to the `CHANGELOG.md` entry (the `Unreleased` section).
 
 ---
 
-## 📄 Лицензия
+## 📄 License
 
-Private / proprietary. Все права защищены.
+Private / proprietary. All rights reserved.
