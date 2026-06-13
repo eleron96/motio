@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.33] - 2026-06-13
+### Changed
+- Нет зафиксированных изменений.
+
 ## [0.8.32] - 2026-06-13
 ### Fixed
 - Исправлены картинки в задачах, которые со временем переставали отображаться.
