@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Assignee, Project, Status, Task } from '@/features/planner/types/planner';
-import { computeProfileSummary } from '@/features/auth/lib/profileSummary';
+import { computeProfileSummary, formatCompactCount } from '@/features/auth/lib/profileSummary';
 
 const TODAY = '2026-06-14';
 
@@ -111,5 +111,28 @@ describe('computeProfileSummary', () => {
     expect(empty.hasData).toBe(false);
     expect(empty.completed).toBe(0);
     expect(empty.monthsInMotio).toBe(5);
+  });
+});
+
+describe('formatCompactCount', () => {
+  it('returns the raw integer below 1000', () => {
+    expect(formatCompactCount(0)).toBe('0');
+    expect(formatCompactCount(999)).toBe('999');
+  });
+
+  it('compacts thousands with a trimmed decimal', () => {
+    expect(formatCompactCount(1000)).toBe('1K');
+    expect(formatCompactCount(1500)).toBe('1.5K');
+    expect(formatCompactCount(15000)).toBe('15K');
+  });
+
+  it('compacts millions', () => {
+    expect(formatCompactCount(1_000_000)).toBe('1M');
+    expect(formatCompactCount(2_500_000)).toBe('2.5M');
+  });
+
+  it('localizes the suffix for Russian', () => {
+    expect(formatCompactCount(1500, 'ru')).toBe('1.5К');
+    expect(formatCompactCount(2_000_000, 'ru')).toBe('2М');
   });
 });
