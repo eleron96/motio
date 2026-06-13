@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { AlertTriangle, Database, LogOut, Pencil, Sliders, Trash2, User } from 'lucide-react';
+import { AlertTriangle, CalendarDays, Database, LogOut, Pencil, Sliders, Trash2, User } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Switch } from '@/shared/ui/switch';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -20,6 +20,8 @@ import { localeLabels, type Locale } from '@/shared/lib/locale';
 import { APP_VERSION, getLatestReleaseNotes } from '@/shared/lib/releaseNotes';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { AvatarWithEditButton } from './AvatarWithEditButton';
+import { ProfileSummary } from './ProfileSummary';
+import { useProfileSummary } from '@/features/auth/hooks/useProfileSummary';
 import { DeleteAccountWizard } from './DeleteAccountWizard';
 import { DataExportButton } from './DataExportButton';
 import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
@@ -121,6 +123,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
   const signedInLabel = getAccountSignedInLabel(user, t`Unknown user`);
   const initials = getAccountInitials(displayName, signedInLabel);
+  const summary = useProfileSummary();
+  const months = summary.monthsInMotio ?? 0;
 
   const isDisplayNameDirty = displayName !== initialDisplayName;
   const showSave = Boolean(user && isEditingName && isDisplayNameDirty);
@@ -238,7 +242,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
             <div className="flex-1 overflow-y-auto">
               {/* ---------------- PROFILE TAB ---------------- */}
-              <TabsContent value="profile" className="mt-0 px-6 py-5 focus-visible:outline-none">
+              <TabsContent value="profile" className="mt-0 flex h-full flex-col px-6 py-5 focus-visible:outline-none">
                 <div className="flex flex-col items-center space-y-4 text-center">
                   {user && (
                     <AvatarWithEditButton
@@ -311,6 +315,17 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                   {error && <div className="text-sm text-destructive">{error}</div>}
                   {saved && <div className="text-sm text-emerald-600">{t`Saved.`}</div>}
 
+                  <ProfileSummary summary={summary} animate={open} />
+                </div>
+
+                <div className="mt-auto flex flex-col items-center gap-3 pt-6">
+                  {summary.monthsInMotio !== null && (
+                    <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+                      <CalendarDays className="h-3 w-3 shrink-0" aria-hidden="true" />
+                      <span>{t`${months} mo in Motio`}</span>
+                    </div>
+                  )}
+
                   {isDemo ? (
                     <Button
                       type="button"
@@ -322,7 +337,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                           window.location.href = '/';
                         }
                       }}
-                      className="mt-2 gap-2"
+                      className="gap-2"
                     >
                       <LogOut className="h-4 w-4" />
                       {t`Exit demo`}
@@ -332,7 +347,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                       type="button"
                       variant="outline"
                       onClick={() => signOut()}
-                      className="mt-2 gap-2"
+                      className="gap-2"
                     >
                       <LogOut className="h-4 w-4" />
                       {t`Sign out`}
