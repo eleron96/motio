@@ -516,7 +516,6 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                     setTitle(e.target.value);
                   }}
                   placeholder={t`Enter task title...`}
-                  autoFocus
                 />
               </div>
 

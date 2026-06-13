@@ -234,7 +234,6 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ inCapsule 
                 value={workspaceName}
                 onChange={(event) => setWorkspaceName(event.target.value)}
                 placeholder={t`My team workspace`}
-                autoFocus
                 disabled={!canCreateWorkspace}
               />
               {createError && (
