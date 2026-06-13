@@ -16,6 +16,8 @@ const makeProject = (overrides: Partial<Project>): Project => ({
   color: '#000000',
   archived: false,
   customerId: null,
+  ownerGroupId: null,
+  status: null,
   ...overrides,
 });
 
@@ -24,6 +26,8 @@ const makeMilestone = (overrides: Partial<Milestone>): Milestone => ({
   title: 'Milestone',
   projectId: 'project-id',
   date: '2026-02-01',
+  note: null,
+  statusOverride: null,
   ...overrides,
 });
 
@@ -33,7 +37,7 @@ describe('projectsSelectors', () => {
       makeProject({ id: 'p1', name: 'Alpha', customerId: 'c1' }),
       makeProject({ id: 'p2', name: 'Beta', customerId: null }),
     ];
-    const customers: Customer[] = [{ id: 'c1', name: 'Acme' }];
+    const customers: Customer[] = [{ id: 'c1', name: 'Acme', industry: null }];
     const milestones = [
       makeMilestone({ id: 'm1', title: 'Plan', projectId: 'p2', date: '2026-02-03' }),
       makeMilestone({ id: 'm2', title: 'Kickoff', projectId: 'p1', date: '2026-02-02' }),
@@ -94,7 +98,7 @@ describe('projectsSelectors', () => {
       makeProject({ id: 'p1', name: 'Alpha', customerId: 'c1' }),
       makeProject({ id: 'p2', name: 'Beta', customerId: null }),
     ];
-    const sortedCustomers: Customer[] = [{ id: 'c1', name: 'Acme' }];
+    const sortedCustomers: Customer[] = [{ id: 'c1', name: 'Acme', industry: null }];
     const visibleMilestones = [
       makeMilestone({ id: 'm1', projectId: 'p1' }),
       makeMilestone({ id: 'm2', projectId: 'p2' }),
@@ -132,7 +136,7 @@ describe('projectsSelectors', () => {
     const grouped = groupProjectsForSidebar(
       projects,
       true,
-      [{ id: 'c1', name: 'Acme' }],
+      [{ id: 'c1', name: 'Acme', industry: null }],
       ['p2'],
       'No customer',
       'All projects',

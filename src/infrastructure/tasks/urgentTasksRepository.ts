@@ -46,5 +46,5 @@ export const fetchUrgentTasks = async ({
 
   if (error) throw new Error(error.message);
 
-  return (data ?? []).map((row) => mapTaskRow(row as TaskMappedRow));
+  return (data ?? []).map((row) => mapTaskRow(row as unknown as TaskMappedRow));
 };

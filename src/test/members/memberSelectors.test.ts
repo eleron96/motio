@@ -11,6 +11,8 @@ const makeAssignee = (overrides: Partial<Assignee>): Assignee => ({
   id: 'assignee-id',
   name: 'Assignee',
   isActive: true,
+  email: null,
+  phone: null,
   ...overrides,
 });
 

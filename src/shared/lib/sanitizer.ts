@@ -19,8 +19,6 @@ const RICH_TEXT_TAGS = [
   'img',
 ];
 
-const RICH_TEXT_CSS_PROPERTIES = ['width', 'height'];
-
 const RICH_TEXT_URI_REGEXP =
   /^(?:(?:https?|mailto)|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i;
 
@@ -41,9 +39,7 @@ export const sanitizeTaskRichText = (html: string): string => {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: RICH_TEXT_TAGS,
     ALLOWED_ATTR: TASK_DESCRIPTION_ATTRS,
-    ALLOWED_URI_REGEXP: RICH_TEXT_URI_REGEXP,
-    ALLOWED_CSS_PROPERTIES: RICH_TEXT_CSS_PROPERTIES,
-  });
+    ALLOWED_URI_REGEXP: RICH_TEXT_URI_REGEXP,  });
 };
 
 export const sanitizeCommentRichText = (html: string): string => {
@@ -51,7 +47,5 @@ export const sanitizeCommentRichText = (html: string): string => {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: RICH_TEXT_TAGS,
     ALLOWED_ATTR: COMMENT_ATTRS,
-    ALLOWED_URI_REGEXP: RICH_TEXT_URI_REGEXP,
-    ALLOWED_CSS_PROPERTIES: RICH_TEXT_CSS_PROPERTIES,
-  });
+    ALLOWED_URI_REGEXP: RICH_TEXT_URI_REGEXP,  });
 };

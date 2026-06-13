@@ -38,6 +38,8 @@ describe('ProjectCardHeader — mobile status edit (M2)', () => {
         project={baseProject}
         customer={null}
         canEdit
+        isTracked={false}
+        onToggleTracked={vi.fn()}
         onSaveStatus={vi.fn(async () => true)}
       />,
     );
@@ -59,6 +61,8 @@ describe('ProjectCardHeader — mobile status edit (M2)', () => {
         project={baseProject}
         customer={null}
         canEdit
+        isTracked={false}
+        onToggleTracked={vi.fn()}
         onSaveStatus={vi.fn(async () => true)}
       />,
     );
@@ -79,6 +83,8 @@ describe('ProjectCardHeader — mobile status edit (M2)', () => {
         project={baseProject}
         customer={null}
         canEdit={false}
+        isTracked={false}
+        onToggleTracked={vi.fn()}
         onSaveStatus={vi.fn(async () => true)}
       />,
     );

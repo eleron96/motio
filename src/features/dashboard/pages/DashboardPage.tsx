@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ResponsiveGridLayout, cloneLayout, useContainerWidth } from 'react-grid-layout';
-import type { Layout, Layouts } from 'react-grid-layout';
+import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { ChevronDown, Plus, Settings } from 'lucide-react';
@@ -548,7 +548,7 @@ const DashboardPage = () => {
     return <Navigate to="/app" replace />;
   }
 
-  const handleLayoutChange = (_layout: Layout[], allLayouts: Layouts) => {
+  const handleLayoutChange = (_layout: Layout, allLayouts: Partial<Record<string, Layout>>) => {
     if (!canEdit) return;
     setLayouts(allLayouts as DashboardLayouts);
   };
@@ -877,7 +877,6 @@ const DashboardPage = () => {
           onDragStop={handleGridDragStop}
           onResizeStop={handleResizeStop}
           onBreakpointChange={handleBreakpointChange}
-          measureBeforeMount={false}
           compactor={gridCompactor}
         >
           {widgets.map((widget) => (

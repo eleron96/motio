@@ -106,11 +106,11 @@ export const createWorkspaceActions = (
     const shouldFetchCounts = assigneeCountsDate !== today || assigneeCountsWorkspaceId !== workspaceId;
 
     const countsPromise: Promise<SupabaseResult<unknown>> = shouldFetchCounts
-      ? supabase.rpc('assignee_unique_task_counts', {
+      ? Promise.resolve(supabase.rpc('assignee_unique_task_counts', {
         p_workspace_id: workspaceId,
         p_start_date: today,
         p_end_date: countsEnd,
-      })
+      }))
       : Promise.resolve({ data: null, error: null });
 
     // Не блокируем first paint: tracked-projects не критичны для первичной отрисовки.
@@ -289,7 +289,7 @@ export const createWorkspaceActions = (
 
     if (get().dataRequestId !== requestId) return;
 
-    const taskRows = (tasksRes.data ?? []) as TaskRow[];
+    const taskRows = (tasksRes.data ?? []) as unknown as TaskRow[];
     const nextTaskIds = new Set(taskRows.map((row) => row.id));
     const assigneeRows = (assigneesRes.data ?? []) as AssigneeRow[];
     const taskAssigneeIds = new Set(
@@ -550,7 +550,7 @@ export const createWorkspaceActions = (
       return { members: [], error: error.message };
     }
 
-    const members = ((data ?? []) as WorkspaceMemberWithProfileRow[]).map((row) => ({
+    const members = ((data ?? []) as unknown as WorkspaceMemberWithProfileRow[]).map((row) => ({
       userId: row.user_id,
       role: row.role,
       email: row.profiles?.email ?? '',
