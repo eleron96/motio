@@ -24,7 +24,6 @@ dist-ssr
 .env.*
 !.env.example
 !.env.test
-!.env.compose.example
 !infra/metabase/.env.metabase.example
 .supabase
 .supabase-functions.log
@@ -45,4 +44,3 @@ docs/
 *.njsproj
 *.sln
 *.sw?
-.claude/
