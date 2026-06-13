@@ -917,7 +917,7 @@ const ProjectsPage = () => {
               aria-pressed={mode === tabItem.id}
               className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
                 mode === tabItem.id
-                  ? 'bg-foreground text-background shadow-sm'
+                  ? 'bg-primary/15 text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
