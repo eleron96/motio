@@ -61,7 +61,7 @@ function getSegmentedControlItemClassName({
   size,
   fullWidth,
   className,
-  activeClassName = "bg-foreground text-background shadow-sm",
+  activeClassName = "bg-primary/15 text-primary",
   inactiveClassName,
 }: SegmentedControlItemClassNameOptions) {
   return cn(
