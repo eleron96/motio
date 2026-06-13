@@ -314,3 +314,4 @@
 2026-06-13T15:20:37Z | 0.8.30 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260613-151951.dump | No documented changes.
 2026-06-13T17:28:07Z | 0.8.31 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260613-172711.dump | No documented changes.
 2026-06-13T18:04:42Z | 0.8.32 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260613-180356.dump | Fixed task images that stopped displaying over time.
+2026-06-13T20:10:30Z | 0.8.33 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260613-200935.dump | No documented changes.
