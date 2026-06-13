@@ -8,6 +8,12 @@ type MockTooltipState = {
   payload: Array<Record<string, unknown>>;
 };
 
+type MockTooltipContentProps = {
+  active?: boolean;
+  label?: string;
+  payload?: Array<Record<string, unknown>>;
+};
+
 let mockTooltipState: MockTooltipState = {
   label: '',
   payload: [],
@@ -42,7 +48,7 @@ vi.mock('recharts', async () => {
     XAxis: ({ dataKey, hide }: { dataKey?: string; hide?: boolean }) => (
       <div data-testid="x-axis" data-key={dataKey} data-hide={hide ? 'true' : 'false'} />
     ),
-    Tooltip: ({ content }: { content?: React.ReactElement }) => (
+    Tooltip: ({ content }: { content?: React.ReactElement<MockTooltipContentProps> }) => (
       <div data-testid="chart-tooltip">
         {ReactModule.isValidElement(content)
           ? ReactModule.cloneElement(content, {
@@ -81,7 +87,7 @@ describe('DashboardWidgetCard chart tooltip wiring', () => {
       globalThis.ResizeObserver = class {
         observe() {}
         disconnect() {}
-      } as typeof ResizeObserver;
+      } as unknown as typeof ResizeObserver;
     }
   });
 

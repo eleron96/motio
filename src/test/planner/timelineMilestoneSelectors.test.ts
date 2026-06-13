@@ -17,6 +17,8 @@ const makeProject = (overrides: Partial<Project>): Project => ({
   color: '#000000',
   archived: false,
   customerId: null,
+  ownerGroupId: null,
+  status: null,
   ...overrides,
 });
 
@@ -25,6 +27,8 @@ const makeMilestone = (overrides: Partial<Milestone>): Milestone => ({
   title: 'Milestone',
   projectId: 'project-id',
   date: '2026-02-24',
+  note: null,
+  statusOverride: null,
   ...overrides,
 });
 

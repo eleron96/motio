@@ -172,7 +172,7 @@ describe('plannerStore task-media garbage collection', () => {
     await actions.deleteTasks(['task-1', 'task-2']);
 
     expect(mediaMocks.deleteTaskMediaBatch).toHaveBeenCalledTimes(1);
-    const argument = mediaMocks.deleteTaskMediaBatch.mock.calls[0][0] as string[];
+    const argument = (mediaMocks.deleteTaskMediaBatch.mock.calls[0] as unknown[])[0] as string[];
     expect([...argument].sort()).toEqual(['m1', 'm2']);
   });
 

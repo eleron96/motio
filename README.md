@@ -6,7 +6,7 @@
 
 **Командное планирование задач на таймлайне.**
 
-[![Version](https://img.shields.io/badge/version-0.8.12-blue.svg)](./VERSION)
+[![Version](https://img.shields.io/badge/version-0.8.31-blue.svg)](./VERSION)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5-646cff.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -68,7 +68,7 @@ make up
 Команда:
 - создаёт/обновляет `.env`;
 - генерирует `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `OAUTH2_PROXY_COOKIE_SECRET`;
-- поднимает `db`, `keycloak`, `auth`, `rest`, `functions`, `backup`, `gateway`, `web`, `oauth2-proxy`;
+- поднимает `db`, `keycloak`, `auth`, `rest`, `functions`, `gateway`, `web`, `oauth2-proxy` (`backup` / `realtime` / `storage` стартуют только в `up-prod`);
 - применяет Liquibase миграции;
 - вызывает `bootstrap.sync` для синхронизации Keycloak ↔ Supabase.
 
@@ -161,7 +161,7 @@ make release-testing MSG="feat(...): ..." RU="..." EN="..." [TYPE=changed] [NEXT
 │   ├── supabase/
 │   │   ├── migrations/                  — SQL миграции
 │   │   ├── liquibase/changelog-master.xml
-│   │   ├── functions/                   — Edge Functions: admin, invite, task-media, main
+│   │   ├── functions/                   — Edge Functions: main, admin, invite, task-media, inbox, notifications, holidays, data-export, account-purge
 │   │   └── nginx.conf                   — gateway: /auth/v1, /rest/v1, /functions/v1, /backup
 │   ├── keycloak/realm/
 │   │   ├── timeline-realm.json          — dev realm
@@ -280,7 +280,7 @@ make check-prod-secrets-remote   # проверить .env на удалённо
 - `TASK_MEDIA_MAX_FILE_BYTES` — `5MB` по умолчанию.
 - `TASK_MEDIA_USER_QUOTA_BYTES` — `200MB` по умолчанию.
 - `TASK_MEDIA_WORKSPACE_QUOTA_BYTES` — `2GB` по умолчанию.
-- `TASK_MEDIA_TOKEN_TTL_SECONDS` — `315360000` (10 лет) по умолчанию. Токен зашит в URL внутри HTML описания задачи и не обновляется на клиенте, поэтому короткий TTL ломает картинки в старых задачах.
+- `TASK_MEDIA_TOKEN_TTL_SECONDS` — `315360000` (10 лет) по умолчанию. Токен зашит в URL внутри HTML описания задачи и не обновляется на клиенте, поэтому TTL держим длинным: короткое значение тихо ломает картинки в старых задачах.
 
 </details>
 
@@ -307,6 +307,7 @@ npm run dev:compose       # полный dev-контур через docker comp
 npm run dev:local         # Supabase CLI режим (fallback → dev:compose)
 npm run build
 npm run lint
+npm run typecheck         # tsc --noEmit (входит в CI-гейт)
 npm run test              # unit + component
 npm run test:watch
 npm run test:integration
@@ -327,9 +328,10 @@ npm run lingui:compile    # скомпилировать .po → .js
 | `bootstrap.sync` | начальная синхронизация Keycloak ↔ Supabase |
 | `users.list` | обзор пользователей |
 | `workspaces.list` / `workspaces.update` / `workspaces.delete` | управление workspace |
+| `superAdmins.list` | обзор супер-админов |
 | `keycloak.sync` | ресинх ролей |
 
-> `users.create` / `users.update` / `users.delete` **возвращают ошибку по дизайну** — user lifecycle управляется в Keycloak.
+> `users.create` / `users.update` / `users.delete` / `users.resetPassword` и `superAdmins.create` / `superAdmins.delete` **возвращают ошибку по дизайну** — lifecycle пользователей и назначение прав управляются в Keycloak.
 
 ### `invite`
 
@@ -389,6 +391,7 @@ node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
 | `PATCH` | `/backup/backups/:name` |
 | `DELETE` | `/backup/backups/:name` |
 | `POST` | `/backup/backups/:name/restore` |
+| `POST` | `/backup/storage-backups` *(ручной бэкап Storage-блобов; требует `STORAGE_BLOBS_DIR`, иначе 501)* |
 
 **Restore-поток:**
 1. создаёт safety backup `pre-restore-*`;
@@ -551,7 +554,7 @@ infra/scripts/keycloak-export-realm-baseline.sh .env infra/keycloak/realm/timeli
 1. Fork и создайте feature-бранч: `git checkout -b feature/my-feature`.
 2. Установите зависимости: `npm install`.
 3. Поднимите локальный контур: `make up`.
-4. Добавьте тесты (`npm run test` / `npm run test:integration`) и убедитесь, что линтер чист: `npm run lint`.
+4. Добавьте тесты (`npm run test` / `npm run test:integration`) и убедитесь, что чисто: `npm run lint` и `npm run typecheck`.
 5. При добавлении новых переводимых строк обновите каталоги Lingui: `npm run lingui:extract && npm run lingui:compile`.
 6. Отправьте PR с понятным описанием и ссылкой на запись в `CHANGELOG.md` (секция `Unreleased`).
 

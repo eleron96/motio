@@ -74,6 +74,7 @@ export interface UseTaskRepeatConfigResult {
   setPendingRepeatUpdate: Dispatch<SetStateAction<PendingRepeatUpdate | null>>;
   repeatInFlightRef: MutableRefObject<boolean>;
   repeatUntilAutoRef: MutableRefObject<boolean>;
+  repeatConfigSnapshotRef: MutableRefObject<string>;
   repeatConfigDirty: boolean;
   handleRepeatFrequencyChange: (value: RepeatFrequency) => void;
   handleRepeatEndsChange: (value: RepeatEnds) => void;
