@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.37] - 2026-06-13
+### Changed
+- No documented changes.
+
 ## [0.8.36] - 2026-06-13
 ### Changed
 - Large numbers in the profile summary are now shortened — thousands show as K, millions as M.
