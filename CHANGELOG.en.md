@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Fixed task images that stopped displaying over time.
+
 ## [0.8.31] - 2026-06-13
 ### Changed
 - No documented changes.
