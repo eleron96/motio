@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.43] - 2026-06-15
+### Changed
+- No documented changes.
+
 ## [0.8.42] - 2026-06-15
 ### Changed
 - The dashboard save status now appears as a toast notification instead of a separate status line.
