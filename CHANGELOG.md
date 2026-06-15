@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.38] - 2026-06-15
+### Fixed
+- Исправлены пустые вкладки «Предпочтения» и «Данные» в настройках аккаунта.
+
 ## [0.8.37] - 2026-06-13
 ### Changed
 - Нет зафиксированных изменений.
