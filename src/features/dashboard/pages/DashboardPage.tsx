@@ -4,6 +4,7 @@ import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { ChevronDown, Plus, Settings } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
@@ -105,9 +106,6 @@ const DashboardPage = () => {
   const [renameDashboardSaving, setRenameDashboardSaving] = useState(false);
   const [deleteDashboardOpen, setDeleteDashboardOpen] = useState(false);
   const [dashboardDeleting, setDashboardDeleting] = useState(false);
-  // "All changes saved" should appear only after a real edit this session — not on
-  // a fresh visit where the dashboard just loaded clean. Track that here.
-  const [hasEdited, setHasEdited] = useState(false);
   const [isTouchPointer, setIsTouchPointer] = useState(false);
   const [mobileDragArmedWidgetId, setMobileDragArmedWidgetId] = useState<string | null>(null);
   const [mobileDragPressingWidgetId, setMobileDragPressingWidgetId] = useState<string | null>(null);
@@ -387,15 +385,21 @@ const DashboardPage = () => {
     loadStats,
   ]);
 
+  // Surface the save lifecycle as a single transient toast (Saving… → All changes
+  // saved) instead of a persistent status row, which read as an empty line at rest.
+  const wasSavingRef = useRef(false);
   useEffect(() => {
-    if (dirty) setHasEdited(true);
-  }, [dirty]);
+    if (saving) {
+      toast.loading(t`Saving...`, { id: 'dashboard-save' });
+    } else if (wasSavingRef.current && !error) {
+      toast.success(t`All changes saved`, { id: 'dashboard-save' });
+    }
+    wasSavingRef.current = saving;
+  }, [saving, error]);
 
-  // Reset on dashboard/workspace switch so a freshly loaded board doesn't inherit
-  // the previous one's "saved" status.
   useEffect(() => {
-    setHasEdited(false);
-  }, [currentDashboardId, currentWorkspaceId]);
+    if (error) toast.error(error, { id: 'dashboard-save' });
+  }, [error]);
 
   useEffect(() => {
     if (!canEdit || !dirty || !currentWorkspaceId || !currentDashboardId || isWorkspaceSwitching) return;
@@ -904,16 +908,6 @@ const DashboardPage = () => {
 
   return (
     <>
-
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border text-xs text-muted-foreground">
-        <div>
-          {saving && t`Saving...`}
-          {!saving && dirty && canEdit && t`Unsaved changes`}
-          {!saving && !dirty && canEdit && hasEdited && t`All changes saved`}
-        </div>
-        {error && <div className="text-destructive">{error}</div>}
-      </div>
-
       {isTouchReorderMode ? (
         dashboardCanvas
       ) : (
