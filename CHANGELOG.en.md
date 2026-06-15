@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.39] - 2026-06-15
+### Changed
+- No documented changes.
+
 ## [0.8.38] - 2026-06-15
 ### Fixed
 - Fixed empty Preferences and Data tabs in account settings.
