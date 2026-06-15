@@ -7,6 +7,50 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.43] - 2026-06-15
+### Changed
+- No documented changes.
+
+## [0.8.42] - 2026-06-15
+### Changed
+- The dashboard save status now appears as a toast notification instead of a separate status line.
+
+## [0.8.41] - 2026-06-15
+### Added
+- Search fields for customers, milestones, members, access and groups now have a clear button.
+
+
+### Fixed
+- The dashboard no longer shows an all-changes-saved note when you just open the page without making changes.
+
+## [0.8.40] - 2026-06-15
+### Added
+- The search on the Projects page now has a clear button to reset the field in one click.
+
+## [0.8.39] - 2026-06-15
+### Changed
+- No documented changes.
+
+## [0.8.38] - 2026-06-15
+### Fixed
+- Fixed empty Preferences and Data tabs in account settings.
+
+## [0.8.37] - 2026-06-13
+### Changed
+- No documented changes.
+
+## [0.8.36] - 2026-06-13
+### Changed
+- Large numbers in the profile summary are now shortened — thousands show as K, millions as M.
+
+## [0.8.35] - 2026-06-13
+### Changed
+- No documented changes.
+
+## [0.8.34] - 2026-06-13
+### Added
+- The Profile tab in account settings now shows a short summary of your tasks: completion progress, what's in progress and overdue, weekly activity, and how long you've been in Motio.
+
 ## [0.8.33] - 2026-06-13
 ### Changed
 - No documented changes.
