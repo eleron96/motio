@@ -38,3 +38,4 @@
 2026-06-13T21:41:17Z | 0.8.34 | cf54208 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | The Profile tab in account settings now shows a short summary of your tasks: completion progress, what's in progress and overdue, weekly activity, and how long you've been in Motio.
 2026-06-13T22:11:06Z | 0.8.36 | 6865521 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Large numbers in the profile summary are now shortened — thousands show as K, millions as M.
 2026-06-15T08:56:31Z | 0.8.38 | 53e8f19 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed empty Preferences and Data tabs in account settings.
+2026-06-15T09:40:00Z | 0.8.40 | 5c763c3 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | The search on the Projects page now has a clear button to reset the field in one click.

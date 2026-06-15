@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { Archive, ArrowDownAZ, ArrowUpAZ, Filter, Layers, MoreHorizontal, Search, Star, Users } from 'lucide-react';
+import { Archive, ArrowDownAZ, ArrowUpAZ, Filter, Layers, MoreHorizontal, Search, Star, Users, X } from 'lucide-react';
 import type { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
 import { Checkbox } from '@/shared/ui/checkbox';
 import {
@@ -154,6 +154,16 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
           />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => onSearchChange('')}
+              aria-label={t`Clear search`}
+              className="-mr-1 rounded-sm p-0.5 text-muted-foreground/60 transition-colors hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
         </div>
         <div className="flex items-center gap-1">
           <Popover>
