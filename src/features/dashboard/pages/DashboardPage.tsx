@@ -105,6 +105,9 @@ const DashboardPage = () => {
   const [renameDashboardSaving, setRenameDashboardSaving] = useState(false);
   const [deleteDashboardOpen, setDeleteDashboardOpen] = useState(false);
   const [dashboardDeleting, setDashboardDeleting] = useState(false);
+  // "All changes saved" should appear only after a real edit this session — not on
+  // a fresh visit where the dashboard just loaded clean. Track that here.
+  const [hasEdited, setHasEdited] = useState(false);
   const [isTouchPointer, setIsTouchPointer] = useState(false);
   const [mobileDragArmedWidgetId, setMobileDragArmedWidgetId] = useState<string | null>(null);
   const [mobileDragPressingWidgetId, setMobileDragPressingWidgetId] = useState<string | null>(null);
@@ -383,6 +386,16 @@ const DashboardPage = () => {
     isWorkspaceSwitching,
     loadStats,
   ]);
+
+  useEffect(() => {
+    if (dirty) setHasEdited(true);
+  }, [dirty]);
+
+  // Reset on dashboard/workspace switch so a freshly loaded board doesn't inherit
+  // the previous one's "saved" status.
+  useEffect(() => {
+    setHasEdited(false);
+  }, [currentDashboardId, currentWorkspaceId]);
 
   useEffect(() => {
     if (!canEdit || !dirty || !currentWorkspaceId || !currentDashboardId || isWorkspaceSwitching) return;
@@ -896,7 +909,7 @@ const DashboardPage = () => {
         <div>
           {saving && t`Saving...`}
           {!saving && dirty && canEdit && t`Unsaved changes`}
-          {!saving && !dirty && canEdit && t`All changes saved`}
+          {!saving && !dirty && canEdit && hasEdited && t`All changes saved`}
         </div>
         {error && <div className="text-destructive">{error}</div>}
       </div>

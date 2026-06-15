@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
-import { Input } from '@/shared/ui/input';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
@@ -422,11 +421,12 @@ export const ProjectsSidebar = ({
         <>
           <div className="px-4 py-3 border-b border-border">
             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-              <Input
-                className="h-8"
+              <SearchInput
+                inputClassName="h-8"
                 placeholder={t`Search customers...`}
                 value={customerSearch}
-                onChange={(event) => onCustomerSearchChange(event.target.value)}
+                onValueChange={onCustomerSearchChange}
+                clearLabel={t`Clear search`}
               />
               <div className="flex items-center justify-end gap-1">
                 <Button
@@ -536,11 +536,12 @@ export const ProjectsSidebar = ({
         >
           <div className="px-4 py-3 border-b border-border">
             <div className="flex flex-col gap-2">
-              <Input
-                className="h-8"
+              <SearchInput
+                inputClassName="h-8"
                 placeholder={t`Search milestones...`}
                 value={milestoneSearch}
-                onChange={(event) => onMilestoneSearchChange(event.target.value)}
+                onValueChange={onMilestoneSearchChange}
+                clearLabel={t`Clear search`}
               />
               <div className="flex items-center gap-1">
                 <Popover>
