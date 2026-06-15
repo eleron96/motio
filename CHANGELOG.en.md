@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.41] - 2026-06-15
+### Added
+- Search fields for customers, milestones, members, access and groups now have a clear button.
+
+
+### Fixed
+- The dashboard no longer shows an all-changes-saved note when you just open the page without making changes.
+
 ## [0.8.40] - 2026-06-15
 ### Added
 - The search on the Projects page now has a clear button to reset the field in one click.

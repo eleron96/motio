@@ -5,7 +5,7 @@ import { Assignee } from '@/features/planner/types/planner';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/shared/ui/context-menu';
-import { Input } from '@/shared/ui/input';
+import { SearchInput } from '@/shared/ui/SearchInput';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { SelectableListItem } from '@/shared/ui/selectable-list-item';
@@ -188,11 +188,12 @@ export const MembersSidebar = ({
             )}
           >
             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-              <Input
-                className="h-8"
+              <SearchInput
+                inputClassName="h-8"
                 placeholder={t`Search people...`}
                 value={memberSearch}
-                onChange={(event) => onMemberSearchChange(event.target.value)}
+                onValueChange={onMemberSearchChange}
+                clearLabel={t`Clear search`}
               />
               <div className="flex items-center justify-end gap-2">
                 <Button
@@ -318,6 +319,15 @@ export const MembersSidebar = ({
       {mode === 'access' && (
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="px-4 py-3 border-b border-border space-y-3">
+            {accessTab !== 'history' && (
+              <SearchInput
+                inputClassName="h-8"
+                placeholder={t`Search people...`}
+                value={accessSearch}
+                onValueChange={onAccessSearchChange}
+                clearLabel={t`Clear search`}
+              />
+            )}
             <div className="space-y-2">
               {[
                 {
@@ -356,15 +366,6 @@ export const MembersSidebar = ({
                 </SelectableListItem>
               ))}
             </div>
-
-            {accessTab !== 'history' && (
-              <Input
-                className="h-8"
-                placeholder={t`Search people...`}
-                value={accessSearch}
-                onChange={(event) => onAccessSearchChange(event.target.value)}
-              />
-            )}
           </div>
         </div>
       )}
@@ -373,11 +374,12 @@ export const MembersSidebar = ({
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="px-4 py-3 border-b border-border space-y-2">
             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-              <Input
-                className="h-8"
+              <SearchInput
+                inputClassName="h-8"
                 placeholder={t`Search groups...`}
                 value={groupSearch}
-                onChange={(event) => onGroupSearchChange(event.target.value)}
+                onValueChange={onGroupSearchChange}
+                clearLabel={t`Clear search`}
               />
               <div className="flex items-center justify-end gap-2">
                 <Button
