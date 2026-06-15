@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { Input } from '@/shared/ui/input';
+import { SearchInput } from '@/shared/ui/SearchInput';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
@@ -423,11 +424,12 @@ export const ProjectsMainPanel = ({
                       : 'flex flex-wrap items-center gap-3'
                   }
                 >
-                  <Input
+                  <SearchInput
                     className="w-full sm:w-[220px]"
                     placeholder={t`Search tasks...`}
                     value={search}
-                    onChange={(event) => onSearchChange(event.target.value)}
+                    onValueChange={onSearchChange}
+                    clearLabel={t`Clear search`}
                   />
                   <Popover>
                     <PopoverTrigger asChild>

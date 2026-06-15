@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.40] - 2026-06-15
+### Added
+- The search on the Projects page now has a clear button to reset the field in one click.
+
 ## [0.8.39] - 2026-06-15
 ### Changed
 - No documented changes.
