@@ -242,7 +242,13 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
             <div className="flex-1 overflow-y-auto">
               {/* ---------------- PROFILE TAB ---------------- */}
-              <TabsContent value="profile" className="mt-0 flex h-full flex-col px-6 py-5 focus-visible:outline-none">
+              {/* `flex` on the panel overrides the inactive `[hidden]` attribute (author styles
+                  beat the UA rule), which would leave a full-height ghost panel covering the other
+                  tabs — force it back to display:none while inactive. */}
+              <TabsContent
+                value="profile"
+                className="mt-0 flex h-full flex-col px-6 py-5 focus-visible:outline-none data-[state=inactive]:hidden"
+              >
                 <div className="flex flex-col items-center space-y-4 text-center">
                   {user && (
                     <AvatarWithEditButton

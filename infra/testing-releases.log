@@ -37,3 +37,4 @@
 2026-06-13T15:08:33Z | 0.8.29 | 88dddb6 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Opening the task window and other dialogs no longer outlines the first field. The main accent is now terracotta: the add button is a warm clay color, and active menu items and tabs use a soft terracotta tint.
 2026-06-13T21:41:17Z | 0.8.34 | cf54208 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | The Profile tab in account settings now shows a short summary of your tasks: completion progress, what's in progress and overdue, weekly activity, and how long you've been in Motio.
 2026-06-13T22:11:06Z | 0.8.36 | 6865521 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Large numbers in the profile summary are now shortened — thousands show as K, millions as M.
+2026-06-15T08:56:31Z | 0.8.38 | 53e8f19 | nikogamsahurdia | MacBook-Pro-Niko | target=testing | Fixed empty Preferences and Data tabs in account settings.
