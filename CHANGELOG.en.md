@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.45] - 2026-06-16
 ### Fixed
 - Task duration can be shortened on the timeline again and past-dated tasks can be edited; the only limit is that the end date can't be before the start date.
 

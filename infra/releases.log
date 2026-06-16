@@ -320,3 +320,4 @@
 2026-06-15T09:08:10Z | 0.8.39 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260615-090725.dump | No documented changes.
 2026-06-15T11:32:02Z | 0.8.43 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260615-113116.dump | No documented changes.
 2026-06-16T16:09:53Z | 0.8.44 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260616-160907.dump | A task's end date can no longer be set before its start or before today, which removes overlapping bars on the timeline.
+2026-06-16T16:57:36Z | 0.8.45 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260616-165651.dump | Task duration can be shortened on the timeline again and past-dated tasks can be edited; the only limit is that the end date can't be before the start date.
