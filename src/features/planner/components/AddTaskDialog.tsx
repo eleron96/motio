@@ -26,7 +26,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Plus, X } from 'lucide-react';
-import { format } from '@/features/planner/lib/dateUtils';
+import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';
 import { TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -264,6 +264,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleStartDateChange = (value: string) => {
     markChanged();
     setStartDate(value);
+    // Keep the end on/after max(today, start): bump it forward when start passes it.
+    setEndDate((prev) => clampTaskDates(value, prev).endDate);
     if (!shouldAutoSyncRepeatUntil({
       frequency: repeatFrequency,
       ends: repeatEnds,
@@ -321,6 +323,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     }
 
     setRepeatCreating(true);
+    const safeDates = clampTaskDates(startDate, endDate);
     const createdTask = await addTask({
       title: title.trim(),
       projectId: projectId === 'none' ? null : projectId,
@@ -328,8 +331,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       statusId,
       typeId,
       priority: priority === 'none' ? null : priority,
-      startDate,
-      endDate,
+      startDate: safeDates.startDate,
+      endDate: safeDates.endDate,
       tagIds,
       description: description.trim() || null,
       repeatId: null,
@@ -774,9 +777,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                     type="date"
                     className="bg-background px-2 text-sm tabular-nums"
                     value={endDate}
+                    min={getMinEndDate(startDate)}
                     onChange={(e) => {
                       markChanged();
-                      setEndDate(e.target.value);
+                      setEndDate(clampTaskDates(startDate, e.target.value).endDate);
                     }}
                   />
                 </div>

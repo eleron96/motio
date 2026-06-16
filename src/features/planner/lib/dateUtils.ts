@@ -71,12 +71,57 @@ export const getTaskPosition = (
   }
   
   const startOffset = differenceInDays(taskStart, firstVisibleDay);
-  const duration = differenceInDays(taskEnd, taskStart) + 1;
-  
+  // Defensive: never let an inverted range (end < start) produce a zero/negative
+  // width — such a bar collapses and visually overlaps its neighbours. Floor at
+  // one day so legacy/out-of-range data still renders as a sane block.
+  const duration = Math.max(1, differenceInDays(taskEnd, taskStart) + 1);
+
   const left = startOffset * dayWidth;
   const width = duration * dayWidth - 4; // 4px gap
-  
+
   return { left, width };
+};
+
+/** Today's local date as a `yyyy-MM-dd` string. */
+export const getTodayDateString = (): string => format(new Date(), 'yyyy-MM-dd');
+
+/**
+ * Smallest end date a task may have: never before today, never before its own
+ * start. Dates are `yyyy-MM-dd`, so lexical comparison matches chronological order.
+ */
+export const getMinEndDate = (
+  startDate: string,
+  today: string = getTodayDateString(),
+): string => (startDate > today ? startDate : today);
+
+/**
+ * Force a range to satisfy `end >= max(today, start)` by pushing the end up.
+ * Used for resize and form edits, where only the end should move.
+ */
+export const clampTaskDates = (
+  startDate: string,
+  endDate: string,
+  today: string = getTodayDateString(),
+): { startDate: string; endDate: string } => {
+  const minEnd = getMinEndDate(startDate, today);
+  return { startDate, endDate: endDate < minEnd ? minEnd : endDate };
+};
+
+/**
+ * Shift a whole range forward so it never ends before today, preserving its
+ * length. Used when moving (dragging) a bar so its duration stays intact.
+ */
+export const shiftDatesToMinEnd = (
+  startDate: string,
+  endDate: string,
+  today: string = getTodayDateString(),
+): { startDate: string; endDate: string } => {
+  if (endDate >= today) return { startDate, endDate };
+  const delta = differenceInDays(parseISO(today), parseISO(endDate));
+  return {
+    startDate: format(addDays(parseISO(startDate), delta), 'yyyy-MM-dd'),
+    endDate: today,
+  };
 };
 
 export const formatDateRange = (

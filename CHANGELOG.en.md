@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- A task's end date can no longer be set before its start or before today, which removes overlapping bars on the timeline.
+
 ## [0.8.43] - 2026-06-15
 ### Changed
 - No documented changes.

@@ -1,6 +1,19 @@
 import React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+
+// Drag/resize now floors task dates at today (tasks can't end in the past), so
+// pin "today" before the Feb-2026 fixtures to keep this suite deterministic and
+// exercise the pure move/resize math without the floor interfering. Only Date is
+// faked — timers stay real so async findBy* queries still resolve.
+beforeAll(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
 
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) => (
