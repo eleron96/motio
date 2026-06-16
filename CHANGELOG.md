@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.44] - 2026-06-16
 ### Fixed
 - Дату окончания задачи больше нельзя поставить раньше начала или раньше сегодняшнего дня — это убирает наложение задач на таймлайне.
 
