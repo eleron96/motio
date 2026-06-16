@@ -467,8 +467,8 @@ export const TaskDetailPanel: React.FC = () => {
 
   const handleUpdate = (field: keyof Task, value: Task[keyof Task]) => requestTaskUpdate({ [field]: value } as Partial<Task>);
 
-  // Dates must keep end >= max(today, start). Moving the start past the end drags
-  // the end with it; the end itself can never be set before max(today, start).
+  // Dates must keep end >= start. Moving the start past the end drags the end
+  // with it; the end itself can never be set before the start.
   const handleStartDateChange = (value: string) => {
     const { startDate, endDate } = clampTaskDates(value, task.endDate);
     requestTaskUpdate(endDate !== task.endDate ? { startDate, endDate } : { startDate });
