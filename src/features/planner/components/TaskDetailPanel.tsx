@@ -50,6 +50,7 @@ import {
   RepeatEnds,
   RepeatFrequency,
 } from '@/features/planner/lib/taskFormRules';
+import { clampTaskDates, getMinEndDate } from '@/features/planner/lib/dateUtils';
 
 const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
@@ -466,6 +467,17 @@ export const TaskDetailPanel: React.FC = () => {
 
   const handleUpdate = (field: keyof Task, value: Task[keyof Task]) => requestTaskUpdate({ [field]: value } as Partial<Task>);
 
+  // Dates must keep end >= max(today, start). Moving the start past the end drags
+  // the end with it; the end itself can never be set before max(today, start).
+  const handleStartDateChange = (value: string) => {
+    const { startDate, endDate } = clampTaskDates(value, task.endDate);
+    requestTaskUpdate(endDate !== task.endDate ? { startDate, endDate } : { startDate });
+  };
+
+  const handleEndDateChange = (value: string) => {
+    requestTaskUpdate({ endDate: clampTaskDates(task.startDate, value).endDate });
+  };
+
   const handleAssigneeToggle = (assigneeId: string) => {
     if (!canEdit) return;
     const targetAssignee = assignees.find((assignee) => assignee.id === assigneeId);
@@ -828,7 +840,7 @@ export const TaskDetailPanel: React.FC = () => {
                     id="startDate"
                     type="date"
                     value={task.startDate}
-                    onChange={(e) => handleUpdate('startDate', e.target.value)}
+                    onChange={(e) => handleStartDateChange(e.target.value)}
                     disabled={isReadOnly}
                     className="bg-background px-2 text-sm tabular-nums"
                   />
@@ -839,7 +851,8 @@ export const TaskDetailPanel: React.FC = () => {
                     id="endDate"
                     type="date"
                     value={task.endDate}
-                    onChange={(e) => handleUpdate('endDate', e.target.value)}
+                    min={getMinEndDate(task.startDate)}
+                    onChange={(e) => handleEndDateChange(e.target.value)}
                     disabled={isReadOnly}
                     className="bg-background px-2 text-sm tabular-nums"
                   />

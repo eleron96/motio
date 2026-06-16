@@ -7,6 +7,7 @@ import {
   format,
   parseISO,
 } from 'date-fns';
+import { clampTaskDates } from '@/features/planner/lib/dateUtils';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { buildShiftedRepeatTasks } from '@/shared/domain/repeatTaskMove';
@@ -157,6 +158,10 @@ export const createTaskActions = (
 
     const assigneeIds = pickActiveAssigneeIds(task.assigneeIds, get().assignees);
 
+    // Final backstop: never persist a task that ends before today or before its
+    // own start. Covers every creation path (create dialog, duplicate, …).
+    const { startDate, endDate } = clampTaskDates(task.startDate, task.endDate);
+
     const { data, error } = await supabase
       .from('tasks')
       .insert({
@@ -165,8 +170,8 @@ export const createTaskActions = (
         project_id: task.projectId,
         assignee_id: assigneeIds[0] ?? null,
         assignee_ids: assigneeIds,
-        start_date: task.startDate,
-        end_date: task.endDate,
+        start_date: startDate,
+        end_date: endDate,
         status_id: task.statusId,
         type_id: task.typeId,
         priority: task.priority,
