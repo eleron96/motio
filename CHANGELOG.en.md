@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Task duration can be shortened on the timeline again and past-dated tasks can be edited; the only limit is that the end date can't be before the start date.
+
 ## [0.8.44] - 2026-06-16
 ### Fixed
 - A task's end date can no longer be set before its start or before today, which removes overlapping bars on the timeline.

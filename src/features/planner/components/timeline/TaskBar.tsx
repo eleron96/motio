@@ -6,7 +6,7 @@ import { RepeatTaskScopeDialog } from '@/features/planner/components/RepeatTaskS
 import { cn } from '@/shared/lib/classNames';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { calculateNewDates, calculateResizedDates, clampTaskDates, formatDateRange, shiftDatesToMinEnd, TASK_HEIGHT, TASK_GAP, ROW_TOP_PADDING } from '@/features/planner/lib/dateUtils';
+import { calculateNewDates, calculateResizedDates, formatDateRange, TASK_HEIGHT, TASK_GAP, ROW_TOP_PADDING } from '@/features/planner/lib/dateUtils';
 import { getTaskBarAppearance } from '@/features/planner/lib/taskBarColors';
 import { Ban, MessageSquare, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
@@ -208,23 +208,19 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
 
       if (daysDelta !== 0) {
         if (isResizing) {
-          const resized = calculateResizedDates(
+          const { startDate, endDate } = calculateResizedDates(
             task.startDate,
             task.endDate,
             isResizing,
             daysDelta
           );
-          // The end edge can't be dragged before today; floor it there.
-          const { startDate, endDate } = clampTaskDates(resized.startDate, resized.endDate);
           requestMoveTask(startDate, endDate);
         } else {
-          const moved = calculateNewDates(
+          const { startDate, endDate } = calculateNewDates(
             task.startDate,
             task.endDate,
             daysDelta
           );
-          // Moving the whole bar keeps its length, but it may not end in the past.
-          const { startDate, endDate } = shiftDatesToMinEnd(moved.startDate, moved.endDate);
           requestMoveTask(startDate, endDate);
         }
       }

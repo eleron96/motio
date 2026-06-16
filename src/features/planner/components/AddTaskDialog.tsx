@@ -264,7 +264,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleStartDateChange = (value: string) => {
     markChanged();
     setStartDate(value);
-    // Keep the end on/after max(today, start): bump it forward when start passes it.
+    // Keep the end on/after the start: bump it forward when the start passes it.
     setEndDate((prev) => clampTaskDates(value, prev).endDate);
     if (!shouldAutoSyncRepeatUntil({
       frequency: repeatFrequency,

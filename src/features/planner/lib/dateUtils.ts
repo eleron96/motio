@@ -82,47 +82,20 @@ export const getTaskPosition = (
   return { left, width };
 };
 
-/** Today's local date as a `yyyy-MM-dd` string. */
-export const getTodayDateString = (): string => format(new Date(), 'yyyy-MM-dd');
-
 /**
- * Smallest end date a task may have: never before today, never before its own
- * start. Dates are `yyyy-MM-dd`, so lexical comparison matches chronological order.
+ * Smallest end date a task may have: its own start date. A task can't end before
+ * it begins. Dates are `yyyy-MM-dd`, so lexical comparison matches chronology.
  */
-export const getMinEndDate = (
-  startDate: string,
-  today: string = getTodayDateString(),
-): string => (startDate > today ? startDate : today);
+export const getMinEndDate = (startDate: string): string => startDate;
 
-/**
- * Force a range to satisfy `end >= max(today, start)` by pushing the end up.
- * Used for resize and form edits, where only the end should move.
- */
+/** Force a range to satisfy `end >= start` by pushing the end up to the start. */
 export const clampTaskDates = (
   startDate: string,
   endDate: string,
-  today: string = getTodayDateString(),
-): { startDate: string; endDate: string } => {
-  const minEnd = getMinEndDate(startDate, today);
-  return { startDate, endDate: endDate < minEnd ? minEnd : endDate };
-};
-
-/**
- * Shift a whole range forward so it never ends before today, preserving its
- * length. Used when moving (dragging) a bar so its duration stays intact.
- */
-export const shiftDatesToMinEnd = (
-  startDate: string,
-  endDate: string,
-  today: string = getTodayDateString(),
-): { startDate: string; endDate: string } => {
-  if (endDate >= today) return { startDate, endDate };
-  const delta = differenceInDays(parseISO(today), parseISO(endDate));
-  return {
-    startDate: format(addDays(parseISO(startDate), delta), 'yyyy-MM-dd'),
-    endDate: today,
-  };
-};
+): { startDate: string; endDate: string } => ({
+  startDate,
+  endDate: endDate < startDate ? startDate : endDate,
+});
 
 export const formatDateRange = (
   startDate: string,
