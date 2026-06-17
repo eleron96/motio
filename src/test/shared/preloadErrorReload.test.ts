@@ -154,6 +154,28 @@ describe('installPreloadErrorReload', () => {
     uninstall();
   });
 
+  it('does NOT call preventDefault when the reload is suppressed by the cooldown', () => {
+    // Pre-seed the guard so maybeReloadForPreloadError returns false. If we
+    // suppressed Vite's rejection here, the dynamic import would resolve to
+    // `undefined` and the call site would throw a generic TypeError instead of
+    // a recoverable "Failed to fetch" error.
+    window.sessionStorage.setItem('motio:preload-reload-at', '1000');
+    const reload = vi.fn();
+    const uninstall = installPreloadErrorReload({
+      now: () => 2_000,
+      reloader: { reload },
+      cooldownMs: 10_000,
+    });
+
+    const event = new Event('vite:preloadError', { cancelable: true });
+    window.dispatchEvent(event);
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+
+    uninstall();
+  });
+
   it('cleans up listeners when the returned disposer is called', () => {
     const reload = vi.fn();
     const uninstall = installPreloadErrorReload({

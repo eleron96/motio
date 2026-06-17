@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
@@ -10,11 +11,13 @@ import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/compone
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
-const LazyRichTextEditor = lazy(() =>
-  import('@/features/planner/components/RichTextEditor').then((m) => ({ default: m.RichTextEditor }))
+const LazyRichTextEditor = lazyNamed(
+  () => import('@/features/planner/components/RichTextEditor'),
+  'RichTextEditor'
 );
-const LazyTaskCommentSection = lazy(() =>
-  import('@/features/planner/components/TaskCommentSection').then((m) => ({ default: m.TaskCommentSection }))
+const LazyTaskCommentSection = lazyNamed(
+  () => import('@/features/planner/components/TaskCommentSection'),
+  'TaskCommentSection'
 );
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';

@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
@@ -87,10 +88,10 @@ const resolveDefaultStatusId = (statuses: Status[]) => {
   return firstOpen?.id ?? statuses[0]?.id ?? '';
 };
 
-const LazyRichTextEditor = lazy(async () => {
-  const module = await import('@/features/planner/components/RichTextEditor');
-  return { default: module.RichTextEditor };
-});
+const LazyRichTextEditor = lazyNamed(
+  () => import('@/features/planner/components/RichTextEditor'),
+  'RichTextEditor'
+);
 
 type DraftSubtask = {
   id: string;
