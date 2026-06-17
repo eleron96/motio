@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- После выхода обновления приложение больше не падает с ошибкой при открытии задачи, комментариев или редактора — вместо этого оно само подгружает свежую версию.
 
 ## [0.8.45] - 2026-06-16
 ### Fixed
