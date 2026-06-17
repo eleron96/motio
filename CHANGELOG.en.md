@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.46] - 2026-06-17
 ### Fixed
 - After an update ships, the app no longer crashes with an error when you open a task, comments, or the editor — it now reloads the fresh version on its own instead.
 

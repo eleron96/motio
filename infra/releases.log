@@ -321,3 +321,4 @@
 2026-06-15T11:32:02Z | 0.8.43 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260615-113116.dump | No documented changes.
 2026-06-16T16:09:53Z | 0.8.44 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260616-160907.dump | A task's end date can no longer be set before its start or before today, which removes overlapping bars on the timeline.
 2026-06-16T16:57:36Z | 0.8.45 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260616-165651.dump | Task duration can be shortened on the timeline again and past-dated tasks can be edited; the only limit is that the end date can't be before the start date.
+2026-06-17T13:46:06Z | 0.8.46 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260617-134520.dump | After an update ships, the app no longer crashes with an error when you open a task, comments, or the editor — it now reloads the fresh version on its own instead.
