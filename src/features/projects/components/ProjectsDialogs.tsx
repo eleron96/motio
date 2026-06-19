@@ -219,6 +219,8 @@ export const ProjectsDialogs = ({
   setDeleteCustomerTarget,
   handleConfirmDeleteCustomer,
 }: ProjectsDialogsProps) => {
+  const customerNameInputRef = React.useRef<HTMLInputElement>(null);
+  const projectNameInputRef = React.useRef<HTMLInputElement>(null);
   return (
     <>
       <WorkspaceCommonDialogs
@@ -237,7 +239,14 @@ export const ProjectsDialogs = ({
           }
         }}
       >
-        <DialogContent className="w-[95vw] max-w-md">
+        <DialogContent
+          className="w-[95vw] max-w-md"
+          onOpenAutoFocus={(event) => {
+            // Focus the name field on open so the user can type immediately.
+            event.preventDefault();
+            customerNameInputRef.current?.focus();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>{t`New customer`}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -254,6 +263,7 @@ export const ProjectsDialogs = ({
             <div className="space-y-1">
               <Label>{t`Customer name`}</Label>
               <Input
+                ref={customerNameInputRef}
                 placeholder={t`Enter customer name...`}
                 value={newCustomerName}
                 onChange={(event) => setNewCustomerName(event.target.value)}
@@ -368,7 +378,14 @@ export const ProjectsDialogs = ({
           requestCloseCreateProject();
         }}
       >
-        <DialogContent className="w-[95vw] max-w-xl">
+        <DialogContent
+          className="w-[95vw] max-w-xl"
+          onOpenAutoFocus={(event) => {
+            // Focus the name field on open so the user can type immediately.
+            event.preventDefault();
+            projectNameInputRef.current?.focus();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>{t`New project`}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -380,6 +397,7 @@ export const ProjectsDialogs = ({
               <div className="space-y-1">
                 <Label>{t`Project name`}</Label>
                 <Input
+                  ref={projectNameInputRef}
                   placeholder={t`Enter project name...`}
                   value={newProjectName}
                   onChange={(event) => setNewProjectName(event.target.value)}

@@ -171,6 +171,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
   const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
   const focusSubtaskIdRef = useRef<string | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -491,7 +492,14 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogScrollContent className="flex w-full max-w-[880px] flex-col gap-0 p-0">
+      <DialogScrollContent
+        className="flex w-full max-w-[880px] flex-col gap-0 p-0"
+        onOpenAutoFocus={(event) => {
+          // Focus the title field on open so the user can type without an extra click.
+          event.preventDefault();
+          titleInputRef.current?.focus();
+        }}
+      >
         {/* Full-height tint behind the parameters column, header and footer included. */}
         <div
           aria-hidden="true"
@@ -514,6 +522,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 <Label htmlFor="new-title">{t`Title`} *</Label>
                 <Input
                   id="new-title"
+                  ref={titleInputRef}
                   value={title}
                   onChange={(e) => {
                     markChanged();

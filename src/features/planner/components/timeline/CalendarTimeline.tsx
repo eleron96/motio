@@ -4,6 +4,12 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { MilestoneDialog } from '@/features/planner/components/timeline/MilestoneDialog';
 import * as HoverCardPrimitive from '@radix-ui/react-hover-card';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/shared/ui/hover-card';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/shared/ui/context-menu';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
@@ -327,16 +333,11 @@ export const CalendarTimeline: React.FC = () => {
                             const holidayNames = holidayMap[key] ?? [];
                             const milestonesForDay = milestonesByDate.get(key) ?? [];
 
-                            return (
+                            const cell = (
                               <div
                                 key={key}
                                 className="relative flex h-11 w-9 flex-col items-center justify-start pt-0.5"
                                 onDoubleClick={inMonth ? () => handleDateClick(day) : undefined}
-                                onContextMenu={inMonth && canEdit ? (event) => {
-                                  // Right-click anywhere on the day cell to add a milestone.
-                                  event.preventDefault();
-                                  handleCreateMilestoneOnDate(day);
-                                } : undefined}
                               >
                                 {isHoliday && (
                                   <div
@@ -447,6 +448,23 @@ export const CalendarTimeline: React.FC = () => {
                                   <div className="h-7 w-7" />
                                 )}
                               </div>
+                            );
+
+                            // Right-click a day to open the milestone menu, mirroring
+                            // the timeline header. Out-of-month / read-only cells stay plain.
+                            if (!inMonth || !canEdit) {
+                              return cell;
+                            }
+
+                            return (
+                              <ContextMenu key={key}>
+                                <ContextMenuTrigger asChild>{cell}</ContextMenuTrigger>
+                                <ContextMenuContent>
+                                  <ContextMenuItem onSelect={() => handleCreateMilestoneOnDate(day)}>
+                                    {t`Create milestone`}
+                                  </ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
                             );
                           })}
                         </div>

@@ -59,6 +59,7 @@ export const MembersDialogs = ({
   showAccountSettings,
   setShowAccountSettings,
 }: MembersDialogsProps) => {
+  const groupNameInputRef = React.useRef<HTMLInputElement>(null);
   return (
     <>
       <Dialog
@@ -70,7 +71,14 @@ export const MembersDialogs = ({
           }
         }}
       >
-        <DialogContent className="w-[95vw] max-w-md">
+        <DialogContent
+          className="w-[95vw] max-w-md"
+          onOpenAutoFocus={(event) => {
+            // Focus the name field on open so the user can type immediately.
+            event.preventDefault();
+            groupNameInputRef.current?.focus();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>{t`New group`}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -87,6 +95,7 @@ export const MembersDialogs = ({
             <div className="space-y-1">
               <Label>{t`Group name`}</Label>
               <Input
+                ref={groupNameInputRef}
                 placeholder={t`Group name`}
                 value={newGroupName}
                 onChange={(event) => setNewGroupName(event.target.value)}

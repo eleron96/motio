@@ -1,7 +1,7 @@
-.PHONY: help up down logs up-prod down-prod logs-prod audit-migrations deploy-remote deploy-glitchtip deploy-testing harden-firewall check-prod-secrets check-prod-secrets-remote keycloak-backup-db keycloak-audit-realm keycloak-export-realm perf-k6 logchange commit push deploy release release-testing release-sync
+.PHONY: help up down logs up-prod down-prod logs-prod audit-migrations deploy-remote deploy-glitchtip deploy-testing harden-firewall check-prod-secrets check-prod-secrets-remote keycloak-backup-db keycloak-audit-realm keycloak-export-realm perf-k6 logchange commit push deploy release release-testing release-sync release-publish
 
 help:
-	@printf "Targets:\n  up\n  down\n  logs\n  up-prod\n  down-prod\n  logs-prod\n  audit-migrations\n  deploy-remote [NEXT_VERSION=X.Y.Z]\n  deploy-glitchtip\n  deploy-testing\n  harden-firewall\n  check-prod-secrets\n  check-prod-secrets-remote\n  keycloak-backup-db\n  keycloak-audit-realm\n  keycloak-export-realm\n  perf-k6\n  logchange RU=\"...\" EN=\"...\" [TYPE=changed]\n  commit MSG=\"...\"\n  push\n  deploy\n  release-sync\n  release MSG=\"...\" RU=\"...\" EN=\"...\" [TYPE=changed] [NEXT_VERSION=X.Y.Z]\n  release-testing MSG=\"...\" RU=\"...\" EN=\"...\" [TYPE=changed] [NEXT_VERSION=X.Y.Z]\n"
+	@printf "Targets:\n  up\n  down\n  logs\n  up-prod\n  down-prod\n  logs-prod\n  audit-migrations\n  deploy-remote [NEXT_VERSION=X.Y.Z]\n  deploy-glitchtip\n  deploy-testing\n  harden-firewall\n  check-prod-secrets\n  check-prod-secrets-remote\n  keycloak-backup-db\n  keycloak-audit-realm\n  keycloak-export-realm\n  perf-k6\n  logchange RU=\"...\" EN=\"...\" [TYPE=changed]\n  commit MSG=\"...\"\n  push\n  deploy\n  release-sync\n  release-publish\n  release MSG=\"...\" RU=\"...\" EN=\"...\" [TYPE=changed] [NEXT_VERSION=X.Y.Z]\n  release-testing MSG=\"...\" RU=\"...\" EN=\"...\" [TYPE=changed] [NEXT_VERSION=X.Y.Z]\n"
 
 up:
 	./infra/scripts/dev-compose.sh
@@ -85,6 +85,13 @@ release-sync:
 		git commit -m "chore(release): sync release $$release_version"; \
 		git push origin $$(git branch --show-current); \
 	fi
+	$(MAKE) release-publish
+
+# Tag the current release and publish a GitHub Release when it has real
+# user-facing changes (empty "No documented changes." versions get a tag only).
+# Idempotent and non-fatal — safe to re-run if gh was offline.
+release-publish:
+	./infra/scripts/release-publish.sh
 
 release:
 	@if [ -z "$(MSG)" ] || [ -z "$(RU)" ] || [ -z "$(EN)" ]; then \
