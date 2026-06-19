@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.47] - 2026-06-19
 ### Added
 - You can now create a milestone by right-clicking a day in the calendar.
 - Account settings now let you choose the interface color: several pastel shades and ink black.
@@ -14,6 +15,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 - When creating tasks, milestones, projects, customers, groups and widgets, the name field is now focused automatically so you can type right away.
+
 ## [0.8.46] - 2026-06-17
 ### Fixed
 - After an update ships, the app no longer crashes with an error when you open a task, comments, or the editor — it now reloads the fresh version on its own instead.
