@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { ResponsiveGridLayout, cloneLayout, useContainerWidth } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -53,8 +54,9 @@ import {
 } from '@/features/dashboard/lib/dashboardResponsive';
 import { resolveDashboardIncludeDisabledAssignees } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { buildTimeSeriesData, buildWidgetData, shouldUseAssigneeRows } from '@/features/dashboard/lib/dashboardUtils';
-const DashboardWidgetCard = lazy(() =>
-  import('@/features/dashboard/components/DashboardWidgetCard').then((m) => ({ default: m.DashboardWidgetCard }))
+const DashboardWidgetCard = lazyNamed(
+  () => import('@/features/dashboard/components/DashboardWidgetCard'),
+  'DashboardWidgetCard'
 );
 import { WidgetEditorDialog } from '@/features/dashboard/components/WidgetEditorDialog';
 import { DashboardLayouts, DashboardWidget } from '@/features/dashboard/types/dashboard';

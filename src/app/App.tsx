@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { withSentryReactRouterV6Routing } from "@sentry/react";
 import { I18nProvider } from "@lingui/react";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
+import { lazyDefault, lazyNamed } from "@/shared/lib/lazyComponent";
 import NotFoundPage from "@/app/NotFoundPage";
 import { AuthProvider } from "@/features/auth/providers/AuthProvider";
 import { ProtectedRoute } from "@/app/ProtectedRoute";
@@ -12,6 +13,7 @@ import { WorkspaceLayout } from "@/features/workspace/components/WorkspaceLayout
 import { i18n } from "@/shared/lib/i18n";
 import { useLocaleStore } from "@/shared/store/localeStore";
 import { PageErrorBoundary } from "@/app/PageErrorBoundary";
+import { BackgroundSuspenseBoundary } from "@/app/BackgroundSuspenseBoundary";
 
 const queryClient = new QueryClient();
 
@@ -19,21 +21,22 @@ const queryClient = new QueryClient();
 // + their data fetches. The controller is mounted on every authenticated page
 // but renders nothing until a once-per-day trigger fires, so keep it out of
 // the eager main bundle.
-const DailyBriefController = lazy(() =>
-  import("@/features/daily-brief").then((m) => ({ default: m.DailyBriefController }))
+const DailyBriefController = lazyNamed(
+  () => import("@/features/daily-brief"),
+  "DailyBriefController"
 );
 
-const LandingPage = lazy(() => import("@/features/marketing/pages/LandingPage"));
-const PrivacyPage = lazy(() => import("@/features/legal/pages/PrivacyPage"));
-const TermsPage = lazy(() => import("@/features/legal/pages/TermsPage"));
-const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
-const InvitePage = lazy(() => import("@/features/auth/pages/InvitePage"));
-const AdminUsersPage = lazy(() => import("@/features/admin/pages/AdminUsersPage"));
-const PlannerPage = lazy(() => import("@/features/planner/pages/PlannerPage"));
-const DashboardPage = lazy(() => import("@/features/dashboard/pages/DashboardPage"));
-const ProjectsPage = lazy(() => import("@/features/projects/pages/ProjectsPage"));
-const MembersPage = lazy(() => import("@/features/members/pages/MembersPage"));
-const DemoPage = lazy(() => import("@/features/demo/pages/DemoPage"));
+const LandingPage = lazyDefault(() => import("@/features/marketing/pages/LandingPage"), "LandingPage");
+const PrivacyPage = lazyDefault(() => import("@/features/legal/pages/PrivacyPage"), "PrivacyPage");
+const TermsPage = lazyDefault(() => import("@/features/legal/pages/TermsPage"), "TermsPage");
+const AuthPage = lazyDefault(() => import("@/features/auth/pages/AuthPage"), "AuthPage");
+const InvitePage = lazyDefault(() => import("@/features/auth/pages/InvitePage"), "InvitePage");
+const AdminUsersPage = lazyDefault(() => import("@/features/admin/pages/AdminUsersPage"), "AdminUsersPage");
+const PlannerPage = lazyDefault(() => import("@/features/planner/pages/PlannerPage"), "PlannerPage");
+const DashboardPage = lazyDefault(() => import("@/features/dashboard/pages/DashboardPage"), "DashboardPage");
+const ProjectsPage = lazyDefault(() => import("@/features/projects/pages/ProjectsPage"), "ProjectsPage");
+const MembersPage = lazyDefault(() => import("@/features/members/pages/MembersPage"), "MembersPage");
+const DemoPage = lazyDefault(() => import("@/features/demo/pages/DemoPage"), "DemoPage");
 
 const SentryRoutes = withSentryReactRouterV6Routing(Routes);
 
@@ -46,9 +49,11 @@ const App = () => {
         <TooltipProvider>
           <Sonner />
           <AuthProvider>
-            <Suspense fallback={null}>
-              <DailyBriefController />
-            </Suspense>
+            <BackgroundSuspenseBoundary>
+              <Suspense fallback={null}>
+                <DailyBriefController />
+              </Suspense>
+            </BackgroundSuspenseBoundary>
             <BrowserRouter
               future={{
                 v7_startTransition: true,

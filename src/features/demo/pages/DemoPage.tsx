@@ -1,13 +1,14 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Trans } from '@lingui/macro';
 import { WorkspaceLayout } from '@/features/workspace/components/WorkspaceLayout';
+import { lazyDefault } from '@/shared/lib/lazyComponent';
 import { DemoBootstrap } from '../providers/DemoBootstrap';
 
-const PlannerPage = lazy(() => import('@/features/planner/pages/PlannerPage'));
-const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
-const ProjectsPage = lazy(() => import('@/features/projects/pages/ProjectsPage'));
-const MembersPage = lazy(() => import('@/features/members/pages/MembersPage'));
+const PlannerPage = lazyDefault(() => import('@/features/planner/pages/PlannerPage'), 'PlannerPage');
+const DashboardPage = lazyDefault(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage');
+const ProjectsPage = lazyDefault(() => import('@/features/projects/pages/ProjectsPage'), 'ProjectsPage');
+const MembersPage = lazyDefault(() => import('@/features/members/pages/MembersPage'), 'MembersPage');
 
 const DemoFallback = () => (
   <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
