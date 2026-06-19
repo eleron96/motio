@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.48] - 2026-06-19
 ### Fixed
 - После обновления версии страницы с устаревшими стилями теперь обновляются автоматически, без ложных ошибок.
 
