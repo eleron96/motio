@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.48] - 2026-06-19
+### Fixed
+- After a version update, pages with stale styles now refresh automatically instead of erroring.
+
 ## [0.8.47] - 2026-06-19
 ### Added
 - You can now create a milestone by right-clicking a day in the calendar.

@@ -22,6 +22,12 @@ export const EASTER_EGGS_ENABLED = true;
  * (and a new lazily-imported component if the effect differs) — the daily-brief
  * modal does not need to change.
  */
+// Shared "falling 6 and 7" egg — one chunk, reused for the three people below.
+const SixSevenBrief = lazyNamed(
+  () => import('./components/SixSevenBrief'),
+  'SixSevenBrief',
+);
+
 export const EASTER_EGGS: EasterEgg[] = [
   {
     // a.kuprina@speech.su (Nastya) — matched by user id so SSO email quirks don't matter.
@@ -31,5 +37,23 @@ export const EASTER_EGGS: EasterEgg[] = [
       () => import('./components/ShabbatBrief'),
       'ShabbatBrief',
     ),
+  },
+  {
+    // s.pavlova@speech.su (Светлана Павлова) — falling 6 & 7.
+    match: '77fab19c-9f13-4732-872f-c920340404f8',
+    enabled: true,
+    Component: SixSevenBrief,
+  },
+  {
+    // n.tokocheva@speech.su (Наиля Токочева) — falling 6 & 7.
+    match: '32c03e77-eb1c-4be3-acb3-88080ed19237',
+    enabled: true,
+    Component: SixSevenBrief,
+  },
+  {
+    // a.rerikh@speech.su (Александра «Саша» Рерих) — falling 6 & 7.
+    match: '170ebc84-d358-4291-830d-e61cb2fad180',
+    enabled: true,
+    Component: SixSevenBrief,
   },
 ];

@@ -5,6 +5,9 @@ const RECOVERABLE_IMPORT_ERROR_PATTERNS = [
   /Importing a module script failed/i,
   /error loading dynamically imported module/i,
   /ChunkLoadError/i,
+  // Vite's CSS-preload failure for a lazy chunk whose stylesheet hash was
+  // rotated away by a deploy — recoverable, reload picks up the fresh bundle.
+  /Unable to preload CSS for/i,
 ];
 
 type ReloadAttemptStorage = Pick<Storage, 'getItem' | 'setItem'>;

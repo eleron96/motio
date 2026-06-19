@@ -1,0 +1,74 @@
+/* Daily-brief easter egg styling. Class names are consumed via the CSS-module
+   `styles` object (including for imperatively-created digits), so they stay
+   scoped to this feature. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  /* Sits above the dialog dimming (z-50) but below the brief card (z-60),
+     so the digits rain behind the report. See DailyBriefModal. */
+  z-index: 55;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.digit {
+  position: absolute;
+  top: -64px;
+  left: var(--x);
+  font-size: var(--size);
+  font-weight: 800;
+  line-height: 1;
+  opacity: var(--opacity);
+  font-variant-numeric: tabular-nums;
+  will-change: transform;
+  transform: translate3d(0, -80px, 0) rotate(0deg);
+  backface-visibility: hidden;
+}
+
+/* 6 — warm, heavier, slower, tumbles with a lot of spin. */
+.six {
+  color: #f5a04b;
+  text-shadow: 0 0 12px rgba(245, 160, 75, 0.5);
+  animation: sixFall var(--duration) cubic-bezier(0.45, 0, 0.7, 1) forwards;
+}
+
+/* 7 — cool, lighter, faster, and zig-zags on the way down. */
+.seven {
+  color: #5bc6e8;
+  text-shadow: 0 0 12px rgba(91, 198, 232, 0.5);
+  animation: sevenFall var(--duration) linear forwards;
+}
+
+/* 6 accelerates straight down while tumbling. */
+@keyframes sixFall {
+  from {
+    transform: translate3d(0, -80px, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(var(--drift), calc(100vh + 120px), 0) rotate(var(--rotate));
+  }
+}
+
+/* 7 sways side to side as it drops — a visibly different fall from the 6. */
+@keyframes sevenFall {
+  from {
+    transform: translate3d(0, -80px, 0) rotate(0deg);
+  }
+  35% {
+    transform: translate3d(calc(var(--drift) * -1), 32vh, 0) rotate(calc(var(--rotate) * 0.4));
+  }
+  70% {
+    transform: translate3d(var(--drift), 66vh, 0) rotate(calc(var(--rotate) * 0.7));
+  }
+  to {
+    transform: translate3d(calc(var(--drift) * -0.6), calc(100vh + 120px), 0) rotate(var(--rotate));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .digit {
+    animation: none !important;
+  }
+}
