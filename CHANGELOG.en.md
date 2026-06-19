@@ -7,6 +7,27 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.47] - 2026-06-19
+### Added
+- You can now create a milestone by right-clicking a day in the calendar.
+- Account settings now let you choose the interface color: several pastel shades and ink black.
+
+
+### Changed
+- When creating tasks, milestones, projects, customers, groups and widgets, the name field is now focused automatically so you can type right away.
+
+## [0.8.46] - 2026-06-17
+### Fixed
+- After an update ships, the app no longer crashes with an error when you open a task, comments, or the editor — it now reloads the fresh version on its own instead.
+
+## [0.8.45] - 2026-06-16
+### Fixed
+- Task duration can be shortened on the timeline again and past-dated tasks can be edited; the only limit is that the end date can't be before the start date.
+
+## [0.8.44] - 2026-06-16
+### Fixed
+- A task's end date can no longer be set before its start or before today, which removes overlapping bars on the timeline.
+
 ## [0.8.43] - 2026-06-15
 ### Changed
 - No documented changes.

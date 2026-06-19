@@ -71,13 +71,31 @@ export const getTaskPosition = (
   }
   
   const startOffset = differenceInDays(taskStart, firstVisibleDay);
-  const duration = differenceInDays(taskEnd, taskStart) + 1;
-  
+  // Defensive: never let an inverted range (end < start) produce a zero/negative
+  // width — such a bar collapses and visually overlaps its neighbours. Floor at
+  // one day so legacy/out-of-range data still renders as a sane block.
+  const duration = Math.max(1, differenceInDays(taskEnd, taskStart) + 1);
+
   const left = startOffset * dayWidth;
   const width = duration * dayWidth - 4; // 4px gap
-  
+
   return { left, width };
 };
+
+/**
+ * Smallest end date a task may have: its own start date. A task can't end before
+ * it begins. Dates are `yyyy-MM-dd`, so lexical comparison matches chronology.
+ */
+export const getMinEndDate = (startDate: string): string => startDate;
+
+/** Force a range to satisfy `end >= start` by pushing the end up to the start. */
+export const clampTaskDates = (
+  startDate: string,
+  endDate: string,
+): { startDate: string; endDate: string } => ({
+  startDate,
+  endDate: endDate < startDate ? startDate : endDate,
+});
 
 export const formatDateRange = (
   startDate: string,

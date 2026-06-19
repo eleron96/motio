@@ -65,11 +65,18 @@ export const installPreloadErrorReload = (deps: PreloadReloadDeps = {}): () => v
   if (typeof window === 'undefined') return () => undefined;
 
   const onPreload = (event: Event) => {
-    // Vite suppresses the rejected promise (and the noisy Sentry/Glitchtip
-    // report) when the listener calls preventDefault. We always want that
-    // because we are handling the failure ourselves by reloading.
-    event.preventDefault();
-    maybeReloadForPreloadError(deps);
+    // Only suppress Vite's rejection when we are actually reloading. Calling
+    // preventDefault makes Vite's __vitePreload resolve the dynamic import to
+    // `undefined` instead of rejecting; if we then skip the reload (e.g. the
+    // cooldown guard fired), the call site reads `.default`/a named export off
+    // `undefined` and throws a generic "Cannot read properties of undefined"
+    // TypeError that bypasses our recoverable-error filters and lands in
+    // Glitchtip. Letting Vite re-throw keeps the failure classified as a
+    // "Failed to fetch dynamically imported module" error, which the boundary
+    // and Sentry drop list already handle.
+    if (maybeReloadForPreloadError(deps)) {
+      event.preventDefault();
+    }
   };
 
   const onRejection = (event: PromiseRejectionEvent) => {

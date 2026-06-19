@@ -1,4 +1,5 @@
-import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import { type ComponentType, type LazyExoticComponent } from 'react';
+import { lazyNamed } from '@/shared/lib/lazyComponent';
 
 export interface EasterEgg {
   /** Supabase auth user id (auth.users.id) this egg targets. */
@@ -26,8 +27,9 @@ export const EASTER_EGGS: EasterEgg[] = [
     // a.kuprina@speech.su (Nastya) — matched by user id so SSO email quirks don't matter.
     match: 'f3d2d05e-9475-4d4c-813b-669b9eb32592',
     enabled: true,
-    Component: lazy<ComponentType>(() =>
-      import('./components/ShabbatBrief').then((m) => ({ default: m.ShabbatBrief })),
+    Component: lazyNamed(
+      () => import('./components/ShabbatBrief'),
+      'ShabbatBrief',
     ),
   },
 ];

@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
@@ -26,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Plus, X } from 'lucide-react';
-import { format } from '@/features/planner/lib/dateUtils';
+import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';
 import { TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -87,10 +88,10 @@ const resolveDefaultStatusId = (statuses: Status[]) => {
   return firstOpen?.id ?? statuses[0]?.id ?? '';
 };
 
-const LazyRichTextEditor = lazy(async () => {
-  const module = await import('@/features/planner/components/RichTextEditor');
-  return { default: module.RichTextEditor };
-});
+const LazyRichTextEditor = lazyNamed(
+  () => import('@/features/planner/components/RichTextEditor'),
+  'RichTextEditor'
+);
 
 type DraftSubtask = {
   id: string;
@@ -170,6 +171,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
   const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
   const focusSubtaskIdRef = useRef<string | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
     if (ids.length === 0) return [];
@@ -264,6 +266,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleStartDateChange = (value: string) => {
     markChanged();
     setStartDate(value);
+    // Keep the end on/after the start: bump it forward when the start passes it.
+    setEndDate((prev) => clampTaskDates(value, prev).endDate);
     if (!shouldAutoSyncRepeatUntil({
       frequency: repeatFrequency,
       ends: repeatEnds,
@@ -321,6 +325,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     }
 
     setRepeatCreating(true);
+    const safeDates = clampTaskDates(startDate, endDate);
     const createdTask = await addTask({
       title: title.trim(),
       projectId: projectId === 'none' ? null : projectId,
@@ -328,8 +333,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       statusId,
       typeId,
       priority: priority === 'none' ? null : priority,
-      startDate,
-      endDate,
+      startDate: safeDates.startDate,
+      endDate: safeDates.endDate,
       tagIds,
       description: description.trim() || null,
       repeatId: null,
@@ -487,7 +492,14 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogScrollContent className="flex w-full max-w-[880px] flex-col gap-0 p-0">
+      <DialogScrollContent
+        className="flex w-full max-w-[880px] flex-col gap-0 p-0"
+        onOpenAutoFocus={(event) => {
+          // Focus the title field on open so the user can type without an extra click.
+          event.preventDefault();
+          titleInputRef.current?.focus();
+        }}
+      >
         {/* Full-height tint behind the parameters column, header and footer included. */}
         <div
           aria-hidden="true"
@@ -510,6 +522,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 <Label htmlFor="new-title">{t`Title`} *</Label>
                 <Input
                   id="new-title"
+                  ref={titleInputRef}
                   value={title}
                   onChange={(e) => {
                     markChanged();
@@ -774,9 +787,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                     type="date"
                     className="bg-background px-2 text-sm tabular-nums"
                     value={endDate}
+                    min={getMinEndDate(startDate)}
                     onChange={(e) => {
                       markChanged();
-                      setEndDate(e.target.value);
+                      setEndDate(clampTaskDates(startDate, e.target.value).endDate);
                     }}
                   />
                 </div>

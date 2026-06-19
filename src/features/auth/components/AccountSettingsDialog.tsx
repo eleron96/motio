@@ -28,6 +28,15 @@ import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { demoStore } from '@/features/demo/lib/demoDataStore';
 import { isWeekViewEnabled, WEEK_VIEW_PREFERENCE_KEY } from '@/features/planner/lib/weekViewPreference';
+import {
+  ACCENT_COLOR_PREFERENCE_KEY,
+  ACCENT_SWATCHES,
+  DEFAULT_ACCENT_ID,
+  getAccentColorId,
+  getAccentLabel,
+  getAccentSwatch,
+} from '@/shared/lib/accentColor';
+import { useAccentColorStore } from '@/shared/store/accentColorStore';
 import { t } from '@lingui/macro';
 
 interface AccountSettingsDialogProps {
@@ -76,6 +85,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const accountDeletionEnabled = isAccountDeletionEnabled() && !isDemo;
   const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
+  const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
   // When the delete wizard opens the user elsewhere on the Profile tab (to fix their
   // display name), we need to switch tabs. Controlled value lets us do that.
@@ -105,6 +115,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setCurrentPrefs(data.preferences);
       setDailyBriefEnabled(data.preferences.daily_brief_enabled !== false);
       setWeekViewEnabled(isWeekViewEnabled(data.preferences));
+      setAccentId(getAccentColorId(data.preferences));
 
       setLoading(false);
     };
@@ -202,6 +213,27 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
     if (updateError) {
       setWeekViewEnabled(previousEnabled);
+      setCurrentPrefs(previousPrefs);
+      setError(updateError);
+    }
+  };
+
+  const handleAccentChange = async (nextId: string) => {
+    if (!user || nextId === accentId) return;
+    const previousId = accentId;
+    const previousPrefs = currentPrefs;
+
+    // Recolor instantly via the store, then persist; roll back on failure.
+    setAccentId(nextId);
+    useAccentColorStore.getState().setAccent(nextId);
+    const updatedPrefs = { ...currentPrefs, [ACCENT_COLOR_PREFERENCE_KEY]: nextId };
+    setCurrentPrefs(updatedPrefs);
+
+    const { error: updateError } = await updateProfilePreferences(updatedPrefs);
+
+    if (updateError) {
+      setAccentId(previousId);
+      useAccentColorStore.getState().setAccent(previousId);
       setCurrentPrefs(previousPrefs);
       setError(updateError);
     }
@@ -379,6 +411,45 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="space-y-2 border-t pt-4 text-left">
+                    <Label htmlFor="account-accent">{t`Interface color`}</Label>
+                    <Select
+                      value={accentId}
+                      onValueChange={handleAccentChange}
+                      disabled={!user || loading}
+                    >
+                      <SelectTrigger id="account-accent" aria-label={t`Interface color`}>
+                        {/* A div (not span) avoids the trigger's [&>span]:line-clamp
+                            clobbering the flex layout; the swatch sits on the right. */}
+                        <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                          <span className="truncate">{getAccentLabel(accentId)}</span>
+                          <span
+                            aria-hidden
+                            className="h-4 w-4 shrink-0 rounded-full border border-border"
+                            style={{ backgroundColor: `hsl(${getAccentSwatch(accentId).primary})` }}
+                          />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ACCENT_SWATCHES.map((swatch) => (
+                          <SelectItem key={swatch.id} value={swatch.id}>
+                            <span className="flex items-center gap-2">
+                              <span
+                                aria-hidden
+                                className="h-4 w-4 shrink-0 rounded-full border border-border"
+                                style={{ backgroundColor: `hsl(${swatch.primary})` }}
+                              />
+                              {getAccentLabel(swatch.id)}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {t`Choose the accent color used across the interface`}
+                    </p>
                   </div>
 
                   <div className="space-y-2 border-t pt-4 text-left">

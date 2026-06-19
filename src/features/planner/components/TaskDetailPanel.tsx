@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
@@ -10,11 +11,13 @@ import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/compone
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
-const LazyRichTextEditor = lazy(() =>
-  import('@/features/planner/components/RichTextEditor').then((m) => ({ default: m.RichTextEditor }))
+const LazyRichTextEditor = lazyNamed(
+  () => import('@/features/planner/components/RichTextEditor'),
+  'RichTextEditor'
 );
-const LazyTaskCommentSection = lazy(() =>
-  import('@/features/planner/components/TaskCommentSection').then((m) => ({ default: m.TaskCommentSection }))
+const LazyTaskCommentSection = lazyNamed(
+  () => import('@/features/planner/components/TaskCommentSection'),
+  'TaskCommentSection'
 );
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
@@ -50,6 +53,7 @@ import {
   RepeatEnds,
   RepeatFrequency,
 } from '@/features/planner/lib/taskFormRules';
+import { clampTaskDates, getMinEndDate } from '@/features/planner/lib/dateUtils';
 
 const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
@@ -466,6 +470,17 @@ export const TaskDetailPanel: React.FC = () => {
 
   const handleUpdate = (field: keyof Task, value: Task[keyof Task]) => requestTaskUpdate({ [field]: value } as Partial<Task>);
 
+  // Dates must keep end >= start. Moving the start past the end drags the end
+  // with it; the end itself can never be set before the start.
+  const handleStartDateChange = (value: string) => {
+    const { startDate, endDate } = clampTaskDates(value, task.endDate);
+    requestTaskUpdate(endDate !== task.endDate ? { startDate, endDate } : { startDate });
+  };
+
+  const handleEndDateChange = (value: string) => {
+    requestTaskUpdate({ endDate: clampTaskDates(task.startDate, value).endDate });
+  };
+
   const handleAssigneeToggle = (assigneeId: string) => {
     if (!canEdit) return;
     const targetAssignee = assignees.find((assignee) => assignee.id === assigneeId);
@@ -828,7 +843,7 @@ export const TaskDetailPanel: React.FC = () => {
                     id="startDate"
                     type="date"
                     value={task.startDate}
-                    onChange={(e) => handleUpdate('startDate', e.target.value)}
+                    onChange={(e) => handleStartDateChange(e.target.value)}
                     disabled={isReadOnly}
                     className="bg-background px-2 text-sm tabular-nums"
                   />
@@ -839,7 +854,8 @@ export const TaskDetailPanel: React.FC = () => {
                     id="endDate"
                     type="date"
                     value={task.endDate}
-                    onChange={(e) => handleUpdate('endDate', e.target.value)}
+                    min={getMinEndDate(task.startDate)}
+                    onChange={(e) => handleEndDateChange(e.target.value)}
                     disabled={isReadOnly}
                     className="bg-background px-2 text-sm tabular-nums"
                   />
