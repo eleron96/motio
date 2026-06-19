@@ -387,9 +387,22 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
     onOpenChange(false);
   };
 
+  const titleInputRef = React.useRef<HTMLInputElement>(null);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[96vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6">
+      <DialogContent
+        className="w-[96vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6"
+        onOpenAutoFocus={(event) => {
+          // On create the title is prefilled ("New widget"); focus and select it so
+          // the user can type a name immediately. Edit keeps the no-autofocus behaviour.
+          event.preventDefault();
+          if (!initialWidget) {
+            titleInputRef.current?.focus();
+            titleInputRef.current?.select();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription className="sr-only">
@@ -402,6 +415,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
             <Label htmlFor="widget-title">{t`Title`}</Label>
             <Input
               id="widget-title"
+              ref={titleInputRef}
               value={title}
               onChange={(event) => setTitle(event.target.value)}
             />

@@ -3,6 +3,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import { useLocaleStore } from '@/shared/store/localeStore';
+import { useAccentColorStore } from '@/shared/store/accentColorStore';
 import { isSupportedLocale, type Locale } from '@/shared/lib/locale';
 import { clearPendingLocale, getPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
@@ -806,6 +807,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       signOutRedirectInProgress: true,
     });
 
+    // Reset the accent to the default so one account's color doesn't linger.
+    useAccentColorStore.getState().setAccentFromProfile(null);
+
     if (typeof window !== 'undefined') {
       const oauth2ProxyEnabled = import.meta.env.VITE_OAUTH2_PROXY_ENABLED === 'true';
       if (oauth2ProxyEnabled) {
@@ -919,6 +923,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profileStatus,
       profilePurgeAfter: (data?.purge_after as string | null) ?? null,
     });
+
+    // Apply the user's saved interface accent color.
+    useAccentColorStore
+      .getState()
+      .setAccentFromProfile((data?.preferences ?? null) as Record<string, unknown> | null);
 
     if (pendingLocale) {
       useLocaleStore.getState().setLocale(pendingLocale);

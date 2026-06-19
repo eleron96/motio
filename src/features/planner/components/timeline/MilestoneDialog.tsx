@@ -149,9 +149,19 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     onOpenChange(false);
   };
 
+  const titleInputRef = React.useRef<HTMLInputElement>(null);
+
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        className="sm:max-w-[420px]"
+        onOpenAutoFocus={(event) => {
+          // On create, focus the Name field so the user can type immediately.
+          // Edit keeps the no-autofocus behaviour (no loud ring on open).
+          event.preventDefault();
+          if (mode === 'create') titleInputRef.current?.focus();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{mode === 'edit' ? t`Edit milestone` : t`Create milestone`}</DialogTitle>
           <DialogDescription className="sr-only">
@@ -179,6 +189,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
             <Label htmlFor="milestone-title">{t`Name`}</Label>
             <Input
               id="milestone-title"
+              ref={titleInputRef}
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
