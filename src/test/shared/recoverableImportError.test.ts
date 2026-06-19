@@ -27,6 +27,9 @@ describe('recoverableImportError', () => {
       ),
     ).toBe(true);
     expect(isRecoverableImportError(new Error('ChunkLoadError: Loading chunk 42 failed.'))).toBe(true);
+    expect(
+      isRecoverableImportError(new Error('Unable to preload CSS for /assets/driver-DB0Q8XAf.css')),
+    ).toBe(true);
     expect(isRecoverableImportError(new Error('Regular render failure'))).toBe(false);
   });
 
