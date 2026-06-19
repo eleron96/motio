@@ -12,7 +12,9 @@ const dsn = import.meta.env.VITE_GLITCHTIP_DSN;
 // Errors we never want in Glitchtip:
 //   - Recoverable Vite chunk-load failures: a fresh deploy rotates the
 //     bundle, an old tab requests a hash that no longer exists; we already
-//     auto-reload, the report is noise.
+//     auto-reload, the report is noise. This includes the CSS preload variant
+//     ("Unable to preload CSS for …") raised when a lazy chunk's stylesheet
+//     (e.g. the onboarding tour's driver.js styles) has been rotated away.
 //   - DOM mutation races caused by browser auto-translation (Google Translate
 //     / Yandex Browser) — the page is wrapped in notranslate but extensions
 //     can still mutate the tree.
@@ -21,6 +23,7 @@ export const IGNORED_ERROR_PATTERNS: RegExp[] = [
   /Importing a module script failed/i,
   /error loading dynamically imported module/i,
   /ChunkLoadError/i,
+  /Unable to preload CSS for/i,
   /Failed to execute 'removeChild' on 'Node'/i,
   /Failed to execute 'insertBefore' on 'Node'/i,
   /The node to be removed is not a child of this node/i,

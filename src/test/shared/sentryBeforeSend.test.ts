@@ -27,6 +27,14 @@ describe('shouldDropSentryEvent', () => {
     ).toBe(true);
   });
 
+  it('drops Vite CSS preload failures (stale lazy-chunk stylesheet)', () => {
+    expect(
+      shouldDropSentryEvent(
+        eventWithException('Error', 'Unable to preload CSS for /assets/driver-DB0Q8XAf.css'),
+      ),
+    ).toBe(true);
+  });
+
   it('drops ChunkLoadError', () => {
     expect(
       shouldDropSentryEvent(

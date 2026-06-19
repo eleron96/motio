@@ -5,6 +5,10 @@ const PRELOAD_ERROR_PATTERNS = [
   /Failed to fetch dynamically imported module/i,
   /error loading dynamically imported module/i,
   /Importing a module script failed/i,
+  // Vite rejects a lazy chunk's stylesheet preload with this message when the
+  // <link> 404s after a deploy rotated the hash (e.g. the onboarding tour's
+  // driver.js CSS). Same recoverable stale-chunk class as the JS variants.
+  /Unable to preload CSS for/i,
 ];
 
 export const isPreloadError = (value: unknown): boolean => {

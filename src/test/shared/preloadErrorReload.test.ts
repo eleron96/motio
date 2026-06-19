@@ -30,6 +30,12 @@ describe('isPreloadError', () => {
     expect(isPreloadError(new Error('Importing a module script failed.'))).toBe(true);
   });
 
+  it('recognises the Vite CSS preload failure', () => {
+    expect(isPreloadError(new Error(
+      'Unable to preload CSS for /assets/driver-DB0Q8XAf.css',
+    ))).toBe(true);
+  });
+
   it('ignores unrelated errors', () => {
     expect(isPreloadError(new Error('Network request failed'))).toBe(false);
     expect(isPreloadError(null)).toBe(false);
