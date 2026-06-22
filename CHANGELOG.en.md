@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.49] - 2026-06-22
 ### Changed
 - On desktop, member avatars in the timeline are now larger.
 
