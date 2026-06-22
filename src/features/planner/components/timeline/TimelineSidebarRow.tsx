@@ -23,16 +23,16 @@ export const ASSIGNEE_AVATAR_TIER_BREAKPOINTS = {
 } as const;
 
 export const resolveAssigneeAvatarSize = (sidebarWidth: number): AvatarSize => {
-  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.wide) return '2xl';
-  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.medium) return 'xl';
-  return 'sm';
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.wide) return 'lg';
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.medium) return '2xl';
+  return 'xl';
 };
 
 export const resolveAssigneeMinRowHeight = (sidebarWidth: number): number => {
-  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.wide) return 104;
-  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.medium) return 92;
-  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.compact) return 76;
-  return 60;
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.wide) return 128;
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.medium) return 104;
+  if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.compact) return 88;
+  return 72;
 };
 
 export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
