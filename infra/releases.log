@@ -325,3 +325,4 @@
 2026-06-19T15:47:58Z | 0.8.47 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260619-154712.dump | You can now create a milestone by right-clicking a day in the calendar.
 2026-06-19T16:18:58Z | 0.8.48 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260619-161814.dump | After a version update, pages with stale styles now refresh automatically instead of erroring.
 2026-06-22T15:42:21Z | 0.8.49 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260622-154133.dump | On desktop, member avatars in the timeline are now larger.
+2026-06-25T16:26:12Z | 0.8.50 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260625-162529.dump | No documented changes.
