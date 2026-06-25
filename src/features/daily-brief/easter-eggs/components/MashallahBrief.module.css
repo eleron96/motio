@@ -1,0 +1,74 @@
+/* Daily-brief easter egg styling. Class names are consumed via the CSS-module
+   `styles` object (including for imperatively-created glyphs), so they stay
+   scoped to this feature. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  /* Sits above the dialog dimming (z-50) but below the brief card (z-60),
+     so the glyphs rain behind the report. See DailyBriefModal. */
+  z-index: 55;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.glyph {
+  position: absolute;
+  top: -64px;
+  left: var(--x);
+  font-size: var(--size);
+  font-weight: 800;
+  line-height: 1;
+  opacity: var(--opacity);
+  will-change: transform;
+  transform: translate3d(0, -80px, 0) rotate(0deg);
+  backface-visibility: hidden;
+}
+
+/* Letters of MASHALLAH — warm gold, tumble straight down. */
+.letter {
+  color: #e7c15a;
+  text-shadow: 0 0 12px rgba(231, 193, 90, 0.5);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  animation: letterFall var(--duration) cubic-bezier(0.45, 0, 0.7, 1) forwards;
+}
+
+/* 🌙 crescents — lighter glow, sway side to side as they drop. */
+.crescent {
+  text-shadow: 0 0 14px rgba(240, 217, 140, 0.55);
+  animation: crescentFall var(--duration) linear forwards;
+}
+
+/* Letters accelerate straight down while tumbling. */
+@keyframes letterFall {
+  from {
+    transform: translate3d(0, -80px, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(var(--drift), calc(100vh + 120px), 0) rotate(var(--rotate));
+  }
+}
+
+/* Crescents sway as they fall — a softer, distinct motion from the letters. */
+@keyframes crescentFall {
+  from {
+    transform: translate3d(0, -80px, 0) rotate(0deg);
+  }
+  35% {
+    transform: translate3d(calc(var(--drift) * -1), 32vh, 0) rotate(calc(var(--rotate) * 0.4));
+  }
+  70% {
+    transform: translate3d(var(--drift), 66vh, 0) rotate(calc(var(--rotate) * 0.7));
+  }
+  to {
+    transform: translate3d(calc(var(--drift) * -0.6), calc(100vh + 120px), 0) rotate(var(--rotate));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph {
+    animation: none !important;
+  }
+}
