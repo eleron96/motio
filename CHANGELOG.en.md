@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.52] - 2026-06-26
 ### Fixed
 - Member avatars are clipped to a circle correctly again in Safari on iOS.
 - On the projects page, clicking a project in the Clients section opens that project again, even when a team filter is active on the Projects tab.
@@ -16,6 +17,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - On phones, the offline indicator is now a compact icon so it does not crowd the screen.
 - On phones, adding tasks is easier: a round floating button, filters that open as a centered modal, and a new-task form that fits entirely on screen.
 - On phones, you can now control timeline tasks with gestures: a tap shows a tooltip, a double tap opens the task, and a long press opens a touch-friendly actions menu.
+
 ## [0.8.51] - 2026-06-25
 ### Changed
 - No documented changes.
