@@ -147,6 +147,17 @@
 }
 
 @layer utilities {
+  /* iOS Safari fails to clip `overflow:hidden` + `border-radius` for composited
+     children (e.g. an avatar <img> under a position:sticky / transformed
+     ancestor, as in the mobile timeline rail): the photo escapes the circle and
+     the surrounding ring/shadow render square. Forcing a fully-opaque GPU mask
+     makes WebKit honor the rounded clip. The mask does not affect box-shadow, so
+     ring/shadow stay round, and it is a no-op in engines that already clip. */
+  .avatar-clip-fix {
+    -webkit-mask-image: -webkit-radial-gradient(#fff, #fff);
+    mask-image: radial-gradient(#fff, #fff);
+  }
+
   .timeline-surface {
     --foreground: 220 15% 20%;
   }

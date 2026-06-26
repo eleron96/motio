@@ -179,6 +179,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     sidebarWidthKey: resolvedSidebarWidth,
   });
 
+  // Mobile: keep "today" near the centre of the narrow viewport (1 day of left
+  // context) instead of the desktop 2-day left bias that pushed it to the edge.
+  const leftContextDays = isMobile ? 1 : LEFT_CONTEXT_DAYS;
+
   const { scrollLeft, handleScroll } = useTimelineScroll({
     scrollContainerRef,
     sidebarViewportWidth,
@@ -198,15 +202,16 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setCurrentDate,
     markTimelineInteraction,
     isDragScrolling,
+    leftContextDays,
   });
 
   // ─── Derived display values ────────────────────────────────────────────────
 
   const focusIndex = useMemo(() => {
     if (!viewportWidth || dayWidth === 0) return -1;
-    const focusPx = scrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
+    const focusPx = scrollLeft + leftContextDays * dayWidth + dayWidth / 2;
     return Math.min(visibleDays.length - 1, Math.max(0, Math.floor(focusPx / dayWidth)));
-  }, [scrollLeft, viewportWidth, dayWidth, visibleDays.length]);
+  }, [scrollLeft, viewportWidth, dayWidth, visibleDays.length, leftContextDays]);
 
   useEffect(() => {
     if (focusIndex >= 0 && focusIndex < visibleDays.length) {
@@ -337,6 +342,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   return (
     <div className={cn(
       'relative flex flex-col h-full overflow-hidden bg-background',
+      // Mobile: long-press on the timeline (outside a task) must not start a
+      // text selection or pop the native iOS callout/context menu. The task
+      // bars' own long-press menu is JS-driven and unaffected.
+      'max-md:select-none max-md:[-webkit-touch-callout:none]',
       highlightedTaskId && 'task-highlight-mode',
       isDragScrolling && 'timeline-drag-scroll-active',
     )}
@@ -500,7 +509,14 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         <Button
           type="button"
           variant="secondary"
-          className="absolute bottom-6 right-6 z-30 border border-border/80 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.35)] backdrop-blur transition-shadow hover:shadow-[0_18px_40px_rgba(15,23,42,0.45)]"
+          className={cn(
+            'absolute z-30 border border-border/80 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.35)] backdrop-blur transition-shadow hover:shadow-[0_18px_40px_rgba(15,23,42,0.45)]',
+            // On mobile the add-task FAB sits bottom-right, so stack "Today"
+            // above it (same right edge) instead of overlapping it.
+            isMobile
+              ? 'right-4 bottom-[calc(env(safe-area-inset-bottom,0px)+5.75rem)]'
+              : 'bottom-6 right-6',
+          )}
           onClick={handleJumpToToday}
         >
           {t`Today`}

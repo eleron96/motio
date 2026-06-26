@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { EasterEggBoundary } from './EasterEggBoundary';
 import { useEasterEgg } from './useEasterEgg';
 
 interface Props {
@@ -7,20 +8,24 @@ interface Props {
 }
 
 /**
- * Single integration point for the daily-brief easter eggs. Renders the current
- * user's egg (if any) lazily, so non-matching users never download its chunk.
+ * Single integration point for the daily-brief easter eggs. Resolves the current
+ * user's egg from the DB (only while the brief is open) and renders it lazily —
+ * non-matching users never download a chunk. The egg is wrapped in its own error
+ * boundary so a failing chunk/render can never take down the brief.
  *
  * To remove the whole easter-egg feature: delete the `easter-eggs/` folder and
  * the one `<EasterEggSlot />` line (plus its import) in DailyBriefModal.
  */
 export const EasterEggSlot = ({ active }: Props) => {
-  const Egg = useEasterEgg();
+  const Egg = useEasterEgg(active);
 
   if (!active || !Egg) return null;
 
   return (
-    <Suspense fallback={null}>
-      <Egg />
-    </Suspense>
+    <EasterEggBoundary>
+      <Suspense fallback={null}>
+        <Egg />
+      </Suspense>
+    </EasterEggBoundary>
   );
 };

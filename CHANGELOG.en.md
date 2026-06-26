@@ -7,6 +7,38 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.54] - 2026-06-26
+### Fixed
+- The Workspace settings window no longer changes height when switching sections.
+
+## [0.8.53] - 2026-06-26
+### Changed
+- Refreshed the Workspace settings window: sections on the left and a cleaner layout.
+- The "Unassigned" toggle moved from the timeline into Workspace settings, under the Display section.
+
+## [0.8.52] - 2026-06-26
+### Fixed
+- Member avatars are clipped to a circle correctly again in Safari on iOS.
+- On the projects page, clicking a project in the Clients section opens that project again, even when a team filter is active on the Projects tab.
+
+
+### Changed
+- On phones, the offline indicator is now a compact icon so it does not crowd the screen.
+- On phones, adding tasks is easier: a round floating button, filters that open as a centered modal, and a new-task form that fits entirely on screen.
+- On phones, you can now control timeline tasks with gestures: a tap shows a tooltip, a double tap opens the task, and a long press opens a touch-friendly actions menu.
+
+## [0.8.51] - 2026-06-25
+### Changed
+- No documented changes.
+
+## [0.8.50] - 2026-06-25
+### Changed
+- No documented changes.
+
+## [0.8.49] - 2026-06-22
+### Changed
+- On desktop, member avatars in the timeline are now larger.
+
 ## [0.8.48] - 2026-06-19
 ### Fixed
 - After a version update, pages with stale styles now refresh automatically instead of erroring.

@@ -303,6 +303,9 @@ const rpcHandlers: Record<string, (args: Record<string, unknown>) => Result> = {
     return ok(demoStore.workspaceId());
   },
   demo_heartbeat: () => ok(null),
+  // Daily-brief easter egg — no eggs in the demo sandbox (the brief itself is
+  // suppressed on /demo anyway); return null instead of warning.
+  get_my_daily_brief_egg: () => ok(null),
   // Dashboard aggregates — return empty stubs so the dashboard renders
   // without crashing. Demo-quality data here is not the priority; the
   // planner timeline is.

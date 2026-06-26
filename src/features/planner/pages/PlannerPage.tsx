@@ -7,7 +7,7 @@ import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { Button } from '@/shared/ui/button';
-import { Filter, Plus } from 'lucide-react';
+import { Filter, Plus, SquarePen } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
@@ -353,25 +353,43 @@ const PlannerPage = () => {
   useWorkspaceHeader(
     {
       primaryAction: hideTimelineActions ? undefined : (
-        <Button
-          data-tour="add-task-btn"
-          onClick={() => {
-            setAddTaskDefaults(null);
-            setShowAddTask(true);
-          }}
-          size="sm"
-          className="gap-2"
-          disabled={!canEdit}
-        >
-          <Plus className="h-4 w-4" />
-          {t`Add task`}
-        </Button>
+        isMobile ? (
+          // Mobile: a round, card-style icon FAB (the MobileFab wrapper adds the
+          // floating position + shadow). Icon-only, so it needs an aria-label.
+          <button
+            type="button"
+            data-tour="add-task-btn"
+            aria-label={t`Add task`}
+            onClick={() => {
+              setAddTaskDefaults(null);
+              setShowAddTask(true);
+            }}
+            disabled={!canEdit}
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card text-primary hover:bg-accent disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <SquarePen className="h-6 w-6" />
+          </button>
+        ) : (
+          <Button
+            data-tour="add-task-btn"
+            onClick={() => {
+              setAddTaskDefaults(null);
+              setShowAddTask(true);
+            }}
+            size="sm"
+            className="gap-2"
+            disabled={!canEdit}
+          >
+            <Plus className="h-4 w-4" />
+            {t`Add task`}
+          </Button>
+        )
       ),
       onOpenSettings: () => setShowSettings(true),
       onOpenAccountSettings: () => setShowAccountSettings(true),
       settingsDisabled: !canEdit,
     },
-    [hideTimelineActions, canEdit],
+    [hideTimelineActions, canEdit, isMobile],
   );
 
   if (isSuperAdmin) {
@@ -420,19 +438,24 @@ const PlannerPage = () => {
                 </button>
               )
             ) : (
+              // Mobile: a solid, centered iOS-style modal (above the FAB/Today
+              // buttons) instead of a half-width drawer that left the timeline
+              // showing through and let the floating buttons sit on top of it.
               <>
                 <button
                   type="button"
                   aria-label={t`Collapse filters`}
-                  className="absolute inset-0 z-20 bg-black/40"
+                  className="fixed inset-0 z-50 bg-black/50"
                   onClick={() => setFilterCollapsed(true)}
                 />
-                <div className="absolute top-0 left-0 h-full z-30 w-[min(85vw,320px)] bg-background shadow-xl">
-                  <FilterPanel
-                    collapsed={false}
-                    onToggle={() => setFilterCollapsed(true)}
-                    compact
-                  />
+                <div className="fixed left-1/2 top-1/2 z-[51] w-[min(92vw,360px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
+                  <div className="max-h-[80dvh] overflow-y-auto">
+                    <FilterPanel
+                      collapsed={false}
+                      onToggle={() => setFilterCollapsed(true)}
+                      compact
+                    />
+                  </div>
                 </div>
               </>
             )}
