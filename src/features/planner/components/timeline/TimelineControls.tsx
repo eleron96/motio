@@ -4,7 +4,6 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
 import { Button } from '@/shared/ui/button';
-import { Checkbox } from '@/shared/ui/checkbox';
 import { Calendar as CalendarComponent } from '@/shared/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import {
@@ -16,7 +15,6 @@ import {
 } from 'lucide-react';
 import { format, parseISO, addDays, subDays } from '@/features/planner/lib/dateUtils';
 import { addMonths, setMonth, setYear, subMonths } from 'date-fns';
-import { cn } from '@/shared/lib/classNames';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
@@ -106,13 +104,8 @@ export const TimelineControls: React.FC = () => {
     setCurrentDate,
     visibleCenterDate,
     requestScrollToDate,
-    filters,
-    setFilters,
   } = usePlannerStore();
   const weekViewEnabled = useAuthStore((state) => isWeekViewEnabled(state.profilePreferences));
-  const hideUnassignedId = 'hide-unassigned-toggle';
-  const showUnassigned = !filters.hideUnassigned;
-  const unassignedDisabled = viewMode === 'calendar' || groupMode === 'project';
 
   const handlePrev = () => {
     const date = parseISO(currentDate);
@@ -268,26 +261,6 @@ export const TimelineControls: React.FC = () => {
             <span className="hidden md:inline">{t`Projects`}</span>
           </SegmentedControlItem>
         </SegmentedControl>
-
-        <div
-          className="flex items-center gap-2 text-[11px] text-muted-foreground/70 select-none"
-          title={t`Show unassigned`}
-        >
-          <Checkbox
-            id={hideUnassignedId}
-            checked={showUnassigned}
-            onCheckedChange={(value) => setFilters({ hideUnassigned: value !== true })}
-            disabled={unassignedDisabled}
-            className="scale-75 border-muted-foreground/40 data-[state=checked]:bg-muted-foreground/60 data-[state=checked]:border-muted-foreground/60 data-[state=checked]:text-white/90"
-            aria-label={t`Show unassigned`}
-          />
-          <label
-            htmlFor={hideUnassignedId}
-            className={cn('cursor-pointer hidden sm:inline', unassignedDisabled && 'opacity-60 cursor-not-allowed')}
-          >
-            {t`Unassigned`}
-          </label>
-        </div>
       </div>
     </div>
   );
