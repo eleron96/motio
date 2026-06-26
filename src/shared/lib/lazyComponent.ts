@@ -27,12 +27,17 @@ const RECOVERABLE_IMPORT_MESSAGE = 'Failed to fetch dynamically imported module'
 export const makeRecoverableImportError = (source: string): Error =>
   new Error(`${RECOVERABLE_IMPORT_MESSAGE}: ${source}`);
 
+// `any` is deliberate: these wrappers are agnostic to a component's prop types
+// and preserve the real types at each call site through the generics below.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyProps = any;
+
 /**
  * `React.lazy` for a module whose component is the default export.
  * `label` is only used to tag the recoverable error (debugging + reload guard).
  * The component's prop types are preserved.
  */
-export function lazyDefault<T extends ComponentType<any>>(
+export function lazyDefault<T extends ComponentType<AnyProps>>(
   importer: () => Promise<{ default: T }>,
   label: string,
 ): LazyExoticComponent<T> {
@@ -53,13 +58,13 @@ export function lazyDefault<T extends ComponentType<any>>(
 export function lazyNamed<M, K extends keyof M & string>(
   importer: () => Promise<M>,
   name: K,
-): LazyExoticComponent<M[K] extends ComponentType<any> ? M[K] : never> {
+): LazyExoticComponent<M[K] extends ComponentType<AnyProps> ? M[K] : never> {
   return lazy(async () => {
     const module = (await importer()) as M | undefined;
     const Component = module == null ? undefined : module[name];
     if (Component == null) {
       throw makeRecoverableImportError(name);
     }
-    return { default: Component as ComponentType<any> };
-  }) as LazyExoticComponent<M[K] extends ComponentType<any> ? M[K] : never>;
+    return { default: Component as ComponentType<AnyProps> };
+  }) as LazyExoticComponent<M[K] extends ComponentType<AnyProps> ? M[K] : never>;
 }
