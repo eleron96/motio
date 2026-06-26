@@ -18,8 +18,13 @@ import {
   ContextMenuTrigger,
 } from '@/shared/ui/context-menu';
 import { Badge } from '@/shared/ui/badge';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { TaskBarMenu } from './TaskBarMenu';
 import { TaskBarDeleteDialog } from './TaskBarDeleteDialog';
+
+// Mobile gesture thresholds.
+const TAP_MOVE_THRESHOLD = 10; // px of movement that turns a tap into a scroll
+const DOUBLE_TAP_MS = 280; // window to detect a double tap (and to debounce a single)
 
 interface TaskBarProps {
   task: Task;
@@ -80,6 +85,18 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
 
   const barRef = useRef<HTMLDivElement>(null);
 
+  const isMobile = useIsMobile();
+  // Mobile: the info tooltip is driven by an explicit single tap, not hover.
+  const [mobileTooltipOpen, setMobileTooltipOpen] = useState(false);
+  const tapStartRef = useRef<{ x: number; y: number } | null>(null);
+  const tapMovedRef = useRef(false);
+  const lastTapRef = useRef(0);
+  const singleTapTimerRef = useRef<number | null>(null);
+  // Set when a long-press opens the context menu, so the trailing touchend is
+  // not mistaken for a tap.
+  const menuJustOpenedRef = useRef(false);
+  const tooltipElRef = useRef<HTMLDivElement>(null);
+
   const project = projects.find(p => p.id === task.projectId);
   const status = statuses.find(s => s.id === task.statusId);
   const taskType = taskTypes.find(t => t.id === task.typeId);
@@ -104,7 +121,9 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const priorityMeta = task.priority && appearance.priorityVisual
     ? { ...appearance.priorityVisual, label: priorityLabels[task.priority] }
     : null;
-  const showTooltip = isHovering && !isDragging && !isResizing;
+  const showTooltip = isMobile
+    ? mobileTooltipOpen
+    : (isHovering && !isDragging && !isResizing);
 
   // Calculate vertical position based on lane
   const topPosition = ROW_TOP_PADDING + lane * (TASK_HEIGHT + TASK_GAP);
@@ -117,7 +136,24 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
       cancelAnimationFrame(tooltipRafRef.current);
       tooltipRafRef.current = null;
     }
+    if (singleTapTimerRef.current !== null) {
+      window.clearTimeout(singleTapTimerRef.current);
+      singleTapTimerRef.current = null;
+    }
   }, []);
+
+  // Mobile: dismiss the tap-tooltip on the next touch outside it. Passive so the
+  // same gesture still scrolls the timeline (no blocking full-screen backdrop).
+  useEffect(() => {
+    if (!isMobile || !mobileTooltipOpen) return undefined;
+    const onDocTouch = (ev: TouchEvent) => {
+      const target = ev.target as Node | null;
+      if (tooltipElRef.current && target && tooltipElRef.current.contains(target)) return;
+      setMobileTooltipOpen(false);
+    };
+    document.addEventListener('touchstart', onDocTouch, { passive: true });
+    return () => document.removeEventListener('touchstart', onDocTouch);
+  }, [isMobile, mobileTooltipOpen]);
 
   const updateTooltipPosition = useCallback((event: React.MouseEvent) => {
     tooltipPendingRef.current = { clientX: event.clientX, clientY: event.clientY };
@@ -141,6 +177,86 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
       setTooltipPos({ x, y });
     });
   }, []);
+
+  // Mobile: anchor the tooltip to the bar (touch has no cursor), clamped to the
+  // viewport — below the bar, or above it when there isn't room.
+  const positionMobileTooltip = useCallback(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    const rect = bar.getBoundingClientRect();
+    const tooltipWidth = 256;
+    const tooltipHeight = 180;
+    const offset = 8;
+    let x = rect.left;
+    if (x + tooltipWidth > window.innerWidth) {
+      x = window.innerWidth - tooltipWidth - offset;
+    }
+    x = Math.max(8, x);
+    let y = rect.bottom + offset;
+    if (y + tooltipHeight > window.innerHeight) {
+      y = Math.max(8, rect.top - tooltipHeight - offset);
+    }
+    setTooltipPos({ x, y });
+  }, []);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    // Drain the long-press latch at the start of every gesture so a previous
+    // long-press that ended in a touchcancel can't swallow this tap.
+    menuJustOpenedRef.current = false;
+    tapStartRef.current = { x: touch.clientX, y: touch.clientY };
+    tapMovedRef.current = false;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const start = tapStartRef.current;
+    const touch = e.touches[0];
+    if (!start || !touch) return;
+    if (
+      Math.abs(touch.clientX - start.x) > TAP_MOVE_THRESHOLD
+      || Math.abs(touch.clientY - start.y) > TAP_MOVE_THRESHOLD
+    ) {
+      tapMovedRef.current = true;
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // A long-press already opened the context menu — swallow this touchend.
+    if (menuJustOpenedRef.current) {
+      menuJustOpenedRef.current = false;
+      tapStartRef.current = null;
+      return;
+    }
+    const start = tapStartRef.current;
+    tapStartRef.current = null;
+    if (!start || tapMovedRef.current) return; // a scroll/drag, not a tap
+    // Suppress the synthetic mouse click that would otherwise follow the tap.
+    e.preventDefault();
+    const now = Date.now();
+    if (now - lastTapRef.current < DOUBLE_TAP_MS) {
+      // Double tap → open the task detail.
+      if (singleTapTimerRef.current !== null) {
+        window.clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
+      lastTapRef.current = 0;
+      setMobileTooltipOpen(false);
+      setSelectedTaskId(task.id);
+      return;
+    }
+    // First tap → wait for a possible second tap; otherwise show the tooltip.
+    lastTapRef.current = now;
+    if (singleTapTimerRef.current !== null) {
+      window.clearTimeout(singleTapTimerRef.current);
+    }
+    singleTapTimerRef.current = window.setTimeout(() => {
+      singleTapTimerRef.current = null;
+      lastTapRef.current = 0;
+      positionMobileTooltip();
+      setMobileTooltipOpen(true);
+    }, DOUBLE_TAP_MS);
+  }, [task.id, setSelectedTaskId, positionMobileTooltip]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, resize?: 'left' | 'right') => {
     if (!canEdit) return;
@@ -288,20 +404,40 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   }, []);
 
   return (
-    <ContextMenu>
+    <ContextMenu
+      onOpenChange={isMobile ? (open) => {
+        if (open) {
+          menuJustOpenedRef.current = true;
+          // Long-press won the gesture: cancel any pending single-tap tooltip so
+          // it can't flash during the hold, and drop the info tooltip.
+          if (singleTapTimerRef.current !== null) {
+            window.clearTimeout(singleTapTimerRef.current);
+            singleTapTimerRef.current = null;
+          }
+          lastTapRef.current = 0;
+          setMobileTooltipOpen(false);
+        } else {
+          // Menu closed: clear the latch so it can't swallow a later tap.
+          menuJustOpenedRef.current = false;
+        }
+      } : undefined}
+    >
       <ContextMenuTrigger asChild>
         <div
           ref={barRef}
           data-task-id={task.id}
           data-row-assignee-id={rowAssigneeId ?? undefined}
-          onMouseDown={(e) => handleMouseDown(e)}
-          onMouseEnter={(e) => {
+          onMouseDown={isMobile ? undefined : (e) => handleMouseDown(e)}
+          onMouseEnter={isMobile ? undefined : (e) => {
             setIsHovering(true);
             updateTooltipPosition(e);
           }}
-          onMouseMove={updateTooltipPosition}
-          onMouseLeave={() => setIsHovering(false)}
-          onClick={(e) => {
+          onMouseMove={isMobile ? undefined : updateTooltipPosition}
+          onMouseLeave={isMobile ? undefined : () => setIsHovering(false)}
+          onTouchStart={isMobile ? handleTouchStart : undefined}
+          onTouchMove={isMobile ? handleTouchMove : undefined}
+          onTouchEnd={isMobile ? handleTouchEnd : undefined}
+          onClick={isMobile ? undefined : (e) => {
             e.stopPropagation();
             if (!canEdit) {
               setSelectedTaskId(task.id);
@@ -321,10 +457,12 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
           style={barStyle}
         >
           {/* Left resize handle */}
-          <div
-            className="resize-handle left-0 hover:bg-black/20"
-            onMouseDown={(e) => handleMouseDown(e, 'left')}
-          />
+          {!isMobile && (
+            <div
+              className="resize-handle left-0 hover:bg-black/20"
+              onMouseDown={(e) => handleMouseDown(e, 'left')}
+            />
+          )}
 
           {/* Task content */}
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -383,20 +521,23 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
           </div>
 
           {/* Right resize handle */}
-          <div
-            className="resize-handle right-0 hover:bg-black/20"
-            onMouseDown={(e) => handleMouseDown(e, 'right')}
-          />
+          {!isMobile && (
+            <div
+              className="resize-handle right-0 hover:bg-black/20"
+              onMouseDown={(e) => handleMouseDown(e, 'right')}
+            />
+          )}
         </div>
       </ContextMenuTrigger>
-      <ContextMenuContent>
+      <ContextMenuContent className={cn(isMobile && 'min-w-[232px] rounded-2xl p-1.5')}>
         {/* Radix only mounts ContextMenuContent's children while the menu is
             open, so TaskBarMenu's heavy subscriptions/computations are deferred
             to the single bar whose menu is actually open. */}
-        <TaskBarMenu task={task} canEdit={canEdit} onRequestDelete={handleRequestDelete} />
+        <TaskBarMenu task={task} canEdit={canEdit} onRequestDelete={handleRequestDelete} isMobile={isMobile} />
       </ContextMenuContent>
       {showTooltip && typeof document !== 'undefined' && createPortal(
         <div
+          ref={tooltipElRef}
           className="fixed z-50 w-64 max-w-xs rounded-lg border bg-background p-3 shadow-xl"
           style={{ left: tooltipPos.x, top: tooltipPos.y }}
         >

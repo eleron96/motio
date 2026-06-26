@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { createElement, useEffect, useRef } from 'react';
+import { WifiOff } from 'lucide-react';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { toast } from 'sonner';
 import { t } from '@lingui/macro';
@@ -610,11 +611,30 @@ export const usePlannerLiveSync = (
         if (!disconnectTimer) {
           disconnectTimer = setTimeout(() => {
             disconnectTimer = null;
-            toast.error(t`Нет соединения`, {
-              id: 'sync-status',
-              position: 'bottom-right',
-              duration: Infinity,
-            });
+            const compact = typeof window !== 'undefined'
+              && window.matchMedia('(max-width: 767px)').matches;
+            if (compact) {
+              // Mobile: a compact icon-only badge on the right, instead of a
+              // full-width text toast that would crowd the narrow screen.
+              toast.custom(
+                () => createElement(
+                  'div',
+                  {
+                    className: 'flex h-10 w-10 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg',
+                    role: 'status',
+                    'aria-label': t`Нет соединения`,
+                  },
+                  createElement(WifiOff, { className: 'h-5 w-5' }),
+                ),
+                { id: 'sync-status', position: 'top-right', duration: Infinity },
+              );
+            } else {
+              toast.error(t`Нет соединения`, {
+                id: 'sync-status',
+                position: 'bottom-right',
+                duration: Infinity,
+              });
+            }
           }, 5000);
         }
         clearInitialReconcileTimer();

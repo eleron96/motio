@@ -16,12 +16,16 @@ import {
   ContextMenuSubTrigger,
 } from '@/shared/ui/context-menu';
 import { Input } from '@/shared/ui/input';
+import { cn } from '@/shared/lib/classNames';
+import { CircleDot, Copy, Flag, FolderInput, Trash2 } from 'lucide-react';
 
 interface TaskBarMenuProps {
   task: Task;
   canEdit: boolean;
   /** Opens the delete confirmation dialog (owned by the parent TaskBar). */
   onRequestDelete: () => void;
+  /** On mobile the menu is touch-friendly: larger rows + leading icons. */
+  isMobile?: boolean;
 }
 
 /**
@@ -33,7 +37,7 @@ interface TaskBarMenuProps {
  * instead of in TaskBar, so they no longer run for every visible bar on every
  * render — only for the single bar whose menu is open.
  */
-const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestDelete }) => {
+const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestDelete, isMobile = false }) => {
   const projects = usePlannerStore((state) => state.projects);
   const trackedProjectIds = usePlannerStore((state) => state.trackedProjectIds);
   const statuses = usePlannerStore((state) => state.statuses);
@@ -105,27 +109,41 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
     updateTask(task.id, { priority: nextPriority });
   };
 
+  // On mobile the rows are bigger touch targets with leading icons (iOS-style).
+  const triggerCls = isMobile ? 'gap-2.5 py-2.5 text-sm' : 'py-1 text-xs';
+  const itemCls = isMobile ? 'gap-2.5 py-2.5 text-sm' : 'py-1 text-xs';
+  const radioCls = isMobile ? 'py-2.5 pl-8 text-sm' : 'py-1 pl-7 text-xs';
+  const labelCls = isMobile ? 'px-2 py-1.5 text-sm' : 'px-2 py-1 text-xs';
+  const iconCls = 'h-4 w-4 shrink-0 opacity-80';
+
   return (
     <>
       <ContextMenuSub>
-        <ContextMenuSubTrigger className="py-1 text-xs">{t`Status`}</ContextMenuSubTrigger>
+        <ContextMenuSubTrigger className={triggerCls}>
+          {isMobile && <CircleDot className={iconCls} aria-hidden="true" />}
+          {t`Status`}
+        </ContextMenuSubTrigger>
         <ContextMenuSubContent>
-          <ContextMenuLabel className="px-2 py-1 text-xs">{t`Status`}</ContextMenuLabel>
+          <ContextMenuLabel className={labelCls}>{t`Status`}</ContextMenuLabel>
           <ContextMenuSeparator />
           <ContextMenuRadioGroup value={task.statusId} onValueChange={handleStatusChange}>
             {statuses.map((item) => (
-              <ContextMenuRadioItem key={item.id} value={item.id} disabled={!canEdit} className="py-1 pl-7 text-xs">
+              <ContextMenuRadioItem key={item.id} value={item.id} disabled={!canEdit} className={radioCls}>
                 {formatStatusLabel(item.name, item.emoji)}
               </ContextMenuRadioItem>
             ))}
           </ContextMenuRadioGroup>
         </ContextMenuSubContent>
       </ContextMenuSub>
-      <ContextMenuItem onSelect={() => duplicateTask(task.id)} disabled={!canEdit} className="py-1 text-xs">
+      <ContextMenuItem onSelect={() => duplicateTask(task.id)} disabled={!canEdit} className={itemCls}>
+        {isMobile && <Copy className={iconCls} aria-hidden="true" />}
         {t`Duplicate task`}
       </ContextMenuItem>
       <ContextMenuSub open={projectSubOpen} onOpenChange={setProjectSubOpen}>
-        <ContextMenuSubTrigger className="py-1 text-xs">{t`Assign project`}</ContextMenuSubTrigger>
+        <ContextMenuSubTrigger className={triggerCls}>
+          {isMobile && <FolderInput className={iconCls} aria-hidden="true" />}
+          {t`Assign project`}
+        </ContextMenuSubTrigger>
         <ContextMenuSubContent className="w-64 p-1">
           <div className="px-1 pb-1">
             <Input
@@ -139,7 +157,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
                 }
               }}
               placeholder={t`Search projects`}
-              className="h-7 text-xs"
+              className={isMobile ? 'h-9 text-sm' : 'h-7 text-xs'}
             />
           </div>
           <ContextMenuSeparator />
@@ -148,7 +166,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
               <ContextMenuRadioItem
                 value="none"
                 disabled={!canEdit || noProjectDisabled}
-                className="py-1 pl-7 text-xs"
+                className={radioCls}
               >
                 {t`No project`}
               </ContextMenuRadioItem>
@@ -157,7 +175,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
                   key={item.id}
                   value={item.id}
                   disabled={!canEdit}
-                  className="py-1 pl-7 text-xs"
+                  className={radioCls}
                 >
                   <span
                     className="mr-1.5 inline-flex h-2 w-2 shrink-0 rounded-full"
@@ -179,28 +197,32 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
         </ContextMenuSubContent>
       </ContextMenuSub>
       <ContextMenuSub>
-        <ContextMenuSubTrigger className="py-1 text-xs">{t`Priority`}</ContextMenuSubTrigger>
+        <ContextMenuSubTrigger className={triggerCls}>
+          {isMobile && <Flag className={iconCls} aria-hidden="true" />}
+          {t`Priority`}
+        </ContextMenuSubTrigger>
         <ContextMenuSubContent>
-          <ContextMenuLabel className="px-2 py-1 text-xs">{t`Priority`}</ContextMenuLabel>
+          <ContextMenuLabel className={labelCls}>{t`Priority`}</ContextMenuLabel>
           <ContextMenuSeparator />
           <ContextMenuRadioGroup value={priorityValue} onValueChange={handlePriorityChange}>
-            <ContextMenuRadioItem value="none" disabled={!canEdit} className="py-1 pl-7 text-xs">
+            <ContextMenuRadioItem value="none" disabled={!canEdit} className={radioCls}>
               {t`No priority`}
             </ContextMenuRadioItem>
-            <ContextMenuRadioItem value="low" disabled={!canEdit} className="py-1 pl-7 text-xs">
+            <ContextMenuRadioItem value="low" disabled={!canEdit} className={radioCls}>
               {priorityLabels.low}
             </ContextMenuRadioItem>
-            <ContextMenuRadioItem value="medium" disabled={!canEdit} className="py-1 pl-7 text-xs">
+            <ContextMenuRadioItem value="medium" disabled={!canEdit} className={radioCls}>
               {priorityLabels.medium}
             </ContextMenuRadioItem>
-            <ContextMenuRadioItem value="high" disabled={!canEdit} className="py-1 pl-7 text-xs">
+            <ContextMenuRadioItem value="high" disabled={!canEdit} className={radioCls}>
               {priorityLabels.high}
             </ContextMenuRadioItem>
           </ContextMenuRadioGroup>
         </ContextMenuSubContent>
       </ContextMenuSub>
       <ContextMenuSeparator />
-      <ContextMenuItem onSelect={onRequestDelete} disabled={!canEdit} className="py-1 text-xs text-destructive">
+      <ContextMenuItem onSelect={onRequestDelete} disabled={!canEdit} className={cn(itemCls, 'text-destructive')}>
+        {isMobile && <Trash2 className={iconCls} aria-hidden="true" />}
         {t`Delete task`}
       </ContextMenuItem>
     </>
