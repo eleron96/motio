@@ -806,7 +806,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[980px] w-[90vw] sm:w-[840px] md:w-[980px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[980px] w-[90vw] sm:w-[840px] md:w-[980px] h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="w-5 h-5" />
