@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.54] - 2026-06-26
 ### Fixed
 - The Workspace settings window no longer changes height when switching sections.
 

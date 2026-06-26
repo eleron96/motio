@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.54] - 2026-06-26
 ### Fixed
 - Окно «Настройки рабочего пространства» больше не меняет высоту при переключении разделов.
 
