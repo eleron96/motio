@@ -20,6 +20,13 @@ set -euo pipefail
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root_dir"
 
+# Releases are published from main, after a merge. Warn — but don't fail — when
+# run elsewhere, so an accidental run on a feature branch is visible.
+current_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+if [[ -n "$current_branch" && "$current_branch" != "main" && "$current_branch" != "HEAD" ]]; then
+  echo "release-publish: warning — on branch '${current_branch}', not 'main'. Publish releases after merging into main." >&2
+fi
+
 changelog_file="CHANGELOG.en.md"
 empty_sentinel="- No documented changes."
 
