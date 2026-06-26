@@ -328,3 +328,4 @@
 2026-06-25T16:26:12Z | 0.8.50 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260625-162529.dump | No documented changes.
 2026-06-25T16:58:42Z | 0.8.51 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260625-165749.dump | No documented changes.
 2026-06-26T14:53:56Z | 0.8.52 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260626-145313.dump | Member avatars are clipped to a circle correctly again in Safari on iOS.
+2026-06-26T15:42:46Z | 0.8.53 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260626-154202.dump | Refreshed the Workspace settings window: sections on the left and a cleaner layout.
