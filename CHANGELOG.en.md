@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.53] - 2026-06-26
 ### Changed
 - Refreshed the Workspace settings window: sections on the left and a cleaner layout.
 - The "Unassigned" toggle moved from the timeline into Workspace settings, under the Display section.
