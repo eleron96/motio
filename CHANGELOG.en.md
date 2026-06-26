@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Refreshed the Workspace settings window: sections on the left and a cleaner layout.
+- The "Unassigned" toggle moved from the timeline into Workspace settings, under the Display section.
+
 ## [0.8.52] - 2026-06-26
 ### Fixed
 - Member avatars are clipped to a circle correctly again in Safari on iOS.
