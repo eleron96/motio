@@ -5,9 +5,8 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Checkbox } from '@/shared/ui/checkbox';
+import { Switch } from '@/shared/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/shared/ui/accordion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +17,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
-import { Plus, Trash2, Settings2, CheckCircle2, Ban, Check, ChevronsUpDown } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Settings2,
+  CheckCircle2,
+  Ban,
+  Check,
+  ChevronsUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Building2,
+  Eye,
+  Workflow,
+  LayoutTemplate,
+  AlertTriangle,
+} from 'lucide-react';
 import { ColorPicker } from '@/shared/ui/color-picker';
 import { EmojiPicker } from '@/shared/ui/emoji-picker';
 import { Textarea } from '@/shared/ui/textarea';
@@ -27,6 +41,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/shared/ui/command';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 
@@ -37,10 +52,38 @@ interface SettingsPanelProps {
 
 import { fetchHolidayCountries, type HolidayCountryOption } from '@/infrastructure/holidays/holidayApi';
 
-const SectionCard: React.FC<{ title?: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-    {title && <h3 className="text-sm font-semibold text-foreground">{title}</h3>}
+type SectionId = 'general' | 'display' | 'workflow' | 'template' | 'danger';
+
+// A settings sub-block: a heading (and optional description) above its controls.
+const Block: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({
+  title,
+  description,
+  children,
+}) => (
+  <section className="space-y-3 border-t border-border pt-5 first:border-t-0 first:pt-0">
+    <div className="space-y-1">
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
+    </div>
     {children}
+  </section>
+);
+
+// Reference-style row: label + description on the left, control on the right.
+const SettingRow: React.FC<{ title: string; description?: string; htmlFor?: string; children: React.ReactNode }> = ({
+  title,
+  description,
+  htmlFor,
+  children,
+}) => (
+  <div className="flex items-center justify-between gap-4">
+    <div className="min-w-0 space-y-0.5">
+      <Label htmlFor={htmlFor} className="block text-sm font-medium text-foreground">
+        {title}
+      </Label>
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
+    </div>
+    <div className="shrink-0">{children}</div>
   </div>
 );
 
@@ -79,9 +122,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     tags, addTag, updateTag, deleteTag,
     workspaceId,
     applyWorkspaceTemplate,
+    filters,
+    setFilters,
   } = usePlannerStore();
 
   const {
+    user,
     workspaces,
     currentWorkspaceId,
     currentWorkspaceRole,
@@ -89,6 +135,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     updateWorkspaceHolidayCountry,
     deleteWorkspace,
   } = useAuthStore();
+
+  const isMobile = useIsMobile();
 
   const [newStatusEmoji, setNewStatusEmoji] = useState('');
   const [newStatusName, setNewStatusName] = useState('');
@@ -100,6 +148,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
+
+  const [activeSection, setActiveSection] = useState<SectionId>('general');
+  // Mobile drill-in: the section list and the section content are separate
+  // screens (like the reference). On desktop both columns are always visible.
+  const [mobileSectionOpen, setMobileSectionOpen] = useState(false);
 
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceHolidayCountry, setWorkspaceHolidayCountry] = useState('RU');
@@ -118,6 +171,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   useEffect(() => {
     if (!open) return;
+    setActiveSection('general');
+    setMobileSectionOpen(false);
     setWorkspaceName(currentWorkspace?.name ?? '');
     setWorkspaceHolidayCountry((currentWorkspace?.holidayCountry ?? 'RU').toUpperCase());
     setHolidayCountryOpen(false);
@@ -172,7 +227,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
       && deleteConfirmName
       && deleteConfirmValue.trim() === deleteConfirmName,
   );
-  const generalDefaultSections = isAdmin ? ['name'] : ['access', 'name'];
+
+  const showUnassigned = !filters.hideUnassigned;
 
   const holidayCountryLabel = useMemo(() => {
     const code = workspaceHolidayCountry.trim().toUpperCase();
@@ -231,6 +287,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     if (!newTagName.trim()) return;
     addTag({ name: newTagName.trim(), color: newTagColor });
     setNewTagName('');
+  };
+
+  // "Show unassigned" stays a personal timeline filter — it just lives here now
+  // instead of on the timeline toolbar. Persist immediately so the change sticks
+  // even when settings are opened off the timeline page (where PlannerPage's
+  // own filter-persist effect doesn't run).
+  const handleToggleShowUnassigned = (checked: boolean) => {
+    const hideUnassigned = !checked;
+    setFilters({ hideUnassigned });
+    if (user?.id && typeof window !== 'undefined') {
+      const next = { ...usePlannerStore.getState().filters, hideUnassigned };
+      window.localStorage.setItem(`planner-filters-${user.id}`, JSON.stringify(next));
+    }
   };
 
   const handleSaveWorkspaceName = async () => {
@@ -305,439 +374,483 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     setTemplateApplying(false);
   };
 
+  const sections: Array<{ id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+    { id: 'general', label: t`General`, icon: Building2 },
+    { id: 'display', label: t`Display`, icon: Eye },
+    { id: 'workflow', label: t`Workflow`, icon: Workflow },
+    { id: 'template', label: t`Template`, icon: LayoutTemplate },
+    { id: 'danger', label: t`Danger zone`, icon: AlertTriangle },
+  ];
+
+  const generalContent = (
+    <div className="space-y-5">
+      {!isAdmin && (
+        <Block title={t`Access`}>
+          <p className="text-sm text-muted-foreground">
+            {t`You have view access and cannot edit this workspace.`}
+          </p>
+        </Block>
+      )}
+
+      <Block title={t`Workspace name`}>
+        <div className="space-y-2">
+          <Input
+            id="workspace-name"
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.target.value)}
+            disabled={!isAdmin || !currentWorkspaceId || workspaceSaving}
+          />
+          {workspaceError && (
+            <div className="text-sm text-destructive">{workspaceError}</div>
+          )}
+          <Button
+            onClick={handleSaveWorkspaceName}
+            disabled={!isAdmin || !currentWorkspaceId || workspaceSaving || !workspaceName.trim()}
+          >
+            {t`Save`}
+          </Button>
+        </div>
+      </Block>
+
+      <Block title={t`Holiday calendar`}>
+        <div className="space-y-2">
+          <Label htmlFor="workspace-holiday-country">{t`Country code`}</Label>
+          <Popover
+            open={holidayCountryOpen}
+            onOpenChange={(nextOpen) => {
+              setHolidayCountryOpen(nextOpen);
+              if (!nextOpen) {
+                setHolidayCountryQuery('');
+              }
+            }}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                id="workspace-holiday-country"
+                type="button"
+                variant="outline"
+                role="combobox"
+                className="w-full justify-between"
+                disabled={!isAdmin || !currentWorkspaceId || workspaceSaving}
+              >
+                <span className="truncate">{holidayCountryLabel}</span>
+                <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-60" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" side="bottom">
+              <Command shouldFilter={false}>
+                <CommandInput
+                  placeholder={t`Search countries...`}
+                  value={holidayCountryQuery}
+                  onValueChange={setHolidayCountryQuery}
+                />
+                <CommandList>
+                  <CommandEmpty>
+                    {holidayCountryLoading ? t`Loading available countries...` : t`No countries found.`}
+                  </CommandEmpty>
+                  <CommandGroup>
+                    {filteredHolidayCountryOptions.map((option) => {
+                      const isSelected = option.countryCode === workspaceHolidayCountry;
+                      return (
+                        <CommandItem
+                          key={option.countryCode}
+                          onSelect={() => {
+                            setWorkspaceHolidayCountry(option.countryCode);
+                            setHolidayCountryOpen(false);
+                            setHolidayCountryQuery('');
+                          }}
+                        >
+                          <Check className={cn('mr-2 h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')} />
+                          <span className="truncate">{option.name}</span>
+                          <span className="ml-auto text-xs text-muted-foreground">{option.countryCode}</span>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <p className="text-xs text-muted-foreground">
+            {holidayCountryLoading
+              ? t`Loading available countries...`
+              : t`Use ISO code (for example RU, US, DE).`}
+          </p>
+          {workspaceError && (
+            <div className="text-sm text-destructive">{workspaceError}</div>
+          )}
+          <Button
+            onClick={handleSaveWorkspaceHolidayCountry}
+            disabled={
+              !isAdmin
+              || !currentWorkspaceId
+              || workspaceSaving
+              || !workspaceHolidayCountry.trim()
+              || (workspaceHolidayCountry.trim().toUpperCase() === (currentWorkspace?.holidayCountry ?? 'RU').toUpperCase())
+            }
+          >
+            {t`Save`}
+          </Button>
+        </div>
+      </Block>
+    </div>
+  );
+
+  const displayContent = (
+    <div className="space-y-5">
+      <Block title={t`Tasks`}>
+        <SettingRow
+          title={t`Unassigned`}
+          description={t`Show tasks without an assignee`}
+          htmlFor="settings-show-unassigned"
+        >
+          <Switch
+            id="settings-show-unassigned"
+            checked={showUnassigned}
+            onCheckedChange={handleToggleShowUnassigned}
+            aria-label={t`Show unassigned`}
+          />
+        </SettingRow>
+      </Block>
+    </div>
+  );
+
+  const workflowContent = (
+    <div className="space-y-5">
+      <Block title={t`Statuses`}>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <EmojiPicker
+              value={newStatusEmoji}
+              onChange={setNewStatusEmoji}
+              className="w-16 text-center"
+              onKeyDown={(e) => e.key === 'Enter' && handleAddStatus()}
+            />
+            <Input
+              placeholder={t`New status name...`}
+              value={newStatusName}
+              onChange={(e) => setNewStatusName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddStatus()}
+            />
+            <Button onClick={handleAddStatus} size="icon">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
+            <span className="w-16">{t`Emoji`}</span>
+            <span className="flex-1">{t`Status`}</span>
+            <div className="flex w-10 justify-end">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{t`Final`}</TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex w-10 justify-end">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-muted-foreground">
+                    <Ban className="h-4 w-4" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>{t`Cancelled`}</TooltipContent>
+              </Tooltip>
+            </div>
+            <span className="w-8" aria-hidden="true" />
+          </div>
+
+          <div className="space-y-2">
+            {statuses.map((status) => (
+              <div key={status.id} className="flex items-start gap-2 p-2 bg-muted/50 rounded-lg">
+                <EmojiPicker
+                  value={status.emoji ?? ''}
+                  onChange={(emoji) => updateStatus(status.id, { emoji })}
+                  className="w-16 h-8 text-center"
+                />
+                <StatusNameInput
+                  value={status.name}
+                  onChange={(next) => updateStatus(status.id, { name: next })}
+                />
+                <label className="flex w-10 items-center justify-end">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Checkbox
+                        checked={status.isFinal}
+                        onCheckedChange={(checked) => {
+                          const nextFinal = checked === true;
+                          updateStatus(
+                            status.id,
+                            nextFinal
+                              ? { isFinal: true, isCancelled: false }
+                              : { isFinal: false },
+                          );
+                        }}
+                        aria-label={t`Final status`}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>{t`Final`}</TooltipContent>
+                  </Tooltip>
+                </label>
+                <label className="flex w-10 items-center justify-end">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Checkbox
+                        checked={status.isCancelled}
+                        onCheckedChange={(checked) => {
+                          const nextCancelled = checked === true;
+                          updateStatus(
+                            status.id,
+                            nextCancelled
+                              ? { isCancelled: true, isFinal: false }
+                              : { isCancelled: false },
+                          );
+                        }}
+                        aria-label={t`Cancelled status`}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>{t`Cancelled`}</TooltipContent>
+                  </Tooltip>
+                </label>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteStatus(status.id)}
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Block>
+
+      <Block title={t`Task types`}>
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder={t`New type name...`}
+              value={newTypeName}
+              onChange={(e) => setNewTypeName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddType()}
+            />
+            <Button onClick={handleAddType} size="icon">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            {taskTypes.map((type) => (
+              <div key={type.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Input
+                  value={type.name}
+                  onChange={(e) => updateTaskType(type.id, { name: e.target.value })}
+                  className="flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteTaskType(type.id)}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Block>
+
+      <Block title={t`Tags`}>
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder={t`New tag name...`}
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+            />
+            <Button onClick={handleAddTag} size="icon">
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            {tags.map((tag) => (
+              <div key={tag.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                <ColorPicker
+                  value={tag.color}
+                  onChange={(color) => updateTag(tag.id, { color })}
+                />
+                <Input
+                  value={tag.name}
+                  onChange={(e) => updateTag(tag.id, { name: e.target.value })}
+                  className="flex-1 h-8"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteTag(tag.id)}
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Block>
+    </div>
+  );
+
+  const templateContent = (
+    <div className="space-y-5">
+      <Block
+        title={t`Template`}
+        description={t`Apply your saved template to this workspace (adds missing items by name).`}
+      >
+        <div className="space-y-2">
+          {templateApplyError && (
+            <div className="text-sm text-destructive">{templateApplyError}</div>
+          )}
+          {templateApplied && (
+            <div className="text-sm text-emerald-600">{t`Template applied.`}</div>
+          )}
+          <Button
+            variant="secondary"
+            onClick={handleApplyTemplate}
+            disabled={!currentWorkspaceId || templateApplying}
+          >
+            {t`Apply template`}
+          </Button>
+        </div>
+      </Block>
+    </div>
+  );
+
+  const dangerContent = (
+    <div className="space-y-5">
+      <Block
+        title={t`Danger zone`}
+        description={t`Deleting a workspace is permanent. Type the workspace name to enable deletion.`}
+      >
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="delete-workspace-confirm">{t`Workspace name`}</Label>
+            <Input
+              id="delete-workspace-confirm"
+              placeholder={deleteConfirmName || t`Workspace name`}
+              value={deleteConfirmValue}
+              onChange={(event) => setDeleteConfirmValue(event.target.value)}
+              disabled={!isAdmin || !currentWorkspaceId}
+            />
+          </div>
+          <Button
+            variant="destructive"
+            onClick={() => setDeleteOpen(true)}
+            disabled={!canDeleteWorkspace}
+          >
+            {t`Delete workspace`}
+          </Button>
+        </div>
+      </Block>
+    </div>
+  );
+
+  const sectionContent: Record<SectionId, React.ReactNode> = {
+    general: generalContent,
+    display: displayContent,
+    workflow: workflowContent,
+    template: templateContent,
+    danger: dangerContent,
+  };
+
+  const activeLabel = sections.find((section) => section.id === activeSection)?.label ?? '';
+
+  const renderNav = (onPick?: () => void) => (
+    <nav className="flex flex-col gap-1">
+      {sections.map((section) => {
+        const Icon = section.icon;
+        const active = section.id === activeSection;
+        const danger = section.id === 'danger';
+        return (
+          <button
+            key={section.id}
+            type="button"
+            onClick={() => {
+              setActiveSection(section.id);
+              onPick?.();
+            }}
+            aria-current={active ? 'page' : undefined}
+            className={cn(
+              'flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors',
+              active
+                ? 'bg-muted font-medium text-foreground'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+              danger && (active ? 'text-destructive' : 'hover:text-destructive'),
+            )}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate">{section.label}</span>
+            {isMobile && <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />}
+          </button>
+        );
+      })}
+    </nav>
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[980px] w-[90vw] sm:w-[840px] md:w-[980px] max-h-[90vh] overflow-y-auto flex flex-col">
+        <DialogContent className="max-w-[980px] w-[90vw] sm:w-[840px] md:w-[980px] h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="w-5 h-5" />
               {t`Workspace settings`}
             </DialogTitle>
-            <DialogDescription className="sr-only">
-              {t`Manage workspace settings, statuses, task types, and tags.`}
+            <DialogDescription>
+              {t`Choose how your workspace looks and behaves`}
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="general" className="mt-4 flex flex-1 flex-col">
-            <TabsList className="mb-4 grid w-full max-w-sm grid-cols-2">
-              <TabsTrigger value="general" className="whitespace-nowrap">{t`General`}</TabsTrigger>
-              <TabsTrigger value="workflow" className="whitespace-nowrap">{t`Workflow`}</TabsTrigger>
-            </TabsList>
-
-            <div className="flex-1 space-y-4">
-              {/* General */}
-              <TabsContent value="general" className="m-0">
-                <Accordion type="multiple" defaultValue={generalDefaultSections} className="space-y-3">
-                  {!isAdmin && (
-                    <AccordionItem value="access" className="border-0">
-                      <SectionCard>
-                        <AccordionTrigger className="py-0 hover:no-underline">
-                          <span className="text-sm font-semibold">{t`Access`}</span>
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-1">
-                          <p className="text-sm text-muted-foreground">
-                            {t`You have view access and cannot edit this workspace.`}
-                          </p>
-                        </AccordionContent>
-                      </SectionCard>
-                    </AccordionItem>
-                  )}
-
-                  <AccordionItem value="name" className="border-0">
-                    <SectionCard>
-                      <AccordionTrigger className="py-0 hover:no-underline">
-                        <span className="text-sm font-semibold">{t`Workspace name`}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-1">
-                        <div className="space-y-2">
-                          <Label htmlFor="workspace-name">{t`Workspace name`}</Label>
-                          <Input
-                            id="workspace-name"
-                            value={workspaceName}
-                            onChange={(e) => setWorkspaceName(e.target.value)}
-                            disabled={!isAdmin || !currentWorkspaceId || workspaceSaving}
-                          />
-                          {workspaceError && (
-                            <div className="text-sm text-destructive">{workspaceError}</div>
-                          )}
-                          <Button
-                            onClick={handleSaveWorkspaceName}
-                            disabled={!isAdmin || !currentWorkspaceId || workspaceSaving || !workspaceName.trim()}
-                          >
-                            {t`Save`}
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </SectionCard>
-                  </AccordionItem>
-
-                  <AccordionItem value="holidays" className="border-0">
-                    <SectionCard>
-                      <AccordionTrigger className="py-0 hover:no-underline">
-                        <span className="text-sm font-semibold">{t`Holiday calendar`}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-1">
-                        <div className="space-y-2">
-                          <Label htmlFor="workspace-holiday-country">{t`Country code`}</Label>
-                          <Popover
-                            open={holidayCountryOpen}
-                            onOpenChange={(nextOpen) => {
-                              setHolidayCountryOpen(nextOpen);
-                              if (!nextOpen) {
-                                setHolidayCountryQuery('');
-                              }
-                            }}
-                          >
-                            <PopoverTrigger asChild>
-                              <Button
-                                id="workspace-holiday-country"
-                                type="button"
-                                variant="outline"
-                                role="combobox"
-                                className="w-full justify-between"
-                                disabled={!isAdmin || !currentWorkspaceId || workspaceSaving}
-                              >
-                                <span className="truncate">{holidayCountryLabel}</span>
-                                <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-60" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" side="bottom">
-                              <Command shouldFilter={false}>
-                                <CommandInput
-                                  placeholder={t`Search countries...`}
-                                  value={holidayCountryQuery}
-                                  onValueChange={setHolidayCountryQuery}
-                                />
-                                <CommandList>
-                                  <CommandEmpty>
-                                    {holidayCountryLoading ? t`Loading available countries...` : t`No countries found.`}
-                                  </CommandEmpty>
-                                  <CommandGroup>
-                                    {filteredHolidayCountryOptions.map((option) => {
-                                      const isSelected = option.countryCode === workspaceHolidayCountry;
-                                      return (
-                                        <CommandItem
-                                          key={option.countryCode}
-                                          onSelect={() => {
-                                            setWorkspaceHolidayCountry(option.countryCode);
-                                            setHolidayCountryOpen(false);
-                                            setHolidayCountryQuery('');
-                                          }}
-                                        >
-                                          <Check className={cn('mr-2 h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')} />
-                                          <span className="truncate">{option.name}</span>
-                                          <span className="ml-auto text-xs text-muted-foreground">{option.countryCode}</span>
-                                        </CommandItem>
-                                      );
-                                    })}
-                                  </CommandGroup>
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
-                          <p className="text-xs text-muted-foreground">
-                            {holidayCountryLoading
-                              ? t`Loading available countries...`
-                              : t`Use ISO code (for example RU, US, DE).`}
-                          </p>
-                          {workspaceError && (
-                            <div className="text-sm text-destructive">{workspaceError}</div>
-                          )}
-                          <Button
-                            onClick={handleSaveWorkspaceHolidayCountry}
-                            disabled={
-                              !isAdmin
-                              || !currentWorkspaceId
-                              || workspaceSaving
-                              || !workspaceHolidayCountry.trim()
-                              || (workspaceHolidayCountry.trim().toUpperCase() === (currentWorkspace?.holidayCountry ?? 'RU').toUpperCase())
-                            }
-                          >
-                            {t`Save`}
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </SectionCard>
-                  </AccordionItem>
-
-                  <AccordionItem value="template" className="border-0">
-                    <SectionCard>
-                      <AccordionTrigger className="py-0 hover:no-underline">
-                        <span className="text-sm font-semibold">{t`Template`}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-1">
-                        <div className="space-y-2">
-                          <p className="text-xs text-muted-foreground">
-                            {t`Apply your saved template to this workspace (adds missing items by name).`}
-                          </p>
-                          {templateApplyError && (
-                            <div className="text-sm text-destructive">{templateApplyError}</div>
-                          )}
-                          {templateApplied && (
-                            <div className="text-sm text-emerald-600">{t`Template applied.`}</div>
-                          )}
-                          <Button
-                            variant="secondary"
-                            onClick={handleApplyTemplate}
-                            disabled={!currentWorkspaceId || templateApplying}
-                          >
-                            {t`Apply template`}
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </SectionCard>
-                  </AccordionItem>
-
-                  <AccordionItem value="danger" className="border-0">
-                    <SectionCard>
-                      <AccordionTrigger className="py-0 text-destructive hover:no-underline">
-                        <span className="text-sm font-semibold">{t`Danger zone`}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-1">
-                        <div className="space-y-3">
-                          <p className="text-xs text-muted-foreground">
-                            {t`Deleting a workspace is permanent. Type the workspace name to enable deletion.`}
-                          </p>
-                          <div className="space-y-2">
-                            <Label htmlFor="delete-workspace-confirm">{t`Workspace name`}</Label>
-                            <Input
-                              id="delete-workspace-confirm"
-                              placeholder={deleteConfirmName || t`Workspace name`}
-                              value={deleteConfirmValue}
-                              onChange={(event) => setDeleteConfirmValue(event.target.value)}
-                              disabled={!isAdmin || !currentWorkspaceId}
-                            />
-                          </div>
-                          <Button
-                            variant="destructive"
-                            onClick={() => setDeleteOpen(true)}
-                            disabled={!canDeleteWorkspace}
-                          >
-                            {t`Delete workspace`}
-                          </Button>
-                        </div>
-                      </AccordionContent>
-                    </SectionCard>
-                  </AccordionItem>
-                </Accordion>
-              </TabsContent>
-
-              {/* Workflow */}
-              <TabsContent value="workflow" className="m-0">
-                <Accordion type="multiple" defaultValue={['statuses', 'tags']} className="space-y-3">
-                  <AccordionItem value="statuses" className="border-0">
-                    <SectionCard>
-                      <AccordionTrigger className="py-0 hover:no-underline">
-                        <span className="text-sm font-semibold">{t`Statuses`}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-1">
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <EmojiPicker
-                              value={newStatusEmoji}
-                              onChange={setNewStatusEmoji}
-                              className="w-16 text-center"
-                              onKeyDown={(e) => e.key === 'Enter' && handleAddStatus()}
-                            />
-                            <Input
-                              placeholder={t`New status name...`}
-                              value={newStatusName}
-                              onChange={(e) => setNewStatusName(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && handleAddStatus()}
-                            />
-                            <Button onClick={handleAddStatus} size="icon">
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-
-                          <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
-                            <span className="w-16">{t`Emoji`}</span>
-                            <span className="flex-1">{t`Status`}</span>
-                            <div className="flex w-10 justify-end">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="inline-flex h-5 w-5 items-center justify-center text-muted-foreground">
-                                    <CheckCircle2 className="h-4 w-4" />
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>{t`Final`}</TooltipContent>
-                              </Tooltip>
-                            </div>
-                            <div className="flex w-10 justify-end">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="inline-flex h-5 w-5 items-center justify-center text-muted-foreground">
-                                    <Ban className="h-4 w-4" />
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>{t`Cancelled`}</TooltipContent>
-                              </Tooltip>
-                            </div>
-                            <span className="w-8" aria-hidden="true" />
-                          </div>
-
-                          <div className="space-y-2">
-                            {statuses.map((status) => (
-                              <div key={status.id} className="flex items-start gap-2 p-2 bg-muted/50 rounded-lg">
-                                <EmojiPicker
-                                  value={status.emoji ?? ''}
-                                  onChange={(emoji) => updateStatus(status.id, { emoji })}
-                                  className="w-16 h-8 text-center"
-                                />
-                                <StatusNameInput
-                                  value={status.name}
-                                  onChange={(next) => updateStatus(status.id, { name: next })}
-                                />
-                                <label className="flex w-10 items-center justify-end">
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Checkbox
-                                        checked={status.isFinal}
-                                        onCheckedChange={(checked) => {
-                                          const nextFinal = checked === true;
-                                          updateStatus(
-                                            status.id,
-                                            nextFinal
-                                              ? { isFinal: true, isCancelled: false }
-                                              : { isFinal: false },
-                                          );
-                                        }}
-                                        aria-label={t`Final status`}
-                                      />
-                                    </TooltipTrigger>
-                                    <TooltipContent>{t`Final`}</TooltipContent>
-                                  </Tooltip>
-                                </label>
-                                <label className="flex w-10 items-center justify-end">
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Checkbox
-                                        checked={status.isCancelled}
-                                        onCheckedChange={(checked) => {
-                                          const nextCancelled = checked === true;
-                                          updateStatus(
-                                            status.id,
-                                            nextCancelled
-                                              ? { isCancelled: true, isFinal: false }
-                                              : { isCancelled: false },
-                                          );
-                                        }}
-                                        aria-label={t`Cancelled status`}
-                                      />
-                                    </TooltipTrigger>
-                                    <TooltipContent>{t`Cancelled`}</TooltipContent>
-                                  </Tooltip>
-                                </label>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => deleteStatus(status.id)}
-                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </SectionCard>
-                  </AccordionItem>
-
-                  <AccordionItem value="types" className="border-0">
-                    <SectionCard>
-                      <AccordionTrigger className="py-0 hover:no-underline">
-                        <span className="text-sm font-semibold">{t`Task types`}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-1">
-                        <div className="space-y-3">
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder={t`New type name...`}
-                              value={newTypeName}
-                              onChange={(e) => setNewTypeName(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && handleAddType()}
-                            />
-                            <Button onClick={handleAddType} size="icon">
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-
-                          <div className="space-y-2">
-                            {taskTypes.map((type) => (
-                              <div key={type.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                                <Input
-                                  value={type.name}
-                                  onChange={(e) => updateTaskType(type.id, { name: e.target.value })}
-                                  className="flex-1"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => deleteTaskType(type.id)}
-                                  className="text-muted-foreground hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </SectionCard>
-                  </AccordionItem>
-
-                  <AccordionItem value="tags" className="border-0">
-                    <SectionCard>
-                      <AccordionTrigger className="py-0 hover:no-underline">
-                        <span className="text-sm font-semibold">{t`Tags`}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-1">
-                        <div className="space-y-3">
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder={t`New tag name...`}
-                              value={newTagName}
-                              onChange={(e) => setNewTagName(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
-                            />
-                            <Button onClick={handleAddTag} size="icon">
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-
-                          <div className="space-y-2">
-                            {tags.map((tag) => (
-                              <div key={tag.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                                <ColorPicker
-                                  value={tag.color}
-                                  onChange={(color) => updateTag(tag.id, { color })}
-                                />
-                                <Input
-                                  value={tag.name}
-                                  onChange={(e) => updateTag(tag.id, { name: e.target.value })}
-                                  className="flex-1 h-8"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => deleteTag(tag.id)}
-                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </SectionCard>
-                  </AccordionItem>
-                </Accordion>
-              </TabsContent>
+          {isMobile ? (
+            <div className="mt-2 flex-1 min-h-0 overflow-y-auto">
+              {mobileSectionOpen ? (
+                <div className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => setMobileSectionOpen(false)}
+                    className="-ml-1 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    {t`All settings`}
+                  </button>
+                  <h2 className={cn('text-base font-semibold', activeSection === 'danger' && 'text-destructive')}>
+                    {activeLabel}
+                  </h2>
+                  {sectionContent[activeSection]}
+                </div>
+              ) : (
+                renderNav(() => setMobileSectionOpen(true))
+              )}
             </div>
-          </Tabs>
+          ) : (
+            <div className="mt-2 grid flex-1 min-h-0 grid-cols-[200px_1fr] gap-6">
+              <div className="border-r border-border pr-3">
+                {renderNav()}
+              </div>
+              <div className="min-w-0 overflow-y-auto pr-1">
+                <h2 className={cn('mb-4 text-base font-semibold', activeSection === 'danger' && 'text-destructive')}>
+                  {activeLabel}
+                </h2>
+                {sectionContent[activeSection]}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

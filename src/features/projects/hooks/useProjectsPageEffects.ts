@@ -6,6 +6,8 @@ type ProjectsTab = 'active' | 'archived';
 
 type UseProjectsPageEffectsArgs = {
   tab: ProjectsTab;
+  activeProjects: Project[];
+  archivedProjects: Project[];
   filteredActiveProjects: Project[];
   filteredArchivedProjects: Project[];
   selectedProjectId: string | null;
@@ -30,6 +32,8 @@ type UseProjectsPageEffectsArgs = {
 
 export const useProjectsPageEffects = ({
   tab,
+  activeProjects,
+  archivedProjects,
   filteredActiveProjects,
   filteredArchivedProjects,
   selectedProjectId,
@@ -52,7 +56,20 @@ export const useProjectsPageEffects = ({
   setProjectSettingsConfirmOpen,
 }: UseProjectsPageEffectsArgs) => {
   useEffect(() => {
+    const fullList = tab === 'active' ? activeProjects : archivedProjects;
     const list = tab === 'active' ? filteredActiveProjects : filteredArchivedProjects;
+    // Honor an explicitly chosen project (e.g. opened from the Customers or
+    // Milestones tab) even when the sidebar's customer/team filter would hide
+    // it, as long as the project still exists in the current tab. This mirrors
+    // how an active search surfaces matches outside the filter — and unlike
+    // clearing the filter, it leaves the user's filter selection untouched.
+    // Runs before the checks below so navigation survives even when the active
+    // filter matches nothing in this tab. A genuinely missing project (deleted,
+    // or moved to the other tab) is absent from fullList and falls through to
+    // the normal reconciliation.
+    if (selectedProjectId && fullList.some((project) => project.id === selectedProjectId)) {
+      return;
+    }
     if (list.length === 0) {
       setSelectedProjectId(null);
       return;
@@ -60,7 +77,7 @@ export const useProjectsPageEffects = ({
     if (!selectedProjectId || !list.some((project) => project.id === selectedProjectId)) {
       setSelectedProjectId(list[0].id);
     }
-  }, [filteredActiveProjects, filteredArchivedProjects, selectedProjectId, setSelectedProjectId, tab]);
+  }, [activeProjects, archivedProjects, filteredActiveProjects, filteredArchivedProjects, selectedProjectId, setSelectedProjectId, tab]);
 
   useEffect(() => {
     if (!selectedProjectId) {

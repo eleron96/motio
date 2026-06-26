@@ -10,6 +10,7 @@ import {
   ContextMenuTrigger,
 } from '@/shared/ui/context-menu';
 import { t } from '@lingui/macro';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 interface TimelineRowProps {
   rowId: string;
@@ -43,6 +44,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   const [contextDate, setContextDate] = useState<string | null>(null);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const tapStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isMobile = useIsMobile();
 
   const getDateAtClientX = useCallback((element: Element, clientX: number) => {
     const rect = element.getBoundingClientRect();
@@ -122,13 +124,15 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
     >
       {/* Grid background */}
       <ContextMenu>
-        <ContextMenuTrigger asChild>
+        {/* Mobile: no long-press "create task" menu (double-tap creates a task
+            instead). Disabling the trigger stops Radix opening it on long-press. */}
+        <ContextMenuTrigger asChild disabled={isMobile}>
           <div
             className="absolute inset-0 flex"
             style={{ touchAction: 'manipulation' }}
             onClick={handleClick}
             onDoubleClick={handleDoubleClick}
-            onContextMenu={handleContextMenu}
+            onContextMenu={isMobile ? undefined : handleContextMenu}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >

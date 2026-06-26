@@ -30,6 +30,9 @@ interface UseTimelineScrollOptions {
   setCurrentDate: (date: string) => void;
   markTimelineInteraction: (ms: number) => void;
   isDragScrolling?: boolean;
+  /** Days of context shown left of the focused date (default 2; 1 on mobile so
+   *  "today" sits near the centre of the narrow viewport instead of the edge). */
+  leftContextDays?: number;
 }
 
 interface UseTimelineScrollResult {
@@ -57,6 +60,7 @@ export function useTimelineScroll({
   setCurrentDate,
   markTimelineInteraction,
   isDragScrolling = false,
+  leftContextDays = LEFT_CONTEXT_DAYS,
 }: UseTimelineScrollOptions): UseTimelineScrollResult {
   const [scrollLeft, setScrollLeft] = useState(0);
 
@@ -94,13 +98,13 @@ export function useTimelineScroll({
     const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
     const targetScroll = Math.min(
       maxScroll,
-      Math.max(0, (index - LEFT_CONTEXT_DAYS) * dayWidth),
+      Math.max(0, (index - leftContextDays) * dayWidth),
     );
     container.scrollLeft = targetScroll;
     pendingScrollLeftRef.current = targetScroll;
     lastRenderedFocusIndexRef.current = index;
     setScrollLeft(targetScroll);
-  }, [dayWidth, scrollContainerRef]);
+  }, [dayWidth, scrollContainerRef, leftContextDays]);
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     markTimelineInteraction(700);
@@ -108,7 +112,7 @@ export function useTimelineScroll({
     pendingScrollLeftRef.current = newScrollLeft;
     let nextFocusIndex = -1;
     if (visibleDays.length > 0 && dayWidth > 0) {
-      const focusPx = newScrollLeft + LEFT_CONTEXT_DAYS * dayWidth + dayWidth / 2;
+      const focusPx = newScrollLeft + leftContextDays * dayWidth + dayWidth / 2;
       nextFocusIndex = Math.min(
         visibleDays.length - 1,
         Math.max(0, Math.floor(focusPx / dayWidth)),
@@ -168,7 +172,7 @@ export function useTimelineScroll({
           const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
           const edgeThresholdPx = Math.max(
             dayWidth * scrollReanchorEdgeTriggerDays,
-            dayWidth * LEFT_CONTEXT_DAYS,
+            dayWidth * leftContextDays,
           );
           const nearLeftEdge = resolvedScrollLeft <= edgeThresholdPx;
           const nearRightEdge = (maxScroll - resolvedScrollLeft) <= edgeThresholdPx;
@@ -185,7 +189,7 @@ export function useTimelineScroll({
         }
       }, 450);
     }
-  }, [currentDate, dayWidth, isDragScrolling, markTimelineInteraction, scrollContainerRef, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
+  }, [currentDate, dayWidth, isDragScrolling, leftContextDays, markTimelineInteraction, scrollContainerRef, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
 
   // Flush the latest scroll position into React state when drag scrolling ends
   // so that virtualization catches up with the final position.

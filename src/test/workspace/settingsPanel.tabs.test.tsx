@@ -36,8 +36,11 @@ const { plannerState, authState } = vi.hoisted(() => ({
     deleteTag: vi.fn(),
     workspaceId: 'workspace-1',
     applyWorkspaceTemplate: vi.fn(async () => ({ error: undefined })),
+    filters: { hideUnassigned: false },
+    setFilters: vi.fn(),
   },
   authState: {
+    user: { id: 'user-1' },
     workspaces: [{ id: 'workspace-1', name: 'Motio Team', holidayCountry: 'RU' }],
     currentWorkspaceId: 'workspace-1',
     currentWorkspaceRole: 'admin',
@@ -55,7 +58,7 @@ vi.mock('@/features/auth/store/authStore', () => ({
   useAuthStore: () => authState,
 }));
 
-describe('SettingsPanel tabs', () => {
+describe('SettingsPanel sections', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn(async () => ({
       ok: true,
@@ -67,7 +70,7 @@ describe('SettingsPanel tabs', () => {
     vi.unstubAllGlobals();
   });
 
-  it('uses the shared segmented tab style and switches active top-level tab', async () => {
+  it('renders the section navigation and switches the active section', async () => {
     const user = userEvent.setup();
 
     render(
@@ -76,18 +79,27 @@ describe('SettingsPanel tabs', () => {
       </TooltipProvider>,
     );
 
-    const tabList = screen.getByRole('tablist');
-    const generalTab = screen.getByRole('tab', { name: 'General' });
-    const workflowTab = screen.getByRole('tab', { name: 'Workflow' });
+    // General is the default section.
+    const generalNav = screen.getByRole('button', { name: 'General' });
+    expect(generalNav).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByText('Workspace name')).toBeInTheDocument();
 
-    expect(tabList).toHaveClass('grid', 'grid-cols-2');
-    expect(generalTab).toHaveAttribute('data-state', 'active');
-    expect(workflowTab).toHaveAttribute('data-state', 'inactive');
-
-    await user.click(workflowTab);
-
-    expect(generalTab).toHaveAttribute('data-state', 'inactive');
-    expect(workflowTab).toHaveAttribute('data-state', 'active');
+    // Switching to Workflow reveals the statuses block.
+    await user.click(screen.getByRole('button', { name: 'Workflow' }));
     expect(await screen.findByText('Statuses')).toBeInTheDocument();
+  });
+
+  it('exposes the "Unassigned" toggle under the Display section', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TooltipProvider>
+        <SettingsPanel open onOpenChange={() => {}} />
+      </TooltipProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Display' }));
+    expect(await screen.findByText('Show tasks without an assignee')).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'Show unassigned' })).toBeInTheDocument();
   });
 });
