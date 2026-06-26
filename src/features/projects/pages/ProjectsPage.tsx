@@ -842,6 +842,8 @@ const ProjectsPage = () => {
 
   useProjectsPageEffects({
     tab,
+    activeProjects,
+    archivedProjects,
     filteredActiveProjects,
     filteredArchivedProjects,
     selectedProjectId,

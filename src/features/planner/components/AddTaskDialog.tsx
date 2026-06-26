@@ -493,7 +493,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogScrollContent
-        className="flex w-full max-w-[880px] flex-col gap-0 p-0"
+        className="flex w-full max-w-[880px] flex-col gap-0 p-0 max-md:max-h-[85dvh] max-md:w-[calc(100%-1.5rem)] max-md:rounded-2xl"
         onOpenAutoFocus={(event) => {
           // Focus the title field on open so the user can type without an extra click.
           event.preventDefault();
@@ -512,8 +512,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="relative flex flex-col">
-          <div className="grid md:grid-cols-[minmax(0,1fr)_340px]">
+        <form onSubmit={handleSubmit} className="relative flex flex-col max-md:min-h-0 max-md:flex-1">
+          <div className="grid md:grid-cols-[minmax(0,1fr)_340px] max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto">
             {/* ── Left column: content */}
             <div className="space-y-4 px-6 pb-6">
               <ComposerEyebrow>{t`Information`}</ComposerEyebrow>
@@ -823,7 +823,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </div>
           </div>
 
-          <DialogFooter className="gap-2 px-6 py-3.5">
+          <DialogFooter className="gap-2 px-6 py-3.5 max-md:shrink-0 max-md:border-t max-md:border-border max-md:bg-background">
             <Button type="button" variant="outline" onClick={requestClose}>
               {t`Cancel`}
             </Button>
