@@ -762,7 +762,9 @@ const DashboardPage = () => {
 
   const dashboardCanvas = (
     <div
-      ref={containerRef}
+      // react-grid-layout types containerRef as RefObject<HTMLDivElement | null>;
+      // cast to the element ref shape React's `ref` prop expects (type-only).
+      ref={containerRef as React.RefObject<HTMLDivElement>}
       data-tour="dashboard-canvas"
       className={cn('flex-1 overflow-auto', isTouchReorderMode && 'dashboard-mobile-interactions')}
       style={{

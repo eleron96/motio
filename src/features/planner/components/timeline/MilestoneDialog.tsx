@@ -16,6 +16,8 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Textarea } from '@/shared/ui/textarea';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
+import { MoreVertical, Trash2 } from 'lucide-react';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { Milestone } from '@/features/planner/types/planner';
@@ -154,7 +156,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
-        className="sm:max-w-[420px]"
+        className="gap-3 sm:max-w-[420px]"
         onOpenAutoFocus={(event) => {
           // On create, focus the Name field so the user can type immediately.
           // Edit keeps the no-autofocus behaviour (no loud ring on open).
@@ -171,8 +173,33 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
-          <div className="space-y-2">
+        {mode === 'edit' && canEdit && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-10 top-2.5 h-7 w-7 text-muted-foreground hover:text-foreground"
+                aria-label={t`More actions`}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={handleDelete}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t`Delete milestone`}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        <div className="mt-1 space-y-3">
+          <div className="space-y-1.5">
             <Label htmlFor="milestone-date">{t`Date`}</Label>
             <Input
               id="milestone-date"
@@ -185,7 +212,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
               disabled={!canEdit}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="milestone-title">{t`Name`}</Label>
             <Input
               id="milestone-title"
@@ -199,7 +226,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
               disabled={!canEdit}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>{t`Project`}</Label>
             <TaskProjectSelect
               value={projectId}
@@ -213,7 +240,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
               }}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="milestone-note">{t`Note`}</Label>
             <Textarea
               id="milestone-note"
@@ -227,7 +254,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
               disabled={!canEdit}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>{t`Status`}</Label>
             <Select
               value={statusOverride}
@@ -258,16 +285,6 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
           <Button type="button" variant="outline" onClick={requestClose}>
             {t`Cancel`}
           </Button>
-          {mode === 'edit' && (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={!canEdit}
-            >
-              {t`Delete`}
-            </Button>
-          )}
           <Button
             type="button"
             onClick={handleSave}

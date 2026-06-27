@@ -7,6 +7,20 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.57] - 2026-06-27
+### Changed
+- No documented changes.
+
+## [0.8.56] - 2026-06-27
+### Fixed
+- The task list no longer shows stale data when a bulk change to a repeat series or assignees is interrupted by an error.
+- A task's text is no longer lost when someone else edits it while you are typing.
+
+## [0.8.55] - 2026-06-27
+### Changed
+- In the milestone editor, delete moved to a top menu and the dialog is more compact.
+- Notification cards are more compact — task title on top, the whole card is clickable, actions are icons on the right.
+
 ## [0.8.54] - 2026-06-26
 ### Fixed
 - The Workspace settings window no longer changes height when switching sections.

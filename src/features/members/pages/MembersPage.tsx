@@ -350,7 +350,9 @@ const MembersPage = () => {
     [projects, selectedTask?.projectId],
   );
   const selectedTaskTags = useMemo(() => (
-    selectedTask?.tagIds.map((tagId) => tagById.get(tagId)).filter(Boolean) ?? []
+    selectedTask?.tagIds
+      .map((tagId) => tagById.get(tagId))
+      .filter((tag): tag is NonNullable<typeof tag> => tag != null) ?? []
   ), [selectedTask?.tagIds, tagById]);
   const selectedTaskDescription = useMemo(() => {
     if (!selectedTask?.description) return '';

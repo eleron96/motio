@@ -53,7 +53,7 @@ export const parseAuthSessionSyncPayload = (raw: string | null | undefined): Aut
     const parsed = JSON.parse(raw) as Partial<AuthSessionSyncPayload>;
     if (!parsed || typeof parsed !== 'object') return null;
     if (parsed.state !== 'signed-in' && parsed.state !== 'signed-out') return null;
-    if (!Number.isFinite(parsed.at)) return null;
+    if (typeof parsed.at !== 'number' || !Number.isFinite(parsed.at)) return null;
     if (typeof parsed.source !== 'string' || parsed.source.trim().length === 0) return null;
 
     return {

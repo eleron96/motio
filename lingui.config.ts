@@ -1,4 +1,5 @@
 import { defineConfig } from "@lingui/cli";
+import { formatter } from "@lingui/format-po";
 
 export default defineConfig({
   sourceLocale: "en",
@@ -10,5 +11,7 @@ export default defineConfig({
     },
   ],
   compileNamespace: "es",
-  format: "po",
+  // Keep file origins but drop line numbers: otherwise every unrelated edit that
+  // shifts a line churns the catalogs and trips the CI "catalogs up to date" gate.
+  format: formatter({ lineNumbers: false }),
 });

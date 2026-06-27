@@ -27,7 +27,8 @@ export const createLatestAsyncRequest = (): LatestAsyncRequest => {
   };
 };
 
-export const withAbortSignal = <T>(query: T, signal: AbortSignal): T => {
+export const withAbortSignal = <T>(query: T, signal?: AbortSignal): T => {
+  if (!signal) return query;
   const candidate = query as AbortSignalCapable<T>;
   if (typeof candidate.abortSignal === 'function') {
     return candidate.abortSignal(signal);

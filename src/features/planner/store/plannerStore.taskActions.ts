@@ -66,6 +66,37 @@ export const createTaskActions = (
   };
 
   /**
+   * Resync the in-memory store with the real DB state of a repeat series after a
+   * mid-operation failure left the two diverged. Refetches every row for the
+   * repeat_id, replaces matching store rows, drops series rows that no longer
+   * exist, and appends rows created since. Best-effort: logs and bails on error.
+   */
+  const reconcileSeriesFromDb = async (workspaceId: string, repeatId: string) => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .eq('repeat_id', repeatId);
+    if (error) {
+      console.error(error);
+      return;
+    }
+    const freshRows = (data ?? []) as TaskRow[];
+    const freshById = new Map(freshRows.map((row) => [row.id, mapTaskRow(row)]));
+    const freshIds = new Set(freshById.keys());
+    set((state) => {
+      const existingIds = new Set(state.tasks.map((task) => task.id));
+      const reconciled = state.tasks
+        .filter((task) => task.repeatId !== repeatId || freshIds.has(task.id))
+        .map((task) => freshById.get(task.id) ?? task);
+      const appended = freshRows
+        .filter((row) => !existingIds.has(row.id))
+        .map(mapTaskRow);
+      return { tasks: [...reconciled, ...appended] };
+    });
+  };
+
+  /**
    * Fire-and-forget deletion of task-media blobs whose IDs are no longer
    * referenced by any task in the current state. Called after DB mutations
    * succeed. Never blocks the caller — media cleanup is best-effort GC.
@@ -620,6 +651,9 @@ export const createTaskActions = (
         .single();
 
       if (error || !data) {
+        // Earlier rows in this loop may already be committed to the DB; resync
+        // the store to the real series state so the UI doesn't show stale rows.
+        await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
         return { error: error?.message ?? 'Failed to update repeat task.' };
       }
 
@@ -634,6 +668,8 @@ export const createTaskActions = (
         .in('id', plan.deleteIds);
 
       if (error) {
+        // The per-row updates above are already persisted; resync the store.
+        await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
         return { error: error.message };
       }
 
@@ -647,6 +683,8 @@ export const createTaskActions = (
       startEndDates: plan.create,
     });
     if (inserted.error) {
+      // Updates/deletes above are already persisted; resync the store.
+      await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
       return { error: inserted.error };
     }
 
@@ -851,16 +889,17 @@ export const createTaskActions = (
     }
 
     const isFollowingMode = mode === 'following' && Boolean(baseTask.repeatId);
-    const query = supabase
-      .from('tasks')
-      .select('*')
-      .eq('workspace_id', workspaceId);
+    const fetchTargetRows = () => {
+      const query = supabase
+        .from('tasks')
+        .select('*')
+        .eq('workspace_id', workspaceId);
+      return isFollowingMode
+        ? query.eq('repeat_id', baseTask.repeatId).gte('start_date', baseTask.startDate)
+        : query.eq('id', id);
+    };
 
-    const { data: targetRows, error: targetRowsError } = await (isFollowingMode
-      ? query
-        .eq('repeat_id', baseTask.repeatId)
-        .gte('start_date', baseTask.startDate)
-      : query.eq('id', id));
+    const { data: targetRows, error: targetRowsError } = await fetchTargetRows();
 
     if (targetRowsError) {
       console.error(targetRowsError);
@@ -896,6 +935,10 @@ export const createTaskActions = (
 
       if (updateError || !updatedRow) {
         console.error(updateError);
+        // Earlier rows may already be updated in the DB; resync from the DB so
+        // the store doesn't silently diverge from the persisted state.
+        const { data: refreshed } = await fetchTargetRows();
+        applyUpdatedRows((refreshed ?? []) as TaskRow[]);
         return;
       }
 
@@ -911,6 +954,10 @@ export const createTaskActions = (
 
       if (deleteError) {
         console.error(deleteError);
+        // The assignee updates above are persisted but not yet reflected in the
+        // store (the optimistic set() runs only on full success); resync now.
+        const { data: refreshed } = await fetchTargetRows();
+        applyUpdatedRows((refreshed ?? []) as TaskRow[]);
         return;
       }
     }
