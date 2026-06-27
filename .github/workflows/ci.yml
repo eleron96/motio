@@ -39,3 +39,40 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    # Bring up the same Supabase Postgres image and Liquibase migrations the dev
+    # stack uses, then run the DB integration suite (RLS, account-deletion/purge
+    # RPCs, cron) against it — the security-critical data layer now has a gate.
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      JWT_SECRET: ci-super-secret-jwt-token-with-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Provision Supabase test database
+        run: bash infra/scripts/ci-test-db.sh
+
+      - name: Integration tests
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: "54322"
+          TEST_DB_NAME: postgres
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: postgres
+        run: npm run test:integration
+
+      - name: Postgres / migration logs (on failure)
+        if: failure()
+        run: docker compose -f infra/docker-compose.yml logs db migrate
