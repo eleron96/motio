@@ -331,3 +331,4 @@
 2026-06-26T15:42:46Z | 0.8.53 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260626-154202.dump | Refreshed the Workspace settings window: sections on the left and a cleaner layout.
 2026-06-26T15:59:54Z | 0.8.54 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260626-155913.dump | The Workspace settings window no longer changes height when switching sections.
 2026-06-27T13:31:21Z | 0.8.55 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260627-133039.dump | In the milestone editor, delete moved to a top menu and the dialog is more compact.
+2026-06-27T14:16:36Z | 0.8.56 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260627-141547.dump | The task list no longer shows stale data when a bulk change to a repeat series or assignees is interrupted by an error.
