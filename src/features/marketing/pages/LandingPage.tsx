@@ -236,6 +236,7 @@ const LandingPage = () => {
     }
 
     function runDashCycle() {
+      if (!barContainer) return;
       kpiRefs.current.forEach(el => {
         animateCounter(el, parseInt(el.dataset.target ?? '0', 10), 1200);
       });

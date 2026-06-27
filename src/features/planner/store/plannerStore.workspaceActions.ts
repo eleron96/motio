@@ -114,7 +114,7 @@ export const createWorkspaceActions = (
       : Promise.resolve({ data: null, error: null });
 
     // Не блокируем first paint: tracked-projects не критичны для первичной отрисовки.
-    const trackedPromise: Promise<SupabaseResult<unknown[]>> = (async () => {
+    const trackedPromise: Promise<SupabaseResult<unknown[] | null>> = (async () => {
       const { data: authData } = await supabase.auth.getUser();
       const userId = authData?.user?.id ?? null;
       if (!userId) return { data: [], error: null };
