@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- In the milestone editor, delete moved to a top menu and the dialog is more compact.
+- Notification cards are more compact — task title on top, the whole card is clickable, actions are icons on the right.
+
 ## [0.8.54] - 2026-06-26
 ### Fixed
 - The Workspace settings window no longer changes height when switching sections.

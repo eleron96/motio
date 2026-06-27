@@ -623,25 +623,68 @@ export const InviteNotifications: React.FC = () => {
                     const markAsUnread = !isUnread;
                     const isExport = isExportNotification(notification);
 
-                    const headerNode = notification.type === 'comment_mention'
+                    // Secondary line: who acted (and where), shown under the title.
+                    const subNode = notification.type === 'comment_mention'
                       ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
                       : notification.type === 'export_ready'
-                        ? <>{t`Data export ready`}</>
+                        ? <>{t`Open Account settings to download the file.`}</>
                         : notification.type === 'export_failed'
-                          ? <>{t`Data export failed`}</>
+                          ? <>{t`Try again from Account settings.`}</>
                           : <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>;
 
+                    const titleText = isExport
+                      ? (notification.type === 'export_ready'
+                        ? t`Your data export is ready.`
+                        : t`Your data export failed.`)
+                      : notification.taskTitle;
+
                     return (
+                      // Whole card is clickable (opens the task / marks export read).
+                      // The action icons stop propagation so they keep their own click.
                       <div
                         key={notification.id}
+                        role="button"
+                        tabIndex={isBusy ? -1 : 0}
+                        aria-disabled={isBusy || undefined}
+                        onClick={() => { if (!isBusy) void handleOpenTaskNotification(notification); }}
+                        onKeyDown={(event) => {
+                          if (isBusy) return;
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            void handleOpenTaskNotification(notification);
+                          }
+                        }}
                         className={cn(
-                          'group rounded-md border p-3 transition-colors',
+                          'group relative cursor-pointer rounded-md border p-2.5 text-left transition-all duration-150',
+                          'hover:border-primary/50 hover:bg-accent hover:shadow-sm',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          'active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100',
                           isUnread && 'border-primary/40 bg-primary/5',
+                          isBusy && 'pointer-events-none opacity-60',
                         )}
                       >
-                        <div className="mb-2 flex items-start justify-between gap-2">
-                          <p className="text-xs text-muted-foreground">{headerNode}</p>
-                          <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium leading-snug">{titleText}</p>
+                            {!isExport && notification.type === 'comment_mention' && notification.commentPreview && (
+                              <p className="mt-0.5 truncate text-xs italic text-muted-foreground">
+                                "{notification.commentPreview}"
+                              </p>
+                            )}
+                            {isExport && notification.commentPreview && (
+                              <p className={cn(
+                                'mt-0.5 truncate text-xs',
+                                notification.type === 'export_failed' ? 'text-destructive' : 'text-muted-foreground',
+                              )}>
+                                {notification.commentPreview}
+                              </p>
+                            )}
+                            <p className="mt-0.5 truncate text-xs text-muted-foreground">{subNode}</p>
+                            {dateLabel && (
+                              <p className="mt-0.5 text-[11px] text-muted-foreground">{dateLabel}</p>
+                            )}
+                          </div>
+                          <div className="-mr-1 -mt-0.5 flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
@@ -682,54 +725,6 @@ export const InviteNotifications: React.FC = () => {
                             </Tooltip>
                           </div>
                         </div>
-
-                        {isExport ? (
-                          <div className="w-full text-left">
-                            <div className="text-sm font-medium">
-                              {notification.type === 'export_ready'
-                                ? t`Your data export is ready.`
-                                : t`Your data export failed.`}
-                            </div>
-                            {notification.commentPreview && (
-                              <div className={cn(
-                                'mt-1 text-xs',
-                                notification.type === 'export_failed'
-                                  ? 'text-destructive'
-                                  : 'text-muted-foreground',
-                              )}>
-                                {notification.commentPreview}
-                              </div>
-                            )}
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              {notification.type === 'export_ready'
-                                ? t`Open Account settings to download the file.`
-                                : t`Try again from Account settings.`}
-                            </div>
-                            {dateLabel && (
-                              <div className="mt-1 text-[11px] text-muted-foreground">{dateLabel}</div>
-                            )}
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            className="w-full text-left"
-                            onClick={() => void handleOpenTaskNotification(notification)}
-                            disabled={isBusy}
-                          >
-                            <div className="text-sm font-medium">{notification.taskTitle}</div>
-                            {notification.type === 'comment_mention' && notification.commentPreview && (
-                              <div className="mt-1 truncate text-xs text-muted-foreground italic">
-                                "{notification.commentPreview}"
-                              </div>
-                            )}
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              {notification.taskExists ? t`Go to task` : t`Task not found.`}
-                            </div>
-                            {dateLabel && (
-                              <div className="mt-1 text-[11px] text-muted-foreground">{dateLabel}</div>
-                            )}
-                          </button>
-                        )}
                       </div>
                     );
                   })}
