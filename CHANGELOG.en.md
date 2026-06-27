@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.57] - 2026-06-27
+### Changed
+- No documented changes.
+
 ## [0.8.56] - 2026-06-27
 ### Fixed
 - The task list no longer shows stale data when a bulk change to a repeat series or assignees is interrupted by an error.
