@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.55] - 2026-06-27
 ### Changed
 - In the milestone editor, delete moved to a top menu and the dialog is more compact.
 - Notification cards are more compact — task title on top, the whole card is clickable, actions are icons on the right.
