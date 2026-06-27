@@ -2,6 +2,7 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { Task } from '@/features/planner/types/planner';
 
 vi.mock('@lingui/macro', () => ({
   t: (input: TemplateStringsArray | { message?: string }, ...values: unknown[]) => (
@@ -19,7 +20,7 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   } as typeof ResizeObserver;
 }
 
-const baseTask = {
+const baseTask: Task = {
   id: 'task-1',
   title: 'Repeat task',
   projectId: 'project-1',

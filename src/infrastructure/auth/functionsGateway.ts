@@ -11,7 +11,14 @@ import {
   type InviteRequest,
 } from '@/shared/contracts/invite.contract';
 
-export const invokeAdminFunction = async <T>(payload: AdminRequest) => {
+// Discriminated union so callers narrow correctly: an error result never carries
+// `data`, and a success result never carries `error`. This also gives the generic
+// `T` real meaning — on success `data` is typed `T`, not `T | undefined`.
+type FunctionResult<T> =
+  | { data: T; error?: undefined }
+  | { data?: undefined; error: string };
+
+export const invokeAdminFunction = async <T>(payload: AdminRequest): Promise<FunctionResult<T>> => {
   const parsedPayload = adminRequestSchema.safeParse(payload);
   if (!parsedPayload.success) {
     return { error: 'Invalid admin request payload.' };
@@ -34,7 +41,7 @@ export const invokeAdminFunction = async <T>(payload: AdminRequest) => {
   return { data: parsedResponse.data as T };
 };
 
-export const invokeInviteFunction = async <T>(payload: InviteRequest) => {
+export const invokeInviteFunction = async <T>(payload: InviteRequest): Promise<FunctionResult<T>> => {
   const parsedPayload = inviteRequestSchema.safeParse(payload);
   if (!parsedPayload.success) {
     return { error: 'Invalid invite request payload.' };

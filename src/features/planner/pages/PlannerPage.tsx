@@ -485,7 +485,7 @@ const PlannerPage = () => {
         <PlannerTimelineArea
           viewMode={viewMode}
           onCreateTaskRequest={handleCreateTaskRequest}
-          timelineSidebarWidth={timelineSidebarWidth}
+          timelineSidebarWidth={timelineSidebarWidth ?? null}
           onTimelineSidebarWidthChange={handleTimelineSidebarWidthChange}
           onTimelineSidebarWidthReset={handleTimelineSidebarWidthReset}
           showLoadingOverlay={showLoadingOverlay}
