@@ -208,7 +208,7 @@ msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words.
 msgid "A-Z"
 msgstr "A-Z"
 
-#: src/features/auth/components/InviteNotifications.tsx:757
+#: src/features/auth/components/InviteNotifications.tsx:752
 msgid "Accept"
 msgstr "Accept"
 
@@ -515,7 +515,7 @@ msgstr "Area chart"
 msgid "Assign project"
 msgstr "Assign project"
 
-#: src/features/auth/components/InviteNotifications.tsx:632
+#: src/features/auth/components/InviteNotifications.tsx:633
 msgid "assigned you to task"
 msgstr "assigned you to task"
 
@@ -537,7 +537,7 @@ msgstr "Authentication error"
 msgid "Authentication failed."
 msgstr "Authentication failed."
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:244
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:271
 msgid "Auto (from date)"
 msgstr "Auto (from date)"
 
@@ -624,7 +624,7 @@ msgstr "Calendar range"
 #: src/features/planner/components/TaskCommentItem.tsx:176
 #: src/features/planner/components/TaskDetailDialogs.tsx:120
 #: src/features/planner/components/TaskDetailPanel.tsx:901
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:259
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:286
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx:93
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:330
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:619
@@ -873,7 +873,7 @@ msgstr "Country code must contain 2 letters."
 
 #: src/features/dashboard/pages/DashboardPage.tsx:964
 #: src/features/members/components/MembersDialogs.tsx:121
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:276
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:293
 #: src/features/projects/components/ProjectsDialogs.tsx:282
 #: src/features/workspace/components/WorkspaceSwitcher.tsx:475
 msgid "Create"
@@ -895,7 +895,7 @@ msgstr "Create a new dashboard."
 msgid "Create a new group for workspace members."
 msgstr "Create a new group for workspace members."
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:170
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:172
 msgid "Create a new milestone for the selected date."
 msgstr "Create a new milestone for the selected date."
 
@@ -916,7 +916,7 @@ msgid "Create account"
 msgstr "Create account"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:464
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:166
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:168
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:130
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:174
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:190
@@ -969,7 +969,7 @@ msgid "Creates the specified number of repeats."
 msgstr "Creates the specified number of repeats."
 
 #: src/features/members/components/MemberTasksPanel.tsx:156
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:246
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:273
 #: src/features/projects/components/projectCard/TasksBlock.tsx:120
 #: src/features/projects/components/ProjectsMainPanel.tsx:379
 #: src/features/projects/components/ProjectsSidebar.tsx:630
@@ -1069,8 +1069,8 @@ msgid "Data"
 msgstr "Data"
 
 #: src/features/auth/components/InviteNotifications.tsx:631
-msgid "Data export failed"
-msgstr "Data export failed"
+#~ msgid "Data export failed"
+#~ msgstr "Data export failed"
 
 #. placeholder {0}: status?.errorMessage ?? t`unknown error`
 #: src/features/auth/components/DataExportButton.tsx:64
@@ -1078,10 +1078,10 @@ msgid "Data export failed: {0}"
 msgstr "Data export failed: {0}"
 
 #: src/features/auth/components/InviteNotifications.tsx:629
-msgid "Data export ready"
-msgstr "Data export ready"
+#~ msgid "Data export ready"
+#~ msgstr "Data export ready"
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:176
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:203
 #: src/features/projects/components/ProjectsMainPanel.tsx:804
 msgid "Date"
 msgstr "Date"
@@ -1098,7 +1098,7 @@ msgstr "Dates"
 msgid "Day"
 msgstr "Day"
 
-#: src/features/auth/components/InviteNotifications.tsx:766
+#: src/features/auth/components/InviteNotifications.tsx:761
 msgid "Decline"
 msgstr "Decline"
 
@@ -1107,8 +1107,8 @@ msgstr "Decline"
 msgid "Declined"
 msgstr "Declined"
 
-#: src/features/auth/components/InviteNotifications.tsx:678
-#: src/features/auth/components/InviteNotifications.tsx:681
+#: src/features/auth/components/InviteNotifications.tsx:721
+#: src/features/auth/components/InviteNotifications.tsx:724
 #: src/features/dashboard/pages/DashboardPage.tsx:1028
 #: src/features/members/components/MembersSidebar.tsx:439
 #: src/features/planner/components/SubtasksSection.tsx:212
@@ -1116,7 +1116,6 @@ msgstr "Declined"
 #: src/features/planner/components/TaskCommentItem.tsx:158
 #: src/features/planner/components/TaskCommentItem.tsx:183
 #: src/features/planner/components/TaskDetailDialogs.tsx:150
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:268
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx:138
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:701
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:736
@@ -1166,6 +1165,10 @@ msgstr "Delete dashboard"
 #: src/features/dashboard/pages/DashboardPage.tsx:1020
 msgid "Delete dashboard?"
 msgstr "Delete dashboard?"
+
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:195
+msgid "Delete milestone"
+msgstr "Delete milestone"
 
 #: src/features/projects/components/ProjectsDialogs.tsx:691
 msgid "Delete milestone?"
@@ -1320,7 +1323,7 @@ msgstr "Disabled people are hidden from filters."
 
 #: src/features/planner/components/AddTaskDialog.tsx:854
 #: src/features/planner/components/TaskDetailDialogs.tsx:86
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:297
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:314
 #: src/features/projects/components/ProjectsDialogs.tsx:365
 #: src/features/projects/components/ProjectsDialogs.tsx:490
 #: src/features/projects/components/ProjectsDialogs.tsx:626
@@ -1356,7 +1359,7 @@ msgid "done"
 msgstr "done"
 
 #: src/features/members/components/MemberTasksPanel.tsx:217
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:247
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:274
 #: src/features/projects/components/projectCard/TasksBlock.tsx:140
 #: src/features/projects/components/ProjectsMainPanel.tsx:444
 msgid "Done"
@@ -1398,7 +1401,7 @@ msgstr "E.g. Real estate · Residential"
 msgid "E.g. В работе, Заморожен, Завершен"
 msgstr "E.g. В работе, Заморожен, Завершен"
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:225
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:252
 msgid "E.g. Передано заказчику"
 msgstr "E.g. Передано заказчику"
 
@@ -1441,7 +1444,7 @@ msgid "Edit member"
 msgstr "Edit member"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:407
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:166
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:168
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:270
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:390
 msgid "Edit milestone"
@@ -1831,7 +1834,6 @@ msgstr "Generate a new export"
 #~ msgid "Get started for free →"
 #~ msgstr "Get started for free →"
 
-#: src/features/auth/components/InviteNotifications.tsx:726
 #: src/features/members/components/TaskDetailsDialog.tsx:161
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:184
 msgid "Go to task"
@@ -2028,11 +2030,11 @@ msgstr "Invite update"
 msgid "Invite your team"
 msgstr "Invite your team"
 
-#: src/features/auth/components/InviteNotifications.tsx:749
+#: src/features/auth/components/InviteNotifications.tsx:744
 msgid "Invited by"
 msgstr "Invited by"
 
-#: src/features/auth/components/InviteNotifications.tsx:741
+#: src/features/auth/components/InviteNotifications.tsx:736
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:573
 msgid "Invites"
 msgstr "Invites"
@@ -2054,7 +2056,7 @@ msgid "Jump to date"
 msgstr "Jump to date"
 
 #: src/features/planner/components/AddTaskDialog.tsx:845
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:288
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:305
 #: src/features/projects/components/ProjectsDialogs.tsx:356
 #: src/features/projects/components/ProjectsDialogs.tsx:483
 #: src/features/projects/components/ProjectsDialogs.tsx:619
@@ -2218,13 +2220,13 @@ msgid "Manage your profile and account preferences."
 msgstr "Manage your profile and account preferences."
 
 #: src/features/auth/components/InviteNotifications.tsx:604
-#: src/features/auth/components/InviteNotifications.tsx:658
-#: src/features/auth/components/InviteNotifications.tsx:662
+#: src/features/auth/components/InviteNotifications.tsx:701
+#: src/features/auth/components/InviteNotifications.tsx:705
 msgid "Mark as read"
 msgstr "Mark as read"
 
-#: src/features/auth/components/InviteNotifications.tsx:658
-#: src/features/auth/components/InviteNotifications.tsx:662
+#: src/features/auth/components/InviteNotifications.tsx:701
+#: src/features/auth/components/InviteNotifications.tsx:705
 msgid "Mark as unread"
 msgstr "Mark as unread"
 
@@ -2263,7 +2265,7 @@ msgstr "Members"
 msgid "Mention a person"
 msgstr "Mention a person"
 
-#: src/features/auth/components/InviteNotifications.tsx:627
+#: src/features/auth/components/InviteNotifications.tsx:628
 msgid "mentioned you in a comment"
 msgstr "mentioned you in a comment"
 
@@ -2276,7 +2278,7 @@ msgstr "Menu"
 msgid "Milestone actions"
 msgstr "Milestone actions"
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:198
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:225
 msgid "Milestone name..."
 msgstr "Milestone name..."
 
@@ -2328,6 +2330,7 @@ msgstr "Monthly"
 msgid "Monthly recurring"
 msgstr "Monthly recurring"
 
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:184
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:668
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:804
 msgid "More actions"
@@ -2394,7 +2397,7 @@ msgstr "Move mode is enabled. Drag the widget header."
 msgid "My team workspace"
 msgstr "My team workspace"
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:189
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:216
 msgid "Name"
 msgstr "Name"
 
@@ -2869,7 +2872,7 @@ msgstr "Not equals"
 msgid "Not tracked"
 msgstr "Not tracked"
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:217
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:244
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:659
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:779
 msgid "Note"
@@ -2944,7 +2947,7 @@ msgstr "Open"
 msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
 msgstr "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
 
-#: src/features/auth/components/InviteNotifications.tsx:705
+#: src/features/auth/components/InviteNotifications.tsx:630
 msgid "Open Account settings to download the file."
 msgstr "Open Account settings to download the file."
 
@@ -3156,7 +3159,7 @@ msgstr "Profile"
 #: src/features/planner/components/AddTaskDialog.tsx:630
 #: src/features/planner/components/TaskDetailPanel.tsx:711
 #: src/features/planner/components/timeline/CalendarTimeline.tsx:417
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:203
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:230
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:112
 #: src/features/planner/components/timeline/MilestoneLayer.tsx:157
 #: src/features/planner/components/timeline/TaskBar.tsx:561
@@ -3413,7 +3416,7 @@ msgstr "Revoke"
 msgid "Right-click to add your first widget."
 msgstr "Right-click to add your first widget."
 
-#: src/features/auth/components/InviteNotifications.tsx:748
+#: src/features/auth/components/InviteNotifications.tsx:743
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:596
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx:737
 msgid "Role"
@@ -3448,7 +3451,7 @@ msgstr "Sage"
 #: src/features/members/components/MembersGroupPanel.tsx:120
 #: src/features/planner/components/CommentEditor.tsx:864
 #: src/features/planner/components/TaskDetailDialogs.tsx:93
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:276
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:293
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:622
 #: src/features/projects/components/projectCard/ActivityBlock.tsx:757
 #: src/features/projects/components/projectCard/CustomerBlock.tsx:373
@@ -3852,7 +3855,7 @@ msgstr "Start now →"
 #: src/features/planner/components/AddTaskDialog.tsx:711
 #: src/features/planner/components/FilterPanel.tsx:390
 #: src/features/planner/components/TaskDetailPanel.tsx:782
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:231
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:258
 #: src/features/planner/components/timeline/TaskBarMenu.tsx:124
 #: src/features/planner/components/timeline/TaskBarMenu.tsx:127
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx:220
@@ -3934,7 +3937,6 @@ msgid "Task details"
 msgstr "Task details"
 
 #: src/features/auth/components/InviteNotifications.tsx:516
-#: src/features/auth/components/InviteNotifications.tsx:726
 #: src/features/members/components/TaskDetailsDialog.tsx:50
 #: src/features/planner/components/TaskDetailDialogs.tsx:26
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx:70
@@ -4242,7 +4244,7 @@ msgstr "Tracking"
 msgid "Try again"
 msgstr "Try again"
 
-#: src/features/auth/components/InviteNotifications.tsx:706
+#: src/features/auth/components/InviteNotifications.tsx:632
 msgid "Try again from Account settings."
 msgstr "Try again from Account settings."
 
@@ -4349,7 +4351,7 @@ msgstr "unknown role"
 #: src/features/auth/components/AccountBadgeButton.tsx:18
 #: src/features/auth/components/AccountSettingsDialog.tsx:135
 #: src/features/auth/components/InviteNotifications.tsx:619
-#: src/features/auth/components/InviteNotifications.tsx:743
+#: src/features/auth/components/InviteNotifications.tsx:738
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx:58
 #: src/shared/lib/workspaceMemberActivity.ts:27
 msgid "Unknown user"
@@ -4370,7 +4372,7 @@ msgid "Unpin"
 msgstr "Unpin"
 
 #: src/features/planner/components/TaskDetailDialogs.tsx:80
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:282
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:299
 #: src/features/projects/components/ProjectsDialogs.tsx:350
 #: src/features/projects/components/ProjectsDialogs.tsx:477
 #: src/features/projects/components/ProjectsDialogs.tsx:613
@@ -4395,7 +4397,7 @@ msgstr "Until date"
 msgid "Up and running in minutes"
 msgstr "Up and running in minutes"
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:245
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:272
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -4411,7 +4413,7 @@ msgstr "Update customer name and industry."
 #~ msgid "Update customer name."
 #~ msgstr "Update customer name."
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:169
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:171
 msgid "Update milestone details."
 msgstr "Update milestone details."
 
@@ -4659,7 +4661,7 @@ msgstr "You have unsaved changes. Close without creating the task?"
 msgid "You have unsaved changes. Close without saving?"
 msgstr "You have unsaved changes. Close without saving?"
 
-#: src/features/planner/components/timeline/MilestoneDialog.tsx:284
+#: src/features/planner/components/timeline/MilestoneDialog.tsx:301
 msgid "You have unsaved milestone changes. Close without saving?"
 msgstr "You have unsaved milestone changes. Close without saving?"
 
@@ -4705,7 +4707,7 @@ msgstr "Your account is scheduled for deletion"
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Your account will be scheduled for deletion in {0} days."
 
-#: src/features/auth/components/InviteNotifications.tsx:691
+#: src/features/auth/components/InviteNotifications.tsx:638
 msgid "Your data export failed."
 msgstr "Your data export failed."
 
@@ -4713,7 +4715,7 @@ msgstr "Your data export failed."
 msgid "Your data export is ready to download."
 msgstr "Your data export is ready to download."
 
-#: src/features/auth/components/InviteNotifications.tsx:690
+#: src/features/auth/components/InviteNotifications.tsx:637
 msgid "Your data export is ready."
 msgstr "Your data export is ready."
 
