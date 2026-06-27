@@ -45,6 +45,12 @@ export const useTaskDrafts = ({
   const descriptionDraftRef = useRef('');
   const [draftTitle, setDraftTitle] = useState('');
   const [draftDescription, setDraftDescription] = useState('');
+  // Track which selection the drafts were seeded for, plus the last value we
+  // pushed into each draft. These let us tell an in-progress user edit apart
+  // from an external update (live-sync / reconcile replacing the task object).
+  const initializedIdRef = useRef<string | null>(null);
+  const lastSyncedTitleRef = useRef('');
+  const lastSyncedDescriptionRef = useRef('');
 
   useEffect(() => {
     if (!selectedTaskId) {
@@ -68,19 +74,52 @@ export const useTaskDrafts = ({
   }, [selectedTaskId, task]);
 
   useEffect(() => {
-    if (!task) {
+    if (!task || !selectedTaskId) {
       titleDraftRef.current = '';
       descriptionDraftRef.current = '';
       setDraftTitle('');
       setDraftDescription('');
+      initializedIdRef.current = null;
+      lastSyncedTitleRef.current = '';
+      lastSyncedDescriptionRef.current = '';
       return;
     }
-    titleDraftRef.current = task.title;
-    setDraftTitle(task.title);
-    const nextDescription = task.description || '';
-    descriptionDraftRef.current = nextDescription;
-    setDraftDescription(nextDescription);
-  }, [task]);
+
+    const isNewSelection = initializedIdRef.current !== selectedTaskId;
+
+    // Title: always seed on a fresh selection. On a same-task object swap
+    // (live-sync / reconcile) only adopt the incoming title when the user hasn't
+    // typed over it — i.e. the draft still equals what we last pushed. This
+    // reflects genuine external edits without ever clobbering an in-progress one.
+    if (isNewSelection || titleDraftRef.current === lastSyncedTitleRef.current) {
+      titleDraftRef.current = task.title;
+      setDraftTitle(task.title);
+    }
+    lastSyncedTitleRef.current = task.title;
+
+    // Description is lazy-loaded: `undefined` means "not fetched yet".
+    if (isNewSelection) {
+      // Seed immediately so the previous task's text never bleeds in. When the
+      // description hasn't loaded yet, seed '' and let the backfill below adopt
+      // the real value once it arrives.
+      const initialDescription = task.description || '';
+      descriptionDraftRef.current = initialDescription;
+      setDraftDescription(initialDescription);
+      lastSyncedDescriptionRef.current = task.description === undefined ? '' : initialDescription;
+    } else if (
+      task.description !== undefined
+      && descriptionDraftRef.current === lastSyncedDescriptionRef.current
+    ) {
+      // Same task: adopt the lazy-loaded / externally-changed description unless
+      // the user has an in-progress edit.
+      const nextDescription = task.description || '';
+      descriptionDraftRef.current = nextDescription;
+      setDraftDescription(nextDescription);
+      lastSyncedDescriptionRef.current = nextDescription;
+    }
+
+    initializedIdRef.current = selectedTaskId;
+  }, [task, selectedTaskId]);
 
   const isDirty = useMemo(() => {
     if (!task || !originalTaskRef.current) return false;

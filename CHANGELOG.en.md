@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- The task list no longer shows stale data when a bulk change to a repeat series or assignees is interrupted by an error.
+- A task's text is no longer lost when someone else edits it while you are typing.
+
 ## [0.8.55] - 2026-06-27
 ### Changed
 - In the milestone editor, delete moved to a top menu and the dialog is more compact.

@@ -28,6 +28,12 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: i18n catalogs up to date
+        run: |
+          npm run lingui:extract
+          git diff --exit-code src/locales \
+            || (echo "::error::Locale catalogs are stale. Run 'npm run lingui:extract && npm run lingui:compile' and commit src/locales." && exit 1)
+
       - name: Unit tests
         run: npm run test
 
