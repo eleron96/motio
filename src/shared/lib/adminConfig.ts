@@ -48,7 +48,7 @@ export const getAdminUserId = async (): Promise<string | null> => {
 
       if (!rpcResult.error) {
         adminUserIdCache = parseProfileId(rpcResult.data);
-        return adminUserIdCache;
+        return adminUserIdCache ?? null;
       }
 
       const { data: adminProfile, error } = await supabase
@@ -63,7 +63,7 @@ export const getAdminUserId = async (): Promise<string | null> => {
       }
 
       adminUserIdCache = adminProfile?.id ?? null;
-      return adminUserIdCache;
+      return adminUserIdCache ?? null;
     } catch (_error) {
       adminUserIdCache = null;
       return null;

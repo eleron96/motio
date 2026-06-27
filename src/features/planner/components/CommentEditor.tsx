@@ -64,14 +64,15 @@ const getSelectionRangeWithinEditor = (editor: HTMLDivElement): Range | null => 
 
 const isVisibleRect = (
   rect: Pick<DOMRect, 'width' | 'height' | 'top' | 'left'> | null | undefined,
-) => (
-  Boolean(rect) && (
+) => {
+  if (!rect) return false;
+  return (
     (rect.width > 0) ||
     (rect.height > 0) ||
     (rect.top > 0) ||
     (rect.left > 0)
-  )
-);
+  );
+};
 
 const getEditorTextBeforeCaret = (editor: HTMLDivElement, range: Range): string => {
   const prefixRange = range.cloneRange();

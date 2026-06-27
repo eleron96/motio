@@ -1,7 +1,10 @@
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
 
 export interface MemberGroupAssignment {
-  groupId: string;
+  // Matches the planner-domain shape: an assignment can be ungrouped (null).
+  // Ungrouped rows simply never match a real target groupId below, so the
+  // filtering result is unchanged.
+  groupId: string | null;
   userId: string;
 }
 

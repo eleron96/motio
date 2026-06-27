@@ -657,8 +657,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     );
     if (error) return { error };
     if (data?.backup) {
+      const createdBackup = data.backup;
       set((state) => ({
-        backups: [data.backup, ...state.backups.filter((item) => item.name !== data.backup?.name)],
+        backups: [createdBackup, ...state.backups.filter((item) => item.name !== createdBackup.name)],
       }));
     }
     return {};
@@ -1103,12 +1104,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       groupId,
     });
     if (error) {
+      // On any error path the gateway never returns `data`, so these fields are
+      // always undefined here. Spelled out explicitly (instead of data?.x) to keep
+      // the exact same result shape while satisfying strict null checks.
       return {
         error,
-        actionLink: data?.actionLink,
-        warning: data?.warning,
-        inviteEmail: data?.inviteEmail,
-        inviteStatus: data?.inviteStatus,
+        actionLink: undefined,
+        warning: undefined,
+        inviteEmail: undefined,
+        inviteStatus: undefined,
       };
     }
 

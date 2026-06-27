@@ -6,7 +6,7 @@ interface UseCustomerActionsParams {
   customers: Customer[];
   selectedCustomerId: string | null;
   setSelectedCustomerId: Dispatch<SetStateAction<string | null>>;
-  addCustomer: (data: { name: string }) => Promise<Customer | undefined>;
+  addCustomer: (data: { name: string }) => Promise<Customer | null>;
   updateCustomer: (id: string, updates: Partial<Customer>) => Promise<{ error?: string } | undefined>;
   deleteCustomer: (id: string) => Promise<{ error?: string } | undefined>;
   setMutationError: Dispatch<SetStateAction<string>>;
@@ -33,7 +33,7 @@ export interface UseCustomerActionsResult {
   setDeleteCustomerTarget: Dispatch<SetStateAction<Customer | null>>;
   deleteCustomerOpen: boolean;
   setDeleteCustomerOpen: Dispatch<SetStateAction<boolean>>;
-  createCustomerByName: (name: string) => Promise<Customer | null | undefined>;
+  createCustomerByName: (name: string) => Promise<Customer | null>;
   handleAddCustomerFromTab: () => Promise<void>;
   startCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
   cancelCustomerEdit: () => void;
