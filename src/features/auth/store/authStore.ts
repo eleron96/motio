@@ -252,6 +252,10 @@ interface AuthState {
   updateMemberRole: (userId: string, role: WorkspaceRole) => Promise<{ error?: string }>;
   updateMemberGroup: (userId: string, groupId: string | null) => Promise<{ error?: string }>;
   removeMember: (userId: string) => Promise<{ error?: string }>;
+  leaveWorkspace: (
+    workspaceId: string,
+  ) => Promise<{ error?: string; reason?: 'OWNER_MUST_TRANSFER_FIRST' | 'SOLE_ADMIN_MUST_PROMOTE_FIRST' }>;
+  transferWorkspaceOwnership: (workspaceId: string, newOwnerId: string) => Promise<{ error?: string }>;
   updateDisplayName: (displayName: string) => Promise<{ error?: string }>;
   updateLocale: (locale: Locale) => Promise<{ error?: string }>;
   updateAvatarUrl: (url: string | null) => void;
@@ -1339,6 +1343,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     }
 
+    return {};
+  },
+  leaveWorkspace: async (workspaceId) => {
+    const targetWorkspaceId = workspaceId || get().currentWorkspaceId;
+    if (!targetWorkspaceId) return { error: 'Workspace not selected.' };
+
+    const { error } = await supabase.rpc('leave_workspace', { p_workspace_id: targetWorkspaceId });
+    if (error) {
+      if (error.message.includes('OWNER_MUST_TRANSFER_FIRST')) {
+        return { error: error.message, reason: 'OWNER_MUST_TRANSFER_FIRST' };
+      }
+      if (error.message.includes('SOLE_ADMIN_MUST_PROMOTE_FIRST')) {
+        return { error: error.message, reason: 'SOLE_ADMIN_MUST_PROMOTE_FIRST' };
+      }
+      return { error: error.message };
+    }
+
+    // The current workspace no longer includes us; fetchWorkspaces switches away.
+    await get().fetchWorkspaces();
+    return {};
+  },
+  transferWorkspaceOwnership: async (workspaceId, newOwnerId) => {
+    const targetWorkspaceId = workspaceId || get().currentWorkspaceId;
+    if (!targetWorkspaceId) return { error: 'Workspace not selected.' };
+    if (!newOwnerId) return { error: 'Select a new owner.' };
+
+    const { error } = await supabase.rpc('transfer_workspace_ownership', {
+      p_workspace_id: targetWorkspaceId,
+      p_new_owner_id: newOwnerId,
+    });
+    if (error) return { error: error.message };
+
+    await get().fetchWorkspaces();
+    await get().fetchMembers(targetWorkspaceId);
     return {};
   },
   updateDisplayName: async (displayName) => {

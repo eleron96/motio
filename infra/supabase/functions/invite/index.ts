@@ -459,7 +459,7 @@ const handleAcceptInvite = async (
 
   const { data: invite, error: inviteError } = await supabaseAdmin
     .from("workspace_invites")
-    .select("id, workspace_id, email_normalized, role, group_id, expires_at, accepted_at, revoked_at")
+    .select("id, workspace_id, email_normalized, role, group_id, expires_at, accepted_at, revoked_at, invited_by")
     .eq("token", token)
     .maybeSingle();
 
@@ -502,6 +502,19 @@ const handleAcceptInvite = async (
     return jsonResponse({ error: "This invite belongs to a different email." }, 403);
   }
 
+  // Re-validate inviter authority at accept time: an invite minted by an admin
+  // who has since been removed or demoted must not still grant access. If the
+  // inviter is no longer an admin, revoke the now-orphaned invite and refuse.
+  const inviterStillAdmin = await ensureWorkspaceAdmin(invite.workspace_id, invite.invited_by);
+  if ("error" in inviterStillAdmin) {
+    await supabaseAdmin
+      .from("workspace_invites")
+      .update({ revoked_at: new Date().toISOString(), revoked_reason: "canceled" })
+      .eq("id", invite.id)
+      .is("revoked_at", null);
+    return jsonResponse({ error: "This invitation is no longer valid." }, 400);
+  }
+
   let resolvedGroupId = invite.group_id as string | null;
   if (resolvedGroupId) {
     const { data: group, error: groupError } = await supabaseAdmin
@@ -515,6 +528,9 @@ const handleAcceptInvite = async (
     }
   }
 
+  // Insert-only: if the user is already a member, DO NOTHING (never overwrite
+  // their current role/group from a stale invite). ignoreDuplicates makes this
+  // race-safe — a concurrent membership is left untouched rather than merged.
   const { error: membershipInsertError } = await supabaseAdmin
     .from("workspace_members")
     .upsert({
@@ -522,7 +538,7 @@ const handleAcceptInvite = async (
       user_id: authUser.id,
       role: invite.role as WorkspaceRole,
       group_id: resolvedGroupId,
-    });
+    }, { onConflict: "workspace_id,user_id", ignoreDuplicates: true });
 
   if (membershipInsertError) {
     return jsonResponse({ error: membershipInsertError.message }, 500);
