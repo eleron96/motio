@@ -15,6 +15,7 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
+import { UserAvatar } from '@/shared/ui/UserAvatar';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
@@ -143,6 +144,13 @@ export const MemberTasksPanel = ({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
+                  <UserAvatar
+                    name={selectedAssignee.name}
+                    avatarUrl={selectedAssignee.avatar}
+                    colorSeed={selectedAssignee.userId ?? selectedAssignee.id}
+                    size="xl"
+                    className="shrink-0"
+                  />
                   <div className="text-lg font-semibold">{selectedAssignee.name}</div>
                   {!selectedAssignee.isActive && (
                     <Badge variant="secondary">{t`Disabled`}</Badge>
