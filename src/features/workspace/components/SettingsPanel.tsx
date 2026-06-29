@@ -6,7 +6,8 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -129,11 +130,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const {
     user,
     workspaces,
+    members,
+    fetchMembers,
     currentWorkspaceId,
     currentWorkspaceRole,
     updateWorkspaceName,
     updateWorkspaceHolidayCountry,
     deleteWorkspace,
+    transferWorkspaceOwnership,
   } = useAuthStore();
 
   const isMobile = useIsMobile();
@@ -148,6 +152,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
+  const isWorkspaceOwner = Boolean(user?.id && currentWorkspace?.ownerId === user.id);
+  const transferCandidates = (members ?? []).filter(
+    (member) => member.userId !== user?.id && member.status === 'ACTIVE',
+  );
 
   const [activeSection, setActiveSection] = useState<SectionId>('general');
   // Mobile drill-in: the section list and the section content are separate
@@ -163,6 +171,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const [workspaceError, setWorkspaceError] = useState('');
   const [workspaceSaving, setWorkspaceSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferTargetId, setTransferTargetId] = useState('');
+  const [transferring, setTransferring] = useState(false);
+  const [transferError, setTransferError] = useState('');
   const [templateApplyError, setTemplateApplyError] = useState('');
   const [templateApplying, setTemplateApplying] = useState(false);
   const [templateApplied, setTemplateApplied] = useState(false);
@@ -732,8 +744,38 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     </div>
   );
 
+  const openTransferDialog = () => {
+    setTransferError('');
+    setTransferTargetId('');
+    if (currentWorkspaceId) void fetchMembers(currentWorkspaceId);
+    setTransferOpen(true);
+  };
+
+  const handleTransferOwnership = async () => {
+    if (!currentWorkspaceId || !transferTargetId) return;
+    setTransferring(true);
+    setTransferError('');
+    const result = await transferWorkspaceOwnership(currentWorkspaceId, transferTargetId);
+    setTransferring(false);
+    if (result.error) {
+      setTransferError(result.error);
+      return;
+    }
+    setTransferOpen(false);
+  };
+
   const dangerContent = (
     <div className="space-y-5">
+      {isWorkspaceOwner && (
+        <Block
+          title={t`Ownership`}
+          description={t`Transfer ownership of this workspace to another member. You keep your access but stop being the owner.`}
+        >
+          <Button variant="outline" onClick={openTransferDialog} disabled={!currentWorkspaceId}>
+            {t`Transfer ownership`}
+          </Button>
+        </Block>
+      )}
       <Block
         title={t`Danger zone`}
         description={t`Deleting a workspace is permanent. Type the workspace name to enable deletion.`}
@@ -868,6 +910,57 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog
+        open={transferOpen}
+        onOpenChange={(next) => {
+          if (transferring) return;
+          setTransferOpen(next);
+          if (!next) setTransferError('');
+        }}
+      >
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>{t`Transfer ownership`}</DialogTitle>
+            <DialogDescription>
+              {t`The selected member becomes the workspace owner. You will no longer be the owner, but you stay as an admin.`}
+            </DialogDescription>
+          </DialogHeader>
+          {transferCandidates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t`There are no other active members to transfer ownership to.`}
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <Label>{t`New owner`}</Label>
+              <Select value={transferTargetId} onValueChange={setTransferTargetId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t`Select a member`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {transferCandidates.map((candidate) => (
+                    <SelectItem key={candidate.userId} value={candidate.userId}>
+                      {candidate.displayName || candidate.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {transferError && <p className="text-sm text-destructive">{transferError}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferOpen(false)} disabled={transferring}>
+              {t`Cancel`}
+            </Button>
+            <Button
+              onClick={() => void handleTransferOwnership()}
+              disabled={transferring || !transferTargetId || transferCandidates.length === 0}
+            >
+              {t`Transfer ownership`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -13,9 +13,9 @@ const { authState, plannerState } = vi.hoisted(() => ({
     user: { id: 'user-1', email: 'niko@example.com' },
     workspaces: [{ id: 'workspace-1', ownerId: 'user-1', name: 'Team', holidayCountry: 'RU', role: 'admin' }],
     members: [
-      { userId: 'user-1', email: 'niko@example.com', displayName: 'Niko', role: 'admin', groupId: 'group-1' },
-      { userId: 'user-2', email: 'ivan@example.com', displayName: 'Ivan', role: 'viewer', groupId: null },
-      { userId: 'user-3', email: 'anna@example.com', displayName: 'Anna', role: 'editor', groupId: null },
+      { userId: 'user-1', email: 'niko@example.com', displayName: 'Niko', role: 'admin', groupId: 'group-1', status: 'ACTIVE' },
+      { userId: 'user-2', email: 'ivan@example.com', displayName: 'Ivan', role: 'viewer', groupId: null, status: 'ACTIVE' },
+      { userId: 'user-3', email: 'anna@example.com', displayName: 'Anna', role: 'editor', groupId: null, status: 'ACTIVE' },
     ],
     membersLoading: false,
     fetchMembers: vi.fn(),
@@ -42,6 +42,8 @@ const { authState, plannerState } = vi.hoisted(() => ({
     updateMemberRole: vi.fn(async () => ({ error: undefined })),
     updateMemberGroup: vi.fn(async () => ({ error: undefined })),
     removeMember: vi.fn(async () => ({ error: undefined })),
+    leaveWorkspace: vi.fn(async () => ({ error: undefined })),
+    transferWorkspaceOwnership: vi.fn(async () => ({ error: undefined })),
     currentWorkspaceId: 'workspace-1',
     currentWorkspaceRole: 'admin',
     profileDisplayName: 'Niko',
@@ -104,5 +106,22 @@ describe('WorkspaceMembersPanel access content', () => {
         limit: 100,
       });
     });
+  });
+
+  it('marks the workspace owner and offers a Leave action on the current user row', async () => {
+    render(<WorkspaceMembersPanel accessTab="active" />);
+
+    // Owner badge shows for the owner (Niko = user-1 = current user), exactly once.
+    const ownerBadges = await screen.findAllByText('Owner');
+    expect(ownerBadges).toHaveLength(1);
+
+    // The current user's own row offers "Leave" (not a self-Remove).
+    expect(screen.getByTestId('leave-workspace-button')).toBeInTheDocument();
+
+    // A different active member (Anna) exposes a per-member actions (⋮) menu;
+    // "Remove" lives inside it (closed by default), not as an inline button.
+    expect(await screen.findByText('anna@example.com')).toBeInTheDocument();
+    expect(screen.getByTestId('member-actions-user-3')).toBeInTheDocument();
+    expect(screen.queryByText('Remove')).not.toBeInTheDocument();
   });
 });

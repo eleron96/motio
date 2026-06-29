@@ -41,12 +41,15 @@ const { plannerState, authState } = vi.hoisted(() => ({
   },
   authState: {
     user: { id: 'user-1' },
-    workspaces: [{ id: 'workspace-1', name: 'Motio Team', holidayCountry: 'RU' }],
+    workspaces: [{ id: 'workspace-1', name: 'Motio Team', holidayCountry: 'RU', ownerId: 'user-1' }],
+    members: [],
+    fetchMembers: vi.fn(),
     currentWorkspaceId: 'workspace-1',
     currentWorkspaceRole: 'admin',
     updateWorkspaceName: vi.fn(async () => ({ error: undefined })),
     updateWorkspaceHolidayCountry: vi.fn(async () => ({ error: undefined })),
     deleteWorkspace: vi.fn(async () => ({ error: undefined })),
+    transferWorkspaceOwnership: vi.fn(async () => ({ error: undefined })),
   },
 }));
 
@@ -101,5 +104,18 @@ describe('SettingsPanel sections', () => {
     await user.click(screen.getByRole('button', { name: 'Display' }));
     expect(await screen.findByText('Show tasks without an assignee')).toBeInTheDocument();
     expect(screen.getByRole('switch', { name: 'Show unassigned' })).toBeInTheDocument();
+  });
+
+  it('offers Transfer ownership to the workspace owner under the Danger zone', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TooltipProvider>
+        <SettingsPanel open onOpenChange={() => {}} />
+      </TooltipProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Danger zone' }));
+    expect(await screen.findByRole('button', { name: 'Transfer ownership' })).toBeInTheDocument();
   });
 });
