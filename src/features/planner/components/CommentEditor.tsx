@@ -22,8 +22,7 @@ import { t } from '@lingui/macro';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
-import { getMonogramColor } from '@/shared/lib/monogramColor';
-import { getPersonMonogram } from '@/shared/domain/personName';
+import { UserAvatar } from '@/shared/ui/UserAvatar';
 import {
   hasTaskCommentRichTags,
   normalizeTaskCommentEditorHtml,
@@ -818,12 +817,12 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
                   onMouseEnter={() => setMentionHighlight(idx)}
                 >
                   {/* Avatar / monogram */}
-                  <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                    style={{ backgroundColor: getMonogramColor(candidate.userId) }}
-                  >
-                    {getPersonMonogram(candidate.name)}
-                  </span>
+                  <UserAvatar
+                    name={candidate.name}
+                    colorSeed={candidate.userId}
+                    size="xs"
+                    className="shrink-0"
+                  />
                   <span className="truncate">{candidate.name}</span>
                 </button>
               ))}
