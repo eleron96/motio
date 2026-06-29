@@ -230,6 +230,11 @@ services:
       GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
+      # Persist the Deno dependency cache across container recreates so cold
+      # starts never re-fetch function deps from esm.sh. Combined with the
+      # extra_hosts pin above, the first boot populates this volume and every
+      # later recreate reuses it — no network round-trip to esm.sh required.
+      - deno_cache:/root/.cache/deno
     command: ["start", "--main-service", "/home/deno/functions/main", "--port", "9000"]
 
   backup:
@@ -441,3 +446,5 @@ volumes:
     name: keycloak_db_data
   storage_data:
     name: supabase_storage_data
+  deno_cache:
+    name: motio_deno_cache
