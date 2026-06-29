@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.58] - 2026-06-29
 ### Added
 - The workspace owner is now marked with a badge in the member list.
 - You can now leave a workspace — your tasks are kept and reattach to you if you come back.
@@ -18,6 +19,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Security
 - Invitations from members who lost access no longer work, and re-accepting an old invite no longer changes an existing member's role.
+
 ## [0.8.57] - 2026-06-27
 ### Changed
 - No documented changes.
