@@ -7,6 +7,9 @@ import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Switch } from '@/shared/ui/switch';
 import { Badge } from '@/shared/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/avatar';
+import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { getAccountInitials } from '@/shared/lib/accountIdentity';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
@@ -535,7 +538,19 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
 
     return (
       <div key={member.userId} className="grid items-center gap-3 rounded-md border px-3 py-3 md:grid-cols-[1fr,140px,180px,120px,90px]">
-        <div className="min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <Avatar className="h-9 w-9 shrink-0">
+            {member.avatarUrl && (
+              <AvatarImage src={member.avatarUrl} alt={member.displayName ?? member.email} />
+            )}
+            <AvatarFallback
+              className="text-xs font-semibold text-white"
+              style={{ background: getMonogramColor(member.userId) }}
+            >
+              {getAccountInitials(member.displayName, member.email)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
           <div className={cn('text-sm font-medium truncate', isPurged && 'italic text-muted-foreground')}>
             {member.email}
             {isSelf ? ` ${t`(you)`}` : ''}
@@ -573,6 +588,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
             {!isActive && !isPurged && (
               <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
             )}
+          </div>
           </div>
         </div>
         <Select
