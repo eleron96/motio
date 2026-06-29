@@ -28,7 +28,6 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
   visibleDays,
   dayWidth,
   viewMode,
-  isMobile = false,
   attentionDate,
   todayKey,
   holidayDates,
@@ -68,7 +67,7 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
                   )}
                   style={{ width: dayWidth }}
                   onDoubleClick={
-                    isMobile && onDateContextAction
+                    onDateContextAction
                       ? () => onDateContextAction(dayKey)
                       : undefined
                   }
