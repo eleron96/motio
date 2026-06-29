@@ -14,7 +14,6 @@ import {
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Textarea } from '@/shared/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { MoreVertical, Trash2 } from 'lucide-react';
@@ -50,9 +49,6 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   const [projectId, setProjectId] = useState('');
   const [milestoneDate, setMilestoneDate] = useState('');
   const [note, setNote] = useState('');
-  // Phase 5: stored as 'auto' (status derived from date) or one of the
-  // explicit override values. Persisted as null when 'auto'.
-  const [statusOverride, setStatusOverride] = useState<'auto' | 'done' | 'current' | 'upcoming'>('auto');
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -84,7 +80,6 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
       setProjectId(milestone.projectId);
       setMilestoneDate(milestone.date);
       setNote(milestone.note ?? '');
-      setStatusOverride(milestone.statusOverride ?? 'auto');
       setHasChanges(false);
       return;
     }
@@ -92,7 +87,6 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     setProjectId(defaultProjectId ?? activeProjects[0]?.id ?? '');
     setMilestoneDate(date ?? format(new Date(), 'yyyy-MM-dd'));
     setNote('');
-    setStatusOverride('auto');
     setHasChanges(false);
   }, [milestone, open, activeProjects, date, defaultProjectId]);
 
@@ -120,7 +114,8 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
       projectId,
       date: milestoneDate,
       note: note.trim() ? note.trim() : null,
-      statusOverride: statusOverride === 'auto' ? null : statusOverride,
+      // Milestone status is always derived from the date — no manual override.
+      statusOverride: null,
     };
     if (milestone) {
       const result = await updateMilestone(milestone.id, payload);
@@ -253,27 +248,6 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
               rows={2}
               disabled={!canEdit}
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t`Status`}</Label>
-            <Select
-              value={statusOverride}
-              onValueChange={(value) => {
-                setStatusOverride(value as 'auto' | 'done' | 'current' | 'upcoming');
-                setHasChanges(true);
-              }}
-              disabled={!canEdit}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="auto">{t`Auto (from date)`}</SelectItem>
-                <SelectItem value="upcoming">{t`Upcoming`}</SelectItem>
-                <SelectItem value="current">{t`Current`}</SelectItem>
-                <SelectItem value="done">{t`Done`}</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
