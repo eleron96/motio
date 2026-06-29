@@ -334,3 +334,4 @@
 2026-06-27T14:16:36Z | 0.8.56 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260627-141547.dump | The task list no longer shows stale data when a bulk change to a repeat series or assignees is interrupted by an error.
 2026-06-27T19:52:33Z | 0.8.57 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260627-195153.dump | No documented changes.
 2026-06-29T12:01:18Z | 0.8.58 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260629-120026.dump | The workspace owner is now marked with a badge in the member list.
+2026-06-29T12:54:24Z | 0.8.59 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260629-125344.dump | No documented changes.
