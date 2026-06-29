@@ -298,11 +298,19 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleAssigneePopoverOpenChange = useCallback((nextOpen: boolean) => {
     setAssigneePopoverOpen(nextOpen);
     if (nextOpen) {
-      setAssigneePopoverFrozenOrderIds(selectableAssignees.map((assignee) => assignee.id));
+      // Freeze a "selected first" order on open: already-chosen people sit at the
+      // top (easier to see), and the list stays stable while open instead of
+      // jumping as more are checked. Newly checked ones rise to the top next open.
+      const ordered = orderAssigneesForPopover({
+        assignees: selectableAssignees,
+        selectedAssigneeIds: assigneeIds,
+        frozenOrderIds: null,
+      });
+      setAssigneePopoverFrozenOrderIds(ordered.map((assignee) => assignee.id));
       return;
     }
     setAssigneePopoverFrozenOrderIds(null);
-  }, [selectableAssignees]);
+  }, [selectableAssignees, assigneeIds]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
