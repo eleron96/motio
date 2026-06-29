@@ -1,6 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { getPersonMonogram } from '@/shared/domain/personName';
 import { cn } from '@/shared/lib/classNames';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'xl' | '2xl' | 'lg';
@@ -38,9 +39,15 @@ const overlayHeight: Record<AvatarSize, string> = {
 interface UserAvatarProps {
   /** Public URL of the uploaded photo, if any */
   avatarUrl?: string | null;
-  /** 1–2 letter initials shown when no photo */
-  initials: string;
-  /** Seed for deterministic monogram background color (typically userId) */
+  /**
+   * Person's display name (or email). Used to derive the monogram initials and
+   * the fallback color when `initials` is not given — this is the simplest way
+   * to use the component: `<UserAvatar name={person.name} avatarUrl={...} />`.
+   */
+  name?: string | null;
+  /** Explicit 1–2 letter initials; overrides the name-derived monogram. */
+  initials?: string;
+  /** Seed for deterministic monogram background color (defaults to name/initials) */
   colorSeed?: string;
   size?: AvatarSize;
   className?: string;
@@ -56,13 +63,15 @@ interface UserAvatarProps {
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({
   avatarUrl,
+  name,
   initials,
   colorSeed = '',
   size = 'md',
   className,
   showInitialsOverlay = false,
 }) => {
-  const bgColor = getMonogramColor(colorSeed || initials);
+  const resolvedInitials = initials ?? getPersonMonogram(name, '?');
+  const bgColor = getMonogramColor(colorSeed || name || resolvedInitials);
   const hasPhoto = Boolean(avatarUrl);
 
   return (
@@ -77,7 +86,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       {hasPhoto && (
         <AvatarImage
           src={avatarUrl!}
-          alt={initials}
+          alt={resolvedInitials}
           className="object-cover"
         />
       )}
@@ -85,7 +94,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         className="font-semibold text-white"
         style={{ backgroundColor: bgColor }}
       >
-        {initials}
+        {resolvedInitials}
       </AvatarFallback>
 
       {/* Initials overlay — only when a real photo is displayed */}
@@ -100,7 +109,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
             'font-semibold tracking-wide text-white drop-shadow-sm',
           )}
         >
-          {initials}
+          {resolvedInitials}
         </span>
       )}
     </Avatar>

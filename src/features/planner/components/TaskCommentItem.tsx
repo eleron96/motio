@@ -21,8 +21,7 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { toast } from '@/shared/ui/sonner';
-import { getMonogramColor } from '@/shared/lib/monogramColor';
-import { getPersonMonogram } from '@/shared/domain/personName';
+import { UserAvatar } from '@/shared/ui/UserAvatar';
 import type { TaskComment } from '@/features/planner/types/planner';
 import { sanitizeCommentHtml, deleteTaskComment, updateTaskComment } from '@/infrastructure/tasks/taskCommentsRepository';
 import { type TaskCommentMentionCandidate } from '@/shared/domain/taskCommentMentionCandidates';
@@ -85,14 +84,12 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
   return (
     <div className="group relative flex gap-2.5 py-2.5">
       {/* Avatar */}
-      <span
-        className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-        style={{
-          backgroundColor: getMonogramColor(comment.authorId),
-        }}
-      >
-        {getPersonMonogram(comment.authorDisplayName)}
-      </span>
+      <UserAvatar
+        name={comment.authorDisplayName}
+        colorSeed={comment.authorId}
+        size="sm"
+        className="mt-0.5 h-7 w-7 shrink-0 text-[10px]"
+      />
 
       <div className="min-w-0 flex-1">
         {/* Header */}
