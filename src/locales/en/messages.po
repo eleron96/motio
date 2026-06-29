@@ -3967,13 +3967,16 @@ msgstr "Task"
 msgid "Task actions"
 msgstr "Task actions"
 
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "Task deleted"
+msgstr "Task deleted"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Task details"
 msgstr "Task details"
 
-#: src/features/auth/components/InviteNotifications.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4172,6 +4175,10 @@ msgstr "This sandbox resets soon. Create a free account to keep this timeline an
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "This section contains invitations, roles and workspace access for your team."
 msgstr "This section contains invitations, roles and workspace access for your team."
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "This task has been deleted."
+msgstr "This task has been deleted."
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "this week"

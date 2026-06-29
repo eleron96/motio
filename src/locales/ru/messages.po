@@ -3967,13 +3967,16 @@ msgstr "Задача"
 msgid "Task actions"
 msgstr "Действия с задачей"
 
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "Task deleted"
+msgstr "Задача удалена"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Task details"
 msgstr "Детали задачи"
 
-#: src/features/auth/components/InviteNotifications.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4172,6 +4175,10 @@ msgstr "Песочница скоро сбросится. Создайте бе�
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "This section contains invitations, roles and workspace access for your team."
 msgstr "В этом разделе находятся приглашения, роли и доступ команды к рабочему пространству."
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "This task has been deleted."
+msgstr "Эта задача была удалена."
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "this week"
