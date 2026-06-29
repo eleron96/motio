@@ -7,6 +7,15 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.61] - 2026-06-29
+### Added
+- On the timeline you can now create a milestone by double-clicking a date.
+- People now appear with an avatar — or a colored monogram when there's no photo — next to their name: in the members list, the member card, and when assigning people to tasks.
+
+
+### Fixed
+- A notification for a task that has already been deleted is now marked and warns you, instead of leading nowhere.
+
 ## [0.8.60] - 2026-06-29
 ### Changed
 - No documented changes.
