@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.59] - 2026-06-29
+### Changed
+- Нет зафиксированных изменений.
+
 ## [0.8.58] - 2026-06-29
 ### Added
 - Владелец рабочего пространства теперь отмечен значком в списке участников.
