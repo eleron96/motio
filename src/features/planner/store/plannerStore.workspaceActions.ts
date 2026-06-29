@@ -174,7 +174,7 @@ export const createWorkspaceActions = (
       : Promise.resolve({ data: [] as never[], error: null });
     const assigneesQuery = supabase
       .from('assignees')
-      .select('id, workspace_id, name, user_id, is_active, email, phone')
+      .select('id, workspace_id, name, user_id, is_active, email, phone, profiles(avatar_url)')
       .eq('workspace_id', workspaceId);
     const projectMembersQuery = projectCardOn
       ? supabase
@@ -418,7 +418,7 @@ export const createWorkspaceActions = (
 
     const { data, error } = await supabase
       .from('assignees')
-      .select('id, workspace_id, name, user_id, is_active, email, phone')
+      .select('id, workspace_id, name, user_id, is_active, email, phone, profiles(avatar_url)')
       .eq('workspace_id', workspaceId);
 
     if (error) {
@@ -432,7 +432,7 @@ export const createWorkspaceActions = (
       get().tasks.flatMap((task) => task.assigneeIds),
     );
 
-    const assignees = (data ?? [])
+    const assignees = ((data ?? []) as AssigneeRow[])
       .filter((row) => {
         if (adminUserId && row.user_id === adminUserId) return false;
         return row.user_id !== null || taskAssigneeIds.has(row.id);
