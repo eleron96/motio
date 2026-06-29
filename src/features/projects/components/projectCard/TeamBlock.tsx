@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
-import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
 import { ContactPopup, type ContactPopupTarget } from './ContactPopup';
@@ -357,12 +357,12 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       <li key={member.memberRowId ?? member.assignee?.id ?? displayName} className="rounded-md hover:bg-muted/40">
         <div className="group flex items-center gap-2 px-1.5 py-1">
           <div className="relative h-6 w-6 flex-shrink-0">
-            <div
-              className="grid h-6 w-6 place-items-center rounded-full text-[9px] font-semibold text-white"
-              style={{ background: getMonogramColor(colorSeed) }}
-            >
-              {initials}
-            </div>
+            <UserAvatar
+              avatarUrl={member.assignee?.avatar}
+              initials={initials}
+              colorSeed={colorSeed}
+              size="xs"
+            />
             {isExternal && (
               <span
                 className="absolute -bottom-0.5 -right-0.5 grid h-3 w-3 place-items-center rounded-full border border-card bg-card text-[8px] text-muted-foreground"

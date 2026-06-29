@@ -504,7 +504,7 @@ export const InviteNotifications: React.FC = () => {
       return;
     }
 
-    if (!notification.taskId || !notification.workspaceId) return;
+    if (!notification.workspaceId) return;
 
     setOpeningNotificationId(notification.id);
 
@@ -512,8 +512,10 @@ export const InviteNotifications: React.FC = () => {
       await updateTaskNotification(notification.id, 'markRead');
     }
 
-    if (!notification.taskExists || !notification.taskStartDate) {
-      toast(t`Task not found.`);
+    // The task is gone (deleted -> task_id nulled, or otherwise missing). Don't
+    // navigate to nowhere: tell the user why and leave the row marked read.
+    if (!notification.taskId || !notification.taskExists || !notification.taskStartDate) {
+      toast(t`This task has been deleted.`);
       setOpeningNotificationId(null);
       return;
     }
@@ -622,6 +624,9 @@ export const InviteNotifications: React.FC = () => {
                     const dateLabel = formatNotificationDate(notification.createdAt);
                     const markAsUnread = !isUnread;
                     const isExport = isExportNotification(notification);
+                    // The referenced task no longer exists (deleted). The row is
+                    // kept (with its title snapshot) but shown as unavailable.
+                    const taskGone = !isExport && (!notification.taskId || !notification.taskExists);
 
                     // Secondary line: who acted (and where), shown under the title.
                     const subNode = notification.type === 'comment_mention'
@@ -665,7 +670,10 @@ export const InviteNotifications: React.FC = () => {
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium leading-snug">{titleText}</p>
+                            <p className={cn(
+                              'truncate text-sm font-medium leading-snug',
+                              taskGone && 'text-muted-foreground line-through',
+                            )}>{titleText}</p>
                             {!isExport && notification.type === 'comment_mention' && notification.commentPreview && (
                               <p className="mt-0.5 truncate text-xs italic text-muted-foreground">
                                 "{notification.commentPreview}"
@@ -680,6 +688,11 @@ export const InviteNotifications: React.FC = () => {
                               </p>
                             )}
                             <p className="mt-0.5 truncate text-xs text-muted-foreground">{subNode}</p>
+                            {taskGone && (
+                              <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+                                {t`Task deleted`}
+                              </p>
+                            )}
                             {dateLabel && (
                               <p className="mt-0.5 text-[11px] text-muted-foreground">{dateLabel}</p>
                             )}

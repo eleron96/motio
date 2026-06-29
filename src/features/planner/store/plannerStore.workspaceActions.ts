@@ -31,6 +31,7 @@ import {
   SupabaseResult,
   TaskRow,
 } from '@/features/planner/store/plannerStore.helpers';
+import type { Assignee } from '@/features/planner/types/planner';
 import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
 import { buildWorkspaceMemberActivityActorSnapshot } from '@/shared/domain/workspaceMemberActivity';
 
@@ -64,6 +65,33 @@ const mapAssigneeTaskCounts = (rows: AssigneeUniqueTaskCountRow[] | null | undef
     totals[row.assignee_id] = value;
   });
   return totals;
+};
+
+// The assignees table has no FK to profiles, so we can't embed avatar_url in the
+// assignees query. Fetch the avatars separately by user_id and merge them in.
+// Best-effort: on error the people just keep their initials monogram.
+const attachAssigneeAvatars = async (assignees: Assignee[]): Promise<void> => {
+  const ids = Array.from(
+    new Set(assignees.map((a) => a.userId).filter((id): id is string => Boolean(id))),
+  );
+  if (ids.length === 0) return;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, avatar_url')
+    .in('id', ids);
+  if (error || !data) return;
+  const avatarById = new Map<string, string>();
+  for (const row of data) {
+    if (typeof row.id === 'string' && row.avatar_url) {
+      avatarById.set(row.id, row.avatar_url as string);
+    }
+  }
+  for (const assignee of assignees) {
+    if (assignee.userId) {
+      const url = avatarById.get(assignee.userId);
+      if (url) assignee.avatar = url;
+    }
+  }
 };
 
 export const createWorkspaceActions = (
@@ -307,6 +335,9 @@ export const createWorkspaceActions = (
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);
 
+    await attachAssigneeAvatars(assignees);
+    if (get().dataRequestId !== requestId) return;
+
     const memberGroups = (memberGroupsRes.data ?? [])
       .map((row) => ({
         id: (row as MemberGroupRow).id,
@@ -432,13 +463,15 @@ export const createWorkspaceActions = (
       get().tasks.flatMap((task) => task.assigneeIds),
     );
 
-    const assignees = (data ?? [])
+    const assignees = ((data ?? []) as AssigneeRow[])
       .filter((row) => {
         if (adminUserId && row.user_id === adminUserId) return false;
         return row.user_id !== null || taskAssigneeIds.has(row.id);
       })
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);
+
+    await attachAssigneeAvatars(assignees);
 
     const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
 
