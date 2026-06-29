@@ -537,8 +537,8 @@ msgid "Authentication failed."
 msgstr "Ошибка аутентификации."
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-msgid "Auto (from date)"
-msgstr "Авто (по дате)"
+#~ msgid "Auto (from date)"
+#~ msgstr "Авто (по дате)"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -972,7 +972,6 @@ msgid "Creates the specified number of repeats."
 msgstr "Создает указанное количество повторов."
 
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -1362,7 +1361,6 @@ msgid "done"
 msgstr "выполнено"
 
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Done"
@@ -3895,7 +3893,6 @@ msgstr "Начни сейчас →"
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
-#: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
@@ -4468,8 +4465,8 @@ msgid "Up and running in minutes"
 msgstr "Готово за несколько минут"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-msgid "Upcoming"
-msgstr "Предстоящая"
+#~ msgid "Upcoming"
+#~ msgstr "Предстоящая"
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Update"
