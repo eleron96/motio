@@ -131,15 +131,13 @@ export const MembersSidebar = ({
             >
               {t`People`}
             </SegmentedControlItem>
-            {isAdmin && (
-              <SegmentedControlItem
-                active={mode === 'access'}
-                onClick={() => onModeChange('access')}
-                data-tour="members-access-tab"
-              >
-                {t`Access`}
-              </SegmentedControlItem>
-            )}
+            <SegmentedControlItem
+              active={mode === 'access'}
+              onClick={() => onModeChange('access')}
+              data-tour="members-access-tab"
+            >
+              {t`Access`}
+            </SegmentedControlItem>
             <SegmentedControlItem
               active={mode === 'groups'}
               onClick={() => onModeChange('groups')}

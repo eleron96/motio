@@ -233,7 +233,6 @@ msgid "Access"
 msgstr "Access"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Access denied"
 msgstr "Access denied"
 
@@ -646,6 +645,10 @@ msgstr "Calendar range"
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -2093,6 +2096,19 @@ msgstr "Last in series"
 msgid "Lavender"
 msgstr "Lavender"
 
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Leave"
+msgstr "Leave"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Leave workspace"
+msgstr "Leave workspace"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Leave workspace?"
+msgstr "Leave workspace?"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
 msgstr "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
@@ -2256,6 +2272,10 @@ msgstr "Medium priority"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Member"
 msgstr "Member"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Member actions"
+msgstr "Member actions"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Members"
@@ -2451,6 +2471,11 @@ msgstr "New group"
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "New milestone"
 msgstr "New milestone"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "New owner"
+msgstr "New owner"
 
 #. placeholder {0}: workspace.candidates.find((c) => c.user_id === decision.newOwnerId)?.display_name ?? decision.newOwnerId
 #: src/features/auth/components/DeleteAccountWizard.tsx
@@ -3001,10 +3026,18 @@ msgstr "overdue"
 msgid "Overdue by {diff}d"
 msgstr "Overdue by {diff}d"
 
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Owner"
+msgstr "Owner"
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Owner team"
 msgstr "Owner team"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Ownership"
+msgstr "Ownership"
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -3268,6 +3301,7 @@ msgstr "Refresh"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Remove"
 msgstr "Remove"
 
@@ -3296,6 +3330,10 @@ msgstr "Remove from team"
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Remove image"
 msgstr "Remove image"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Remove member?"
+msgstr "Remove member?"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Remove subtask"
@@ -3584,6 +3622,8 @@ msgid "Select a group to see members."
 msgstr "Select a group to see members."
 
 #: src/features/planner/components/CommentEditor.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Select a member"
 msgstr "Select a member"
 
@@ -4044,6 +4084,10 @@ msgstr "The previous export file has expired. Request it again."
 #~ msgid "The project-wide activity feed (task comments + system events, with composer and modal) is scheduled for a follow-up phase."
 #~ msgstr "The project-wide activity feed (task comments + system events, with composer and modal) is scheduled for a follow-up phase."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "The selected member becomes the workspace owner. You will no longer be the owner, but you stay as an admin."
+msgstr "The selected member becomes the workspace owner. You will no longer be the owner, but you stay as an admin."
+
 #: src/features/planner/components/TaskDetailDialogs.tsx
 msgid "The selected task does not exist or was deleted."
 msgstr "The selected task does not exist or was deleted."
@@ -4060,9 +4104,21 @@ msgstr "The workspace and all its data will be deleted permanently."
 msgid "there"
 msgstr "there"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "There are no other active members to transfer ownership to."
+msgstr "There are no other active members to transfer ownership to."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "There is no one to transfer ownership to. Delete the workspace instead if you no longer need it."
+msgstr "There is no one to transfer ownership to. Delete the workspace instead if you no longer need it."
+
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "These members are derived from this project's tasks. Use + to pin them explicitly."
 msgstr "These members are derived from this project's tasks. Use + to pin them explicitly."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "They will lose access to this workspace. Tasks already assigned to them are not affected."
+msgstr "They will lose access to this workspace. Tasks already assigned to them are not affected."
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "This action cannot be undone."
@@ -4239,6 +4295,20 @@ msgstr "Tracked project"
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Tracking"
 msgstr "Tracking"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Transfer & leave"
+msgstr "Transfer & leave"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Transfer ownership"
+msgstr "Transfer ownership"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Transfer ownership of this workspace to another member. You keep your access but stop being the owner."
+msgstr "Transfer ownership of this workspace to another member. You keep your access but stop being the owner."
 
 #: src/app/PageErrorBoundary.tsx
 msgid "Try again"
@@ -4633,6 +4703,18 @@ msgstr "Yearly recurring"
 msgid "yesterday"
 msgstr "yesterday"
 
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "You are the only admin. Promote another member to admin before leaving."
+msgstr "You are the only admin. Promote another member to admin before leaving."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "You are the only member"
+msgstr "You are the only member"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "You are the owner of this workspace. Transfer ownership to another member to leave."
+msgstr "You are the owner of this workspace. Transfer ownership to another member to leave."
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 msgstr "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
@@ -4643,8 +4725,8 @@ msgid "You can request a new export in {0}."
 msgstr "You can request a new export in {0}."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
-msgid "You cannot remove yourself."
-msgstr "You cannot remove yourself."
+#~ msgid "You cannot remove yourself."
+#~ msgstr "You cannot remove yourself."
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "You have 30 days to restore your account before it is permanently purged."
@@ -4689,6 +4771,10 @@ msgstr "You now know where to find timelines, dashboards, projects and team memb
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You were added to a new workspace."
 msgstr "You were added to a new workspace."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "You will lose access to this workspace. Your tasks stay and reattach to you if you are invited back."
+msgstr "You will lose access to this workspace. Your tasks stay and reattach to you if you are invited back."
 
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You've been invited to Motio"

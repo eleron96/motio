@@ -702,7 +702,7 @@ const MembersPage = () => {
           {(() => {
             const subnavItems: MobilePillSubnavItem[] = [
               { id: 'tasks', label: t`People` },
-              ...(isAdmin ? [{ id: 'access', label: t`Access` }] : []),
+              { id: 'access', label: t`Access` },
               { id: 'groups', label: t`Groups` },
             ];
             return (
