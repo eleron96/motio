@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.59] - 2026-06-29
+### Changed
+- No documented changes.
+
 ## [0.8.58] - 2026-06-29
 ### Added
 - The workspace owner is now marked with a badge in the member list.
