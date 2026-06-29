@@ -193,6 +193,11 @@ services:
   functions:
     image: supabase/edge-runtime:v1.41.2
     restart: unless-stopped
+    # esm.sh's default anycast IPs (8.x) are unroutable from this host, which
+    # hangs the edge-runtime on boot while it fetches function deps (supabase-js,
+    # jszip). Pin esm.sh to a reachable Cloudflare IP so cold starts succeed.
+    extra_hosts:
+      - "esm.sh:172.67.70.222"
     deploy:
       resources:
         limits:
