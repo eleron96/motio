@@ -75,9 +75,6 @@ export type AssigneeRow = {
   is_active: boolean;
   email: string | null;
   phone: string | null;
-  // PostgREST embed via assignees.user_id -> profiles. Runtime is a single
-  // object (to-one), but supabase types it as an array — accept both.
-  profiles?: { avatar_url: string | null } | { avatar_url: string | null }[] | null;
 };
 
 export type ProjectMemberRow = {
@@ -256,18 +253,14 @@ export const mapCustomerContactRow = (row: CustomerContactRow): CustomerContact 
   tag: row.tag ?? null,
 });
 
-export const mapAssigneeRow = (row: AssigneeRow): Assignee => {
-  const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
-  return {
-    id: row.id,
-    name: row.name,
-    avatar: profile?.avatar_url ?? undefined,
-    userId: row.user_id,
-    isActive: row.is_active ?? true,
-    email: row.email ?? null,
-    phone: row.phone ?? null,
-  };
-};
+export const mapAssigneeRow = (row: AssigneeRow): Assignee => ({
+  id: row.id,
+  name: row.name,
+  userId: row.user_id,
+  isActive: row.is_active ?? true,
+  email: row.email ?? null,
+  phone: row.phone ?? null,
+});
 
 export const mapProjectMemberRow = (row: ProjectMemberRow): ProjectMember => ({
   id: row.id,
