@@ -7,6 +7,20 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.63] - 2026-07-01
+### Changed
+- A count-limited repeat now shows the date of its last occurrence, so you don't have to count it in your head.
+- Task repeat settings are more compact: repeat type and limit are two dropdowns, and the date or count field appears only when relevant.
+- In the project Team block, a member's “Tag” field is now “Company / contractor”, matching client contacts.
+
+## [0.8.62] - 2026-07-01
+### Fixed
+- A recurring task’s repeat limit can now be switched back to “Never”, even if a repeat count was set earlier.
+
+
+### Changed
+- In the project card, a contact’s “Tag” is now “Company / contractor”.
+
 ## [0.8.61] - 2026-06-29
 ### Added
 - On the timeline you can now create a milestone by double-clicking a date.

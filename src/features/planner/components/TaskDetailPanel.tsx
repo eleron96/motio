@@ -49,6 +49,7 @@ import { isSupportedLocale } from '@/shared/lib/locale';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import {
   buildCreateRepeatsOptions,
+  getRepeatOccurrenceDate,
   resolveRepeatValidationMessage,
   RepeatEnds,
   RepeatFrequency,
@@ -876,6 +877,7 @@ export const TaskDetailPanel: React.FC = () => {
                   onEndsChange={handleRepeatEndsChange}
                   onFrequencyChange={handleRepeatFrequencyChange}
                   onUntilChange={handleRepeatUntilChange}
+                  projectedEnd={getRepeatOccurrenceDate(task.startDate, repeatFrequency, Math.max(0, repeatCount - 1))}
                   showNeverHint
                   until={repeatUntil}
                 />

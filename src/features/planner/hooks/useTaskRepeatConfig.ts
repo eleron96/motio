@@ -126,6 +126,13 @@ export const useTaskRepeatConfig = ({
         nextEnds = 'never';
         nextCount = 4;
       }
+      // A persisted end mode wins over the row-count heuristic: without it a
+      // multi-task series always reads back as "after N", so an existing series
+      // could never be switched to "never" / "until date". count and until stay
+      // derived from the rows above — only the mode itself needs the override.
+      if (task.repeatEnds) {
+        nextEnds = task.repeatEnds;
+      }
       nextUntil = lastSeriesDate ?? defaultRepeatUntil;
     }
 

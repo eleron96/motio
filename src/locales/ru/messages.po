@@ -337,7 +337,7 @@ msgstr "Добавить виджет"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "Add customer contact"
-msgstr "Добавить контакт заказчика"
+msgstr "Добавить контакт клиента"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Add group"
@@ -810,6 +810,17 @@ msgstr "Комментарии"
 msgid "Company"
 msgstr "Компания"
 
+#: src/features/projects/components/projectCard/AddContactForm.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+msgid "Company / contractor"
+msgstr "Компания/подрядчик"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Completed"
 msgstr "Выполнено"
@@ -1219,7 +1230,7 @@ msgstr "Удалить задачу?"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "Delete the contact from this customer's list. This cannot be undone."
-msgstr "Удалить контакт из списка этого заказчика. Действие нельзя отменить."
+msgstr "Удалить контакт из списка этого клиента. Действие нельзя отменить."
 
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
@@ -1404,7 +1415,7 @@ msgstr "Напр. В работе, Заморожен, Завершен"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 msgid "E.g. Передано заказчику"
-msgstr "Напр. Передано заказчику"
+msgstr "Напр. Передано клиенту"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
@@ -1438,7 +1449,7 @@ msgstr "Редактировать контакты"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Edit customer"
-msgstr "Редактировать заказчика"
+msgstr "Редактировать клиента"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Edit member"
@@ -1638,7 +1649,7 @@ msgstr "Не удалось добавить комментарий"
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Failed to add customer contact."
-msgstr "Не удалось добавить контакт заказчика."
+msgstr "Не удалось добавить контакт клиента."
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Failed to add project member."
@@ -1715,7 +1726,7 @@ msgstr "Применён фильтр"
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Filter by customer"
-msgstr "Фильтр по заказчику"
+msgstr "Фильтр по клиенту"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Filter by owner team"
@@ -1863,6 +1874,11 @@ msgstr "Группа {0}"
 msgid "Group by"
 msgstr "Группировать по"
 
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+msgid "Group by company/contractor"
+msgstr "Группировать по компании/подрядчику"
+
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Group by customer"
@@ -1872,10 +1888,9 @@ msgstr "Группировать по клиенту"
 msgid "Group by group"
 msgstr "Группировать по группе"
 
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Group by tag"
-msgstr "Группировать по тегу"
+#~ msgid "Group by tag"
+#~ msgstr "Группировать по тегу"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Group milestones"
@@ -2583,6 +2598,11 @@ msgstr "Нет доступных участников."
 msgid "No code"
 msgstr "Без кода"
 
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+msgid "No company"
+msgstr "Без компании"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "No countries found."
 msgstr "Страны не найдены."
@@ -2610,11 +2630,11 @@ msgstr "Нет клиента"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "No customer assigned to this project."
-msgstr "У проекта пока нет заказчика."
+msgstr "У проекта пока нет клиента."
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "No customer contacts yet. Use + to add one."
-msgstr "Контактов заказчика пока нет. Нажми +, чтобы добавить."
+msgstr "Контактов клиента пока нет. Нажми +, чтобы добавить."
 
 #: src/features/projects/components/CustomerCombobox.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -3934,19 +3954,15 @@ msgstr "Название подзадачи"
 msgid "Subtasks"
 msgstr "Подзадачи"
 
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag"
-msgstr "Тег"
+#~ msgid "Tag"
+#~ msgstr "Тег"
 
-#: src/features/projects/components/projectCard/AddContactForm.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag (e.g. subcontractor)"
-msgstr "Тег (напр. субподрядчик)"
+#~ msgid "Tag (e.g. subcontractor)"
+#~ msgstr "Тег (напр. субподрядчик)"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4453,10 +4469,9 @@ msgstr "Открепить"
 msgid "Unsaved changes"
 msgstr "Несохраненные изменения"
 
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Untagged"
-msgstr "Без тега"
+#~ msgid "Untagged"
+#~ msgstr "Без тега"
 
 #. placeholder {0}: formatUntil(params.until)
 #: src/features/planner/components/RepeatPopoverField.tsx
@@ -4481,7 +4496,7 @@ msgstr "Обновить"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Update customer name and industry."
-msgstr "Изменить имя и индустрию заказчика."
+msgstr "Изменить имя и индустрию клиента."
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 #~ msgid "Update customer name."
