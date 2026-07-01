@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.8.64] - 2026-07-01
 ### Fixed
 - В окне вехи длинное название проекта больше не сдвигает разметку — теперь оно сокращается многоточием.
 
