@@ -43,6 +43,11 @@ export const TaskProjectSelect: React.FC<TaskProjectSelectProps> = ({
     [projects, projectQuery],
   );
 
+  const selectedProject = useMemo(
+    () => projects.find((project) => project.id === value) ?? null,
+    [projects, value],
+  );
+
   const handleValueChange = useCallback((nextValue: string) => {
     onValueChange(nextValue);
     clearProjectQuery();
@@ -65,7 +70,23 @@ export const TaskProjectSelect: React.FC<TaskProjectSelectProps> = ({
       disabled={disabled}
     >
       <SelectTrigger className={cn('min-w-0 overflow-hidden', triggerClassName)}>
-        <SelectValue placeholder={t`Select project`} />
+        {selectedProject ? (
+          // Render the trigger value as a single truncated line so a long project
+          // name shrinks with an ellipsis and can never widen the field (or the
+          // dialog around it). The dropdown items still wrap to two lines below.
+          <span className="flex min-w-0 items-center gap-2">
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: selectedProject.color }}
+            />
+            <span className="truncate">{formatProjectLabel(selectedProject.name, selectedProject.code)}</span>
+            {showArchivedBadge && selectedProject.archived && (
+              <span className="shrink-0 text-[10px] text-muted-foreground">({t`Archived`})</span>
+            )}
+          </span>
+        ) : (
+          <SelectValue placeholder={t`Select project`} />
+        )}
       </SelectTrigger>
       <SelectContent onKeyDown={handleProjectSelectKeyDown}>
         <div className="sticky top-0 z-10 -mx-1 mb-1 border-b bg-popover px-2 py-1.5">

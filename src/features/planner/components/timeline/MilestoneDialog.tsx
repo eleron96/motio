@@ -151,7 +151,11 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
-        className="gap-3 sm:max-w-[420px]"
+        // grid-cols-[minmax(0,1fr)]: the dialog is a CSS grid, whose implicit
+        // column is min-content by default — a long project name in the select
+        // would widen that column past the fixed dialog width and clip the footer.
+        // Clamping the column to min 0 keeps children (and the layout) inside.
+        className="grid-cols-[minmax(0,1fr)] gap-3 sm:max-w-[420px]"
         onOpenAutoFocus={(event) => {
           // On create, focus the Name field so the user can type immediately.
           // Edit keeps the no-autofocus behaviour (no loud ring on open).
