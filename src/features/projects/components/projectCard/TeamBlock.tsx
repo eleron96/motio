@@ -19,7 +19,7 @@ import { MobileFormSheet } from './MobileFormSheet';
 import { Input } from '@/shared/ui/input';
 
 const UNTAGGED_KEY = '__no_tag__';
-const UNTAGGED_LABEL_PROVIDER = () => t`Untagged`;
+const UNTAGGED_LABEL_PROVIDER = () => t`No company`;
 // Persist the "group team by tag" toggle so it survives tab/project switches
 // (the project panel unmounts on navigation, which used to reset this state).
 const TEAM_GROUP_BY_TAG_KEY = 'projects-team-group-by-tag';
@@ -495,7 +495,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
             />
             <input
               type="text"
-              placeholder={t`Tag`}
+              placeholder={t`Company / contractor`}
               value={editingTag}
               onChange={(e) => setEditingTag(e.target.value)}
               className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
@@ -529,7 +529,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
           type="button"
           onClick={() => setGroupByTag((v) => !v)}
           aria-pressed={groupByTag}
-          title={t`Group by tag`}
+          title={t`Group by company/contractor`}
           className={`ml-auto grid h-6 w-6 place-items-center rounded-md hover:bg-muted hover:text-foreground ${
             groupByTag ? 'bg-muted text-foreground' : 'text-muted-foreground'
           }`}
@@ -626,7 +626,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                 />
                 <input
                   type="text"
-                  placeholder={t`Tag (e.g. subcontractor)`}
+                  placeholder={t`Company / contractor`}
                   value={addTag}
                   onChange={(e) => setAddTag(e.target.value)}
                   className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
@@ -831,7 +831,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
             onChange={(event) => setAddRole(event.target.value)}
           />
           <Input
-            placeholder={t`Tag (e.g. subcontractor)`}
+            placeholder={t`Company / contractor`}
             value={addTag}
             onChange={(event) => setAddTag(event.target.value)}
           />
@@ -889,7 +889,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
             onChange={(event) => setEditingRole(event.target.value)}
           />
           <Input
-            placeholder={t`Tag`}
+            placeholder={t`Company / contractor`}
             value={editingTag}
             onChange={(event) => setEditingTag(event.target.value)}
           />

@@ -194,10 +194,14 @@ describe('TaskDetailPanel repeat block', () => {
 
     // The trigger summarizes the series; full settings live in the popover.
     expect(screen.getByRole('button', { name: 'Repeat settings' })).toHaveTextContent('Biweekly (every 2 weeks)');
+    // A counted repeat also surfaces the projected last-occurrence date (muted,
+    // 2-digit year): biweekly ×2 from 2026-02-01 lands the last one on 2026-02-15.
+    expect(screen.getByRole('button', { name: 'Repeat settings' })).toHaveTextContent('until 15.02.26');
 
     await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
 
-    expect(screen.getByRole('button', { name: 'Count' })).toBeInTheDocument();
+    // Limit is now a dropdown; a counted series preselects "Count" and shows the input.
+    expect(screen.getByLabelText('Repeat limit')).toHaveValue('after');
     expect(screen.getByLabelText('Occurrences')).toHaveValue(2);
     expect(screen.queryByText('Creates repeats for the next 12 months.')).not.toBeInTheDocument();
   });
@@ -215,8 +219,10 @@ describe('TaskDetailPanel repeat block', () => {
 
     await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
 
-    // "never" ⇒ the 12-months hint shows and neither the count nor the date
-    // input is present, even though the series has more than one task.
+    // "never" ⇒ the limit dropdown reads back as never, the 12-months hint shows,
+    // and neither the count nor the date input is present, even though the series
+    // has more than one task.
+    expect(screen.getByLabelText('Repeat limit')).toHaveValue('never');
     expect(screen.getByText('Creates repeats for the next 12 months.')).toBeInTheDocument();
     expect(screen.queryByLabelText('Occurrences')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('End date')).not.toBeInTheDocument();
@@ -240,7 +246,7 @@ describe('TaskDetailPanel repeat block', () => {
     render(<TaskDetailPanel />);
 
     await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
-    await user.click(screen.getByRole('button', { name: 'Biweekly (every 2 weeks)' }));
+    await user.selectOptions(screen.getByLabelText('Repeat type'), 'biweekly');
     await user.click(screen.getByRole('button', { name: 'Done' }));
 
     expect(mocks.plannerState.createRepeats).not.toHaveBeenCalled();
