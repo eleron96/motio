@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- A long project name no longer shifts the layout in the milestone dialog — it now truncates with an ellipsis.
+
 ## [0.8.63] - 2026-07-01
 ### Changed
 - A count-limited repeat now shows the date of its last occurrence, so you don't have to count it in your head.
