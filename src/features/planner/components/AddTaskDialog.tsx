@@ -40,6 +40,7 @@ import {
   getAutoRepeatUntilOnEndsChange,
   getAutoRepeatUntilOnFrequencyChange,
   getDefaultRepeatUntil,
+  getRepeatOccurrenceDate,
   parseRepeatCountInput,
   RepeatEnds,
   RepeatFrequency,
@@ -816,6 +817,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                   onEndsChange={handleRepeatEndsChange}
                   onFrequencyChange={handleRepeatFrequencyChange}
                   onUntilChange={handleRepeatUntilChange}
+                  projectedEnd={getRepeatOccurrenceDate(startDate, repeatFrequency, repeatCount)}
                   until={repeatUntil}
                 />
               </div>

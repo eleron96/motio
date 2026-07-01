@@ -814,6 +814,10 @@ msgstr "Компания"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Company / contractor"
 msgstr "Компания/подрядчик"
 
@@ -1871,6 +1875,7 @@ msgid "Group by"
 msgstr "Группировать по"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Group by company/contractor"
 msgstr "Группировать по компании/подрядчику"
 
@@ -1884,8 +1889,8 @@ msgid "Group by group"
 msgstr "Группировать по группе"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Group by tag"
-msgstr "Группировать по тегу"
+#~ msgid "Group by tag"
+#~ msgstr "Группировать по тегу"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Group milestones"
@@ -2594,6 +2599,7 @@ msgid "No code"
 msgstr "Без кода"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "No company"
 msgstr "Без компании"
 
@@ -3950,13 +3956,13 @@ msgstr "Подзадачи"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag"
-msgstr "Тег"
+#~ msgid "Tag"
+#~ msgstr "Тег"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag (e.g. subcontractor)"
-msgstr "Тег (напр. субподрядчик)"
+#~ msgid "Tag (e.g. subcontractor)"
+#~ msgstr "Тег (напр. субподрядчик)"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4464,8 +4470,8 @@ msgid "Unsaved changes"
 msgstr "Несохраненные изменения"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Untagged"
-msgstr "Без тега"
+#~ msgid "Untagged"
+#~ msgstr "Без тега"
 
 #. placeholder {0}: formatUntil(params.until)
 #: src/features/planner/components/RepeatPopoverField.tsx

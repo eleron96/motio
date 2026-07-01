@@ -814,6 +814,10 @@ msgstr "Company"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Company / contractor"
 msgstr "Company / contractor"
 
@@ -1871,6 +1875,7 @@ msgid "Group by"
 msgstr "Group by"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Group by company/contractor"
 msgstr "Group by company/contractor"
 
@@ -1884,8 +1889,8 @@ msgid "Group by group"
 msgstr "Group by group"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Group by tag"
-msgstr "Group by tag"
+#~ msgid "Group by tag"
+#~ msgstr "Group by tag"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Group milestones"
@@ -2594,6 +2599,7 @@ msgid "No code"
 msgstr "No code"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "No company"
 msgstr "No company"
 
@@ -3950,13 +3956,13 @@ msgstr "Subtasks"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag"
-msgstr "Tag"
+#~ msgid "Tag"
+#~ msgstr "Tag"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag (e.g. subcontractor)"
-msgstr "Tag (e.g. subcontractor)"
+#~ msgid "Tag (e.g. subcontractor)"
+#~ msgstr "Tag (e.g. subcontractor)"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4464,8 +4470,8 @@ msgid "Unsaved changes"
 msgstr "Unsaved changes"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Untagged"
-msgstr "Untagged"
+#~ msgid "Untagged"
+#~ msgstr "Untagged"
 
 #. placeholder {0}: formatUntil(params.until)
 #: src/features/planner/components/RepeatPopoverField.tsx
