@@ -58,7 +58,7 @@ describe('TeamBlock — group-by-tag toggle persists across remounts', () => {
   it('survives unmount/remount (simulating a tab switch)', () => {
     const { unmount } = render(<TeamBlock {...baseProps} />);
 
-    const toggle = screen.getByTitle('Group by tag');
+    const toggle = screen.getByTitle('Group by company/contractor');
     expect(toggle).toHaveAttribute('aria-pressed', 'false');
 
     fireEvent.click(toggle);
@@ -69,7 +69,7 @@ describe('TeamBlock — group-by-tag toggle persists across remounts', () => {
     unmount();
     render(<TeamBlock {...baseProps} />);
 
-    expect(screen.getByTitle('Group by tag')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTitle('Group by company/contractor')).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('hydrates the enabled state from storage on first mount', () => {
@@ -77,19 +77,19 @@ describe('TeamBlock — group-by-tag toggle persists across remounts', () => {
 
     render(<TeamBlock {...baseProps} />);
 
-    expect(screen.getByTitle('Group by tag')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTitle('Group by company/contractor')).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('persists the disabled state too', () => {
     window.localStorage.setItem(STORAGE_KEY, '1');
     const { unmount } = render(<TeamBlock {...baseProps} />);
 
-    fireEvent.click(screen.getByTitle('Group by tag'));
+    fireEvent.click(screen.getByTitle('Group by company/contractor'));
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe('0');
 
     unmount();
     cleanup();
     render(<TeamBlock {...baseProps} />);
-    expect(screen.getByTitle('Group by tag')).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTitle('Group by company/contractor')).toHaveAttribute('aria-pressed', 'false');
   });
 });

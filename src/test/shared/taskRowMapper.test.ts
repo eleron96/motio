@@ -38,6 +38,49 @@ describe('taskRowMapper', () => {
       tagIds: [],
       description: 'desc',
       repeatId: null,
+      repeatEnds: null,
     });
+  });
+
+  it('maps a persisted repeat end mode onto the task', () => {
+    const mapped = mapTaskRow({
+      id: 'task-2',
+      title: 'Weekly sync',
+      project_id: null,
+      assignee_id: null,
+      assignee_ids: [],
+      start_date: '2026-02-01',
+      end_date: '2026-02-01',
+      status_id: 'status-1',
+      type_id: 'type-1',
+      priority: null,
+      tag_ids: [],
+      description: null,
+      repeat_id: 'repeat-1',
+      repeat_ends: 'never',
+    });
+
+    expect(mapped.repeatEnds).toBe('never');
+  });
+
+  it('coerces an unknown repeat_ends value to null', () => {
+    const mapped = mapTaskRow({
+      id: 'task-3',
+      title: 'Weekly sync',
+      project_id: null,
+      assignee_id: null,
+      assignee_ids: [],
+      start_date: '2026-02-01',
+      end_date: '2026-02-01',
+      status_id: 'status-1',
+      type_id: 'type-1',
+      priority: null,
+      tag_ids: [],
+      description: null,
+      repeat_id: 'repeat-1',
+      repeat_ends: 'garbage',
+    });
+
+    expect(mapped.repeatEnds).toBeNull();
   });
 });

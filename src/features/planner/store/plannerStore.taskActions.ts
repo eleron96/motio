@@ -145,6 +145,7 @@ export const createTaskActions = (
   const insertRepeatSeriesTasks = async (params: {
     workspaceId: string;
     repeatId: string;
+    repeatEnds: string;
     sourceRow: TaskRow;
     startEndDates: Array<{ startDate: string; endDate: string }>;
   }) => {
@@ -172,6 +173,7 @@ export const createTaskActions = (
         tag_ids: params.sourceRow.tag_ids ?? [],
         description: params.sourceRow.description ?? null,
         repeat_id: params.repeatId,
+        repeat_ends: params.repeatEnds,
       })))
       .select('*');
 
@@ -450,7 +452,7 @@ export const createTaskActions = (
     if (!task.repeatId) {
       const { data: repeatData, error: repeatError } = await supabase
         .from('tasks')
-        .update({ repeat_id: repeatId })
+        .update({ repeat_id: repeatId, repeat_ends: options.ends })
         .eq('id', task.id)
         .eq('workspace_id', workspaceId)
         .select('*')
@@ -521,6 +523,7 @@ export const createTaskActions = (
       tag_ids: string[];
       description: string | null;
       repeat_id: string;
+      repeat_ends: string;
     };
 
     const newTasks: InsertTask[] = [];
@@ -551,6 +554,7 @@ export const createTaskActions = (
         tag_ids: [...task.tagIds],
         description: task.description ?? null,
         repeat_id: repeatId,
+        repeat_ends: options.ends,
       });
     }
 
@@ -679,6 +683,7 @@ export const createTaskActions = (
     const inserted = await insertRepeatSeriesTasks({
       workspaceId,
       repeatId: baseTask.repeatId,
+      repeatEnds: options.ends,
       sourceRow: anchorRow,
       startEndDates: plan.create,
     });
@@ -693,6 +698,26 @@ export const createTaskActions = (
       set((state) => ({
         tasks: [...state.tasks, ...inserted.rows.map(mapTaskRow)],
       }));
+    }
+
+    // Align the chosen end mode across the pre-existing rows so the panel reads
+    // it back — "never"/"until date" can't be inferred from the rows. Newly
+    // inserted rows already carry it (see insertRepeatSeriesTasks); this sweep
+    // covers the rows the rebuild kept in place (including untouched head rows
+    // for a "following" edit) so any occupied occurrence describes the series the
+    // same way. Best-effort: the rebuild above already committed, so a metadata
+    // write failure must not fail the operation — just resync from the DB.
+    const { data: ruleRows, error: ruleError } = await supabase
+      .from('tasks')
+      .update({ repeat_ends: options.ends })
+      .eq('workspace_id', workspaceId)
+      .eq('repeat_id', baseTask.repeatId)
+      .select('*');
+
+    if (ruleError) {
+      await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
+    } else {
+      applyUpdatedRows((ruleRows ?? []) as TaskRow[]);
     }
 
     return {

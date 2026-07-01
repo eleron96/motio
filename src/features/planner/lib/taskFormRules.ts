@@ -1,4 +1,4 @@
-import { addDays, endOfMonth, format, isSameMonth, isSameYear, parseISO } from 'date-fns';
+import { addDays, addMonths, addWeeks, addYears, endOfMonth, format, isSameMonth, isSameYear, parseISO } from 'date-fns';
 
 export type RepeatFrequency = 'none' | 'daily' | 'weekly' | 'biweekly' | 'fourweekly' | 'monthly' | 'yearly';
 export type RepeatEnds = 'never' | 'on' | 'after';
@@ -105,6 +105,35 @@ export const getDefaultRepeatUntil = (baseDate: string) => {
     return format(next, 'yyyy-MM-dd');
   }
   return format(endOfMonth(start), 'yyyy-MM-dd');
+};
+
+/**
+ * Date of the occurrence `steps` intervals after `baseDate` for the given
+ * frequency. Used to surface a "runs until …" hint next to a count-limited
+ * repeat so the user doesn't have to do the arithmetic in their head.
+ * Callers pass the step count that matches how the series is materialized
+ * (create adds `count` extra occurrences after the base; a rebuild treats
+ * `count` as the total occurrence count).
+ */
+export const getRepeatOccurrenceDate = (
+  baseDate: string,
+  frequency: RepeatFrequency,
+  steps: number,
+): string => {
+  const base = parseISO(baseDate);
+  const n = Math.max(0, Math.round(steps));
+  const next = (() => {
+    switch (frequency) {
+      case 'daily': return addDays(base, n);
+      case 'weekly': return addWeeks(base, n);
+      case 'biweekly': return addWeeks(base, n * 2);
+      case 'fourweekly': return addWeeks(base, n * 4);
+      case 'monthly': return addMonths(base, n);
+      case 'yearly': return addYears(base, n);
+      default: return base;
+    }
+  })();
+  return format(next, 'yyyy-MM-dd');
 };
 
 export const validateRepeatConfig = (params: RepeatConfigInput): RepeatValidationError | null => {

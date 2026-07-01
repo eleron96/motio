@@ -810,6 +810,17 @@ msgstr "Comments"
 msgid "Company"
 msgstr "Company"
 
+#: src/features/projects/components/projectCard/AddContactForm.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+msgid "Company / contractor"
+msgstr "Company / contractor"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Completed"
 msgstr "Completed"
@@ -1863,6 +1874,11 @@ msgstr "Group {0}"
 msgid "Group by"
 msgstr "Group by"
 
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+msgid "Group by company/contractor"
+msgstr "Group by company/contractor"
+
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Group by customer"
@@ -1872,10 +1888,9 @@ msgstr "Group by customer"
 msgid "Group by group"
 msgstr "Group by group"
 
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Group by tag"
-msgstr "Group by tag"
+#~ msgid "Group by tag"
+#~ msgstr "Group by tag"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Group milestones"
@@ -2582,6 +2597,11 @@ msgstr "No available members."
 #: src/features/planner/components/FilterPanel.tsx
 msgid "No code"
 msgstr "No code"
+
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/TeamBlock.tsx
+msgid "No company"
+msgstr "No company"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "No countries found."
@@ -3934,19 +3954,15 @@ msgstr "Subtask title"
 msgid "Subtasks"
 msgstr "Subtasks"
 
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag"
-msgstr "Tag"
+#~ msgid "Tag"
+#~ msgstr "Tag"
 
-#: src/features/projects/components/projectCard/AddContactForm.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Tag (e.g. subcontractor)"
-msgstr "Tag (e.g. subcontractor)"
+#~ msgid "Tag (e.g. subcontractor)"
+#~ msgstr "Tag (e.g. subcontractor)"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4453,10 +4469,9 @@ msgstr "Unpin"
 msgid "Unsaved changes"
 msgstr "Unsaved changes"
 
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-msgid "Untagged"
-msgstr "Untagged"
+#~ msgid "Untagged"
+#~ msgstr "Untagged"
 
 #. placeholder {0}: formatUntil(params.until)
 #: src/features/planner/components/RepeatPopoverField.tsx

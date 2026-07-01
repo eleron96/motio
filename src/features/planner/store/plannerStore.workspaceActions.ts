@@ -172,6 +172,7 @@ export const createWorkspaceActions = (
           'priority',
           'tag_ids',
           'repeat_id',
+          'repeat_ends',
           'created_at',
           'updated_at',
         ].join(','),

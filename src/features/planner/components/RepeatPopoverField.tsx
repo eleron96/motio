@@ -1,7 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
-import { Check, ChevronDown, RotateCw } from 'lucide-react';
+import { ChevronDown, RotateCw } from 'lucide-react';
 import { formatRepeatCountInputValue, RepeatEnds, RepeatFrequency } from '@/features/planner/lib/taskFormRules';
 import { Input } from '@/shared/ui/input';
 import { Switch } from '@/shared/ui/switch';
@@ -20,6 +20,8 @@ type RepeatPopoverFieldProps = {
   onEndsChange: (value: RepeatEnds) => void;
   onFrequencyChange: (value: RepeatFrequency) => void;
   onUntilChange: (value: string) => void;
+  /** ISO date of the last occurrence for a count-limited repeat; shown muted next to «×N». */
+  projectedEnd?: string;
   showNeverHint?: boolean;
   until: string;
 };
@@ -53,6 +55,16 @@ const formatUntil = (until: string) => {
   }
 };
 
+// Compact 2-digit-year form for the muted "runs until …" hint so it fits the
+// narrow «Повтор» field without the year getting truncated.
+const formatUntilShort = (until: string) => {
+  try {
+    return format(parseISO(until), 'dd.MM.yy');
+  } catch {
+    return until;
+  }
+};
+
 const buildRepeatSummary = (params: {
   count: number;
   ends: RepeatEnds;
@@ -76,25 +88,39 @@ const SectionHeading: React.FC<{ children: React.ReactNode }> = ({ children }) =
   </div>
 );
 
-const OptionRow: React.FC<{
-  selected: boolean;
+/**
+ * Compact native <select> styled to match the app's inputs. Native (not a Radix
+ * Select) on purpose: it lives inside a Popover — a portaled custom dropdown
+ * fights the popover's dismiss layer — and native selects give a thumb-friendly
+ * picker on mobile.
+ */
+const SelectField: React.FC<{
+  ariaLabel: string;
+  value: string;
   disabled?: boolean;
-  onSelect: () => void;
-  children: React.ReactNode;
-}> = ({ selected, disabled = false, onSelect, children }) => (
-  <button
-    type="button"
-    disabled={disabled}
-    onClick={onSelect}
-    className={cn(
-      'flex w-full items-center justify-between gap-3 rounded-md px-2.5 py-1.5 text-left text-sm',
-      'hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50',
-      selected && 'bg-accent/60 font-medium',
-    )}
-  >
-    <span className="truncate">{children}</span>
-    <Check className={cn('h-4 w-4 shrink-0', selected ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
-  </button>
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+}> = ({ ariaLabel, value, disabled = false, onChange, options }) => (
+  <div className="relative">
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      disabled={disabled}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn(
+        'h-9 w-full appearance-none rounded-md border border-input bg-background pl-3 pr-8 text-sm ring-offset-background',
+        'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      )}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>{option.label}</option>
+      ))}
+    </select>
+    <ChevronDown
+      className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+      aria-hidden="true"
+    />
+  </div>
 );
 
 /**
@@ -115,11 +141,17 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
   onEndsChange,
   onFrequencyChange,
   onUntilChange,
+  projectedEnd,
   showNeverHint = false,
   until,
 }) => {
   const summary = buildRepeatSummary({ count, ends, frequency, until });
   const isOff = frequency === 'none';
+  // For a count-limited repeat, surface the date the last occurrence lands on
+  // (muted) so the user doesn't have to count the weeks in their head.
+  const endHint = !isOff && ends === 'after' && projectedEnd
+    ? t`until ${formatUntilShort(projectedEnd)}`
+    : '';
   const switchId = `${idPrefix}-repeat-switch`;
   const untilId = `${idPrefix}-repeat-until`;
   const countId = `${idPrefix}-repeat-count`;
@@ -148,6 +180,7 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
             {!isOff && <RotateCw className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />}
             <span className={cn('flex-1 truncate text-left', isOff && 'text-muted-foreground')}>
               {summary}
+              {endHint && <span className="text-muted-foreground"> · {endHint}</span>}
             </span>
             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           </button>
@@ -168,30 +201,36 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
               <div className="my-1 h-px bg-border" />
 
               <SectionHeading>{t`Repeat type`}</SectionHeading>
-              {FREQUENCY_OPTIONS.map((option) => (
-                <OptionRow
-                  key={option}
-                  selected={frequency === option}
+              <div className="px-1.5 pb-1">
+                <SelectField
+                  ariaLabel={t`Repeat type`}
+                  value={frequency}
                   disabled={disabled}
-                  onSelect={() => onFrequencyChange(option)}
-                >
-                  {frequencyLabel(option)}
-                </OptionRow>
-              ))}
+                  onChange={(value) => onFrequencyChange(value as RepeatFrequency)}
+                  options={FREQUENCY_OPTIONS.map((option) => ({
+                    value: option,
+                    label: frequencyLabel(option),
+                  }))}
+                />
+              </div>
 
               <SectionHeading>{t`Repeat limit`}</SectionHeading>
-              <OptionRow selected={ends === 'never'} disabled={disabled} onSelect={() => onEndsChange('never')}>
-                {t`Never`}
-              </OptionRow>
-              <OptionRow selected={ends === 'on'} disabled={disabled} onSelect={() => onEndsChange('on')}>
-                {t`Until date`}
-              </OptionRow>
-              <OptionRow selected={ends === 'after'} disabled={disabled} onSelect={() => onEndsChange('after')}>
-                {t`Count`}
-              </OptionRow>
+              <div className="px-1.5 pb-1">
+                <SelectField
+                  ariaLabel={t`Repeat limit`}
+                  value={ends}
+                  disabled={disabled}
+                  onChange={(value) => onEndsChange(value as RepeatEnds)}
+                  options={[
+                    { value: 'never', label: t`Never` },
+                    { value: 'on', label: t`Until date` },
+                    { value: 'after', label: t`Count` },
+                  ]}
+                />
+              </div>
 
               {ends === 'on' && (
-                <div className="px-1.5 pb-1 pt-1.5">
+                <div className="px-1.5 pb-1 pt-1">
                   <Input
                     id={untilId}
                     aria-label={t`End date`}
@@ -204,7 +243,7 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
                 </div>
               )}
               {ends === 'after' && (
-                <div className="px-1.5 pb-1 pt-1.5">
+                <div className="px-1.5 pb-1 pt-1">
                   <Input
                     id={countId}
                     aria-label={t`Occurrences`}

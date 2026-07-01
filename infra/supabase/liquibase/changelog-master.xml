@@ -1358,4 +1358,18 @@
     <sqlFile path="../migrations/0097_clear_milestone_status_override.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <changeSet id="0098_add_task_repeat_ends.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0098_add_task_repeat_ends.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0098_add_task_repeat_ends.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>

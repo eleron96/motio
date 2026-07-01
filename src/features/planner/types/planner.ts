@@ -14,6 +14,13 @@ export interface Task {
   tagIds: string[];
   description: string | null | undefined;
   repeatId: string | null;
+  /**
+   * Persisted recurrence end mode for the series (never / until date / after N).
+   * Only the mode is stored; count and until are always derived from the actual
+   * series rows. Null/undefined for legacy series created before this was stored
+   * (and for partial fetches) — the task panel then infers the mode from rows.
+   */
+  repeatEnds?: 'never' | 'on' | 'after' | null;
   /** ISO timestamps; optional because older fixtures/partial fetches may omit them. */
   createdAt?: string;
   updatedAt?: string;
