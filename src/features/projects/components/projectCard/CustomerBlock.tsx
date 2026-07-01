@@ -197,7 +197,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
           type="button"
           onClick={() => setGroupByTag((v) => !v)}
           aria-pressed={groupByTag}
-          title={t`Group by tag`}
+          title={t`Group by company/contractor`}
           className={`ml-auto grid h-6 w-6 place-items-center rounded-md hover:bg-muted hover:text-foreground ${
             groupByTag ? 'bg-muted text-foreground' : 'text-muted-foreground'
           }`}
@@ -257,7 +257,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
       {contacts.length > 0 && groupByTag && (
         <div className="flex flex-col gap-2">
           {groupedContacts.map(([key, list]) => {
-            const label = key === UNTAGGED_KEY ? t`Untagged` : key;
+            const label = key === UNTAGGED_KEY ? t`No company` : key;
             const collapsed = collapsedTags.has(key);
             return (
               <div key={key}>
@@ -338,7 +338,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
             onChange={(event) => setMAddRole(event.target.value)}
           />
           <Input
-            placeholder={t`Tag (e.g. subcontractor)`}
+            placeholder={t`Company / contractor`}
             value={mAddTag}
             onChange={(event) => setMAddTag(event.target.value)}
           />
@@ -384,7 +384,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
             onChange={(event) => setERole(event.target.value)}
           />
           <Input
-            placeholder={t`Tag (e.g. subcontractor)`}
+            placeholder={t`Company / contractor`}
             value={eTag}
             onChange={(event) => setETag(event.target.value)}
           />
@@ -509,7 +509,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
             />
             <input
               type="text"
-              placeholder={t`Tag`}
+              placeholder={t`Company / contractor`}
               value={eTag}
               onChange={(event) => setETag(event.target.value)}
               className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"

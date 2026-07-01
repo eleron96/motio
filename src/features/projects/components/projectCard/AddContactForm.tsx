@@ -66,7 +66,7 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
         autoFocus
       />
       <Field placeholder={t`Role / job title`} value={role} onChange={setRole} />
-      <Field placeholder={t`Tag (e.g. subcontractor)`} value={tag} onChange={setTag} />
+      <Field placeholder={t`Company / contractor`} value={tag} onChange={setTag} />
       <Field placeholder="Email" value={email} onChange={setEmail} type="email" />
       <Field placeholder={t`Phone`} value={phone} onChange={setPhone} />
       <div className="mt-1 flex justify-end gap-1.5">

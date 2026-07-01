@@ -202,6 +202,26 @@ describe('TaskDetailPanel repeat block', () => {
     expect(screen.queryByText('Creates repeats for the next 12 months.')).not.toBeInTheDocument();
   });
 
+  it('reads back a persisted "never" mode instead of inferring "after N"', async () => {
+    const user = userEvent.setup();
+    // A multi-task series would normally be inferred as "after N"; the stored
+    // repeatEnds must win so the user can actually keep it on "never".
+    mocks.plannerState.tasks = [
+      { ...baseTask, repeatId: 'repeat-1', repeatEnds: 'never', startDate: '2026-02-01', endDate: '2026-02-01' },
+      { ...baseTask, id: 'task-2', repeatId: 'repeat-1', repeatEnds: 'never', startDate: '2026-02-08', endDate: '2026-02-08' },
+    ];
+
+    render(<TaskDetailPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Repeat settings' }));
+
+    // "never" ⇒ the 12-months hint shows and neither the count nor the date
+    // input is present, even though the series has more than one task.
+    expect(screen.getByText('Creates repeats for the next 12 months.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Occurrences')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('End date')).not.toBeInTheDocument();
+  });
+
   it('keeps non-repeating task in does-not-repeat state', () => {
     render(<TaskDetailPanel />);
 
