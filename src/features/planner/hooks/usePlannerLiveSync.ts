@@ -52,6 +52,7 @@ const TASK_SELECT = [
   'tag_ids',
   'description',
   'repeat_id',
+  'repeat_ends',
   'created_at',
   'updated_at',
 ].join(',');

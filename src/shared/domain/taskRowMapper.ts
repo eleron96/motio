@@ -14,9 +14,19 @@ export type TaskMappedRow = {
   tag_ids: string[] | null;
   description: string | null | undefined;
   repeat_id: string | null;
+  repeat_ends?: string | null;
   created_at?: string;
   updated_at?: string;
 };
+
+const REPEAT_ENDS_VALUES: ReadonlySet<string> = new Set(['never', 'on', 'after']);
+
+/** Coerce a raw DB value to a known repeat-end mode; anything else reads as null. */
+export const normalizeRepeatEnds = (value: unknown): Task['repeatEnds'] => (
+  typeof value === 'string' && REPEAT_ENDS_VALUES.has(value)
+    ? (value as Task['repeatEnds'])
+    : null
+);
 
 export const normalizeAssigneeIds = (
   assigneeIds: string[] | null | undefined,
@@ -42,6 +52,7 @@ export const mapTaskRow = (row: TaskMappedRow): Task => ({
   tagIds: row.tag_ids ?? [],
   description: row.description,
   repeatId: row.repeat_id ?? null,
+  repeatEnds: normalizeRepeatEnds(row.repeat_ends),
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
