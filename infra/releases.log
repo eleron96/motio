@@ -337,3 +337,4 @@
 2026-06-29T12:54:24Z | 0.8.59 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260629-125344.dump | No documented changes.
 2026-06-29T16:07:49Z | 0.8.60 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260629-160710.dump | No documented changes.
 2026-06-29T22:04:08Z | 0.8.61 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260629-220251.dump | On the timeline you can now create a milestone by double-clicking a date.
+2026-07-01T10:13:45Z | 0.8.62 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260701-101305.dump | A recurring task’s repeat limit can now be switched back to “Never”, even if a repeat count was set earlier.
