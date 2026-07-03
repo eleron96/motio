@@ -92,6 +92,14 @@ msgstr "{0} projects"
 msgid "{0} selected"
 msgstr "{0} selected"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#~ msgid "{0} tasks · ≈{1} per person"
+#~ msgstr "{0} tasks · ≈{1} per person"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#~ msgid "{0} tasks in progress"
+#~ msgstr "{0} tasks in progress"
+
 #. placeholder {0}: formatRole(previousRole)
 #. placeholder {1}: formatRole(nextRole)
 #: src/shared/lib/workspaceMemberActivity.ts
@@ -329,6 +337,10 @@ msgstr "Add a description..."
 msgid "Add a widget"
 msgstr "Add a widget"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Add active assignees to see the workload gradient. Milestones are still shown."
+msgstr "Add active assignees to see the workload gradient. Milestones are still shown."
+
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #~ msgid "Add activity entry"
@@ -490,6 +502,7 @@ msgstr "Archive"
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -536,9 +549,17 @@ msgstr "Authentication error"
 msgid "Authentication failed."
 msgstr "Authentication failed."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Auto"
+msgstr "Auto"
+
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #~ msgid "Auto (from date)"
 #~ msgstr "Auto (from date)"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "auto from history"
+msgstr "auto from history"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -1074,6 +1095,7 @@ msgid "Dashboard settings"
 msgstr "Dashboard settings"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboards"
 msgstr "Dashboards"
 
@@ -1111,6 +1133,10 @@ msgstr "Dates"
 msgid "Day"
 msgstr "Day"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Day off"
+msgstr "Day off"
+
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
 msgstr "Decline"
@@ -1119,6 +1145,10 @@ msgstr "Decline"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Declined"
 msgstr "Declined"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "default"
+msgstr "default"
 
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
@@ -1617,6 +1647,10 @@ msgstr "Exit demo"
 msgid "Expand filters"
 msgstr "Expand filters"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "experimental"
+msgstr "experimental"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Expired"
 msgstr "Expired"
@@ -1819,6 +1853,14 @@ msgstr "Force purge failed"
 msgid "Force purge scheduled"
 msgstr "Force purge scheduled"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#~ msgid "Free"
+#~ msgstr "Free"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Full day ≈ {capacityDisplay} tasks/person"
+msgstr "Full day ≈ {capacityDisplay} tasks/person"
+
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -1833,6 +1875,10 @@ msgstr "Full name"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Full snapshot from the admin console. Restore in one command."
 msgstr "Full snapshot from the admin console. Restore in one command."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Full working day (tasks per person)"
+msgstr "Full working day (tasks per person)"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "General"
@@ -1912,6 +1958,10 @@ msgstr "Group tasks by project, set milestones, and track progress without switc
 msgid "Groups"
 msgstr "Groups"
 
+#: src/features/dashboard/pages/DashboardPage.tsx
+msgid "Heatmap"
+msgstr "Heatmap"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
 msgstr "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
@@ -1944,6 +1994,9 @@ msgstr "History"
 msgid "Hold the widget header to enable moving."
 msgstr "Hold the widget header to enable moving."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Holiday"
@@ -2138,6 +2191,11 @@ msgstr "Line chart"
 msgid "List"
 msgstr "List"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Load"
+msgstr "Load"
+
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Load older comments"
 msgstr "Load older comments"
@@ -2196,6 +2254,11 @@ msgstr "Loading template..."
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Loading users..."
 msgstr "Loading users..."
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/pages/DashboardPage.tsx
+msgid "Loading workload..."
+msgstr "Loading workload..."
 
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Loading workspace..."
@@ -2306,6 +2369,10 @@ msgstr "mentioned you in a comment"
 msgid "Menu"
 msgstr "Menu"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Milestone"
+msgstr "Milestone"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Milestone actions"
@@ -2316,6 +2383,7 @@ msgid "Milestone name..."
 msgstr "Milestone name..."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -2737,6 +2805,10 @@ msgstr "No milestones"
 msgid "No milestones match the current filters."
 msgstr "No milestones match the current filters."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "No milestones on this day"
+msgstr "No milestones on this day"
+
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "No milestones yet for this project."
 msgstr "No milestones yet for this project."
@@ -2897,6 +2969,7 @@ msgstr "No workspaces need your attention — you can continue."
 msgid "No workspaces."
 msgstr "No workspaces."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Non-working day"
@@ -3014,6 +3087,10 @@ msgstr "Open menu"
 #~ msgid "Open navigation menu"
 #~ msgstr "Open navigation menu"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Open on timeline"
+msgstr "Open on timeline"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -3043,6 +3120,10 @@ msgstr "overdue"
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
 msgid "Overdue by {diff}d"
 msgstr "Overdue by {diff}d"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "overloaded"
+msgstr "overloaded"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Owner"
@@ -3397,6 +3478,7 @@ msgid "Repeat"
 msgstr "Repeat"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
+#: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat limit"
 msgstr "Repeat limit"
 
@@ -3408,6 +3490,7 @@ msgstr "Repeat settings"
 msgid "Repeat task"
 msgstr "Repeat task"
 
+#: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat type"
 msgstr "Repeat type"
@@ -3459,6 +3542,10 @@ msgstr "Restore my account"
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "Restoring…"
 msgstr "Restoring…"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Retry"
+msgstr "Retry"
 
 #: src/app/PageErrorBoundary.tsx
 msgid "Return to Home"
@@ -3523,6 +3610,7 @@ msgstr "Sage"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Save"
 msgstr "Save"
 
@@ -3546,6 +3634,14 @@ msgstr "Saved."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Saving..."
 msgstr "Saving..."
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Scroll left"
+msgstr "Scroll left"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Scroll right"
+msgstr "Scroll right"
 
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -3753,6 +3849,10 @@ msgstr "Sending invites needs a real account. Sign up in 30 seconds and we'll br
 msgid "Sent invites"
 msgstr "Sent invites"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "set manually"
+msgstr "set manually"
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 msgid "Set or clear the custom status label shown on this project."
 msgstr "Set or clear the custom status label shown on this project."
@@ -3815,6 +3915,10 @@ msgstr "Show tasks without an assignee"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show tasks without an assignee."
 msgstr "Show tasks without an assignee."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Show the department workload board on the dashboard"
+msgstr "Show the department workload board on the dashboard"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show unassigned"
@@ -3987,6 +4091,10 @@ msgstr "Task actions"
 msgid "Task deleted"
 msgstr "Task deleted"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Task density and milestones across the coming months"
+msgstr "Task density and milestones across the coming months"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4018,6 +4126,7 @@ msgstr "Task was created, but subtasks were not saved."
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Tasks"
@@ -4055,7 +4164,9 @@ msgstr "Team access"
 msgid "Team planning workspace."
 msgstr "Team planning workspace."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/marketing/pages/LandingPage.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Team workload"
 msgstr "Team workload"
 
@@ -4164,6 +4275,10 @@ msgstr "this customer"
 msgid "this dashboard"
 msgstr "this dashboard"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history."
+msgstr "This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history."
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "This is where your workspace projects are listed and reviewed."
 msgstr "This is where your workspace projects are listed and reviewed."
@@ -4271,10 +4386,15 @@ msgstr "today"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Today"
 msgstr "Today"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Toggle workload heatmap"
+msgstr "Toggle workload heatmap"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 msgid "Tomorrow"
@@ -4474,6 +4594,8 @@ msgstr "Unsaved changes"
 #~ msgstr "Untagged"
 
 #. placeholder {0}: formatUntil(params.until)
+#. placeholder {0}: formatUntilShort(projectedEnd)
+#: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "until {0}"
 msgstr "until {0}"
@@ -4642,6 +4764,10 @@ msgstr "Widgets"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workflow"
 msgstr "Workflow"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Workload heatmap"
+msgstr "Workload heatmap"
 
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/lib/appNavigation.ts

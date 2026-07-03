@@ -17,6 +17,7 @@ import {
   DashboardWidgetSize,
 } from '@/features/dashboard/types/dashboard';
 import { createWidgetId, getPeriodRange, DEFAULT_BAR_PALETTE } from '@/features/dashboard/lib/dashboardUtils';
+import type { WorkloadDay } from '@/features/dashboard/lib/workloadHeatmap';
 import {
   DASHBOARD_BREAKPOINT_ORDER,
   DASHBOARD_BREAKPOINTS,
@@ -38,6 +39,20 @@ type DashboardStatsVariantKey = 'activeOnly' | 'includeDisabled';
 
 type DashboardStatsVariants = Record<DashboardStatsVariantKey, DashboardStatsState>;
 
+type HeatmapState = {
+  days: WorkloadDay[];
+  rangeKey: string | null;
+  loading: boolean;
+  error: string | null;
+};
+
+const EMPTY_HEATMAP: HeatmapState = {
+  days: [],
+  rangeKey: null,
+  loading: false,
+  error: null,
+};
+
 type DashboardState = {
   dashboards: DashboardSummary[];
   dashboardsWorkspaceId: string | null;
@@ -50,6 +65,8 @@ type DashboardState = {
   groups: DashboardOption[];
   assigneeGroupMap: Record<string, string | null>;
   milestones: DashboardMilestone[];
+  heatmap: HeatmapState;
+  heatmapAutoCapacity: number | null;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -69,6 +86,8 @@ type DashboardState = {
   setLayouts: (layouts: DashboardLayouts) => void;
   loadFilterOptions: (workspaceId: string) => Promise<void>;
   loadMilestones: (workspaceId: string) => Promise<void>;
+  loadHeatmap: (workspaceId: string, startDate: string, endDate: string) => Promise<void>;
+  setHeatmapAutoCapacity: (value: number | null) => void;
   loadStats: (
     workspaceId: string,
     period: DashboardPeriod,
@@ -539,6 +558,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   groups: [],
   assigneeGroupMap: {},
   milestones: [],
+  heatmap: EMPTY_HEATMAP,
+  heatmapAutoCapacity: null,
   loading: false,
   saving: false,
   error: null,
@@ -720,6 +741,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     groups: [],
     assigneeGroupMap: {},
     milestones: [],
+    heatmap: EMPTY_HEATMAP,
+    heatmapAutoCapacity: null,
     loading: false,
     saving: false,
     error: null,
@@ -876,6 +899,36 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     }));
 
     set({ milestones });
+  },
+  loadHeatmap: async (workspaceId, startDate, endDate) => {
+    const rangeKey = `${workspaceId}:${startDate}:${endDate}`;
+    const current = get().heatmap;
+    if (current.loading) return;
+    if (current.rangeKey === rangeKey && current.error === null && current.days.length > 0) return;
+
+    set({ heatmap: { ...current, loading: true, error: null, rangeKey } });
+
+    const { data, error } = await supabase.rpc('workspace_workload_heatmap', {
+      p_workspace_id: workspaceId,
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
+
+    if (get().heatmap.rangeKey !== rangeKey) return;
+
+    if (error) {
+      set({ heatmap: { days: [], rangeKey, loading: false, error: error.message } });
+      return;
+    }
+
+    const days: WorkloadDay[] = ((data ?? []) as Array<{ bucket_date: string; task_count: number }>)
+      .map((row) => ({ date: row.bucket_date, taskCount: Number(row.task_count) || 0 }));
+
+    set({ heatmap: { days, rangeKey, loading: false, error: null } });
+  },
+  setHeatmapAutoCapacity: (value) => {
+    if (get().heatmapAutoCapacity === value) return;
+    set({ heatmapAutoCapacity: value });
   },
   loadStats: async (workspaceId, period, includeSeries = false, includeDisabledAssignees = false) => {
     const variantKey = getStatsVariantKey(includeDisabledAssignees);
