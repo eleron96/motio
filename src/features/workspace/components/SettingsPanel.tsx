@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useDashboardStore } from '@/features/dashboard/store/dashboardStore';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
+import { Badge } from '@/shared/ui/badge';
+import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import {
@@ -71,7 +74,7 @@ const Block: React.FC<{ title: string; description?: string; children: React.Rea
 );
 
 // Reference-style row: label + description on the left, control on the right.
-const SettingRow: React.FC<{ title: string; description?: string; htmlFor?: string; children: React.ReactNode }> = ({
+const SettingRow: React.FC<{ title: React.ReactNode; description?: string; htmlFor?: string; children: React.ReactNode }> = ({
   title,
   description,
   htmlFor,
@@ -136,6 +139,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     currentWorkspaceRole,
     updateWorkspaceName,
     updateWorkspaceHolidayCountry,
+    updateWorkspaceHeatmapEnabled,
+    updateWorkspaceHeatmapCapacity,
     deleteWorkspace,
     transferWorkspaceOwnership,
   } = useAuthStore();
@@ -149,6 +154,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState(DEFAULT_COLOR_PICKER_VALUE);
+
+  const heatmapAutoCapacity = useDashboardStore((state) => state.heatmapAutoCapacity);
+  const heatmapCapacityPlaceholder = heatmapAutoCapacity != null
+    ? `${t`Auto`} ≈ ${Math.round(heatmapAutoCapacity * 10) / 10}`
+    : t`Auto`;
+
+  const [heatmapSaving, setHeatmapSaving] = useState(false);
+  const [heatmapCapacityInput, setHeatmapCapacityInput] = useState('');
+  const [heatmapCapacitySaving, setHeatmapCapacitySaving] = useState(false);
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
@@ -189,11 +203,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     setWorkspaceHolidayCountry((currentWorkspace?.holidayCountry ?? 'RU').toUpperCase());
     setHolidayCountryOpen(false);
     setHolidayCountryQuery('');
+    setHeatmapCapacityInput(
+      currentWorkspace?.heatmapCapacityPerPerson != null
+        ? String(currentWorkspace.heatmapCapacityPerPerson)
+        : '',
+    );
     setWorkspaceError('');
     setTemplateApplyError('');
     setTemplateApplied(false);
     setDeleteConfirmValue('');
-  }, [open, currentWorkspace?.name, currentWorkspace?.holidayCountry]);
+  }, [open, currentWorkspace?.name, currentWorkspace?.holidayCountry, currentWorkspace?.heatmapCapacityPerPerson]);
 
   useEffect(() => {
     if (!open) return;
@@ -312,6 +331,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
       const next = { ...usePlannerStore.getState().filters, hideUnassigned };
       window.localStorage.setItem(`planner-filters-${user.id}`, JSON.stringify(next));
     }
+  };
+
+  const handleToggleHeatmap = async (checked: boolean) => {
+    if (!currentWorkspaceId) return;
+    setHeatmapSaving(true);
+    await updateWorkspaceHeatmapEnabled(currentWorkspaceId, checked);
+    setHeatmapSaving(false);
+  };
+
+  const handleSaveHeatmapCapacity = async () => {
+    if (!currentWorkspaceId) return;
+    const trimmed = heatmapCapacityInput.trim();
+    const parsed = trimmed === '' ? null : Number(trimmed.replace(',', '.'));
+    const value = parsed !== null && Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    setHeatmapCapacitySaving(true);
+    await updateWorkspaceHeatmapCapacity(currentWorkspaceId, value);
+    setHeatmapCapacitySaving(false);
   };
 
   const handleSaveWorkspaceName = async () => {
@@ -524,6 +560,69 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           />
         </SettingRow>
       </Block>
+      {isWorkloadHeatmapEnabled() && (
+        <Block title={t`Team workload`}>
+          <SettingRow
+            title={(
+              <span className="inline-flex flex-wrap items-center gap-2">
+                {t`Workload heatmap`}
+                <Badge variant="secondary" className="font-normal">
+                  {t`experimental`}
+                </Badge>
+              </span>
+            )}
+            description={t`Show the department workload board on the dashboard`}
+            htmlFor="settings-heatmap-enabled"
+          >
+            <Switch
+              id="settings-heatmap-enabled"
+              checked={currentWorkspace?.heatmapEnabled ?? false}
+              onCheckedChange={handleToggleHeatmap}
+              disabled={!isAdmin || !currentWorkspaceId || heatmapSaving}
+              aria-label={t`Toggle workload heatmap`}
+            />
+          </SettingRow>
+          {(currentWorkspace?.heatmapEnabled ?? false) && (
+            <div className="space-y-2 border-t border-border pt-4">
+              <Label htmlFor="settings-heatmap-capacity">
+                {t`Full working day (tasks per person)`}
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="settings-heatmap-capacity"
+                  type="number"
+                  min="1"
+                  step="0.5"
+                  inputMode="decimal"
+                  placeholder={heatmapCapacityPlaceholder}
+                  value={heatmapCapacityInput}
+                  onChange={(event) => setHeatmapCapacityInput(event.target.value)}
+                  disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
+                  className="w-32"
+                />
+                <Button
+                  onClick={handleSaveHeatmapCapacity}
+                  disabled={
+                    !isAdmin
+                    || !currentWorkspaceId
+                    || heatmapCapacitySaving
+                    || heatmapCapacityInput.trim() === (
+                      currentWorkspace?.heatmapCapacityPerPerson != null
+                        ? String(currentWorkspace.heatmapCapacityPerPerson)
+                        : ''
+                    )
+                  }
+                >
+                  {t`Save`}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t`This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history.`}
+              </p>
+            </div>
+          )}
+        </Block>
+      )}
     </div>
   );
 

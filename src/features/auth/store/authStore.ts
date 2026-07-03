@@ -73,6 +73,8 @@ interface WorkspaceSummary {
   id: string;
   name: string;
   holidayCountry: string;
+  heatmapEnabled: boolean;
+  heatmapCapacityPerPerson: number | null;
   role: WorkspaceRole;
   ownerId: string;
 }
@@ -90,7 +92,14 @@ interface WorkspaceMember {
 interface WorkspaceMemberRow {
   workspace_id: string;
   role: WorkspaceRole;
-  workspaces: { id: string; name: string; holiday_country: string | null; owner_id: string | null } | null;
+  workspaces: {
+    id: string;
+    name: string;
+    holiday_country: string | null;
+    heatmap_enabled: boolean | null;
+    heatmap_capacity_per_person: number | string | null;
+    owner_id: string | null;
+  } | null;
 }
 
 interface WorkspaceMemberProfileRow {
@@ -123,11 +132,20 @@ const normalizeHolidayCountryCode = (value: string | null | undefined) => {
   return /^[A-Z]{2}$/.test(code) ? code : DEFAULT_HOLIDAY_COUNTRY;
 };
 
+// numeric columns arrive from PostgREST as strings; keep a positive number or null.
+const normalizeCapacity = (value: number | string | null | undefined): number | null => {
+  if (value === null || value === undefined) return null;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
 const mapWorkspaceRows = (rows: WorkspaceMemberRow[]): WorkspaceSummary[] => rows
   .map((row) => ({
     id: row.workspaces?.id ?? row.workspace_id,
     name: row.workspaces?.name ?? 'Workspace',
     holidayCountry: normalizeHolidayCountryCode(row.workspaces?.holiday_country),
+    heatmapEnabled: row.workspaces?.heatmap_enabled ?? false,
+    heatmapCapacityPerPerson: normalizeCapacity(row.workspaces?.heatmap_capacity_per_person),
     role: row.role as WorkspaceRole,
     ownerId: row.workspaces?.owner_id ?? '',
   }))
@@ -236,6 +254,8 @@ interface AuthState {
   deleteWorkspace: (workspaceId?: string) => Promise<{ error?: string }>;
   updateWorkspaceName: (workspaceId: string, name: string) => Promise<{ error?: string }>;
   updateWorkspaceHolidayCountry: (workspaceId: string, countryCode: string) => Promise<{ error?: string }>;
+  updateWorkspaceHeatmapEnabled: (workspaceId: string, enabled: boolean) => Promise<{ error?: string }>;
+  updateWorkspaceHeatmapCapacity: (workspaceId: string, capacity: number | null) => Promise<{ error?: string }>;
   fetchMembers: (workspaceId?: string) => Promise<void>;
   inviteMember: (
     email: string,
@@ -844,7 +864,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const loadWorkspaces = async () => {
       const { data, error } = await supabase
         .from('workspace_members')
-        .select('workspace_id, role, workspaces(id, name, holiday_country, owner_id)')
+        .select('workspace_id, role, workspaces(id, name, holiday_country, heatmap_enabled, heatmap_capacity_per_person, owner_id)')
         .eq('user_id', user.id);
 
       if (error) {
@@ -1037,6 +1057,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { error } = await supabase
       .from('workspaces')
       .update({ holiday_country: normalizedCode })
+      .eq('id', workspaceId);
+
+    if (error) return { error: error.message };
+
+    await get().fetchWorkspaces();
+    return {};
+  },
+  updateWorkspaceHeatmapEnabled: async (workspaceId, enabled) => {
+    const { error } = await supabase
+      .from('workspaces')
+      .update({ heatmap_enabled: enabled })
+      .eq('id', workspaceId);
+
+    if (error) return { error: error.message };
+
+    await get().fetchWorkspaces();
+    return {};
+  },
+  updateWorkspaceHeatmapCapacity: async (workspaceId, capacity) => {
+    const value = capacity !== null && Number.isFinite(capacity) && capacity > 0 ? capacity : null;
+    const { error } = await supabase
+      .from('workspaces')
+      .update({ heatmap_capacity_per_person: value })
       .eq('id', workspaceId);
 
     if (error) return { error: error.message };
