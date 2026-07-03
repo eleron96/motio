@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-07-03
+### Added
+- Team workload heatmap (experimental): a month-by-month calendar showing task density and milestones per day, so you can see where there are free slots and where the team is overloaded. Turn it on in workspace settings.
+
 ## [0.9.0] - 2026-07-03
 ### Changed
 - No documented changes.
