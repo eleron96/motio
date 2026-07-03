@@ -340,3 +340,5 @@
 2026-07-01T10:13:45Z | 0.8.62 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260701-101305.dump | A recurring task’s repeat limit can now be switched back to “Never”, even if a repeat count was set earlier.
 2026-07-01T12:04:45Z | 0.8.63 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260701-120406.dump | A count-limited repeat now shows the date of its last occurrence, so you don't have to count it in your head.
 2026-07-01T14:32:11Z | 0.8.64 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260701-143133.dump | A long project name no longer shifts the layout in the milestone dialog — it now truncates with an ellipsis.
+2026-07-01T21:22:50Z | 0.8.65 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260701-212211.dump | No documented changes.
+2026-07-03T15:43:14Z | 0.8.66 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260703-154235.dump | No documented changes.
