@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-07-04
+### Fixed
+- Removed the redundant "Only for …" option in the task delete dialog when a task has a single assignee.
+
 ## [0.9.2] - 2026-07-04
 ### Changed
 - The timeline is smoother when dragging tasks and scrolling horizontally.
