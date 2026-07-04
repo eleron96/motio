@@ -50,7 +50,7 @@ interface MilestoneLayerProps {
   children: React.ReactNode;
 }
 
-export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
+const MilestoneLayerBase: React.FC<MilestoneLayerProps> = ({
   totalWidth,
   dayWidth,
   isMobile = false,
@@ -501,3 +501,9 @@ export const MilestoneLayer: React.FC<MilestoneLayerProps> = ({
     </>
   );
 };
+
+// Re-created on every scroll tick by TimelineGrid. Effective only because the
+// parent passes a memoized `children` element (the TimelineHeader) and stable
+// callbacks — otherwise `children` would differ every render and defeat the memo.
+export const MilestoneLayer = React.memo(MilestoneLayerBase);
+MilestoneLayer.displayName = 'MilestoneLayer';
