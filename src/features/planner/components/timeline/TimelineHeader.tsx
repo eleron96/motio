@@ -24,7 +24,7 @@ interface TimelineHeaderProps {
   onDateContextAction?: (date: string) => void;
 }
 
-export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
+const TimelineHeaderBase: React.FC<TimelineHeaderProps> = ({
   visibleDays,
   dayWidth,
   viewMode,
@@ -107,3 +107,10 @@ export const TimelineHeader: React.FC<TimelineHeaderProps> = ({
     </div>
   );
 };
+
+// The grid re-renders on every horizontal-scroll tick (focus-day changes). Its
+// props are stable across a scroll (visibleDays/dayWidth/holidayDates are memoized,
+// the callback is useCallback), so memoizing lets React skip rebuilding all ~122
+// day cells and their Radix context menus on each tick.
+export const TimelineHeader = React.memo(TimelineHeaderBase);
+TimelineHeader.displayName = 'TimelineHeader';
