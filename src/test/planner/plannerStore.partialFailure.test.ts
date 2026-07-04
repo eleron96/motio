@@ -5,11 +5,13 @@ import type { TaskRow } from '@/features/planner/store/plannerStore.helpers';
 
 const supabaseMocks = vi.hoisted(() => ({
   from: vi.fn(),
+  rpc: vi.fn(),
 }));
 
 vi.mock('@/shared/lib/supabaseClient', () => ({
   supabase: {
     from: supabaseMocks.from,
+    rpc: supabaseMocks.rpc,
   },
 }));
 
@@ -137,19 +139,21 @@ describe('plannerStore partial-failure resync', () => {
     vi.clearAllMocks();
   });
 
-  it('updateRepeatSeries: resyncs the store from the DB when a later row update fails', async () => {
+  it('updateRepeatSeries: leaves the series untouched when the atomic rebuild fails', async () => {
     const dbRows: TaskRow[] = [
       makeRow({ id: 'task-1', start_date: '2026-02-01', end_date: '2026-02-01' }),
       makeRow({ id: 'task-2', start_date: '2026-02-08', end_date: '2026-02-08' }),
       makeRow({ id: 'task-3', start_date: '2026-02-15', end_date: '2026-02-15' }),
     ];
 
-    // Plan for biweekly/count=3 over these three rows: update task-2 -> 02-15,
-    // task-3 -> 02-29. Force the SECOND update (task-3) to fail.
+    // The rebuild now runs as one atomic RPC. Simulate that transaction failing:
+    // the RPC rejects and — crucially — mutates NOTHING, so `from('tasks')` (the
+    // series read + the resync) keeps observing the original, untouched rows.
     supabaseMocks.from.mockImplementation((table: string) => {
       if (table !== 'tasks') throw new Error(`Unexpected table ${table}`);
-      return makeTasksQueryBuilder(dbRows, { failUpdateForId: 'task-3' });
+      return makeTasksQueryBuilder(dbRows);
     });
+    supabaseMocks.rpc.mockResolvedValue({ data: null, error: { message: 'Forced rebuild failure' } });
 
     const harness = makeHarness(dbRows);
     const actions = createTaskActions(harness.set as never, harness.get as never);
@@ -160,15 +164,16 @@ describe('plannerStore partial-failure resync', () => {
       count: 3,
     }, 'all');
 
-    expect(result.error).toBe('Forced update failure');
+    expect(result.error).toBe('Forced rebuild failure');
 
     const state = harness.getState();
-    // task-2's successful update is reflected in the store (resync), not stale.
-    expect(state.tasks.find((task) => task.id === 'task-2')?.startDate).toBe('2026-02-15');
-    // task-3's update failed, so DB and store both keep the original date.
-    expect(state.tasks.find((task) => task.id === 'task-3')?.startDate).toBe('2026-02-15');
+    // Atomicity: NOTHING moved — every row keeps its original date in both the DB
+    // and the store (no half-rebuilt series). This is the whole point of the fix.
+    expect(dbRows.find((row) => row.id === 'task-2')?.start_date).toBe('2026-02-08');
+    expect(dbRows.find((row) => row.id === 'task-3')?.start_date).toBe('2026-02-15');
     expect(state.tasks.find((task) => task.id === 'task-1')?.startDate).toBe('2026-02-01');
-    expect(dbRows.find((row) => row.id === 'task-2')?.start_date).toBe('2026-02-15');
+    expect(state.tasks.find((task) => task.id === 'task-2')?.startDate).toBe('2026-02-08');
+    expect(state.tasks.find((task) => task.id === 'task-3')?.startDate).toBe('2026-02-15');
   });
 
   it('removeAssigneeFromTask: resyncs the store from the DB when a later row update fails', async () => {
