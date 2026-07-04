@@ -1,5 +1,6 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { lazyNamed } from '@/shared/lib/lazyComponent';
+import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
@@ -120,7 +121,31 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
     fetchTaskDescription,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    selectedTaskId: state.selectedTaskId,
+    setSelectedTaskId: state.setSelectedTaskId,
+    tasks: state.tasks,
+    projects: state.projects,
+    trackedProjectIds: state.trackedProjectIds,
+    customers: state.customers,
+    assignees: state.assignees,
+    statuses: state.statuses,
+    taskTypes: state.taskTypes,
+    tags: state.tags,
+    groupMode: state.groupMode,
+    updateTask: state.updateTask,
+    deleteTask: state.deleteTask,
+    deleteTaskSeries: state.deleteTaskSeries,
+    duplicateTask: state.duplicateTask,
+    createRepeats: state.createRepeats,
+    updateRepeatSeries: state.updateRepeatSeries,
+    fetchTaskSubtasks: state.fetchTaskSubtasks,
+    createTaskSubtask: state.createTaskSubtask,
+    updateTaskSubtaskTitle: state.updateTaskSubtaskTitle,
+    updateTaskSubtaskCompletion: state.updateTaskSubtaskCompletion,
+    deleteTaskSubtask: state.deleteTaskSubtask,
+    fetchTaskDescription: state.fetchTaskDescription,
+  })));
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';

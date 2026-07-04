@@ -1,6 +1,7 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
@@ -124,7 +125,18 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     addTask,
     createRepeats,
     createTaskSubtasks,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    projects: state.projects,
+    trackedProjectIds: state.trackedProjectIds,
+    assignees: state.assignees,
+    statuses: state.statuses,
+    taskTypes: state.taskTypes,
+    tags: state.tags,
+    groupMode: state.groupMode,
+    addTask: state.addTask,
+    createRepeats: state.createRepeats,
+    createTaskSubtasks: state.createTaskSubtasks,
+  })));
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const filteredAssignees = useFilteredAssignees(assignees);
   const activeProjects = useMemo(

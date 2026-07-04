@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Switch } from '@/shared/ui/switch';
@@ -94,14 +95,38 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     renamePurgedProfile,
     currentWorkspaceId,
     currentWorkspaceRole,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    user: state.user,
+    workspaces: state.workspaces,
+    members: state.members,
+    membersLoading: state.membersLoading,
+    fetchMembers: state.fetchMembers,
+    inviteMember: state.inviteMember,
+    listSentInvites: state.listSentInvites,
+    cancelSentInvite: state.cancelSentInvite,
+    listWorkspaceMemberActivity: state.listWorkspaceMemberActivity,
+    updateMemberRole: state.updateMemberRole,
+    updateMemberGroup: state.updateMemberGroup,
+    removeMember: state.removeMember,
+    leaveWorkspace: state.leaveWorkspace,
+    transferWorkspaceOwnership: state.transferWorkspaceOwnership,
+    renamePurgedProfile: state.renamePurgedProfile,
+    currentWorkspaceId: state.currentWorkspaceId,
+    currentWorkspaceRole: state.currentWorkspaceRole,
+  })));
   const {
     assignees,
     refreshAssignees,
     updateAssignee,
     setWorkspaceId,
     fetchMemberGroups,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    assignees: state.assignees,
+    refreshAssignees: state.refreshAssignees,
+    updateAssignee: state.updateAssignee,
+    setWorkspaceId: state.setWorkspaceId,
+    fetchMemberGroups: state.fetchMemberGroups,
+  })));
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('viewer');

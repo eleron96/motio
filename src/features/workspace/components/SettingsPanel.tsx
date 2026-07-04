@@ -48,6 +48,7 @@ import { cn } from '@/shared/lib/classNames';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
+import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsPanelProps {
   open: boolean;
@@ -128,7 +129,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     applyWorkspaceTemplate,
     filters,
     setFilters,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    statuses: state.statuses,
+    addStatus: state.addStatus,
+    updateStatus: state.updateStatus,
+    deleteStatus: state.deleteStatus,
+    taskTypes: state.taskTypes,
+    addTaskType: state.addTaskType,
+    updateTaskType: state.updateTaskType,
+    deleteTaskType: state.deleteTaskType,
+    tags: state.tags,
+    addTag: state.addTag,
+    updateTag: state.updateTag,
+    deleteTag: state.deleteTag,
+    workspaceId: state.workspaceId,
+    applyWorkspaceTemplate: state.applyWorkspaceTemplate,
+    filters: state.filters,
+    setFilters: state.setFilters,
+  })));
 
   const {
     user,
@@ -143,7 +161,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     updateWorkspaceHeatmapCapacity,
     deleteWorkspace,
     transferWorkspaceOwnership,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    user: state.user,
+    workspaces: state.workspaces,
+    members: state.members,
+    fetchMembers: state.fetchMembers,
+    currentWorkspaceId: state.currentWorkspaceId,
+    currentWorkspaceRole: state.currentWorkspaceRole,
+    updateWorkspaceName: state.updateWorkspaceName,
+    updateWorkspaceHolidayCountry: state.updateWorkspaceHolidayCountry,
+    updateWorkspaceHeatmapEnabled: state.updateWorkspaceHeatmapEnabled,
+    updateWorkspaceHeatmapCapacity: state.updateWorkspaceHeatmapCapacity,
+    deleteWorkspace: state.deleteWorkspace,
+    transferWorkspaceOwnership: state.transferWorkspaceOwnership,
+  })));
 
   const isMobile = useIsMobile();
 

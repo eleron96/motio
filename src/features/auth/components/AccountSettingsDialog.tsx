@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { AlertTriangle, CalendarDays, Database, LogOut, Pencil, Sliders, Trash2, User } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Switch } from '@/shared/ui/switch';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
@@ -67,7 +68,16 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     signOut,
     fetchProfileSettings,
     updateProfilePreferences,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    user: state.user,
+    updateDisplayName: state.updateDisplayName,
+    updateLocale: state.updateLocale,
+    updateAvatarUrl: state.updateAvatarUrl,
+    profileAvatarUrl: state.profileAvatarUrl,
+    signOut: state.signOut,
+    fetchProfileSettings: state.fetchProfileSettings,
+    updateProfilePreferences: state.updateProfilePreferences,
+  })));
   const locale = useLocaleStore((state) => state.locale);
   const setLocale = useLocaleStore((state) => state.setLocale);
   const [displayName, setDisplayName] = useState('');
