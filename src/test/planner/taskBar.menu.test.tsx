@@ -138,8 +138,16 @@ const plannerState = {
 
 import { TaskBar } from '@/features/planner/components/timeline/TaskBar';
 
-const renderBar = (task = baseTask) => render(
-  <TaskBar canEdit dayWidth={10} lane={0} position={{ left: 0, width: 16 }} task={task} visibleDays={[]} />,
+const renderBar = (task = baseTask, rowAssigneeId: string | null = null) => render(
+  <TaskBar
+    canEdit
+    dayWidth={10}
+    lane={0}
+    position={{ left: 0, width: 16 }}
+    task={task}
+    visibleDays={[]}
+    rowAssigneeId={rowAssigneeId}
+  />,
 );
 
 describe('TaskBar context menu + delete dialog', () => {
@@ -184,5 +192,23 @@ describe('TaskBar context menu + delete dialog', () => {
 
     fireEvent.click(screen.getByText('Delete this & following'));
     expect(plannerState.deleteTaskSeries).toHaveBeenCalledWith('repeat-1', '2026-02-01');
+  });
+
+  it('hides the "only for" scope option when the task has a single assignee', async () => {
+    // Deleting from Alex's assignee row, but Alex is the sole assignee: removing
+    // them wouldn't delete the task, so the scope checkbox must not appear.
+    renderBar(baseTask, 'assignee-1');
+
+    fireEvent.click(screen.getByText('Delete task'));
+    expect(await screen.findByText('Delete task?')).toBeInTheDocument();
+    expect(screen.queryByText('Only for Alex')).not.toBeInTheDocument();
+  });
+
+  it('offers the "only for" scope option when the task has other assignees', async () => {
+    renderBar({ ...baseTask, assigneeIds: ['assignee-1', 'assignee-2'] }, 'assignee-1');
+
+    fireEvent.click(screen.getByText('Delete task'));
+    expect(await screen.findByText('Delete task?')).toBeInTheDocument();
+    expect(screen.getByText('Only for Alex')).toBeInTheDocument();
   });
 });
