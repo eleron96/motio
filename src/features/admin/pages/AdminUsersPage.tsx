@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
+import { useShallow } from 'zustand/react/shallow';
 import type { Locale } from '@/shared/lib/locale';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 
@@ -117,7 +118,32 @@ const AdminUsersPage: React.FC = () => {
     deleteBackup,
     adminForcePurgeAccount,
     signOut,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    user: state.user,
+    isSuperAdmin: state.isSuperAdmin,
+    adminUsers: state.adminUsers,
+    adminUsersLoading: state.adminUsersLoading,
+    adminUsersError: state.adminUsersError,
+    fetchAdminUsers: state.fetchAdminUsers,
+    adminWorkspaces: state.adminWorkspaces,
+    adminWorkspacesLoading: state.adminWorkspacesLoading,
+    adminWorkspacesError: state.adminWorkspacesError,
+    fetchAdminWorkspaces: state.fetchAdminWorkspaces,
+    updateAdminWorkspace: state.updateAdminWorkspace,
+    deleteAdminWorkspace: state.deleteAdminWorkspace,
+    backups: state.backups,
+    backupsLoading: state.backupsLoading,
+    backupsError: state.backupsError,
+    fetchBackups: state.fetchBackups,
+    createBackup: state.createBackup,
+    restoreBackup: state.restoreBackup,
+    uploadBackup: state.uploadBackup,
+    downloadBackup: state.downloadBackup,
+    renameBackup: state.renameBackup,
+    deleteBackup: state.deleteBackup,
+    adminForcePurgeAccount: state.adminForcePurgeAccount,
+    signOut: state.signOut,
+  })));
   const locale = useLocaleStore((state) => state.locale);
 
   const [tab, setTab] = useState<'users' | 'workspaces' | 'backups'>('users');

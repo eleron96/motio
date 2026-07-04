@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
@@ -29,7 +30,13 @@ const AuthPage: React.FC = () => {
     signInWithKeycloak,
     signOutRedirectInProgress,
     setSignOutRedirectInProgress,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    user: state.user,
+    loading: state.loading,
+    signInWithKeycloak: state.signInWithKeycloak,
+    signOutRedirectInProgress: state.signOutRedirectInProgress,
+    setSignOutRedirectInProgress: state.setSignOutRedirectInProgress,
+  })));
   const forceLoginRef = useRef<boolean>(consumeRecentSignOut());
 
   const [submitting, setSubmitting] = useState(false);

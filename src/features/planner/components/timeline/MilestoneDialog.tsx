@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import {
   AlertDialog,
@@ -44,7 +45,13 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   canEdit,
   defaultProjectId = null,
 }) => {
-  const { projects, trackedProjectIds, addMilestone, updateMilestone, deleteMilestone } = usePlannerStore();
+  const { projects, trackedProjectIds, addMilestone, updateMilestone, deleteMilestone } = usePlannerStore(useShallow((state) => ({
+    projects: state.projects,
+    trackedProjectIds: state.trackedProjectIds,
+    addMilestone: state.addMilestone,
+    updateMilestone: state.updateMilestone,
+    deleteMilestone: state.deleteMilestone,
+  })));
   const [title, setTitle] = useState('');
   const [projectId, setProjectId] = useState('');
   const [milestoneDate, setMilestoneDate] = useState('');
