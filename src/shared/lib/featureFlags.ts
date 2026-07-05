@@ -29,3 +29,13 @@ export const isProjectCardMobileEnabled = (): boolean => (
   isProjectCardEnabled()
   && readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD_MOBILE)
 );
+
+/**
+ * When on, the built-in "workload heatmap" board is available on the dashboard
+ * page (a toggle in the toolbar) and its per-workspace switch shows up in
+ * workspace settings. Off by default so the migration and code can ship dormant
+ * ahead of GA; the per-workspace `heatmap_enabled` flag gates it after that.
+ */
+export const isWorkloadHeatmapEnabled = (): boolean => (
+  readFlag(import.meta.env.VITE_FEATURE_WORKLOAD_HEATMAP)
+);

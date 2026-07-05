@@ -77,7 +77,8 @@ push:
 deploy: deploy-remote
 
 release-sync:
-	git add VERSION CHANGELOG.md CHANGELOG.en.md infra/releases.log
+	@sed -i '' -E "s|(img\.shields\.io/badge/version-)[0-9]+\.[0-9]+\.[0-9]+|\1$$(cat VERSION)|" README.md
+	git add VERSION CHANGELOG.md CHANGELOG.en.md infra/releases.log README.md
 	@if git diff --cached --quiet; then \
 		echo "No release artifacts to sync."; \
 	else \

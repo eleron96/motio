@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { AccountRestoreScreen } from '@/features/auth/components/AccountRestoreScreen';
 import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
@@ -9,7 +10,14 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading, signOutRedirectInProgress, profileStatus } = useAuthStore();
+  const { user, loading, signOutRedirectInProgress, profileStatus } = useAuthStore(
+    useShallow((state) => ({
+      user: state.user,
+      loading: state.loading,
+      signOutRedirectInProgress: state.signOutRedirectInProgress,
+      profileStatus: state.profileStatus,
+    })),
+  );
   const location = useLocation();
 
   if (loading || signOutRedirectInProgress) {

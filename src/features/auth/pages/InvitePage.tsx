@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useShallow } from 'zustand/react/shallow';
 import { toast } from '@/shared/ui/sonner';
 import { t, Trans } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
@@ -62,7 +63,13 @@ const InvitePage: React.FC = () => {
     acceptInvite,
     fetchWorkspaces,
     setCurrentWorkspaceId,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    user: state.user,
+    loading: state.loading,
+    acceptInvite: state.acceptInvite,
+    fetchWorkspaces: state.fetchWorkspaces,
+    setCurrentWorkspaceId: state.setCurrentWorkspaceId,
+  })));
 
   const attemptedTokenRef = useRef<string | null>(null);
   const [acceptError, setAcceptError] = useState('');

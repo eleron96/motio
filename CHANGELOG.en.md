@@ -7,6 +7,57 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-07-04
+### Fixed
+- Removed the redundant "Only for …" option in the task delete dialog when a task has a single assignee.
+
+## [0.9.2] - 2026-07-04
+### Changed
+- The timeline is smoother when dragging tasks and scrolling horizontally.
+
+### Fixed
+- Editing a recurring task series can no longer stop halfway — changes apply all-or-nothing.
+- The Terms of Service and Privacy Policy pages render with proper formatting again.
+
+### Security
+- Tightened workspace access control and data protection.
+
+## [0.9.1] - 2026-07-03
+### Added
+- Team workload heatmap (experimental): a month-by-month calendar showing task density and milestones per day, so you can see where there are free slots and where the team is overloaded. Turn it on in workspace settings.
+
+## [0.9.0] - 2026-07-03
+### Changed
+- No documented changes.
+
+## [0.8.70] - 2026-07-03
+### Changed
+- No documented changes.
+
+## [0.8.69] - 2026-07-03
+### Changed
+- No documented changes.
+
+## [0.8.68] - 2026-07-03
+### Changed
+- No documented changes.
+
+## [0.8.67] - 2026-07-03
+### Changed
+- No documented changes.
+
+## [0.8.66] - 2026-07-03
+### Changed
+- No documented changes.
+
+## [0.8.65] - 2026-07-01
+### Changed
+- No documented changes.
+
+## [0.8.64] - 2026-07-01
+### Fixed
+- A long project name no longer shifts the layout in the milestone dialog — it now truncates with an ellipsis.
+
 ## [0.8.63] - 2026-07-01
 ### Changed
 - A count-limited repeat now shows the date of its last occurrence, so you don't have to count it in your head.

@@ -337,6 +337,25 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     return { avatarUrl: member?.avatarUrl ?? null, userId };
   }, [assignees, members]);
 
+  // Stable noop so MilestoneLayer's onCreateMilestone prop doesn't change every
+  // render for non-editors (an inline `() => {}` would defeat its memo).
+  const noopCreateMilestone = useCallback(() => {}, []);
+
+  // Memoize the header element so MilestoneLayer receives a stable `children` prop
+  // and its React.memo can bail on scroll ticks. Deps are the header's own inputs.
+  const timelineHeaderElement = useMemo(() => (
+    <TimelineHeader
+      visibleDays={visibleDays}
+      dayWidth={dayWidth}
+      viewMode={viewMode}
+      isMobile={isMobile}
+      attentionDate={timelineAttentionDate}
+      todayKey={todayKey}
+      holidayDates={holidayDates}
+      onDateContextAction={canEdit ? handleCreateMilestone : undefined}
+    />
+  ), [visibleDays, dayWidth, viewMode, isMobile, timelineAttentionDate, todayKey, holidayDates, canEdit, handleCreateMilestone]);
+
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -434,20 +453,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     canEdit={canEdit}
                     dateLocale={dateLocale}
                     onEditMilestone={handleEditMilestone}
-                    onCreateMilestone={canEdit ? handleCreateMilestone : () => {}}
+                    onCreateMilestone={canEdit ? handleCreateMilestone : noopCreateMilestone}
                     onHover={handleMilestoneHover}
                     onHoverEnd={handleMilestoneHoverEnd}
                   >
-                    <TimelineHeader
-                      visibleDays={visibleDays}
-                      dayWidth={dayWidth}
-                      viewMode={viewMode}
-                      isMobile={isMobile}
-                      attentionDate={timelineAttentionDate}
-                      todayKey={todayKey}
-                      holidayDates={holidayDates}
-                      onDateContextAction={canEdit ? handleCreateMilestone : undefined}
-                    />
+                    {timelineHeaderElement}
                   </MilestoneLayer>
                 </div>
               </div>

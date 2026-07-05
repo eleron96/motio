@@ -32,7 +32,7 @@ rsync_output="$(
     --exclude 'node_modules' \
     --exclude 'dist' \
     --exclude '.env' \
-    --exclude 'docs/' \
+    --exclude 'notes/' \
     --exclude 'infra/seeds/' \
     --exclude 'infra/backups' \
     --exclude 'infra/caddy/Caddyfile' \

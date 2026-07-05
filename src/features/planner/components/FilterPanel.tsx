@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -90,19 +91,31 @@ interface FilterPanelProps {
 const normalizeQuery = (value: string) => value.trim().toLowerCase();
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, compact = false }) => {
-  const { 
-    projects, 
+  const {
+    projects,
     trackedProjectIds,
-    assignees, 
+    assignees,
     memberGroups,
-    statuses, 
-    taskTypes, 
+    statuses,
+    taskTypes,
     tags,
     viewMode,
     filters,
     setFilters,
     clearFilterCriteria,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    projects: state.projects,
+    trackedProjectIds: state.trackedProjectIds,
+    assignees: state.assignees,
+    memberGroups: state.memberGroups,
+    statuses: state.statuses,
+    taskTypes: state.taskTypes,
+    tags: state.tags,
+    viewMode: state.viewMode,
+    filters: state.filters,
+    setFilters: state.setFilters,
+    clearFilterCriteria: state.clearFilterCriteria,
+  })));
   const isCalendarView = viewMode === 'calendar';
   
   const filteredAssignees = useFilteredAssignees(assignees);
