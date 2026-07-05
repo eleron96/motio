@@ -6,6 +6,40 @@ export interface TaskWithLane extends Task {
 }
 
 /**
+ * Preserve the referential identity of the {task, lane} wrapper across recomputes.
+ *
+ * calculateTaskLanes runs on every change to the tasks array — a drag, a live-sync
+ * upsert from a teammate, an optimistic update. Spreading `{ ...task, lane }` fresh
+ * each time handed every bar a brand-new object, so TaskBar's React.memo comparator
+ * (`prev.task === next.task`) failed for ALL bars even when only one task moved —
+ * defeating the whole point of memoizing TaskBar. Caching the wrapper by
+ * (task reference, lane) keeps the reference stable for tasks that did not change,
+ * so memo can skip them and only the moved bar re-renders.
+ *
+ * The store replaces a task's object only when its contents change, so a stable
+ * reference implies unchanged contents — the cached shallow copy stays consistent.
+ * A WeakMap lets a task object that the store has replaced (and its wrappers) be
+ * garbage-collected. The inner Map keys by lane so a task that appears in several
+ * rows at different lanes (e.g. multi-assignee grouping) keeps a stable wrapper per
+ * lane instead of thrashing.
+ */
+const laneWrapperCache = new WeakMap<Task, Map<number, TaskWithLane>>();
+
+const wrapWithLane = (task: Task, lane: number): TaskWithLane => {
+  let byLane = laneWrapperCache.get(task);
+  if (!byLane) {
+    byLane = new Map<number, TaskWithLane>();
+    laneWrapperCache.set(task, byLane);
+  }
+  let wrapped = byLane.get(lane);
+  if (!wrapped) {
+    wrapped = { ...task, lane };
+    byLane.set(lane, wrapped);
+  }
+  return wrapped;
+};
+
+/**
  * Calculate lanes for tasks to avoid visual overlapping.
  * Tasks that overlap in time are placed in different lanes.
  */
@@ -44,7 +78,7 @@ export const calculateTaskLanes = (tasks: Task[]): TaskWithLane[] => {
       lanes.push({ endDate: task.endDate });
     }
     
-    result.push({ ...task, lane: assignedLane });
+    result.push(wrapWithLane(task, assignedLane));
   }
   
   return result;

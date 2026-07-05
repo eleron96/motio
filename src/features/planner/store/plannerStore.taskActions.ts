@@ -142,48 +142,6 @@ export const createTaskActions = (
     return Array.from(new Set(descriptions.flatMap((html) => extractTaskMediaIds(html))));
   };
 
-  const insertRepeatSeriesTasks = async (params: {
-    workspaceId: string;
-    repeatId: string;
-    repeatEnds: string;
-    sourceRow: TaskRow;
-    startEndDates: Array<{ startDate: string; endDate: string }>;
-  }) => {
-    if (params.startEndDates.length === 0) {
-      return { rows: [] as TaskRow[], error: undefined as string | undefined };
-    }
-
-    const assigneeIds = uniqueAssigneeIds(
-      normalizeAssigneeIds(params.sourceRow.assignee_ids, params.sourceRow.assignee_id),
-    );
-
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert(params.startEndDates.map(({ startDate, endDate }) => ({
-        workspace_id: params.workspaceId,
-        title: params.sourceRow.title,
-        project_id: params.sourceRow.project_id,
-        assignee_id: assigneeIds[0] ?? null,
-        assignee_ids: assigneeIds,
-        start_date: startDate,
-        end_date: endDate,
-        status_id: params.sourceRow.status_id,
-        type_id: params.sourceRow.type_id,
-        priority: params.sourceRow.priority,
-        tag_ids: params.sourceRow.tag_ids ?? [],
-        description: params.sourceRow.description ?? null,
-        repeat_id: params.repeatId,
-        repeat_ends: params.repeatEnds,
-      })))
-      .select('*');
-
-    if (error) {
-      return { rows: [] as TaskRow[], error: error.message };
-    }
-
-    return { rows: ((data ?? []) as TaskRow[]), error: undefined as string | undefined };
-  };
-
   return ({
   addTask: async (task) => {
     const workspaceId = get().workspaceId;
@@ -640,90 +598,51 @@ export const createTaskActions = (
       options,
     });
 
-    const updatedRows: TaskRow[] = [];
-
-    for (const update of plan.updates) {
-      const { data, error } = await supabase
-        .from('tasks')
-        .update({
+    // Apply the whole rebuild (updates + tail delete + new occurrences + end-mode
+    // sweep) in one atomic RPC. Either the entire series is rebuilt or nothing
+    // changes — a mid-way failure can no longer leave the series half-rebuilt in
+    // the DB. The function returns the authoritative resulting series so the store
+    // reconciles from the truth in a single round-trip.
+    const { data: seriesResult, error: rebuildError } = await supabase
+      .rpc('rebuild_repeat_series', {
+        p_workspace_id: workspaceId,
+        p_repeat_id: baseTask.repeatId,
+        p_anchor_id: anchorRow.id,
+        p_updates: plan.updates.map((update) => ({
+          id: update.id,
           start_date: update.startDate,
           end_date: update.endDate,
-        })
-        .eq('workspace_id', workspaceId)
-        .eq('id', update.id)
-        .select('*')
-        .single();
+        })),
+        p_delete_ids: plan.deleteIds,
+        p_creates: plan.create.map((occurrence) => ({
+          start_date: occurrence.startDate,
+          end_date: occurrence.endDate,
+        })),
+        p_ends: options.ends,
+      });
 
-      if (error || !data) {
-        // Earlier rows in this loop may already be committed to the DB; resync
-        // the store to the real series state so the UI doesn't show stale rows.
-        await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
-        return { error: error?.message ?? 'Failed to update repeat task.' };
-      }
-
-      updatedRows.push(data as TaskRow);
-    }
-
-    if (plan.deleteIds.length > 0) {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('workspace_id', workspaceId)
-        .in('id', plan.deleteIds);
-
-      if (error) {
-        // The per-row updates above are already persisted; resync the store.
-        await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
-        return { error: error.message };
-      }
-
-      get().removeTasksByIds(plan.deleteIds);
-    }
-
-    const inserted = await insertRepeatSeriesTasks({
-      workspaceId,
-      repeatId: baseTask.repeatId,
-      repeatEnds: options.ends,
-      sourceRow: anchorRow,
-      startEndDates: plan.create,
-    });
-    if (inserted.error) {
-      // Updates/deletes above are already persisted; resync the store.
+    if (rebuildError) {
+      // Atomic: the transaction rolled back, so the DB is unchanged. Resync the
+      // store to the DB truth in case optimistic edits diverged.
       await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
-      return { error: inserted.error };
+      return { error: rebuildError.message };
     }
 
-    applyUpdatedRows(updatedRows);
-    if (inserted.rows.length > 0) {
-      set((state) => ({
-        tasks: [...state.tasks, ...inserted.rows.map(mapTaskRow)],
-      }));
-    }
-
-    // Align the chosen end mode across the pre-existing rows so the panel reads
-    // it back — "never"/"until date" can't be inferred from the rows. Newly
-    // inserted rows already carry it (see insertRepeatSeriesTasks); this sweep
-    // covers the rows the rebuild kept in place (including untouched head rows
-    // for a "following" edit) so any occupied occurrence describes the series the
-    // same way. Best-effort: the rebuild above already committed, so a metadata
-    // write failure must not fail the operation — just resync from the DB.
-    const { data: ruleRows, error: ruleError } = await supabase
-      .from('tasks')
-      .update({ repeat_ends: options.ends })
-      .eq('workspace_id', workspaceId)
-      .eq('repeat_id', baseTask.repeatId)
-      .select('*');
-
-    if (ruleError) {
-      await reconcileSeriesFromDb(workspaceId, baseTask.repeatId);
-    } else {
-      applyUpdatedRows((ruleRows ?? []) as TaskRow[]);
-    }
+    // Reconcile the store from the authoritative series the RPC returned: replace
+    // this series' rows wholesale (dropping deleted ones, adding created ones).
+    const freshRows = (seriesResult ?? []) as TaskRow[];
+    const repeatId = baseTask.repeatId;
+    set((state) => ({
+      tasks: [
+        ...state.tasks.filter((task) => task.repeatId !== repeatId),
+        ...freshRows.map(mapTaskRow),
+      ],
+    }));
 
     return {
       updated: plan.updates.length,
       deleted: plan.deleteIds.length,
-      created: inserted.rows.length,
+      created: plan.create.length,
     };
   },
 

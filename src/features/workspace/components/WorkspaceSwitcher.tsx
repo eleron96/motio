@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { ColorPicker } from '@/shared/ui/color-picker';
@@ -37,14 +38,25 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ inCapsule 
     currentWorkspaceId,
     setCurrentWorkspaceId,
     createWorkspace,
-  } = useAuthStore();
+  } = useAuthStore(useShallow((state) => ({
+    workspaces: state.workspaces,
+    currentWorkspaceId: state.currentWorkspaceId,
+    setCurrentWorkspaceId: state.setCurrentWorkspaceId,
+    createWorkspace: state.createWorkspace,
+  })));
   const {
     statuses,
     taskTypes,
     tags,
     loadWorkspaceTemplate,
     saveWorkspaceTemplate,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    statuses: state.statuses,
+    taskTypes: state.taskTypes,
+    tags: state.tags,
+    loadWorkspaceTemplate: state.loadWorkspaceTemplate,
+    saveWorkspaceTemplate: state.saveWorkspaceTemplate,
+  })));
 
   const [createOpen, setCreateOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');

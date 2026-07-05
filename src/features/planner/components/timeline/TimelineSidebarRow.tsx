@@ -35,7 +35,7 @@ export const resolveAssigneeMinRowHeight = (sidebarWidth: number): number => {
   return 72;
 };
 
-export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
+const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
   row,
   width,
   isMobile,
@@ -150,3 +150,9 @@ export const TimelineSidebarRow: React.FC<TimelineSidebarRowProps> = ({
     </div>
   );
 };
+
+// Rendered once per row and re-created on every scroll tick by TimelineGrid. Its
+// props (row, width, callbacks) are stable across a scroll, so memoizing skips
+// re-rendering every sidebar row when only the scroll position changed.
+export const TimelineSidebarRow = React.memo(TimelineSidebarRowBase);
+TimelineSidebarRow.displayName = 'TimelineSidebarRow';

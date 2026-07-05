@@ -1,5 +1,6 @@
 import React from 'react';
 import { CaptionProps, useNavigation } from 'react-day-picker';
+import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
@@ -104,7 +105,16 @@ export const TimelineControls: React.FC = () => {
     setCurrentDate,
     visibleCenterDate,
     requestScrollToDate,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    viewMode: state.viewMode,
+    setViewMode: state.setViewMode,
+    groupMode: state.groupMode,
+    setGroupMode: state.setGroupMode,
+    currentDate: state.currentDate,
+    setCurrentDate: state.setCurrentDate,
+    visibleCenterDate: state.visibleCenterDate,
+    requestScrollToDate: state.requestScrollToDate,
+  })));
   const weekViewEnabled = useAuthStore((state) => isWeekViewEnabled(state.profilePreferences));
 
   const handlePrev = () => {

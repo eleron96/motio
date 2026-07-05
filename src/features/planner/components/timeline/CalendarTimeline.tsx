@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useEffect, useCallback, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { MilestoneDialog } from '@/features/planner/components/timeline/MilestoneDialog';
@@ -58,7 +59,19 @@ export const CalendarTimeline: React.FC = () => {
     setViewMode,
     requestScrollToDate,
     setTimelineAttentionDate,
-  } = usePlannerStore();
+  } = usePlannerStore(useShallow((state) => ({
+    tasks: state.tasks,
+    milestones: state.milestones,
+    projects: state.projects,
+    assignees: state.assignees,
+    memberGroupAssignments: state.memberGroupAssignments,
+    filters: state.filters,
+    currentDate: state.currentDate,
+    setCurrentDate: state.setCurrentDate,
+    setViewMode: state.setViewMode,
+    requestScrollToDate: state.requestScrollToDate,
+    setTimelineAttentionDate: state.setTimelineAttentionDate,
+  })));
   const user = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);

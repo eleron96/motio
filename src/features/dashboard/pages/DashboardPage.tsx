@@ -58,6 +58,10 @@ const DashboardWidgetCard = lazyNamed(
   () => import('@/features/dashboard/components/DashboardWidgetCard'),
   'DashboardWidgetCard'
 );
+const WorkloadHeatmapBoard = lazyNamed(
+  () => import('@/features/dashboard/components/WorkloadHeatmapBoard'),
+  'WorkloadHeatmapBoard'
+);
 import { WidgetEditorDialog } from '@/features/dashboard/components/WidgetEditorDialog';
 import { DashboardLayouts, DashboardWidget } from '@/features/dashboard/types/dashboard';
 import { Navigate } from 'react-router-dom';
@@ -65,6 +69,9 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
+import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
+
+type DashboardView = 'dashboards' | 'heatmap';
 
 const MOBILE_DRAG_HOLD_MS = 420;
 const MOBILE_DRAG_MOVE_TOLERANCE_PX = 10;
@@ -96,6 +103,7 @@ const DashboardPage = () => {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
+  const [view, setView] = useState<DashboardView>('dashboards');
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingWidget, setEditingWidget] = useState<DashboardWidget | null>(null);
   const [currentBreakpoint, setCurrentBreakpoint] = useState<DashboardBreakpoint>('lg');
@@ -164,13 +172,49 @@ const DashboardPage = () => {
 
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
+  const workspaces = useAuthStore((state) => state.workspaces);
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
+  const currentWorkspace = useMemo(
+    () => workspaces.find((workspace) => workspace.id === currentWorkspaceId) ?? null,
+    [workspaces, currentWorkspaceId],
+  );
+  const heatmapAvailable = isWorkloadHeatmapEnabled() && Boolean(currentWorkspace?.heatmapEnabled);
+  const isHeatmapView = view === 'heatmap' && heatmapAvailable;
 
   useOnboardingTour({
     pageId: 'dashboard',
     canEdit,
   });
+
+  const viewRestoredRef = useRef<string | null>(null);
+  const selectView = useCallback((next: DashboardView) => {
+    setView(next);
+    if (currentWorkspaceId && typeof window !== 'undefined') {
+      window.localStorage.setItem(`dashboard-view-${currentWorkspaceId}`, next);
+    }
+  }, [currentWorkspaceId]);
+
+  // Restore the last chosen view (dashboards vs heatmap) so a refresh keeps the
+  // heatmap open. Wait until the workspaces are loaded so heatmapAvailable is real.
+  useEffect(() => {
+    if (!currentWorkspaceId || workspaces.length === 0) return;
+    if (viewRestoredRef.current === currentWorkspaceId) return;
+    viewRestoredRef.current = currentWorkspaceId;
+    if (
+      heatmapAvailable
+      && typeof window !== 'undefined'
+      && window.localStorage.getItem(`dashboard-view-${currentWorkspaceId}`) === 'heatmap'
+    ) {
+      setView('heatmap');
+    }
+  }, [currentWorkspaceId, workspaces.length, heatmapAvailable]);
+
+  useEffect(() => {
+    if (!heatmapAvailable && view === 'heatmap') {
+      selectView('dashboards');
+    }
+  }, [heatmapAvailable, view, selectView]);
 
   const loadWorkspaceData = usePlannerStore((state) => state.loadWorkspaceData);
   const dashboardStorageKey = currentWorkspaceId
@@ -538,7 +582,7 @@ const DashboardPage = () => {
 
   useWorkspaceHeader(
     {
-      primaryAction: canEdit ? (
+      primaryAction: canEdit && !isHeatmapView ? (
         <Button
           data-tour="dashboard-add-widget"
           size="sm"
@@ -556,7 +600,7 @@ const DashboardPage = () => {
       onOpenSettings: () => setShowSettings(true),
       onOpenAccountSettings: () => setShowAccountSettings(true),
     },
-    [canEdit, canAddWidget],
+    [canEdit, canAddWidget, isHeatmapView],
   );
 
   if (isSuperAdmin) {
@@ -619,6 +663,7 @@ const DashboardPage = () => {
   };
 
   const handleCanvasDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isHeatmapView) return;
     if (isTouchReorderMode) return;
     if (!canAddWidget) return;
     const target = event.target;
@@ -777,6 +822,26 @@ const DashboardPage = () => {
         className="dashboard-toolbar flex flex-wrap items-center gap-2"
         style={{ marginBottom: Math.max(8, currentGridSettings.margin[1]) }}
       >
+        {heatmapAvailable && (
+          <div className="mr-1 inline-flex items-center rounded-md border border-border p-0.5">
+            <Button
+              variant={isHeatmapView ? 'ghost' : 'secondary'}
+              className="h-8 px-3 text-xs"
+              onClick={() => selectView('dashboards')}
+            >
+              {t`Dashboards`}
+            </Button>
+            <Button
+              variant={isHeatmapView ? 'secondary' : 'ghost'}
+              className="h-8 px-3 text-xs"
+              onClick={() => selectView('heatmap')}
+            >
+              {t`Heatmap`}
+            </Button>
+          </div>
+        )}
+        {!isHeatmapView && (
+          <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="gap-2">
@@ -851,7 +916,21 @@ const DashboardPage = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+          </>
+        )}
       </div>
+      {isHeatmapView ? (
+        <Suspense
+          fallback={(
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              {t`Loading workload...`}
+            </div>
+          )}
+        >
+          <WorkloadHeatmapBoard />
+        </Suspense>
+      ) : (
+        <>
       {canEdit && isTouchReorderMode && (
         <div className="mb-2 text-[11px] text-muted-foreground">
           {mobileDragArmedWidgetId
@@ -907,12 +986,14 @@ const DashboardPage = () => {
           ))}
         </ResponsiveGridLayout>
       )}
+        </>
+      )}
     </div>
   );
 
   return (
     <>
-      {isTouchReorderMode ? (
+      {isTouchReorderMode || isHeatmapView ? (
         dashboardCanvas
       ) : (
         <ContextMenu>

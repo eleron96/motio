@@ -1,0 +1,25 @@
+-- Remove the residual INSERT policy on workspace_members.
+--
+-- 0001_init.sql shipped `for insert with check (is_workspace_admin(workspace_id))`,
+-- which let a workspace admin INSERT an arbitrary user row directly via PostgREST
+-- (under the authenticated key) — forcing anyone whose profile id is known into the
+-- workspace, at any role, bypassing the email-invite + acceptance flow entirely.
+--
+-- No legitimate path relies on this policy. Every real insert of a membership row
+-- goes through a code path that already bypasses RLS:
+--   * create_workspace / ensure_initial_workspace — SECURITY DEFINER + row_security=off
+--     (self-insert as admin on workspace creation);
+--   * the invite edge function — upserts under the service_role key.
+-- The client never inserts into workspace_members directly. SELECT / UPDATE / DELETE
+-- policies are unaffected and stay in place (reading members, changing roles,
+-- owner-only removal from 0034).
+--
+-- Effect: with no INSERT policy, a direct authenticated PostgREST insert is denied,
+-- so adding a member is only possible through the invite flow (service_role) and the
+-- workspace-creation RPCs (definer). UI behaviour is unchanged.
+--
+-- Rollback (if ever needed):
+--   create policy "admins can manage workspace members" on public.workspace_members
+--     for insert with check (public.is_workspace_admin(workspace_id));
+
+drop policy if exists "admins can manage workspace members" on public.workspace_members;

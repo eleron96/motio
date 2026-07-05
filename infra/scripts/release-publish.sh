@@ -7,7 +7,7 @@ set -euo pipefail
 # publishes a GitHub Release from the matching CHANGELOG.en.md section.
 #
 # Design goals:
-#   - Cheap: runs automatically at the tail of `release-sync`, no extra ritual.
+#   - Manual: run `make release-publish` from main after the release merge.
 #   - Low-noise: a git tag is created for EVERY version (rollback / bisect
 #     anchors are invisible and always useful), but a public GitHub Release is
 #     only created when the changelog section has real content. Versions whose

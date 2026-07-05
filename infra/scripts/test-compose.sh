@@ -75,6 +75,11 @@ if [[ ! -x "infra/scripts/keycloak-ensure-realm-session-policy.sh" ]]; then
   exit 1
 fi
 
+if [[ ! -x "infra/scripts/keycloak-ensure-realm-bruteforce.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-realm-bruteforce.sh" >&2
+  exit 1
+fi
+
 get_env_value() {
   local key="$1"
   local line
@@ -179,6 +184,7 @@ infra/scripts/keycloak-ensure-realm-ssl-required.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-branding.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-frontend-url.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-session-policy.sh "$env_file"
+infra/scripts/keycloak-ensure-realm-bruteforce.sh "$env_file"
 
 # --- Reload gateway config gracefully ---
 # Show nginx -t output so config errors are visible in deploy logs.

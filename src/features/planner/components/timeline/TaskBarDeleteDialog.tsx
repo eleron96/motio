@@ -54,7 +54,11 @@ const TaskBarDeleteDialogBase: React.FC<TaskBarDeleteDialogProps> = ({
     if (!task.assigneeIds.includes(rowAssigneeId)) return null;
     return assignees.find((assignee) => assignee.id === rowAssigneeId) ?? null;
   }, [assignees, rowAssigneeId, task.assigneeIds]);
-  const scopedDeleteAvailable = Boolean(scopedAssignee);
+  // "Only for X" (remove just this assignee) only makes sense when the task has
+  // OTHER assignees too. For a sole assignee it wouldn't delete the task — it would
+  // just unassign them and leave an orphaned unassigned task — so hide the option
+  // and show a plain "Delete task?" instead.
+  const scopedDeleteAvailable = Boolean(scopedAssignee) && task.assigneeIds.length > 1;
   const scopedAssigneeName = scopedAssignee?.name ?? t`Unknown user`;
 
   useEffect(() => {

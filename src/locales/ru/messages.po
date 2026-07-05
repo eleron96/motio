@@ -92,6 +92,14 @@ msgstr "{0} проектов"
 msgid "{0} selected"
 msgstr "{0} выбрано"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#~ msgid "{0} tasks · ≈{1} per person"
+#~ msgstr "{0} задач · ≈{1} на человека"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#~ msgid "{0} tasks in progress"
+#~ msgstr "{0} задач в работе"
+
 #. placeholder {0}: formatRole(previousRole)
 #. placeholder {1}: formatRole(nextRole)
 #: src/shared/lib/workspaceMemberActivity.ts
@@ -329,6 +337,10 @@ msgstr "Добавьте описание..."
 msgid "Add a widget"
 msgstr "Добавить виджет"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Add active assignees to see the workload gradient. Milestones are still shown."
+msgstr "Добавьте активных исполнителей, чтобы увидеть градиент загрузки. Вехи показываются в любом случае."
+
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #~ msgid "Add activity entry"
@@ -490,6 +502,7 @@ msgstr "Архивировать"
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -536,9 +549,17 @@ msgstr "Ошибка аутентификации"
 msgid "Authentication failed."
 msgstr "Ошибка аутентификации."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Auto"
+msgstr "Авто"
+
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #~ msgid "Auto (from date)"
 #~ msgstr "Авто (по дате)"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "auto from history"
+msgstr "авто по истории"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -1074,6 +1095,7 @@ msgid "Dashboard settings"
 msgstr "Настройки дашборда"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboards"
 msgstr "Дашборды"
 
@@ -1111,6 +1133,10 @@ msgstr "Даты"
 msgid "Day"
 msgstr "День"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Day off"
+msgstr "Выходной"
+
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
 msgstr "Отклонить"
@@ -1119,6 +1145,10 @@ msgstr "Отклонить"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Declined"
 msgstr "Отклонено"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "default"
+msgstr "по умолчанию"
 
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
@@ -1617,6 +1647,10 @@ msgstr "Выйти из демо"
 msgid "Expand filters"
 msgstr "Развернуть фильтры"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "experimental"
+msgstr "экспериментальная"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Expired"
 msgstr "Истекло"
@@ -1819,6 +1853,14 @@ msgstr "Досрочное удаление не удалось"
 msgid "Force purge scheduled"
 msgstr "Досрочное удаление запланировано"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#~ msgid "Free"
+#~ msgstr "Свободно"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Full day ≈ {capacityDisplay} tasks/person"
+msgstr "Полный день ≈ {capacityDisplay} задач/чел"
+
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -1833,6 +1875,10 @@ msgstr "Имя и фамилия"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Full snapshot from the admin console. Restore in one command."
 msgstr "Полный снимок из админки. Восстановление одной командой."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Full working day (tasks per person)"
+msgstr "Полный рабочий день (задач на человека)"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "General"
@@ -1912,6 +1958,10 @@ msgstr "Группируйте задачи по проектам, ставьт�
 msgid "Groups"
 msgstr "Группы"
 
+#: src/features/dashboard/pages/DashboardPage.tsx
+msgid "Heatmap"
+msgstr "Тепловая карта"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
 msgstr "Здесь вы видите все задачи на таймлайне. Перетаскивайте, растягивайте и планируйте работу команды."
@@ -1944,6 +1994,9 @@ msgstr "История"
 msgid "Hold the widget header to enable moving."
 msgstr "Удерживайте заголовок виджета, чтобы включить перемещение."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Holiday"
@@ -2138,6 +2191,11 @@ msgstr "Линейный график"
 msgid "List"
 msgstr "Список"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Load"
+msgstr "Загрузка"
+
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Load older comments"
 msgstr "Загрузить более старые комментарии"
@@ -2196,6 +2254,11 @@ msgstr "Загрузка шаблона..."
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Loading users..."
 msgstr "Загрузка пользователей..."
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/pages/DashboardPage.tsx
+msgid "Loading workload..."
+msgstr "Считаем загрузку..."
 
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Loading workspace..."
@@ -2306,6 +2369,10 @@ msgstr "упомянул(а) вас в комментарии"
 msgid "Menu"
 msgstr "Меню"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Milestone"
+msgstr "Веха"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Milestone actions"
@@ -2316,6 +2383,7 @@ msgid "Milestone name..."
 msgstr "Название вехи..."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -2737,6 +2805,10 @@ msgstr "Нет этапов"
 msgid "No milestones match the current filters."
 msgstr "Нет вех, соответствующих текущим фильтрам."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "No milestones on this day"
+msgstr "В этот день вех нет"
+
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "No milestones yet for this project."
 msgstr "По этому проекту пока нет вех."
@@ -2897,6 +2969,7 @@ msgstr "Рабочие пространства не требуют вашего
 msgid "No workspaces."
 msgstr "Нет воркспейсов."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Non-working day"
@@ -3014,6 +3087,10 @@ msgstr "Открыть меню"
 #~ msgid "Open navigation menu"
 #~ msgstr "Открыть меню навигации"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Open on timeline"
+msgstr "Открыть на таймлайне"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -3043,6 +3120,10 @@ msgstr "просрочено"
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
 msgid "Overdue by {diff}d"
 msgstr "Просрочено на {diff} д"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "overloaded"
+msgstr "перегруз"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Owner"
@@ -3397,6 +3478,7 @@ msgid "Repeat"
 msgstr "Повтор"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
+#: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat limit"
 msgstr "Ограничение повтора"
 
@@ -3408,6 +3490,7 @@ msgstr "Настройки повтора"
 msgid "Repeat task"
 msgstr "Повторять задачу"
 
+#: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat type"
 msgstr "Тип повтора"
@@ -3459,6 +3542,10 @@ msgstr "Восстановить мой аккаунт"
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "Restoring…"
 msgstr "Восстановление…"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Retry"
+msgstr "Повторить"
 
 #: src/app/PageErrorBoundary.tsx
 msgid "Return to Home"
@@ -3523,6 +3610,7 @@ msgstr "Шалфейный"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Save"
 msgstr "Сохранить"
 
@@ -3546,6 +3634,14 @@ msgstr "Сохранено."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Saving..."
 msgstr "Сохранение..."
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Scroll left"
+msgstr "Прокрутить влево"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Scroll right"
+msgstr "Прокрутить вправо"
 
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -3753,6 +3849,10 @@ msgstr "Чтобы отправлять приглашения, нужен на�
 msgid "Sent invites"
 msgstr "Отправленные приглашения"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "set manually"
+msgstr "задано вручную"
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 msgid "Set or clear the custom status label shown on this project."
 msgstr "Установить или очистить пользовательский статус проекта."
@@ -3815,6 +3915,10 @@ msgstr "Показывать задачи без назначенного исп
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show tasks without an assignee."
 msgstr "Показывать задачи без исполнителя."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Show the department workload board on the dashboard"
+msgstr "Показывать борд загрузки отдела на дашборде"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show unassigned"
@@ -3987,6 +4091,10 @@ msgstr "Действия с задачей"
 msgid "Task deleted"
 msgstr "Задача удалена"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Task density and milestones across the coming months"
+msgstr "Плотность задач и вехи на ближайшие месяцы"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4018,6 +4126,7 @@ msgstr "Задача создана, но подзадачи не удалось
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Tasks"
@@ -4055,7 +4164,9 @@ msgstr "Доступ команды"
 msgid "Team planning workspace."
 msgstr "Воркспейс для командного планирования."
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/marketing/pages/LandingPage.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Team workload"
 msgstr "Нагрузка команды"
 
@@ -4164,6 +4275,10 @@ msgstr "этот клиент"
 msgid "this dashboard"
 msgstr "этот дашборд"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history."
+msgstr "Это нагрузка, которая считается за 100%. Оставьте пустым — подстроится автоматически по недавней истории команды."
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "This is where your workspace projects are listed and reviewed."
 msgstr "Здесь перечислены проекты рабочего пространства и их можно просматривать."
@@ -4271,10 +4386,15 @@ msgstr "сегодня"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Today"
 msgstr "Сегодня"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Toggle workload heatmap"
+msgstr "Переключить тепловую карту загрузки"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 msgid "Tomorrow"
@@ -4474,6 +4594,8 @@ msgstr "Несохраненные изменения"
 #~ msgstr "Без тега"
 
 #. placeholder {0}: formatUntil(params.until)
+#. placeholder {0}: formatUntilShort(projectedEnd)
+#: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "until {0}"
 msgstr "до {0}"
@@ -4642,6 +4764,10 @@ msgstr "Виджеты"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workflow"
 msgstr "Процесс"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Workload heatmap"
+msgstr "Тепловая карта загрузки"
 
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/lib/appNavigation.ts
