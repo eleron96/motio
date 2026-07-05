@@ -550,6 +550,7 @@ msgid "Authentication failed."
 msgstr "Authentication failed."
 
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Auto"
 msgstr "Auto"
 
