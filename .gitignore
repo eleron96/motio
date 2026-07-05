@@ -30,7 +30,7 @@ dist-ssr
 .supabase-functions.env
 infra/backups/
 infra/seeds/
-docs/
+notes/
 /marketing/
 
 # Editor directories and files
