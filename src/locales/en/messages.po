@@ -3637,12 +3637,12 @@ msgid "Saving..."
 msgstr "Saving..."
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-msgid "Scroll left"
-msgstr "Scroll left"
+#~ msgid "Scroll left"
+#~ msgstr "Scroll left"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-msgid "Scroll right"
-msgstr "Scroll right"
+#~ msgid "Scroll right"
+#~ msgstr "Scroll right"
 
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
