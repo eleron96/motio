@@ -9,11 +9,15 @@
 // runs 6 tasks/person reads differently from one that runs 2.
 //
 //   taskShare      = (taskCount / activeHeadcount) / capacity
-//   milestoneShare = milestoneKernelSum(day) * MILESTONE_FRACTION
-//   percent        = round((taskShare + milestoneShare) * 100)   // may exceed 100
+//   pinnedPeople   = min(milestoneKernelSum(day) * MILESTONE_CREW, headcount)
+//   percent        = round((taskShare + pinnedPeople / headcount) * 100)  // may exceed 100
 //
-// A single milestone in its crunch window is deliberately heavy (≈70% of a full
-// day), so two or three milestones together push a day into overload (>100%).
+// Milestones are measured in PEOPLE, not in a fixed percent: a delivery pins a
+// small crew that cannot be shifted to other objects, so the same delivery reads
+// ~35% for a team of 4 and ~14% for a team of 10. Simultaneous deliveries pin
+// separate crews — no diminishing returns — which is what makes several same-day
+// deliveries hit a small team hard. The pinned crew is capped at the whole team:
+// milestones alone can show a full day, but only real tasks push past 100%.
 
 import type { DashboardMilestone } from '@/features/dashboard/types/dashboard';
 
@@ -24,29 +28,25 @@ export type WorkloadDay = {
 
 export type HeatmapLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
-// Milestone kernel (tasks-per-person-independent factors). A deadline pushes hard
-// for the 3-4 days before it and lightly for 1-2 days after; the day itself weighs
-// the same as the day before (they share the peak).
-//   -4:0.25  -3:0.50  -2:0.75  -1:1.00  0:1.00  +1:0.35  +2:0.15   else 0
+// Milestone kernel: how strongly a day feels a delivery N days away. A half-cosine
+// ramp — barely visible from afar, most of the climb over the last 2 days — that
+// plateaus the day BEFORE the deadline (deadline eve and the day itself share the
+// peak), with a short tail after.
+//   -4:0.15  -3:0.50  -2:0.85  -1:1.00  0:1.00  +1:0.30  +2:0.10   else 0
 const KERNEL_WEIGHTS: Record<number, number> = {
-  [-4]: 0.25,
+  [-4]: 0.15,
   [-3]: 0.5,
-  [-2]: 0.75,
+  [-2]: 0.85,
   [-1]: 1,
   [0]: 1,
-  [1]: 0.35,
-  [2]: 0.15,
+  [1]: 0.3,
+  [2]: 0.1,
 };
 
-// One milestone at peak counts as this share of a full day (moderate — a single
-// delivery is notable but not a runaway red).
-export const MILESTONE_FRACTION = 0.45;
-// Several deliveries on the SAME day make it heavier, but with diminishing returns
-// (4 deliveries ≈ 1.75×, not 4×). The whole stacked kernel is then capped so a
-// cluster of deadlines can't inflate a day without bound.
-const SAME_DAY_STEP = 0.25;
-const SAME_DAY_MAX = 2;
-const MILESTONE_STACK_CAP = 1.8;
+// How many people one delivery pins at its peak. This is the single tuning knob
+// for milestone pressure: the day's share is pinned people over headcount, so one
+// delivery reads ~35% for a team of 4 and ~14% for a team of 10.
+export const MILESTONE_CREW = 1.4;
 
 // Fallbacks for capacity when there is no override and not enough history.
 export const DEFAULT_CAPACITY_PER_PERSON = 5;
@@ -62,27 +62,20 @@ const dayDiff = (a: Date, b: Date): number => Math.round(
 
 const kernelFactor = (offset: number): number => KERNEL_WEIGHTS[offset] ?? 0;
 
-// Kernel pressure this day feels from nearby milestones. Milestones that fall on
-// the SAME date count once (four sub-deliveries on one day are one crunch, not
-// four), and the total is capped so a cluster of deadlines can't run away.
+// Kernel pressure this day feels from nearby milestones, in units of "deliveries
+// at peak". Every delivery counts fully — each pins its own crew — so the sum is
+// uncapped here; dayPercent caps the resulting crew at the team's headcount.
 export const milestoneKernelSum = (
   iso: string,
   milestones: DashboardMilestone[],
 ): number => {
   if (milestones.length === 0) return 0;
   const day = parseIsoDate(iso);
-  const countByDate = new Map<string, number>();
-  for (const milestone of milestones) {
-    countByDate.set(milestone.date, (countByDate.get(milestone.date) ?? 0) + 1);
-  }
   let total = 0;
-  for (const [date, count] of countByDate) {
-    const weight = kernelFactor(dayDiff(day, parseIsoDate(date)));
-    if (weight === 0) continue;
-    const sameDayFactor = Math.min(1 + SAME_DAY_STEP * (count - 1), SAME_DAY_MAX);
-    total += weight * sameDayFactor;
+  for (const milestone of milestones) {
+    total += kernelFactor(dayDiff(day, parseIsoDate(milestone.date)));
   }
-  return Math.min(total, MILESTONE_STACK_CAP);
+  return total;
 };
 
 const percentile = (sortedAsc: number[], p: number): number => {
@@ -114,6 +107,8 @@ export const resolveCapacity = (
 };
 
 // Percent of a full day. Not clamped: >100 is overload and is shown as such.
+// The milestone crew is capped at the whole team — deadlines can't pin more
+// people than exist — so overload past 100% always comes from actual tasks.
 export const dayPercent = (
   taskCount: number,
   headcount: number,
@@ -121,9 +116,10 @@ export const dayPercent = (
   kernelSum: number,
 ): number => {
   const safeCapacity = capacity > 0 ? capacity : DEFAULT_CAPACITY_PER_PERSON;
-  const taskShare = (taskCount / Math.max(headcount, 1)) / safeCapacity;
-  const milestoneShare = kernelSum * MILESTONE_FRACTION;
-  return Math.round((taskShare + milestoneShare) * 100);
+  const safeHeadcount = Math.max(headcount, 1);
+  const taskShare = (taskCount / safeHeadcount) / safeCapacity;
+  const pinnedPeople = Math.min(kernelSum * MILESTONE_CREW, safeHeadcount);
+  return Math.round((taskShare + pinnedPeople / safeHeadcount) * 100);
 };
 
 export const levelForPercent = (percent: number): HeatmapLevel => {
