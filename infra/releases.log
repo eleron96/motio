@@ -350,3 +350,4 @@
 2026-07-03T17:33:17Z | 0.9.1 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260703-173238.dump | No documented changes.
 2026-07-04T21:56:18Z | 0.9.2 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260704-215538.dump | The timeline is smoother when dragging tasks and scrolling horizontally.
 2026-07-04T22:21:43Z | 0.9.3 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260704-222104.dump | Removed the redundant "Only for …" option in the task delete dialog when a task has a single assignee.
+2026-07-06T12:34:13Z | 0.9.4 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260706-123334.dump | No documented changes.
