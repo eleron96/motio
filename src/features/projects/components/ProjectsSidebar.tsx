@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
 
-type Mode = 'projects' | 'milestones' | 'customers';
+type Mode = 'projects' | 'milestones' | 'customers' | 'contacts';
 type ProjectTab = 'active' | 'archived';
 type MilestoneTab = 'active' | 'past';
 
@@ -412,6 +412,12 @@ export const ProjectsSidebar = ({
               onClick={() => onModeChange('customers')}
             >
               {t`Customers`}
+            </SegmentedControlItem>
+            <SegmentedControlItem
+              active={mode === 'contacts'}
+              onClick={() => onModeChange('contacts')}
+            >
+              {t`Contacts`}
             </SegmentedControlItem>
           </SegmentedControl>
         </div>

@@ -41,7 +41,9 @@ type DisplayTaskRow = {
 };
 
 type ProjectsMainPanelProps = {
-  mode: 'projects' | 'milestones' | 'customers';
+  // 'contacts' never renders here (the page shows a full-width panel for it),
+  // but the shared mode type includes it.
+  mode: 'projects' | 'milestones' | 'customers' | 'contacts';
   selectedProject: Project | null;
   customerById: Map<string, Customer>;
   taskScope: TaskScope;

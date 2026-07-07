@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 type NameSort = 'asc' | 'desc';
 type MilestoneTab = 'active' | 'past';
 type ProjectsTab = 'active' | 'archived';
-type ProjectsMode = 'projects' | 'milestones' | 'customers';
+type ProjectsMode = 'projects' | 'milestones' | 'customers' | 'contacts';
 
 export type MilestoneGroupBy = 'project' | 'customer' | 'month';
 
@@ -72,7 +72,7 @@ export const useProjectsViewPreferences = ({
         if (parsed.tab === 'active' || parsed.tab === 'archived') {
           setTab(parsed.tab);
         }
-        if (parsed.mode === 'projects' || parsed.mode === 'milestones' || parsed.mode === 'customers') {
+        if (parsed.mode === 'projects' || parsed.mode === 'milestones' || parsed.mode === 'customers' || parsed.mode === 'contacts') {
           setMode(parsed.mode);
         }
         if (typeof parsed.selectedProjectId === 'string' || parsed.selectedProjectId === null) {

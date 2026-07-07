@@ -58,7 +58,8 @@ export interface Customer {
 /** Phase 3: a person on the customer side (Project Card → Customer block). */
 export interface CustomerContact {
   id: string;
-  customerId: string;
+  /** Null for standalone contacts entered from the Contacts tab (no client). */
+  customerId: string | null;
   name: string;
   role: string | null;
   email: string | null;

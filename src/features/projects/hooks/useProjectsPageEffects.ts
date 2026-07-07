@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
 
-type ProjectsMode = 'projects' | 'milestones' | 'customers';
+type ProjectsMode = 'projects' | 'milestones' | 'customers' | 'contacts';
 type ProjectsTab = 'active' | 'archived';
 
 type UseProjectsPageEffectsArgs = {
