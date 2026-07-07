@@ -17,6 +17,9 @@ interface PersonSuggestFieldProps {
 }
 
 const DEFAULT_LIMIT = 6;
+// Don't suggest until the user has actually started typing a name — an empty
+// focused field must look like a plain input, not dump the whole directory.
+const MIN_QUERY_LENGTH = 2;
 
 /**
  * A plain text input that suggests people entered elsewhere in the workspace.
@@ -48,12 +51,15 @@ export const PersonSuggestField: React.FC<PersonSuggestFieldProps> = ({
 
   const suggestions = useMemo(() => {
     if (people.length === 0) return [];
-    const matches = matchKnownPeople(people, value);
-    const trimmed = value.trim().toLowerCase();
+    const trimmed = value.trim();
+    // Nothing until there's a real query — focusing an empty field shows no list.
+    if (trimmed.length < MIN_QUERY_LENGTH) return [];
+    const matches = matchKnownPeople(people, trimmed);
+    const lower = trimmed.toLowerCase();
     // Hide a lone suggestion that already equals the current input — there's
     // nothing left to autofill from it.
     const filtered = matches.filter(
-      (person) => !(matches.length === 1 && person.name.toLowerCase() === trimmed),
+      (person) => !(matches.length === 1 && person.name.toLowerCase() === lower),
     );
     return filtered.slice(0, limit);
   }, [people, value, limit]);

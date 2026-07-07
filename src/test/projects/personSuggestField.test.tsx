@@ -49,6 +49,23 @@ describe('PersonSuggestField', () => {
     expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: 'Анна Смирнова', email: 'anna@stroy.ru' }));
   });
 
+  it('shows no suggestions on focus or a single typed character', () => {
+    render(<Harness people={people} onPick={vi.fn()} />);
+    const input = screen.getByPlaceholderText('Full name');
+
+    // Focus alone must not surface the directory.
+    fireEvent.focus(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+    // One character is still below the threshold.
+    fireEvent.change(input, { target: { value: 'А' } });
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+    // Two characters cross it.
+    fireEvent.change(input, { target: { value: 'Ан' } });
+    expect(screen.getByText('Анна Смирнова')).toBeInTheDocument();
+  });
+
   it('renders no suggestion list when there are no known people', () => {
     render(<Harness people={[]} onPick={vi.fn()} />);
     const input = screen.getByPlaceholderText('Full name');
