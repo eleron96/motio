@@ -20,6 +20,7 @@ vi.mock('@/shared/lib/featureFlags', () => ({
   isProjectCardEnabled: () => false,
   isProjectCardMobileEnabled: () => false,
   isAccountDeletionEnabled: () => false,
+  isPeopleSuggestEnabled: () => false,
 }));
 
 const useIsMobileMock = vi.mocked(useIsMobile);
