@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { t } from '@lingui/macro';
 import { Button } from '@/shared/ui/button';
+import type { KnownPerson } from '@/features/projects/lib/knownPeople';
+import { PersonSuggestField } from './PersonSuggestField';
+
+const FIELD_CLASS = 'rounded-md border border-border bg-card px-2.5 py-1.5 text-[13px] outline-none focus:border-primary';
 
 interface AddContactFormProps {
   /**
@@ -17,9 +21,14 @@ interface AddContactFormProps {
     tag: string;
   }) => Promise<boolean | void> | boolean | void;
   onCancel: () => void;
+  /**
+   * Previously-entered people to suggest while typing the name. Empty (the
+   * default) makes the name field behave exactly like a plain input.
+   */
+  people?: readonly KnownPerson[];
 }
 
-export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel }) => {
+export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel, people }) => {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [email, setEmail] = useState('');
@@ -59,11 +68,20 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
         }
       }}
     >
-      <Field
+      <PersonSuggestField
         placeholder={t`Full name`}
         value={name}
         onChange={setName}
+        onPick={(person) => {
+          setName(person.name);
+          if (person.role) setRole(person.role);
+          if (person.email) setEmail(person.email);
+          if (person.phone) setPhone(person.phone);
+          if (person.company) setTag(person.company);
+        }}
+        people={people ?? []}
         autoFocus
+        className={FIELD_CLASS}
       />
       <Field placeholder={t`Role / job title`} value={role} onChange={setRole} />
       <Field placeholder={t`Company / contractor`} value={tag} onChange={setTag} />
@@ -96,6 +114,6 @@ const Field: React.FC<FieldProps> = ({ placeholder, value, onChange, type, autoF
     placeholder={placeholder}
     value={value}
     onChange={(event) => onChange(event.target.value)}
-    className="rounded-md border border-border bg-card px-2.5 py-1.5 text-[13px] outline-none focus:border-primary"
+    className={FIELD_CLASS}
   />
 );

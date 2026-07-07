@@ -3269,6 +3269,10 @@ msgstr "Prev"
 msgid "Previous"
 msgstr "Previous"
 
+#: src/features/projects/components/projectCard/PersonSuggestField.tsx
+msgid "Previously entered"
+msgstr "Previously entered"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx

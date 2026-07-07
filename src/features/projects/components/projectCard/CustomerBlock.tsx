@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Building2, Group, Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
 import type { Customer, CustomerContact } from '@/features/planner/types/planner';
+import type { KnownPerson } from '@/features/projects/lib/knownPeople';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { ContactPopup } from './ContactPopup';
@@ -26,6 +27,8 @@ interface CustomerBlockProps {
     id: string,
     updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
   ) => Promise<boolean>;
+  /** Previously-entered people to suggest in the add form. Empty = plain input. */
+  people?: readonly KnownPerson[];
 }
 
 const buildInitials = (name: string): string => {
@@ -44,6 +47,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   onAddContact,
   onDeleteContact,
   onUpdateContact,
+  people,
 }) => {
   const isMobile = useIsMobile();
   // M4: mobile users can add and delete contacts via bottom sheets. Desktop
@@ -239,7 +243,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
       </div>
 
       {adding && !isMobile && (
-        <AddContactForm onSave={handleSave} onCancel={() => setAdding(false)} />
+        <AddContactForm onSave={handleSave} onCancel={() => setAdding(false)} people={people} />
       )}
 
       {contacts.length === 0 && !adding && (
