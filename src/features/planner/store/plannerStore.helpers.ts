@@ -58,7 +58,7 @@ export type CustomerRow = {
 export type CustomerContactRow = {
   id: string;
   workspace_id: string;
-  customer_id: string;
+  customer_id: string | null;
   name: string;
   role: string | null;
   email: string | null;

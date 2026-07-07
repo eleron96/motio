@@ -1,0 +1,86 @@
+import { describe, expect, it } from 'vitest';
+
+import { buildContactList, searchContactList } from '@/features/projects/lib/contactList';
+import type { Customer, CustomerContact, ProjectMember } from '@/features/planner/types/planner';
+
+const contact = (over: Partial<CustomerContact>): CustomerContact => ({
+  id: over.id ?? 'c1',
+  customerId: over.customerId === undefined ? 'cust1' : over.customerId,
+  name: over.name ?? 'Иван Петров',
+  role: over.role ?? null,
+  email: over.email ?? null,
+  phone: over.phone ?? null,
+  position: over.position ?? 0,
+  tag: over.tag ?? null,
+});
+
+const member = (over: Partial<ProjectMember>): ProjectMember => ({
+  id: over.id ?? 'm1',
+  projectId: over.projectId ?? 'p1',
+  assigneeId: over.assigneeId ?? null,
+  role: over.role ?? null,
+  position: over.position ?? 0,
+  tag: over.tag ?? null,
+  externalName: over.externalName ?? null,
+  externalCompany: over.externalCompany ?? null,
+  externalEmail: over.externalEmail ?? null,
+  externalPhone: over.externalPhone ?? null,
+});
+
+const customersById = new Map<string, Customer>([
+  ['cust1', { id: 'cust1', name: 'Blue Orbit', industry: null }],
+]);
+
+describe('buildContactList', () => {
+  it('lists customer contacts with their client name, and standalone ones with null', () => {
+    const entries = buildContactList([
+      contact({ id: 'c1', name: 'Анна', customerId: 'cust1', tag: 'ООО Ромашка' }),
+      contact({ id: 'c2', name: 'Борис', customerId: null }),
+    ], [], customersById);
+    const anna = entries.find((e) => e.name === 'Анна')!;
+    expect(anna.source).toMatchObject({ kind: 'contact', customerId: 'cust1', customerName: 'Blue Orbit' });
+    expect(anna.company).toBe('ООО Ромашка');
+    const boris = entries.find((e) => e.name === 'Борис')!;
+    expect(boris.source).toMatchObject({ kind: 'contact', customerId: null, customerName: null });
+  });
+
+  it('dedupes an external person across projects, keeping every member id', () => {
+    const entries = buildContactList([], [
+      member({ id: 'm1', projectId: 'p1', externalName: 'Игорь', externalCompany: 'СтройТех', externalEmail: 'i@s.ru' }),
+      member({ id: 'm2', projectId: 'p2', externalName: 'Игорь', externalCompany: 'СтройТех', externalEmail: 'i@s.ru', role: 'прораб' }),
+    ], customersById);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].source).toEqual({ kind: 'external', memberIds: ['m1', 'm2'], projectIds: ['p1', 'p2'] });
+    expect(entries[0].role).toBe('прораб'); // gap filled from later row
+  });
+
+  it('skips workspace members and empty names, sorts by name', () => {
+    const entries = buildContactList(
+      [contact({ id: 'c1', name: 'Яков' })],
+      [
+        member({ id: 'm1', assigneeId: 'a1', externalName: 'Игнор', externalCompany: 'X' }),
+        member({ id: 'm2', externalName: '  ' }),
+        member({ id: 'm3', externalName: 'Абрам', externalCompany: 'Y' }),
+      ],
+      customersById,
+    );
+    expect(entries.map((e) => e.name)).toEqual(['Абрам', 'Яков']);
+  });
+});
+
+describe('searchContactList', () => {
+  const entries = buildContactList([
+    contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.ru', tag: 'СтройГрупп' }),
+    contact({ id: 'c2', name: 'Борис Иванов', email: 'boris@x.ru' }),
+  ], [], customersById);
+
+  it('empty query returns all', () => {
+    expect(searchContactList(entries, '  ')).toHaveLength(2);
+  });
+
+  it('matches name, company, email case-insensitively', () => {
+    expect(searchContactList(entries, 'анна').map((e) => e.name)).toEqual(['Анна Смирнова']);
+    expect(searchContactList(entries, 'СТРОЙГ').map((e) => e.name)).toEqual(['Анна Смирнова']);
+    expect(searchContactList(entries, 'boris@').map((e) => e.name)).toEqual(['Борис Иванов']);
+  });
+});

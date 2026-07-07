@@ -41,6 +41,8 @@ import {
   groupProjectsForSidebar,
   sortCustomersByName,
 } from '@/features/projects/lib/projectsSelectors';
+import { buildContactList } from '@/features/projects/lib/contactList';
+import { ContactsListPanel } from '@/features/projects/components/ContactsListPanel';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
@@ -409,6 +411,12 @@ const ProjectsPage = () => {
     () => filterCustomersBySearch(sortedCustomers, customerSearch),
     [customerSearch, sortedCustomers],
   );
+  // Contacts tab: one flat list of every person (customer contacts +
+  // deduped external project members).
+  const contactEntries = useMemo(
+    () => buildContactList(customerContacts, projectMemberRows, customerById),
+    [customerContacts, projectMemberRows, customerById],
+  );
   const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
 
   useEffect(() => {
@@ -477,7 +485,7 @@ const ProjectsPage = () => {
   // Customer contact handlers; surface mutation errors via the
   // existing error banner.
   const handleAddCustomerContact = useCallback(async (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
+    payload: { customerId: string | null; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
   ): Promise<boolean> => {
     setMutationError('');
     const result = await addCustomerContact(payload);
@@ -500,7 +508,7 @@ const ProjectsPage = () => {
 
   const handleUpdateCustomerContact = useCallback(async (
     id: string,
-    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null; customerId?: string | null },
   ): Promise<boolean> => {
     setMutationError('');
     const result = await updateCustomerContact(id, updates);
@@ -510,6 +518,33 @@ const ProjectsPage = () => {
     }
     return true;
   }, [updateCustomerContact]);
+
+  // "Edit / delete everywhere" for a deduplicated external person: apply the
+  // same change to every backing project_members row.
+  const handleUpdateExternalPerson = useCallback(async (
+    memberIds: string[],
+    updates: { externalName: string; externalCompany: string | null; externalEmail: string | null; externalPhone: string | null; role: string | null; tag: string | null },
+  ): Promise<boolean> => {
+    setMutationError('');
+    const results = await Promise.all(memberIds.map((memberId) => updateProjectMember(memberId, updates)));
+    const failed = results.find((result) => result?.error);
+    if (failed?.error) {
+      setMutationError(failed.error);
+      return false;
+    }
+    return true;
+  }, [updateProjectMember]);
+
+  const handleDeleteExternalPerson = useCallback(async (memberIds: string[]): Promise<boolean> => {
+    setMutationError('');
+    const results = await Promise.all(memberIds.map((memberId) => deleteProjectMember(memberId)));
+    const failed = results.find((result) => result?.error);
+    if (failed?.error) {
+      setMutationError(failed.error);
+      return false;
+    }
+    return true;
+  }, [deleteProjectMember]);
 
   // Project member handlers (workspace + external).
   const handleAddProjectMember = useCallback(async (
@@ -937,10 +972,11 @@ const ProjectsPage = () => {
   // sidebar and the legacy customers sidebar. On mobile this also replaces
   // the top-of-page MobilePillSubnav so the user has only one mode switcher.
   const renderModeTabs = () => {
-    const tabs: Array<{ id: 'projects' | 'milestones' | 'customers'; label: string }> = [
+    const tabs: Array<{ id: 'projects' | 'milestones' | 'customers' | 'contacts'; label: string }> = [
       { id: 'projects', label: t`Projects` },
       { id: 'milestones', label: t`Milestones` },
       { id: 'customers', label: t`Customers` },
+      { id: 'contacts', label: t`Contacts` },
     ];
     return (
       <div className="border-b border-border bg-card px-3 py-2">
@@ -1197,6 +1233,22 @@ const ProjectsPage = () => {
     return legacySidebar;
   };
 
+  const renderContactsPanel = () => (
+    <ContactsListPanel
+      entries={contactEntries}
+      customers={sortedCustomers}
+      projectById={projectById}
+      canEdit={canEdit}
+      sectionPadding={isMobile ? 'px-4 py-3' : 'px-6 py-4'}
+      onAddContact={handleAddCustomerContact}
+      onUpdateContact={handleUpdateCustomerContact}
+      onDeleteContact={handleDeleteCustomerContact}
+      onUpdateExternalPerson={handleUpdateExternalPerson}
+      onDeleteExternalPerson={handleDeleteExternalPerson}
+      onOpenProject={handleOpenProjectFromCustomer}
+    />
+  );
+
   const renderProjectsMainPanel = () => (
     <ProjectsMainPanel
       mode={mode}
@@ -1312,7 +1364,8 @@ const ProjectsPage = () => {
 
   useWorkspaceHeader(
     {
-      primaryAction: mode === 'customers' ? (
+      // Contacts tab has its own "Add contact" button inside the panel.
+      primaryAction: mode === 'contacts' ? null : mode === 'customers' ? (
         <Button
           data-tour="projects-primary-action"
           onClick={() => setCreateCustomerOpen(true)}
@@ -1376,7 +1429,15 @@ const ProjectsPage = () => {
         </div>
       )}
 
-      {isMobile ? (
+      {mode === 'contacts' ? (
+        // Flat directory — full width, no master-detail sidebar.
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+          {renderModeTabs()}
+          <div className="flex-1 min-h-0">
+            {renderContactsPanel()}
+          </div>
+        </div>
+      ) : isMobile ? (
         <>
           <MobilePageSheetLayout
             open={mobileSidebarOpen}
