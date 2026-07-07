@@ -41,6 +41,28 @@ describe('AddContactForm — people suggestions', () => {
     }));
   });
 
+  it('reverse-search: picking from the email field fills the name and the rest', async () => {
+    const onSave = vi.fn().mockResolvedValue(true);
+    render(<AddContactForm onSave={onSave} onCancel={vi.fn()} people={people} />);
+
+    // Type into the Email field, not the name field.
+    const emailInput = screen.getByPlaceholderText('Email');
+    fireEvent.focus(emailInput);
+    fireEvent.change(emailInput, { target: { value: 'an' } });
+    fireEvent.mouseDown(screen.getByText('Анна Смирнова'));
+
+    expect((screen.getByPlaceholderText('Full name') as HTMLInputElement).value).toBe('Анна Смирнова');
+    expect((screen.getByPlaceholderText('Company / contractor') as HTMLInputElement).value).toBe('СтройГрупп');
+    expect((emailInput as HTMLInputElement).value).toBe('anna@stroy.ru');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      name: 'Анна Смирнова',
+      email: 'anna@stroy.ru',
+      tag: 'СтройГрупп',
+    })));
+  });
+
   it('behaves like a plain form when no people are given', async () => {
     const onSave = vi.fn().mockResolvedValue(true);
     render(<AddContactForm onSave={onSave} onCancel={vi.fn()} />);

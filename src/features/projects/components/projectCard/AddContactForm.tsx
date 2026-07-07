@@ -54,6 +54,16 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
     }
   };
 
+  // Fill the whole draft from a previously-entered person, whichever field the
+  // suggestion was picked in. Only sets values the person actually has.
+  const applyPerson = (person: KnownPerson) => {
+    setName(person.name);
+    if (person.role) setRole(person.role);
+    if (person.email) setEmail(person.email);
+    if (person.phone) setPhone(person.phone);
+    if (person.company) setTag(person.company);
+  };
+
   return (
     <form
       className="mb-3 flex flex-col gap-1.5 rounded-lg bg-muted p-3"
@@ -72,20 +82,28 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
         placeholder={t`Full name`}
         value={name}
         onChange={setName}
-        onPick={(person) => {
-          setName(person.name);
-          if (person.role) setRole(person.role);
-          if (person.email) setEmail(person.email);
-          if (person.phone) setPhone(person.phone);
-          if (person.company) setTag(person.company);
-        }}
+        onPick={applyPerson}
         people={people ?? []}
         autoFocus
         className={FIELD_CLASS}
       />
       <Field placeholder={t`Role / job title`} value={role} onChange={setRole} />
-      <Field placeholder={t`Company / contractor`} value={tag} onChange={setTag} />
-      <Field placeholder="Email" value={email} onChange={setEmail} type="email" />
+      <PersonSuggestField
+        placeholder={t`Company / contractor`}
+        value={tag}
+        onChange={setTag}
+        onPick={applyPerson}
+        people={people ?? []}
+        className={FIELD_CLASS}
+      />
+      <PersonSuggestField
+        placeholder="Email"
+        value={email}
+        onChange={setEmail}
+        onPick={applyPerson}
+        people={people ?? []}
+        className={FIELD_CLASS}
+      />
       <Field placeholder={t`Phone`} value={phone} onChange={setPhone} />
       <div className="mt-1 flex justify-end gap-1.5">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={submitting}>
