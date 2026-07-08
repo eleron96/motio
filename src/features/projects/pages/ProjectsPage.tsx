@@ -41,8 +41,13 @@ import {
   groupProjectsForSidebar,
   sortCustomersByName,
 } from '@/features/projects/lib/projectsSelectors';
-import { buildContactList } from '@/features/projects/lib/contactList';
-import { ContactsDetailPanel } from '@/features/projects/components/ContactsDetailPanel';
+import {
+  ALL_COMPANIES,
+  buildContactList,
+  buildCompanyBuckets,
+  filterEntriesByCompany,
+} from '@/features/projects/lib/contactList';
+import { ContactsPeoplePanel } from '@/features/projects/components/ContactsPeoplePanel';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
@@ -64,7 +69,7 @@ const ProjectsPage = () => {
   const [search, setSearch] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
   const [contactSearch, setContactSearch] = useState('');
-  const [selectedContactKey, setSelectedContactKey] = useState<string | null>(null);
+  const [selectedCompanyKey, setSelectedCompanyKey] = useState<string>(ALL_COMPANIES);
   const [assigneeFilterIds, setAssigneeFilterIds] = useState<string[]>([]);
   const {
     taskScope, setTaskScope,
@@ -418,6 +423,11 @@ const ProjectsPage = () => {
   const contactEntries = useMemo(
     () => buildContactList(customerContacts, projectMemberRows, customerById),
     [customerContacts, projectMemberRows, customerById],
+  );
+  const companyBuckets = useMemo(() => buildCompanyBuckets(contactEntries), [contactEntries]);
+  const companyFilteredEntries = useMemo(
+    () => filterEntriesByCompany(contactEntries, selectedCompanyKey),
+    [contactEntries, selectedCompanyKey],
   );
   const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
 
@@ -967,7 +977,9 @@ const ProjectsPage = () => {
     : mode === 'customers'
       ? (selectedCustomer?.name ?? t`Select a customer`)
       : mode === 'contacts'
-        ? (contactEntries.find((entry) => entry.key === selectedContactKey)?.name ?? t`Select a contact`)
+        ? (selectedCompanyKey === ALL_COMPANIES
+          ? t`All contacts`
+          : (companyBuckets.find((bucket) => bucket.key === selectedCompanyKey)?.company ?? t`No company`))
         : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
 
   const projectCardEnabled = isProjectCardEnabled();
@@ -1092,8 +1104,8 @@ const ProjectsPage = () => {
               onStartCustomerEdit={startCustomerEdit}
               onRequestDeleteCustomer={requestDeleteCustomer}
               {...contactsSidebarProps}
-              onSelectContact={(key) => {
-                setSelectedContactKey(key);
+              onSelectCompany={(key) => {
+                setSelectedCompanyKey(key);
                 if (closeOnSelect) setMobileSidebarOpen(false);
               }}
               milestoneTab={milestoneTab}
@@ -1179,8 +1191,8 @@ const ProjectsPage = () => {
       onStartCustomerEdit={startCustomerEdit}
       onRequestDeleteCustomer={requestDeleteCustomer}
       {...contactsSidebarProps}
-      onSelectContact={(key) => {
-        setSelectedContactKey(key);
+      onSelectCompany={(key) => {
+        setSelectedCompanyKey(key);
         if (closeOnSelect) setMobileSidebarOpen(false);
       }}
       milestoneTab={milestoneTab}
@@ -1249,17 +1261,23 @@ const ProjectsPage = () => {
     return legacySidebar;
   };
 
-  const selectedContact = contactEntries.find((entry) => entry.key === selectedContactKey) ?? null;
+  const selectedCompanyBucket = companyBuckets.find((bucket) => bucket.key === selectedCompanyKey) ?? null;
+  const contactsPanelTitle = selectedCompanyKey === ALL_COMPANIES
+    ? t`All contacts`
+    : selectedCompanyBucket
+      ? (selectedCompanyBucket.company ?? t`No company`)
+      : t`All contacts`;
   const contactsSidebarProps = {
-    contactEntries,
+    companyBuckets,
     contactSearch,
     onContactSearchChange: setContactSearch,
-    selectedContactKey,
+    selectedCompanyKey,
   };
-  const renderContactsDetail = () => (
-    <ContactsDetailPanel
-      entry={selectedContact}
-      totalCount={contactEntries.length}
+  const renderContactsPeople = () => (
+    <ContactsPeoplePanel
+      entries={companyFilteredEntries}
+      title={contactsPanelTitle}
+      defaultCompany={selectedCompanyBucket?.company ?? null}
       projectById={projectById}
       canEdit={canEdit}
       sectionPadding={isMobile ? 'px-4 py-3' : 'px-6 py-4'}
@@ -1462,7 +1480,7 @@ const ProjectsPage = () => {
             summary={mobileSummary}
             sheetContent={renderProjectsSidebar(true)}
           >
-            {mode === 'contacts' ? renderContactsDetail() : renderProjectsMainPanel()}
+            {mode === 'contacts' ? renderContactsPeople() : renderProjectsMainPanel()}
           </MobilePageSheetLayout>
         </>
       ) : (
@@ -1477,7 +1495,7 @@ const ProjectsPage = () => {
             </ResizablePanel>
             <ResizableHandle withHandle className="bg-border/70" />
             <ResizablePanel defaultSize={72} minSize={58}>
-              {mode === 'contacts' ? renderContactsDetail() : renderProjectsMainPanel()}
+              {mode === 'contacts' ? renderContactsPeople() : renderProjectsMainPanel()}
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>

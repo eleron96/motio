@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildContactList, searchContactList } from '@/features/projects/lib/contactList';
+import {
+  ALL_COMPANIES,
+  NO_COMPANY,
+  buildCompanyBuckets,
+  buildContactList,
+  filterEntriesByCompany,
+  searchContactList,
+} from '@/features/projects/lib/contactList';
 import type { Customer, CustomerContact, ProjectMember } from '@/features/planner/types/planner';
 
 const contact = (over: Partial<CustomerContact>): CustomerContact => ({
@@ -65,6 +72,32 @@ describe('buildContactList', () => {
       customersById,
     );
     expect(entries.map((e) => e.name)).toEqual(['Абрам', 'Яков']);
+  });
+});
+
+describe('company grouping', () => {
+  const entries = buildContactList([
+    contact({ id: 'c1', name: 'Анна', tag: 'айбим' }),
+    contact({ id: 'c2', name: 'Пётр', tag: 'айбим' }),
+    contact({ id: 'c3', name: 'Без', tag: null }),
+  ], [
+    member({ id: 'm1', externalName: 'Игорь', externalCompany: 'СтройТех' }),
+  ], customersById);
+
+  it('buckets by company with counts, "no company" last', () => {
+    const buckets = buildCompanyBuckets(entries);
+    expect(buckets.map((b) => [b.company, b.count])).toEqual([
+      ['айбим', 2],
+      ['СтройТех', 1],
+      [null, 1],
+    ]);
+    expect(buckets[2].key).toBe(NO_COMPANY);
+  });
+
+  it('filters entries by the selected bucket', () => {
+    expect(filterEntriesByCompany(entries, ALL_COMPANIES)).toHaveLength(4);
+    expect(filterEntriesByCompany(entries, 'айбим').map((e) => e.name).sort()).toEqual(['Анна', 'Пётр']);
+    expect(filterEntriesByCompany(entries, NO_COMPANY).map((e) => e.name)).toEqual(['Без']);
   });
 });
 

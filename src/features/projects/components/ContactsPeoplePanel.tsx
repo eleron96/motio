@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Mail, MoreHorizontal, Phone, Plus } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
@@ -30,13 +30,19 @@ import {
 } from '@/shared/ui/dropdown-menu';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { SearchInput } from '@/shared/ui/SearchInput';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import type { CustomerContact, Project } from '@/features/planner/types/planner';
 import type { ContactEntry } from '@/features/projects/lib/contactList';
+import { searchContactList } from '@/features/projects/lib/contactList';
 
-interface ContactsDetailPanelProps {
-  entry: ContactEntry | null;
-  totalCount: number;
+interface ContactsPeoplePanelProps {
+  /** People of the selected company (already filtered by the page). */
+  entries: ContactEntry[];
+  /** Header label: company name, or "All contacts" / "No company". */
+  title: string;
+  /** Pre-fills the company field of a new contact (null = "All"/"No company"). */
+  defaultCompany: string | null;
   projectById: Map<string, Project>;
   canEdit: boolean;
   sectionPadding: string;
@@ -54,7 +60,6 @@ interface ContactsDetailPanelProps {
 }
 
 type Draft = { name: string; role: string; company: string; email: string; phone: string };
-const emptyDraft: Draft = { name: '', role: '', company: '', email: '', phone: '' };
 
 const buildInitials = (name: string): string => {
   const parts = name.trim().split(/\s+/);
@@ -63,9 +68,10 @@ const buildInitials = (name: string): string => {
   return (first + last).toUpperCase() || '·';
 };
 
-export const ContactsDetailPanel: React.FC<ContactsDetailPanelProps> = ({
-  entry,
-  totalCount,
+export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
+  entries,
+  title,
+  defaultCompany,
   projectById,
   canEdit,
   sectionPadding,
@@ -76,32 +82,28 @@ export const ContactsDetailPanel: React.FC<ContactsDetailPanelProps> = ({
   onDeleteExternalPerson,
   onOpenProject,
 }) => {
-  // form: 'new' = add, ContactEntry = edit, null = closed.
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState<'new' | ContactEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ContactEntry | null>(null);
-  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [draft, setDraft] = useState<Draft>({ name: '', role: '', company: '', email: '', phone: '' });
   const [submitting, setSubmitting] = useState(false);
+
+  const visible = useMemo(() => searchContactList(entries, search), [entries, search]);
 
   useEffect(() => {
     if (form === null) return;
     if (form === 'new') {
-      setDraft(emptyDraft);
+      setDraft({ name: '', role: '', company: defaultCompany ?? '', email: '', phone: '' });
     } else {
-      setDraft({
-        name: form.name,
-        role: form.role ?? '',
-        company: form.company ?? '',
-        email: form.email ?? '',
-        phone: form.phone ?? '',
-      });
+      setDraft({ name: form.name, role: form.role ?? '', company: form.company ?? '', email: form.email ?? '', phone: form.phone ?? '' });
     }
-  }, [form]);
+  }, [form, defaultCompany]);
 
-  const projectsOf = (target: ContactEntry): Project[] => {
-    if (target.source.kind !== 'external') return [];
+  const projectsOf = (entry: ContactEntry): Project[] => {
+    if (entry.source.kind !== 'external') return [];
     const seen = new Set<string>();
     const list: Project[] = [];
-    for (const projectId of target.source.projectIds) {
+    for (const projectId of entry.source.projectIds) {
       if (seen.has(projectId)) continue;
       seen.add(projectId);
       const project = projectById.get(projectId);
@@ -119,30 +121,12 @@ export const ContactsDetailPanel: React.FC<ContactsDetailPanelProps> = ({
       const company = draft.company.trim() || null;
       let ok = false;
       if (form === 'new') {
-        ok = await onAddContact({
-          name,
-          role: draft.role.trim() || null,
-          email: draft.email.trim() || null,
-          phone: draft.phone.trim() || null,
-          tag: company,
-          customerId: null,
-        });
+        ok = await onAddContact({ name, role: draft.role.trim() || null, email: draft.email.trim() || null, phone: draft.phone.trim() || null, tag: company, customerId: null });
       } else if (form.source.kind === 'contact') {
-        ok = await onUpdateContact(form.source.id, {
-          name,
-          role: draft.role.trim() || null,
-          tag: company,
-          email: draft.email.trim() || null,
-          phone: draft.phone.trim() || null,
-        });
+        ok = await onUpdateContact(form.source.id, { name, role: draft.role.trim() || null, tag: company, email: draft.email.trim() || null, phone: draft.phone.trim() || null });
       } else {
         ok = await onUpdateExternalPerson(form.source.memberIds, {
-          externalName: name,
-          externalCompany: company,
-          externalEmail: draft.email.trim() || null,
-          externalPhone: draft.phone.trim() || null,
-          role: draft.role.trim() || null,
-          tag: company,
+          externalName: name, externalCompany: company, externalEmail: draft.email.trim() || null, externalPhone: draft.phone.trim() || null, role: draft.role.trim() || null, tag: company,
         });
       }
       if (ok) setForm(null);
@@ -166,9 +150,7 @@ export const ContactsDetailPanel: React.FC<ContactsDetailPanelProps> = ({
 
   const deleteDescription = (() => {
     if (!deleteTarget) return '';
-    if (deleteTarget.source.kind === 'contact') {
-      return t`This removes "${deleteTarget.name}" from your contacts.`;
-    }
+    if (deleteTarget.source.kind === 'contact') return t`This removes "${deleteTarget.name}" from your contacts.`;
     const projects = projectsOf(deleteTarget);
     if (projects.length === 0) return t`This removes "${deleteTarget.name}" from every project they're on.`;
     const listed = projects.slice(0, 3).map((p) => formatProjectLabel(p.name, p.code)).join(', ');
@@ -178,68 +160,37 @@ export const ContactsDetailPanel: React.FC<ContactsDetailPanelProps> = ({
       : t`This removes "${deleteTarget.name}" from ${names}.`;
   })();
 
-  const badge = (target: ContactEntry): React.ReactNode => {
-    if (target.source.kind === 'contact') {
-      return target.source.customerName
-        ? <Badge className="text-[10px]">{t`Client: ${target.source.customerName}`}</Badge>
-        : <Badge variant="outline" className="text-[10px] text-muted-foreground">{t`No client`}</Badge>;
+  const badge = (entry: ContactEntry): React.ReactNode => {
+    if (entry.source.kind === 'contact') {
+      return entry.source.customerName
+        ? <Badge className="text-[10px]">{t`Client: ${entry.source.customerName}`}</Badge>
+        : null;
     }
-    const count = target.source.projectIds.length;
+    const count = entry.source.projectIds.length;
     return <Badge variant="secondary" className="text-[10px]">{count > 1 ? t`External · ${count} projects` : t`External`}</Badge>;
   };
 
-  const isExternalForm = form !== null && form !== 'new' && form.source.kind === 'external';
-  const externalForm = isExternalForm ? (form as ContactEntry & { source: { kind: 'external'; memberIds: string[]; projectIds: string[] } }) : null;
-  const projects = entry ? projectsOf(entry) : [];
+  const externalForm = form !== null && form !== 'new' && form.source.kind === 'external'
+    ? (form as ContactEntry & { source: { kind: 'external'; memberIds: string[]; projectIds: string[] } })
+    : null;
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className={`border-b border-border ${sectionPadding}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            {entry ? (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">{entry.name}</div>
-                  {badge(entry)}
-                </div>
-                {(entry.role || entry.company) && (
-                  <div className="text-xs text-muted-foreground">{[entry.role, entry.company].filter(Boolean).join(' · ')}</div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="text-lg font-semibold">{t`Contacts`}</div>
-                <div className="text-xs text-muted-foreground">{t`${totalCount} people`}</div>
-              </>
-            )}
+            <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">{title}</div>
+            <div className="text-xs text-muted-foreground">{t`${entries.length} people`}</div>
           </div>
-          <div className="flex items-center gap-2">
-            {entry && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" aria-label={t`Contact actions`} disabled={!canEdit}>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuItem disabled={!canEdit} onSelect={() => setForm(entry)}>{t`Edit`}</DropdownMenuItem>
-                  {projects.slice(0, 3).map((project) => (
-                    <DropdownMenuItem key={project.id} onSelect={() => onOpenProject(project)}>
-                      {t`Open ${formatProjectLabel(project.name, project.code)}`}
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    disabled={!canEdit}
-                    onSelect={() => setDeleteTarget(entry)}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    {t`Delete`}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+          <div className="ml-auto flex items-center gap-2">
+            <SearchInput
+              className="w-[200px]"
+              inputClassName="h-9"
+              placeholder={t`Search people`}
+              value={search}
+              onValueChange={setSearch}
+              clearLabel={t`Clear search`}
+            />
             {canEdit && (
               <Button size="sm" className="gap-1" onClick={() => setForm('new')}>
                 <Plus className="h-4 w-4" />
@@ -251,52 +202,63 @@ export const ContactsDetailPanel: React.FC<ContactsDetailPanelProps> = ({
       </div>
 
       <div className={`flex-1 overflow-auto ${sectionPadding}`}>
-        {!entry && (
-          <div className="text-sm text-muted-foreground">{t`Choose a contact on the left, or add a new one.`}</div>
-        )}
-        {entry && (
-          <div className="flex items-start gap-4">
-            <div className="grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-muted text-base font-semibold text-muted-foreground">
-              {buildInitials(entry.name)}
-            </div>
-            <div className="min-w-0 flex-1 space-y-3">
-              <dl className="space-y-2 text-sm">
-                {entry.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <a href={`mailto:${entry.email}`} className="text-primary hover:underline break-all">{entry.email}</a>
+        {entries.length === 0 && <div className="text-sm text-muted-foreground">{t`No contacts here yet.`}</div>}
+        {entries.length > 0 && visible.length === 0 && <div className="text-sm text-muted-foreground">{t`No contacts found.`}</div>}
+        {visible.length > 0 && (
+          <ul className="divide-y divide-border">
+            {visible.map((entry) => {
+              const projects = projectsOf(entry);
+              return (
+                <li key={entry.key} className="flex items-center gap-3 py-2">
+                  <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
+                    {buildInitials(entry.name)}
                   </div>
-                )}
-                {entry.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{entry.phone}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-sm font-medium break-words [overflow-wrap:anywhere]">{entry.name}</span>
+                      {badge(entry)}
+                    </div>
+                    {(entry.role || entry.company) && (
+                      <div className="text-xs text-muted-foreground break-words [overflow-wrap:anywhere]">
+                        {[entry.role, entry.company].filter(Boolean).join(' · ')}
+                      </div>
+                    )}
                   </div>
-                )}
-                {!entry.email && !entry.phone && (
-                  <div className="text-muted-foreground">{t`No contact details yet.`}</div>
-                )}
-              </dl>
-              {projects.length > 0 && (
-                <div>
-                  <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t`On projects`}</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {projects.map((project) => (
+                  <div className="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
+                    {entry.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{entry.email}</span>}
+                    {entry.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{entry.phone}</span>}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <button
-                        key={project.id}
                         type="button"
-                        onClick={() => onOpenProject(project)}
-                        className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs transition-colors hover:bg-muted/40"
+                        className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                        aria-label={t`Contact actions`}
                       >
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: project.color }} />
-                        <span className="max-w-[200px] truncate">{formatProjectLabel(project.name, project.code)}</span>
+                        <MoreHorizontal className="h-3.5 w-3.5" />
                       </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuItem disabled={!canEdit} onSelect={() => setForm(entry)}>{t`Edit`}</DropdownMenuItem>
+                      {projects.slice(0, 3).map((project) => (
+                        <DropdownMenuItem key={project.id} onSelect={() => onOpenProject(project)}>
+                          {t`Open ${formatProjectLabel(project.name, project.code)}`}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        disabled={!canEdit}
+                        onSelect={() => setDeleteTarget(entry)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        {t`Delete`}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
 
