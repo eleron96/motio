@@ -1914,8 +1914,12 @@ msgid "Finish"
 msgstr "Finish"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "For grouping, e.g. a project section: АР, КР, ВИС"
-msgstr "For grouping, e.g. a project section: АР, КР, ВИС"
+msgid "For grouping — e.g. a field or department: Design, Development, АР"
+msgstr "For grouping — e.g. a field or department: Design, Development, АР"
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#~ msgid "For grouping, e.g. a project section: АР, КР, ВИС"
+#~ msgstr "For grouping, e.g. a project section: АР, КР, ВИС"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "For teams that own their data"
