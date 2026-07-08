@@ -56,7 +56,6 @@ interface ContactsPeoplePanelProps {
     updates: { externalName: string; externalCompany: string | null; externalEmail: string | null; externalPhone: string | null; role: string | null; tag: string | null },
   ) => Promise<boolean>;
   onDeleteExternalPerson: (memberIds: string[]) => Promise<boolean>;
-  onOpenProject: (project: Project) => void;
 }
 
 type Draft = { name: string; role: string; company: string; tag: string; email: string; phone: string };
@@ -81,7 +80,6 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
   onDeleteContact,
   onUpdateExternalPerson,
   onDeleteExternalPerson,
-  onOpenProject,
 }) => {
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<'new' | ContactEntry | null>(null);
@@ -203,7 +201,6 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
         {visible.length > 0 && (
           <ul className="divide-y divide-border">
             {visible.map((entry) => {
-              const projects = projectsOf(entry);
               return (
                 <li key={entry.key} className="flex items-center gap-3 py-2">
                   <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
@@ -238,11 +235,6 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuItem disabled={!canEdit} onSelect={() => setForm(entry)}>{t`Edit`}</DropdownMenuItem>
-                      {projects.slice(0, 3).map((project) => (
-                        <DropdownMenuItem key={project.id} onSelect={() => onOpenProject(project)}>
-                          {t`Open ${formatProjectLabel(project.name, project.code)}`}
-                        </DropdownMenuItem>
-                      ))}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         disabled={!canEdit}
