@@ -59,7 +59,8 @@ interface ContactsPeoplePanelProps {
   onOpenProject: (project: Project) => void;
 }
 
-type Draft = { name: string; role: string; company: string; email: string; phone: string };
+type Draft = { name: string; role: string; company: string; tag: string; email: string; phone: string };
+const emptyDraft: Draft = { name: '', role: '', company: '', tag: '', email: '', phone: '' };
 
 const buildInitials = (name: string): string => {
   const parts = name.trim().split(/\s+/);
@@ -85,7 +86,7 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
   const [search, setSearch] = useState('');
   const [form, setForm] = useState<'new' | ContactEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ContactEntry | null>(null);
-  const [draft, setDraft] = useState<Draft>({ name: '', role: '', company: '', email: '', phone: '' });
+  const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [submitting, setSubmitting] = useState(false);
 
   const visible = useMemo(() => searchContactList(entries, search), [entries, search]);
@@ -93,9 +94,13 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
   useEffect(() => {
     if (form === null) return;
     if (form === 'new') {
-      setDraft({ name: '', role: '', company: defaultCompany ?? '', email: '', phone: '' });
+      // A new standalone contact carries a single tag; seed it from the bucket.
+      setDraft({ ...emptyDraft, tag: defaultCompany ?? '' });
+    } else if (form.source.kind === 'external') {
+      setDraft({ name: form.name, role: form.role ?? '', company: form.company ?? '', tag: form.tag ?? '', email: form.email ?? '', phone: form.phone ?? '' });
     } else {
-      setDraft({ name: form.name, role: form.role ?? '', company: form.company ?? '', email: form.email ?? '', phone: form.phone ?? '' });
+      // Customer contact: its firm is stored in the tag (== entry.company).
+      setDraft({ name: form.name, role: form.role ?? '', company: '', tag: form.company ?? '', email: form.email ?? '', phone: form.phone ?? '' });
     }
   }, [form, defaultCompany]);
 
@@ -119,14 +124,17 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
     setSubmitting(true);
     try {
       const company = draft.company.trim() || null;
+      const tag = draft.tag.trim() || null;
       let ok = false;
       if (form === 'new') {
-        ok = await onAddContact({ name, role: draft.role.trim() || null, email: draft.email.trim() || null, phone: draft.phone.trim() || null, tag: company, customerId: null });
+        // Standalone customer contact: single tag, no firm column.
+        ok = await onAddContact({ name, role: draft.role.trim() || null, email: draft.email.trim() || null, phone: draft.phone.trim() || null, tag, customerId: null });
       } else if (form.source.kind === 'contact') {
-        ok = await onUpdateContact(form.source.id, { name, role: draft.role.trim() || null, tag: company, email: draft.email.trim() || null, phone: draft.phone.trim() || null });
+        ok = await onUpdateContact(form.source.id, { name, role: draft.role.trim() || null, tag, email: draft.email.trim() || null, phone: draft.phone.trim() || null });
       } else {
+        // External: company and tag are distinct columns — never merged.
         ok = await onUpdateExternalPerson(form.source.memberIds, {
-          externalName: name, externalCompany: company, externalEmail: draft.email.trim() || null, externalPhone: draft.phone.trim() || null, role: draft.role.trim() || null, tag: company,
+          externalName: name, externalCompany: company, externalEmail: draft.email.trim() || null, externalPhone: draft.phone.trim() || null, role: draft.role.trim() || null, tag,
         });
       }
       if (ok) setForm(null);
@@ -216,6 +224,9 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="text-sm font-medium break-words [overflow-wrap:anywhere]">{entry.name}</span>
+                      {entry.tag && (
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground">{entry.tag}</Badge>
+                      )}
                       {badge(entry)}
                     </div>
                     {(entry.role || entry.company) && (
@@ -277,9 +288,15 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
               <Label>{t`Role / job title`}</Label>
               <Input value={draft.role} onChange={(e) => setDraft((d) => ({ ...d, role: e.target.value }))} />
             </div>
+            {externalForm && (
+              <div className="flex flex-col gap-1.5">
+                <Label>{t`Company`}</Label>
+                <Input value={draft.company} onChange={(e) => setDraft((d) => ({ ...d, company: e.target.value }))} />
+              </div>
+            )}
             <div className="flex flex-col gap-1.5">
               <Label>{t`Company / contractor`}</Label>
-              <Input value={draft.company} onChange={(e) => setDraft((d) => ({ ...d, company: e.target.value }))} />
+              <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Email</Label>

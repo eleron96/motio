@@ -876,19 +876,19 @@ msgstr "Comment actions"
 msgid "Comments"
 msgstr "Comments"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-#~ msgid "Company"
-#~ msgstr "Company"
+msgid "Company"
+msgstr "Company"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
