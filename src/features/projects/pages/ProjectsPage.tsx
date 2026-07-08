@@ -987,7 +987,7 @@ const ProjectsPage = () => {
               type="button"
               onClick={() => setMode(tabItem.id)}
               aria-pressed={mode === tabItem.id}
-              className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
+              className={`flex-1 truncate whitespace-nowrap rounded-full px-2 py-1.5 text-[12px] font-medium transition-colors ${
                 mode === tabItem.id
                   ? 'bg-primary/15 text-primary'
                   : 'text-muted-foreground hover:text-foreground'

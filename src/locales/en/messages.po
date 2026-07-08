@@ -4406,6 +4406,11 @@ msgstr "This removes \"{0}\" from all {1} projects: {names}."
 
 #. placeholder {0}: deleteTarget.name
 #: src/features/projects/components/ContactsListPanel.tsx
+msgid "This removes \"{0}\" from every project they're on."
+msgstr "This removes \"{0}\" from every project they're on."
+
+#. placeholder {0}: deleteTarget.name
+#: src/features/projects/components/ContactsListPanel.tsx
 msgid "This removes \"{0}\" from your contacts."
 msgstr "This removes \"{0}\" from your contacts."
 
