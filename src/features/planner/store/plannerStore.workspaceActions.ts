@@ -196,7 +196,7 @@ export const createWorkspaceActions = (
     const customerContactsQuery = projectCardOn
       ? supabase
           .from('customer_contacts')
-          .select('id, workspace_id, customer_id, name, role, email, phone, position, tag')
+          .select('id, workspace_id, customer_id, name, role, email, phone, position, company, tag')
           .eq('workspace_id', workspaceId)
           .order('position', { ascending: true })
           .order('created_at', { ascending: true })

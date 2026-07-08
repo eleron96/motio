@@ -26,7 +26,8 @@ import { Assignee, Customer, CustomerContact, Milestone, Project, ProjectActivit
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
+import { isPeopleSuggestEnabled, isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
+import { collectKnownPeople } from '@/features/projects/lib/knownPeople';
 import { ProjectCardLayout } from '@/features/projects/components/projectCard/ProjectCardLayout';
 
 type DisplayTaskRow = {
@@ -40,7 +41,9 @@ type DisplayTaskRow = {
 };
 
 type ProjectsMainPanelProps = {
-  mode: 'projects' | 'milestones' | 'customers';
+  // 'contacts' never renders here (the page shows a full-width panel for it),
+  // but the shared mode type includes it.
+  mode: 'projects' | 'milestones' | 'customers' | 'contacts';
   selectedProject: Project | null;
   customerById: Map<string, Customer>;
   taskScope: TaskScope;
@@ -113,12 +116,12 @@ type ProjectsMainPanelProps = {
   /** Customer contacts list + handlers wired through plannerStore. */
   customerContacts: CustomerContact[];
   onAddCustomerContact: (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
+    payload: { customerId: string; name: string; company: string | null; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteCustomerContact: (id: string) => Promise<boolean>;
   onUpdateCustomerContact: (
     id: string,
-    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+    updates: { name?: string; company?: string | null; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
   ) => Promise<boolean>;
   /** Explicit project members + handlers. */
   projectMemberRows: ProjectMember[];
@@ -256,6 +259,14 @@ export const ProjectsMainPanel = ({
     () => (projectActivity ?? []).filter((entry) => entry.projectId === cardProjectId),
     [projectActivity, cardProjectId],
   );
+  // Workspace-wide reusable people for the add-contact / add-member suggestions.
+  // Built from the UNfiltered props on purpose — the whole point is to surface
+  // people entered on OTHER projects/customers. Empty (and cheap) when the flag
+  // is off, so the add forms stay exactly as they are today.
+  const knownPeople = React.useMemo(
+    () => (isPeopleSuggestEnabled() ? collectKnownPeople(customerContacts ?? [], projectMemberRows ?? []) : []),
+    [customerContacts, projectMemberRows],
+  );
 
   // When the flag is on and a project is selected, replace the legacy main
   // panel with the new card layout. Mobile rendering is gated separately by
@@ -285,6 +296,7 @@ export const ProjectsMainPanel = ({
         onRemoveProjectMember={onRemoveProjectMember}
         onUpdateAssigneeContact={onUpdateAssigneeContact}
         onUpdateExternalMember={onUpdateExternalMember}
+        knownPeople={knownPeople}
         projectActivity={filteredProjectActivity}
         formatActivityTimestamp={formatActivityTimestamp}
         onAddActivity={(content) => onAddProjectActivity(selectedProject.id, content)}

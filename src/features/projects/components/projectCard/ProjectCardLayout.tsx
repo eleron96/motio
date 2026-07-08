@@ -10,6 +10,7 @@ import type {
   Status,
   Task,
 } from '@/features/planner/types/planner';
+import type { KnownPerson } from '@/features/projects/lib/knownPeople';
 import type { TaskScope } from '@/shared/domain/taskScope';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import { ProjectCardHeader } from './ProjectCardHeader';
@@ -57,6 +58,8 @@ interface ProjectCardLayoutProps {
       'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
     >>,
   ) => Promise<boolean>;
+  /** Workspace-wide people to suggest in the add forms. Empty when the flag is off. */
+  knownPeople?: readonly KnownPerson[];
   projectMilestones: Milestone[];
   formatMilestoneDate: (date: string) => string;
   today: Date;
@@ -125,6 +128,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
     onRemoveProjectMember,
     onUpdateAssigneeContact,
     onUpdateExternalMember,
+    knownPeople,
     projectMilestones,
     formatMilestoneDate,
     today,
@@ -170,6 +174,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
             onAddContact={onAddCustomerContact}
             onDeleteContact={onDeleteCustomerContact}
             onUpdateContact={onUpdateCustomerContact}
+            people={knownPeople}
           />
           <TeamBlock
             members={projectMemberRows}
@@ -181,6 +186,7 @@ export const ProjectCardLayout: React.FC<ProjectCardLayoutProps> = (props) => {
             onRemoveMember={onRemoveProjectMember}
             onUpdateAssigneeContact={onUpdateAssigneeContact}
             onUpdateExternalMember={onUpdateExternalMember}
+            people={knownPeople}
           />
           <MilestonesBlock
             milestones={projectMilestones}

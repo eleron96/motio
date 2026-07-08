@@ -21,8 +21,9 @@ import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
+import { ALL_COMPANIES, type CompanyBucket } from '@/features/projects/lib/contactList';
 
-type Mode = 'projects' | 'milestones' | 'customers';
+type Mode = 'projects' | 'milestones' | 'customers' | 'contacts';
 type ProjectTab = 'active' | 'archived';
 type MilestoneTab = 'active' | 'past';
 
@@ -54,6 +55,12 @@ type ProjectsSidebarProps = {
   onSelectCustomer: (customerId: string) => void;
   onStartCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
   onRequestDeleteCustomer: (customer: Customer) => void;
+  // Contacts tab: companies filter (left) → their people (right).
+  companyBuckets: CompanyBucket[];
+  contactSearch: string;
+  onContactSearchChange: (value: string) => void;
+  selectedCompanyKey: string;
+  onSelectCompany: (key: string) => void;
   milestoneTab: MilestoneTab;
   onMilestoneTabChange: (value: MilestoneTab) => void;
   milestoneSearch: string;
@@ -119,6 +126,11 @@ export const ProjectsSidebar = ({
   onSelectCustomer,
   onStartCustomerEdit,
   onRequestDeleteCustomer,
+  companyBuckets,
+  contactSearch,
+  onContactSearchChange,
+  selectedCompanyKey,
+  onSelectCompany,
   milestoneTab,
   onMilestoneTabChange,
   milestoneSearch,
@@ -413,6 +425,12 @@ export const ProjectsSidebar = ({
             >
               {t`Customers`}
             </SegmentedControlItem>
+            <SegmentedControlItem
+              active={mode === 'contacts'}
+              onClick={() => onModeChange('contacts')}
+            >
+              {t`Contacts`}
+            </SegmentedControlItem>
           </SegmentedControl>
         </div>
       )}
@@ -524,6 +542,72 @@ export const ProjectsSidebar = ({
                 })}
               </div>
             )}
+          </div>
+        </>
+      )}
+
+      {mode === 'contacts' && (
+        <>
+          <div className="px-4 py-3 border-b border-border">
+            <SearchInput
+              inputClassName="h-8"
+              placeholder={t`Search companies...`}
+              value={contactSearch}
+              onValueChange={onContactSearchChange}
+              clearLabel={t`Clear search`}
+            />
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3">
+            {(() => {
+              const query = contactSearch.trim().toLowerCase();
+              const named = companyBuckets.filter((bucket) => bucket.company !== null);
+              const noCompany = companyBuckets.find((bucket) => bucket.company === null) ?? null;
+              const filteredNamed = query
+                ? named.filter((bucket) => bucket.company!.toLowerCase().includes(query))
+                : named;
+              const total = companyBuckets.reduce((sum, bucket) => sum + bucket.count, 0);
+              return (
+                <div className="space-y-1">
+                  <SelectableListItem
+                    selected={selectedCompanyKey === ALL_COMPANIES}
+                    className="flex items-center gap-3"
+                    onClick={() => onSelectCompany(ALL_COMPANIES)}
+                  >
+                    <div className="min-w-0 flex-1 text-sm font-medium">
+                      {t`All contacts`} <span className="text-muted-foreground">{total}</span>
+                    </div>
+                  </SelectableListItem>
+                  {filteredNamed.length > 0 && <div className="my-1 h-px bg-border" />}
+                  {filteredNamed.map((bucket) => (
+                    <SelectableListItem
+                      key={bucket.key}
+                      selected={selectedCompanyKey === bucket.key}
+                      className="flex items-center gap-3"
+                      onClick={() => onSelectCompany(bucket.key)}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <span className="truncate text-sm font-medium">{bucket.company}</span>
+                        <span className="ml-1.5 text-xs text-muted-foreground">{bucket.count}</span>
+                      </div>
+                    </SelectableListItem>
+                  ))}
+                  {noCompany && !query && (
+                    <>
+                      <div className="my-1 h-px bg-border" />
+                      <SelectableListItem
+                        selected={selectedCompanyKey === noCompany.key}
+                        className="flex items-center gap-3"
+                        onClick={() => onSelectCompany(noCompany.key)}
+                      >
+                        <div className="min-w-0 flex-1 text-sm text-muted-foreground">
+                          {t`No company`} <span>{noCompany.count}</span>
+                        </div>
+                      </SelectableListItem>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </>
       )}

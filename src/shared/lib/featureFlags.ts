@@ -39,3 +39,15 @@ export const isProjectCardMobileEnabled = (): boolean => (
 export const isWorkloadHeatmapEnabled = (): boolean => (
   readFlag(import.meta.env.VITE_FEATURE_WORKLOAD_HEATMAP)
 );
+
+/**
+ * When on, adding a customer contact or an external team member suggests people
+ * already entered elsewhere in the workspace, so they don't have to be retyped
+ * per project. Purely additive — the existing add forms are unchanged when
+ * there is nothing to suggest. Off by default; only affects the Project Card,
+ * so it implies `isProjectCardEnabled`.
+ */
+export const isPeopleSuggestEnabled = (): boolean => (
+  isProjectCardEnabled()
+  && readFlag(import.meta.env.VITE_FEATURE_PEOPLE_SUGGEST)
+);

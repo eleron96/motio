@@ -41,6 +41,13 @@ import {
   groupProjectsForSidebar,
   sortCustomersByName,
 } from '@/features/projects/lib/projectsSelectors';
+import {
+  ALL_COMPANIES,
+  buildContactList,
+  buildCompanyBuckets,
+  filterEntriesByCompany,
+} from '@/features/projects/lib/contactList';
+import { ContactsPeoplePanel } from '@/features/projects/components/ContactsPeoplePanel';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
@@ -61,6 +68,8 @@ const ProjectsPage = () => {
   const [mutationError, setMutationError] = useState('');
   const [search, setSearch] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
+  const [contactSearch, setContactSearch] = useState('');
+  const [selectedCompanyKey, setSelectedCompanyKey] = useState<string>(ALL_COMPANIES);
   const [assigneeFilterIds, setAssigneeFilterIds] = useState<string[]>([]);
   const {
     taskScope, setTaskScope,
@@ -409,6 +418,17 @@ const ProjectsPage = () => {
     () => filterCustomersBySearch(sortedCustomers, customerSearch),
     [customerSearch, sortedCustomers],
   );
+  // Contacts tab: one flat list of every person (customer contacts +
+  // deduped external project members).
+  const contactEntries = useMemo(
+    () => buildContactList(customerContacts, projectMemberRows, customerById),
+    [customerContacts, projectMemberRows, customerById],
+  );
+  const companyBuckets = useMemo(() => buildCompanyBuckets(contactEntries), [contactEntries]);
+  const companyFilteredEntries = useMemo(
+    () => filterEntriesByCompany(contactEntries, selectedCompanyKey),
+    [contactEntries, selectedCompanyKey],
+  );
   const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
 
   useEffect(() => {
@@ -477,7 +497,7 @@ const ProjectsPage = () => {
   // Customer contact handlers; surface mutation errors via the
   // existing error banner.
   const handleAddCustomerContact = useCallback(async (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
+    payload: { customerId: string | null; name: string; company: string | null; role: string | null; email: string | null; phone: string | null; tag: string | null },
   ): Promise<boolean> => {
     setMutationError('');
     const result = await addCustomerContact(payload);
@@ -500,7 +520,7 @@ const ProjectsPage = () => {
 
   const handleUpdateCustomerContact = useCallback(async (
     id: string,
-    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+    updates: { name?: string; company?: string | null; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null; customerId?: string | null },
   ): Promise<boolean> => {
     setMutationError('');
     const result = await updateCustomerContact(id, updates);
@@ -510,6 +530,33 @@ const ProjectsPage = () => {
     }
     return true;
   }, [updateCustomerContact]);
+
+  // "Edit / delete everywhere" for a deduplicated external person: apply the
+  // same change to every backing project_members row.
+  const handleUpdateExternalPerson = useCallback(async (
+    memberIds: string[],
+    updates: { externalName: string; externalCompany: string | null; externalEmail: string | null; externalPhone: string | null; role: string | null; tag: string | null },
+  ): Promise<boolean> => {
+    setMutationError('');
+    const results = await Promise.all(memberIds.map((memberId) => updateProjectMember(memberId, updates)));
+    const failed = results.find((result) => result?.error);
+    if (failed?.error) {
+      setMutationError(failed.error);
+      return false;
+    }
+    return true;
+  }, [updateProjectMember]);
+
+  const handleDeleteExternalPerson = useCallback(async (memberIds: string[]): Promise<boolean> => {
+    setMutationError('');
+    const results = await Promise.all(memberIds.map((memberId) => deleteProjectMember(memberId)));
+    const failed = results.find((result) => result?.error);
+    if (failed?.error) {
+      setMutationError(failed.error);
+      return false;
+    }
+    return true;
+  }, [deleteProjectMember]);
 
   // Project member handlers (workspace + external).
   const handleAddProjectMember = useCallback(async (
@@ -922,12 +969,18 @@ const ProjectsPage = () => {
     ? t`Milestones`
     : mode === 'customers'
       ? t`Customers`
-      : t`Projects`;
+      : mode === 'contacts'
+        ? t`Contacts`
+        : t`Projects`;
   const mobileSummary = mode === 'milestones'
     ? (selectedMilestone?.title ?? t`Select a milestone`)
     : mode === 'customers'
       ? (selectedCustomer?.name ?? t`Select a customer`)
-      : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
+      : mode === 'contacts'
+        ? (selectedCompanyKey === ALL_COMPANIES
+          ? t`All contacts`
+          : (companyBuckets.find((bucket) => bucket.key === selectedCompanyKey)?.company ?? t`No company`))
+        : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
 
   const projectCardEnabled = isProjectCardEnabled();
   const projectCardMobileEnabled = isProjectCardMobileEnabled();
@@ -937,10 +990,11 @@ const ProjectsPage = () => {
   // sidebar and the legacy customers sidebar. On mobile this also replaces
   // the top-of-page MobilePillSubnav so the user has only one mode switcher.
   const renderModeTabs = () => {
-    const tabs: Array<{ id: 'projects' | 'milestones' | 'customers'; label: string }> = [
+    const tabs: Array<{ id: 'projects' | 'milestones' | 'customers' | 'contacts'; label: string }> = [
       { id: 'projects', label: t`Projects` },
       { id: 'milestones', label: t`Milestones` },
       { id: 'customers', label: t`Customers` },
+      { id: 'contacts', label: t`Contacts` },
     ];
     return (
       <div className="border-b border-border bg-card px-3 py-2">
@@ -951,7 +1005,7 @@ const ProjectsPage = () => {
               type="button"
               onClick={() => setMode(tabItem.id)}
               aria-pressed={mode === tabItem.id}
-              className={`flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${
+              className={`flex-1 truncate whitespace-nowrap rounded-full px-2 py-1.5 text-[12px] font-medium transition-colors ${
                 mode === tabItem.id
                   ? 'bg-primary/15 text-primary'
                   : 'text-muted-foreground hover:text-foreground'
@@ -1049,6 +1103,11 @@ const ProjectsPage = () => {
               }}
               onStartCustomerEdit={startCustomerEdit}
               onRequestDeleteCustomer={requestDeleteCustomer}
+              {...contactsSidebarProps}
+              onSelectCompany={(key) => {
+                setSelectedCompanyKey(key);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
               milestoneTab={milestoneTab}
               onMilestoneTabChange={setMilestoneTab}
               milestoneSearch={milestoneSearch}
@@ -1131,6 +1190,11 @@ const ProjectsPage = () => {
       }}
       onStartCustomerEdit={startCustomerEdit}
       onRequestDeleteCustomer={requestDeleteCustomer}
+      {...contactsSidebarProps}
+      onSelectCompany={(key) => {
+        setSelectedCompanyKey(key);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
       milestoneTab={milestoneTab}
       onMilestoneTabChange={setMilestoneTab}
       milestoneSearch={milestoneSearch}
@@ -1196,6 +1260,35 @@ const ProjectsPage = () => {
     }
     return legacySidebar;
   };
+
+  const selectedCompanyBucket = companyBuckets.find((bucket) => bucket.key === selectedCompanyKey) ?? null;
+  const contactsPanelTitle = selectedCompanyKey === ALL_COMPANIES
+    ? t`All contacts`
+    : selectedCompanyBucket
+      ? (selectedCompanyBucket.company ?? t`No company`)
+      : t`All contacts`;
+  const contactsSidebarProps = {
+    companyBuckets,
+    contactSearch,
+    onContactSearchChange: setContactSearch,
+    selectedCompanyKey,
+  };
+  const renderContactsPeople = () => (
+    <ContactsPeoplePanel
+      entries={companyFilteredEntries}
+      title={contactsPanelTitle}
+      defaultCompany={selectedCompanyBucket?.company ?? null}
+      projectById={projectById}
+      canEdit={canEdit}
+      sectionPadding={isMobile ? 'px-4 py-3' : 'px-6 py-4'}
+      onAddContact={handleAddCustomerContact}
+      onUpdateContact={handleUpdateCustomerContact}
+      onDeleteContact={handleDeleteCustomerContact}
+      onUpdateExternalPerson={handleUpdateExternalPerson}
+      onDeleteExternalPerson={handleDeleteExternalPerson}
+      onOpenProject={handleOpenProjectFromCustomer}
+    />
+  );
 
   const renderProjectsMainPanel = () => (
     <ProjectsMainPanel
@@ -1312,7 +1405,8 @@ const ProjectsPage = () => {
 
   useWorkspaceHeader(
     {
-      primaryAction: mode === 'customers' ? (
+      // Contacts tab has its own "Add contact" button inside the panel.
+      primaryAction: mode === 'contacts' ? null : mode === 'customers' ? (
         <Button
           data-tour="projects-primary-action"
           onClick={() => setCreateCustomerOpen(true)}
@@ -1386,7 +1480,7 @@ const ProjectsPage = () => {
             summary={mobileSummary}
             sheetContent={renderProjectsSidebar(true)}
           >
-            {renderProjectsMainPanel()}
+            {mode === 'contacts' ? renderContactsPeople() : renderProjectsMainPanel()}
           </MobilePageSheetLayout>
         </>
       ) : (
@@ -1401,7 +1495,7 @@ const ProjectsPage = () => {
             </ResizablePanel>
             <ResizableHandle withHandle className="bg-border/70" />
             <ResizablePanel defaultSize={72} minSize={58}>
-              {renderProjectsMainPanel()}
+              {mode === 'contacts' ? renderContactsPeople() : renderProjectsMainPanel()}
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>

@@ -7,6 +7,18 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.6] - 2026-07-08
+### Added
+- New Contacts tab: one directory of people from clients and teams, grouped by company with search. Customer contacts now have a Company field.
+
+## [0.9.5] - 2026-07-06
+### Changed
+- No documented changes.
+
+## [0.9.4] - 2026-07-06
+### Changed
+- No documented changes.
+
 ## [0.9.3] - 2026-07-04
 ### Fixed
 - Removed the redundant "Only for …" option in the task delete dialog when a task has a single assignee.

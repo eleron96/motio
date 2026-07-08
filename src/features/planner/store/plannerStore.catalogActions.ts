@@ -344,6 +344,7 @@ export const createCatalogActions = (
         email: contact.email,
         phone: contact.phone,
         position: nextPosition,
+        company: contact.company ?? null,
         tag: contact.tag ?? null,
       })
       .select('*')
@@ -369,7 +370,10 @@ export const createCatalogActions = (
     if ('email' in updates) payload.email = updates.email;
     if ('phone' in updates) payload.phone = updates.phone;
     if ('position' in updates) payload.position = updates.position;
+    if ('company' in updates) payload.company = updates.company;
     if ('tag' in updates) payload.tag = updates.tag;
+    // Attach/detach/move between clients from the Contacts tab (null = standalone).
+    if ('customerId' in updates) payload.customer_id = updates.customerId;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase
