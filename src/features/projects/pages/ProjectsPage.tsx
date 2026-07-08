@@ -1286,7 +1286,6 @@ const ProjectsPage = () => {
       onDeleteContact={handleDeleteCustomerContact}
       onUpdateExternalPerson={handleUpdateExternalPerson}
       onDeleteExternalPerson={handleDeleteExternalPerson}
-      onOpenProject={handleOpenProjectFromCustomer}
     />
   );
 
