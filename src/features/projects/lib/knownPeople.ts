@@ -69,7 +69,7 @@ export const collectKnownPeople = (
     raws.push({
       name,
       role: cleaned(contact.role),
-      company: cleaned(contact.tag),
+      company: cleaned(contact.company) ?? cleaned(contact.tag),
       email: cleaned(contact.email),
       phone: cleaned(contact.phone),
     });

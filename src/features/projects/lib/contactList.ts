@@ -37,14 +37,14 @@ export const buildContactList = (
   const entries: ContactEntry[] = [];
 
   for (const contact of customerContacts) {
-    // Customer contacts have a single free-form tag (their firm = the client),
-    // so it doubles as the grouping company; no separate chip.
+    // Symmetric with external members: the firm/company groups them in the
+    // sidebar, the free-form tag (e.g. a discipline) shows as a chip.
     entries.push({
       key: `contact-${contact.id}`,
       name: contact.name,
       role: cleaned(contact.role),
-      company: cleaned(contact.tag),
-      tag: null,
+      company: cleaned(contact.company),
+      tag: cleaned(contact.tag),
       email: cleaned(contact.email),
       phone: cleaned(contact.phone),
       source: {

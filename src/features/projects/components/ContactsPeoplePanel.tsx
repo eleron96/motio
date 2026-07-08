@@ -47,7 +47,7 @@ interface ContactsPeoplePanelProps {
   canEdit: boolean;
   sectionPadding: string;
   onAddContact: (
-    payload: { name: string; role: string | null; email: string | null; phone: string | null; tag: string | null; customerId: string | null },
+    payload: { name: string; company: string | null; role: string | null; email: string | null; phone: string | null; tag: string | null; customerId: string | null },
   ) => Promise<boolean>;
   onUpdateContact: (id: string, updates: Partial<Omit<CustomerContact, 'id'>>) => Promise<boolean>;
   onDeleteContact: (id: string) => Promise<boolean>;
@@ -94,13 +94,12 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
   useEffect(() => {
     if (form === null) return;
     if (form === 'new') {
-      // A new standalone contact carries a single tag; seed it from the bucket.
-      setDraft({ ...emptyDraft, tag: defaultCompany ?? '' });
-    } else if (form.source.kind === 'external') {
-      setDraft({ name: form.name, role: form.role ?? '', company: form.company ?? '', tag: form.tag ?? '', email: form.email ?? '', phone: form.phone ?? '' });
+      // Seed the company from the selected sidebar bucket (it groups by company).
+      setDraft({ ...emptyDraft, company: defaultCompany ?? '' });
     } else {
-      // Customer contact: its firm is stored in the tag (== entry.company).
-      setDraft({ name: form.name, role: form.role ?? '', company: '', tag: form.company ?? '', email: form.email ?? '', phone: form.phone ?? '' });
+      // Same fields for external members and customer contacts: entry.company
+      // groups them, entry.tag is the chip.
+      setDraft({ name: form.name, role: form.role ?? '', company: form.company ?? '', tag: form.tag ?? '', email: form.email ?? '', phone: form.phone ?? '' });
     }
   }, [form, defaultCompany]);
 
@@ -127,10 +126,9 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
       const tag = draft.tag.trim() || null;
       let ok = false;
       if (form === 'new') {
-        // Standalone customer contact: single tag, no firm column.
-        ok = await onAddContact({ name, role: draft.role.trim() || null, email: draft.email.trim() || null, phone: draft.phone.trim() || null, tag, customerId: null });
+        ok = await onAddContact({ name, company, role: draft.role.trim() || null, email: draft.email.trim() || null, phone: draft.phone.trim() || null, tag, customerId: null });
       } else if (form.source.kind === 'contact') {
-        ok = await onUpdateContact(form.source.id, { name, role: draft.role.trim() || null, tag, email: draft.email.trim() || null, phone: draft.phone.trim() || null });
+        ok = await onUpdateContact(form.source.id, { name, company, role: draft.role.trim() || null, tag, email: draft.email.trim() || null, phone: draft.phone.trim() || null });
       } else {
         // External: company and tag are distinct columns — never merged.
         ok = await onUpdateExternalPerson(form.source.memberIds, {
@@ -285,29 +283,18 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
               <Input value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} autoFocus />
             </div>
             <div className="flex flex-col gap-1.5">
+              <Label>{t`Company`}</Label>
+              <Input value={draft.company} onChange={(e) => setDraft((d) => ({ ...d, company: e.target.value }))} />
+            </div>
+            <div className="flex flex-col gap-1.5">
               <Label>{t`Role / job title`}</Label>
               <Input value={draft.role} onChange={(e) => setDraft((d) => ({ ...d, role: e.target.value }))} />
             </div>
-            {externalForm ? (
-              // External person: firm (company) + a grouping tag (discipline).
-              <>
-                <div className="flex flex-col gap-1.5">
-                  <Label>{t`Company`}</Label>
-                  <Input value={draft.company} onChange={(e) => setDraft((d) => ({ ...d, company: e.target.value }))} />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label>{t`Tag`}</Label>
-                  <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
-                  <p className="text-[11px] text-muted-foreground">{t`For grouping, e.g. a project section: АР, КР, ВИС`}</p>
-                </div>
-              </>
-            ) : (
-              // Customer contact: one org field — their company.
-              <div className="flex flex-col gap-1.5">
-                <Label>{t`Company`}</Label>
-                <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
-              </div>
-            )}
+            <div className="flex flex-col gap-1.5">
+              <Label>{t`Tag`}</Label>
+              <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
+              <p className="text-[11px] text-muted-foreground">{t`For grouping, e.g. a project section: АР, КР, ВИС`}</p>
+            </div>
             <div className="flex flex-col gap-1.5">
               <Label>Email</Label>
               <Input type="email" value={draft.email} onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))} />
