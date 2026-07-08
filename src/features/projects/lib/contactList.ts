@@ -37,14 +37,19 @@ export const buildContactList = (
   const entries: ContactEntry[] = [];
 
   for (const contact of customerContacts) {
-    // Symmetric with external members: the firm/company groups them in the
-    // sidebar, the free-form tag (e.g. a discipline) shows as a chip.
+    // Symmetric with external members (see below): the firm/company groups
+    // them in the sidebar, the free-form tag (e.g. a discipline) is the chip.
+    // Legacy rows predate the `company` column and stored their firm in `tag`
+    // (the old form's single field) — fall back to it so they keep grouping,
+    // and then suppress the redundant chip.
+    const firm = cleaned(contact.company);
+    const label = cleaned(contact.tag);
     entries.push({
       key: `contact-${contact.id}`,
       name: contact.name,
       role: cleaned(contact.role),
-      company: cleaned(contact.company),
-      tag: cleaned(contact.tag),
+      company: firm ?? label,
+      tag: firm ? label : null,
       email: cleaned(contact.email),
       phone: cleaned(contact.phone),
       source: {
