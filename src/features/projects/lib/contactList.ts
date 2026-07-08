@@ -13,7 +13,10 @@ export interface ContactEntry {
   key: string;
   name: string;
   role: string | null;
+  /** The firm/organization used for grouping (external_company, or the tag as a fallback). */
   company: string | null;
+  /** Free-form grouping tag (e.g. a discipline: АР/КР/ВИС). Shown as a chip. */
+  tag: string | null;
   email: string | null;
   phone: string | null;
   source:
@@ -34,11 +37,14 @@ export const buildContactList = (
   const entries: ContactEntry[] = [];
 
   for (const contact of customerContacts) {
+    // Customer contacts have a single free-form tag (their firm = the client),
+    // so it doubles as the grouping company; no separate chip.
     entries.push({
       key: `contact-${contact.id}`,
       name: contact.name,
       role: cleaned(contact.role),
       company: cleaned(contact.tag),
+      tag: null,
       email: cleaned(contact.email),
       phone: cleaned(contact.phone),
       source: {
@@ -59,10 +65,15 @@ export const buildContactList = (
     const email = cleaned(member.externalEmail);
     const phone = cleaned(member.externalPhone);
     const key = personKey({ name, email, phone });
+    // Firm groups the person; tag (discipline) is a separate chip. Fall back to
+    // the tag for grouping only when there's no firm — then there's no chip.
+    const firm = cleaned(member.externalCompany);
+    const disc = cleaned(member.tag);
     const existing = byPerson.get(key);
     if (existing) {
       existing.role = existing.role ?? cleaned(member.role);
-      existing.company = existing.company ?? cleaned(member.externalCompany) ?? cleaned(member.tag);
+      existing.company = existing.company ?? firm ?? disc;
+      existing.tag = existing.tag ?? (firm ? disc : null);
       existing.email = existing.email ?? email;
       existing.phone = existing.phone ?? phone;
       existing.source.memberIds.push(member.id);
@@ -72,7 +83,8 @@ export const buildContactList = (
         key: `external-${key}`,
         name,
         role: cleaned(member.role),
-        company: cleaned(member.externalCompany) ?? cleaned(member.tag),
+        company: firm ?? disc,
+        tag: firm ? disc : null,
         email,
         phone,
         source: { kind: 'external', memberIds: [member.id], projectIds: [member.projectId] },
@@ -91,6 +103,7 @@ export const searchContactList = (entries: readonly ContactEntry[], rawQuery: st
   return entries.filter((entry) => (
     entry.name.toLowerCase().includes(query)
     || (entry.company?.toLowerCase().includes(query) ?? false)
+    || (entry.tag?.toLowerCase().includes(query) ?? false)
     || (entry.email?.toLowerCase().includes(query) ?? false)
   ));
 };

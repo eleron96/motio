@@ -876,12 +876,13 @@ msgstr "Действия с комментарием"
 msgid "Comments"
 msgstr "Комментарии"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-#~ msgid "Company"
-#~ msgstr "Компания"
+msgid "Company"
+msgstr "Компания"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
@@ -892,9 +893,8 @@ msgstr "Комментарии"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-#: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Company / contractor"
-msgstr "Компания/подрядчик"
+msgstr "Тег"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Completed"
@@ -2005,7 +2005,7 @@ msgstr "Группировать по"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Group by company/contractor"
-msgstr "Группировать по компании/подрядчику"
+msgstr "Группировать по тегу"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx

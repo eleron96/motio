@@ -51,6 +51,14 @@ describe('buildContactList', () => {
     expect(boris.source).toMatchObject({ kind: 'contact', customerId: null, customerName: null });
   });
 
+  it('keeps an external person company (firm) and tag (discipline) separate', () => {
+    const entries = buildContactList([], [
+      member({ id: 'm1', externalName: 'Екатерина', externalCompany: 'СПИЧ', tag: 'АР' }),
+    ], customersById);
+    expect(entries[0].company).toBe('СПИЧ'); // groups under the firm
+    expect(entries[0].tag).toBe('АР'); // discipline shown as a chip
+  });
+
   it('dedupes an external person across projects, keeping every member id', () => {
     const entries = buildContactList([], [
       member({ id: 'm1', projectId: 'p1', externalName: 'Игорь', externalCompany: 'СтройТех', externalEmail: 'i@s.ru' }),

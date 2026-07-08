@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -103,9 +104,10 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   const [editingEmail, setEditingEmail] = useState('');
   const [editingPhone, setEditingPhone] = useState('');
   const [editingTag, setEditingTag] = useState('');
-  // External members get extra editable fields — name, role — hidden from
-  // workspace members whose identity lives in their assignee row.
+  // External members get extra editable fields — name, company, role —
+  // hidden from workspace members whose identity lives in their assignee row.
   const [editingName, setEditingName] = useState('');
+  const [editingCompany, setEditingCompany] = useState('');
   const [editingRole, setEditingRole] = useState('');
   const [editingSubmitting, setEditingSubmitting] = useState(false);
 
@@ -121,6 +123,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   const [addRole, setAddRole] = useState('');
   const [addTag, setAddTag] = useState('');
   const [addExternalName, setAddExternalName] = useState('');
+  const [addExternalCompany, setAddExternalCompany] = useState('');
   const [addExternalEmail, setAddExternalEmail] = useState('');
   const [addExternalPhone, setAddExternalPhone] = useState('');
   const [addSubmitting, setAddSubmitting] = useState(false);
@@ -206,14 +209,14 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       setEditingEmail(member.assignee.email ?? '');
       setEditingPhone(member.assignee.phone ?? '');
       setEditingName('');
+      setEditingCompany('');
     } else if (member.external) {
       setEditingEmail(member.external.email ?? '');
       setEditingPhone(member.external.phone ?? '');
       setEditingName(member.external.name ?? '');
+      setEditingCompany(member.external.company ?? '');
     }
-    // Company and grouping tag are one field now ("Компания/подрядчик"); seed it
-    // from whichever the row carries.
-    setEditingTag((member.external?.company ?? member.tag) ?? '');
+    setEditingTag(member.tag ?? '');
     setEditingRole(member.role ?? '');
   };
 
@@ -230,6 +233,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
     setEditingPhone('');
     setEditingTag('');
     setEditingName('');
+    setEditingCompany('');
     setEditingRole('');
   };
 
@@ -242,6 +246,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       const tag = editingTag.trim() || null;
       const role = editingRole.trim() || null;
       const name = editingName.trim();
+      const company = editingCompany.trim() || null;
       let ok = true;
       if (member.assignee) {
         ok = await onUpdateAssigneeContact(member.assignee.id, email, phone);
@@ -265,9 +270,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
         }
         ok = await onUpdateExternalMember(member.memberRowId, {
           externalName: name,
-          // Keep external_company (shown under the name) in sync with the merged
-          // "Компания/подрядчик" field, which also drives grouping via tag.
-          externalCompany: tag,
+          externalCompany: company,
           externalEmail: email,
           externalPhone: phone,
           tag,
@@ -309,8 +312,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       const ok = await onAddMember({
         kind: 'external',
         name: addExternalName.trim(),
-        // company (external_company) mirrors the merged "Компания/подрядчик" tag.
-        company: addTag.trim() || null,
+        company: addExternalCompany.trim() || null,
         role: addRole.trim() || null,
         tag: addTag.trim() || null,
         email: addExternalEmail.trim() || null,
@@ -329,7 +331,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   // fields the person actually has are set, so picking never wipes a field.
   const fillExternalFromPerson = (person: KnownPerson) => {
     setAddExternalName(person.name);
-    if (person.company) setAddTag(person.company);
+    if (person.company) setAddExternalCompany(person.company);
     if (person.email) setAddExternalEmail(person.email);
     if (person.phone) setAddExternalPhone(person.phone);
     if (person.role) setAddRole(person.role);
@@ -340,6 +342,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
     setAddRole('');
     setAddTag('');
     setAddExternalName('');
+    setAddExternalCompany('');
     setAddExternalEmail('');
     setAddExternalPhone('');
   };
@@ -473,6 +476,13 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                   onChange={(e) => setEditingName(e.target.value)}
                   className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
                   autoFocus
+                />
+                <input
+                  type="text"
+                  placeholder={t`Company`}
+                  value={editingCompany}
+                  onChange={(e) => setEditingCompany(e.target.value)}
+                  className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
                 />
               </>
             )}
@@ -614,6 +624,13 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                       className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                       autoFocus
                     />
+                    <input
+                      type="text"
+                      placeholder={t`Company`}
+                      value={addExternalCompany}
+                      onChange={(e) => setAddExternalCompany(e.target.value)}
+                      className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                    />
                   </>
                 )}
                 <input
@@ -623,32 +640,20 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                   onChange={(e) => setAddRole(e.target.value)}
                   className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                 />
-                {addKind === 'external' ? (
-                  <PersonSuggestField
-                    placeholder={t`Company / contractor`}
-                    value={addTag}
-                    onChange={setAddTag}
-                    onPick={fillExternalFromPerson}
-                    people={people ?? []}
-                    className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    placeholder={t`Company / contractor`}
-                    value={addTag}
-                    onChange={(e) => setAddTag(e.target.value)}
-                    className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
-                  />
-                )}
+                <input
+                  type="text"
+                  placeholder={t`Company / contractor`}
+                  value={addTag}
+                  onChange={(e) => setAddTag(e.target.value)}
+                  className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
+                />
                 {addKind === 'external' && (
                   <>
-                    <PersonSuggestField
+                    <input
+                      type="email"
                       placeholder="Email"
                       value={addExternalEmail}
-                      onChange={setAddExternalEmail}
-                      onPick={fillExternalFromPerson}
-                      people={people ?? []}
+                      onChange={(e) => setAddExternalEmail(e.target.value)}
                       className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                     />
                     <input
@@ -757,7 +762,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                 : {
                     kind: 'external',
                     name: addExternalName.trim(),
-                    company: addTag.trim() || null,
+                    company: addExternalCompany.trim() || null,
                     role: addRole.trim() || null,
                     tag: addTag.trim() || null,
                     email: addExternalEmail.trim() || null,
@@ -819,6 +824,11 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                 autoFocus
               />
               <Input
+                placeholder={t`Company`}
+                value={addExternalCompany}
+                onChange={(event) => setAddExternalCompany(event.target.value)}
+              />
+              <Input
                 placeholder="Email"
                 type="email"
                 value={addExternalEmail}
@@ -869,6 +879,11 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                 value={editingName}
                 onChange={(event) => setEditingName(event.target.value)}
                 autoFocus
+              />
+              <Input
+                placeholder={t`Company`}
+                value={editingCompany}
+                onChange={(event) => setEditingCompany(event.target.value)}
               />
             </>
           )}
