@@ -11,6 +11,7 @@ const contact = (over: Partial<CustomerContact>): CustomerContact => ({
   email: over.email ?? null,
   phone: over.phone ?? null,
   position: over.position ?? 0,
+  company: over.company ?? null,
   tag: over.tag ?? null,
 });
 

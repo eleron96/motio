@@ -15,6 +15,7 @@ interface AddContactFormProps {
    */
   onSave: (payload: {
     name: string;
+    company: string;
     role: string;
     email: string;
     phone: string;
@@ -30,6 +31,7 @@ interface AddContactFormProps {
 
 export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel, people }) => {
   const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
   const [role, setRole] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -44,6 +46,7 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
       // "stay open with the user's draft".
       await onSave({
         name: name.trim(),
+        company: company.trim(),
         role: role.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -61,7 +64,7 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
     if (person.role) setRole(person.role);
     if (person.email) setEmail(person.email);
     if (person.phone) setPhone(person.phone);
-    if (person.company) setTag(person.company);
+    if (person.company) setCompany(person.company);
   };
 
   return (
@@ -87,15 +90,16 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
         autoFocus
         className={FIELD_CLASS}
       />
-      <Field placeholder={t`Role / job title`} value={role} onChange={setRole} />
       <PersonSuggestField
-        placeholder={t`Company / contractor`}
-        value={tag}
-        onChange={setTag}
+        placeholder={t`Company`}
+        value={company}
+        onChange={setCompany}
         onPick={applyPerson}
         people={people ?? []}
         className={FIELD_CLASS}
       />
+      <Field placeholder={t`Role / job title`} value={role} onChange={setRole} />
+      <Field placeholder={t`Tag`} value={tag} onChange={setTag} />
       <PersonSuggestField
         placeholder="Email"
         value={email}

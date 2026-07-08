@@ -497,7 +497,7 @@ const ProjectsPage = () => {
   // Customer contact handlers; surface mutation errors via the
   // existing error banner.
   const handleAddCustomerContact = useCallback(async (
-    payload: { customerId: string | null; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null },
+    payload: { customerId: string | null; name: string; company: string | null; role: string | null; email: string | null; phone: string | null; tag: string | null },
   ): Promise<boolean> => {
     setMutationError('');
     const result = await addCustomerContact(payload);
@@ -520,7 +520,7 @@ const ProjectsPage = () => {
 
   const handleUpdateCustomerContact = useCallback(async (
     id: string,
-    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null; customerId?: string | null },
+    updates: { name?: string; company?: string | null; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null; customerId?: string | null },
   ): Promise<boolean> => {
     setMutationError('');
     const result = await updateCustomerContact(id, updates);

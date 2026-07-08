@@ -27,17 +27,18 @@ describe('AddContactForm — people suggestions', () => {
 
     // Role / company / email / phone are prefilled from the picked person.
     expect((screen.getByPlaceholderText('Role / job title') as HTMLInputElement).value).toBe('Архитектор');
-    expect((screen.getByPlaceholderText('Company / contractor') as HTMLInputElement).value).toBe('СтройГрупп');
+    expect((screen.getByPlaceholderText('Company') as HTMLInputElement).value).toBe('СтройГрупп');
     expect((screen.getByPlaceholderText('Email') as HTMLInputElement).value).toBe('anna@stroy.ru');
     expect((screen.getByPlaceholderText('Phone') as HTMLInputElement).value).toBe('+7900');
 
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({
       name: 'Анна Смирнова',
+      company: 'СтройГрупп',
       role: 'Архитектор',
       email: 'anna@stroy.ru',
       phone: '+7900',
-      tag: 'СтройГрупп',
+      tag: '',
     }));
   });
 
@@ -52,14 +53,14 @@ describe('AddContactForm — people suggestions', () => {
     fireEvent.mouseDown(screen.getByText('Анна Смирнова'));
 
     expect((screen.getByPlaceholderText('Full name') as HTMLInputElement).value).toBe('Анна Смирнова');
-    expect((screen.getByPlaceholderText('Company / contractor') as HTMLInputElement).value).toBe('СтройГрупп');
+    expect((screen.getByPlaceholderText('Company') as HTMLInputElement).value).toBe('СтройГрупп');
     expect((emailInput as HTMLInputElement).value).toBe('anna@stroy.ru');
 
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Анна Смирнова',
       email: 'anna@stroy.ru',
-      tag: 'СтройГрупп',
+      company: 'СтройГрупп',
     })));
   });
 
@@ -76,6 +77,7 @@ describe('AddContactForm — people suggestions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({
       name: 'Новый Контакт',
+      company: '',
       role: '',
       email: '',
       phone: '',

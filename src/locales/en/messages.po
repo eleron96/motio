@@ -877,7 +877,10 @@ msgid "Comments"
 msgstr "Comments"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/projectCard/AddContactForm.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -885,10 +888,6 @@ msgstr "Comments"
 msgid "Company"
 msgstr "Company"
 
-#: src/features/projects/components/projectCard/AddContactForm.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -4206,6 +4205,10 @@ msgid "Subtasks"
 msgstr "Subtasks"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/projectCard/AddContactForm.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "Tag"
 msgstr "Tag"
 

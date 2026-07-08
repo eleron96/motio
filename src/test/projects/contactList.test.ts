@@ -18,6 +18,7 @@ const contact = (over: Partial<CustomerContact>): CustomerContact => ({
   email: over.email ?? null,
   phone: over.phone ?? null,
   position: over.position ?? 0,
+  company: over.company ?? null,
   tag: over.tag ?? null,
 });
 
@@ -41,12 +42,13 @@ const customersById = new Map<string, Customer>([
 describe('buildContactList', () => {
   it('lists customer contacts with their client name, and standalone ones with null', () => {
     const entries = buildContactList([
-      contact({ id: 'c1', name: 'Анна', customerId: 'cust1', tag: 'ООО Ромашка' }),
+      contact({ id: 'c1', name: 'Анна', customerId: 'cust1', company: 'ООО Ромашка', tag: 'ГИП' }),
       contact({ id: 'c2', name: 'Борис', customerId: null }),
     ], [], customersById);
     const anna = entries.find((e) => e.name === 'Анна')!;
     expect(anna.source).toMatchObject({ kind: 'contact', customerId: 'cust1', customerName: 'Blue Orbit' });
-    expect(anna.company).toBe('ООО Ромашка');
+    expect(anna.company).toBe('ООО Ромашка'); // firm groups them
+    expect(anna.tag).toBe('ГИП'); // free-form tag shown as a chip
     const boris = entries.find((e) => e.name === 'Борис')!;
     expect(boris.source).toMatchObject({ kind: 'contact', customerId: null, customerName: null });
   });
@@ -85,9 +87,9 @@ describe('buildContactList', () => {
 
 describe('company grouping', () => {
   const entries = buildContactList([
-    contact({ id: 'c1', name: 'Анна', tag: 'айбим' }),
-    contact({ id: 'c2', name: 'Пётр', tag: 'айбим' }),
-    contact({ id: 'c3', name: 'Без', tag: null }),
+    contact({ id: 'c1', name: 'Анна', company: 'айбим' }),
+    contact({ id: 'c2', name: 'Пётр', company: 'айбим' }),
+    contact({ id: 'c3', name: 'Без', company: null }),
   ], [
     member({ id: 'm1', externalName: 'Игорь', externalCompany: 'СтройТех' }),
   ], customersById);
@@ -111,7 +113,7 @@ describe('company grouping', () => {
 
 describe('searchContactList', () => {
   const entries = buildContactList([
-    contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.ru', tag: 'СтройГрупп' }),
+    contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.ru', company: 'СтройГрупп' }),
     contact({ id: 'c2', name: 'Борис Иванов', email: 'boris@x.ru' }),
   ], [], customersById);
 

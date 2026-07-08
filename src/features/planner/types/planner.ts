@@ -65,6 +65,8 @@ export interface CustomerContact {
   email: string | null;
   phone: string | null;
   position: number;
+  /** Free-form firm/company, mirroring an external member's company (0111). */
+  company: string | null;
   /** Phase 7: free-form tag for grouping (e.g. «субподрядчик», «BIM-менеджер»). */
   tag: string | null;
 }
