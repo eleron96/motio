@@ -166,16 +166,6 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
       : t`This removes "${deleteTarget.name}" from ${names}.`;
   })();
 
-  const badge = (entry: ContactEntry): React.ReactNode => {
-    if (entry.source.kind === 'contact') {
-      return entry.source.customerName
-        ? <Badge className="text-[10px]">{t`Client: ${entry.source.customerName}`}</Badge>
-        : null;
-    }
-    const count = entry.source.projectIds.length;
-    return <Badge variant="secondary" className="text-[10px]">{count > 1 ? t`External · ${count} projects` : t`External`}</Badge>;
-  };
-
   const externalForm = form !== null && form !== 'new' && form.source.kind === 'external'
     ? (form as ContactEntry & { source: { kind: 'external'; memberIds: string[]; projectIds: string[] } })
     : null;
@@ -225,7 +215,6 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
                       {entry.tag && (
                         <Badge variant="outline" className="text-[10px] text-muted-foreground">{entry.tag}</Badge>
                       )}
-                      {badge(entry)}
                     </div>
                     {(entry.role || entry.company) && (
                       <div className="text-xs text-muted-foreground break-words [overflow-wrap:anywhere]">
