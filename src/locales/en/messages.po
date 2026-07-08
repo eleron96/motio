@@ -17,6 +17,10 @@ msgstr ""
 #~ msgid "— Niko · <0>Read the manifesto</0>"
 #~ msgstr "— Niko · <0>Read the manifesto</0>"
 
+#: src/features/projects/components/ContactsListPanel.tsx
+#~ msgid "— no client —"
+#~ msgstr "— no client —"
+
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "— pick member —"
 msgstr "— pick member —"
@@ -74,6 +78,11 @@ msgstr "{0} milestones"
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "{0} past"
 msgstr "{0} past"
+
+#. placeholder {0}: entries.length
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "{0} people"
+msgstr "{0} people"
 
 #. placeholder {0}: selectedCustomerProjects.length
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -180,6 +189,10 @@ msgstr "{remaining} more"
 msgid "{selectedTaskCommentCount} comments"
 msgstr "{selectedTaskCommentCount} comments"
 
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#~ msgid "{totalCount} people"
+#~ msgstr "{totalCount} people"
+
 #. placeholder {0}: hiddenMilestones.length
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 msgid "+{0} more milestones"
@@ -208,6 +221,10 @@ msgstr "1 comment"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "A person you can reuse across projects."
+msgstr "A person you can reuse across projects."
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -308,6 +325,7 @@ msgstr "Active people"
 #~ msgstr "Activity feed lands later"
 
 #: src/features/planner/components/SubtasksSection.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -345,6 +363,10 @@ msgstr "Add active assignees to see the workload gradient. Milestones are still 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #~ msgid "Add activity entry"
 #~ msgstr "Add activity entry"
+
+#: src/features/projects/components/ContactsListPanel.tsx
+#~ msgid "Add contact"
+#~ msgstr "Add contact"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -443,6 +465,13 @@ msgstr "All assignees"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "All changes saved"
 msgstr "All changes saved"
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
+msgid "All contacts"
+msgstr "All contacts"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "All current data will be lost."
@@ -647,6 +676,8 @@ msgstr "Calendar range"
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -691,6 +722,11 @@ msgstr "Cancelled"
 msgid "Cancelled status"
 msgstr "Cancelled status"
 
+#. placeholder {0}: externalForm.source.projectIds.length
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "Changes apply everywhere this person appears ({0} projects)."
+msgstr "Changes apply everywhere this person appears ({0} projects)."
+
 #: src/features/demo/components/DemoBanner.tsx
 #~ msgid "Changes won't be saved. The sandbox resets after 10 minutes of inactivity."
 #~ msgstr "Changes won't be saved. The sandbox resets after 10 minutes of inactivity."
@@ -723,6 +759,10 @@ msgstr "Checkerboard"
 #: src/features/auth/pages/InvitePage.tsx
 msgid "Checking invite..."
 msgstr "Checking invite..."
+
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#~ msgid "Choose a contact on the left, or add a new one."
+#~ msgstr "Choose a contact on the left, or add a new one."
 
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Choose a customer to see their projects."
@@ -773,8 +813,10 @@ msgstr "Clear photo"
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -784,6 +826,15 @@ msgstr "Clear search"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Click this button or double-click a date on the timeline to open the task form."
 msgstr "Click this button or double-click a date on the timeline to open the task form."
+
+#: src/features/projects/components/ContactsListPanel.tsx
+#~ msgid "Client"
+#~ msgstr "Client"
+
+#. placeholder {0}: entry.source.customerName
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "Client: {0}"
+msgstr "Client: {0}"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -825,6 +876,11 @@ msgstr "Comment actions"
 msgid "Comments"
 msgstr "Comments"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/projectCard/AddContactForm.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -832,10 +888,6 @@ msgstr "Comments"
 msgid "Company"
 msgstr "Company"
 
-#: src/features/projects/components/projectCard/AddContactForm.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -855,9 +907,19 @@ msgstr "Completion trend"
 msgid "Configure widget type, display style, and filters."
 msgstr "Configure widget type, display style, and filters."
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "Contact actions"
+msgstr "Contact actions"
+
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Contact details"
 msgstr "Contact details"
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
+msgid "Contacts"
+msgstr "Contacts"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #~ msgid "Contacts arrive in a later phase"
@@ -1161,6 +1223,8 @@ msgstr "default"
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -1197,6 +1261,10 @@ msgstr "Delete all"
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Delete comment?"
 msgstr "Delete comment?"
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "Delete contact?"
+msgstr "Delete contact?"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Delete customer?"
@@ -1454,6 +1522,7 @@ msgstr "Each morning starts with a short brief. What's on you today, which miles
 
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentItem.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
@@ -1468,6 +1537,7 @@ msgstr "Each morning starts with a short brief. What's on you today, which miles
 msgid "Edit"
 msgstr "Edit"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "Edit contact"
@@ -1668,10 +1738,19 @@ msgstr "Export your work after you sign up"
 msgid "Exports run on your real workspace. Sign up in 30 seconds to enable them."
 msgstr "Exports run on your real workspace. Sign up in 30 seconds to enable them."
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "External"
 msgstr "External"
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+#~ msgid "External · {0} projects"
+#~ msgstr "External · {0} projects"
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "External · {count} projects"
+msgstr "External · {count} projects"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "External (not in Motio)"
@@ -1834,6 +1913,14 @@ msgstr "Find or add customer..."
 msgid "Finish"
 msgstr "Finish"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "For grouping — e.g. a field or department: Design, Development, АР"
+msgstr "For grouping — e.g. a field or department: Design, Development, АР"
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#~ msgid "For grouping, e.g. a project section: АР, КР, ВИС"
+#~ msgstr "For grouping, e.g. a project section: АР, КР, ВИС"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "For teams that own their data"
 msgstr "For teams that own their data"
@@ -1862,6 +1949,7 @@ msgstr "Force purge scheduled"
 msgid "Full day ≈ {capacityDisplay} tasks/person"
 msgstr "Full day ≈ {capacityDisplay} tasks/person"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -2531,6 +2619,11 @@ msgstr "name@example.com"
 msgid "Never"
 msgstr "Never"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "New contact"
+msgstr "New contact"
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "New customer"
@@ -2663,14 +2756,38 @@ msgstr "No assignees yet."
 msgid "No available members."
 msgstr "No available members."
 
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
+#~ msgid "No client"
+#~ msgstr "No client"
+
 #: src/features/planner/components/FilterPanel.tsx
 msgid "No code"
 msgstr "No code"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
 msgid "No company"
 msgstr "No company"
+
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#~ msgid "No contact details yet."
+#~ msgstr "No contact details yet."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No contacts found."
+msgstr "No contacts found."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No contacts here yet."
+msgstr "No contacts here yet."
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+#~ msgid "No contacts yet."
+#~ msgstr "No contacts yet."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "No countries found."
@@ -3034,6 +3151,10 @@ msgstr "OK"
 msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 msgstr "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#~ msgid "On projects"
+#~ msgstr "On projects"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "One <0>clear timeline</0><1/> for your whole team"
@@ -3059,6 +3180,11 @@ msgstr "Only this task"
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Open"
 msgstr "Open"
+
+#. placeholder {0}: formatProjectLabel(project.name, project.code)
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "Open {0}"
+msgstr "Open {0}"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
@@ -3209,6 +3335,7 @@ msgstr "People sections"
 msgid "Period"
 msgstr "Period"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -3268,6 +3395,10 @@ msgstr "Prev"
 #: src/features/planner/components/timeline/TimelineControls.tsx
 msgid "Previous"
 msgstr "Previous"
+
+#: src/features/projects/components/projectCard/PersonSuggestField.tsx
+msgid "Previously entered"
+msgstr "Previously entered"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -3566,6 +3697,7 @@ msgstr "Right-click to add your first widget."
 msgid "Role"
 msgstr "Role"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -3596,6 +3728,7 @@ msgstr "Sage"
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -3637,12 +3770,12 @@ msgid "Saving..."
 msgstr "Saving..."
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-msgid "Scroll left"
-msgstr "Scroll left"
+#~ msgid "Scroll left"
+#~ msgstr "Scroll left"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-msgid "Scroll right"
-msgstr "Scroll right"
+#~ msgid "Scroll right"
+#~ msgstr "Scroll right"
 
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -3654,6 +3787,10 @@ msgstr "Search & filters"
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #~ msgid "Search activity..."
 #~ msgstr "Search activity..."
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "Search companies..."
+msgstr "Search companies..."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Search countries..."
@@ -3679,6 +3816,14 @@ msgstr "Search milestones..."
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Search notes..."
 msgstr "Search notes..."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "Search people"
+msgstr "Search people"
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+#~ msgid "Search people and companies..."
+#~ msgstr "Search people and companies..."
 
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -3722,6 +3867,10 @@ msgstr "Search types..."
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
+
+#: src/features/projects/pages/ProjectsPage.tsx
+#~ msgid "Select a contact"
+#~ msgstr "Select a contact"
 
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -4059,10 +4208,13 @@ msgstr "Subtask title"
 msgid "Subtasks"
 msgstr "Subtasks"
 
-#: src/features/projects/components/projectCard/TeamBlock.tsx
-#: src/features/projects/components/projectCard/TeamBlock.tsx
-#~ msgid "Tag"
-#~ msgstr "Tag"
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/projectCard/AddContactForm.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+#: src/features/projects/components/projectCard/CustomerBlock.tsx
+msgid "Tag"
+msgstr "Tag"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -4299,6 +4451,27 @@ msgstr "This name is reserved."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this project"
 msgstr "this project"
+
+#. placeholder {0}: deleteTarget.name
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "This removes \"{0}\" from {names}."
+msgstr "This removes \"{0}\" from {names}."
+
+#. placeholder {0}: deleteTarget.name
+#. placeholder {1}: projects.length
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "This removes \"{0}\" from all {1} projects: {names}."
+msgstr "This removes \"{0}\" from all {1} projects: {names}."
+
+#. placeholder {0}: deleteTarget.name
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "This removes \"{0}\" from every project they're on."
+msgstr "This removes \"{0}\" from every project they're on."
+
+#. placeholder {0}: deleteTarget.name
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "This removes \"{0}\" from your contacts."
+msgstr "This removes \"{0}\" from your contacts."
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "This sandbox resets soon. Create a free account to keep this timeline and start your own."

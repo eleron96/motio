@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Building2, Group, Mail, Pencil, Phone, Plus, Trash2 } from 'lucide-react';
 import type { Customer, CustomerContact } from '@/features/planner/types/planner';
+import type { KnownPerson } from '@/features/projects/lib/knownPeople';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { ContactPopup } from './ContactPopup';
@@ -19,13 +20,15 @@ interface CustomerBlockProps {
   canEdit: boolean;
   /** Each handler resolves to `true` on success and `false` on failure. */
   onAddContact: (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
+    payload: { customerId: string; name: string; company: string | null; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteContact: (id: string) => Promise<boolean>;
   onUpdateContact: (
     id: string,
-    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+    updates: { name?: string; company?: string | null; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
   ) => Promise<boolean>;
+  /** Previously-entered people to suggest in the add form. Empty = plain input. */
+  people?: readonly KnownPerson[];
 }
 
 const buildInitials = (name: string): string => {
@@ -44,6 +47,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   onAddContact,
   onDeleteContact,
   onUpdateContact,
+  people,
 }) => {
   const isMobile = useIsMobile();
   // M4: mobile users can add and delete contacts via bottom sheets. Desktop
@@ -57,6 +61,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   // Mobile add form values held locally — desktop uses its own AddContactForm
   // state; we don't share to avoid coupling unrelated lifecycles.
   const [mAddName, setMAddName] = useState('');
+  const [mAddCompany, setMAddCompany] = useState('');
   const [mAddRole, setMAddRole] = useState('');
   const [mAddEmail, setMAddEmail] = useState('');
   const [mAddPhone, setMAddPhone] = useState('');
@@ -67,6 +72,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   // We track which contact is being edited (id) plus the draft values.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [eName, setEName] = useState('');
+  const [eCompany, setECompany] = useState('');
   const [eRole, setERole] = useState('');
   const [eEmail, setEEmail] = useState('');
   const [ePhone, setEPhone] = useState('');
@@ -79,6 +85,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
 
   const resetMobileAddForm = () => {
     setMAddName('');
+    setMAddCompany('');
     setMAddRole('');
     setMAddEmail('');
     setMAddPhone('');
@@ -88,6 +95,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   const beginEditContact = (contact: CustomerContact) => {
     setEditingId(contact.id);
     setEName(contact.name);
+    setECompany(contact.company ?? '');
     setERole(contact.role ?? '');
     setEEmail(contact.email ?? '');
     setEPhone(contact.phone ?? '');
@@ -100,6 +108,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
   const cancelEditContact = () => {
     setEditingId(null);
     setEName('');
+    setECompany('');
     setERole('');
     setEEmail('');
     setEPhone('');
@@ -114,6 +123,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
     try {
       const ok = await onUpdateContact(editingId, {
         name: trimmedName,
+        company: eCompany.trim() || null,
         role: eRole.trim() || null,
         email: eEmail.trim() || null,
         phone: ePhone.trim() || null,
@@ -165,10 +175,11 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
 
   const accentVars = buildProjectAccentVars(accentColor);
 
-  const handleSave = async (form: { name: string; role: string; email: string; phone: string; tag: string }) => {
+  const handleSave = async (form: { name: string; company: string; role: string; email: string; phone: string; tag: string }) => {
     const ok = await onAddContact({
       customerId: customer.id,
       name: form.name,
+      company: form.company || null,
       role: form.role || null,
       email: form.email || null,
       phone: form.phone || null,
@@ -239,7 +250,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
       </div>
 
       {adding && !isMobile && (
-        <AddContactForm onSave={handleSave} onCancel={() => setAdding(false)} />
+        <AddContactForm onSave={handleSave} onCancel={() => setAdding(false)} people={people} />
       )}
 
       {contacts.length === 0 && !adding && (
@@ -308,6 +319,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
               const ok = await onAddContact({
                 customerId: customer.id,
                 name: trimmedName,
+                company: mAddCompany.trim() || null,
                 role: mAddRole.trim() || null,
                 email: mAddEmail.trim() || null,
                 phone: mAddPhone.trim() || null,
@@ -333,12 +345,17 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
             autoFocus
           />
           <Input
+            placeholder={t`Company`}
+            value={mAddCompany}
+            onChange={(event) => setMAddCompany(event.target.value)}
+          />
+          <Input
             placeholder={t`Role / job title`}
             value={mAddRole}
             onChange={(event) => setMAddRole(event.target.value)}
           />
           <Input
-            placeholder={t`Company / contractor`}
+            placeholder={t`Tag`}
             value={mAddTag}
             onChange={(event) => setMAddTag(event.target.value)}
           />
@@ -379,12 +396,17 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
             autoFocus
           />
           <Input
+            placeholder={t`Company`}
+            value={eCompany}
+            onChange={(event) => setECompany(event.target.value)}
+          />
+          <Input
             placeholder={t`Role / job title`}
             value={eRole}
             onChange={(event) => setERole(event.target.value)}
           />
           <Input
-            placeholder={t`Company / contractor`}
+            placeholder={t`Tag`}
             value={eTag}
             onChange={(event) => setETag(event.target.value)}
           />
@@ -443,8 +465,10 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
                 </span>
               )}
             </div>
-            {contact.role && (
-              <div className="truncate text-[10px] text-muted-foreground">{contact.role}</div>
+            {(contact.role || contact.company) && (
+              <div className="truncate text-[10px] text-muted-foreground">
+                {[contact.role, contact.company].filter(Boolean).join(' · ')}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-0.5 opacity-50 transition-opacity group-hover:opacity-100">
@@ -502,6 +526,13 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
             />
             <input
               type="text"
+              placeholder={t`Company`}
+              value={eCompany}
+              onChange={(event) => setECompany(event.target.value)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"
+            />
+            <input
+              type="text"
               placeholder={t`Role / job title`}
               value={eRole}
               onChange={(event) => setERole(event.target.value)}
@@ -509,7 +540,7 @@ export const CustomerBlock: React.FC<CustomerBlockProps> = ({
             />
             <input
               type="text"
-              placeholder={t`Company / contractor`}
+              placeholder={t`Tag`}
               value={eTag}
               onChange={(event) => setETag(event.target.value)}
               className="rounded-md border border-border bg-card px-2 py-1 text-[11px] outline-none focus:border-primary"

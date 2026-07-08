@@ -123,7 +123,9 @@ export interface PlannerStore extends PlannerState {
   ) => Promise<CustomerContact | null>;
   updateCustomerContact: (
     id: string,
-    updates: Partial<Omit<CustomerContact, 'id' | 'customerId'>>,
+    // customerId is allowed so the Contacts tab can attach/detach/move a
+    // contact between clients (null = standalone).
+    updates: Partial<Omit<CustomerContact, 'id'>>,
   ) => Promise<MutationResult>;
   deleteCustomerContact: (id: string) => Promise<MutationResult>;
 

@@ -6,7 +6,7 @@ import {
   DEFAULT_CAPACITY_PER_PERSON,
   levelForPercent,
   milestoneKernelSum,
-  MILESTONE_FRACTION,
+  MILESTONE_CREW,
   resolveCapacity,
 } from '@/features/dashboard/lib/workloadHeatmap';
 import type { DashboardMilestone } from '@/features/dashboard/types/dashboard';
@@ -22,35 +22,37 @@ describe('milestone kernel', () => {
   const target = '2026-07-10';
   const ms = [milestone(target)];
 
-  it('weighs the milestone day the same as the day before it, both at peak (1.0)', () => {
+  it('plateaus the day before the deadline: eve and the day itself share the peak (1.0)', () => {
     expect(milestoneKernelSum(target, ms)).toBeCloseTo(1, 5);
     expect(milestoneKernelSum('2026-07-09', ms)).toBeCloseTo(1, 5);
   });
 
-  it('ramps up over the 3-4 days before and is light after', () => {
-    const before2 = milestoneKernelSum('2026-07-08', ms); // -2 → 0.75
-    const before4 = milestoneKernelSum('2026-07-06', ms); // -4 → 0.25
-    const after1 = milestoneKernelSum('2026-07-11', ms); // +1 → 0.35
-    expect(before2).toBeGreaterThan(before4);
-    expect(before4).toBeGreaterThan(0);
-    expect(after1).toBeLessThan(before2);
+  it('ramps up as a half-cosine (slow from afar, steep near) and is light after', () => {
+    const before2 = milestoneKernelSum('2026-07-08', ms); // -2 → 0.85
+    const before3 = milestoneKernelSum('2026-07-07', ms); // -3 → 0.5
+    const before4 = milestoneKernelSum('2026-07-06', ms); // -4 → 0.15
+    const after1 = milestoneKernelSum('2026-07-11', ms); // +1 → 0.3
+    expect(before2).toBeCloseTo(0.85, 5);
+    expect(before4).toBeCloseTo(0.15, 5);
+    // S-shape: gentle entry (0→0.15) and gentle landing on the plateau (0.85→1.0),
+    // with the steep middle of the climb between them
+    expect(before4 - 0).toBeLessThan(before3 - before4);
+    expect(1 - before2).toBeLessThan(before2 - before3);
+    expect(after1).toBeCloseTo(0.3, 5);
   });
 
-  it('makes a multi-delivery day heavier with diminishing returns, and caps a wide stack', () => {
-    // four deliveries on the same date ≈ 1.75× a single one (not 4×)
+  it('counts every same-day delivery fully — each pins its own crew, no discount', () => {
     const sameDay = milestoneKernelSum(target, [
       milestone(target), milestone(target), milestone(target), milestone(target),
     ]);
-    expect(sameDay).toBeCloseTo(1.75, 5);
-    expect(sameDay).toBeGreaterThan(milestoneKernelSum(target, ms));
-    // heavy clusters on two peak days (the day itself and the day it precedes) blow
-    // past the cap and are clamped to MILESTONE_STACK_CAP (1.8)
-    const capped = milestoneKernelSum(target, [
-      milestone(target), milestone(target), milestone(target), milestone(target),
-      milestone('2026-07-11'), milestone('2026-07-11'),
+    expect(sameDay).toBeCloseTo(4, 5);
+    // clusters on adjacent peak days add up linearly too; the cap lives in
+    // dayPercent (crew vs headcount), not in the kernel
+    const cluster = milestoneKernelSum(target, [
+      milestone(target), milestone(target),
       milestone('2026-07-11'), milestone('2026-07-11'),
     ]);
-    expect(capped).toBeCloseTo(1.8, 5);
+    expect(cluster).toBeCloseTo(2 + 2 * 1, 5); // 2×peak + 2×eve-of-next-day (both 1.0)
   });
 
   it('is zero outside the kernel window', () => {
@@ -65,13 +67,31 @@ describe('dayPercent', () => {
     expect(dayPercent(20, 8, 5, 0)).toBe(50);
   });
 
-  it('adds a milestone share on top of tasks and can exceed 100%', () => {
-    // one milestone at peak alone
-    expect(dayPercent(0, 8, 5, 1)).toBe(Math.round(MILESTONE_FRACTION * 100));
-    // 50% of tasks + one capped milestone (45%) = 95%
-    expect(dayPercent(20, 8, 5, 1)).toBe(50 + Math.round(MILESTONE_FRACTION * 100));
-    // 100% of tasks + one milestone tips into overload
-    expect(dayPercent(40, 8, 5, 1)).toBe(100 + Math.round(MILESTONE_FRACTION * 100));
+  it('scales milestone pressure by headcount: a crew of MILESTONE_CREW people over the team', () => {
+    // one delivery at peak, team of 4: 1.4 / 4 = 35%
+    expect(dayPercent(0, 4, 5, 1)).toBe(Math.round((MILESTONE_CREW / 4) * 100));
+    expect(dayPercent(0, 4, 5, 1)).toBe(35);
+    // the same delivery barely registers for a team of 10: 14%
+    expect(dayPercent(0, 10, 5, 1)).toBe(14);
+  });
+
+  it('has no diminishing returns for simultaneous deliveries', () => {
+    // two deliveries, team of 4: 2.8 / 4 = 70% — double a single one
+    expect(dayPercent(0, 4, 5, 2)).toBe(70);
+    // two deliveries, team of 8: still exactly double a single one (35% vs 17.5%)
+    expect(dayPercent(0, 8, 5, 2)).toBe(35);
+  });
+
+  it('caps the pinned crew at the whole team, so milestones alone max out at 100%', () => {
+    // four deliveries would pin 5.6 people but the team only has 4
+    expect(dayPercent(0, 4, 5, 4)).toBe(100);
+    // ...and only tasks push past 100 into overload
+    expect(dayPercent(16, 4, 5, 4)).toBe(180);
+  });
+
+  it('adds the milestone share on top of tasks and can exceed 100%', () => {
+    // 80% of tasks + one delivery for a team of 4 tips into overload
+    expect(dayPercent(16, 4, 5, 1)).toBe(115);
   });
 
   it('guards zero capacity and headcount', () => {

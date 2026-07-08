@@ -58,12 +58,13 @@ export type CustomerRow = {
 export type CustomerContactRow = {
   id: string;
   workspace_id: string;
-  customer_id: string;
+  customer_id: string | null;
   name: string;
   role: string | null;
   email: string | null;
   phone: string | null;
   position: number;
+  company: string | null;
   tag: string | null;
 };
 
@@ -250,6 +251,7 @@ export const mapCustomerContactRow = (row: CustomerContactRow): CustomerContact 
   email: row.email ?? null,
   phone: row.phone ?? null,
   position: row.position ?? 0,
+  company: row.company ?? null,
   tag: row.tag ?? null,
 });
 

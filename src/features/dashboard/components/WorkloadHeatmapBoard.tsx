@@ -16,7 +16,7 @@ import {
 } from 'date-fns';
 import { t, Trans } from '@lingui/macro';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { cn } from '@/shared/lib/classNames';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -209,21 +209,18 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   const rafRef = useRef(0);
   const dragRef = useRef<{ startX: number; startLeft: number } | null>(null);
   const didAutoScroll = useRef(false);
-  const [nav, setNav] = useState({ atStart: true, atEnd: false, todayVisible: true });
+  const [nav, setNav] = useState({ todayVisible: true });
 
   const syncScrollUi = useCallback(() => {
     const strip = stripRef.current;
     if (!strip) return;
     const { scrollLeft, scrollWidth, clientWidth } = strip;
     const maxScroll = Math.max(1, scrollWidth - clientWidth);
-    const thumbFrac = Math.max(0.08, Math.min(1, clientWidth / Math.max(scrollWidth, 1)));
     const posFrac = Math.min(1, Math.max(0, scrollLeft / maxScroll));
-    if (thumbRef.current) {
-      thumbRef.current.style.width = `${thumbFrac * 100}%`;
-      thumbRef.current.style.left = `${posFrac * (1 - thumbFrac) * 100}%`;
+    if (thumbRef.current && trackRef.current) {
+      const usable = Math.max(0, trackRef.current.clientWidth - thumbRef.current.offsetWidth);
+      thumbRef.current.style.left = `${posFrac * usable}px`;
     }
-    const atStart = scrollLeft <= 1;
-    const atEnd = scrollLeft >= maxScroll - 1;
     let todayVisible = true;
     const target = todayMonthRef.current;
     if (target) {
@@ -231,11 +228,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
       const rect = target.getBoundingClientRect();
       todayVisible = rect.right > s.left + 8 && rect.left < s.right - 8;
     }
-    setNav((prev) => (
-      prev.atStart === atStart && prev.atEnd === atEnd && prev.todayVisible === todayVisible
-        ? prev
-        : { atStart, atEnd, todayVisible }
-    ));
+    setNav((prev) => (prev.todayVisible === todayVisible ? prev : { todayVisible }));
   }, []);
 
   const onScroll = useCallback(() => {
@@ -256,12 +249,6 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     strip.scrollTo({ left: Math.max(0, contentLeft - 4), behavior: smooth ? 'smooth' : 'auto' });
   }, []);
 
-  const scrollByViewport = useCallback((direction: number) => {
-    const strip = stripRef.current;
-    if (!strip) return;
-    strip.scrollBy({ left: direction * strip.clientWidth * 0.85, behavior: 'smooth' });
-  }, []);
-
   const onThumbPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const strip = stripRef.current;
     if (!strip) return;
@@ -277,8 +264,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     const track = trackRef.current;
     if (!drag || !strip || !track) return;
     const maxScroll = strip.scrollWidth - strip.clientWidth;
-    const thumbWidth = track.clientWidth * (strip.clientWidth / Math.max(strip.scrollWidth, 1));
-    const usable = track.clientWidth - thumbWidth;
+    const usable = track.clientWidth - (thumbRef.current?.offsetWidth ?? 0);
     const deltaScroll = usable > 0 ? ((event.clientX - drag.startX) / usable) * maxScroll : 0;
     strip.scrollLeft = drag.startLeft + deltaScroll;
   }, []);
@@ -293,12 +279,14 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   }, []);
 
   const onTrackPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.target === thumbRef.current) return;
+    if (thumbRef.current?.contains(event.target as Node)) return;
     const strip = stripRef.current;
     const track = trackRef.current;
     if (!strip || !track) return;
     const rect = track.getBoundingClientRect();
-    const frac = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    const capWidth = thumbRef.current?.offsetWidth ?? 0;
+    const usable = Math.max(1, rect.width - capWidth);
+    const frac = Math.min(1, Math.max(0, (event.clientX - rect.left - capWidth / 2) / usable));
     strip.scrollTo({ left: frac * (strip.scrollWidth - strip.clientWidth), behavior: 'smooth' });
   }, []);
 
@@ -469,39 +457,21 @@ export const WorkloadHeatmapBoard: React.FC = () => {
         </div>
 
       <div className="flex items-center gap-2 px-1">
-        <button
-          type="button"
-          aria-label={t`Scroll left`}
-          onClick={() => scrollByViewport(-1)}
-          disabled={nav.atStart}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
         <div
           ref={trackRef}
           onPointerDown={onTrackPointerDown}
-          className="relative h-3 flex-1 cursor-pointer rounded-full border border-border bg-muted"
+          className="relative h-6 flex-1 cursor-pointer"
         >
+          <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-muted-foreground/40" />
           <div
             ref={thumbRef}
             onPointerDown={onThumbPointerDown}
             onPointerMove={onThumbPointerMove}
             onPointerUp={onThumbPointerUp}
             onPointerCancel={onThumbPointerUp}
-            style={{ width: '20%', left: '0%', minWidth: 32 }}
-            className="absolute top-0 h-3 cursor-grab rounded-full bg-muted-foreground/50 transition-colors hover:bg-muted-foreground/70 active:cursor-grabbing active:bg-muted-foreground/80"
+            className="absolute top-1/2 h-4 w-12 -translate-y-1/2 cursor-grab select-none rounded-full border border-border bg-card transition-colors hover:border-muted-foreground/60 active:cursor-grabbing"
           />
         </div>
-        <button
-          type="button"
-          aria-label={t`Scroll right`}
-          onClick={() => scrollByViewport(1)}
-          disabled={nav.atEnd}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
         {!nav.todayVisible && (
           <button
             type="button"

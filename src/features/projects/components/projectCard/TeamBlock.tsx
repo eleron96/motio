@@ -13,6 +13,8 @@ import {
 import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
+import type { KnownPerson } from '@/features/projects/lib/knownPeople';
+import { PersonSuggestField } from './PersonSuggestField';
 import { ContactPopup, type ContactPopupTarget } from './ContactPopup';
 import { MobileContactSheet } from './MobileContactSheet';
 import { MobileFormSheet } from './MobileFormSheet';
@@ -40,6 +42,8 @@ interface TeamBlockProps {
       'externalName' | 'externalCompany' | 'externalEmail' | 'externalPhone' | 'role' | 'tag'
     >>,
   ) => Promise<boolean>;
+  /** Previously-entered people to suggest when adding an external member. Empty = plain input. */
+  people?: readonly KnownPerson[];
 }
 
 export type AddMemberInput =
@@ -88,6 +92,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
   onRemoveMember,
   onUpdateAssigneeContact,
   onUpdateExternalMember,
+  people,
 }) => {
   const isMobile = useIsMobile();
   // M3: mobile users can add / edit / remove members through bottom sheets.
@@ -320,6 +325,16 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
     } finally {
       setAddSubmitting(false);
     }
+  };
+
+  // Autofill the external-member draft from a previously-entered person. Only
+  // fields the person actually has are set, so picking never wipes a field.
+  const fillExternalFromPerson = (person: KnownPerson) => {
+    setAddExternalName(person.name);
+    if (person.company) setAddExternalCompany(person.company);
+    if (person.email) setAddExternalEmail(person.email);
+    if (person.phone) setAddExternalPhone(person.phone);
+    if (person.role) setAddRole(person.role);
   };
 
   const resetAddForm = () => {
@@ -600,11 +615,12 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                   </select>
                 ) : (
                   <>
-                    <input
-                      type="text"
+                    <PersonSuggestField
                       placeholder={t`Full name`}
                       value={addExternalName}
-                      onChange={(e) => setAddExternalName(e.target.value)}
+                      onChange={setAddExternalName}
+                      onPick={fillExternalFromPerson}
+                      people={people ?? []}
                       className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                       autoFocus
                     />
