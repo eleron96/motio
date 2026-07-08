@@ -353,3 +353,4 @@
 2026-07-06T12:34:13Z | 0.9.4 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260706-123334.dump | No documented changes.
 2026-07-06T13:36:40Z | 0.9.5 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260706-133559.dump | No documented changes.
 2026-07-08T15:56:12Z | 0.9.6 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260708-155531.dump | New Contacts tab: one directory of people from clients and teams, grouped by company with search. Customer contacts now have a Company field.
+2026-07-08T16:39:25Z | 0.9.7 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260708-163835.dump | Contacts list: restored scrolling for long lists and removed the extra per-person badges.
