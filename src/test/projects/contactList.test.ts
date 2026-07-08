@@ -109,6 +109,17 @@ describe('company grouping', () => {
     expect(filterEntriesByCompany(entries, 'айбим').map((e) => e.name).sort()).toEqual(['Анна', 'Пётр']);
     expect(filterEntriesByCompany(entries, NO_COMPANY).map((e) => e.name)).toEqual(['Без']);
   });
+
+  it('groups a legacy contact (no company column) by its tag as the firm', () => {
+    // Rows created before the `company` column stored the firm in `tag`; they
+    // must still group under that firm, not collapse into "no company".
+    const legacy = buildContactList([
+      contact({ id: 'c1', name: 'Пётр', company: null, tag: 'СтройТех' }),
+    ], [], customersById);
+    expect(legacy[0].company).toBe('СтройТех'); // tag used as the firm fallback
+    expect(legacy[0].tag).toBeNull(); // and not shown as a redundant chip
+    expect(buildCompanyBuckets(legacy).map((b) => b.company)).toEqual(['СтройТех']);
+  });
 });
 
 describe('searchContactList', () => {
