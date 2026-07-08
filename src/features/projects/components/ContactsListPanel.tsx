@@ -196,6 +196,7 @@ export const ContactsListPanel: React.FC<ContactsListPanelProps> = ({
       return t`This removes "${deleteTarget.name}" from your contacts.`;
     }
     const projects = projectsOf(deleteTarget);
+    if (projects.length === 0) return t`This removes "${deleteTarget.name}" from every project they're on.`;
     const listed = projects.slice(0, 3).map((p) => formatProjectLabel(p.name, p.code)).join(', ');
     const names = projects.length > 3 ? `${listed}…` : listed;
     return projects.length > 1
