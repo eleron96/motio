@@ -21,6 +21,7 @@ import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
+import { searchContactList, type ContactEntry } from '@/features/projects/lib/contactList';
 
 type Mode = 'projects' | 'milestones' | 'customers' | 'contacts';
 type ProjectTab = 'active' | 'archived';
@@ -54,6 +55,12 @@ type ProjectsSidebarProps = {
   onSelectCustomer: (customerId: string) => void;
   onStartCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
   onRequestDeleteCustomer: (customer: Customer) => void;
+  // Contacts tab (flat address book).
+  contactEntries: ContactEntry[];
+  contactSearch: string;
+  onContactSearchChange: (value: string) => void;
+  selectedContactKey: string | null;
+  onSelectContact: (key: string) => void;
   milestoneTab: MilestoneTab;
   onMilestoneTabChange: (value: MilestoneTab) => void;
   milestoneSearch: string;
@@ -119,6 +126,11 @@ export const ProjectsSidebar = ({
   onSelectCustomer,
   onStartCustomerEdit,
   onRequestDeleteCustomer,
+  contactEntries,
+  contactSearch,
+  onContactSearchChange,
+  selectedContactKey,
+  onSelectContact,
   milestoneTab,
   onMilestoneTabChange,
   milestoneSearch,
@@ -530,6 +542,57 @@ export const ProjectsSidebar = ({
                 })}
               </div>
             )}
+          </div>
+        </>
+      )}
+
+      {mode === 'contacts' && (
+        <>
+          <div className="px-4 py-3 border-b border-border">
+            <SearchInput
+              inputClassName="h-8"
+              placeholder={t`Search people and companies...`}
+              value={contactSearch}
+              onValueChange={onContactSearchChange}
+              clearLabel={t`Clear search`}
+            />
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3">
+            {(() => {
+              const filtered = searchContactList(contactEntries, contactSearch);
+              if (contactEntries.length === 0) {
+                return <div className="text-sm text-muted-foreground">{t`No contacts yet.`}</div>;
+              }
+              if (filtered.length === 0) {
+                return <div className="text-sm text-muted-foreground">{t`No contacts found.`}</div>;
+              }
+              return (
+                <div className="space-y-1">
+                  {filtered.map((entry) => {
+                    const badge = entry.source.kind === 'external'
+                      ? (entry.source.projectIds.length > 1
+                        ? t`External · ${entry.source.projectIds.length} projects`
+                        : t`External`)
+                      : (entry.source.customerName ?? t`No client`);
+                    return (
+                      <SelectableListItem
+                        key={entry.key}
+                        selected={selectedContactKey === entry.key}
+                        className="flex items-center gap-3"
+                        onClick={() => onSelectContact(entry.key)}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium leading-snug">{entry.name}</div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {[entry.role || entry.company, badge].filter(Boolean).join(' · ')}
+                          </div>
+                        </div>
+                      </SelectableListItem>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </>
       )}

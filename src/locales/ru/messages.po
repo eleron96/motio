@@ -18,8 +18,8 @@ msgstr ""
 #~ msgstr "— Нико · <0>Прочитать манифест</0>"
 
 #: src/features/projects/components/ContactsListPanel.tsx
-msgid "— no client —"
-msgstr "— без клиента —"
+#~ msgid "— no client —"
+#~ msgstr "— без клиента —"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "— pick member —"
@@ -79,10 +79,9 @@ msgstr "{0} этапов"
 msgid "{0} past"
 msgstr "{0} прошедших"
 
-#. placeholder {0}: entries.length
 #: src/features/projects/components/ContactsListPanel.tsx
-msgid "{0} people"
-msgstr "{0} чел."
+#~ msgid "{0} people"
+#~ msgstr "{0} чел."
 
 #. placeholder {0}: selectedCustomerProjects.length
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -189,6 +188,10 @@ msgstr "ещё {remaining}"
 msgid "{selectedTaskCommentCount} comments"
 msgstr "{selectedTaskCommentCount} комментариев"
 
+#: src/features/projects/components/ContactsDetailPanel.tsx
+msgid "{totalCount} people"
+msgstr "{totalCount} чел."
+
 #. placeholder {0}: hiddenMilestones.length
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 msgid "+{0} more milestones"
@@ -218,7 +221,7 @@ msgstr "1 комментарий"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зарезервированных слов."
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "A person you can reuse across projects."
 msgstr "Человек, которого можно переиспользовать в проектах."
 
@@ -321,7 +324,7 @@ msgstr "Активные участники"
 #~ msgstr "Лента активности появится позже"
 
 #: src/features/planner/components/SubtasksSection.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -361,8 +364,8 @@ msgstr "Добавьте активных исполнителей, чтобы �
 #~ msgstr "Добавить запись активности"
 
 #: src/features/projects/components/ContactsListPanel.tsx
-msgid "Add contact"
-msgstr "Добавить контакт"
+#~ msgid "Add contact"
+#~ msgstr "Добавить контакт"
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -665,8 +668,8 @@ msgstr "Диапазон календаря"
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -711,8 +714,8 @@ msgstr "Отменен"
 msgid "Cancelled status"
 msgstr "Отмененный статус"
 
-#. placeholder {0}: externalEditing.source.projectIds.length
-#: src/features/projects/components/ContactsListPanel.tsx
+#. placeholder {0}: externalForm.source.projectIds.length
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "Changes apply everywhere this person appears ({0} projects)."
 msgstr "Изменения применятся везде, где встречается этот человек ({0} проектов)."
 
@@ -748,6 +751,10 @@ msgstr "Шахматная"
 #: src/features/auth/pages/InvitePage.tsx
 msgid "Checking invite..."
 msgstr "Проверяем приглашение..."
+
+#: src/features/projects/components/ContactsDetailPanel.tsx
+msgid "Choose a contact on the left, or add a new one."
+msgstr "Выберите контакт слева или добавьте новый."
 
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Choose a customer to see their projects."
@@ -798,9 +805,9 @@ msgstr "Удалить фото"
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -812,11 +819,11 @@ msgid "Click this button or double-click a date on the timeline to open the task
 msgstr "Нажмите эту кнопку или дважды кликните по дате на таймлайне, чтобы открыть форму задачи."
 
 #: src/features/projects/components/ContactsListPanel.tsx
-msgid "Client"
-msgstr "Клиент"
+#~ msgid "Client"
+#~ msgstr "Клиент"
 
-#. placeholder {0}: entry.source.customerName
-#: src/features/projects/components/ContactsListPanel.tsx
+#. placeholder {0}: target.source.customerName
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "Client: {0}"
 msgstr "Клиент: {0}"
 
@@ -867,7 +874,7 @@ msgstr "Комментарии"
 #~ msgid "Company"
 #~ msgstr "Компания"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -892,7 +899,7 @@ msgstr "Тренд выполнения"
 msgid "Configure widget type, display style, and filters."
 msgstr "Настройте тип виджета, стиль отображения и фильтры."
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "Contact actions"
 msgstr "Действия с контактом"
 
@@ -900,8 +907,9 @@ msgstr "Действия с контактом"
 msgid "Contact details"
 msgstr "Контактные данные"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Contacts"
 msgstr "Контакты"
@@ -1208,8 +1216,8 @@ msgstr "по умолчанию"
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -1247,7 +1255,7 @@ msgstr "Удалить все"
 msgid "Delete comment?"
 msgstr "Удалить комментарий?"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "Delete contact?"
 msgstr "Удалить контакт?"
 
@@ -1507,7 +1515,7 @@ msgstr "Каждое утро начинается с короткого бри�
 
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentItem.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
@@ -1522,7 +1530,7 @@ msgstr "Каждое утро начинается с короткого бри�
 msgid "Edit"
 msgstr "Редактировать"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "Edit contact"
@@ -1723,13 +1731,19 @@ msgstr "Экспортируйте свои данные после регист
 msgid "Exports run on your real workspace. Sign up in 30 seconds to enable them."
 msgstr "Экспорт работает в вашем реальном воркспейсе. Регистрация займёт 30 секунд."
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "External"
 msgstr "Внешний"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#. placeholder {0}: entry.source.projectIds.length
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "External · {0} projects"
+msgstr "Внешний · {0} проектов"
+
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "External · {count} projects"
 msgstr "Внешний · {count} проектов"
 
@@ -1922,7 +1936,7 @@ msgstr "Досрочное удаление запланировано"
 msgid "Full day ≈ {capacityDisplay} tasks/person"
 msgstr "Полный день ≈ {capacityDisplay} задач/чел"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -2592,7 +2606,8 @@ msgstr "name@example.com"
 msgid "Never"
 msgstr "Никогда"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "New contact"
 msgstr "Новый контакт"
 
@@ -2728,7 +2743,8 @@ msgstr "Исполнителей пока нет."
 msgid "No available members."
 msgstr "Нет доступных участников."
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No client"
 msgstr "Без клиента"
 
@@ -2741,11 +2757,15 @@ msgstr "Без кода"
 msgid "No company"
 msgstr "Без компании"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
+msgid "No contact details yet."
+msgstr "Контактных данных пока нет."
+
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No contacts found."
 msgstr "Контакты не найдены."
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No contacts yet."
 msgstr "Контактов пока нет."
 
@@ -3111,6 +3131,10 @@ msgstr "ОК"
 msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 msgstr "В понедельник я мог открыть три разные вкладки, чтобы ответить на простой вопрос: кто свободен на этой неделе. К среде оказывалось, что кто-то уже перегружен, но узнавал я об этом слишком поздно. На ретро, в переписке или после сорванного срока."
 
+#: src/features/projects/components/ContactsDetailPanel.tsx
+msgid "On projects"
+msgstr "В проектах"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "Один <0>понятный таймлайн</0><1/> для всей команды"
@@ -3138,7 +3162,7 @@ msgid "Open"
 msgstr "Открытые"
 
 #. placeholder {0}: formatProjectLabel(project.name, project.code)
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "Open {0}"
 msgstr "Открыть {0}"
 
@@ -3291,7 +3315,7 @@ msgstr "Разделы команды"
 msgid "Period"
 msgstr "Период"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -3653,7 +3677,7 @@ msgstr "Щелкните правой кнопкой, чтобы добавит�
 msgid "Role"
 msgstr "Роль"
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -3663,7 +3687,7 @@ msgstr "Роль"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Role / job title"
-msgstr "Роль / должность"
+msgstr "Роль"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #~ msgid "Role on this project (optional)"
@@ -3684,7 +3708,7 @@ msgstr "Шалфейный"
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -3769,7 +3793,7 @@ msgstr "Поиск вех..."
 msgid "Search notes..."
 msgstr "Поиск по заметкам..."
 
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Search people and companies..."
 msgstr "Поиск людей и компаний..."
 
@@ -3815,6 +3839,10 @@ msgstr "Поиск типов..."
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "Все задачи на одной линии времени. Сразу видно, кто и когда занят."
+
+#: src/features/projects/pages/ProjectsPage.tsx
+msgid "Select a contact"
+msgstr "Выберите контакт"
 
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -4394,23 +4422,23 @@ msgid "this project"
 msgstr "этот проект"
 
 #. placeholder {0}: deleteTarget.name
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "This removes \"{0}\" from {names}."
 msgstr "«{0}» будет удалён из проекта {names}."
 
 #. placeholder {0}: deleteTarget.name
 #. placeholder {1}: projects.length
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "This removes \"{0}\" from all {1} projects: {names}."
 msgstr "«{0}» будет удалён из всех проектов ({1}): {names}."
 
 #. placeholder {0}: deleteTarget.name
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "This removes \"{0}\" from every project they're on."
 msgstr "«{0}» будет удалён из всех проектов, где он есть."
 
 #. placeholder {0}: deleteTarget.name
-#: src/features/projects/components/ContactsListPanel.tsx
+#: src/features/projects/components/ContactsDetailPanel.tsx
 msgid "This removes \"{0}\" from your contacts."
 msgstr "«{0}» будет удалён из контактов."
 

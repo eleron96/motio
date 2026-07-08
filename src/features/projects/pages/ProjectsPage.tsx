@@ -42,7 +42,7 @@ import {
   sortCustomersByName,
 } from '@/features/projects/lib/projectsSelectors';
 import { buildContactList } from '@/features/projects/lib/contactList';
-import { ContactsListPanel } from '@/features/projects/components/ContactsListPanel';
+import { ContactsDetailPanel } from '@/features/projects/components/ContactsDetailPanel';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
@@ -63,6 +63,8 @@ const ProjectsPage = () => {
   const [mutationError, setMutationError] = useState('');
   const [search, setSearch] = useState('');
   const [customerSearch, setCustomerSearch] = useState('');
+  const [contactSearch, setContactSearch] = useState('');
+  const [selectedContactKey, setSelectedContactKey] = useState<string | null>(null);
   const [assigneeFilterIds, setAssigneeFilterIds] = useState<string[]>([]);
   const {
     taskScope, setTaskScope,
@@ -957,12 +959,16 @@ const ProjectsPage = () => {
     ? t`Milestones`
     : mode === 'customers'
       ? t`Customers`
-      : t`Projects`;
+      : mode === 'contacts'
+        ? t`Contacts`
+        : t`Projects`;
   const mobileSummary = mode === 'milestones'
     ? (selectedMilestone?.title ?? t`Select a milestone`)
     : mode === 'customers'
       ? (selectedCustomer?.name ?? t`Select a customer`)
-      : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
+      : mode === 'contacts'
+        ? (contactEntries.find((entry) => entry.key === selectedContactKey)?.name ?? t`Select a contact`)
+        : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
 
   const projectCardEnabled = isProjectCardEnabled();
   const projectCardMobileEnabled = isProjectCardMobileEnabled();
@@ -1085,6 +1091,11 @@ const ProjectsPage = () => {
               }}
               onStartCustomerEdit={startCustomerEdit}
               onRequestDeleteCustomer={requestDeleteCustomer}
+              {...contactsSidebarProps}
+              onSelectContact={(key) => {
+                setSelectedContactKey(key);
+                if (closeOnSelect) setMobileSidebarOpen(false);
+              }}
               milestoneTab={milestoneTab}
               onMilestoneTabChange={setMilestoneTab}
               milestoneSearch={milestoneSearch}
@@ -1167,6 +1178,11 @@ const ProjectsPage = () => {
       }}
       onStartCustomerEdit={startCustomerEdit}
       onRequestDeleteCustomer={requestDeleteCustomer}
+      {...contactsSidebarProps}
+      onSelectContact={(key) => {
+        setSelectedContactKey(key);
+        if (closeOnSelect) setMobileSidebarOpen(false);
+      }}
       milestoneTab={milestoneTab}
       onMilestoneTabChange={setMilestoneTab}
       milestoneSearch={milestoneSearch}
@@ -1233,10 +1249,17 @@ const ProjectsPage = () => {
     return legacySidebar;
   };
 
-  const renderContactsPanel = () => (
-    <ContactsListPanel
-      entries={contactEntries}
-      customers={sortedCustomers}
+  const selectedContact = contactEntries.find((entry) => entry.key === selectedContactKey) ?? null;
+  const contactsSidebarProps = {
+    contactEntries,
+    contactSearch,
+    onContactSearchChange: setContactSearch,
+    selectedContactKey,
+  };
+  const renderContactsDetail = () => (
+    <ContactsDetailPanel
+      entry={selectedContact}
+      totalCount={contactEntries.length}
       projectById={projectById}
       canEdit={canEdit}
       sectionPadding={isMobile ? 'px-4 py-3' : 'px-6 py-4'}
@@ -1429,15 +1452,7 @@ const ProjectsPage = () => {
         </div>
       )}
 
-      {mode === 'contacts' ? (
-        // Flat directory — full width, no master-detail sidebar.
-        <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-          {renderModeTabs()}
-          <div className="flex-1 min-h-0">
-            {renderContactsPanel()}
-          </div>
-        </div>
-      ) : isMobile ? (
+      {isMobile ? (
         <>
           <MobilePageSheetLayout
             open={mobileSidebarOpen}
@@ -1447,7 +1462,7 @@ const ProjectsPage = () => {
             summary={mobileSummary}
             sheetContent={renderProjectsSidebar(true)}
           >
-            {renderProjectsMainPanel()}
+            {mode === 'contacts' ? renderContactsDetail() : renderProjectsMainPanel()}
           </MobilePageSheetLayout>
         </>
       ) : (
@@ -1462,7 +1477,7 @@ const ProjectsPage = () => {
             </ResizablePanel>
             <ResizableHandle withHandle className="bg-border/70" />
             <ResizablePanel defaultSize={72} minSize={58}>
-              {renderProjectsMainPanel()}
+              {mode === 'contacts' ? renderContactsDetail() : renderProjectsMainPanel()}
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
