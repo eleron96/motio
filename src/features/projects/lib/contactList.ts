@@ -94,3 +94,45 @@ export const searchContactList = (entries: readonly ContactEntry[], rawQuery: st
     || (entry.email?.toLowerCase().includes(query) ?? false)
   ));
 };
+
+// ── Company grouping (Contacts sidebar = companies, panel = their people) ──
+
+/** Sentinel sidebar keys. */
+export const ALL_COMPANIES = '__all__';
+export const NO_COMPANY = '__no_company__';
+
+/** Sidebar selection key for a company value (null → the "no company" bucket). */
+export const companyKeyOf = (company: string | null): string => (
+  company ? company.trim().toLowerCase() : NO_COMPANY
+);
+
+export interface CompanyBucket {
+  key: string;
+  /** Display name; null for the "no company" bucket. */
+  company: string | null;
+  count: number;
+}
+
+/** Distinct companies across the contact list, each with its people count. The
+ *  "no company" bucket (people with no company) always sorts last. */
+export const buildCompanyBuckets = (entries: readonly ContactEntry[]): CompanyBucket[] => {
+  const byKey = new Map<string, CompanyBucket>();
+  for (const entry of entries) {
+    const company = entry.company;
+    const key = companyKeyOf(company);
+    const existing = byKey.get(key);
+    if (existing) existing.count += 1;
+    else byKey.set(key, { key, company, count: 1 });
+  }
+  return Array.from(byKey.values()).sort((a, b) => {
+    if (a.company === null) return 1;
+    if (b.company === null) return -1;
+    return a.company.localeCompare(b.company);
+  });
+};
+
+/** People of the selected sidebar bucket (ALL → everyone, NO_COMPANY → no company). */
+export const filterEntriesByCompany = (entries: readonly ContactEntry[], companyKey: string): ContactEntry[] => {
+  if (companyKey === ALL_COMPANIES) return entries.slice();
+  return entries.filter((entry) => companyKeyOf(entry.company) === companyKey);
+};

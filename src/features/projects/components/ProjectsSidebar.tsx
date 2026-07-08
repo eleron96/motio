@@ -21,7 +21,7 @@ import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
-import { searchContactList, type ContactEntry } from '@/features/projects/lib/contactList';
+import { ALL_COMPANIES, type CompanyBucket } from '@/features/projects/lib/contactList';
 
 type Mode = 'projects' | 'milestones' | 'customers' | 'contacts';
 type ProjectTab = 'active' | 'archived';
@@ -55,12 +55,12 @@ type ProjectsSidebarProps = {
   onSelectCustomer: (customerId: string) => void;
   onStartCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
   onRequestDeleteCustomer: (customer: Customer) => void;
-  // Contacts tab (flat address book).
-  contactEntries: ContactEntry[];
+  // Contacts tab: companies filter (left) → their people (right).
+  companyBuckets: CompanyBucket[];
   contactSearch: string;
   onContactSearchChange: (value: string) => void;
-  selectedContactKey: string | null;
-  onSelectContact: (key: string) => void;
+  selectedCompanyKey: string;
+  onSelectCompany: (key: string) => void;
   milestoneTab: MilestoneTab;
   onMilestoneTabChange: (value: MilestoneTab) => void;
   milestoneSearch: string;
@@ -126,11 +126,11 @@ export const ProjectsSidebar = ({
   onSelectCustomer,
   onStartCustomerEdit,
   onRequestDeleteCustomer,
-  contactEntries,
+  companyBuckets,
   contactSearch,
   onContactSearchChange,
-  selectedContactKey,
-  onSelectContact,
+  selectedCompanyKey,
+  onSelectCompany,
   milestoneTab,
   onMilestoneTabChange,
   milestoneSearch,
@@ -551,7 +551,7 @@ export const ProjectsSidebar = ({
           <div className="px-4 py-3 border-b border-border">
             <SearchInput
               inputClassName="h-8"
-              placeholder={t`Search people and companies...`}
+              placeholder={t`Search companies...`}
               value={contactSearch}
               onValueChange={onContactSearchChange}
               clearLabel={t`Clear search`}
@@ -559,37 +559,52 @@ export const ProjectsSidebar = ({
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3">
             {(() => {
-              const filtered = searchContactList(contactEntries, contactSearch);
-              if (contactEntries.length === 0) {
-                return <div className="text-sm text-muted-foreground">{t`No contacts yet.`}</div>;
-              }
-              if (filtered.length === 0) {
-                return <div className="text-sm text-muted-foreground">{t`No contacts found.`}</div>;
-              }
+              const query = contactSearch.trim().toLowerCase();
+              const named = companyBuckets.filter((bucket) => bucket.company !== null);
+              const noCompany = companyBuckets.find((bucket) => bucket.company === null) ?? null;
+              const filteredNamed = query
+                ? named.filter((bucket) => bucket.company!.toLowerCase().includes(query))
+                : named;
+              const total = companyBuckets.reduce((sum, bucket) => sum + bucket.count, 0);
               return (
                 <div className="space-y-1">
-                  {filtered.map((entry) => {
-                    const badge = entry.source.kind === 'external'
-                      ? (entry.source.projectIds.length > 1
-                        ? t`External · ${entry.source.projectIds.length} projects`
-                        : t`External`)
-                      : (entry.source.customerName ?? t`No client`);
-                    return (
+                  <SelectableListItem
+                    selected={selectedCompanyKey === ALL_COMPANIES}
+                    className="flex items-center gap-3"
+                    onClick={() => onSelectCompany(ALL_COMPANIES)}
+                  >
+                    <div className="min-w-0 flex-1 text-sm font-medium">
+                      {t`All contacts`} <span className="text-muted-foreground">{total}</span>
+                    </div>
+                  </SelectableListItem>
+                  {filteredNamed.length > 0 && <div className="my-1 h-px bg-border" />}
+                  {filteredNamed.map((bucket) => (
+                    <SelectableListItem
+                      key={bucket.key}
+                      selected={selectedCompanyKey === bucket.key}
+                      className="flex items-center gap-3"
+                      onClick={() => onSelectCompany(bucket.key)}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <span className="truncate text-sm font-medium">{bucket.company}</span>
+                        <span className="ml-1.5 text-xs text-muted-foreground">{bucket.count}</span>
+                      </div>
+                    </SelectableListItem>
+                  ))}
+                  {noCompany && !query && (
+                    <>
+                      <div className="my-1 h-px bg-border" />
                       <SelectableListItem
-                        key={entry.key}
-                        selected={selectedContactKey === entry.key}
+                        selected={selectedCompanyKey === noCompany.key}
                         className="flex items-center gap-3"
-                        onClick={() => onSelectContact(entry.key)}
+                        onClick={() => onSelectCompany(noCompany.key)}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-sm font-medium leading-snug">{entry.name}</div>
-                          <div className="truncate text-xs text-muted-foreground">
-                            {[entry.role || entry.company, badge].filter(Boolean).join(' · ')}
-                          </div>
+                        <div className="min-w-0 flex-1 text-sm text-muted-foreground">
+                          {t`No company`} <span>{noCompany.count}</span>
                         </div>
                       </SelectableListItem>
-                    );
-                  })}
+                    </>
+                  )}
                 </div>
               );
             })()}
