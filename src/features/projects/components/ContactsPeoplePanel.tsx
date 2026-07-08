@@ -181,7 +181,7 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
     : null;
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <div className={`border-b border-border ${sectionPadding}`}>
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
