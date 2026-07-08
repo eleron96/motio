@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.6] - 2026-07-08
 ### Added
 - New Contacts tab: one directory of people from clients and teams, grouped by company with search. Customer contacts now have a Company field.
 
