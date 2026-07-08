@@ -293,7 +293,7 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
             <div className="flex flex-col gap-1.5">
               <Label>{t`Tag`}</Label>
               <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
-              <p className="text-[11px] text-muted-foreground">{t`For grouping, e.g. a project section: АР, КР, ВИС`}</p>
+              <p className="text-[11px] text-muted-foreground">{t`For grouping — e.g. a field or department: Design, Development, АР`}</p>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Email</Label>
