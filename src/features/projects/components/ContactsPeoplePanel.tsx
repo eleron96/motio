@@ -288,16 +288,26 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
               <Label>{t`Role / job title`}</Label>
               <Input value={draft.role} onChange={(e) => setDraft((d) => ({ ...d, role: e.target.value }))} />
             </div>
-            {externalForm && (
+            {externalForm ? (
+              // External person: firm (company) + a grouping tag (discipline).
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <Label>{t`Company`}</Label>
+                  <Input value={draft.company} onChange={(e) => setDraft((d) => ({ ...d, company: e.target.value }))} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label>{t`Tag`}</Label>
+                  <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
+                  <p className="text-[11px] text-muted-foreground">{t`For grouping, e.g. a project section: АР, КР, ВИС`}</p>
+                </div>
+              </>
+            ) : (
+              // Customer contact: one org field — their company.
               <div className="flex flex-col gap-1.5">
                 <Label>{t`Company`}</Label>
-                <Input value={draft.company} onChange={(e) => setDraft((d) => ({ ...d, company: e.target.value }))} />
+                <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
               </div>
             )}
-            <div className="flex flex-col gap-1.5">
-              <Label>{t`Company / contractor`}</Label>
-              <Input value={draft.tag} onChange={(e) => setDraft((d) => ({ ...d, tag: e.target.value }))} />
-            </div>
             <div className="flex flex-col gap-1.5">
               <Label>Email</Label>
               <Input type="email" value={draft.email} onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))} />

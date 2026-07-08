@@ -877,6 +877,7 @@ msgid "Comments"
 msgstr "Комментарии"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -884,7 +885,6 @@ msgstr "Комментарии"
 msgid "Company"
 msgstr "Компания"
 
-#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -1913,6 +1913,10 @@ msgstr "Найти или добавить клиента..."
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Finish"
 msgstr "Завершить"
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "For grouping, e.g. a project section: АР, КР, ВИС"
+msgstr "Для группировки, напр. раздел проекта: АР, КР, ВИС"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "For teams that own their data"
@@ -4201,10 +4205,9 @@ msgstr "Название подзадачи"
 msgid "Subtasks"
 msgstr "Подзадачи"
 
-#: src/features/projects/components/projectCard/TeamBlock.tsx
-#: src/features/projects/components/projectCard/TeamBlock.tsx
-#~ msgid "Tag"
-#~ msgstr "Тег"
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "Tag"
+msgstr "Тег"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
