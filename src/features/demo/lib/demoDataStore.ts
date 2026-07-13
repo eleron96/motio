@@ -14,6 +14,12 @@ import {
   DEMO_SEED_TAGS,
   DEMO_SEED_TASKS,
   DEMO_SEED_MILESTONES,
+  DEMO_SEED_CUSTOMERS,
+  DEMO_SEED_CUSTOMER_CONTACTS,
+  DEMO_SEED_PROJECT_MEMBERS,
+  DEMO_SEED_PROJECT_CUSTOMER,
+  DEMO_SEED_DASHBOARDS,
+  buildDemoDashboardLayouts,
 } from './demoSeed';
 
 const STORAGE_KEY = 'motio.demo.state.v1';
@@ -26,7 +32,13 @@ type Row = Record<string, unknown>;
 type Tables = Record<string, Row[]>;
 
 interface PersistedState {
-  schemaVersion: 1;
+  // Bump when the seed shape changes so returning visitors drop a stale
+  // cache and reseed. v2: dashboards/customers/contacts/project members.
+  // v3: explicit dashboard grid layouts (v2 shipped with auto-placed
+  // layouts that rendered cramped and jittered). v4: drop any v3 cache that
+  // may have persisted a jitter-drifted layout before the store no-op guard.
+  // v5: dashboards reshaped to mirror prod widget mix (assignee-centric).
+  schemaVersion: 5;
   lastActivityAt: number;
   user: { id: string; email: string; display_name: string };
   workspaceId: string;
@@ -83,6 +95,11 @@ const buildFreshState = (): DemoStore => {
         name: DEMO_WORKSPACE_NAME,
         owner_id: userId,
         holiday_country: null,
+        // Opt the demo workspace into the workload heatmap board (the env
+        // flag is forced on for /demo in featureFlags.ts). Capacity is left
+        // to auto-from-history so the gradient adapts to the seeded load.
+        heatmap_enabled: true,
+        heatmap_capacity_per_person: null,
         created_at: nowIso,
       },
     ],
@@ -112,9 +129,12 @@ const buildFreshState = (): DemoStore => {
       workspace_id: workspaceId,
       name: p.name,
       color: p.color,
-      customer_id: null,
+      customer_id: DEMO_SEED_PROJECT_CUSTOMER[p.id] ?? null,
       code: null,
+      archived: false,
       archived_at: null,
+      status: null,
+      owner_group_id: null,
       created_at: nowIso,
     })),
     statuses: DEMO_SEED_STATUSES.map((s) => ({
@@ -148,7 +168,9 @@ const buildFreshState = (): DemoStore => {
         workspace_id: workspaceId,
         user_id: null,
         name: a.name,
-        active: true,
+        is_active: true,
+        email: null,
+        phone: null,
         created_at: nowIso,
       })),
       // auto-assignee for the demo visitor themselves
@@ -157,7 +179,9 @@ const buildFreshState = (): DemoStore => {
         workspace_id: workspaceId,
         user_id: userId,
         name: user.display_name,
-        active: true,
+        is_active: true,
+        email: user.email,
+        phone: null,
         created_at: nowIso,
       },
     ],
@@ -187,12 +211,56 @@ const buildFreshState = (): DemoStore => {
       created_at: nowIso,
       updated_at: nowIso,
     })),
+    customers: DEMO_SEED_CUSTOMERS.map((c) => ({
+      id: c.id,
+      workspace_id: workspaceId,
+      name: c.name,
+      industry: c.industry,
+      created_at: nowIso,
+    })),
+    customer_contacts: DEMO_SEED_CUSTOMER_CONTACTS.map((c) => ({
+      id: c.id,
+      workspace_id: workspaceId,
+      customer_id: c.customer_id,
+      name: c.name,
+      role: c.role,
+      email: c.email,
+      phone: c.phone,
+      company: c.company,
+      tag: c.tag,
+      position: c.position,
+      created_at: nowIso,
+      updated_at: nowIso,
+    })),
+    project_members: DEMO_SEED_PROJECT_MEMBERS.map((m) => ({
+      id: m.id,
+      workspace_id: workspaceId,
+      project_id: m.project_id,
+      assignee_id: m.assignee_id,
+      role: m.role,
+      tag: m.tag,
+      external_name: m.external_name,
+      external_company: m.external_company,
+      external_email: m.external_email,
+      external_phone: m.external_phone,
+      position: m.position,
+      created_at: nowIso,
+      updated_at: nowIso,
+    })),
+    workspace_dashboards: DEMO_SEED_DASHBOARDS.map((d) => ({
+      id: d.id,
+      workspace_id: workspaceId,
+      name: d.name,
+      widgets: d.widgets,
+      layouts: buildDemoDashboardLayouts(d.widgets),
+      created_at: nowIso,
+      updated_at: nowIso,
+    })),
+    project_activity: [],
     // Tables read by the app but not seeded — empty arrays prevent
     // "table 'foo' not found" errors in the mock client.
     member_groups: [],
     member_group_assignments: [],
-    workspace_dashboards: [],
-    customers: [],
     project_tracking: [],
     user_workspace_templates: [],
     task_subtasks: [],
@@ -222,7 +290,7 @@ const loadPersisted = (): DemoStore | null => {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as PersistedState;
-    if (parsed.schemaVersion !== 1) return null;
+    if (parsed.schemaVersion !== 5) return null;
     if (Date.now() - parsed.lastActivityAt > TTL_MS) return null;
     return {
       user: parsed.user,
@@ -238,7 +306,7 @@ const loadPersisted = (): DemoStore | null => {
 const persist = (store: DemoStore): void => {
   if (!isBrowser) return;
   const payload: PersistedState = {
-    schemaVersion: 1,
+    schemaVersion: 5,
     lastActivityAt: store.lastActivityAt,
     user: store.user,
     workspaceId: store.workspaceId,

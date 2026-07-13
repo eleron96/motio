@@ -65,6 +65,7 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
     if (person.email) setEmail(person.email);
     if (person.phone) setPhone(person.phone);
     if (person.company) setCompany(person.company);
+    if (person.tag) setTag(person.tag);
   };
 
   return (

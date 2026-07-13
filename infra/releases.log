@@ -355,3 +355,4 @@
 2026-07-08T15:56:12Z | 0.9.6 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260708-155531.dump | New Contacts tab: one directory of people from clients and teams, grouped by company with search. Customer contacts now have a Company field.
 2026-07-08T16:39:25Z | 0.9.7 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260708-163835.dump | Contacts list: restored scrolling for long lists and removed the extra per-person badges.
 2026-07-08T16:48:43Z | 0.9.8 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260708-164803.dump | Contacts list: removed the 'Open project' entries from the row actions menu, leaving just Edit and Delete.
+2026-07-13T17:59:26Z | 0.9.9 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260713-175844.dump | The dashboard widget grid no longer jitters when rearranging.
