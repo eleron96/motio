@@ -524,6 +524,34 @@ const normalizeLayouts = (layouts: DashboardLayouts, widgets: DashboardWidget[])
   return normalized;
 };
 
+// Meaningful equality of two layout maps: same breakpoints and, per
+// breakpoint, the same items by position/size (i, x, y, w, h). Min/max bounds
+// are derived by normalizeLayouts and intentionally ignored. Used to short-
+// circuit no-op layout updates so react-grid-layout's onLayoutChange can't feed
+// an unchanged layout back into the store and spin the grid (jitter).
+const layoutsEqual = (a: DashboardLayouts, b: DashboardLayouts): boolean => {
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (const key of keysA) {
+    const itemsA = a[key];
+    const itemsB = b[key];
+    if (!itemsB || itemsA.length !== itemsB.length) return false;
+    const byId = new Map(itemsB.map((item) => [item.i, item]));
+    for (const item of itemsA) {
+      const other = byId.get(item.i);
+      if (!other
+        || other.x !== item.x
+        || other.y !== item.y
+        || other.w !== item.w
+        || other.h !== item.h) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
 const emptyStatsState: DashboardStatsState = {
   rows: [],
   rowsBase: [],
@@ -787,10 +815,14 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     ),
     dirty: true,
   })),
-  setLayouts: (layouts) => set((state) => ({
-    layouts: normalizeLayouts(layouts, state.widgets),
-    dirty: true,
-  })),
+  setLayouts: (layouts) => set((state) => {
+    const normalized = normalizeLayouts(layouts, state.widgets);
+    // No-op guard: if normalization leaves the layout unchanged, don't touch
+    // state — otherwise react-grid-layout's onLayoutChange keeps re-emitting an
+    // identical layout, marking the dashboard dirty and jittering the grid.
+    if (layoutsEqual(normalized, state.layouts)) return {};
+    return { layouts: normalized, dirty: true };
+  }),
   loadFilterOptions: async (workspaceId) => {
     const [statusesRes, projectsRes, assigneesRes, groupsRes, membersRes] = await Promise.all([
       supabase
