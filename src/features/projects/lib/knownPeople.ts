@@ -10,8 +10,11 @@ import type { CustomerContact, ProjectMember } from '@/features/planner/types/pl
 export interface KnownPerson {
   name: string;
   role: string | null;
-  /** «Компания/подрядчик» — from a customer contact's tag or an external member's company. */
+  /** The firm/organization used for grouping (company, or the tag as a legacy fallback). */
   company: string | null;
+  /** Free-form grouping tag (e.g. a discipline: АР/КР/ВИС), shown as a chip. Kept
+   *  separate from `company` so picking a person restores the tag too. */
+  tag: string | null;
   email: string | null;
   phone: string | null;
   /** How many source rows collapsed into this person. Higher = used more often. */
@@ -22,6 +25,7 @@ interface RawPerson {
   name: string;
   role: string | null;
   company: string | null;
+  tag: string | null;
   email: string | null;
   phone: string | null;
 }
@@ -66,10 +70,16 @@ export const collectKnownPeople = (
   for (const contact of customerContacts) {
     const name = cleaned(contact.name);
     if (!name) continue;
+    // Symmetric with contactList: the firm (company, or a legacy tag) groups the
+    // person; the free-form tag is a separate chip and is only carried when a
+    // distinct firm exists — otherwise the tag already became the company.
+    const firm = cleaned(contact.company);
+    const disc = cleaned(contact.tag);
     raws.push({
       name,
       role: cleaned(contact.role),
-      company: cleaned(contact.company) ?? cleaned(contact.tag),
+      company: firm ?? disc,
+      tag: firm ? disc : null,
       email: cleaned(contact.email),
       phone: cleaned(contact.phone),
     });
@@ -79,10 +89,13 @@ export const collectKnownPeople = (
     if (member.assigneeId) continue; // workspace member, not an external person
     const name = cleaned(member.externalName);
     if (!name) continue;
+    const firm = cleaned(member.externalCompany);
+    const disc = cleaned(member.tag);
     raws.push({
       name,
       role: cleaned(member.role),
-      company: cleaned(member.externalCompany) ?? cleaned(member.tag),
+      company: firm ?? disc,
+      tag: firm ? disc : null,
       email: cleaned(member.externalEmail),
       phone: cleaned(member.externalPhone),
     });
@@ -98,6 +111,7 @@ export const collectKnownPeople = (
       // possible, but never overwrite a value we already have.
       existing.role = existing.role ?? raw.role;
       existing.company = existing.company ?? raw.company;
+      existing.tag = existing.tag ?? raw.tag;
       existing.email = existing.email ?? raw.email;
       existing.phone = existing.phone ?? raw.phone;
     } else {
