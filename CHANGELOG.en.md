@@ -7,6 +7,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.9] - 2026-07-13
+### Fixed
+- The dashboard widget grid no longer jitters when rearranging.
+- Picking a person from the suggestions when adding them to a project now fills in their company/contractor tag.
+
 ## [0.9.8] - 2026-07-08
 ### Fixed
 - Contacts list: removed the 'Open project' entries from the row actions menu, leaving just Edit and Delete.
