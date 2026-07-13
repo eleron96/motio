@@ -3,6 +3,8 @@
 //
 // Flags default to OFF for safety: missing or empty env var → disabled.
 
+import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
+
 const readFlag = (value: unknown): boolean => {
   if (typeof value !== 'string') return false;
   const normalized = value.trim().toLowerCase();
@@ -13,8 +15,11 @@ export const isAccountDeletionEnabled = (): boolean => (
   readFlag(import.meta.env.VITE_FEATURE_ACCOUNT_DELETION)
 );
 
+// The /demo sandbox is a self-contained showcase: force the customer/contacts
+// and workload-heatmap features on there regardless of the build-time env, so
+// the demo always exhibits them (and works under a plain `npm run dev` too).
 export const isProjectCardEnabled = (): boolean => (
-  readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD)
+  isDemoRoute() || readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD)
 );
 
 /**
@@ -37,7 +42,7 @@ export const isProjectCardMobileEnabled = (): boolean => (
  * ahead of GA; the per-workspace `heatmap_enabled` flag gates it after that.
  */
 export const isWorkloadHeatmapEnabled = (): boolean => (
-  readFlag(import.meta.env.VITE_FEATURE_WORKLOAD_HEATMAP)
+  isDemoRoute() || readFlag(import.meta.env.VITE_FEATURE_WORKLOAD_HEATMAP)
 );
 
 /**
