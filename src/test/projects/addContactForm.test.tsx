@@ -10,7 +10,7 @@ vi.mock('@lingui/macro', () => ({
 }));
 
 const people: KnownPerson[] = [
-  { name: 'Анна Смирнова', role: 'Архитектор', company: 'СтройГрупп', email: 'anna@stroy.ru', phone: '+7900', usageCount: 3 },
+  { name: 'Анна Смирнова', role: 'Архитектор', company: 'СтройГрупп', tag: 'АР', email: 'anna@stroy.ru', phone: '+7900', usageCount: 3 },
 ];
 
 beforeEach(() => cleanup());
@@ -25,9 +25,10 @@ describe('AddContactForm — people suggestions', () => {
     fireEvent.change(nameInput, { target: { value: 'Анна' } });
     fireEvent.mouseDown(screen.getByText('Анна Смирнова'));
 
-    // Role / company / email / phone are prefilled from the picked person.
+    // Role / company / tag / email / phone are prefilled from the picked person.
     expect((screen.getByPlaceholderText('Role / job title') as HTMLInputElement).value).toBe('Архитектор');
     expect((screen.getByPlaceholderText('Company') as HTMLInputElement).value).toBe('СтройГрупп');
+    expect((screen.getByPlaceholderText('Tag') as HTMLInputElement).value).toBe('АР');
     expect((screen.getByPlaceholderText('Email') as HTMLInputElement).value).toBe('anna@stroy.ru');
     expect((screen.getByPlaceholderText('Phone') as HTMLInputElement).value).toBe('+7900');
 
@@ -38,7 +39,7 @@ describe('AddContactForm — people suggestions', () => {
       role: 'Архитектор',
       email: 'anna@stroy.ru',
       phone: '+7900',
-      tag: '',
+      tag: 'АР',
     }));
   });
 

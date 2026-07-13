@@ -41,6 +41,41 @@ describe('collectKnownPeople', () => {
     expect(boris).toMatchObject({ company: 'СтройГрупп', phone: '+7900' });
   });
 
+  it('carries the tag separately from the company so picking restores it', () => {
+    // Екатерина: company (СПИЧ) + a distinct discipline tag (АР). Both must
+    // survive so picking her fills the tag field, not just the company.
+    const people = collectKnownPeople(
+      [],
+      [member({ id: 'm1', externalName: 'Екатерина', externalCompany: 'СПИЧ', tag: 'АР', role: 'Архитектор' })],
+    );
+    expect(people).toHaveLength(1);
+    expect(people[0]).toMatchObject({ company: 'СПИЧ', tag: 'АР', role: 'Архитектор' });
+  });
+
+  it('does not duplicate a legacy firm-in-tag into both company and tag', () => {
+    // Legacy row stored the firm in `tag` (no company column then): it becomes
+    // the company for grouping, and the chip tag stays empty to avoid a dupe.
+    const people = collectKnownPeople(
+      [contact({ id: 'c1', name: 'Анна', tag: 'АйБиМ' })],
+      [],
+    );
+    expect(people[0]).toMatchObject({ company: 'АйБиМ', tag: null });
+  });
+
+  it('fills a missing tag from a later row while merging', () => {
+    // First row (no tag) sets the identity; a later row carries the tag. The
+    // merged person keeps company from the first and tag from the second.
+    const people = collectKnownPeople(
+      [],
+      [
+        member({ id: 'm1', externalName: 'Екатерина', externalCompany: 'СПИЧ' }),
+        member({ id: 'm2', externalName: 'Екатерина', externalCompany: 'СПИЧ', tag: 'АР' }),
+      ],
+    );
+    expect(people).toHaveLength(1);
+    expect(people[0]).toMatchObject({ company: 'СПИЧ', tag: 'АР', usageCount: 2 });
+  });
+
   it('skips workspace assignees and rows without a name', () => {
     const people = collectKnownPeople(
       [contact({ id: 'c1', name: '   ' })],
