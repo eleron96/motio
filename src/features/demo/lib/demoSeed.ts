@@ -230,3 +230,188 @@ export const DEMO_SEED_MILESTONES: DemoSeedMilestone[] = [
   {"id":"77777777-0000-0000-0000-000000000041","project_id":"11111111-0000-0000-0000-000000000013","title":"Interview panel calibrated","offset_days":6,"sort_order":41},
   {"id":"77777777-0000-0000-0000-000000000042","project_id":"11111111-0000-0000-0000-000000000013","title":"Job posts live","offset_days":9,"sort_order":42}
 ];
+
+// ── Clients / Contacts (Project Card feature) ──────────────────────────
+// Customers are the client companies; each links to one or more projects
+// via projects.customer_id. customer_contacts are people on the client
+// side; project_members are the (external) team members shown per project.
+// Together they populate the "Клиенты" and "Контакты" tabs on the demo.
+
+export interface DemoSeedCustomer {
+  id: string;
+  name: string;
+  industry: string | null;
+}
+
+export interface DemoSeedCustomerContact {
+  id: string;
+  customer_id: string | null;
+  name: string;
+  role: string | null;
+  email: string | null;
+  phone: string | null;
+  company: string | null;
+  tag: string | null;
+  position: number;
+}
+
+export interface DemoSeedProjectMember {
+  id: string;
+  project_id: string;
+  assignee_id: string | null;
+  role: string | null;
+  tag: string | null;
+  external_name: string | null;
+  external_company: string | null;
+  external_email: string | null;
+  external_phone: string | null;
+  position: number;
+}
+
+export const DEMO_SEED_CUSTOMERS: DemoSeedCustomer[] = [
+  {"id":"88888888-0000-0000-0000-000000000001","name":"Northwind Trading","industry":"Retail · E-commerce"},
+  {"id":"88888888-0000-0000-0000-000000000002","name":"Acme Industrial","industry":"Manufacturing"},
+  {"id":"88888888-0000-0000-0000-000000000003","name":"Globex Systems","industry":"SaaS · Analytics"},
+  {"id":"88888888-0000-0000-0000-000000000004","name":"Initech Software","industry":"Fintech"},
+  {"id":"88888888-0000-0000-0000-000000000005","name":"Umbrella Group","industry":"Healthcare"}
+];
+
+// project_id → customer_id. Only a subset of projects has a client, so the
+// sidebar shows both "with client" and "no client" projects.
+export const DEMO_SEED_PROJECT_CUSTOMER: Record<string, string> = {
+  "11111111-0000-0000-0000-000000000001": "88888888-0000-0000-0000-000000000001", // Website Relaunch → Northwind
+  "11111111-0000-0000-0000-000000000008": "88888888-0000-0000-0000-000000000001", // Marketing Hub → Northwind
+  "11111111-0000-0000-0000-000000000002": "88888888-0000-0000-0000-000000000002", // Mobile Sprint → Acme
+  "11111111-0000-0000-0000-000000000010": "88888888-0000-0000-0000-000000000002", // DevOps Pipeline → Acme
+  "11111111-0000-0000-0000-000000000007": "88888888-0000-0000-0000-000000000003", // Analytics Dashboard → Globex
+  "11111111-0000-0000-0000-000000000011": "88888888-0000-0000-0000-000000000003", // Growth Experiments → Globex
+  "11111111-0000-0000-0000-000000000012": "88888888-0000-0000-0000-000000000004", // Data Migration → Initech
+  "11111111-0000-0000-0000-000000000006": "88888888-0000-0000-0000-000000000005"  // Customer Onboarding → Umbrella
+};
+
+export const DEMO_SEED_CUSTOMER_CONTACTS: DemoSeedCustomerContact[] = [
+  {"id":"99999999-0000-0000-0000-000000000001","customer_id":"88888888-0000-0000-0000-000000000001","name":"Olivia Grant","role":"Head of Marketing","email":"olivia.grant@northwind.example","phone":"+1 202 555 0148","company":"Northwind Trading","tag":"Decision maker","position":0},
+  {"id":"99999999-0000-0000-0000-000000000002","customer_id":"88888888-0000-0000-0000-000000000001","name":"James Whitfield","role":"Brand Manager","email":"james.w@northwind.example","phone":null,"company":"Northwind Trading","tag":"Day-to-day","position":1},
+  {"id":"99999999-0000-0000-0000-000000000003","customer_id":"88888888-0000-0000-0000-000000000002","name":"Robert Klein","role":"CTO","email":"r.klein@acme.example","phone":"+49 30 5550 221","company":"Acme Industrial","tag":"Technical","position":0},
+  {"id":"99999999-0000-0000-0000-000000000004","customer_id":"88888888-0000-0000-0000-000000000002","name":"Nina Petrova","role":"Product Owner","email":"nina.petrova@acme.example","phone":null,"company":"Acme Industrial","tag":null,"position":1},
+  {"id":"99999999-0000-0000-0000-000000000005","customer_id":"88888888-0000-0000-0000-000000000003","name":"David Okafor","role":"VP Analytics","email":"d.okafor@globex.example","phone":"+44 20 7946 0912","company":"Globex Systems","tag":"Sponsor","position":0},
+  {"id":"99999999-0000-0000-0000-000000000006","customer_id":"88888888-0000-0000-0000-000000000004","name":"Susan Meyers","role":"Compliance Lead","email":"s.meyers@initech.example","phone":null,"company":"Initech Software","tag":"Legal","position":0},
+  {"id":"99999999-0000-0000-0000-000000000007","customer_id":"88888888-0000-0000-0000-000000000005","name":"Alan Reyes","role":"Clinical Director","email":"a.reyes@umbrella.example","phone":"+1 415 555 0170","company":"Umbrella Group","tag":null,"position":0},
+  {"id":"99999999-0000-0000-0000-000000000008","customer_id":null,"name":"Marco Bianchi","role":"Freelance Designer","email":"marco@bianchi.studio","phone":"+39 02 5550 88","company":"Bianchi Studio","tag":"Contractor","position":0},
+  {"id":"99999999-0000-0000-0000-000000000009","customer_id":null,"name":"Priya Nair","role":"Legal Advisor","email":"priya.nair@example.com","phone":null,"company":null,"tag":null,"position":1}
+];
+
+export const DEMO_SEED_PROJECT_MEMBERS: DemoSeedProjectMember[] = [
+  // Same external person on two projects → deduped into one Contacts entry
+  // that shows "in 2 projects".
+  {"id":"aaaaaaaa-0000-0000-0000-000000000001","project_id":"11111111-0000-0000-0000-000000000001","assignee_id":null,"role":"Structural Engineer","tag":"KR","external_name":"Sergey Volkov","external_company":"BuildTech LLC","external_email":"s.volkov@buildtech.example","external_phone":"+7 495 555 3312","position":0},
+  {"id":"aaaaaaaa-0000-0000-0000-000000000002","project_id":"11111111-0000-0000-0000-000000000002","assignee_id":null,"role":"Structural Engineer","tag":"KR","external_name":"Sergey Volkov","external_company":"BuildTech LLC","external_email":"s.volkov@buildtech.example","external_phone":"+7 495 555 3312","position":0},
+  {"id":"aaaaaaaa-0000-0000-0000-000000000003","project_id":"11111111-0000-0000-0000-000000000006","assignee_id":null,"role":"UX Consultant","tag":"Design","external_name":"Anna Schmidt","external_company":"Pixel Foundry","external_email":"anna@pixelfoundry.example","external_phone":null,"position":0},
+  {"id":"aaaaaaaa-0000-0000-0000-000000000004","project_id":"11111111-0000-0000-0000-000000000012","assignee_id":null,"role":"Data Migration Consultant","tag":"Backend","external_name":"Tomás Alvarez","external_company":"Datastream Partners","external_email":"tomas@datastream.example","external_phone":"+34 91 555 7788","position":0},
+  // A couple of internal (workspace-assignee) members — shown in the project
+  // Team block, deliberately excluded from the Contacts directory.
+  {"id":"aaaaaaaa-0000-0000-0000-000000000005","project_id":"11111111-0000-0000-0000-000000000001","assignee_id":"22222222-0000-0000-0000-000000000001","role":"Project Lead","tag":null,"external_name":null,"external_company":null,"external_email":null,"external_phone":null,"position":1},
+  {"id":"aaaaaaaa-0000-0000-0000-000000000006","project_id":"11111111-0000-0000-0000-000000000002","assignee_id":"22222222-0000-0000-0000-000000000003","role":"Mobile Lead","tag":null,"external_name":null,"external_company":null,"external_email":null,"external_phone":null,"position":1}
+];
+
+// ── Prebuilt dashboards ────────────────────────────────────────────────
+// A ready-made dashboard so the demo lands on populated charts instead of
+// the empty "create a dashboard" state. Widgets are normalized by the
+// dashboard store, so only the fields that differ from the defaults are set.
+// Typed loosely on purpose — the store's normalizeWidget fills the rest.
+
+export interface DemoSeedDashboard {
+  id: string;
+  name: string;
+  widgets: Array<Record<string, unknown>>;
+}
+
+// Widget mix mirrors how real workspaces build dashboards on prod: heavily
+// assignee-centric (line/area/bar grouped by assignee, week period), a
+// milestones widget on every board, plus project and task-type breakdowns.
+// A small KPI headline row is kept for the demo's first impression.
+export const DEMO_SEED_DASHBOARDS: DemoSeedDashboard[] = [
+  {
+    id: "bbbbbbbb-0000-0000-0000-000000000001",
+    name: "Team workload",
+    widgets: [
+      {"id":"cccccccc-0000-0000-0000-000000000001","type":"kpi","title":"Active","period":"week","groupBy":"none","statusFilter":"active","size":"small"},
+      {"id":"cccccccc-0000-0000-0000-000000000002","type":"kpi","title":"Done · 30d","period":"month","groupBy":"none","statusFilter":"final","size":"small"},
+      {"id":"cccccccc-0000-0000-0000-000000000003","type":"line","title":"Load trend by assignee","period":"week","groupBy":"assignee","statusFilter":"all","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000004","type":"area","title":"Active load by assignee","period":"week","groupBy":"assignee","statusFilter":"active","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000005","type":"bar","title":"Tasks per assignee","period":"week","groupBy":"assignee","statusFilter":"all","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000006","type":"bar","title":"Tasks by project","period":"week","groupBy":"project","statusFilter":"all","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000007","type":"pie","title":"By task type","period":"week","groupBy":"task_type","statusFilter":"all","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000008","type":"milestone","title":"Milestones","period":"month","groupBy":"none","milestoneView":"list","statusFilter":"all","size":"medium"}
+    ]
+  },
+  {
+    id: "bbbbbbbb-0000-0000-0000-000000000002",
+    name: "Delivery",
+    widgets: [
+      {"id":"cccccccc-0000-0000-0000-000000000011","type":"milestone","title":"Milestones","period":"month","groupBy":"none","milestoneView":"list","statusFilter":"all","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000012","type":"line","title":"Trend by project","period":"week","groupBy":"project","statusFilter":"all","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000013","type":"line","title":"Trend by assignee","period":"week","groupBy":"assignee","statusFilter":"all","size":"medium"},
+      {"id":"cccccccc-0000-0000-0000-000000000014","type":"milestone","title":"Milestone calendar","period":"month","groupBy":"none","milestoneView":"calendar","statusFilter":"all","size":"medium"}
+    ]
+  }
+];
+
+// Explicit, per-breakpoint grid layouts for the seeded dashboards.
+//
+// Why not leave `layouts: {}` and let the store auto-place? Two reasons:
+//  1. KPI widgets auto-place at 1×1 (KPI_SMALL_PRESET) — far too small, the
+//     title and value overflow the cell.
+//  2. Mass auto-placement of many widgets is not a fixed point of the
+//     react-grid-layout ↔ normalizeLayouts feedback, so the grid oscillates
+//     ("jitters"). Prod dashboards never hit this because they persist
+//     explicit, already-normalized layouts (built incrementally per add).
+//
+// So we bake stable layouts here: a simple shelf/next-fit pack that is
+// collision-free by construction and keeps every item inside the widget's
+// size bounds, so normalizeLayouts is a no-op and the grid settles at once.
+
+const DEMO_DASHBOARD_COLS: Record<string, number> = {
+  xxl: 16, xl: 14, lg: 12, md: 10, sm: 6, xs: 2,
+};
+
+// Base width at 12 columns, fixed height (rows), and a minimum width — per
+// widget type. Scaled per breakpoint below.
+const DEMO_WIDGET_SIZING: Record<string, { baseW: number; h: number; minW: number }> = {
+  kpi: { baseW: 3, h: 2, minW: 1 },
+  bar: { baseW: 6, h: 4, minW: 3 },
+  pie: { baseW: 6, h: 4, minW: 3 },
+  line: { baseW: 6, h: 4, minW: 3 },
+  area: { baseW: 6, h: 4, minW: 3 },
+  milestone: { baseW: 6, h: 4, minW: 2 },
+};
+
+type DemoLayoutItem = { i: string; x: number; y: number; w: number; h: number };
+
+export const buildDemoDashboardLayouts = (
+  widgets: Array<Record<string, unknown>>,
+): Record<string, DemoLayoutItem[]> => {
+  const layouts: Record<string, DemoLayoutItem[]> = {};
+  for (const [breakpoint, cols] of Object.entries(DEMO_DASHBOARD_COLS)) {
+    let x = 0;
+    let y = 0;
+    let rowHeight = 0;
+    layouts[breakpoint] = widgets.map((widget) => {
+      const sizing = DEMO_WIDGET_SIZING[widget.type as string] ?? DEMO_WIDGET_SIZING.bar;
+      const target = Math.round((sizing.baseW * cols) / 12) || 1;
+      const lo = Math.min(sizing.minW, cols);
+      const w = Math.max(lo, Math.min(cols, target));
+      const h = sizing.h;
+      if (x + w > cols) {
+        x = 0;
+        y += rowHeight;
+        rowHeight = 0;
+      }
+      const item: DemoLayoutItem = { i: widget.id as string, x, y, w, h };
+      x += w;
+      rowHeight = Math.max(rowHeight, h);
+      return item;
+    });
+  }
+  return layouts;
+};
