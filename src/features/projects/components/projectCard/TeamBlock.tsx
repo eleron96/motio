@@ -335,6 +335,7 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
     if (person.email) setAddExternalEmail(person.email);
     if (person.phone) setAddExternalPhone(person.phone);
     if (person.role) setAddRole(person.role);
+    if (person.tag) setAddTag(person.tag);
   };
 
   const resetAddForm = () => {
