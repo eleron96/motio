@@ -62,6 +62,13 @@ const dayDiff = (a: Date, b: Date): number => Math.round(
 
 const kernelFactor = (offset: number): number => KERNEL_WEIGHTS[offset] ?? 0;
 
+// Milestones that feed the heat math. A milestone with includeInWorkload=false
+// is a marker the owner has opted out of the workload — it still renders as a
+// chip on the board, it just adds no crew pressure to its day.
+export const workloadMilestones = (
+  milestones: DashboardMilestone[],
+): DashboardMilestone[] => milestones.filter((milestone) => milestone.includeInWorkload);
+
 // Kernel pressure this day feels from nearby milestones, in units of "deliveries
 // at peak". Every delivery counts fully — each pins its own crew — so the sum is
 // uncapped here; dayPercent caps the resulting crew at the team's headcount.

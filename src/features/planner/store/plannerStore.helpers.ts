@@ -149,6 +149,9 @@ export type MilestoneRow = {
   title: string;
   note: string | null;
   status_override: 'done' | 'current' | 'upcoming' | null;
+  // Optional so demo seed rows and older payloads (without the column) still map;
+  // absent → true, matching the DB default.
+  include_in_workload?: boolean | null;
 };
 
 export type TaskSubtaskRow = {
@@ -334,6 +337,7 @@ export const mapMilestoneRow = (row: MilestoneRow): Milestone => ({
   date: row.date,
   note: row.note ?? null,
   statusOverride: row.status_override ?? null,
+  includeInWorkload: row.include_in_workload ?? true,
 });
 
 export const mapTaskSubtaskRow = (row: TaskSubtaskRow): TaskSubtask => ({

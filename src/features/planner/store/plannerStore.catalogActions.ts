@@ -1097,6 +1097,7 @@ export const createCatalogActions = (
         title: milestone.title,
         note: milestone.note ?? null,
         status_override: milestone.statusOverride ?? null,
+        include_in_workload: milestone.includeInWorkload ?? true,
       })
       .select('*')
       .single();
@@ -1120,6 +1121,7 @@ export const createCatalogActions = (
     if ('date' in updates) payload.date = updates.date;
     if ('note' in updates) payload.note = updates.note;
     if ('statusOverride' in updates) payload.status_override = updates.statusOverride;
+    if ('includeInWorkload' in updates) payload.include_in_workload = updates.includeInWorkload;
     if (Object.keys(payload).length === 0) return emptyMutationResult;
 
     const { data, error } = await supabase

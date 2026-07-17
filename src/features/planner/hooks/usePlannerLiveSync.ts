@@ -29,6 +29,7 @@ type MilestoneSyncRow = {
   date: string;
   note: string | null;
   status_override: MilestoneStatusOverride | null;
+  include_in_workload?: boolean | null;
   updated_at: string;
 };
 
@@ -65,6 +66,7 @@ const MILESTONE_SELECT = [
   'date',
   'note',
   'status_override',
+  'include_in_workload',
   'updated_at',
 ].join(',');
 
@@ -84,6 +86,7 @@ const mapMilestoneRow = (row: MilestoneSyncRow): Milestone => ({
   date: row.date,
   note: row.note,
   statusOverride: row.status_override,
+  includeInWorkload: row.include_in_workload ?? true,
 });
 
 const inTaskRange = (row: TaskSyncRow, range: LoadedRange) => (

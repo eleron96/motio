@@ -383,6 +383,7 @@ describe('Smoke: key user workflows', () => {
           date: '2026-02-10',
           note: null,
           statusOverride: null,
+          includeInWorkload: true,
         },
       ],
     }));

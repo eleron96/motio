@@ -432,6 +432,10 @@ msgstr "Добавить виджет"
 msgid "Add your name"
 msgstr "Добавьте имя"
 
+#: src/features/planner/components/timeline/MilestoneDialog.tsx
+msgid "Adds this delivery to the workload heatmap. Untick for milestones that don't occupy the team."
+msgstr "Добавляет эту веху в тепловую карту загрузки. Снимите галочку для вех, которые не занимают команду."
+
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "admin"
 msgstr "администратор"
@@ -831,10 +835,9 @@ msgstr "Нажмите эту кнопку или дважды кликните 
 #~ msgid "Client"
 #~ msgstr "Клиент"
 
-#. placeholder {0}: entry.source.customerName
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "Client: {0}"
-msgstr "Клиент: {0}"
+#~ msgid "Client: {0}"
+#~ msgstr "Клиент: {0}"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -968,6 +971,10 @@ msgstr "Код страны"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Country code must contain 2 letters."
 msgstr "Код страны должен состоять из 2 букв."
+
+#: src/features/planner/components/timeline/MilestoneDialog.tsx
+msgid "Counts toward department workload"
+msgstr "Влияет на загрузку отдела"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/members/components/MembersDialogs.tsx
@@ -1738,7 +1745,6 @@ msgstr "Экспортируйте свои данные после регист
 msgid "Exports run on your real workspace. Sign up in 30 seconds to enable them."
 msgstr "Экспорт работает в вашем реальном воркспейсе. Регистрация займёт 30 секунд."
 
-#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "External"
@@ -1749,8 +1755,8 @@ msgstr "Внешний"
 #~ msgstr "Внешний · {0} проектов"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "External · {count} projects"
-msgstr "Внешний · {count} проектов"
+#~ msgid "External · {count} projects"
+#~ msgstr "Внешний · {count} проектов"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "External (not in Motio)"
@@ -3181,10 +3187,9 @@ msgstr "Только эта задача"
 msgid "Open"
 msgstr "Открытые"
 
-#. placeholder {0}: formatProjectLabel(project.name, project.code)
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "Open {0}"
-msgstr "Открыть {0}"
+#~ msgid "Open {0}"
+#~ msgstr "Открыть {0}"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."

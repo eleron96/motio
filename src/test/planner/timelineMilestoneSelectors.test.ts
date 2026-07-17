@@ -29,6 +29,7 @@ const makeMilestone = (overrides: Partial<Milestone>): Milestone => ({
   date: '2026-02-24',
   note: null,
   statusOverride: null,
+  includeInWorkload: true,
   ...overrides,
 });
 
