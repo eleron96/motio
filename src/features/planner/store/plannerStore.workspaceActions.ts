@@ -242,7 +242,7 @@ export const createWorkspaceActions = (
       .eq('workspace_id', workspaceId);
     const milestonesQuery = supabase
       .from('milestones')
-      .select('id, workspace_id, title, project_id, date, note, status_override')
+      .select('id, workspace_id, title, project_id, date, note, status_override, include_in_workload')
       .eq('workspace_id', workspaceId)
       .gte('date', start)
       .lte('date', end);

@@ -170,6 +170,11 @@ export interface Milestone {
   note: string | null;
   /** Phase 5: explicit status; when null, status is derived from `date`. */
   statusOverride: MilestoneStatusOverride | null;
+  /**
+   * When false, this milestone is excluded from the department workload heatmap
+   * (it stays visible everywhere else). Defaults to true for every milestone.
+   */
+  includeInWorkload: boolean;
 }
 
 export type CommentAuthorStatus = 'ACTIVE' | 'PENDING_DELETION' | 'PURGED';
