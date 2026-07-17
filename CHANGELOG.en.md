@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- The workload heatmap can now be scrolled by dragging it with the left mouse button.
+
 ## [0.9.10] - 2026-07-17
 ### Added
 - A milestone can now be excluded from the workload heatmap with a checkbox in its settings — handy for marker milestones that don't occupy the team.
