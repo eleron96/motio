@@ -106,6 +106,8 @@ export type DashboardMilestone = {
   title: string;
   projectId: string;
   date: string;
+  /** When false, the milestone is left out of the workload heatmap math. */
+  includeInWorkload: boolean;
 };
 
 export type DashboardStatsRow = {

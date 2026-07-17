@@ -914,7 +914,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   loadMilestones: async (workspaceId) => {
     const { data, error } = await supabase
       .from('milestones')
-      .select('id, title, project_id, date')
+      .select('id, title, project_id, date, include_in_workload')
       .eq('workspace_id', workspaceId)
       .order('date', { ascending: true });
 
@@ -928,6 +928,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       title: row.title as string,
       projectId: row.project_id as string,
       date: row.date as string,
+      includeInWorkload: (row.include_in_workload as boolean | null) ?? true,
     }));
 
     set({ milestones });

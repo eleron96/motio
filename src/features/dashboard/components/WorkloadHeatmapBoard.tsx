@@ -34,6 +34,7 @@ import {
   milestoneKernelSum,
   parseIsoDate,
   resolveCapacity,
+  workloadMilestones,
   type HeatmapLevel,
 } from '@/features/dashboard/lib/workloadHeatmap';
 
@@ -160,6 +161,10 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     });
     return map;
   }, [milestones]);
+
+  // Only milestones flagged as load-bearing feed the heat math; the rest still
+  // render as chips (via milestonesByDate) — they exist, they just don't pin a crew.
+  const loadBearingMilestones = useMemo(() => workloadMilestones(milestones), [milestones]);
 
   const projectNameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -319,7 +324,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     const holidayNames = holidayMap[iso] ?? null;
     const isWorkday = !weekend && !holidayNames;
     const percent = showHeat
-      ? dayPercent(taskCount, headcount, capacity, milestoneKernelSum(iso, milestones))
+      ? dayPercent(taskCount, headcount, capacity, milestoneKernelSum(iso, loadBearingMilestones))
       : 0;
     return {
       date,

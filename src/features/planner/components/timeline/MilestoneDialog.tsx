@@ -13,9 +13,12 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { Button } from '@/shared/ui/button';
+import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { MoreVertical, Trash2 } from 'lucide-react';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -56,9 +59,21 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   const [projectId, setProjectId] = useState('');
   const [milestoneDate, setMilestoneDate] = useState('');
   const [note, setNote] = useState('');
+  const [includeInWorkload, setIncludeInWorkload] = useState(true);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [submitError, setSubmitError] = useState('');
+
+  // The "counts toward workload" checkbox only makes sense where the workload
+  // heatmap is actually in use — hide it everywhere else (the value still saves
+  // its default of true regardless).
+  const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
+  const workspaces = useAuthStore((state) => state.workspaces);
+  const heatmapAvailable = useMemo(
+    () => isWorkloadHeatmapEnabled()
+      && Boolean(workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.heatmapEnabled),
+    [workspaces, currentWorkspaceId],
+  );
 
   const mode = milestone ? 'edit' : 'create';
   const activeProjects = useMemo(
@@ -87,6 +102,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
       setProjectId(milestone.projectId);
       setMilestoneDate(milestone.date);
       setNote(milestone.note ?? '');
+      setIncludeInWorkload(milestone.includeInWorkload);
       setHasChanges(false);
       return;
     }
@@ -94,6 +110,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
     setProjectId(defaultProjectId ?? activeProjects[0]?.id ?? '');
     setMilestoneDate(date ?? format(new Date(), 'yyyy-MM-dd'));
     setNote('');
+    setIncludeInWorkload(true);
     setHasChanges(false);
   }, [milestone, open, activeProjects, date, defaultProjectId]);
 
@@ -123,6 +140,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
       note: note.trim() ? note.trim() : null,
       // Milestone status is always derived from the date — no manual override.
       statusOverride: null,
+      includeInWorkload,
     };
     if (milestone) {
       const result = await updateMilestone(milestone.id, payload);
@@ -260,6 +278,28 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
               disabled={!canEdit}
             />
           </div>
+          {heatmapAvailable && (
+            <div className="flex items-start gap-2.5 pt-0.5">
+              <Checkbox
+                id="milestone-include-in-workload"
+                checked={includeInWorkload}
+                onCheckedChange={(checked) => {
+                  setIncludeInWorkload(checked === true);
+                  setHasChanges(true);
+                }}
+                disabled={!canEdit}
+                className="mt-0.5"
+              />
+              <div className="space-y-0.5">
+                <Label htmlFor="milestone-include-in-workload" className="leading-snug">
+                  {t`Counts toward department workload`}
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {t`Adds this delivery to the workload heatmap. Untick for milestones that don't occupy the team.`}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {submitError && (
