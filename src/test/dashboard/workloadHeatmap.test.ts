@@ -8,14 +8,20 @@ import {
   milestoneKernelSum,
   MILESTONE_CREW,
   resolveCapacity,
+  workloadMilestones,
 } from '@/features/dashboard/lib/workloadHeatmap';
 import type { DashboardMilestone } from '@/features/dashboard/types/dashboard';
 
-const milestone = (date: string): DashboardMilestone => ({
+const milestone = (
+  date: string,
+  overrides: Partial<DashboardMilestone> = {},
+): DashboardMilestone => ({
   id: `m-${date}`,
   title: 'Deadline',
   projectId: 'p1',
   date,
+  includeInWorkload: true,
+  ...overrides,
 });
 
 describe('milestone kernel', () => {
@@ -58,6 +64,37 @@ describe('milestone kernel', () => {
   it('is zero outside the kernel window', () => {
     expect(milestoneKernelSum('2026-07-05', ms)).toBe(0); // -5
     expect(milestoneKernelSum('2026-07-13', ms)).toBe(0); // +3
+  });
+});
+
+describe('workloadMilestones', () => {
+  const target = '2026-07-10';
+
+  it('keeps only milestones flagged to count toward the workload', () => {
+    const all = [
+      milestone(target, { id: 'load-bearing' }),
+      milestone(target, { id: 'marker', includeInWorkload: false }),
+    ];
+    const kept = workloadMilestones(all);
+    expect(kept.map((m) => m.id)).toEqual(['load-bearing']);
+  });
+
+  it('drops an opted-out milestone from the day pressure entirely', () => {
+    const loadBearing = milestone(target, { id: 'load-bearing' });
+    const marker = milestone(target, { id: 'marker', includeInWorkload: false });
+    // The opted-out marker sits on the same day but must not add to the sum:
+    // one delivery counts, two would read 2.0.
+    expect(milestoneKernelSum(target, workloadMilestones([loadBearing, marker])))
+      .toBeCloseTo(1, 5);
+  });
+
+  it('is empty when every milestone opts out', () => {
+    const markers = [
+      milestone(target, { id: 'a', includeInWorkload: false }),
+      milestone('2026-07-09', { id: 'b', includeInWorkload: false }),
+    ];
+    expect(workloadMilestones(markers)).toHaveLength(0);
+    expect(milestoneKernelSum(target, workloadMilestones(markers))).toBe(0);
   });
 });
 

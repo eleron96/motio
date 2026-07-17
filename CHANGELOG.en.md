@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.10] - 2026-07-17
+### Added
+- A milestone can now be excluded from the workload heatmap with a checkbox in its settings — handy for marker milestones that don't occupy the team.
+
 ## [0.9.9] - 2026-07-13
 ### Fixed
 - The dashboard widget grid no longer jitters when rearranging.
