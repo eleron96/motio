@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.11] - 2026-07-17
 ### Changed
 - Тепловую карту загрузки теперь можно прокручивать, перетаскивая её мышью с зажатой левой кнопкой.
 
