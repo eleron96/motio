@@ -213,8 +213,13 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   const thumbRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef(0);
   const dragRef = useRef<{ startX: number; startLeft: number } | null>(null);
+  // Click-and-drag panning of the strip itself (mouse only). Tracks a pending
+  // press until it crosses the threshold, then takes over as a pan.
+  const panRef = useRef<{ pointerId: number; startX: number; startLeft: number; active: boolean } | null>(null);
+  const suppressClickRef = useRef(false);
   const didAutoScroll = useRef(false);
   const [nav, setNav] = useState({ todayVisible: true });
+  const [isPanning, setIsPanning] = useState(false);
 
   const syncScrollUi = useCallback(() => {
     const strip = stripRef.current;
@@ -293,6 +298,65 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     const usable = Math.max(1, rect.width - capWidth);
     const frac = Math.min(1, Math.max(0, (event.clientX - rect.left - capWidth / 2) / usable));
     strip.scrollTo({ left: frac * (strip.scrollWidth - strip.clientWidth), behavior: 'smooth' });
+  }, []);
+
+  // Drag-to-scroll the whole strip by holding the left mouse button. Touch/pen
+  // keep their native scroll; a press only becomes a pan after it moves past a
+  // small threshold, so a plain click still opens the day popover.
+  const PAN_THRESHOLD = 4;
+
+  const onStripPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    const strip = stripRef.current;
+    if (!strip) return;
+    suppressClickRef.current = false;
+    panRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startLeft: strip.scrollLeft,
+      active: false,
+    };
+  }, []);
+
+  const onStripPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    const strip = stripRef.current;
+    if (!pan || !strip) return;
+    const dx = event.clientX - pan.startX;
+    if (!pan.active) {
+      if (Math.abs(dx) < PAN_THRESHOLD) return;
+      pan.active = true;
+      suppressClickRef.current = true;
+      setIsPanning(true);
+      try {
+        strip.setPointerCapture(pan.pointerId);
+      } catch {
+        // pointer capture may be unavailable; the pan still works without it
+      }
+    }
+    strip.scrollLeft = pan.startLeft - dx;
+  }, []);
+
+  const onStripPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    panRef.current = null;
+    if (!pan) return;
+    if (pan.active) {
+      setIsPanning(false);
+      try {
+        stripRef.current?.releasePointerCapture(pan.pointerId);
+      } catch {
+        // pointer capture may already be released
+      }
+    }
+  }, []);
+
+  // Swallow the click that trails a drag so panning never opens a day popover.
+  const onStripClickCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!suppressClickRef.current) return;
+    suppressClickRef.current = false;
+    event.preventDefault();
+    event.stopPropagation();
   }, []);
 
   // Open on the current month, flush left. Wait for data so the strip is mounted
@@ -417,7 +481,14 @@ export const WorkloadHeatmapBoard: React.FC = () => {
       <div
         ref={stripRef}
         onScroll={onScroll}
-        className="overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onPointerDown={onStripPointerDown}
+        onPointerMove={onStripPointerMove}
+        onPointerUp={onStripPointerUp}
+        onPointerCancel={onStripPointerUp}
+        onClickCapture={onStripClickCapture}
+        className={`overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab ${
+          isPanning ? 'cursor-grabbing select-none [&_*]:!cursor-grabbing' : ''
+        }`}
       >
         <div className="flex gap-6 px-1 pb-1">
             {months.map((month) => {
