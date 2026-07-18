@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Clicking a person's avatar on the timeline opens a card with a larger photo, their name, and email.
 
 ## [0.9.11] - 2026-07-17
 ### Changed
