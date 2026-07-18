@@ -4,7 +4,7 @@ import { getMonogramColor } from '@/shared/lib/monogramColor';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { cn } from '@/shared/lib/classNames';
 
-export type AvatarSize = 'xs' | 'sm' | 'md' | 'xl' | '2xl' | 'lg';
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'xl' | '2xl' | 'lg' | 'profile';
 
 const sizeClasses: Record<AvatarSize, string> = {
   xs: 'h-6 w-6 text-[10px]',
@@ -13,6 +13,7 @@ const sizeClasses: Record<AvatarSize, string> = {
   xl: 'h-11 w-11 text-sm',
   '2xl': 'h-14 w-14 text-base',
   lg: 'h-20 w-20 text-lg',
+  profile: 'h-28 w-28 text-2xl',
 };
 
 // Text size inside the initials overlay strip.
@@ -23,6 +24,7 @@ const overlayTextSize: Record<AvatarSize, string> = {
   xl: 'text-[10px] leading-none',
   '2xl': 'text-[11px] leading-none',
   lg: 'text-xs leading-none',
+  profile: 'text-sm leading-none',
 };
 
 // Height of the gradient strip — tall enough that the gradient is visible
@@ -34,6 +36,7 @@ const overlayHeight: Record<AvatarSize, string> = {
   xl: 'h-[16px]',
   '2xl': 'h-[20px]',
   lg: 'h-[28px]',
+  profile: 'h-[36px]',
 };
 
 interface UserAvatarProps {
