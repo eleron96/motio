@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- New users now receive a welcome email with getting-started tips after their first sign-in.
+
 ## [0.9.12] - 2026-07-18
 ### Added
 - Clicking a person's avatar on the timeline opens a card with a larger photo, their name, and email.

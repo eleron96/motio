@@ -437,6 +437,23 @@ const callBackupApi = async <T>(token: string | null | undefined, path: string, 
   return { data: data as T };
 };
 
+// One-time welcome email: strictly `null` means "first sign-in, not greeted
+// yet" (older sessions and the demo stub return undefined). The request is
+// fire-and-forget — the edge function claims the send atomically, so repeated
+// calls are harmless; the local flag just avoids re-requesting every
+// fetchProfile within this tab.
+let welcomeEmailRequested = false;
+
+const maybeRequestWelcomeEmail = (welcomeEmailSentAt: unknown) => {
+  if (welcomeEmailSentAt !== null || welcomeEmailRequested) return;
+  welcomeEmailRequested = true;
+  void supabase.functions
+    .invoke('mailer', { body: { action: 'welcome' } })
+    .catch(() => {
+      // A failed greeting must never disturb sign-in.
+    });
+};
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
@@ -922,7 +939,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, locale, avatar_url, status, purge_after, preferences')
+      .select('display_name, locale, avatar_url, status, purge_after, preferences, welcome_email_sent_at')
       .eq('id', user.id)
       .single();
 
@@ -966,10 +983,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           console.error(localeError);
         }
       }
+      // Requested only after the pending locale is persisted: on the very
+      // first sign-in the profile row is born with the default locale, and
+      // the welcome email must render in the language the user actually
+      // picked before signing in.
+      maybeRequestWelcomeEmail(data?.welcome_email_sent_at);
       return;
     }
 
     useLocaleStore.getState().setLocaleFromProfile(profileLocale);
+    maybeRequestWelcomeEmail(data?.welcome_email_sent_at);
   },
   setCurrentWorkspaceId: (id) => {
     const user = get().user;

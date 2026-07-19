@@ -189,6 +189,16 @@ services:
       TASK_MEDIA_USER_QUOTA_BYTES: ${TASK_MEDIA_USER_QUOTA_BYTES:-209715200}
       TASK_MEDIA_WORKSPACE_QUOTA_BYTES: ${TASK_MEDIA_WORKSPACE_QUOTA_BYTES:-2147483648}
       TASK_MEDIA_TOKEN_TTL_SECONDS: ${TASK_MEDIA_TOKEN_TTL_SECONDS:-315360000}
+      # Local dev has no SMTP account: the mailer detects the empty host and
+      # degrades to dry-run (renders + logs instead of sending).
+      MAILER_SMTP_HOST: ${MAILER_SMTP_HOST:-${GOTRUE_SMTP_HOST:-}}
+      MAILER_SMTP_PORT: ${MAILER_SMTP_PORT:-${GOTRUE_SMTP_PORT:-465}}
+      MAILER_SMTP_USER: ${MAILER_SMTP_USER:-${GOTRUE_SMTP_USER:-}}
+      MAILER_SMTP_PASS: ${MAILER_SMTP_PASS:-${GOTRUE_SMTP_PASS:-}}
+      MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL:-${GOTRUE_SMTP_ADMIN_EMAIL:-}}
+      MAILER_FROM_NAME: ${MAILER_FROM_NAME:-${GOTRUE_SMTP_SENDER_NAME:-Motio}}
+      MAILER_WELCOME_ENABLED: ${MAILER_WELCOME_ENABLED:-true}
+      MAILER_DRY_RUN: ${MAILER_DRY_RUN:-0}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
     command: ["start", "--main-service", "/home/deno/functions/main", "--port", "9000"]
