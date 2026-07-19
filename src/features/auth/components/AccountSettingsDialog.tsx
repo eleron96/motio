@@ -68,6 +68,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     signOut,
     fetchProfileSettings,
     updateProfilePreferences,
+    updateMarketingEmailsOptIn,
   } = useAuthStore(useShallow((state) => ({
     user: state.user,
     updateDisplayName: state.updateDisplayName,
@@ -77,6 +78,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     signOut: state.signOut,
     fetchProfileSettings: state.fetchProfileSettings,
     updateProfilePreferences: state.updateProfilePreferences,
+    updateMarketingEmailsOptIn: state.updateMarketingEmailsOptIn,
   })));
   const locale = useLocaleStore((state) => state.locale);
   const setLocale = useLocaleStore((state) => state.setLocale);
@@ -94,6 +96,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   // demo session — the cleanup cron handles "deletion" automatically.
   const accountDeletionEnabled = isAccountDeletionEnabled() && !isDemo;
   const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
+  const [marketingEmailsEnabled, setMarketingEmailsEnabled] = useState(false);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
   const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
@@ -124,6 +127,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
       setCurrentPrefs(data.preferences);
       setDailyBriefEnabled(data.preferences.daily_brief_enabled !== false);
+      setMarketingEmailsEnabled(data.marketingEmailsOptIn);
       setWeekViewEnabled(isWeekViewEnabled(data.preferences));
       setAccentId(getAccentColorId(data.preferences));
 
@@ -204,6 +208,21 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       // Откат при ошибке
       setDailyBriefEnabled(previousEnabled);
       setCurrentPrefs(previousPrefs);
+      setError(updateError);
+    }
+  };
+
+  const handleMarketingEmailsToggle = async (checked: boolean) => {
+    if (!user) return;
+    const previousEnabled = marketingEmailsEnabled;
+
+    // Optimistic update — переключается мгновенно
+    setMarketingEmailsEnabled(checked);
+    const { error: updateError } = await updateMarketingEmailsOptIn(checked);
+
+    if (updateError) {
+      // Откат при ошибке
+      setMarketingEmailsEnabled(previousEnabled);
       setError(updateError);
     }
   };
@@ -478,6 +497,25 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                       {t`Show daily task summary each morning`}
                     </p>
                   </div>
+
+                  {!isDemo && (
+                    <div className="space-y-2 border-t pt-4 text-left">
+                      <div className="flex items-center justify-between gap-3">
+                        <Label htmlFor="marketing-emails-toggle" className="cursor-pointer">
+                          {t`Product news by email`}
+                        </Label>
+                        <Switch
+                          id="marketing-emails-toggle"
+                          checked={marketingEmailsEnabled}
+                          onCheckedChange={handleMarketingEmailsToggle}
+                          disabled={!user || loading}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {t`Occasional announcements and tips. Every email has a one-click unsubscribe.`}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="space-y-2 border-t pt-4 text-left">
                     <div className="flex items-center justify-between gap-3">
