@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-const { authState } = vi.hoisted(() => ({
+const { authState, adminState } = vi.hoisted(() => ({
   authState: {
     user: { id: 'u1', email: 'owner@example.com' } as { id: string; email: string } | null,
     isSuperAdmin: true,
     signOut: vi.fn(),
+  },
+  adminState: {
     adminUsers: [
       { id: 'a', email: 'a@example.com', displayName: null, workspaces: [], workspaceCount: 0, ownedWorkspaceCount: 0, managedWorkspaceCount: 0, storageUsedBytes: 1024, storageObjectsCount: 1, createdAt: '2026-01-01', lastSignInAt: null },
       { id: 'b', email: 'b@example.com', displayName: null, workspaces: [], workspaceCount: 0, ownedWorkspaceCount: 0, managedWorkspaceCount: 0, storageUsedBytes: 2048, storageObjectsCount: 2, createdAt: '2026-01-02', lastSignInAt: null },
@@ -28,6 +30,11 @@ const { authState } = vi.hoisted(() => ({
 vi.mock('@/features/auth/store/authStore', () => ({
   useAuthStore: (selector?: (s: typeof authState) => unknown) =>
     (typeof selector === 'function' ? selector(authState) : authState),
+}));
+
+vi.mock('@/features/admin/store/adminStore', () => ({
+  useAdminStore: (selector?: (s: typeof adminState) => unknown) =>
+    (typeof selector === 'function' ? selector(adminState) : adminState),
 }));
 
 vi.mock('@/shared/store/localeStore', () => ({

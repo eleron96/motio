@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAuthStore, AdminWorkspace } from '@/features/auth/store/authStore';
+import { useAdminStore, AdminWorkspace } from '@/features/admin/store/adminStore';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
@@ -29,7 +29,7 @@ const AdminWorkspacesPage: React.FC = () => {
     fetchAdminWorkspaces,
     updateAdminWorkspace,
     deleteAdminWorkspace,
-  } = useAuthStore(useShallow((state) => ({
+  } = useAdminStore(useShallow((state) => ({
     adminWorkspaces: state.adminWorkspaces,
     adminWorkspacesLoading: state.adminWorkspacesLoading,
     adminWorkspacesError: state.adminWorkspacesError,

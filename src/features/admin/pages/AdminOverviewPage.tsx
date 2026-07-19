@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useAuthStore } from '@/features/auth/store/authStore';
+import { useAdminStore } from '@/features/admin/store/adminStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -40,7 +40,7 @@ const AdminOverviewPage: React.FC = () => {
     backups,
     backupsLoading,
     fetchBackups,
-  } = useAuthStore(useShallow((state) => ({
+  } = useAdminStore(useShallow((state) => ({
     adminUsers: state.adminUsers,
     adminUsersLoading: state.adminUsersLoading,
     fetchAdminUsers: state.fetchAdminUsers,

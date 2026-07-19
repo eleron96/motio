@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAuthStore } from '@/features/auth/store/authStore';
+import { useAdminStore } from '@/features/admin/store/adminStore';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
@@ -32,7 +32,7 @@ interface EasterEggTarget {
 const EGG_KEYS = Object.keys(EGG_CATALOG);
 
 const AdminEasterEggsPage: React.FC = () => {
-  const { adminUsers, fetchAdminUsers } = useAuthStore(useShallow((state) => ({
+  const { adminUsers, fetchAdminUsers } = useAdminStore(useShallow((state) => ({
     adminUsers: state.adminUsers,
     fetchAdminUsers: state.fetchAdminUsers,
   })));

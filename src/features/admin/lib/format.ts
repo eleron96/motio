@@ -1,4 +1,4 @@
-import type { AdminUser, BackupEntry } from '@/features/auth/store/authStore';
+import type { AdminUser, BackupEntry } from '@/features/admin/store/adminStore';
 import type { Locale } from '@/shared/lib/locale';
 
 export const formatDate = (value: string | null | undefined, locale: Locale) => {
