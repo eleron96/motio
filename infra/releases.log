@@ -360,3 +360,4 @@
 2026-07-17T10:24:52Z | 0.9.11 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260717-102411.dump | The workload heatmap can now be scrolled by dragging it with the left mouse button.
 2026-07-18T21:18:06Z | 0.9.12 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260718-211725.dump | Clicking a person's avatar on the timeline opens a card with a larger photo, their name, and email.
 2026-07-19T09:24:09Z | 0.9.13 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-092327.dump | New users now receive a welcome email with getting-started tips after their first sign-in.
+2026-07-19T10:28:24Z | 0.9.14 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-102742.dump | The "Start for free" button now opens the registration form directly, and the sign-in screen has a clear "Create an account" button. Sign-in and registration screens are now fully and consistently translated.
