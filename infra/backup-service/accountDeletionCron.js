@@ -14,6 +14,7 @@
 
 const ACCOUNT_PURGE_PATH = '/functions/v1/account-purge';
 const DATA_EXPORT_PATH = '/functions/v1/data-export';
+const ADMIN_PATH = '/functions/v1/admin';
 const EXPORT_BUCKET = 'user-exports';
 
 const buildCtx = (ctx) => {
@@ -121,6 +122,23 @@ const tickDataExportWorker = async (rawCtx) => {
   }
 };
 
+const tickBroadcast = async (rawCtx) => {
+  const ctx = buildCtx(rawCtx);
+  try {
+    // Promotes due scheduled broadcasts and sends one queued batch. Safe no-op
+    // when nothing is pending. Makes delivery independent of the admin tab.
+    const result = await postFunction(ctx, ADMIN_PATH, { action: 'broadcasts.tick' });
+    if (result && (result.processed || result.promoted)) {
+      ctx.logger.log(`[broadcast cron] promoted=${result.promoted ?? 0} sent=${result.sentCount ?? 0}`);
+    }
+    return result ?? {};
+  } catch (error) {
+    ctx.logger.error(`[broadcast cron] failed: ${error.message}`);
+    ctx.captureException(error, { tags: { job: 'broadcast-tick' } });
+    throw error;
+  }
+};
+
 const deleteExpiredExportFile = async (ctx, filePath) => {
   if (!filePath) return { ok: true, skipped: true };
   const url = `${ctx.supabaseUrl}/storage/v1/object/${EXPORT_BUCKET}/${encodeURI(filePath)}`;
@@ -216,6 +234,7 @@ module.exports = {
   tickDataExportWorker,
   tickDataExportCleanup,
   tickHealthCheck,
+  tickBroadcast,
   // exported for tests
   deleteExpiredExportFile,
   postFunction,

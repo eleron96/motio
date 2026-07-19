@@ -20,6 +20,8 @@ export const ADMIN_ACTIONS = {
   BROADCASTS_SEND: 'broadcasts.send',
   BROADCASTS_PROCESS: 'broadcasts.process',
   BROADCASTS_LIST: 'broadcasts.list',
+  BROADCASTS_CANCEL: 'broadcasts.cancel',
+  BROADCASTS_TICK: 'broadcasts.tick',
 } as const;
 
 export const INVITE_ACTIONS = {

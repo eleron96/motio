@@ -40,6 +40,14 @@ function PrivacyContentEn() {
         Legal basis: performance of a contract (providing the Service you were invited
         to use) and legitimate interest in operating a functional collaboration tool.
       </p>
+      <p>
+        Essential emails about your account and the Service — such as security notices,
+        planned maintenance affecting availability, and material changes to these terms —
+        are sent to your account email as part of providing the Service and cannot be
+        opted out of while your account is active. Product news and tips are separate:
+        they are sent only if you enable them in your account settings, and every such
+        email includes a one-click unsubscribe.
+      </p>
 
       <h2>4. Data Storage and Retention</h2>
       <p>
@@ -137,6 +145,15 @@ function PrivacyContentRu() {
         Правовое основание: исполнение договора (предоставление Сервиса, в который
         вы были приглашены) и законный интерес в поддержании работоспособного
         инструмента для совместной работы.
+      </p>
+      <p>
+        Важные письма о вашем аккаунте и Сервисе — например, уведомления
+        безопасности, о плановых работах, влияющих на доступность, и о существенных
+        изменениях этих условий — отправляются на адрес вашего аккаунта в рамках
+        предоставления Сервиса, и от них нельзя отказаться, пока аккаунт активен.
+        Новости и советы о продукте — отдельная категория: они приходят только если
+        вы включили их в настройках аккаунта, и в каждом таком письме есть отписка
+        в один клик.
       </p>
 
       <h2>4. Хранение данных</h2>

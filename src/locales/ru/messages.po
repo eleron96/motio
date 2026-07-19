@@ -287,6 +287,7 @@ msgstr "Настройки аккаунта"
 msgid "Action failed"
 msgstr "Действие не выполнено"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -469,6 +470,10 @@ msgstr "После окончания периода восстановлени�
 msgid "All"
 msgstr "Все"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "All active users"
+msgstr "Все активные пользователи"
+
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All assignees"
 msgstr "Все исполнители"
@@ -508,6 +513,10 @@ msgstr "Все настройки"
 msgid "All statuses"
 msgstr "Все статусы"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "All subscribers"
+msgstr "Все подписчики"
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "All tasks"
 msgstr "Все задачи"
@@ -515,6 +524,11 @@ msgstr "Все задачи"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Analytics"
 msgstr "Аналитика"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Announcement"
+msgstr "Анонс"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
@@ -592,6 +606,10 @@ msgstr "назначил(а) вас на задачу"
 msgid "Assignees"
 msgstr "Исполнители"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Audience"
+msgstr "Аудитория"
+
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Authentication error"
 msgstr "Ошибка аутентификации"
@@ -666,6 +684,10 @@ msgstr "Двухнедельная (раз в две недели)"
 msgid "Broadcast"
 msgstr "Рассылка"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "By email domain"
+msgstr "По домену почты"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "By project"
 msgstr "По проекту"
@@ -678,6 +700,10 @@ msgstr "По статусу"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "By user"
 msgstr "По пользователю"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "By workspace"
+msgstr "По воркспейсу"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
@@ -693,6 +719,7 @@ msgstr "Календарь (месяц)"
 msgid "Calendar range"
 msgstr "Диапазон календаря"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
@@ -742,6 +769,7 @@ msgstr "Диапазон календаря"
 msgid "Cancel"
 msgstr "Отмена"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Canceled"
 msgstr "Отменено"
@@ -807,6 +835,10 @@ msgstr "Проверяем приглашение..."
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Choose a customer to see their projects."
 msgstr "Выберите клиента, чтобы увидеть его проекты."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Choose an audience"
+msgstr "Выберите аудиторию"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Choose an heir for workspaces where you are the sole admin."
@@ -2504,6 +2536,10 @@ msgstr "Отметить как прочитанное"
 msgid "Mark as unread"
 msgstr "Отметить как непрочитанное"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Marketing news — only to opted-in users, with an unsubscribe link."
+msgstr "Маркетинговые новости — только подписавшимся, с ссылкой на отписку."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Match all rules (AND)"
 msgstr "Совпадают все правила (И)"
@@ -2717,8 +2753,12 @@ msgid "Never"
 msgstr "Никогда"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
-msgid "New announcement"
-msgstr "Новый анонс"
+#~ msgid "New announcement"
+#~ msgstr "Новый анонс"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "New broadcast"
+msgstr "Новая рассылка"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -3122,6 +3162,10 @@ msgstr "Нет проектов, соответствующих фильтрам
 msgid "No projects match the current search."
 msgstr "Нет проектов под текущий поиск."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "No recipients match this audience."
+msgstr "Под эту аудиторию нет получателей."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "No rules yet."
 msgstr "Правил пока нет."
@@ -3201,8 +3245,8 @@ msgid "No workspaces."
 msgstr "Нет воркспейсов."
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
-msgid "Nobody has opted in yet."
-msgstr "Пока никто не подписался."
+#~ msgid "Nobody has opted in yet."
+#~ msgstr "Пока никто не подписался."
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
@@ -3666,6 +3710,11 @@ msgstr "Только чтение"
 #~ msgid "Ready to bring clarity to your team?"
 #~ msgstr "Готовы навести порядок в команде?"
 
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Recipients: {0}"
+msgstr "Получателей: {0}"
+
 #: src/shared/lib/repeatLabels.ts
 msgid "Recurring"
 msgstr "Повтор"
@@ -3917,6 +3966,24 @@ msgstr "Сохранено."
 msgid "Saving..."
 msgstr "Сохранение..."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Schedule"
+msgstr "Запланировать"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Schedule this broadcast?"
+msgstr "Запланировать рассылку?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Scheduled"
+msgstr "Запланирована"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Scheduled for"
+msgstr "Запланировано на"
+
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #~ msgid "Scroll left"
 #~ msgstr "Прокрутить влево"
@@ -4127,6 +4194,7 @@ msgstr "Выберите пользователя"
 msgid "Select value"
 msgstr "Выберите значение"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Select workspace"
 msgstr "Выберите рабочее пространство"
@@ -4149,8 +4217,16 @@ msgid "Send invite"
 msgstr "Отправить приглашение"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
-msgid "Send this announcement?"
-msgstr "Отправить анонс?"
+msgid "Send now"
+msgstr "Отправить сейчас"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "Send this announcement?"
+#~ msgstr "Отправить анонс?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Send this broadcast?"
+msgstr "Отправить рассылку?"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Sending"
@@ -4167,6 +4243,11 @@ msgstr "Отправлено"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Sent invites"
 msgstr "Отправленные приглашения"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Service notice"
+msgstr "Служебное уведомление"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "set manually"
@@ -4374,8 +4455,8 @@ msgid "Subject"
 msgstr "Тема"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
-msgid "Subscribers: {audienceCount}"
-msgstr "Подписчиков: {audienceCount}"
+#~ msgid "Subscribers: {audienceCount}"
+#~ msgstr "Подписчиков: {audienceCount}"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask actions"
@@ -4543,10 +4624,9 @@ msgstr "Текстовое значение"
 msgid "The database will be replaced with backup {name}."
 msgstr "База данных будет заменена содержимым бэкапа {name}."
 
-#. placeholder {0}: audienceCount ?? 0
 #: src/features/admin/pages/AdminBroadcastPage.tsx
-msgid "The email will go to {0} subscribed users. This cannot be recalled."
-msgstr "Письмо уйдёт {0} подписанным пользователям. Отозвать его нельзя."
+#~ msgid "The email will go to {0} subscribed users. This cannot be recalled."
+#~ msgstr "Письмо уйдёт {0} подписанным пользователям. Отозвать его нельзя."
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
@@ -4603,6 +4683,11 @@ msgstr "После окончания периода восстановлени�
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "This and following"
 msgstr "Эта и последующие"
+
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "This announcement will go to {0} opted-in users."
+msgstr "Анонс уйдёт {0} подписанным пользователям."
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "This comment will be permanently removed and cannot be recovered."
@@ -4672,6 +4757,11 @@ msgstr "Песочница скоро сбросится. Создайте бе�
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "This section contains invitations, roles and workspace access for your team."
 msgstr "В этом разделе находятся приглашения, роли и доступ команды к рабочему пространству."
+
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "This SERVICE notice will go to {0} active users, ignoring their marketing opt-in. Use only for genuinely essential messages."
+msgstr "Это СЛУЖЕБНОЕ уведомление уйдёт {0} активным пользователям, игнорируя их согласие на рассылки. Используйте только для действительно важных сообщений."
 
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "This task has been deleted."
@@ -4806,6 +4896,10 @@ msgstr "Отслеживаемый проект"
 msgid "Tracking"
 msgstr "Отслеживание"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Transactional — to all active users, no opt-out. Use only for account, maintenance or legal notices."
+msgstr "Транзакционное — всем активным пользователям, без отписки. Только для писем об аккаунте, работах или правовых изменениях."
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Transfer & leave"
 msgstr "Передать и покинуть"
@@ -4840,6 +4934,8 @@ msgstr "Попробовать демо — без регистрации"
 msgid "Try Motio now"
 msgstr "Попробуйте Motio сейчас"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx

@@ -100,14 +100,25 @@ const adminEasterEggsDeleteRequestSchema = z.object({
   id: z.string().uuid(),
 }).strict();
 
+const broadcastMessageTypeSchema = z.enum(['announcement', 'service']);
+const broadcastAudienceKindSchema = z.enum(['subscribers', 'domain', 'workspace', 'all_active']);
+
 const adminBroadcastsAudienceRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.BROADCASTS_AUDIENCE),
+  messageType: broadcastMessageTypeSchema,
+  audienceKind: broadcastAudienceKindSchema,
+  audienceValue: z.string().max(255).optional(),
 }).strict();
 
 const adminBroadcastsSendRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.BROADCASTS_SEND),
   subject: z.string().min(1).max(200),
   body: z.string().min(1).max(10000),
+  messageType: broadcastMessageTypeSchema,
+  audienceKind: broadcastAudienceKindSchema,
+  audienceValue: z.string().max(255).optional(),
+  // ISO timestamp; absent/empty = send now.
+  scheduledAt: z.string().datetime().optional(),
 }).strict();
 
 const adminBroadcastsProcessRequestSchema = z.object({
@@ -117,6 +128,15 @@ const adminBroadcastsProcessRequestSchema = z.object({
 
 const adminBroadcastsListRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.BROADCASTS_LIST),
+}).strict();
+
+const adminBroadcastsCancelRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.BROADCASTS_CANCEL),
+  broadcastId: z.string().uuid(),
+}).strict();
+
+const adminBroadcastsTickRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.BROADCASTS_TICK),
 }).strict();
 
 export const adminRequestSchema = z.discriminatedUnion('action', [
@@ -141,6 +161,8 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBroadcastsSendRequestSchema,
   adminBroadcastsProcessRequestSchema,
   adminBroadcastsListRequestSchema,
+  adminBroadcastsCancelRequestSchema,
+  adminBroadcastsTickRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;
