@@ -38,7 +38,7 @@ const COPY: Record<WelcomeLocale, {
     ],
     button: "Открыть Motio",
     footer:
-      "Это одноразовое приветственное письмо — рассылок без вашего согласия не будет.",
+      "Это одноразовое приветственное письмо. Новостных рассылок без вашего согласия не будет — только важные письма о вашем аккаунте.",
   },
   en: {
     subject: "Welcome to Motio",
@@ -51,7 +51,7 @@ const COPY: Record<WelcomeLocale, {
     ],
     button: "Open Motio",
     footer:
-      "This is a one-time welcome email — we won't send you anything else without your consent.",
+      "This is a one-time welcome email. We won't send you newsletters without your consent — only essential emails about your account.",
   },
 };
 
