@@ -74,6 +74,10 @@ const adminSuperAdminsDeleteRequestSchema = z.object({
   userId: z.string().min(1),
 }).strict();
 
+const adminSuperAdminsWhoamiRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI),
+}).strict();
+
 const adminKeycloakSyncRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.KEYCLOAK_SYNC),
 }).strict();
@@ -91,6 +95,7 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminSuperAdminsListRequestSchema,
   adminSuperAdminsCreateRequestSchema,
   adminSuperAdminsDeleteRequestSchema,
+  adminSuperAdminsWhoamiRequestSchema,
   adminKeycloakSyncRequestSchema,
 ]);
 

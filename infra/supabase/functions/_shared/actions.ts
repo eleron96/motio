@@ -11,6 +11,7 @@ export const ADMIN_ACTIONS = {
   SUPER_ADMINS_LIST: 'superAdmins.list',
   SUPER_ADMINS_CREATE: 'superAdmins.create',
   SUPER_ADMINS_DELETE: 'superAdmins.delete',
+  SUPER_ADMINS_WHOAMI: 'superAdmins.whoami',
   KEYCLOAK_SYNC: 'keycloak.sync',
 } as const;
 

@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Admin console access is now governed by a Keycloak role: grant it and the console appears, revoke it and access is gone. No separate in-app admin lists anymore.
+
 ## [0.9.14] - 2026-07-19
 ### Changed
 - The "Start for free" button now opens the registration form directly, and the sign-in screen has a clear "Create an account" button. Sign-in and registration screens are now fully and consistently translated.
