@@ -366,3 +366,4 @@
 2026-07-19T14:27:35Z | 0.9.17 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-142651.dump | No documented changes.
 2026-07-19T15:33:43Z | 0.9.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-153258.dump | Minor internal improvements.
 2026-07-19T15:58:39Z | 0.9.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-155755.dump | No documented changes.
+2026-07-19T20:24:06Z | 0.9.20 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-202322.dump | Minor internal improvements.
