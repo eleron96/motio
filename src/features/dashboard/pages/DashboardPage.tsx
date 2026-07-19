@@ -605,7 +605,7 @@ const DashboardPage = () => {
   );
 
   if (isSuperAdmin && workspacesLoaded && workspaces.length === 0) {
-    return <Navigate to="/app/admin/users" replace />;
+    return <Navigate to="/app/admin" replace />;
   }
 
   if (isWorkspaceSwitching) {

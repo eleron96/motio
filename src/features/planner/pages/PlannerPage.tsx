@@ -397,7 +397,7 @@ const PlannerPage = () => {
   // Only the workspace-less service account lives in the admin console;
   // a working super admin (owner with the Keycloak role) stays in the app.
   if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
-    return <Navigate to="/app/admin/users" replace />;
+    return <Navigate to="/app/admin" replace />;
   }
 
   return (

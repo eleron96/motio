@@ -114,6 +114,21 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.KEYCLOAK_SYNC),
   }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_SAVE),
+    id: z.string().uuid().optional(),
+    userId: z.string().uuid(),
+    eggKey: z.string().min(1).max(64),
+    enabled: z.boolean(),
+    note: z.string().max(500).optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_DELETE),
+    id: z.string().uuid(),
+  }).strict(),
 ]);
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -918,6 +933,101 @@ const handleSuperAdminsDelete = async () => {
   return jsonResponse({ error: "Super admin assignment is managed in Keycloak." }, 400);
 };
 
+// ── Easter eggs: daily-brief overlays assigned per user. Effects live in the
+// frontend catalog; these handlers only manage WHO gets WHICH key. The table
+// enforces at most one ACTIVE egg per user (partial unique index), so enabling
+// one first switches off the user's other active rows.
+const handleEasterEggsList = async () => {
+  const { data: rows, error } = await supabaseAdmin
+    .from("easter_egg_targets")
+    .select("id, egg_key, user_id, enabled, note, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  const userIds = Array.from(new Set((rows ?? []).map((row) => row.user_id)));
+  const profileResult = await getProfileMap(supabaseAdmin, userIds);
+  if ("error" in profileResult) {
+    return jsonResponse({ error: profileResult.error }, 400);
+  }
+
+  const targets = (rows ?? []).map((row) => {
+    const profile = profileResult.profiles.get(row.user_id);
+    return {
+      id: row.id,
+      eggKey: row.egg_key,
+      userId: row.user_id,
+      userEmail: profile?.email ?? null,
+      userDisplayName: profile?.displayName ?? null,
+      enabled: row.enabled,
+      note: row.note,
+      createdAt: row.created_at,
+    };
+  });
+
+  return jsonResponse({ targets });
+};
+
+const handleEasterEggsSave = async (
+  payload: { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string },
+) => {
+  if (payload.enabled) {
+    let disableOthers = supabaseAdmin
+      .from("easter_egg_targets")
+      .update({ enabled: false })
+      .eq("user_id", payload.userId)
+      .eq("enabled", true);
+    if (payload.id) {
+      disableOthers = disableOthers.neq("id", payload.id);
+    }
+    const { error: disableError } = await disableOthers;
+    if (disableError) {
+      return jsonResponse({ error: disableError.message }, 400);
+    }
+  }
+
+  if (payload.id) {
+    const { error } = await supabaseAdmin
+      .from("easter_egg_targets")
+      .update({
+        egg_key: payload.eggKey,
+        enabled: payload.enabled,
+        note: payload.note ?? null,
+      })
+      .eq("id", payload.id);
+    if (error) {
+      return jsonResponse({ error: error.message }, 400);
+    }
+  } else {
+    const { error } = await supabaseAdmin
+      .from("easter_egg_targets")
+      .insert({
+        user_id: payload.userId,
+        egg_key: payload.eggKey,
+        enabled: payload.enabled,
+        note: payload.note ?? null,
+      });
+    if (error) {
+      return jsonResponse({ error: error.message }, 400);
+    }
+  }
+
+  return jsonResponse({ success: true });
+};
+
+const handleEasterEggsDelete = async (payload: { id: string }) => {
+  const { error } = await supabaseAdmin
+    .from("easter_egg_targets")
+    .delete()
+    .eq("id", payload.id);
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+  return jsonResponse({ success: true });
+};
+
 const handleKeycloakSync = async () => {
   const result = await syncAllUsersToKeycloak();
 
@@ -1027,6 +1137,12 @@ export const handler = async (req: Request) => {
       return handleSuperAdminsDelete();
     case ADMIN_ACTIONS.KEYCLOAK_SYNC:
       return handleKeycloakSync();
+    case ADMIN_ACTIONS.EASTER_EGGS_LIST:
+      return handleEasterEggsList();
+    case ADMIN_ACTIONS.EASTER_EGGS_SAVE:
+      return handleEasterEggsSave(payload as { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string });
+    case ADMIN_ACTIONS.EASTER_EGGS_DELETE:
+      return handleEasterEggsDelete(payload as { id: string });
     default:
       return jsonResponse({ error: "Unknown action" }, 400);
   }
