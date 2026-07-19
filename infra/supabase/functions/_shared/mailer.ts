@@ -27,6 +27,8 @@ export interface OutgoingEmail {
   subject: string;
   html: string;
   text: string;
+  /** Extra SMTP headers, e.g. List-Unsubscribe for the mailbox-native button. */
+  headers?: Record<string, string>;
 }
 
 export const getMailerConfig = (): MailerConfig => {
@@ -76,6 +78,7 @@ export const sendEmail = async (
       subject: email.subject,
       content: email.text,
       html: email.html,
+      ...(email.headers ? { headers: email.headers } : {}),
     });
   } finally {
     try {
@@ -86,6 +89,46 @@ export const sendEmail = async (
   }
 
   return { dryRun: false };
+};
+
+// ── One-click unsubscribe ────────────────────────────────────────────────
+// The link in every broadcast email carries an HMAC over the user id, keyed
+// by the service-role key (already in the function env; the signature does
+// not reveal it). A valid signature IS the authorization — no login needed
+// to unsubscribe from an inbox.
+
+const unsubscribeKey = () => Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+const hmacHex = async (message: string): Promise<string> => {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(unsubscribeKey()),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
+  return Array.from(new Uint8Array(signature))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
+export const buildUnsubscribeSignature = (userId: string) => hmacHex(`unsubscribe:${userId}`);
+
+export const verifyUnsubscribeSignature = async (userId: string, signature: string) => {
+  const expected = await buildUnsubscribeSignature(userId);
+  if (expected.length !== signature.length) return false;
+  // Constant-time compare — don't leak prefix matches through timing.
+  let diff = 0;
+  for (let i = 0; i < expected.length; i += 1) {
+    diff |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+  }
+  return diff === 0;
+};
+
+export const buildUnsubscribeUrl = async (appUrl: string, userId: string) => {
+  const signature = await buildUnsubscribeSignature(userId);
+  return `${appUrl.replace(/\/$/, "")}/functions/v1/mailer?action=unsubscribe&uid=${encodeURIComponent(userId)}&sig=${signature}`;
 };
 
 /**

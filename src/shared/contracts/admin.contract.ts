@@ -100,6 +100,25 @@ const adminEasterEggsDeleteRequestSchema = z.object({
   id: z.string().uuid(),
 }).strict();
 
+const adminBroadcastsAudienceRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.BROADCASTS_AUDIENCE),
+}).strict();
+
+const adminBroadcastsSendRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.BROADCASTS_SEND),
+  subject: z.string().min(1).max(200),
+  body: z.string().min(1).max(10000),
+}).strict();
+
+const adminBroadcastsProcessRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.BROADCASTS_PROCESS),
+  broadcastId: z.string().uuid(),
+}).strict();
+
+const adminBroadcastsListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.BROADCASTS_LIST),
+}).strict();
+
 export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBootstrapSyncRequestSchema,
   adminUsersListRequestSchema,
@@ -118,6 +137,10 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminEasterEggsListRequestSchema,
   adminEasterEggsSaveRequestSchema,
   adminEasterEggsDeleteRequestSchema,
+  adminBroadcastsAudienceRequestSchema,
+  adminBroadcastsSendRequestSchema,
+  adminBroadcastsProcessRequestSchema,
+  adminBroadcastsListRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;

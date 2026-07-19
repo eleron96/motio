@@ -37,6 +37,7 @@ const AdminUsersPage = lazyDefault(() => import("@/features/admin/pages/AdminUse
 const AdminWorkspacesPage = lazyDefault(() => import("@/features/admin/pages/AdminWorkspacesPage"), "AdminWorkspacesPage");
 const AdminEasterEggsPage = lazyDefault(() => import("@/features/admin/pages/AdminEasterEggsPage"), "AdminEasterEggsPage");
 const AdminBackupsPage = lazyDefault(() => import("@/features/admin/pages/AdminBackupsPage"), "AdminBackupsPage");
+const AdminBroadcastPage = lazyDefault(() => import("@/features/admin/pages/AdminBroadcastPage"), "AdminBroadcastPage");
 const PlannerPage = lazyDefault(() => import("@/features/planner/pages/PlannerPage"), "PlannerPage");
 const DashboardPage = lazyDefault(() => import("@/features/dashboard/pages/DashboardPage"), "DashboardPage");
 const ProjectsPage = lazyDefault(() => import("@/features/projects/pages/ProjectsPage"), "ProjectsPage");
@@ -91,6 +92,7 @@ const App = () => {
                     <Route path="/app/admin/users" element={<AdminUsersPage />} />
                     <Route path="/app/admin/workspaces" element={<AdminWorkspacesPage />} />
                     <Route path="/app/admin/easter-eggs" element={<AdminEasterEggsPage />} />
+                    <Route path="/app/admin/broadcast" element={<AdminBroadcastPage />} />
                     <Route path="/app/admin/backups" element={<AdminBackupsPage />} />
                   </Route>
                   <Route

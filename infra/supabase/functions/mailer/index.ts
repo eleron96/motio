@@ -1,7 +1,12 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
-import { checkSmtpConnection, getMailerConfig, sendEmail } from "../_shared/mailer.ts";
+import {
+  checkSmtpConnection,
+  getMailerConfig,
+  sendEmail,
+  verifyUnsubscribeSignature,
+} from "../_shared/mailer.ts";
 import { renderWelcomeEmail, type WelcomeLocale } from "../_shared/welcomeEmail.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -143,9 +148,72 @@ const handleMailer = async (req: Request) => {
   }
 };
 
+// Public one-click unsubscribe target from broadcast emails. No login: a
+// valid HMAC over the user id (built with the service-role key) is the
+// authorization. Always answers with a human page, never JSON.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const unsubscribePage = (locale: string, ok: boolean) => {
+  const ru = locale === "ru";
+  const title = ok
+    ? (ru ? "Вы отписаны" : "You are unsubscribed")
+    : (ru ? "Ссылка недействительна" : "This link is not valid");
+  const detail = ok
+    ? (ru
+      ? "Новости Motio больше не будут приходить на вашу почту. Передумаете — включите их в настройках аккаунта."
+      : "Motio product news will no longer be sent to your inbox. Changed your mind? Re-enable it in account settings.")
+    : (ru
+      ? "Похоже, ссылка повреждена или устарела. Отписаться можно в настройках аккаунта."
+      : "The link looks broken or outdated. You can unsubscribe in your account settings.");
+  return new Response(
+    `<!doctype html><html lang="${ru ? "ru" : "en"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title></head>
+<body style="margin:0;padding:48px 16px;background:#f6f5f3;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1f1d1a;">
+<div style="max-width:420px;margin:0 auto;background:#fff;border:1px solid #e5e2dd;border-radius:12px;padding:32px;text-align:center;">
+<p style="margin:0 0 16px;font-size:20px;font-weight:700;">Motio</p>
+<p style="margin:0 0 8px;font-size:17px;font-weight:600;">${title}</p>
+<p style="margin:0;font-size:14px;line-height:1.6;color:#6b665f;">${detail}</p>
+</div></body></html>`,
+    { status: ok ? 200 : 400, headers: { "Content-Type": "text/html; charset=utf-8" } },
+  );
+};
+
+const handleUnsubscribe = async (req: Request) => {
+  const url = new URL(req.url);
+  const userId = url.searchParams.get("uid") ?? "";
+  const signature = url.searchParams.get("sig") ?? "";
+
+  if (!UUID_RE.test(userId) || !(await verifyUnsubscribeSignature(userId, signature))) {
+    return unsubscribePage("en", false);
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .update({ marketing_emails_opt_in: false })
+    .eq("id", userId)
+    .select("locale")
+    .maybeSingle();
+
+  if (error) {
+    captureException(new Error(`unsubscribe failed: ${error.message}`), {
+      tags: { function: "mailer", stage: "unsubscribe" },
+    });
+    return unsubscribePage("en", false);
+  }
+
+  return unsubscribePage(data?.locale === "ru" ? "ru" : "en", true);
+};
+
 export const handler = async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method === "GET") {
+    const url = new URL(req.url);
+    if (url.searchParams.get("action") === "unsubscribe") {
+      return handleUnsubscribe(req);
+    }
+    return jsonResponse({ error: "Method not allowed" }, 405);
   }
 
   return handleMailer(req);
