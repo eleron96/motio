@@ -442,7 +442,9 @@ const LandingPage = () => {
             className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
             <Button asChild size="lg">
-              <Link to="/app">{t`Start for free →`}</Link>
+              {/* Straight to the Keycloak registration form (prompt=create via
+                  /auth), not the sign-in screen — "start" must mean sign-up. */}
+              <Link to="/auth?intent=register">{t`Start for free →`}</Link>
             </Button>
             <Button
               asChild
@@ -702,7 +704,7 @@ const LandingPage = () => {
                 className="bg-white text-slate-900 hover:bg-slate-100"
                 size="lg"
               >
-                <Link to="/app">{t`Start now →`}</Link>
+                <Link to="/auth?intent=register">{t`Start now →`}</Link>
               </Button>
             </div>
           </div>
