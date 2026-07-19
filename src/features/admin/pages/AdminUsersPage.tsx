@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAuthStore, AdminUser } from '@/features/auth/store/authStore';
+import { useAdminStore, AdminUser } from '@/features/admin/store/adminStore';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
@@ -37,7 +37,7 @@ const AdminUsersPage: React.FC = () => {
     adminUsersError,
     fetchAdminUsers,
     adminForcePurgeAccount,
-  } = useAuthStore(useShallow((state) => ({
+  } = useAdminStore(useShallow((state) => ({
     adminUsers: state.adminUsers,
     adminUsersLoading: state.adminUsersLoading,
     adminUsersError: state.adminUsersError,

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-const { invokeAdminFunctionMock, authState } = vi.hoisted(() => ({
+const { invokeAdminFunctionMock, adminState } = vi.hoisted(() => ({
   invokeAdminFunctionMock: vi.fn(),
   // Stable object: a fresh state per selector call would defeat useShallow
   // and put the page into an endless re-render loop.
-  authState: {
+  adminState: {
     adminUsers: [
       { id: 'u1', email: 'alice@example.com' },
       { id: 'u2', email: 'bob@example.com' },
@@ -18,9 +18,9 @@ vi.mock('@/infrastructure/auth/functionsGateway', () => ({
   invokeAdminFunction: invokeAdminFunctionMock,
 }));
 
-vi.mock('@/features/auth/store/authStore', () => ({
-  useAuthStore: (selector?: (s: typeof authState) => unknown) =>
-    (typeof selector === 'function' ? selector(authState) : authState),
+vi.mock('@/features/admin/store/adminStore', () => ({
+  useAdminStore: (selector?: (s: typeof adminState) => unknown) =>
+    (typeof selector === 'function' ? selector(adminState) : adminState),
 }));
 
 vi.mock('@/shared/store/localeStore', () => ({

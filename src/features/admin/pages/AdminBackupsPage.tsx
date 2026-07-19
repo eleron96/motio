@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useAuthStore, BackupEntry } from '@/features/auth/store/authStore';
+import { useAdminStore, BackupEntry } from '@/features/admin/store/adminStore';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
@@ -39,7 +39,7 @@ const AdminBackupsPage: React.FC = () => {
     downloadBackup,
     renameBackup,
     deleteBackup,
-  } = useAuthStore(useShallow((state) => ({
+  } = useAdminStore(useShallow((state) => ({
     backups: state.backups,
     backupsLoading: state.backupsLoading,
     backupsError: state.backupsError,
