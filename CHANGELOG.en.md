@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- An owner holding super-admin rights now uses the app as a regular user: it no longer force-redirects them into the admin console. The console is reached by its direct URL.
+
 ## [0.9.15] - 2026-07-19
 ### Changed
 - Admin console access is now governed by a Keycloak role: grant it and the console appears, revoke it and access is gone. No separate in-app admin lists anymore.

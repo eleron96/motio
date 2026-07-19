@@ -169,11 +169,15 @@ const ProjectsPage = () => {
     currentWorkspaceId,
     currentWorkspaceRole,
     isSuperAdmin,
+    workspacesLoaded,
+    hasWorkspaces,
   } = useAuthStore(useShallow((state) => ({
     user: state.user,
     currentWorkspaceId: state.currentWorkspaceId,
     currentWorkspaceRole: state.currentWorkspaceRole,
     isSuperAdmin: state.isSuperAdmin,
+    workspacesLoaded: state.workspacesLoaded,
+    hasWorkspaces: state.workspaces.length > 0,
   })));
 
   const locale = useLocaleStore((state) => state.locale);
@@ -1446,7 +1450,7 @@ const ProjectsPage = () => {
     [mode, canEdit],
   );
 
-  if (isSuperAdmin) {
+  if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
     return <Navigate to="/app/admin/users" replace />;
   }
 

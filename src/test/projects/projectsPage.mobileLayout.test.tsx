@@ -118,6 +118,8 @@ const { plannerState, authState } = vi.hoisted(() => ({
     currentWorkspaceId: 'w1',
     currentWorkspaceRole: 'admin',
     isSuperAdmin: false,
+    workspaces: [],
+    workspacesLoaded: true,
   },
 }));
 

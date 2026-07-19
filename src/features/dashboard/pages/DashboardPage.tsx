@@ -174,6 +174,7 @@ const DashboardPage = () => {
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
+  const workspacesLoaded = useAuthStore((state) => state.workspacesLoaded);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const currentWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === currentWorkspaceId) ?? null,
@@ -603,7 +604,7 @@ const DashboardPage = () => {
     [canEdit, canAddWidget, isHeatmapView],
   );
 
-  if (isSuperAdmin) {
+  if (isSuperAdmin && workspacesLoaded && workspaces.length === 0) {
     return <Navigate to="/app/admin/users" replace />;
   }
 

@@ -41,6 +41,20 @@ describe('resolveSuperAdmin via superAdmins.whoami', () => {
     expect(functionsInvoke).toHaveBeenCalledWith('admin', { body: { action: 'superAdmins.whoami' } });
   });
 
+  it('keeps the working super admin\'s workspaces intact', async () => {
+    functionsInvoke.mockResolvedValue({ data: { isSuperAdmin: true }, error: null });
+    const workspace = { id: 'w1', name: 'Team', role: 'admin' } as never;
+    useAuthStore.setState({ workspaces: [workspace] as never, currentWorkspaceId: 'w1' });
+
+    await useAuthStore.getState().resolveSuperAdmin(asUser);
+
+    // The owner with the Keycloak role keeps working in the app: resolving
+    // super-admin must not wipe workspace state (the old service-account
+    // behavior).
+    expect(useAuthStore.getState().workspaces).toHaveLength(1);
+    expect(useAuthStore.getState().currentWorkspaceId).toBe('w1');
+  });
+
   it('denies access when whoami says the role is absent', async () => {
     functionsInvoke.mockResolvedValue({ data: { isSuperAdmin: false }, error: null });
 
