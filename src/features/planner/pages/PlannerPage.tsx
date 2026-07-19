@@ -148,6 +148,8 @@ const PlannerPage = () => {
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
+  const workspacesLoaded = useAuthStore((state) => state.workspacesLoaded);
+  const hasWorkspaces = useAuthStore((state) => state.workspaces.length > 0);
   const fetchMembers = useAuthStore((state) => state.fetchMembers);
   const membersLoading = useAuthStore((state) => state.membersLoading);
   const membersWorkspaceId = useAuthStore((state) => state.membersWorkspaceId);
@@ -392,7 +394,9 @@ const PlannerPage = () => {
     [hideTimelineActions, canEdit, isMobile],
   );
 
-  if (isSuperAdmin) {
+  // Only the workspace-less service account lives in the admin console;
+  // a working super admin (owner with the Keycloak role) stays in the app.
+  if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
     return <Navigate to="/app/admin/users" replace />;
   }
 

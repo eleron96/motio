@@ -118,6 +118,8 @@ const { plannerState, authState } = vi.hoisted(() => ({
     currentWorkspaceId: 'workspace-1',
     currentWorkspaceRole: 'admin',
     isSuperAdmin: false,
+    workspaces: [],
+    workspacesLoaded: true,
     updateMemberGroup: vi.fn(async () => ({ error: undefined })),
   },
 }));

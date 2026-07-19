@@ -196,6 +196,9 @@ interface AuthState {
   loading: boolean;
   signOutRedirectInProgress: boolean;
   workspaces: WorkspaceSummary[];
+  /** True after the first successful workspace load; pages use it to avoid
+   * redirect decisions on the not-yet-loaded empty list. */
+  workspacesLoaded: boolean;
   currentWorkspaceId: string | null;
   currentWorkspaceRole: WorkspaceRole | null;
   members: WorkspaceMember[];
@@ -460,6 +463,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: true,
   signOutRedirectInProgress: false,
   workspaces: [],
+  workspacesLoaded: false,
   currentWorkspaceId: null,
   currentWorkspaceRole: null,
   members: [],
@@ -520,20 +524,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
       });
       const isSuperAdmin = !error && Boolean(data?.isSuperAdmin);
-      if (isSuperAdmin) {
-        set({
-          isSuperAdmin: true,
-          superAdminLoading: false,
-          workspaces: [],
-          currentWorkspaceId: null,
-          currentWorkspaceRole: null,
-          members: [],
-          membersWorkspaceId: null,
-          membersLoading: false,
-        });
-      } else {
-        set({ isSuperAdmin: false, superAdminLoading: false });
-      }
+      // A super admin with workspaces is a regular working account (the owner
+      // with the Keycloak role), so their workspace state must stay intact —
+      // no reset here. The workspace-less service account is steered to the
+      // admin console by the pages' redirect instead.
+      set({ isSuperAdmin, superAdminLoading: false });
       return isSuperAdmin;
     } catch (_error) {
       set({ isSuperAdmin: false, superAdminLoading: false });
@@ -831,6 +826,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user: null,
       session: null,
       workspaces: [],
+      workspacesLoaded: false,
       currentWorkspaceId: null,
       currentWorkspaceRole: null,
       members: [],
@@ -873,17 +869,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchWorkspaces: async () => {
     const user = get().user;
     if (!user) return;
-    if (get().isSuperAdmin) {
-      set({
-        workspaces: [],
-        currentWorkspaceId: null,
-        currentWorkspaceRole: null,
-        members: [],
-        membersWorkspaceId: null,
-        membersLoading: false,
-      });
-      return;
-    }
 
     const loadWorkspaces = async () => {
       const { data, error } = await supabase
@@ -903,6 +888,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!workspaces) return;
 
     if (workspaces.length === 0) {
+      // The provisioning decision below depends on the super-admin probe,
+      // which runs concurrently in AuthProvider. It flips superAdminLoading
+      // on synchronously before this fetch can reach here, so waiting it out
+      // closes the race without sequencing the whole bootstrap.
+      while (get().superAdminLoading) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      // A workspace-less super admin is the break-glass service account: it
+      // lives in the admin console, so don't auto-provision "My Workspace"
+      // for it. Working super admins (owner with the Keycloak role) come
+      // through here with their real workspaces like everyone else.
+      if (get().isSuperAdmin) {
+        set({
+          workspaces: [],
+          currentWorkspaceId: null,
+          currentWorkspaceRole: null,
+          workspacesLoaded: true,
+        });
+        return;
+      }
       const { error: ensureError } = await supabase.rpc('ensure_initial_workspace', {
         default_workspace_name: 'My Workspace',
       });
@@ -922,19 +927,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const nextRole = workspaces.find((workspace) => workspace.id === nextId)?.role ?? null;
 
-    if (get().isSuperAdmin) {
-      set({
-        workspaces: [],
-        currentWorkspaceId: null,
-        currentWorkspaceRole: null,
-      });
-      return;
-    }
-
     set({
       workspaces,
       currentWorkspaceId: nextId,
       currentWorkspaceRole: nextRole,
+      workspacesLoaded: true,
     });
   },
   fetchProfile: async () => {
