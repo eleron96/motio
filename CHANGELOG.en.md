@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- The "Start for free" button now opens the registration form directly, and the sign-in screen has a clear "Create an account" button. Sign-in and registration screens are now fully and consistently translated.
+
 ## [0.9.13] - 2026-07-19
 ### Added
 - New users now receive a welcome email with getting-started tips after their first sign-in.

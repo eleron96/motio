@@ -1,4 +1,6 @@
-FROM node:20-bookworm-slim AS builder
+# Official Docker library images via AWS ECR Public mirror: same images,
+# no anonymous Docker Hub pull limits (which repeatedly 429'd test deploys).
+FROM public.ecr.aws/docker/library/node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -42,7 +44,7 @@ ENV NODE_OPTIONS=--max-old-space-size=2048
 
 RUN npm run lingui:compile && npm run build
 
-FROM nginx:1.27-alpine
+FROM public.ecr.aws/docker/library/nginx:1.27-alpine
 
 COPY infra/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html

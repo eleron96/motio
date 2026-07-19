@@ -65,6 +65,30 @@ describe('signInWithKeycloak', () => {
     expect(call?.options?.queryParams?.ui_locales).toBe('ru');
   });
 
+  it('adds prompt=create to queryParams when register is true', async () => {
+    const { signInWithKeycloak } = useAuthStore.getState();
+    await signInWithKeycloak('https://app/auth', { register: true });
+
+    const call = mockSignInWithOAuth.mock.calls[0]?.[0];
+    expect(call?.options?.queryParams?.prompt).toBe('create');
+  });
+
+  it('register wins over forceLogin when both are set', async () => {
+    const { signInWithKeycloak } = useAuthStore.getState();
+    await signInWithKeycloak('https://app/auth', { forceLogin: true, register: true });
+
+    const call = mockSignInWithOAuth.mock.calls[0]?.[0];
+    expect(call?.options?.queryParams?.prompt).toBe('create');
+  });
+
+  it('does not include prompt when register is false', async () => {
+    const { signInWithKeycloak } = useAuthStore.getState();
+    await signInWithKeycloak('https://app/auth', { register: false });
+
+    const call = mockSignInWithOAuth.mock.calls[0]?.[0];
+    expect(call?.options?.queryParams).not.toHaveProperty('prompt');
+  });
+
   it('uses the provided redirectTo as the OAuth redirect destination', async () => {
     const { signInWithKeycloak } = useAuthStore.getState();
     await signInWithKeycloak('https://app/auth?redirect=%2Fapp', { forceLogin: false });

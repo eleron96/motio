@@ -228,7 +228,7 @@ interface AuthState {
   setSignOutRedirectInProgress: (value: boolean) => void;
   resolveSuperAdmin: (user: User | null) => Promise<boolean>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithKeycloak: (redirectTo?: string, options?: { forceLogin?: boolean }) => Promise<{ error?: string }>;
+  signInWithKeycloak: (redirectTo?: string, options?: { forceLogin?: boolean; register?: boolean }) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
   sendPasswordReset: (email: string) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
@@ -562,6 +562,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         queryParams: {
           ...(locale ? { ui_locales: locale } : {}),
           ...(options?.forceLogin ? { prompt: 'login' } : {}),
+          // OIDC "Initiating User Registration" (Keycloak 26.1+): open the
+          // registration form instead of the sign-in form. Wins over
+          // forceLogin — a user who explicitly chose "create account" should
+          // never land on the login screen.
+          ...(options?.register ? { prompt: 'create' } : {}),
         },
       },
     });
