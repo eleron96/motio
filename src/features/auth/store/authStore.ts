@@ -512,12 +512,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     set({ superAdminLoading: true });
     try {
-      const { data, error } = await supabase
-        .from('super_admins')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      const isSuperAdmin = Boolean(data && !error);
+      // Keycloak is the source of truth: whoami checks the app_super_admin
+      // realm role server-side (and syncs the cache table), so granting or
+      // revoking the role in Keycloak takes effect on the next sign-in —
+      // no in-app admin lists involved.
+      const { data, error } = await invokeAdminFunction<{ isSuperAdmin?: boolean }>({
+        action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
+      });
+      const isSuperAdmin = !error && Boolean(data?.isSuperAdmin);
       if (isSuperAdmin) {
         set({
           isSuperAdmin: true,

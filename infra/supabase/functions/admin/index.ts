@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { z } from "npm:zod@3.25.76";
 import { ADMIN_ACTIONS } from "../_shared/actions.ts";
+import { captureException } from "../_shared/sentryCapture.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -104,6 +105,9 @@ const adminRequestSchema = z.discriminatedUnion("action", [
     displayName: z.string().optional(),
   }).strict(),
   z.object({
+    action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI),
+  }).strict(),
+  z.object({
     action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_DELETE),
     userId: z.string().min(1),
   }).strict(),
@@ -138,6 +142,12 @@ const getAuthUser = async (req: Request) => {
   return { user: authData.user };
 };
 
+// Keycloak is the source of truth for super-admin access: the realm role
+// app_super_admin decides, and the super_admins table is only a synced cache.
+// Fail closed: when Keycloak cannot be consulted for a Keycloak-backed user,
+// access is denied rather than trusted from the cache. The one exception is
+// the break-glass reserve admin — a password-based GoTrue user with no
+// Keycloak identity — whose access comes from the table and is alerted on.
 const ensureSuperAdmin = async (userId: string) => {
   const { data: superAdminRow, error } = await supabaseAdmin
     .from("super_admins")
@@ -147,19 +157,38 @@ const ensureSuperAdmin = async (userId: string) => {
 
   const inTable = Boolean(superAdminRow && !error);
 
+  const identityResult = await findKeycloakIdentityForUser(supabaseAdmin, userId);
+  if ("error" in identityResult) {
+    captureException(new Error(`super-admin check failed to read identities: ${identityResult.error}`), {
+      tags: { function: "admin", stage: "ensure-super-admin" },
+    });
+    return false;
+  }
+
+  const providerId = identityResult.identity?.providerId;
+  if (!providerId) {
+    if (inTable) {
+      captureException(new Error("break-glass super-admin access used (no Keycloak identity)"), {
+        tags: { function: "admin", stage: "break-glass-access" },
+      });
+    }
+    return inTable;
+  }
+
   const keycloakReady = ensureKeycloakReady(keycloakConfig);
   if ("error" in keycloakReady) {
-    return inTable;
+    captureException(new Error(`super-admin check denied: Keycloak not configured: ${keycloakReady.error}`), {
+      tags: { function: "admin", stage: "ensure-super-admin" },
+    });
+    return false;
   }
 
-  const identityResult = await findKeycloakIdentityForUser(supabaseAdmin, userId);
-  if ("error" in identityResult || !identityResult.identity?.providerId) {
-    return inTable;
-  }
-
-  const keycloakRoles = await getUserRealmRoles(keycloakConfig, identityResult.identity.providerId);
+  const keycloakRoles = await getUserRealmRoles(keycloakConfig, providerId);
   if ("error" in keycloakRoles) {
-    return inTable;
+    captureException(new Error(`super-admin check denied: Keycloak unavailable: ${keycloakRoles.error}`), {
+      tags: { function: "admin", stage: "ensure-super-admin" },
+    });
+    return false;
   }
 
   const hasSuperAdminRole = (keycloakRoles.roles ?? []).some((role) => role.name === "app_super_admin");
@@ -954,6 +983,15 @@ export const handler = async (req: Request) => {
   const authResult = await getAuthUser(req);
   if ("error" in authResult) {
     return jsonResponse({ error: authResult.error }, authResult.status ?? 401);
+  }
+
+  // whoami is the only action available to every signed-in user: it answers
+  // "am I a super admin?" and, as a side effect, syncs the cache table with
+  // the Keycloak role — this is what lets a role granted in Keycloak surface
+  // in the app without any manual table edits.
+  if (action === ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI) {
+    const whoamiIsSuperAdmin = await ensureSuperAdmin(authResult.user.id);
+    return jsonResponse({ isSuperAdmin: whoamiIsSuperAdmin });
   }
 
   const isSuperAdmin = await ensureSuperAdmin(authResult.user.id);
