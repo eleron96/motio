@@ -753,6 +753,10 @@ msgstr "Cancelled"
 msgid "Cancelled status"
 msgstr "Cancelled status"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Change easter egg"
+msgstr "Change easter egg"
+
 #. placeholder {0}: externalForm.source.projectIds.length
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "Changes apply everywhere this person appears ({0} projects)."

@@ -99,15 +99,15 @@ const AdminEasterEggsPage: React.FC = () => {
     await loadTargets();
   };
 
-  const handleToggle = async (target: EasterEggTarget, enabled: boolean) => {
+  const saveTarget = async (target: EasterEggTarget, changes: { eggKey?: string; enabled?: boolean }) => {
     setRowActionId(target.id);
     setRowActionError('');
     const { error } = await invokeAdminFunction({
       action: ADMIN_ACTIONS.EASTER_EGGS_SAVE,
       id: target.id,
       userId: target.userId,
-      eggKey: target.eggKey,
-      enabled,
+      eggKey: changes.eggKey ?? target.eggKey,
+      enabled: changes.enabled ?? target.enabled,
       ...(target.note ? { note: target.note } : {}),
     });
     setRowActionId(null);
@@ -116,6 +116,13 @@ const AdminEasterEggsPage: React.FC = () => {
       return;
     }
     await loadTargets();
+  };
+
+  const handleToggle = (target: EasterEggTarget, enabled: boolean) => saveTarget(target, { enabled });
+
+  const handleChangeKey = (target: EasterEggTarget, eggKey: string) => {
+    if (eggKey === target.eggKey) return Promise.resolve();
+    return saveTarget(target, { eggKey });
   };
 
   const handleDelete = async (target: EasterEggTarget) => {
@@ -236,7 +243,22 @@ const AdminEasterEggsPage: React.FC = () => {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm">{target.eggKey}</TableCell>
+                    <TableCell className="text-sm">
+                      <Select
+                        value={target.eggKey}
+                        onValueChange={(key) => void handleChangeKey(target, key)}
+                        disabled={rowActionId === target.id}
+                      >
+                        <SelectTrigger className="h-8 w-[150px]" aria-label={t`Change easter egg`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {EGG_KEYS.map((key) => (
+                            <SelectItem key={key} value={key}>{key}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
                       {target.note ?? '—'}
                     </TableCell>
