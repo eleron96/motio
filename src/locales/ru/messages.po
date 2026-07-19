@@ -3202,6 +3202,10 @@ msgstr "Ничего не найдено по текущим фильтрам."
 msgid "Notifications"
 msgstr "Уведомления"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
+msgstr "Редкие анонсы и советы. В каждом письме — отписка в один клик."
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Occurrences"
 msgstr "Количество"
@@ -3499,6 +3503,10 @@ msgstr "Приоритет"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Privacy Policy"
 msgstr "Политика конфиденциальности"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Product news by email"
+msgstr "Новости продукта на почту"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Profile"

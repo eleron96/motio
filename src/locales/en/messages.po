@@ -3202,6 +3202,10 @@ msgstr "Nothing matches the current filters."
 msgid "Notifications"
 msgstr "Notifications"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
+msgstr "Occasional announcements and tips. Every email has a one-click unsubscribe."
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Occurrences"
 msgstr "Occurrences"
@@ -3499,6 +3503,10 @@ msgstr "Priority"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Privacy Policy"
 msgstr "Privacy Policy"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Product news by email"
+msgstr "Product news by email"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Profile"
