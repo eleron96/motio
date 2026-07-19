@@ -257,7 +257,7 @@ msgstr "Accepted"
 msgid "Access"
 msgstr "Access"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 msgid "Access denied"
 msgstr "Access denied"
 
@@ -287,6 +287,7 @@ msgstr "Account settings"
 msgid "Action failed"
 msgstr "Action failed"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Actions"
@@ -296,6 +297,7 @@ msgstr "Actions"
 msgid "active"
 msgstr "active"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -447,6 +449,11 @@ msgstr "admin"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Admin sections"
+msgstr "Admin sections"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Advanced filters"
 msgstr "Advanced filters"
@@ -477,7 +484,7 @@ msgstr "All changes saved"
 msgid "All contacts"
 msgstr "All contacts"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "All current data will be lost."
 msgstr "All current data will be lost."
 
@@ -512,6 +519,10 @@ msgstr "Analytics"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
+
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "App version"
+msgstr "App version"
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Apply changes to repeating tasks?"
@@ -555,6 +566,14 @@ msgstr "Archived projects are hidden from filters."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Area chart"
 msgstr "Area chart"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Assign"
+msgstr "Assign"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Assign an easter egg"
+msgstr "Assign an easter egg"
 
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Assign project"
@@ -626,6 +645,14 @@ msgstr "Back to today"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Backup & restore"
 msgstr "Backup & restore"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Backups"
+msgstr "Backups"
+
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Backups stored"
+msgstr "Backups stored"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Bar chart"
@@ -1056,6 +1083,10 @@ msgstr "Create workspace"
 msgid "Create your account"
 msgstr "Create your account"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Created"
+msgstr "Created"
+
 #. placeholder {0}: result.created ?? 0
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Created {0} tasks."
@@ -1224,6 +1255,7 @@ msgstr "Declined"
 msgid "default"
 msgstr "default"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/dashboard/pages/DashboardPage.tsx
@@ -1531,6 +1563,10 @@ msgstr "E.g. Передано заказчику"
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Easter eggs"
+msgstr "Easter eggs"
+
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -1624,6 +1660,11 @@ msgstr "Editor"
 msgid "Editors and admins add widgets here to build the dashboard."
 msgstr "Editors and admins add widgets here to build the dashboard."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Egg"
+msgstr "Egg"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Email"
 msgstr "Email"
@@ -1695,11 +1736,14 @@ msgstr "Enter workspace name and optionally configure a template."
 msgid "Equals"
 msgstr "Equals"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Error"
 msgstr "Error"
 
@@ -2257,6 +2301,10 @@ msgstr "Last export failed: {0}"
 msgid "Last in series"
 msgstr "Last in series"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Latest backup"
+msgstr "Latest backup"
+
 #: src/shared/lib/accentColor.ts
 msgid "Lavender"
 msgstr "Lavender"
@@ -2304,7 +2352,7 @@ msgstr "Load older comments"
 msgid "Loading available countries..."
 msgstr "Loading available countries..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Loading backups..."
 msgstr "Loading backups..."
 
@@ -2317,6 +2365,10 @@ msgstr "Loading dashboard..."
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Loading data..."
 msgstr "Loading data..."
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Loading easter eggs..."
+msgstr "Loading easter eggs..."
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
@@ -2363,7 +2415,7 @@ msgstr "Loading workload..."
 msgid "Loading workspace..."
 msgstr "Loading workspace..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Loading workspaces..."
 msgstr "Loading workspaces..."
 
@@ -2766,6 +2818,10 @@ msgstr "No assignees yet."
 msgid "No available members."
 msgstr "No available members."
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "No backups"
+msgstr "No backups"
+
 #: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "No client"
@@ -2859,6 +2915,10 @@ msgstr "No description."
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No disabled members."
 msgstr "No disabled members."
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "No easter eggs assigned."
+msgstr "No easter eggs assigned."
 
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
@@ -3116,6 +3176,8 @@ msgstr "Not equals"
 msgid "Not tracked"
 msgstr "Not tracked"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -3177,7 +3239,7 @@ msgstr "Only disabled people are available."
 msgid "Only for {scopedAssigneeName}"
 msgstr "Only for {scopedAssigneeName}"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 msgid "Only super admins can access this page."
 msgstr "Only super admins can access this page."
 
@@ -3249,6 +3311,10 @@ msgstr "Open team"
 #~ msgid "Open to a small group of teams"
 #~ msgstr "Open to a small group of teams"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Optional"
+msgstr "Optional"
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "overdue"
 msgstr "overdue"
@@ -3260,6 +3326,10 @@ msgstr "Overdue by {diff}d"
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "overloaded"
 msgstr "overloaded"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Overview"
+msgstr "Overview"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Owner"
@@ -3355,6 +3425,10 @@ msgstr "Period"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Phone"
 msgstr "Phone"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Pick a user and an egg."
+msgstr "Pick a user and an egg."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Pie chart (Donut)"
@@ -3980,6 +4054,10 @@ msgstr "Select task {0}"
 msgid "Select type"
 msgstr "Select type"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Select user"
+msgstr "Select user"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Select value"
 msgstr "Select value"
@@ -4095,7 +4173,7 @@ msgstr "Sign in"
 msgid "Sign in required"
 msgstr "Sign in required"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 #: src/features/auth/components/AccountRestoreScreen.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/marketing/pages/LandingPage.tsx
@@ -4203,6 +4281,10 @@ msgstr "Statuses"
 msgid "Stop tracking"
 msgstr "Stop tracking"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Storage used"
+msgstr "Storage used"
+
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask actions"
 msgstr "Subtask actions"
@@ -4262,6 +4344,10 @@ msgstr "Task density and milestones across the coming months"
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Task details"
 msgstr "Task details"
+
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Task media across all users"
+msgstr "Task media across all users"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
@@ -4361,7 +4447,7 @@ msgstr "Terracotta"
 msgid "Text value"
 msgstr "Text value"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "The database will be replaced with backup {name}."
 msgstr "The database will be replaced with backup {name}."
 
@@ -4385,7 +4471,7 @@ msgstr "The selected task does not exist or was deleted."
 msgid "The tool I wanted to use"
 msgstr "The tool I wanted to use"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "The workspace and all its data will be deleted permanently."
 
@@ -4574,6 +4660,10 @@ msgstr "today"
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Today"
 msgstr "Today"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Toggle easter egg"
+msgstr "Toggle easter egg"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Toggle workload heatmap"
@@ -4847,6 +4937,8 @@ msgstr "Use this button to add KPI, chart and milestone widgets to the dashboard
 msgid "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 msgstr "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "User"
@@ -4859,6 +4951,11 @@ msgstr "User UUID"
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "User workspaces"
 msgstr "User workspaces"
+
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Users"
+msgstr "Users"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "View all workspaces where this user is a member."
@@ -4997,6 +5094,8 @@ msgstr "Workspace settings"
 msgid "Workspace template"
 msgstr "Workspace template"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/pages/AdminOverviewPage.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Workspaces"
 msgstr "Workspaces"

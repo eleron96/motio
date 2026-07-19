@@ -695,7 +695,7 @@ const MembersPage = () => {
   );
 
   if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
-    return <Navigate to="/app/admin/users" replace />;
+    return <Navigate to="/app/admin" replace />;
   }
 
   return (

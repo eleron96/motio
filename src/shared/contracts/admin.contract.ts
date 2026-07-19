@@ -82,6 +82,24 @@ const adminKeycloakSyncRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.KEYCLOAK_SYNC),
 }).strict();
 
+const adminEasterEggsListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_LIST),
+}).strict();
+
+const adminEasterEggsSaveRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_SAVE),
+  id: z.string().uuid().optional(),
+  userId: z.string().uuid(),
+  eggKey: z.string().min(1).max(64),
+  enabled: z.boolean(),
+  note: z.string().max(500).optional(),
+}).strict();
+
+const adminEasterEggsDeleteRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_DELETE),
+  id: z.string().uuid(),
+}).strict();
+
 export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBootstrapSyncRequestSchema,
   adminUsersListRequestSchema,
@@ -97,6 +115,9 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminSuperAdminsDeleteRequestSchema,
   adminSuperAdminsWhoamiRequestSchema,
   adminKeycloakSyncRequestSchema,
+  adminEasterEggsListRequestSchema,
+  adminEasterEggsSaveRequestSchema,
+  adminEasterEggsDeleteRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;
