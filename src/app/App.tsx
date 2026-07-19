@@ -95,6 +95,9 @@ const App = () => {
                     <Route path="/app/projects" element={<ProjectsPage />} />
                     <Route path="/app/members" element={<MembersPage />} />
                   </Route>
+                  {/* Short memorable entry for the owner: the console has no
+                      in-app links by design and is reached by URL only. */}
+                  <Route path="/app/admin" element={<Navigate to="/app/admin/users" replace />} />
                   <Route path="/admin/users" element={<Navigate to="/app/admin/users" replace />} />
                   <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
                   <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
