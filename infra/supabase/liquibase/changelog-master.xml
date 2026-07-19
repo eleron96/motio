@@ -1568,4 +1568,18 @@
     <sqlFile path="../migrations/0114_add_marketing_emails_opt_in.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <changeSet id="0115_add_email_broadcasts.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0115_add_email_broadcasts.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0115_add_email_broadcasts.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>

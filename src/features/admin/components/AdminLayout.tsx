@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Database, Egg, Gauge, LayoutGrid, Users } from 'lucide-react';
+import { Database, Egg, Gauge, LayoutGrid, Send, Users } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -25,6 +25,7 @@ const useNavItems = (): AdminNavItem[] => [
   { path: '/app/admin/users', label: t`Users`, icon: <Users className="h-4 w-4" /> },
   { path: '/app/admin/workspaces', label: t`Workspaces`, icon: <LayoutGrid className="h-4 w-4" /> },
   { path: '/app/admin/easter-eggs', label: t`Easter eggs`, icon: <Egg className="h-4 w-4" /> },
+  { path: '/app/admin/broadcast', label: t`Broadcast`, icon: <Send className="h-4 w-4" /> },
   { path: '/app/admin/backups', label: t`Backups`, icon: <Database className="h-4 w-4" /> },
 ];
 

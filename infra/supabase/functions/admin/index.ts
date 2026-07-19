@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { z } from "npm:zod@3.25.76";
 import { ADMIN_ACTIONS } from "../_shared/actions.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
+import { buildUnsubscribeUrl, getMailerConfig, sendEmail } from "../_shared/mailer.ts";
+import { renderBroadcastEmail } from "../_shared/broadcastEmail.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -30,6 +32,7 @@ import {
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const appUrl = Deno.env.get("APP_URL") ?? "";
 
 const { supabaseAdmin } = createSupabaseClients(supabaseUrl, serviceRoleKey);
 
@@ -128,6 +131,21 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_DELETE),
     id: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_AUDIENCE),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_SEND),
+    subject: z.string().min(1).max(200),
+    body: z.string().min(1).max(10000),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_PROCESS),
+    broadcastId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_LIST),
   }).strict(),
 ]);
 
@@ -1028,6 +1046,207 @@ const handleEasterEggsDelete = async (payload: { id: string }) => {
   return jsonResponse({ success: true });
 };
 
+
+// ── Product broadcasts: opt-in announcement emails. The send action
+// snapshots the audience into a queue; process works through it in small
+// batches (the edge runtime has a request time budget, and the frontend
+// keeps calling process until nothing is pending). Single-admin tool — no
+// concurrent-claim machinery on the queue by design.
+const BROADCAST_BATCH_SIZE = 25;
+
+const handleBroadcastsAudience = async () => {
+  const { count, error } = await supabaseAdmin
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("marketing_emails_opt_in", true)
+    .eq("status", "ACTIVE");
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+  return jsonResponse({ count: count ?? 0 });
+};
+
+const handleBroadcastsSend = async (
+  payload: { subject: string; body: string },
+  actorId: string,
+) => {
+  const { data: recipients, error: audienceError } = await supabaseAdmin
+    .from("profiles")
+    .select("id, email")
+    .eq("marketing_emails_opt_in", true)
+    .eq("status", "ACTIVE");
+
+  if (audienceError) {
+    return jsonResponse({ error: audienceError.message }, 400);
+  }
+
+  const audience = (recipients ?? []).filter((row) => Boolean(row.email));
+
+  const { data: broadcast, error: insertError } = await supabaseAdmin
+    .from("email_broadcasts")
+    .insert({
+      subject: payload.subject,
+      body: payload.body,
+      created_by: actorId,
+      total_recipients: audience.length,
+      status: audience.length === 0 ? "sent" : "sending",
+      ...(audience.length === 0 ? { finished_at: new Date().toISOString() } : {}),
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !broadcast) {
+    return jsonResponse({ error: insertError?.message ?? "Failed to create broadcast" }, 400);
+  }
+
+  if (audience.length > 0) {
+    const { error: queueError } = await supabaseAdmin
+      .from("email_broadcast_recipients")
+      .insert(audience.map((row) => ({
+        broadcast_id: broadcast.id,
+        user_id: row.id,
+        email: row.email,
+      })));
+    if (queueError) {
+      await supabaseAdmin
+        .from("email_broadcasts")
+        .update({ status: "failed", finished_at: new Date().toISOString() })
+        .eq("id", broadcast.id);
+      return jsonResponse({ error: queueError.message }, 400);
+    }
+  }
+
+  return jsonResponse({ broadcastId: broadcast.id, total: audience.length });
+};
+
+const handleBroadcastsProcess = async (payload: { broadcastId: string }) => {
+  const { data: pending, error: pendingError } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id, user_id, email")
+    .eq("broadcast_id", payload.broadcastId)
+    .eq("status", "pending")
+    .limit(BROADCAST_BATCH_SIZE);
+
+  if (pendingError) {
+    return jsonResponse({ error: pendingError.message }, 400);
+  }
+
+  const batch = pending ?? [];
+
+  if (batch.length > 0) {
+    const { data: broadcast, error: broadcastError } = await supabaseAdmin
+      .from("email_broadcasts")
+      .select("subject, body")
+      .eq("id", payload.broadcastId)
+      .single();
+    if (broadcastError || !broadcast) {
+      return jsonResponse({ error: broadcastError?.message ?? "Broadcast not found" }, 404);
+    }
+
+    // Each email renders in the recipient's profile language.
+    const localeOf = new Map<string, string>();
+    const { data: localeRows } = await supabaseAdmin
+      .from("profiles")
+      .select("id, locale")
+      .in("id", batch.map((row) => row.user_id));
+    (localeRows ?? []).forEach((row) => localeOf.set(row.id, row.locale));
+
+    const mailerConfig = getMailerConfig();
+
+    for (const recipient of batch) {
+      const unsubscribeUrl = await buildUnsubscribeUrl(appUrl, recipient.user_id);
+      const rendered = renderBroadcastEmail({
+        locale: localeOf.get(recipient.user_id) === "ru" ? "ru" : "en",
+        subject: broadcast.subject,
+        body: broadcast.body,
+        unsubscribeUrl,
+      });
+
+      try {
+        await sendEmail(mailerConfig, {
+          to: recipient.email,
+          subject: rendered.subject,
+          html: rendered.html,
+          text: rendered.text,
+          headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
+        });
+        await supabaseAdmin
+          .from("email_broadcast_recipients")
+          .update({ status: "sent", sent_at: new Date().toISOString() })
+          .eq("id", recipient.id);
+      } catch (sendError) {
+        await supabaseAdmin
+          .from("email_broadcast_recipients")
+          .update({ status: "failed", error: String(sendError).slice(0, 500) })
+          .eq("id", recipient.id);
+        captureException(sendError, { tags: { function: "admin", stage: "broadcast-send" } });
+      }
+
+      // Gentle pacing for the SMTP relay.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+  }
+
+  const { count: sentCount } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id", { count: "exact", head: true })
+    .eq("broadcast_id", payload.broadcastId)
+    .eq("status", "sent");
+  const { count: failedCount } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id", { count: "exact", head: true })
+    .eq("broadcast_id", payload.broadcastId)
+    .eq("status", "failed");
+  const { count: remaining } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id", { count: "exact", head: true })
+    .eq("broadcast_id", payload.broadcastId)
+    .eq("status", "pending");
+
+  const done = (remaining ?? 0) === 0;
+  await supabaseAdmin
+    .from("email_broadcasts")
+    .update({
+      sent_count: sentCount ?? 0,
+      failed_count: failedCount ?? 0,
+      ...(done ? { status: "sent", finished_at: new Date().toISOString() } : {}),
+    })
+    .eq("id", payload.broadcastId);
+
+  return jsonResponse({
+    remaining: remaining ?? 0,
+    sentCount: sentCount ?? 0,
+    failedCount: failedCount ?? 0,
+    done,
+  });
+};
+
+const handleBroadcastsList = async () => {
+  const { data, error } = await supabaseAdmin
+    .from("email_broadcasts")
+    .select("id, subject, status, total_recipients, sent_count, failed_count, created_at, finished_at")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  return jsonResponse({
+    broadcasts: (data ?? []).map((row) => ({
+      id: row.id,
+      subject: row.subject,
+      status: row.status,
+      totalRecipients: row.total_recipients,
+      sentCount: row.sent_count,
+      failedCount: row.failed_count,
+      createdAt: row.created_at,
+      finishedAt: row.finished_at,
+    })),
+  });
+};
+
 const handleKeycloakSync = async () => {
   const result = await syncAllUsersToKeycloak();
 
@@ -1143,6 +1362,14 @@ export const handler = async (req: Request) => {
       return handleEasterEggsSave(payload as { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string });
     case ADMIN_ACTIONS.EASTER_EGGS_DELETE:
       return handleEasterEggsDelete(payload as { id: string });
+    case ADMIN_ACTIONS.BROADCASTS_AUDIENCE:
+      return handleBroadcastsAudience();
+    case ADMIN_ACTIONS.BROADCASTS_SEND:
+      return handleBroadcastsSend(payload as { subject: string; body: string }, authResult.user.id);
+    case ADMIN_ACTIONS.BROADCASTS_PROCESS:
+      return handleBroadcastsProcess(payload as { broadcastId: string });
+    case ADMIN_ACTIONS.BROADCASTS_LIST:
+      return handleBroadcastsList();
     default:
       return jsonResponse({ error: "Unknown action" }, 400);
   }
