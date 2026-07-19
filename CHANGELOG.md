@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.13] - 2026-07-19
 ### Added
 - Новые пользователи после первого входа получают приветственное письмо с подсказками, с чего начать.
 
