@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.16] - 2026-07-19
 ### Fixed
 - An owner holding super-admin rights now uses the app as a regular user: it no longer force-redirects them into the admin console. The console is reached by its direct URL.
 
