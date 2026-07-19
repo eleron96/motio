@@ -227,6 +227,18 @@ services:
       TASK_MEDIA_USER_QUOTA_BYTES: ${TASK_MEDIA_USER_QUOTA_BYTES:-209715200}
       TASK_MEDIA_WORKSPACE_QUOTA_BYTES: ${TASK_MEDIA_WORKSPACE_QUOTA_BYTES:-2147483648}
       TASK_MEDIA_TOKEN_TTL_SECONDS: ${TASK_MEDIA_TOKEN_TTL_SECONDS:-315360000}
+      # Product mail (welcome email) reuses the same SMTP account Keycloak
+      # sends auth mail from; MAILER_* falls back to the GOTRUE_SMTP_* values.
+      MAILER_SMTP_HOST: ${MAILER_SMTP_HOST:-${GOTRUE_SMTP_HOST:-}}
+      MAILER_SMTP_PORT: ${MAILER_SMTP_PORT:-${GOTRUE_SMTP_PORT:-465}}
+      MAILER_SMTP_USER: ${MAILER_SMTP_USER:-${GOTRUE_SMTP_USER:-}}
+      MAILER_SMTP_PASS: ${MAILER_SMTP_PASS:-${GOTRUE_SMTP_PASS:-}}
+      MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL:-${GOTRUE_SMTP_ADMIN_EMAIL:-}}
+      MAILER_FROM_NAME: ${MAILER_FROM_NAME:-${GOTRUE_SMTP_SENDER_NAME:-Motio}}
+      # Welcome email is on by default; set MAILER_WELCOME_ENABLED=false in
+      # .env to switch it off without a code change.
+      MAILER_WELCOME_ENABLED: ${MAILER_WELCOME_ENABLED:-true}
+      MAILER_DRY_RUN: ${MAILER_DRY_RUN:-0}
       GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
