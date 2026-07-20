@@ -7,6 +7,18 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.23] - 2026-07-20
+### Changed
+- Clicking a browser notification now opens the task itself on the timeline — a mention opens it with the comments in view.
+
+## [0.9.22] - 2026-07-20
+### Changed
+- No documented changes.
+
+## [0.9.21] - 2026-07-20
+### Added
+- Browser notifications for your tasks: when a task is assigned to you, you're mentioned in a comment, your task changes, or a deadline is near. Turn them on in account settings and pick which events you want.
+
 ## [0.9.20] - 2026-07-19
 ### Changed
 - Minor internal improvements.
