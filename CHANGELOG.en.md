@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.25] - 2026-07-20
+### Fixed
+- Fixed dashboards collapsing after switching to the heatmap and back — previously only a page reload would restore them.
+
 ## [0.9.24] - 2026-07-20
 ### Changed
 - Project notes with an attached image now show a small image badge, so you can spot them before opening the note.
