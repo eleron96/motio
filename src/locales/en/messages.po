@@ -1008,6 +1008,11 @@ msgstr "Contacts"
 #~ msgid "Contacts arrive in a later phase"
 #~ msgstr "Contacts arrive in a later phase"
 
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+msgid "Contains an image"
+msgstr "Contains an image"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Continue"
