@@ -367,3 +367,6 @@
 2026-07-19T15:33:43Z | 0.9.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-153258.dump | Minor internal improvements.
 2026-07-19T15:58:39Z | 0.9.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-155755.dump | No documented changes.
 2026-07-19T20:24:06Z | 0.9.20 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260719-202322.dump | Minor internal improvements.
+2026-07-20T12:04:40Z | 0.9.21 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260720-120355.dump | Browser notifications for your tasks: when a task is assigned to you, you're mentioned in a comment, your task changes, or a deadline is near. Turn them on in account settings and pick which events you want.
+2026-07-20T12:22:18Z | 0.9.22 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260720-122133.dump | No documented changes.
+2026-07-20T13:14:15Z | 0.9.23 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260720-131332.dump | Clicking a browser notification now opens the task itself on the timeline — a mention opens it with the comments in view.
