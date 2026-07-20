@@ -1008,6 +1008,11 @@ msgstr "Контакты"
 #~ msgid "Contacts arrive in a later phase"
 #~ msgstr "Контакты добавим позже"
 
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+msgid "Contains an image"
+msgstr "Есть вложенная картинка"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Continue"

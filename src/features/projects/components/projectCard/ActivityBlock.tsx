@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Calendar, MoreHorizontal, Pin, PinOff, Plus, Search, Trash2, X } from 'lucide-react';
+import { Calendar, Image as ImageIcon, MoreHorizontal, Pin, PinOff, Plus, Search, Trash2, X } from 'lucide-react';
 import type { ProjectActivity } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -360,6 +360,18 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
                 <span>{formatDate(entry.createdAt)}</span>
                 {entry.isEdited && (
                   <span className="text-muted-foreground/60">{t`(edited)`}</span>
+                )}
+                {IMG_TAG_RE.test(entry.content) && (
+                  // The clamped preview strips <img> tags, so an image-only note
+                  // would otherwise look empty — this badge is the only hint the
+                  // note carries a picture until it's opened.
+                  <span
+                    className="inline-flex items-center text-muted-foreground/70"
+                    title={t`Contains an image`}
+                    aria-label={t`Contains an image`}
+                  >
+                    <ImageIcon className="h-3 w-3" aria-hidden="true" />
+                  </span>
                 )}
               </div>
               <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
