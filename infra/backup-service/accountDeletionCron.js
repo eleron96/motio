@@ -15,6 +15,7 @@
 const ACCOUNT_PURGE_PATH = '/functions/v1/account-purge';
 const DATA_EXPORT_PATH = '/functions/v1/data-export';
 const ADMIN_PATH = '/functions/v1/admin';
+const PUSH_PATH = '/functions/v1/push';
 const EXPORT_BUCKET = 'user-exports';
 
 const buildCtx = (ctx) => {
@@ -139,6 +140,40 @@ const tickBroadcast = async (rawCtx) => {
   }
 };
 
+const tickPush = async (rawCtx) => {
+  const ctx = buildCtx(rawCtx);
+  try {
+    // Drains one batch of pending user_notifications and delivers them as web
+    // push. Safe no-op when the queue is empty.
+    const result = await postFunction(ctx, PUSH_PATH, { action: 'push.flush' });
+    if (result && result.sent) {
+      ctx.logger.log(`[push cron] processed=${result.processed ?? 0} sent=${result.sent}`);
+    }
+    return result ?? {};
+  } catch (error) {
+    ctx.logger.error(`[push cron] failed: ${error.message}`);
+    ctx.captureException(error, { tags: { job: 'push-flush' } });
+    throw error;
+  }
+};
+
+const tickDeadlineScan = async (rawCtx) => {
+  const ctx = buildCtx(rawCtx);
+  try {
+    // Creates 'deadline_approaching' notifications for tasks due today/tomorrow;
+    // the push flush then delivers them. Idempotent (one reminder per task).
+    const result = await postFunction(ctx, PUSH_PATH, { action: 'push.deadlines.scan' });
+    if (result && result.created) {
+      ctx.logger.log(`[deadline-scan cron] created=${result.created}`);
+    }
+    return result ?? {};
+  } catch (error) {
+    ctx.logger.error(`[deadline-scan cron] failed: ${error.message}`);
+    ctx.captureException(error, { tags: { job: 'deadline-scan' } });
+    throw error;
+  }
+};
+
 const deleteExpiredExportFile = async (ctx, filePath) => {
   if (!filePath) return { ok: true, skipped: true };
   const url = `${ctx.supabaseUrl}/storage/v1/object/${EXPORT_BUCKET}/${encodeURI(filePath)}`;
@@ -235,6 +270,8 @@ module.exports = {
   tickDataExportCleanup,
   tickHealthCheck,
   tickBroadcast,
+  tickPush,
+  tickDeadlineScan,
   // exported for tests
   deleteExpiredExportFile,
   postFunction,

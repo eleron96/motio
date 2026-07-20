@@ -631,11 +631,15 @@ export const InviteNotifications: React.FC = () => {
                     // Secondary line: who acted (and where), shown under the title.
                     const subNode = notification.type === 'comment_mention'
                       ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
-                      : notification.type === 'export_ready'
-                        ? <>{t`Open Account settings to download the file.`}</>
-                        : notification.type === 'export_failed'
-                          ? <>{t`Try again from Account settings.`}</>
-                          : <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>;
+                      : notification.type === 'task_updated'
+                        ? <>{actorLabel} {t`updated a task`} · {notification.workspaceName}</>
+                        : notification.type === 'deadline_approaching'
+                          ? <>{t`Deadline is approaching`} · {notification.workspaceName}</>
+                          : notification.type === 'export_ready'
+                            ? <>{t`Open Account settings to download the file.`}</>
+                            : notification.type === 'export_failed'
+                              ? <>{t`Try again from Account settings.`}</>
+                              : <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>;
 
                     const titleText = isExport
                       ? (notification.type === 'export_ready'

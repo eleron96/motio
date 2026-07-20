@@ -163,6 +163,17 @@ motio.nikog.net {
       }
     }
 
+    # The push service worker must be served publicly as static JS: a service
+    # worker script fetched through a redirect (the oauth2-proxy catch-all)
+    # fails registration. It carries no user data.
+    handle /sw.js {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
     handle /placeholder.svg {
       reverse_proxy web:80 {
         transport http {

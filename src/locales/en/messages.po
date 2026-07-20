@@ -222,9 +222,17 @@ msgstr "1 comment"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A deadline is approaching"
+msgstr "A deadline is approaching"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
 msgstr "A person you can reuse across projects."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A task is assigned to me"
+msgstr "A task is assigned to me"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -684,6 +692,10 @@ msgstr "Biweekly (every 2 weeks)"
 msgid "Broadcast"
 msgstr "Broadcast"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Browser notifications"
+msgstr "Browser notifications"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "By email domain"
 msgstr "By email domain"
@@ -1024,6 +1036,10 @@ msgstr "Copy email"
 msgid "Copy phone"
 msgstr "Copy phone"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Couldn't enable notifications. Please try again."
+msgstr "Couldn't enable notifications. Please try again."
+
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Couldn't start the demo session."
 #~ msgstr "Couldn't start the demo session."
@@ -1283,6 +1299,10 @@ msgstr "Day"
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "Day off"
 msgstr "Day off"
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "Deadline is approaching"
+msgstr "Deadline is approaching"
 
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
@@ -2092,6 +2112,10 @@ msgstr "General"
 msgid "Generate a new export"
 msgstr "Generate a new export"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Get notified in this browser about your tasks, even when Motio isn't open."
+msgstr "Get notified in this browser about your tasks, even when Motio isn't open."
+
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Get started for free →"
 #~ msgstr "Get started for free →"
@@ -2218,6 +2242,10 @@ msgstr "Holiday:"
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "I agree to the <0>Privacy Policy</0>"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "I'm mentioned in a comment"
+msgstr "I'm mentioned in a comment"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
@@ -2994,6 +3022,10 @@ msgstr "No data"
 msgid "No description."
 msgstr "No description."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "No device is subscribed in this browser."
+#~ msgstr "No device is subscribed in this browser."
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No disabled members."
@@ -3290,6 +3322,10 @@ msgid "Notifications"
 msgstr "Notifications"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Notifications are blocked in this browser. Allow them in the site settings and try again."
+msgstr "Notifications are blocked in this browser. Allow them in the site settings and try again."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
 msgstr "Occasional announcements and tips. Every email has a one-click unsubscribe."
 
@@ -3325,6 +3361,10 @@ msgstr "On Monday I'd open three different tabs to answer one simple question: w
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "One <0>clear timeline</0><1/> for your whole team"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "One of my tasks changes"
+msgstr "One of my tasks changes"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
@@ -3691,6 +3731,10 @@ msgstr "Purge now"
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "purge_after"
 msgstr "purge_after"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Push notifications aren't available right now."
+msgstr "Push notifications aren't available right now."
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -4212,6 +4256,10 @@ msgstr "Self-hosted team planner built around one screen, a shared timeline. No 
 msgid "Send"
 msgstr "Send"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Send a test"
+#~ msgstr "Send a test"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Send invite"
 msgstr "Send invite"
@@ -4236,9 +4284,17 @@ msgstr "Sending"
 msgid "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
 msgstr "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sending…"
+#~ msgstr "Sending…"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Sent"
 msgstr "Sent"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sent — check your notifications."
+#~ msgstr "Sent — check your notifications."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Sent invites"
@@ -4689,6 +4745,10 @@ msgstr "This and following"
 msgid "This announcement will go to {0} opted-in users."
 msgstr "This announcement will go to {0} opted-in users."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "This browser can't show notifications here."
+msgstr "This browser can't show notifications here."
+
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "This comment will be permanently removed and cannot be recovered."
 msgstr "This comment will be permanently removed and cannot be recovered."
@@ -4764,6 +4824,8 @@ msgid "This SERVICE notice will go to {0} active users, ignoring their marketing
 msgstr "This SERVICE notice will go to {0} active users, ignoring their marketing opt-in. Use only for genuinely essential messages."
 
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/planner/components/PushDeepLink.tsx
+#: src/features/planner/components/PushDeepLink.tsx
 msgid "This task has been deleted."
 msgstr "This task has been deleted."
 
@@ -5097,6 +5159,10 @@ msgstr "Update milestone details."
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Update the current dashboard name."
 msgstr "Update the current dashboard name."
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "updated a task"
+msgstr "updated a task"
 
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Upload or remove your profile photo."
