@@ -25,7 +25,14 @@ import { ProfileSummary } from './ProfileSummary';
 import { useProfileSummary } from '@/features/auth/hooks/useProfileSummary';
 import { DeleteAccountWizard } from './DeleteAccountWizard';
 import { DataExportButton } from './DataExportButton';
-import { isAccountDeletionEnabled } from '@/shared/lib/featureFlags';
+import { isAccountDeletionEnabled, isPushEnabled } from '@/shared/lib/featureFlags';
+import {
+  getNotificationPermission,
+  hasActivePushSubscription,
+  isPushSupported,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from '@/shared/lib/push/pushClient';
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { demoStore } from '@/features/demo/lib/demoDataStore';
 import { isWeekViewEnabled, WEEK_VIEW_PREFERENCE_KEY } from '@/features/planner/lib/weekViewPreference';
@@ -69,6 +76,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     fetchProfileSettings,
     updateProfilePreferences,
     updateMarketingEmailsOptIn,
+    updatePushNotificationsOptIn,
   } = useAuthStore(useShallow((state) => ({
     user: state.user,
     updateDisplayName: state.updateDisplayName,
@@ -79,6 +87,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     fetchProfileSettings: state.fetchProfileSettings,
     updateProfilePreferences: state.updateProfilePreferences,
     updateMarketingEmailsOptIn: state.updateMarketingEmailsOptIn,
+    updatePushNotificationsOptIn: state.updatePushNotificationsOptIn,
   })));
   const locale = useLocaleStore((state) => state.locale);
   const setLocale = useLocaleStore((state) => state.setLocale);
@@ -97,6 +106,15 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const accountDeletionEnabled = isAccountDeletionEnabled() && !isDemo;
   const [dailyBriefEnabled, setDailyBriefEnabled] = useState(true);
   const [marketingEmailsEnabled, setMarketingEmailsEnabled] = useState(false);
+  // Browser push. `pushSupported` folds the feature flag together with runtime
+  // capability detection so the whole block simply hides where push can't work.
+  const [pushSupported] = useState(() => isPushEnabled() && isPushSupported());
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushOnAssignment, setPushOnAssignment] = useState(true);
+  const [pushOnMention, setPushOnMention] = useState(true);
+  const [pushOnTaskChange, setPushOnTaskChange] = useState(true);
+  const [pushOnDeadline, setPushOnDeadline] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
   const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
@@ -130,6 +148,19 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setMarketingEmailsEnabled(data.marketingEmailsOptIn);
       setWeekViewEnabled(isWeekViewEnabled(data.preferences));
       setAccentId(getAccentColorId(data.preferences));
+
+      if (pushSupported) {
+        const prefs = data.preferences;
+        setPushOnAssignment(prefs.push_on_assignment !== false);
+        setPushOnMention(prefs.push_on_mention !== false);
+        setPushOnTaskChange(prefs.push_on_task_change !== false);
+        setPushOnDeadline(prefs.push_on_deadline !== false);
+        // The toggle reflects THIS browser: on only when permission is granted
+        // and an active push subscription actually exists here.
+        const deviceSubscribed = getNotificationPermission() === 'granted'
+          && (await hasActivePushSubscription());
+        if (active) setPushEnabled(deviceSubscribed);
+      }
 
       setLoading(false);
     };
@@ -223,6 +254,62 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     if (updateError) {
       // Откат при ошибке
       setMarketingEmailsEnabled(previousEnabled);
+      setError(updateError);
+    }
+  };
+
+  const pushErrorMessage = (reason?: string) => {
+    if (reason === 'denied') {
+      return t`Notifications are blocked in this browser. Allow them in the site settings and try again.`;
+    }
+    if (reason === 'unsupported' || reason === 'sw-failed') {
+      return t`This browser can't show notifications here.`;
+    }
+    if (reason === 'not-configured') {
+      return t`Push notifications aren't available right now.`;
+    }
+    return t`Couldn't enable notifications. Please try again.`;
+  };
+
+  const handlePushMasterToggle = async (checked: boolean) => {
+    if (!user || pushBusy) return;
+    setPushBusy(true);
+    setError('');
+
+    if (checked) {
+      const result = await subscribeToPush();
+      if (!result.ok) {
+        setPushEnabled(false);
+        setError(pushErrorMessage(result.reason));
+        setPushBusy(false);
+        return;
+      }
+      setPushEnabled(true);
+      await updatePushNotificationsOptIn(true);
+    } else {
+      await unsubscribeFromPush();
+      setPushEnabled(false);
+      await updatePushNotificationsOptIn(false);
+    }
+    setPushBusy(false);
+  };
+
+  const updatePushEventPref = async (
+    key: 'push_on_assignment' | 'push_on_mention' | 'push_on_task_change' | 'push_on_deadline',
+    checked: boolean,
+    setLocal: (value: boolean) => void,
+    previous: boolean,
+  ) => {
+    if (!user) return;
+    const previousPrefs = currentPrefs;
+    setLocal(checked);
+    const updatedPrefs = { ...currentPrefs, [key]: checked };
+    setCurrentPrefs(updatedPrefs);
+
+    const { error: updateError } = await updateProfilePreferences(updatedPrefs);
+    if (updateError) {
+      setLocal(previous);
+      setCurrentPrefs(previousPrefs);
       setError(updateError);
     }
   };
@@ -514,6 +601,74 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                       <p className="text-xs text-muted-foreground">
                         {t`Occasional announcements and tips. Every email has a one-click unsubscribe.`}
                       </p>
+                    </div>
+                  )}
+
+                  {pushSupported && (
+                    <div className="space-y-3 border-t pt-4 text-left">
+                      <div className="flex items-center justify-between gap-3">
+                        <Label htmlFor="push-master-toggle" className="cursor-pointer">
+                          {t`Browser notifications`}
+                        </Label>
+                        <Switch
+                          id="push-master-toggle"
+                          checked={pushEnabled}
+                          onCheckedChange={handlePushMasterToggle}
+                          disabled={!user || loading || pushBusy}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {t`Get notified in this browser about your tasks, even when Motio isn't open.`}
+                      </p>
+
+                      {pushEnabled && (
+                        <div className="space-y-3 pt-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <Label htmlFor="push-assignment" className="cursor-pointer text-sm font-normal">
+                              {t`A task is assigned to me`}
+                            </Label>
+                            <Switch
+                              id="push-assignment"
+                              checked={pushOnAssignment}
+                              onCheckedChange={(checked) => updatePushEventPref('push_on_assignment', checked, setPushOnAssignment, pushOnAssignment)}
+                              disabled={pushBusy}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-3">
+                            <Label htmlFor="push-mention" className="cursor-pointer text-sm font-normal">
+                              {t`I'm mentioned in a comment`}
+                            </Label>
+                            <Switch
+                              id="push-mention"
+                              checked={pushOnMention}
+                              onCheckedChange={(checked) => updatePushEventPref('push_on_mention', checked, setPushOnMention, pushOnMention)}
+                              disabled={pushBusy}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-3">
+                            <Label htmlFor="push-task-change" className="cursor-pointer text-sm font-normal">
+                              {t`One of my tasks changes`}
+                            </Label>
+                            <Switch
+                              id="push-task-change"
+                              checked={pushOnTaskChange}
+                              onCheckedChange={(checked) => updatePushEventPref('push_on_task_change', checked, setPushOnTaskChange, pushOnTaskChange)}
+                              disabled={pushBusy}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-3">
+                            <Label htmlFor="push-deadline" className="cursor-pointer text-sm font-normal">
+                              {t`A deadline is approaching`}
+                            </Label>
+                            <Switch
+                              id="push-deadline"
+                              checked={pushOnDeadline}
+                              onCheckedChange={(checked) => updatePushEventPref('push_on_deadline', checked, setPushOnDeadline, pushOnDeadline)}
+                              disabled={pushBusy}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

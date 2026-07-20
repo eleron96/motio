@@ -56,3 +56,14 @@ export const isPeopleSuggestEnabled = (): boolean => (
   isProjectCardEnabled()
   && readFlag(import.meta.env.VITE_FEATURE_PEOPLE_SUGGEST)
 );
+
+/**
+ * When on, the browser push-notification opt-in appears in account settings and
+ * the app registers its service worker. Off by default so the transport can
+ * ship dormant; browser capability detection (isPushSupported) still applies on
+ * top of the flag, so unsupported browsers never see it. Not forced on in /demo
+ * — the demo sandbox runs without the backend that stores subscriptions.
+ */
+export const isPushEnabled = (): boolean => (
+  readFlag(import.meta.env.VITE_FEATURE_PUSH)
+);

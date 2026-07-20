@@ -4,6 +4,7 @@ import { CalendarTimeline } from '@/features/planner/components/timeline/Calenda
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
+import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { Button } from '@/shared/ui/button';
@@ -402,6 +403,7 @@ const PlannerPage = () => {
 
   return (
     <>
+      <PushDeepLink />
 
       {hasActiveFilters && (
         <div className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-500 bg-sky-50 text-sm text-sky-700">

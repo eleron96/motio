@@ -222,9 +222,17 @@ msgstr "1 комментарий"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зарезервированных слов."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A deadline is approaching"
+msgstr "Приближается дедлайн"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
 msgstr "Человек, которого можно переиспользовать в проектах."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A task is assigned to me"
+msgstr "Мне назначили задачу"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -684,6 +692,10 @@ msgstr "Двухнедельная (раз в две недели)"
 msgid "Broadcast"
 msgstr "Рассылка"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Browser notifications"
+msgstr "Уведомления в браузере"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "By email domain"
 msgstr "По домену почты"
@@ -1024,6 +1036,10 @@ msgstr "Скопировать email"
 msgid "Copy phone"
 msgstr "Скопировать телефон"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Couldn't enable notifications. Please try again."
+msgstr "Не удалось включить уведомления. Попробуйте ещё раз."
+
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Couldn't start the demo session."
 #~ msgstr "Не удалось запустить демо."
@@ -1283,6 +1299,10 @@ msgstr "День"
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "Day off"
 msgstr "Выходной"
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "Deadline is approaching"
+msgstr "Приближается дедлайн"
 
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
@@ -2092,6 +2112,10 @@ msgstr "Общие"
 msgid "Generate a new export"
 msgstr "Сформировать новый экспорт"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Get notified in this browser about your tasks, even when Motio isn't open."
+msgstr "Получайте в этом браузере уведомления о задачах, даже когда Motio закрыт."
+
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Get started for free →"
 #~ msgstr "Начать бесплатно →"
@@ -2218,6 +2242,10 @@ msgstr "Праздник:"
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "Я соглашаюсь с <0>Политикой конфиденциальности</0>"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "I'm mentioned in a comment"
+msgstr "Меня упомянули в комментарии"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
@@ -2994,6 +3022,10 @@ msgstr "Нет данных"
 msgid "No description."
 msgstr "Нет описания."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "No device is subscribed in this browser."
+#~ msgstr "В этом браузере нет активной подписки."
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No disabled members."
@@ -3290,6 +3322,10 @@ msgid "Notifications"
 msgstr "Уведомления"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Notifications are blocked in this browser. Allow them in the site settings and try again."
+msgstr "Уведомления заблокированы в этом браузере. Разрешите их в настройках сайта и попробуйте снова."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
 msgstr "Редкие анонсы и советы. В каждом письме — отписка в один клик."
 
@@ -3325,6 +3361,10 @@ msgstr "В понедельник я мог открыть три разные �
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "Один <0>понятный таймлайн</0><1/> для всей команды"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "One of my tasks changes"
+msgstr "Изменилась моя задача"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
@@ -3691,6 +3731,10 @@ msgstr "Удалить сейчас"
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "purge_after"
 msgstr "purge_after"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Push notifications aren't available right now."
+msgstr "Push-уведомления сейчас недоступны."
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -4212,6 +4256,10 @@ msgstr "Self-hosted планировщик задач для команды на
 msgid "Send"
 msgstr "Отправить"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Send a test"
+#~ msgstr "Отправить тест"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Send invite"
 msgstr "Отправить приглашение"
@@ -4236,9 +4284,17 @@ msgstr "Отправляется"
 msgid "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
 msgstr "Чтобы отправлять приглашения, нужен настоящий аккаунт. Регистрация — 30 секунд, мы вернём вас сюда."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sending…"
+#~ msgstr "Отправляем…"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Sent"
 msgstr "Отправлено"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sent — check your notifications."
+#~ msgstr "Отправлено — проверьте уведомления."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Sent invites"
@@ -4689,6 +4745,10 @@ msgstr "Эта и последующие"
 msgid "This announcement will go to {0} opted-in users."
 msgstr "Анонс уйдёт {0} подписанным пользователям."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "This browser can't show notifications here."
+msgstr "Этот браузер не может показывать здесь уведомления."
+
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "This comment will be permanently removed and cannot be recovered."
 msgstr "Этот комментарий будет окончательно удалён и не подлежит восстановлению."
@@ -4764,6 +4824,8 @@ msgid "This SERVICE notice will go to {0} active users, ignoring their marketing
 msgstr "Это СЛУЖЕБНОЕ уведомление уйдёт {0} активным пользователям, игнорируя их согласие на рассылки. Используйте только для действительно важных сообщений."
 
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/planner/components/PushDeepLink.tsx
+#: src/features/planner/components/PushDeepLink.tsx
 msgid "This task has been deleted."
 msgstr "Эта задача была удалена."
 
@@ -5097,6 +5159,10 @@ msgstr "Обновите данные вехи."
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Update the current dashboard name."
 msgstr "Обновите название текущей панели."
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "updated a task"
+msgstr "изменил(а) задачу"
 
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Upload or remove your profile photo."

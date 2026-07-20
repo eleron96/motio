@@ -24,7 +24,7 @@ export type SentInviteSummary = {
 
 export type TaskNotification = {
   id: string;
-  type: 'task_assigned' | 'comment_mention' | 'export_ready' | 'export_failed';
+  type: 'task_assigned' | 'comment_mention' | 'task_updated' | 'deadline_approaching' | 'export_ready' | 'export_failed';
   // Null for account-level notifications (data export lifecycle).
   workspaceId: string | null;
   workspaceName: string;
@@ -44,6 +44,8 @@ export type TaskNotification = {
 const NOTIFICATION_TYPES: ReadonlySet<TaskNotification['type']> = new Set([
   'task_assigned',
   'comment_mention',
+  'task_updated',
+  'deadline_approaching',
   'export_ready',
   'export_failed',
 ]);

@@ -218,10 +218,16 @@ interface AuthState {
   updateLocale: (locale: Locale) => Promise<{ error?: string }>;
   updateAvatarUrl: (url: string | null) => void;
   fetchProfileSettings: () => Promise<{
-    data?: { displayName: string; marketingEmailsOptIn: boolean; preferences: Record<string, unknown> };
+    data?: {
+      displayName: string;
+      marketingEmailsOptIn: boolean;
+      pushOptIn: boolean;
+      preferences: Record<string, unknown>;
+    };
     error?: string;
   }>;
   updateMarketingEmailsOptIn: (value: boolean) => Promise<{ error?: string }>;
+  updatePushNotificationsOptIn: (value: boolean) => Promise<{ error?: string }>;
   updateProfilePreferences: (
     preferences: Record<string, unknown>,
   ) => Promise<{ error?: string }>;
@@ -1141,7 +1147,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, preferences, marketing_emails_opt_in')
+      .select('display_name, preferences, marketing_emails_opt_in, push_notifications_opt_in')
       .eq('id', user.id)
       .single();
 
@@ -1153,6 +1159,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       data: {
         displayName: data?.display_name ?? '',
         marketingEmailsOptIn: Boolean(data?.marketing_emails_opt_in),
+        pushOptIn: Boolean(data?.push_notifications_opt_in),
         preferences: (data?.preferences ?? {}) as Record<string, unknown>,
       },
     };
@@ -1164,6 +1171,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { error } = await supabase
       .from('profiles')
       .update({ marketing_emails_opt_in: value })
+      .eq('id', user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+    return {};
+  },
+  updatePushNotificationsOptIn: async (value) => {
+    const user = get().user;
+    if (!user) return { error: 'You are not signed in.' };
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ push_notifications_opt_in: value })
       .eq('id', user.id);
 
     if (error) {
