@@ -26,6 +26,7 @@
   "maxDeltaTimeSeconds": 43200,
   "minimumQuickLoginWaitSeconds": 60,
   "quickLoginCheckMilliSeconds": 1000,
+  "passwordPolicy": "length(12) and notUsername(undefined) and notEmail(undefined)",
   "internationalizationEnabled": true,
   "supportedLocales": [
     "en",

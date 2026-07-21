@@ -224,6 +224,7 @@ realm_keys = [
   "maxDeltaTimeSeconds",
   "minimumQuickLoginWaitSeconds",
   "quickLoginCheckMilliSeconds",
+  "passwordPolicy",
   "internationalizationEnabled",
   "supportedLocales",
   "defaultLocale",
