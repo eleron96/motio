@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.28] - 2026-07-21
 ### Security
 - Усилили защиту при загрузке изображений: принимаются только безопасные графические форматы.
 

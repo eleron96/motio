@@ -374,3 +374,4 @@
 2026-07-20T22:24:04Z | 0.9.25 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260720-222322.dump | Fixed dashboards collapsing after switching to the heatmap and back — previously only a page reload would restore them.
 2026-07-21T14:20:31Z | 0.9.26 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260721-141946.dump | Strengthened data protection by closing several paths for unauthorized access to accounts and workspaces.
 2026-07-21T16:07:01Z | 0.9.27 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260721-160610.dump | Added password strength requirements for sign-up and password changes.
+2026-07-21T20:53:29Z | 0.9.28 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260721-205243.dump | Hardened image uploads: only safe image formats are accepted.
