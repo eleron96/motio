@@ -160,6 +160,8 @@ services:
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
       PGRST_DB_USE_LEGACY_GUCS: "false"
+      # L-1: do not serve the OpenAPI spec (table/column/RPC catalog) to clients.
+      PGRST_OPENAPI_MODE: disabled
 
   realtime:
     image: ghcr.io/supabase/realtime:v2.30.34
