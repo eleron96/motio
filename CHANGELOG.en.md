@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Strengthened data protection by closing several paths for unauthorized access to accounts and workspaces.
+
 ## [0.9.25] - 2026-07-20
 ### Fixed
 - Fixed dashboards collapsing after switching to the heatmap and back — previously only a page reload would restore them.
