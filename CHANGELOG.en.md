@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.26] - 2026-07-21
 ### Security
 - Strengthened data protection by closing several paths for unauthorized access to accounts and workspaces.
 

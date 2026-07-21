@@ -372,3 +372,4 @@
 2026-07-20T13:14:15Z | 0.9.23 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260720-131332.dump | Clicking a browser notification now opens the task itself on the timeline — a mention opens it with the comments in view.
 2026-07-20T13:38:30Z | 0.9.24 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260720-133747.dump | Project notes with an attached image now show a small image badge, so you can spot them before opening the note.
 2026-07-20T22:24:04Z | 0.9.25 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260720-222322.dump | Fixed dashboards collapsing after switching to the heatmap and back — previously only a page reload would restore them.
+2026-07-21T14:20:31Z | 0.9.26 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260721-141946.dump | Strengthened data protection by closing several paths for unauthorized access to accounts and workspaces.
