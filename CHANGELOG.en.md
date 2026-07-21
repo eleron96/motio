@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Hardened image uploads: only safe image formats are accepted.
+
 ## [0.9.27] - 2026-07-21
 ### Security
 - Added password strength requirements for sign-up and password changes.
