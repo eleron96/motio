@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.27] - 2026-07-21
 ### Security
 - Ввели требования к надёжности пароля при регистрации и смене пароля.
 
