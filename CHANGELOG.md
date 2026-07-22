@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.29] - 2026-07-22
 ### Added
 - На форме регистрации под полем пароля теперь показаны требования к паролю.
 
