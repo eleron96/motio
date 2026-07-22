@@ -72,7 +72,7 @@ describe("brand asset routing", () => {
       "login",
       "resources",
       "js",
-      "login.v4.js",
+      "login.v5.js",
     );
 
     expect(caddyFile).toContain("handle /favicon* {");

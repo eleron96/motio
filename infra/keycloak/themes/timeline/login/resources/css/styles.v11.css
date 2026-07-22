@@ -703,6 +703,14 @@ button.select-auth-box-parent {
   }
 }
 
+.login-pf-page #kc-register-form .timeline-password-hint {
+  margin: 8px 0 16px !important;
+  padding: 0 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--timeline-muted, #6b7280);
+}
+
 .timeline-privacy-consent {
   margin-top: 12px;
   padding: 0 4px;
