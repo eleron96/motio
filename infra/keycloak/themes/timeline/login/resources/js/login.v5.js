@@ -9,11 +9,11 @@
     }
 
     var script = Array.prototype.slice.call(doc.scripts).find(function (item) {
-      return /\/js\/login\.v4\.js(?:\?.*)?$/.test(item.src || '');
+      return /\/js\/login\.v5\.js(?:\?.*)?$/.test(item.src || '');
     });
 
     if (script && script.src) {
-      return script.src.replace(/\/js\/login\.v4\.js(?:\?.*)?$/, '/img/' + filename);
+      return script.src.replace(/\/js\/login\.v5\.js(?:\?.*)?$/, '/img/' + filename);
     }
 
     return filename;
@@ -198,6 +198,40 @@
     }
   }
 
+  function injectPasswordHint() {
+    var registerForm = doc.getElementById('kc-register-form');
+    if (!registerForm) return;
+
+    // Only on the actual register page — it has a password-confirm field.
+    if (!doc.getElementById('password-confirm')) return;
+
+    // Don't inject twice.
+    if (doc.getElementById('timeline-password-hint')) return;
+
+    var passwordInput = doc.getElementById('password');
+    if (!passwordInput) return;
+
+    var lang = (root.lang || '').toLowerCase();
+    var isRu = lang.indexOf('ru') === 0;
+
+    // Keep in sync with the realm password policy applied by
+    // infra/scripts/keycloak-ensure-realm-passwordpolicy.sh
+    // (length(12) and notUsername and notEmail).
+    var text = isRu
+      ? 'Не менее 12 символов. Не должен совпадать с email или именем пользователя.'
+      : 'At least 12 characters. Must not match your email or username.';
+
+    var hint = doc.createElement('div');
+    hint.id = 'timeline-password-hint';
+    hint.className = 'timeline-password-hint';
+    hint.textContent = text;
+
+    var group = passwordInput.closest('.pf-c-form__group') || passwordInput.parentNode;
+    if (group && group.parentNode) {
+      group.parentNode.insertBefore(hint, group.nextSibling);
+    }
+  }
+
   function isReAuthScreen() {
     var passwordInput = doc.getElementById('password');
     var usernameInput = doc.getElementById('username');
@@ -218,6 +252,7 @@
     disableAutofocus();
     fixPasswordToggleControls();
     moveRegisterRequiredHint();
+    injectPasswordHint();
     injectPrivacyConsent();
 
     if (!isReAuthScreen()) {
