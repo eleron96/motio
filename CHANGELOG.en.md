@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.32] - 2026-07-23
 ### Changed
 - The Contacts tab now has a single search across people, companies, tags, roles and phones. Added tag, company and role filters.
 
