@@ -3,8 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
   ALL_COMPANIES,
   NO_COMPANY,
+  NO_VALUE,
   buildCompanyBuckets,
+  buildContactFilterOptions,
   buildContactList,
+  filterContactEntries,
   filterEntriesByCompany,
   searchContactList,
 } from '@/features/projects/lib/contactList';
@@ -136,5 +139,68 @@ describe('searchContactList', () => {
     expect(searchContactList(entries, 'анна').map((e) => e.name)).toEqual(['Анна Смирнова']);
     expect(searchContactList(entries, 'СТРОЙГ').map((e) => e.name)).toEqual(['Анна Смирнова']);
     expect(searchContactList(entries, 'boris@').map((e) => e.name)).toEqual(['Борис Иванов']);
+  });
+
+  it('matches role, tag and phone too — the single search covers the whole card', () => {
+    const rich = buildContactList([
+      contact({ id: 'c3', name: 'Вера', role: 'ГАП', phone: '+7 900 111-22-33', company: 'МИГ', tag: 'АР' }),
+    ], [], customersById);
+    expect(searchContactList(rich, 'гап').map((e) => e.name)).toEqual(['Вера']);
+    expect(searchContactList(rich, '111-22').map((e) => e.name)).toEqual(['Вера']);
+    expect(searchContactList(rich, 'ар').map((e) => e.name)).toEqual(['Вера']);
+  });
+});
+
+describe('contact filters (tag / company / role)', () => {
+  // NB: a contact with a tag but no company stores the tag AS the company
+  // (legacy-row fallback in buildContactList), so "tagged but companyless"
+  // is not a reachable combination here.
+  const entries = buildContactList([
+    contact({ id: 'c1', name: 'Анна', company: 'СтройГрупп', tag: 'АР', role: 'ГИП' }),
+    contact({ id: 'c2', name: 'Борис', company: 'стройгрупп', tag: null, role: 'Конструктор' }),
+    contact({ id: 'c3', name: 'Вера', company: 'МИГ', tag: 'КР', role: null }),
+    contact({ id: 'c4', name: 'Глеб', company: null, tag: null, role: null }),
+  ], [], customersById);
+
+  it('builds deduped options with counts; the "no value" option sorts last', () => {
+    const options = buildContactFilterOptions(entries);
+    // 'СтройГрупп' and 'стройгрупп' collapse case-insensitively into one option.
+    expect(options.companies.map((o) => [o.label, o.count])).toEqual([
+      ['МИГ', 1],
+      ['СтройГрупп', 2],
+      [null, 1],
+    ]);
+    expect(options.tags.map((o) => [o.label, o.count])).toEqual([
+      ['АР', 1],
+      ['КР', 1],
+      [null, 2],
+    ]);
+    expect(options.roles.map((o) => o.label)).toEqual(['ГИП', 'Конструктор', null]);
+  });
+
+  it('empty selection keeps everything', () => {
+    expect(filterContactEntries(entries, { companyKeys: [], tagKeys: [], roleKeys: [] })).toHaveLength(4);
+  });
+
+  it('ORs within a category and ANDs across categories', () => {
+    expect(
+      filterContactEntries(entries, { companyKeys: [], tagKeys: ['ар', 'кр'], roleKeys: [] })
+        .map((e) => e.name),
+    ).toEqual(['Анна', 'Вера']);
+    expect(
+      filterContactEntries(entries, { companyKeys: ['стройгрупп'], tagKeys: ['ар'], roleKeys: [] })
+        .map((e) => e.name),
+    ).toEqual(['Анна']);
+  });
+
+  it('matches missing values through the NO_VALUE sentinel', () => {
+    expect(
+      filterContactEntries(entries, { companyKeys: [NO_VALUE], tagKeys: [], roleKeys: [] })
+        .map((e) => e.name),
+    ).toEqual(['Глеб']);
+    expect(
+      filterContactEntries(entries, { companyKeys: [], tagKeys: [], roleKeys: [NO_VALUE] })
+        .map((e) => e.name),
+    ).toEqual(['Вера', 'Глеб']);
   });
 });

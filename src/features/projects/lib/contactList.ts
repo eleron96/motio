@@ -101,7 +101,7 @@ export const buildContactList = (
   return entries.sort((a, b) => a.name.localeCompare(b.name));
 };
 
-/** Filter the flat list by a free-text query over name / company / email. */
+/** Filter the flat list by a free-text query over name / company / tag / role / email / phone. */
 export const searchContactList = (entries: readonly ContactEntry[], rawQuery: string): ContactEntry[] => {
   const query = rawQuery.trim().toLowerCase();
   if (!query) return entries.slice();
@@ -109,7 +109,9 @@ export const searchContactList = (entries: readonly ContactEntry[], rawQuery: st
     entry.name.toLowerCase().includes(query)
     || (entry.company?.toLowerCase().includes(query) ?? false)
     || (entry.tag?.toLowerCase().includes(query) ?? false)
+    || (entry.role?.toLowerCase().includes(query) ?? false)
     || (entry.email?.toLowerCase().includes(query) ?? false)
+    || (entry.phone?.toLowerCase().includes(query) ?? false)
   ));
 };
 
@@ -154,3 +156,72 @@ export const filterEntriesByCompany = (entries: readonly ContactEntry[], company
   if (companyKey === ALL_COMPANIES) return entries.slice();
   return entries.filter((entry) => companyKeyOf(entry.company) === companyKey);
 };
+
+// ── Panel filters (tag / company / role) ──
+
+/** Option key for entries with no value in the filtered field. */
+export const NO_VALUE = '__none__';
+
+export interface ContactFilterOption {
+  key: string;
+  /** Display label; null for the "no value" option. */
+  label: string | null;
+  count: number;
+}
+
+export interface ContactFilterSelection {
+  companyKeys: string[];
+  tagKeys: string[];
+  roleKeys: string[];
+}
+
+export const EMPTY_CONTACT_FILTERS: ContactFilterSelection = {
+  companyKeys: [],
+  tagKeys: [],
+  roleKeys: [],
+};
+
+const valueKeyOf = (value: string | null): string => (
+  value ? value.trim().toLowerCase() : NO_VALUE
+);
+
+const collectFilterOptions = (
+  entries: readonly ContactEntry[],
+  pick: (entry: ContactEntry) => string | null,
+): ContactFilterOption[] => {
+  const byKey = new Map<string, ContactFilterOption>();
+  for (const entry of entries) {
+    const value = pick(entry);
+    const key = valueKeyOf(value);
+    const existing = byKey.get(key);
+    if (existing) existing.count += 1;
+    // The first spelling seen becomes the label (values dedupe case-insensitively).
+    else byKey.set(key, { key, label: value, count: 1 });
+  }
+  return Array.from(byKey.values()).sort((a, b) => {
+    if (a.label === null) return 1;
+    if (b.label === null) return -1;
+    return a.label.localeCompare(b.label);
+  });
+};
+
+/** Distinct filter options across the directory; the "no value" option sorts last. */
+export const buildContactFilterOptions = (entries: readonly ContactEntry[]) => ({
+  companies: collectFilterOptions(entries, (entry) => entry.company),
+  tags: collectFilterOptions(entries, (entry) => entry.tag),
+  roles: collectFilterOptions(entries, (entry) => entry.role),
+});
+
+const matchesCategory = (keys: readonly string[], value: string | null): boolean => (
+  keys.length === 0 || keys.includes(valueKeyOf(value))
+);
+
+/** AND across categories, OR within one; an empty category means "no filter". */
+export const filterContactEntries = (
+  entries: readonly ContactEntry[],
+  selection: ContactFilterSelection,
+): ContactEntry[] => entries.filter((entry) => (
+  matchesCategory(selection.companyKeys, entry.company)
+  && matchesCategory(selection.tagKeys, entry.tag)
+  && matchesCategory(selection.roleKeys, entry.role)
+));
