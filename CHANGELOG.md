@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.32] - 2026-07-23
 ### Changed
 - На вкладке «Контакты» теперь один общий поиск — по людям, компаниям, тегам, ролям и телефонам. Добавлены фильтры по тегу, компании и роли.
 
