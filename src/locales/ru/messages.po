@@ -4599,6 +4599,10 @@ msgid "Task types"
 msgstr "Типы задач"
 
 #: src/features/auth/components/InviteNotifications.tsx
+msgid "Task update"
+msgstr "Обновление по задаче"
+
+#: src/features/auth/components/InviteNotifications.tsx
 msgid "Task updates"
 msgstr "Обновления задач"
 

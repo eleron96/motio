@@ -1,6 +1,8 @@
 export type InboxNotificationType =
   | "task_assigned"
   | "comment_mention"
+  | "task_updated"
+  | "deadline_approaching"
   | "export_ready"
   | "export_failed";
 
@@ -51,29 +53,29 @@ export interface InboxTaskNotification {
 const KNOWN_TYPES: ReadonlySet<InboxNotificationType> = new Set([
   "task_assigned",
   "comment_mention",
+  "task_updated",
+  "deadline_approaching",
   "export_ready",
   "export_failed",
 ]);
-
-const toNotificationType = (value: string): InboxNotificationType => (
-  KNOWN_TYPES.has(value as InboxNotificationType)
-    ? (value as InboxNotificationType)
-    : "task_assigned"
-);
 
 export const mapInboxTaskNotifications = (
   rows: InboxNotificationRow[],
   workspaceNames: Map<string, string>,
   profiles: Map<string, InboxActorProfile>,
   tasks: Map<string, InboxTaskState>,
-): InboxTaskNotification[] => rows.map((row) => {
+): InboxTaskNotification[] => rows.flatMap((row) => {
+  // A type this build predates is dropped, never relabeled: coercing used to
+  // turn deadline reminders into phantom "assigned you" rows (actor = null →
+  // "Unknown user"). The client hides unknown types anyway.
+  if (!KNOWN_TYPES.has(row.type as InboxNotificationType)) return [];
+  const type = row.type as InboxNotificationType;
   const actorProfile = typeof row.actor_user_id === "string"
     ? profiles.get(row.actor_user_id)
     : undefined;
   const taskState = typeof row.task_id === "string"
     ? tasks.get(row.task_id)
     : undefined;
-  const type = toNotificationType(row.type);
   const isExportType = type === "export_ready" || type === "export_failed";
   const workspaceName = row.workspace_id
     ? workspaceNames.get(row.workspace_id) ?? "Workspace"
