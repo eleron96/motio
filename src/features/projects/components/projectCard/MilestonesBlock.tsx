@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
 import { Calendar, Check, Plus } from 'lucide-react';
 import type { Milestone } from '@/features/planner/types/planner';
@@ -65,7 +65,7 @@ export const MilestonesBlock: React.FC<MilestonesBlockProps> = ({
 
   return (
     <section
-      className="flex h-full max-h-[440px] flex-col rounded-2xl border border-border bg-card p-5"
+      className="flex h-full flex-col rounded-2xl border border-border bg-card p-5"
       style={accentVars}
     >
       <div className="mb-3 flex items-center gap-2">
