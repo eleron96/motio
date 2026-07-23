@@ -93,10 +93,6 @@ const inTaskRange = (row: TaskSyncRow, range: LoadedRange) => (
   row.end_date >= range.start && row.start_date <= range.end
 );
 
-const inMilestoneRange = (row: MilestoneSyncRow, range: LoadedRange) => (
-  row.date >= range.start && row.date <= range.end
-);
-
 const takeFromSet = (source: Set<string>, limit: number) => {
   const values: string[] = [];
   for (const value of source) {
@@ -301,16 +297,13 @@ export const usePlannerLiveSync = (
                   reconcileRequested = true;
                 } else {
                   const rows = (data ?? []) as unknown as MilestoneSyncRow[];
-                  const byId = new Map(rows.map((row) => [row.id, row]));
-                  const upsertRows = rows.filter((row) => inMilestoneRange(row, rangeRef));
-                  if (upsertRows.length > 0) {
-                    upsertMilestones(upsertRows.map(mapMilestoneRow));
+                  const returnedIds = new Set(rows.map((row) => row.id));
+                  if (rows.length > 0) {
+                    upsertMilestones(rows.map(mapMilestoneRow));
                   }
-                  const removeIds = milestoneUpsertIds.filter((id) => {
-                    const row = byId.get(id);
-                    if (!row) return true;
-                    return !inMilestoneRange(row, rangeRef);
-                  });
+                  // Milestones are not windowed by date (unlike tasks), so a
+                  // row missing from the response means it was deleted.
+                  const removeIds = milestoneUpsertIds.filter((id) => !returnedIds.has(id));
                   if (removeIds.length > 0) {
                     removeMilestonesByIds(removeIds);
                   }
@@ -385,8 +378,6 @@ export const usePlannerLiveSync = (
                 .select(MILESTONE_SELECT)
                 .eq('workspace_id', workspaceRef)
                 .gt('updated_at', milestoneSince)
-                .gte('date', rangeRef.start)
-                .lte('date', rangeRef.end)
                 .order('updated_at', { ascending: true })
                 .limit(1000),
               supabase
@@ -398,9 +389,7 @@ export const usePlannerLiveSync = (
               supabase
                 .from('milestones')
                 .select('id')
-                .eq('workspace_id', workspaceRef)
-                .gte('date', rangeRef.start)
-                .lte('date', rangeRef.end),
+                .eq('workspace_id', workspaceRef),
               fetchTaskCommentDeltaRows(workspaceRef, taskCommentSince),
             ]);
 
@@ -469,13 +458,11 @@ export const usePlannerLiveSync = (
               removeTasksByIds(staleTaskIds);
             }
 
+            // The id list above is the full workspace set (milestones are not
+            // windowed), so any local milestone missing from it was deleted.
             const remoteMilestoneIds = new Set(((milestoneIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
             const staleMilestoneIds = usePlannerStore.getState().milestones
-              .filter((milestone) => (
-                milestone.date >= rangeRef.start
-                && milestone.date <= rangeRef.end
-                && !remoteMilestoneIds.has(milestone.id)
-              ))
+              .filter((milestone) => !remoteMilestoneIds.has(milestone.id))
               .map((milestone) => milestone.id);
             if (staleMilestoneIds.length > 0) {
               removeMilestonesByIds(staleMilestoneIds);
