@@ -629,17 +629,23 @@ export const InviteNotifications: React.FC = () => {
                     const taskGone = !isExport && (!notification.taskId || !notification.taskExists);
 
                     // Secondary line: who acted (and where), shown under the title.
-                    const subNode = notification.type === 'comment_mention'
-                      ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
-                      : notification.type === 'task_updated'
-                        ? <>{actorLabel} {t`updated a task`} · {notification.workspaceName}</>
-                        : notification.type === 'deadline_approaching'
-                          ? <>{t`Deadline is approaching`} · {notification.workspaceName}</>
-                          : notification.type === 'export_ready'
-                            ? <>{t`Open Account settings to download the file.`}</>
-                            : notification.type === 'export_failed'
-                              ? <>{t`Try again from Account settings.`}</>
-                              : <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>;
+                    // The last branch is a NEUTRAL catch-all, not "assigned":
+                    // a type this build doesn't know must never invent an
+                    // actor ("Unknown user assigned you…") — see the inbox
+                    // mapper regression this mirrors.
+                    const subNode = notification.type === 'task_assigned'
+                      ? <>{actorLabel} {t`assigned you to task`} · {notification.workspaceName}</>
+                      : notification.type === 'comment_mention'
+                        ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
+                        : notification.type === 'task_updated'
+                          ? <>{actorLabel} {t`updated a task`} · {notification.workspaceName}</>
+                          : notification.type === 'deadline_approaching'
+                            ? <>{t`Deadline is approaching`} · {notification.workspaceName}</>
+                            : notification.type === 'export_ready'
+                              ? <>{t`Open Account settings to download the file.`}</>
+                              : notification.type === 'export_failed'
+                                ? <>{t`Try again from Account settings.`}</>
+                                : <>{t`Task update`} · {notification.workspaceName}</>;
 
                     const titleText = isExport
                       ? (notification.type === 'export_ready'
