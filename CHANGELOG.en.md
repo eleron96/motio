@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.31] - 2026-07-23
 ### Fixed
 - Fixed bell notification texts: deadline reminders and task edits no longer show up as "Unknown user assigned you".
 
