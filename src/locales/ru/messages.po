@@ -506,6 +506,10 @@ msgstr "Все текущие данные будут потеряны."
 msgid "All projects"
 msgstr "Все проекты"
 
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "All results"
+msgstr "Все результаты"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "All set!"
@@ -885,6 +889,8 @@ msgid "Clear date filter"
 msgstr "Сбросить дату"
 
 #: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Clear filters"
@@ -897,7 +903,6 @@ msgstr "Удалить фото"
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -959,6 +964,7 @@ msgstr "Действия с комментарием"
 msgid "Comments"
 msgstr "Комментарии"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -2947,6 +2953,7 @@ msgstr "Рассылок ещё не было."
 msgid "No code"
 msgstr "Без кода"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -2960,6 +2967,7 @@ msgstr "Без компании"
 #~ msgstr "Контактных данных пока нет."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No contacts found."
 msgstr "Контакты не найдены."
 
@@ -3203,6 +3211,10 @@ msgstr "Нет проектов под текущий поиск."
 msgid "No recipients match this audience."
 msgstr "Под эту аудиторию нет получателей."
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No role"
+msgstr "Без роли"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "No rules yet."
 msgstr "Правил пока нет."
@@ -3222,6 +3234,10 @@ msgstr "Без SaaS-привязки"
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
 msgstr "Подзадач пока нет."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No tag"
+msgstr "Без тега"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TagMultiSelect.tsx
@@ -3938,6 +3954,7 @@ msgid "Right-click to add your first widget."
 msgstr "Щелкните правой кнопкой, чтобы добавить первый виджет."
 
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Role"
@@ -4053,8 +4070,12 @@ msgstr "Поиск и фильтры"
 #~ msgstr "Поиск по активности..."
 
 #: src/features/projects/components/ProjectsSidebar.tsx
-msgid "Search companies..."
-msgstr "Поиск компании..."
+#~ msgid "Search companies..."
+#~ msgstr "Поиск компании..."
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "Search contacts..."
+msgstr "Поиск по контактам..."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Search countries..."
@@ -4082,8 +4103,8 @@ msgid "Search notes..."
 msgstr "Поиск по заметкам..."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "Search people"
-msgstr "Поиск по людям"
+#~ msgid "Search people"
+#~ msgstr "Поиск по людям"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "Search people and companies..."
@@ -4533,6 +4554,7 @@ msgstr "Название подзадачи"
 msgid "Subtasks"
 msgstr "Подзадачи"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx

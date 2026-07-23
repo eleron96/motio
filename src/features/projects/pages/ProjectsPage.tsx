@@ -46,6 +46,7 @@ import {
   buildContactList,
   buildCompanyBuckets,
   filterEntriesByCompany,
+  searchContactList,
 } from '@/features/projects/lib/contactList';
 import { ContactsPeoplePanel } from '@/features/projects/components/ContactsPeoplePanel';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
@@ -428,11 +429,37 @@ const ProjectsPage = () => {
     () => buildContactList(customerContacts, projectMemberRows, customerById),
     [customerContacts, projectMemberRows, customerById],
   );
-  const companyBuckets = useMemo(() => buildCompanyBuckets(contactEntries), [contactEntries]);
-  const companyFilteredEntries = useMemo(
-    () => filterEntriesByCompany(contactEntries, selectedCompanyKey),
-    [contactEntries, selectedCompanyKey],
+  // The single sidebar search runs over EVERYTHING (companies, people, tags,
+  // roles, emails, phones): the company list shows only buckets that still
+  // contain matches, the panel shows the matching people.
+  const searchedContactEntries = useMemo(
+    () => searchContactList(contactEntries, contactSearch),
+    [contactEntries, contactSearch],
   );
+  const companyBuckets = useMemo(
+    () => buildCompanyBuckets(searchedContactEntries),
+    [searchedContactEntries],
+  );
+  // A selected company can drop out of the results while the user types; fall
+  // back to "All contacts" instead of showing an empty panel (the selection
+  // comes back as soon as the company matches again).
+  const effectiveCompanyKey = useMemo(() => (
+    selectedCompanyKey === ALL_COMPANIES
+    || companyBuckets.some((bucket) => bucket.key === selectedCompanyKey)
+      ? selectedCompanyKey
+      : ALL_COMPANIES
+  ), [selectedCompanyKey, companyBuckets]);
+  const companyFilteredEntries = useMemo(
+    () => filterEntriesByCompany(searchedContactEntries, effectiveCompanyKey),
+    [searchedContactEntries, effectiveCompanyKey],
+  );
+  // Typing a fresh query widens the view to all companies, so matches are
+  // never hidden by a previously selected bucket; clicking a company after
+  // that narrows within the results.
+  const handleContactSearchChange = useCallback((value: string) => {
+    if (value.trim() && !contactSearch.trim()) setSelectedCompanyKey(ALL_COMPANIES);
+    setContactSearch(value);
+  }, [contactSearch]);
   const trackedProjectIdSet = useMemo(() => new Set(trackedProjectIds), [trackedProjectIds]);
 
   useEffect(() => {
@@ -1265,8 +1292,8 @@ const ProjectsPage = () => {
     return legacySidebar;
   };
 
-  const selectedCompanyBucket = companyBuckets.find((bucket) => bucket.key === selectedCompanyKey) ?? null;
-  const contactsPanelTitle = selectedCompanyKey === ALL_COMPANIES
+  const selectedCompanyBucket = companyBuckets.find((bucket) => bucket.key === effectiveCompanyKey) ?? null;
+  const contactsPanelTitle = effectiveCompanyKey === ALL_COMPANIES
     ? t`All contacts`
     : selectedCompanyBucket
       ? (selectedCompanyBucket.company ?? t`No company`)
@@ -1274,12 +1301,13 @@ const ProjectsPage = () => {
   const contactsSidebarProps = {
     companyBuckets,
     contactSearch,
-    onContactSearchChange: setContactSearch,
-    selectedCompanyKey,
+    onContactSearchChange: handleContactSearchChange,
+    selectedCompanyKey: effectiveCompanyKey,
   };
   const renderContactsPeople = () => (
     <ContactsPeoplePanel
       entries={companyFilteredEntries}
+      allEntries={contactEntries}
       title={contactsPanelTitle}
       defaultCompany={selectedCompanyBucket?.company ?? null}
       projectById={projectById}

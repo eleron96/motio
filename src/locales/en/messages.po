@@ -506,6 +506,10 @@ msgstr "All current data will be lost."
 msgid "All projects"
 msgstr "All projects"
 
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "All results"
+msgstr "All results"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "All set!"
@@ -885,6 +889,8 @@ msgid "Clear date filter"
 msgstr "Clear date filter"
 
 #: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Clear filters"
@@ -897,7 +903,6 @@ msgstr "Clear photo"
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -959,6 +964,7 @@ msgstr "Comment actions"
 msgid "Comments"
 msgstr "Comments"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -2947,6 +2953,7 @@ msgstr "No broadcasts yet."
 msgid "No code"
 msgstr "No code"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -2960,6 +2967,7 @@ msgstr "No company"
 #~ msgstr "No contact details yet."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No contacts found."
 msgstr "No contacts found."
 
@@ -3203,6 +3211,10 @@ msgstr "No projects match the current search."
 msgid "No recipients match this audience."
 msgstr "No recipients match this audience."
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No role"
+msgstr "No role"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "No rules yet."
 msgstr "No rules yet."
@@ -3222,6 +3234,10 @@ msgstr "No SaaS lock-in"
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
 msgstr "No subtasks yet."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No tag"
+msgstr "No tag"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TagMultiSelect.tsx
@@ -3938,6 +3954,7 @@ msgid "Right-click to add your first widget."
 msgstr "Right-click to add your first widget."
 
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Role"
@@ -4053,8 +4070,12 @@ msgstr "Search & filters"
 #~ msgstr "Search activity..."
 
 #: src/features/projects/components/ProjectsSidebar.tsx
-msgid "Search companies..."
-msgstr "Search companies..."
+#~ msgid "Search companies..."
+#~ msgstr "Search companies..."
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "Search contacts..."
+msgstr "Search contacts..."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Search countries..."
@@ -4082,8 +4103,8 @@ msgid "Search notes..."
 msgstr "Search notes..."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "Search people"
-msgstr "Search people"
+#~ msgid "Search people"
+#~ msgstr "Search people"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "Search people and companies..."
@@ -4533,6 +4554,7 @@ msgstr "Subtask title"
 msgid "Subtasks"
 msgstr "Subtasks"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
