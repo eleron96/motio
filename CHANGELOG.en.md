@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.30] - 2026-07-23
 ### Fixed
 - The Projects tab now shows every project milestone, including far-off ones — previously only the next couple of months were visible. The Milestones block no longer ends up shorter than its neighbors.
 
