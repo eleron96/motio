@@ -3347,6 +3347,10 @@ msgid "Notifications are blocked in this browser. Allow them in the site setting
 msgstr "Notifications are blocked in this browser. Allow them in the site settings and try again."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Notifications on iPhone and iPad"
+msgstr "Notifications on iPhone and iPad"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
 msgstr "Occasional announcements and tips. Every email has a one-click unsubscribe."
 
@@ -4928,6 +4932,10 @@ msgstr "Title A–Z"
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Title Z–A"
 msgstr "Title Z–A"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
+msgstr "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "today"

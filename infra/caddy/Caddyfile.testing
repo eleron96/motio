@@ -99,6 +99,24 @@ test.motio.nikog.net {
       reverse_proxy web:80
     }
 
+    # PWA install assets: iOS fetches the manifest and icons without auth when
+    # adding the app to the Home Screen, so they must bypass oauth2-proxy.
+    handle /manifest.json {
+      reverse_proxy web:80
+    }
+
+    handle /pwa-icon-192.png {
+      reverse_proxy web:80
+    }
+
+    handle /pwa-icon-512.png {
+      reverse_proxy web:80
+    }
+
+    handle /apple-touch-icon.png {
+      reverse_proxy web:80
+    }
+
     handle /placeholder.svg {
       reverse_proxy web:80
     }
