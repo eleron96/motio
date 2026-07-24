@@ -151,51 +151,15 @@ const mapWorkspaceRows = (rows: WorkspaceMemberRow[]): WorkspaceSummary[] => row
   }))
   .filter((workspace) => Boolean(workspace.id));
 
-export interface AdminUser {
-  id: string;
-  email: string | null;
-  displayName: string | null;
-  createdAt: string | null;
-  lastSignInAt: string | null;
-  managedWorkspaceCount: number;
-  ownedWorkspaceCount: number;
-  workspaceCount: number;
-  storageObjectsCount: number;
-  storageUsedBytes: number;
-  workspaces: Array<{ id: string; name: string; role: WorkspaceRole | 'owner' }>;
-}
-
-export interface AdminWorkspace {
-  id: string;
-  name: string;
-  ownerId: string;
-  ownerEmail: string | null;
-  ownerDisplayName: string | null;
-  membersCount: number;
-  tasksCount: number;
-  createdAt: string | null;
-}
-
-export interface SuperAdminUser {
-  userId: string;
-  email: string | null;
-  displayName: string | null;
-  createdAt: string | null;
-}
-
-export interface BackupEntry {
-  name: string;
-  type: 'daily' | 'manual' | 'pre-restore';
-  createdAt: string;
-  size: number;
-}
-
 interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signOutRedirectInProgress: boolean;
   workspaces: WorkspaceSummary[];
+  /** True after the first successful workspace load; pages use it to avoid
+   * redirect decisions on the not-yet-loaded empty list. */
+  workspacesLoaded: boolean;
   currentWorkspaceId: string | null;
   currentWorkspaceRole: WorkspaceRole | null;
   members: WorkspaceMember[];
@@ -211,41 +175,15 @@ interface AuthState {
   profilePurgeAfter: string | null;
   isSuperAdmin: boolean;
   superAdminLoading: boolean;
-  adminUsers: AdminUser[];
-  adminUsersLoading: boolean;
-  adminUsersError: string | null;
-  adminWorkspaces: AdminWorkspace[];
-  adminWorkspacesLoading: boolean;
-  adminWorkspacesError: string | null;
-  superAdmins: SuperAdminUser[];
-  superAdminsLoading: boolean;
-  superAdminsError: string | null;
-  backups: BackupEntry[];
-  backupsLoading: boolean;
-  backupsError: string | null;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
   setSignOutRedirectInProgress: (value: boolean) => void;
   resolveSuperAdmin: (user: User | null) => Promise<boolean>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithKeycloak: (redirectTo?: string, options?: { forceLogin?: boolean }) => Promise<{ error?: string }>;
+  signInWithKeycloak: (redirectTo?: string, options?: { forceLogin?: boolean; register?: boolean }) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
   sendPasswordReset: (email: string) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
-  fetchAdminUsers: (search?: string) => Promise<{ error?: string }>;
-  fetchAdminWorkspaces: () => Promise<{ error?: string }>;
-  updateAdminWorkspace: (workspaceId: string, name: string) => Promise<{ error?: string }>;
-  deleteAdminWorkspace: (workspaceId: string) => Promise<{ error?: string }>;
-  fetchSuperAdmins: () => Promise<{ error?: string }>;
-  createSuperAdmin: (payload: { email: string; displayName?: string }) => Promise<{ error?: string; warning?: string }>;
-  deleteSuperAdmin: (userId: string) => Promise<{ error?: string }>;
-  fetchBackups: () => Promise<{ error?: string }>;
-  createBackup: () => Promise<{ error?: string }>;
-  restoreBackup: (name: string) => Promise<{ error?: string }>;
-  uploadBackup: (file: File) => Promise<{ error?: string }>;
-  downloadBackup: (name: string) => Promise<{ error?: string }>;
-  renameBackup: (name: string, nextName: string) => Promise<{ error?: string }>;
-  deleteBackup: (name: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   fetchWorkspaces: () => Promise<void>;
   fetchProfile: () => Promise<void>;
@@ -280,9 +218,16 @@ interface AuthState {
   updateLocale: (locale: Locale) => Promise<{ error?: string }>;
   updateAvatarUrl: (url: string | null) => void;
   fetchProfileSettings: () => Promise<{
-    data?: { displayName: string; preferences: Record<string, unknown> };
+    data?: {
+      displayName: string;
+      marketingEmailsOptIn: boolean;
+      pushOptIn: boolean;
+      preferences: Record<string, unknown>;
+    };
     error?: string;
   }>;
+  updateMarketingEmailsOptIn: (value: boolean) => Promise<{ error?: string }>;
+  updatePushNotificationsOptIn: (value: boolean) => Promise<{ error?: string }>;
   updateProfilePreferences: (
     preferences: Record<string, unknown>,
   ) => Promise<{ error?: string }>;
@@ -295,9 +240,6 @@ interface AuthState {
   requestDataExport: () => Promise<{ data?: { request_id: string }; error?: string; retryAfter?: number }>;
   getDataExportStatus: () => Promise<{ data?: DataExportStatusRow; error?: string }>;
   renamePurgedProfile: (targetUserId: string, newName: string) => Promise<{ error?: string }>;
-  adminForcePurgeAccount: (
-    targetUserId: string,
-  ) => Promise<{ data?: { user_id: string; purge_after: string; forced_by: string }; error?: string }>;
 }
 
 const getWorkspaceStorageKey = (userId: string) => `current-workspace-${userId}`;
@@ -336,11 +278,6 @@ const parseSentInvites = (value: unknown): SentInviteSummary[] => {
       isPending: typeof row.isPending === 'boolean' ? row.isPending : row.status === 'pending',
       createdAt: typeof row.createdAt === 'string' ? row.createdAt : null,
     }));
-};
-
-const getBackupBaseUrl = () => {
-  const base = import.meta.env.VITE_SUPABASE_URL;
-  return base ? `${base}/backup` : '';
 };
 
 const getWorkspaceActivityActorSnapshot = (state: Pick<AuthState, 'user' | 'profileDisplayName'>) => ({
@@ -393,48 +330,21 @@ export const getOauth2ProxySignOutPath = () => {
   return query ? `${rawPath}?${query}` : rawPath;
 };
 
-const parseBackupApiError = async (response: Response) => {
-  let message = response.statusText || 'Backup request failed.';
-  try {
-    const body = await response.clone().json();
-    if (body && typeof body === 'object' && typeof (body as { error?: string }).error === 'string') {
-      message = (body as { error: string }).error;
-    }
-  } catch (_error) {
-    try {
-      const text = await response.clone().text();
-      if (text) message = text;
-    } catch (_innerError) {
-      // Ignore parsing errors.
-    }
-  }
-  return message;
-};
+// One-time welcome email: strictly `null` means "first sign-in, not greeted
+// yet" (older sessions and the demo stub return undefined). The request is
+// fire-and-forget — the edge function claims the send atomically, so repeated
+// calls are harmless; the local flag just avoids re-requesting every
+// fetchProfile within this tab.
+let welcomeEmailRequested = false;
 
-const callBackupApi = async <T>(token: string | null | undefined, path: string, options?: RequestInit) => {
-  if (!token) {
-    return { error: 'Not authenticated.' };
-  }
-  const baseUrl = getBackupBaseUrl();
-  if (!baseUrl) {
-    return { error: 'Backup service is not configured.' };
-  }
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options?.headers ?? {}),
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    const message = await parseBackupApiError(response);
-    return { error: message };
-  }
-
-  const data = await response.json().catch(() => ({}));
-  return { data: data as T };
+const maybeRequestWelcomeEmail = (welcomeEmailSentAt: unknown) => {
+  if (welcomeEmailSentAt !== null || welcomeEmailRequested) return;
+  welcomeEmailRequested = true;
+  void supabase.functions
+    .invoke('mailer', { body: { action: 'welcome' } })
+    .catch(() => {
+      // A failed greeting must never disturb sign-in.
+    });
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -443,6 +353,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: true,
   signOutRedirectInProgress: false,
   workspaces: [],
+  workspacesLoaded: false,
   currentWorkspaceId: null,
   currentWorkspaceRole: null,
   members: [],
@@ -456,18 +367,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profilePurgeAfter: null,
   isSuperAdmin: false,
   superAdminLoading: false,
-  adminUsers: [],
-  adminUsersLoading: false,
-  adminUsersError: null,
-  adminWorkspaces: [],
-  adminWorkspacesLoading: false,
-  adminWorkspacesError: null,
-  superAdmins: [],
-  superAdminsLoading: false,
-  superAdminsError: null,
-  backups: [],
-  backupsLoading: false,
-  backupsError: null,
   setSession: (session) => {
     const user = session?.user ?? null;
     set({
@@ -495,26 +394,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     set({ superAdminLoading: true });
     try {
-      const { data, error } = await supabase
-        .from('super_admins')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      const isSuperAdmin = Boolean(data && !error);
-      if (isSuperAdmin) {
-        set({
-          isSuperAdmin: true,
-          superAdminLoading: false,
-          workspaces: [],
-          currentWorkspaceId: null,
-          currentWorkspaceRole: null,
-          members: [],
-          membersWorkspaceId: null,
-          membersLoading: false,
-        });
-      } else {
-        set({ isSuperAdmin: false, superAdminLoading: false });
-      }
+      // Keycloak is the source of truth: whoami checks the app_super_admin
+      // realm role server-side (and syncs the cache table), so granting or
+      // revoking the role in Keycloak takes effect on the next sign-in —
+      // no in-app admin lists involved.
+      const { data, error } = await invokeAdminFunction<{ isSuperAdmin?: boolean }>({
+        action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
+      });
+      const isSuperAdmin = !error && Boolean(data?.isSuperAdmin);
+      // A super admin with workspaces is a regular working account (the owner
+      // with the Keycloak role), so their workspace state must stay intact —
+      // no reset here. The workspace-less service account is steered to the
+      // admin console by the pages' redirect instead.
+      set({ isSuperAdmin, superAdminLoading: false });
       return isSuperAdmin;
     } catch (_error) {
       set({ isSuperAdmin: false, superAdminLoading: false });
@@ -545,6 +437,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         queryParams: {
           ...(locale ? { ui_locales: locale } : {}),
           ...(options?.forceLogin ? { prompt: 'login' } : {}),
+          // OIDC "Initiating User Registration" (Keycloak 26.1+): open the
+          // registration form instead of the sign-in form. Wins over
+          // forceLogin — a user who explicitly chose "create account" should
+          // never land on the login screen.
+          ...(options?.register ? { prompt: 'create' } : {}),
         },
       },
     });
@@ -569,232 +466,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) return { error: error.message };
     return {};
   },
-  fetchAdminUsers: async (search) => {
-    set({ adminUsersLoading: true, adminUsersError: null });
-    const { data, error } = await invokeAdminFunction<{ users: AdminUser[] }>({
-      action: ADMIN_ACTIONS.USERS_LIST,
-      search: search?.trim(),
-      page: 1,
-      perPage: 1000,
-      loadAll: true,
-    });
-    if (error) {
-      set({ adminUsersLoading: false, adminUsersError: error });
-      return { error };
-    }
-    set({
-      adminUsers: data?.users ?? [],
-      adminUsersLoading: false,
-      adminUsersError: null,
-    });
-    return {};
-  },
-  fetchAdminWorkspaces: async () => {
-    set({ adminWorkspacesLoading: true, adminWorkspacesError: null });
-    const { data, error } = await invokeAdminFunction<{ workspaces: AdminWorkspace[] }>({
-      action: ADMIN_ACTIONS.WORKSPACES_LIST,
-    });
-    if (error) {
-      set({ adminWorkspacesLoading: false, adminWorkspacesError: error });
-      return { error };
-    }
-    set({
-      adminWorkspaces: data?.workspaces ?? [],
-      adminWorkspacesLoading: false,
-      adminWorkspacesError: null,
-    });
-    return {};
-  },
-  updateAdminWorkspace: async (workspaceId, name) => {
-    const { error } = await invokeAdminFunction({
-      action: ADMIN_ACTIONS.WORKSPACES_UPDATE,
-      workspaceId,
-      name,
-    });
-    if (error) return { error };
-    return {};
-  },
-  deleteAdminWorkspace: async (workspaceId) => {
-    const { error } = await invokeAdminFunction({
-      action: ADMIN_ACTIONS.WORKSPACES_DELETE,
-      workspaceId,
-    });
-    if (error) return { error };
-    return {};
-  },
-  fetchSuperAdmins: async () => {
-    set({ superAdminsLoading: true, superAdminsError: null });
-    const { data, error } = await invokeAdminFunction<{ superAdmins: SuperAdminUser[] }>({
-      action: ADMIN_ACTIONS.SUPER_ADMINS_LIST,
-    });
-    if (error) {
-      set({ superAdminsLoading: false, superAdminsError: error });
-      return { error };
-    }
-    set({
-      superAdmins: data?.superAdmins ?? [],
-      superAdminsLoading: false,
-      superAdminsError: null,
-    });
-    return {};
-  },
-  createSuperAdmin: async (payload) => {
-    const { data, error } = await invokeAdminFunction<{ warning?: string }>({
-      action: ADMIN_ACTIONS.SUPER_ADMINS_CREATE,
-      email: payload.email,
-      displayName: payload.displayName,
-    });
-    if (error) return { error };
-    return { warning: data?.warning };
-  },
-  deleteSuperAdmin: async (userId) => {
-    const { error } = await invokeAdminFunction({
-      action: ADMIN_ACTIONS.SUPER_ADMINS_DELETE,
-      userId,
-    });
-    if (error) return { error };
-    return {};
-  },
-  fetchBackups: async () => {
-    set({ backupsLoading: true, backupsError: null });
-    const { data, error } = await callBackupApi<{ backups: BackupEntry[] }>(
-      get().session?.access_token,
-      '/backups',
-      { method: 'GET' },
-    );
-    if (error) {
-      set({ backupsLoading: false, backupsError: error });
-      return { error };
-    }
-    set({
-      backups: data?.backups ?? [],
-      backupsLoading: false,
-      backupsError: null,
-    });
-    return {};
-  },
-  createBackup: async () => {
-    const { data, error } = await callBackupApi<{ backup?: BackupEntry }>(
-      get().session?.access_token,
-      '/backups',
-      { method: 'POST' },
-    );
-    if (error) return { error };
-    if (data?.backup) {
-      const createdBackup = data.backup;
-      set((state) => ({
-        backups: [createdBackup, ...state.backups.filter((item) => item.name !== createdBackup.name)],
-      }));
-    }
-    return {};
-  },
-  restoreBackup: async (name) => {
-    const encoded = encodeURIComponent(name);
-    const { error } = await callBackupApi(
-      get().session?.access_token,
-      `/backups/${encoded}/restore`,
-      { method: 'POST' },
-    );
-    if (error) return { error };
-    return {};
-  },
-  uploadBackup: async (file) => {
-    const token = get().session?.access_token;
-    if (!token) return { error: 'Not authenticated.' };
-    const baseUrl = getBackupBaseUrl();
-    if (!baseUrl) return { error: 'Backup service is not configured.' };
-
-    const fileName = file.name.trim();
-    if (!fileName) return { error: 'Invalid backup file name.' };
-
-    const response = await fetch(`${baseUrl}/backups/upload`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/octet-stream',
-        'X-Backup-Name': fileName,
-      },
-      body: file,
-    });
-
-    if (!response.ok) {
-      const message = await parseBackupApiError(response);
-      return { error: message };
-    }
-
-    const data = await response.json().catch(() => ({})) as { backup?: BackupEntry };
-    if (data.backup) {
-      set((state) => ({
-        backups: [data.backup!, ...state.backups.filter((item) => item.name !== data.backup?.name)],
-      }));
-    }
-    return {};
-  },
-  downloadBackup: async (name) => {
-    const token = get().session?.access_token;
-    if (!token) return { error: 'Not authenticated.' };
-    const baseUrl = getBackupBaseUrl();
-    if (!baseUrl) return { error: 'Backup service is not configured.' };
-    if (typeof window === 'undefined') return { error: 'Download is only available in browser.' };
-
-    const encoded = encodeURIComponent(name);
-    const response = await fetch(`${baseUrl}/backups/${encoded}/download`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const message = await parseBackupApiError(response);
-      return { error: message };
-    }
-
-    const blob = await response.blob();
-    const objectUrl = window.URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = objectUrl;
-    anchor.download = name;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 0);
-    return {};
-  },
-  renameBackup: async (name, nextName) => {
-    const trimmed = nextName.trim();
-    if (!trimmed) return { error: 'Backup name is required.' };
-
-    const encoded = encodeURIComponent(name);
-    const { data, error } = await callBackupApi<{ backup?: BackupEntry }>(
-      get().session?.access_token,
-      `/backups/${encoded}`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify({ name: trimmed }),
-      },
-    );
-    if (error) return { error };
-    if (data?.backup) {
-      set((state) => ({
-        backups: [data.backup!, ...state.backups.filter((item) => item.name !== name && item.name !== data.backup?.name)],
-      }));
-    }
-    return {};
-  },
-  deleteBackup: async (name) => {
-    const encoded = encodeURIComponent(name);
-    const { error } = await callBackupApi(
-      get().session?.access_token,
-      `/backups/${encoded}`,
-      { method: 'DELETE' },
-    );
-    if (error) return { error };
-    set((state) => ({
-      backups: state.backups.filter((item) => item.name !== name),
-    }));
-    return {};
-  },
   signOut: async () => {
     set({ signOutRedirectInProgress: true });
     markRecentSignOut();
@@ -807,23 +478,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user: null,
       session: null,
       workspaces: [],
+      workspacesLoaded: false,
       currentWorkspaceId: null,
       currentWorkspaceRole: null,
       members: [],
       membersWorkspaceId: null,
       membersLoading: false,
-      adminUsers: [],
-      adminUsersLoading: false,
-      adminUsersError: null,
-      adminWorkspaces: [],
-      adminWorkspacesLoading: false,
-      adminWorkspacesError: null,
-      superAdmins: [],
-      superAdminsLoading: false,
-      superAdminsError: null,
-      backups: [],
-      backupsLoading: false,
-      backupsError: null,
       profileDisplayName: null,
       profileLocale: null,
       profilePreferences: null,
@@ -849,17 +509,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fetchWorkspaces: async () => {
     const user = get().user;
     if (!user) return;
-    if (get().isSuperAdmin) {
-      set({
-        workspaces: [],
-        currentWorkspaceId: null,
-        currentWorkspaceRole: null,
-        members: [],
-        membersWorkspaceId: null,
-        membersLoading: false,
-      });
-      return;
-    }
 
     const loadWorkspaces = async () => {
       const { data, error } = await supabase
@@ -879,6 +528,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!workspaces) return;
 
     if (workspaces.length === 0) {
+      // The provisioning decision below depends on the super-admin probe,
+      // which runs concurrently in AuthProvider. It flips superAdminLoading
+      // on synchronously before this fetch can reach here, so waiting it out
+      // closes the race without sequencing the whole bootstrap.
+      while (get().superAdminLoading) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      // A workspace-less super admin is the break-glass service account: it
+      // lives in the admin console, so don't auto-provision "My Workspace"
+      // for it. Working super admins (owner with the Keycloak role) come
+      // through here with their real workspaces like everyone else.
+      if (get().isSuperAdmin) {
+        set({
+          workspaces: [],
+          currentWorkspaceId: null,
+          currentWorkspaceRole: null,
+          workspacesLoaded: true,
+        });
+        return;
+      }
       const { error: ensureError } = await supabase.rpc('ensure_initial_workspace', {
         default_workspace_name: 'My Workspace',
       });
@@ -898,19 +567,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const nextRole = workspaces.find((workspace) => workspace.id === nextId)?.role ?? null;
 
-    if (get().isSuperAdmin) {
-      set({
-        workspaces: [],
-        currentWorkspaceId: null,
-        currentWorkspaceRole: null,
-      });
-      return;
-    }
-
     set({
       workspaces,
       currentWorkspaceId: nextId,
       currentWorkspaceRole: nextRole,
+      workspacesLoaded: true,
     });
   },
   fetchProfile: async () => {
@@ -922,7 +583,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, locale, avatar_url, status, purge_after, preferences')
+      .select('display_name, locale, avatar_url, status, purge_after, preferences, welcome_email_sent_at')
       .eq('id', user.id)
       .single();
 
@@ -966,10 +627,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           console.error(localeError);
         }
       }
+      // Requested only after the pending locale is persisted: on the very
+      // first sign-in the profile row is born with the default locale, and
+      // the welcome email must render in the language the user actually
+      // picked before signing in.
+      maybeRequestWelcomeEmail(data?.welcome_email_sent_at);
       return;
     }
 
     useLocaleStore.getState().setLocaleFromProfile(profileLocale);
+    maybeRequestWelcomeEmail(data?.welcome_email_sent_at);
   },
   setCurrentWorkspaceId: (id) => {
     const user = get().user;
@@ -1480,7 +1147,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, preferences')
+      .select('display_name, preferences, marketing_emails_opt_in, push_notifications_opt_in')
       .eq('id', user.id)
       .single();
 
@@ -1491,9 +1158,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return {
       data: {
         displayName: data?.display_name ?? '',
+        marketingEmailsOptIn: Boolean(data?.marketing_emails_opt_in),
+        pushOptIn: Boolean(data?.push_notifications_opt_in),
         preferences: (data?.preferences ?? {}) as Record<string, unknown>,
       },
     };
+  },
+  updateMarketingEmailsOptIn: async (value) => {
+    const user = get().user;
+    if (!user) return { error: 'You are not signed in.' };
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ marketing_emails_opt_in: value })
+      .eq('id', user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+    return {};
+  },
+  updatePushNotificationsOptIn: async (value) => {
+    const user = get().user;
+    if (!user) return { error: 'You are not signed in.' };
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ push_notifications_opt_in: value })
+      .eq('id', user.id);
+
+    if (error) {
+      return { error: error.message };
+    }
+    return {};
   },
   updateProfilePreferences: async (preferences) => {
     const user = get().user;
@@ -1589,13 +1286,5 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     ));
     set({ members });
     return {};
-  },
-  adminForcePurgeAccount: async (targetUserId) => {
-    if (!targetUserId) return { error: 'Target user id is required.' };
-    const { data, error } = await supabase.rpc('admin_force_purge_account', {
-      target_user_id: targetUserId,
-    });
-    if (error) return { error: error.message };
-    return { data: data as { user_id: string; purge_after: string; forced_by: string } };
   },
 }));

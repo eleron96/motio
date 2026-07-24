@@ -330,11 +330,17 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   const getSidebarRowMonogram = useCallback((rowName: string) => getPersonMonogram(rowName, 'U'), []);
 
-  const getAssigneeAvatarInfo = useCallback((rowId: string): { avatarUrl: string | null; userId: string } => {
+  const getAssigneeAvatarInfo = useCallback((rowId: string): { avatarUrl: string | null; userId: string; email: string | null } => {
     const assignee = assignees.find((a) => a.id === rowId);
     const userId = assignee?.userId ?? rowId;
     const member = members.find((m) => m.userId === userId);
-    return { avatarUrl: member?.avatarUrl ?? null, userId };
+    // Workspace profile email wins; assignees without an account (external
+    // people) fall back to the contact email stored on the assignee itself.
+    return {
+      avatarUrl: member?.avatarUrl ?? null,
+      userId,
+      email: member?.email ?? assignee?.email ?? null,
+    };
   }, [assignees, members]);
 
   // Stable noop so MilestoneLayer's onCreateMilestone prop doesn't change every

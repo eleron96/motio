@@ -30,15 +30,21 @@ import {
 } from '@/shared/ui/dropdown-menu';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { SearchInput } from '@/shared/ui/SearchInput';
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Checkbox } from '@/shared/ui/checkbox';
+import { ScrollArea } from '@/shared/ui/scroll-area';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import type { CustomerContact, Project } from '@/features/planner/types/planner';
-import type { ContactEntry } from '@/features/projects/lib/contactList';
-import { searchContactList } from '@/features/projects/lib/contactList';
+import type { ContactEntry, ContactFilterOption } from '@/features/projects/lib/contactList';
+import { buildContactFilterOptions, filterContactEntries } from '@/features/projects/lib/contactList';
 
 interface ContactsPeoplePanelProps {
-  /** People of the selected company (already filtered by the page). */
+  /** People of the selected company bucket, already narrowed by the page-level
+   *  search (the single sidebar search input). */
   entries: ContactEntry[];
+  /** The whole directory — source of the filter dropdown options, so they
+   *  don't shrink while filters/search are active. */
+  allEntries: ContactEntry[];
   /** Header label: company name, or "All contacts" / "No company". */
   title: string;
   /** Pre-fills the company field of a new contact (null = "All"/"No company"). */
@@ -68,8 +74,13 @@ const buildInitials = (name: string): string => {
   return (first + last).toUpperCase() || '·';
 };
 
+const toggleKey = (keys: string[], key: string): string[] => (
+  keys.includes(key) ? keys.filter((existing) => existing !== key) : [...keys, key]
+);
+
 export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
   entries,
+  allEntries,
   title,
   defaultCompany,
   projectById,
@@ -81,13 +92,27 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
   onUpdateExternalPerson,
   onDeleteExternalPerson,
 }) => {
-  const [search, setSearch] = useState('');
   const [form, setForm] = useState<'new' | ContactEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ContactEntry | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [submitting, setSubmitting] = useState(false);
 
-  const visible = useMemo(() => searchContactList(entries, search), [entries, search]);
+  // Tag / company / role filters — OR within a category, AND across them.
+  const [tagKeys, setTagKeys] = useState<string[]>([]);
+  const [companyKeys, setCompanyKeys] = useState<string[]>([]);
+  const [roleKeys, setRoleKeys] = useState<string[]>([]);
+  const hasActiveFilters = tagKeys.length > 0 || companyKeys.length > 0 || roleKeys.length > 0;
+  const clearFilters = () => {
+    setTagKeys([]);
+    setCompanyKeys([]);
+    setRoleKeys([]);
+  };
+  const filterOptions = useMemo(() => buildContactFilterOptions(allEntries), [allEntries]);
+
+  const visible = useMemo(
+    () => filterContactEntries(entries, { tagKeys, companyKeys, roleKeys }),
+    [entries, tagKeys, companyKeys, roleKeys],
+  );
 
   useEffect(() => {
     if (form === null) return;
@@ -168,6 +193,43 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
     ? (form as ContactEntry & { source: { kind: 'external'; memberIds: string[]; projectIds: string[] } })
     : null;
 
+  const renderFilter = (
+    label: string,
+    noneLabel: string,
+    options: ContactFilterOption[],
+    selected: string[],
+    onToggle: (key: string) => void,
+  ) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-9">
+          {label}
+          {selected.length > 0 && (
+            <span className="ml-1.5 rounded-full bg-muted px-1.5 text-[11px] tabular-nums">
+              {selected.length}
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-60 p-2" align="end">
+        <ScrollArea className="max-h-56 pr-2">
+          <div className="space-y-1">
+            {options.map((option) => (
+              <label key={option.key} className="flex cursor-pointer items-center gap-2 py-1">
+                <Checkbox
+                  checked={selected.includes(option.key)}
+                  onCheckedChange={() => onToggle(option.key)}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm">{option.label ?? noneLabel}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">{option.count}</span>
+              </label>
+            ))}
+          </div>
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <div className={`border-b border-border ${sectionPadding}`}>
@@ -176,15 +238,21 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
             <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">{title}</div>
             <div className="text-xs text-muted-foreground">{t`${entries.length} people`}</div>
           </div>
-          <div className="ml-auto flex items-center gap-2">
-            <SearchInput
-              className="w-[200px]"
-              inputClassName="h-9"
-              placeholder={t`Search people`}
-              value={search}
-              onValueChange={setSearch}
-              clearLabel={t`Clear search`}
-            />
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            {renderFilter(t`Tag`, t`No tag`, filterOptions.tags, tagKeys, (key) => (
+              setTagKeys((keys) => toggleKey(keys, key))
+            ))}
+            {renderFilter(t`Company`, t`No company`, filterOptions.companies, companyKeys, (key) => (
+              setCompanyKeys((keys) => toggleKey(keys, key))
+            ))}
+            {renderFilter(t`Role`, t`No role`, filterOptions.roles, roleKeys, (key) => (
+              setRoleKeys((keys) => toggleKey(keys, key))
+            ))}
+            {hasActiveFilters && (
+              <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={clearFilters}>
+                {t`Clear filters`}
+              </Button>
+            )}
             {canEdit && (
               <Button size="sm" className="gap-1" onClick={() => setForm('new')}>
                 <Plus className="h-4 w-4" />
@@ -197,7 +265,16 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
 
       <div className={`flex-1 overflow-auto ${sectionPadding}`}>
         {entries.length === 0 && <div className="text-sm text-muted-foreground">{t`No contacts here yet.`}</div>}
-        {entries.length > 0 && visible.length === 0 && <div className="text-sm text-muted-foreground">{t`No contacts found.`}</div>}
+        {entries.length > 0 && visible.length === 0 && (
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span>{t`No contacts found.`}</span>
+            {hasActiveFilters && (
+              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={clearFilters}>
+                {t`Clear filters`}
+              </Button>
+            )}
+          </div>
+        )}
         {visible.length > 0 && (
           <ul className="divide-y divide-border">
             {visible.map((entry) => {

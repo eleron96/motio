@@ -4,6 +4,7 @@ import { CalendarTimeline } from '@/features/planner/components/timeline/Calenda
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
+import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { Button } from '@/shared/ui/button';
@@ -148,6 +149,8 @@ const PlannerPage = () => {
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
+  const workspacesLoaded = useAuthStore((state) => state.workspacesLoaded);
+  const hasWorkspaces = useAuthStore((state) => state.workspaces.length > 0);
   const fetchMembers = useAuthStore((state) => state.fetchMembers);
   const membersLoading = useAuthStore((state) => state.membersLoading);
   const membersWorkspaceId = useAuthStore((state) => state.membersWorkspaceId);
@@ -392,12 +395,15 @@ const PlannerPage = () => {
     [hideTimelineActions, canEdit, isMobile],
   );
 
-  if (isSuperAdmin) {
-    return <Navigate to="/app/admin/users" replace />;
+  // Only the workspace-less service account lives in the admin console;
+  // a working super admin (owner with the Keycloak role) stays in the app.
+  if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
+    return <Navigate to="/app/admin" replace />;
   }
 
   return (
     <>
+      <PushDeepLink />
 
       {hasActiveFilters && (
         <div className="flex items-center justify-between px-4 py-2 border-b-2 border-sky-500 bg-sky-50 text-sm text-sky-700">

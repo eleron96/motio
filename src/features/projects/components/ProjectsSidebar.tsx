@@ -549,9 +549,12 @@ export const ProjectsSidebar = ({
       {mode === 'contacts' && (
         <>
           <div className="px-4 py-3 border-b border-border">
+            {/* One search for the whole directory: the page filters people by
+                this query and rebuilds the buckets, so the list below already
+                shows only companies that still contain matches. */}
             <SearchInput
               inputClassName="h-8"
-              placeholder={t`Search companies...`}
+              placeholder={t`Search contacts...`}
               value={contactSearch}
               onValueChange={onContactSearchChange}
               clearLabel={t`Clear search`}
@@ -559,13 +562,10 @@ export const ProjectsSidebar = ({
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3">
             {(() => {
-              const query = contactSearch.trim().toLowerCase();
               const named = companyBuckets.filter((bucket) => bucket.company !== null);
               const noCompany = companyBuckets.find((bucket) => bucket.company === null) ?? null;
-              const filteredNamed = query
-                ? named.filter((bucket) => bucket.company!.toLowerCase().includes(query))
-                : named;
               const total = companyBuckets.reduce((sum, bucket) => sum + bucket.count, 0);
+              const hasQuery = contactSearch.trim().length > 0;
               return (
                 <div className="space-y-1">
                   <SelectableListItem
@@ -574,11 +574,12 @@ export const ProjectsSidebar = ({
                     onClick={() => onSelectCompany(ALL_COMPANIES)}
                   >
                     <div className="min-w-0 flex-1 text-sm font-medium">
-                      {t`All contacts`} <span className="text-muted-foreground">{total}</span>
+                      {hasQuery ? t`All results` : t`All contacts`}{' '}
+                      <span className="text-muted-foreground">{total}</span>
                     </div>
                   </SelectableListItem>
-                  {filteredNamed.length > 0 && <div className="my-1 h-px bg-border" />}
-                  {filteredNamed.map((bucket) => (
+                  {named.length > 0 && <div className="my-1 h-px bg-border" />}
+                  {named.map((bucket) => (
                     <SelectableListItem
                       key={bucket.key}
                       selected={selectedCompanyKey === bucket.key}
@@ -591,7 +592,7 @@ export const ProjectsSidebar = ({
                       </div>
                     </SelectableListItem>
                   ))}
-                  {noCompany && !query && (
+                  {noCompany && (
                     <>
                       <div className="my-1 h-px bg-border" />
                       <SelectableListItem
@@ -604,6 +605,9 @@ export const ProjectsSidebar = ({
                         </div>
                       </SelectableListItem>
                     </>
+                  )}
+                  {hasQuery && total === 0 && (
+                    <div className="px-1 py-2 text-xs text-muted-foreground">{t`No contacts found.`}</div>
                   )}
                 </div>
               );

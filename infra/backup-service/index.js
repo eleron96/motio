@@ -18,6 +18,9 @@ const {
   tickDataExportWorker,
   tickDataExportCleanup,
   tickHealthCheck,
+  tickBroadcast,
+  tickPush,
+  tickDeadlineScan,
 } = require('./accountDeletionCron');
 
 const execFileAsync = promisify(execFile);
@@ -72,6 +75,9 @@ const PURGE_CRON = process.env.PURGE_CRON || '0 4 * * *';
 const EXPORT_WORKER_CRON = process.env.EXPORT_WORKER_CRON || '*/5 * * * *';
 const EXPORT_CLEANUP_CRON = process.env.EXPORT_CLEANUP_CRON || '0 5 * * *';
 const ACCOUNT_DELETION_HEALTH_CRON = process.env.ACCOUNT_DELETION_HEALTH_CRON || '15 * * * *';
+const BROADCAST_TICK_CRON = process.env.BROADCAST_TICK_CRON || '*/1 * * * *';
+const PUSH_TICK_CRON = process.env.PUSH_TICK_CRON || '*/1 * * * *';
+const DEADLINE_SCAN_CRON = process.env.DEADLINE_SCAN_CRON || '0 6 * * *';
 const PURGE_CRON_ENABLED = (process.env.PURGE_CRON_ENABLED ?? 'true').toLowerCase() !== 'false';
 const ACCOUNT_DELETION_CRON_ENABLED = Boolean(SUPABASE_INTERNAL_URL && SUPABASE_SERVICE_ROLE_KEY);
 const EXPORT_CLEANUP_BATCH_LIMIT = (() => {
@@ -918,10 +924,26 @@ if (ACCOUNT_DELETION_CRON_ENABLED) {
     catch (_err) { /* уже залогировано внутри */ }
   });
 
+  cron.schedule(BROADCAST_TICK_CRON, async () => {
+    try { await tickBroadcast(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(PUSH_TICK_CRON, async () => {
+    try { await tickPush(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(DEADLINE_SCAN_CRON, async () => {
+    try { await tickDeadlineScan(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
   console.log(
     `Account-deletion cron enabled: purge=${PURGE_CRON} (${PURGE_CRON_ENABLED ? 'on' : 'off'}), `
     + `export-worker=${EXPORT_WORKER_CRON}, export-cleanup=${EXPORT_CLEANUP_CRON}, `
-    + `health=${ACCOUNT_DELETION_HEALTH_CRON}`,
+    + `health=${ACCOUNT_DELETION_HEALTH_CRON}, broadcast=${BROADCAST_TICK_CRON}, `
+    + `push=${PUSH_TICK_CRON}, deadline-scan=${DEADLINE_SCAN_CRON}`,
   );
 } else {
   console.log('Account-deletion cron disabled (SUPABASE_INTERNAL_URL / SUPABASE_SERVICE_ROLE_KEY not set).');

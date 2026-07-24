@@ -31,7 +31,7 @@ const statusOptions = (): DashboardStatus[] =>
     name: s.name as string,
     emoji: null,
     color: s.color as string,
-    isFinal: Boolean(s.is_final) && !Boolean(s.is_cancelled),
+    isFinal: Boolean(s.is_final) && !s.is_cancelled,
     isCancelled: Boolean(s.is_cancelled),
   }));
 

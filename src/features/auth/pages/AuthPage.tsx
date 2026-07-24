@@ -75,6 +75,13 @@ const AuthPage: React.FC = () => {
     const searchParams = new URLSearchParams(location.search);
     return searchParams.get('silent') === '1';
   }, [location.search]);
+  // Landing "Start for free" links here with ?intent=register: the Keycloak
+  // redirect then opens the registration form (prompt=create) instead of the
+  // sign-in form.
+  const registerIntent = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get('intent') === 'register';
+  }, [location.search]);
 
   useEffect(() => {
     if (!signOutRedirectInProgress) return;
@@ -111,7 +118,7 @@ const AuthPage: React.FC = () => {
     const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}${redirectPath}`
       : undefined;
-    signInWithKeycloak(redirectTo, { forceLogin: forceLoginRef.current })
+    signInWithKeycloak(redirectTo, { forceLogin: forceLoginRef.current, register: registerIntent })
       .then(({ error: keycloakError }) => {
         if (keycloakError) {
           setError(keycloakError);
@@ -122,7 +129,7 @@ const AuthPage: React.FC = () => {
         setError(authError instanceof Error ? authError.message : t`Authentication failed.`);
         setSubmitting(false);
       });
-  }, [hasOauthCode, loading, oauthAttempted, oauthError, redirectTarget, signInWithKeycloak, silentMode, user]);
+  }, [hasOauthCode, loading, oauthAttempted, oauthError, redirectTarget, registerIntent, signInWithKeycloak, silentMode, user]);
 
   useEffect(() => {
     if (loading || user || !hasOauthCode || oauthError) return;
@@ -144,7 +151,7 @@ const AuthPage: React.FC = () => {
     const redirectTo = typeof window !== 'undefined'
       ? `${window.location.origin}${redirectPath}`
       : undefined;
-    const { error: keycloakError } = await signInWithKeycloak(redirectTo, { forceLogin: forceLoginRef.current });
+    const { error: keycloakError } = await signInWithKeycloak(redirectTo, { forceLogin: forceLoginRef.current, register: registerIntent });
     if (keycloakError) {
       setError(keycloakError);
       setSubmitting(false);
@@ -174,7 +181,7 @@ const AuthPage: React.FC = () => {
             <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Workspace Planner</div>
           </div>
           <div className="space-y-1">
-            <CardTitle>{t`Sign in required`}</CardTitle>
+            <CardTitle>{registerIntent ? t`Create your account` : t`Sign in required`}</CardTitle>
             <CardDescription>{t`Continue with Keycloak to access the workspace.`}</CardDescription>
           </div>
         </CardHeader>

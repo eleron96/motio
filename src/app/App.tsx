@@ -31,7 +31,13 @@ const PrivacyPage = lazyDefault(() => import("@/features/legal/pages/PrivacyPage
 const TermsPage = lazyDefault(() => import("@/features/legal/pages/TermsPage"), "TermsPage");
 const AuthPage = lazyDefault(() => import("@/features/auth/pages/AuthPage"), "AuthPage");
 const InvitePage = lazyDefault(() => import("@/features/auth/pages/InvitePage"), "InvitePage");
+const AdminLayout = lazyDefault(() => import("@/features/admin/components/AdminLayout"), "AdminLayout");
+const AdminOverviewPage = lazyDefault(() => import("@/features/admin/pages/AdminOverviewPage"), "AdminOverviewPage");
 const AdminUsersPage = lazyDefault(() => import("@/features/admin/pages/AdminUsersPage"), "AdminUsersPage");
+const AdminWorkspacesPage = lazyDefault(() => import("@/features/admin/pages/AdminWorkspacesPage"), "AdminWorkspacesPage");
+const AdminEasterEggsPage = lazyDefault(() => import("@/features/admin/pages/AdminEasterEggsPage"), "AdminEasterEggsPage");
+const AdminBackupsPage = lazyDefault(() => import("@/features/admin/pages/AdminBackupsPage"), "AdminBackupsPage");
+const AdminBroadcastPage = lazyDefault(() => import("@/features/admin/pages/AdminBroadcastPage"), "AdminBroadcastPage");
 const PlannerPage = lazyDefault(() => import("@/features/planner/pages/PlannerPage"), "PlannerPage");
 const DashboardPage = lazyDefault(() => import("@/features/dashboard/pages/DashboardPage"), "DashboardPage");
 const ProjectsPage = lazyDefault(() => import("@/features/projects/pages/ProjectsPage"), "ProjectsPage");
@@ -76,13 +82,19 @@ const App = () => {
                   <Route path="/invite/:inviteToken" element={<InvitePage />} />
                   <Route path="/demo/*" element={<DemoPage />} />
                   <Route
-                    path="/app/admin/users"
                     element={(
                       <ProtectedRoute>
-                        <AdminUsersPage />
+                        <AdminLayout />
                       </ProtectedRoute>
                     )}
-                  />
+                  >
+                    <Route path="/app/admin" element={<AdminOverviewPage />} />
+                    <Route path="/app/admin/users" element={<AdminUsersPage />} />
+                    <Route path="/app/admin/workspaces" element={<AdminWorkspacesPage />} />
+                    <Route path="/app/admin/easter-eggs" element={<AdminEasterEggsPage />} />
+                    <Route path="/app/admin/broadcast" element={<AdminBroadcastPage />} />
+                    <Route path="/app/admin/backups" element={<AdminBackupsPage />} />
+                  </Route>
                   <Route
                     element={(
                       <ProtectedRoute>

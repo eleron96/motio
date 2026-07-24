@@ -11,7 +11,23 @@ export const ADMIN_ACTIONS = {
   SUPER_ADMINS_LIST: 'superAdmins.list',
   SUPER_ADMINS_CREATE: 'superAdmins.create',
   SUPER_ADMINS_DELETE: 'superAdmins.delete',
+  SUPER_ADMINS_WHOAMI: 'superAdmins.whoami',
   KEYCLOAK_SYNC: 'keycloak.sync',
+  EASTER_EGGS_LIST: 'easterEggs.list',
+  EASTER_EGGS_SAVE: 'easterEggs.save',
+  EASTER_EGGS_DELETE: 'easterEggs.delete',
+  BROADCASTS_AUDIENCE: 'broadcasts.audience',
+  BROADCASTS_SEND: 'broadcasts.send',
+  BROADCASTS_PROCESS: 'broadcasts.process',
+  BROADCASTS_LIST: 'broadcasts.list',
+  BROADCASTS_CANCEL: 'broadcasts.cancel',
+  BROADCASTS_TICK: 'broadcasts.tick',
+} as const;
+
+export const PUSH_ACTIONS = {
+  TEST: 'push.test',
+  FLUSH: 'push.flush',
+  DEADLINES_SCAN: 'push.deadlines.scan',
 } as const;
 
 export const INVITE_ACTIONS = {

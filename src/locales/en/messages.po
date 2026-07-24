@@ -222,9 +222,17 @@ msgstr "1 comment"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A deadline is approaching"
+msgstr "A deadline is approaching"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
 msgstr "A person you can reuse across projects."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A task is assigned to me"
+msgstr "A task is assigned to me"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -257,7 +265,7 @@ msgstr "Accepted"
 msgid "Access"
 msgstr "Access"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 msgid "Access denied"
 msgstr "Access denied"
 
@@ -287,6 +295,8 @@ msgstr "Account settings"
 msgid "Action failed"
 msgstr "Action failed"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Actions"
@@ -296,6 +306,7 @@ msgstr "Actions"
 msgid "active"
 msgstr "active"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -447,6 +458,11 @@ msgstr "admin"
 msgid "Admin"
 msgstr "Admin"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Admin sections"
+msgstr "Admin sections"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Advanced filters"
 msgstr "Advanced filters"
@@ -461,6 +477,10 @@ msgstr "After the grace period, all data (comments, tasks, profile) will be anon
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All"
 msgstr "All"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "All active users"
+msgstr "All active users"
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All assignees"
@@ -477,7 +497,7 @@ msgstr "All changes saved"
 msgid "All contacts"
 msgstr "All contacts"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "All current data will be lost."
 msgstr "All current data will be lost."
 
@@ -485,6 +505,10 @@ msgstr "All current data will be lost."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All projects"
 msgstr "All projects"
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "All results"
+msgstr "All results"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -501,6 +525,10 @@ msgstr "All settings"
 msgid "All statuses"
 msgstr "All statuses"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "All subscribers"
+msgstr "All subscribers"
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "All tasks"
 msgstr "All tasks"
@@ -509,9 +537,18 @@ msgstr "All tasks"
 msgid "Analytics"
 msgstr "Analytics"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Announcement"
+msgstr "Announcement"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
+
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "App version"
+msgstr "App version"
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Apply changes to repeating tasks?"
@@ -556,6 +593,14 @@ msgstr "Archived projects are hidden from filters."
 msgid "Area chart"
 msgstr "Area chart"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Assign"
+msgstr "Assign"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Assign an easter egg"
+msgstr "Assign an easter egg"
+
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Assign project"
 msgstr "Assign project"
@@ -572,6 +617,10 @@ msgstr "assigned you to task"
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Assignees"
 msgstr "Assignees"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Audience"
+msgstr "Audience"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Authentication error"
@@ -627,6 +676,14 @@ msgstr "Back to today"
 msgid "Backup & restore"
 msgstr "Backup & restore"
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Backups"
+msgstr "Backups"
+
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Backups stored"
+msgstr "Backups stored"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Bar chart"
 msgstr "Bar chart"
@@ -634,6 +691,18 @@ msgstr "Bar chart"
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Biweekly (every 2 weeks)"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Broadcast"
+msgstr "Broadcast"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Browser notifications"
+msgstr "Browser notifications"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "By email domain"
+msgstr "By email domain"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "By project"
@@ -647,6 +716,10 @@ msgstr "By status"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "By user"
 msgstr "By user"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "By workspace"
+msgstr "By workspace"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
@@ -662,6 +735,8 @@ msgstr "Calendar (month)"
 msgid "Calendar range"
 msgstr "Calendar range"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
@@ -710,6 +785,7 @@ msgstr "Calendar range"
 msgid "Cancel"
 msgstr "Cancel"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Canceled"
 msgstr "Canceled"
@@ -725,6 +801,10 @@ msgstr "Cancelled"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Cancelled status"
 msgstr "Cancelled status"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Change easter egg"
+msgstr "Change easter egg"
 
 #. placeholder {0}: externalForm.source.projectIds.length
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -772,6 +852,10 @@ msgstr "Checking invite..."
 msgid "Choose a customer to see their projects."
 msgstr "Choose a customer to see their projects."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Choose an audience"
+msgstr "Choose an audience"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Choose an heir for workspaces where you are the sole admin."
 msgstr "Choose an heir for workspaces where you are the sole admin."
@@ -805,6 +889,8 @@ msgid "Clear date filter"
 msgstr "Clear date filter"
 
 #: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Clear filters"
@@ -817,7 +903,6 @@ msgstr "Clear photo"
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -880,6 +965,7 @@ msgid "Comments"
 msgstr "Comments"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -928,6 +1014,11 @@ msgstr "Contacts"
 #~ msgid "Contacts arrive in a later phase"
 #~ msgstr "Contacts arrive in a later phase"
 
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+msgid "Contains an image"
+msgstr "Contains an image"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Continue"
@@ -955,6 +1046,10 @@ msgstr "Copy email"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Copy phone"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Couldn't enable notifications. Please try again."
+msgstr "Couldn't enable notifications. Please try again."
 
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Couldn't start the demo session."
@@ -1051,6 +1146,14 @@ msgstr "Create task"
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Create workspace"
 msgstr "Create workspace"
+
+#: src/features/auth/pages/AuthPage.tsx
+msgid "Create your account"
+msgstr "Create your account"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Created"
+msgstr "Created"
 
 #. placeholder {0}: result.created ?? 0
 #: src/features/planner/components/TaskDetailPanel.tsx
@@ -1186,6 +1289,7 @@ msgstr "Data export failed: {0}"
 #~ msgid "Data export ready"
 #~ msgstr "Data export ready"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Date"
@@ -1208,6 +1312,10 @@ msgid "Day off"
 msgstr "Day off"
 
 #: src/features/auth/components/InviteNotifications.tsx
+msgid "Deadline is approaching"
+msgstr "Deadline is approaching"
+
+#: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
 msgstr "Decline"
 
@@ -1220,6 +1328,7 @@ msgstr "Declined"
 msgid "default"
 msgstr "default"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/dashboard/pages/DashboardPage.tsx
@@ -1385,6 +1494,10 @@ msgstr "Deleting a workspace is permanent. Type the workspace name to enable del
 msgid "Deleting…"
 msgstr "Deleting…"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Delivered"
+msgstr "Delivered"
+
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Demo is not configured"
 #~ msgstr "Demo is not configured"
@@ -1527,6 +1640,10 @@ msgstr "E.g. Передано заказчику"
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Easter eggs"
+msgstr "Easter eggs"
+
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -1620,6 +1737,11 @@ msgstr "Editor"
 msgid "Editors and admins add widgets here to build the dashboard."
 msgstr "Editors and admins add widgets here to build the dashboard."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Egg"
+msgstr "Egg"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Email"
 msgstr "Email"
@@ -1691,11 +1813,16 @@ msgstr "Enter workspace name and optionally configure a template."
 msgid "Equals"
 msgstr "Equals"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Error"
 msgstr "Error"
 
@@ -1762,6 +1889,15 @@ msgstr "External"
 msgid "External (not in Motio)"
 msgstr "External (not in Motio)"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "failed"
+msgstr "failed"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Failed"
+msgstr "Failed"
+
 #: src/features/planner/components/TaskCommentSection.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Failed to add comment"
@@ -1816,6 +1952,10 @@ msgstr "Failed to load tasks."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Failed to publish note."
 msgstr "Failed to publish note."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Failed to start the broadcast."
+msgstr "Failed to start the broadcast."
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Failed to update comment"
@@ -1983,6 +2123,10 @@ msgstr "General"
 msgid "Generate a new export"
 msgstr "Generate a new export"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Get notified in this browser about your tasks, even when Motio isn't open."
+msgstr "Get notified in this browser about your tasks, even when Motio isn't open."
+
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Get started for free →"
 #~ msgstr "Get started for free →"
@@ -2080,6 +2224,7 @@ msgstr "High"
 msgid "High priority"
 msgstr "High priority"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/pages/MembersPage.tsx
 msgid "History"
@@ -2108,6 +2253,10 @@ msgstr "Holiday:"
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "I agree to the <0>Privacy Policy</0>"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "I'm mentioned in a comment"
+msgstr "I'm mentioned in a comment"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
@@ -2253,6 +2402,10 @@ msgstr "Last export failed: {0}"
 msgid "Last in series"
 msgstr "Last in series"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Latest backup"
+msgstr "Latest backup"
+
 #: src/shared/lib/accentColor.ts
 msgid "Lavender"
 msgstr "Lavender"
@@ -2300,7 +2453,7 @@ msgstr "Load older comments"
 msgid "Loading available countries..."
 msgstr "Loading available countries..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Loading backups..."
 msgstr "Loading backups..."
 
@@ -2314,6 +2467,10 @@ msgstr "Loading dashboard..."
 msgid "Loading data..."
 msgstr "Loading data..."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Loading easter eggs..."
+msgstr "Loading easter eggs..."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Loading editor..."
@@ -2325,6 +2482,7 @@ msgstr "Loading editor..."
 msgid "Loading groups..."
 msgstr "Loading groups..."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Loading history..."
 msgstr "Loading history..."
@@ -2359,7 +2517,7 @@ msgstr "Loading workload..."
 msgid "Loading workspace..."
 msgstr "Loading workspace..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Loading workspaces..."
 msgstr "Loading workspaces..."
 
@@ -2417,6 +2575,10 @@ msgstr "Mark as read"
 msgid "Mark as unread"
 msgstr "Mark as unread"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Marketing news — only to opted-in users, with an unsubscribe link."
+msgstr "Marketing news — only to opted-in users, with an unsubscribe link."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Match all rules (AND)"
 msgstr "Match all rules (AND)"
@@ -2463,6 +2625,10 @@ msgstr "mentioned you in a comment"
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 msgid "Menu"
 msgstr "Menu"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Message"
+msgstr "Message"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "Milestone"
@@ -2625,6 +2791,14 @@ msgstr "name@example.com"
 msgid "Never"
 msgstr "Never"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "New announcement"
+#~ msgstr "New announcement"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "New broadcast"
+msgstr "New broadcast"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "New contact"
@@ -2762,6 +2936,14 @@ msgstr "No assignees yet."
 msgid "No available members."
 msgstr "No available members."
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "No backups"
+msgstr "No backups"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "No broadcasts yet."
+msgstr "No broadcasts yet."
+
 #: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "No client"
@@ -2771,6 +2953,7 @@ msgstr "No available members."
 msgid "No code"
 msgstr "No code"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -2784,6 +2967,7 @@ msgstr "No company"
 #~ msgstr "No contact details yet."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No contacts found."
 msgstr "No contacts found."
 
@@ -2851,10 +3035,18 @@ msgstr "No data"
 msgid "No description."
 msgstr "No description."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "No device is subscribed in this browser."
+#~ msgstr "No device is subscribed in this browser."
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No disabled members."
 msgstr "No disabled members."
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "No easter eggs assigned."
+msgstr "No easter eggs assigned."
 
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
@@ -3015,6 +3207,14 @@ msgstr "No projects match the current filters."
 msgid "No projects match the current search."
 msgstr "No projects match the current search."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "No recipients match this audience."
+msgstr "No recipients match this audience."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No role"
+msgstr "No role"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "No rules yet."
 msgstr "No rules yet."
@@ -3034,6 +3234,10 @@ msgstr "No SaaS lock-in"
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
 msgstr "No subtasks yet."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No tag"
+msgstr "No tag"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TagMultiSelect.tsx
@@ -3093,6 +3297,10 @@ msgstr "No workspaces need your attention — you can continue."
 msgid "No workspaces."
 msgstr "No workspaces."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "Nobody has opted in yet."
+#~ msgstr "Nobody has opted in yet."
+
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -3112,6 +3320,8 @@ msgstr "Not equals"
 msgid "Not tracked"
 msgstr "Not tracked"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -3131,6 +3341,18 @@ msgstr "Nothing matches the current filters."
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 msgid "Notifications"
 msgstr "Notifications"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Notifications are blocked in this browser. Allow them in the site settings and try again."
+msgstr "Notifications are blocked in this browser. Allow them in the site settings and try again."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Notifications on iPhone and iPad"
+msgstr "Notifications on iPhone and iPad"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
+msgstr "Occasional announcements and tips. Every email has a one-click unsubscribe."
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Occurrences"
@@ -3165,6 +3387,10 @@ msgstr "On Monday I'd open three different tabs to answer one simple question: w
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "One <0>clear timeline</0><1/> for your whole team"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "One of my tasks changes"
+msgstr "One of my tasks changes"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
 msgstr "Only disabled people are available."
@@ -3173,7 +3399,7 @@ msgstr "Only disabled people are available."
 msgid "Only for {scopedAssigneeName}"
 msgstr "Only for {scopedAssigneeName}"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 msgid "Only super admins can access this page."
 msgstr "Only super admins can access this page."
 
@@ -3245,6 +3471,10 @@ msgstr "Open team"
 #~ msgid "Open to a small group of teams"
 #~ msgstr "Open to a small group of teams"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Optional"
+msgstr "Optional"
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "overdue"
 msgstr "overdue"
@@ -3256,6 +3486,10 @@ msgstr "Overdue by {diff}d"
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "overloaded"
 msgstr "overloaded"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Overview"
+msgstr "Overview"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Owner"
@@ -3352,6 +3586,10 @@ msgstr "Period"
 msgid "Phone"
 msgstr "Phone"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Pick a user and an egg."
+msgstr "Pick a user and an egg."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Pie chart (Donut)"
 msgstr "Pie chart (Donut)"
@@ -3374,6 +3612,10 @@ msgstr "Pinned"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Place tasks on the timeline. Assign them to people and projects."
 msgstr "Place tasks on the timeline. Assign them to people and projects."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Plain text. Blank line starts a new paragraph."
+msgstr "Plain text. Blank line starts a new paragraph."
 
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Please select an image file."
@@ -3419,8 +3661,18 @@ msgid "Privacy Policy"
 msgstr "Privacy Policy"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Product news by email"
+msgstr "Product news by email"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Profile"
 msgstr "Profile"
+
+#. placeholder {0}: progress.sent + progress.failed
+#. placeholder {1}: progress.total
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Progress: {0} / {1}"
+msgstr "Progress: {0} / {1}"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -3505,6 +3757,10 @@ msgstr "Purge now"
 msgid "purge_after"
 msgstr "purge_after"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Push notifications aren't available right now."
+msgstr "Push notifications aren't available right now."
+
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #~ msgid "Read or edit a single project activity entry."
@@ -3522,6 +3778,11 @@ msgstr "Read-only"
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Ready to bring clarity to your team?"
 #~ msgstr "Ready to bring clarity to your team?"
+
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Recipients: {0}"
+msgstr "Recipients: {0}"
 
 #: src/shared/lib/repeatLabels.ts
 msgid "Recurring"
@@ -3697,6 +3958,7 @@ msgid "Right-click to add your first widget."
 msgstr "Right-click to add your first widget."
 
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Role"
@@ -3774,6 +4036,24 @@ msgstr "Saved."
 msgid "Saving..."
 msgstr "Saving..."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Schedule"
+msgstr "Schedule"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Schedule this broadcast?"
+msgstr "Schedule this broadcast?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Scheduled"
+msgstr "Scheduled"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Scheduled for"
+msgstr "Scheduled for"
+
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #~ msgid "Scroll left"
 #~ msgstr "Scroll left"
@@ -3794,8 +4074,12 @@ msgstr "Search & filters"
 #~ msgstr "Search activity..."
 
 #: src/features/projects/components/ProjectsSidebar.tsx
-msgid "Search companies..."
-msgstr "Search companies..."
+#~ msgid "Search companies..."
+#~ msgstr "Search companies..."
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "Search contacts..."
+msgstr "Search contacts..."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Search countries..."
@@ -3823,8 +4107,8 @@ msgid "Search notes..."
 msgstr "Search notes..."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "Search people"
-msgstr "Search people"
+#~ msgid "Search people"
+#~ msgstr "Search people"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "Search people and companies..."
@@ -3976,10 +4260,15 @@ msgstr "Select task {0}"
 msgid "Select type"
 msgstr "Select type"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Select user"
+msgstr "Select user"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Select value"
 msgstr "Select value"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Select workspace"
 msgstr "Select workspace"
@@ -3992,17 +4281,59 @@ msgstr "Self-hosted"
 msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
 msgstr "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Send"
+msgstr "Send"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Send a test"
+#~ msgstr "Send a test"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Send invite"
 msgstr "Send invite"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Send now"
+msgstr "Send now"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "Send this announcement?"
+#~ msgstr "Send this announcement?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Send this broadcast?"
+msgstr "Send this broadcast?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Sending"
+msgstr "Sending"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
 msgstr "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sending…"
+#~ msgstr "Sending…"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Sent"
+msgstr "Sent"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sent — check your notifications."
+#~ msgstr "Sent — check your notifications."
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Sent invites"
 msgstr "Sent invites"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Service notice"
+msgstr "Service notice"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "set manually"
@@ -4091,7 +4422,7 @@ msgstr "Sign in"
 msgid "Sign in required"
 msgstr "Sign in required"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 #: src/features/auth/components/AccountRestoreScreen.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/marketing/pages/LandingPage.tsx
@@ -4166,6 +4497,7 @@ msgstr "Start for free →"
 msgid "Start now →"
 msgstr "Start now →"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -4199,6 +4531,19 @@ msgstr "Statuses"
 msgid "Stop tracking"
 msgstr "Stop tracking"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Storage used"
+msgstr "Storage used"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Subject"
+msgstr "Subject"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "Subscribers: {audienceCount}"
+#~ msgstr "Subscribers: {audienceCount}"
+
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask actions"
 msgstr "Subtask actions"
@@ -4213,6 +4558,7 @@ msgstr "Subtask title"
 msgid "Subtasks"
 msgstr "Subtasks"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -4259,6 +4605,10 @@ msgstr "Task density and milestones across the coming months"
 msgid "Task details"
 msgstr "Task details"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Task media across all users"
+msgstr "Task media across all users"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4273,6 +4623,10 @@ msgstr "Task title"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Task types"
 msgstr "Task types"
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "Task update"
+msgstr "Task update"
 
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Task updates"
@@ -4357,9 +4711,13 @@ msgstr "Terracotta"
 msgid "Text value"
 msgstr "Text value"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "The database will be replaced with backup {name}."
 msgstr "The database will be replaced with backup {name}."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "The email will go to {0} subscribed users. This cannot be recalled."
+#~ msgstr "The email will go to {0} subscribed users. This cannot be recalled."
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
@@ -4381,7 +4739,7 @@ msgstr "The selected task does not exist or was deleted."
 msgid "The tool I wanted to use"
 msgstr "The tool I wanted to use"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "The workspace and all its data will be deleted permanently."
 
@@ -4416,6 +4774,15 @@ msgstr "This action is irreversible after the grace period. Read carefully."
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "This and following"
 msgstr "This and following"
+
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "This announcement will go to {0} opted-in users."
+msgstr "This announcement will go to {0} opted-in users."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "This browser can't show notifications here."
+msgstr "This browser can't show notifications here."
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "This comment will be permanently removed and cannot be recovered."
@@ -4486,7 +4853,14 @@ msgstr "This sandbox resets soon. Create a free account to keep this timeline an
 msgid "This section contains invitations, roles and workspace access for your team."
 msgstr "This section contains invitations, roles and workspace access for your team."
 
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "This SERVICE notice will go to {0} active users, ignoring their marketing opt-in. Use only for genuinely essential messages."
+msgstr "This SERVICE notice will go to {0} active users, ignoring their marketing opt-in. Use only for genuinely essential messages."
+
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/planner/components/PushDeepLink.tsx
+#: src/features/planner/components/PushDeepLink.tsx
 msgid "This task has been deleted."
 msgstr "This task has been deleted."
 
@@ -4559,6 +4933,10 @@ msgstr "Title A–Z"
 msgid "Title Z–A"
 msgstr "Title Z–A"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
+msgstr "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
+
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "today"
 msgstr "today"
@@ -4570,6 +4948,10 @@ msgstr "today"
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Today"
 msgstr "Today"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Toggle easter egg"
+msgstr "Toggle easter egg"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Toggle workload heatmap"
@@ -4615,6 +4997,10 @@ msgstr "Tracked project"
 msgid "Tracking"
 msgstr "Tracking"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Transactional — to all active users, no opt-out. Use only for account, maintenance or legal notices."
+msgstr "Transactional — to all active users, no opt-out. Use only for account, maintenance or legal notices."
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Transfer & leave"
 msgstr "Transfer & leave"
@@ -4649,6 +5035,8 @@ msgstr "Try demo — no signup"
 msgid "Try Motio now"
 msgstr "Try Motio now"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4811,6 +5199,10 @@ msgstr "Update milestone details."
 msgid "Update the current dashboard name."
 msgstr "Update the current dashboard name."
 
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "updated a task"
+msgstr "updated a task"
+
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Upload or remove your profile photo."
 msgstr "Upload or remove your profile photo."
@@ -4843,6 +5235,8 @@ msgstr "Use this button to add KPI, chart and milestone widgets to the dashboard
 msgid "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 msgstr "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "User"
@@ -4855,6 +5249,11 @@ msgstr "User UUID"
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "User workspaces"
 msgstr "User workspaces"
+
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Users"
+msgstr "Users"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "View all workspaces where this user is a member."
@@ -4993,6 +5392,8 @@ msgstr "Workspace settings"
 msgid "Workspace template"
 msgstr "Workspace template"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/pages/AdminOverviewPage.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Workspaces"
 msgstr "Workspaces"

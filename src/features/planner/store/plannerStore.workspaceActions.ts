@@ -240,12 +240,13 @@ export const createWorkspaceActions = (
       .from('tags')
       .select('id, workspace_id, name, color')
       .eq('workspace_id', workspaceId);
+    // Milestones are deliberately NOT windowed by the task load range: they are
+    // sparse (a handful per project), and the project card / milestones tab
+    // must show far-future dates that lie outside the ±3-month task window.
     const milestonesQuery = supabase
       .from('milestones')
       .select('id, workspace_id, title, project_id, date, note, status_override, include_in_workload')
-      .eq('workspace_id', workspaceId)
-      .gte('date', start)
-      .lte('date', end);
+      .eq('workspace_id', workspaceId);
 
     const [
       tasksRes,

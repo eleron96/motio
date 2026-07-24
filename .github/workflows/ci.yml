@@ -25,6 +25,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: SQL security lint (SECURITY DEFINER revoke guard)
+        run: bash infra/scripts/lint-security-definer.sh
+
       - name: Typecheck
         run: npm run typecheck
 

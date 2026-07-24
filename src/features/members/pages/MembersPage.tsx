@@ -117,6 +117,8 @@ const MembersPage = () => {
     currentWorkspaceId,
     currentWorkspaceRole,
     isSuperAdmin,
+    workspacesLoaded,
+    hasWorkspaces,
     assignMemberToGroup,
   } = useAuthStore(useShallow((state) => ({
     user: state.user,
@@ -124,6 +126,8 @@ const MembersPage = () => {
     currentWorkspaceId: state.currentWorkspaceId,
     currentWorkspaceRole: state.currentWorkspaceRole,
     isSuperAdmin: state.isSuperAdmin,
+    workspacesLoaded: state.workspacesLoaded,
+    hasWorkspaces: state.workspaces.length > 0,
     assignMemberToGroup: state.updateMemberGroup,
   })));
 
@@ -690,8 +694,8 @@ const MembersPage = () => {
     [mode, isAdmin, canEdit],
   );
 
-  if (isSuperAdmin) {
-    return <Navigate to="/app/admin/users" replace />;
+  if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
+    return <Navigate to="/app/admin" replace />;
   }
 
   return (
