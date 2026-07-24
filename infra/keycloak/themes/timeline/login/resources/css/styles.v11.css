@@ -133,19 +133,6 @@ html.login-pf {
   width: 100%;
 }
 
-#kc-page-title::before {
-  content: "Motio";
-  display: block;
-  margin: 0 0 14px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--timeline-muted);
-  line-height: 1;
-  text-align: center;
-}
-
 .pf-c-form__label-text {
   color: var(--timeline-text);
   font-weight: 500;
@@ -330,6 +317,57 @@ button.select-auth-box-parent {
 
 #timeline-back-home:hover,
 #timeline-back-home:focus {
+  background: #f8fbff;
+  border-color: #c8d7e8;
+  text-decoration: none;
+}
+
+/* Registration entry on the sign-in form: promote the default
+   "New user? Register" one-liner into a visible secondary button so the
+   sign-up path is an explicit choice, not a fine-print link. The base
+   PatternFly theme gives #kc-info its own margins and padding, which pushed
+   this block out of line with the card content — flatten them so the button
+   shares the exact same edges as the form and the footer actions. */
+#kc-info,
+#kc-info-wrapper,
+#kc-registration-container {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+#kc-registration {
+  margin-top: 16px;
+}
+
+#kc-registration span {
+  display: block;
+  text-align: center;
+  color: var(--timeline-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+#kc-registration a {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  /* PatternFly's ".login-pf-signup a" adds margin-left: 10px, which shoved
+     this full-width button out of line with the buttons around it. */
+  margin: 8px 0 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--timeline-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--timeline-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+#kc-registration a:hover,
+#kc-registration a:focus {
   background: #f8fbff;
   border-color: #c8d7e8;
   text-decoration: none;
@@ -663,10 +701,14 @@ button.select-auth-box-parent {
     margin: 0 34px 2px;
     font-size: 34px;
   }
+}
 
-  #kc-page-title::before {
-    margin-bottom: 12px;
-  }
+.login-pf-page #kc-register-form .timeline-password-hint {
+  margin: 8px 0 16px !important;
+  padding: 0 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--timeline-muted, #6b7280);
 }
 
 .timeline-privacy-consent {

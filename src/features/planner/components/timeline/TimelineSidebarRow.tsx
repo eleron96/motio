@@ -4,6 +4,7 @@ import { TimelineDisplayRow } from '@/features/planner/lib/timelineSelectors';
 import { cn } from '@/shared/lib/classNames';
 import { UserAvatar, AvatarSize } from '@/shared/ui/UserAvatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { AssigneeProfileCard } from './AssigneeProfileCard';
 
 interface TimelineSidebarRowProps {
   row: TimelineDisplayRow;
@@ -13,7 +14,7 @@ interface TimelineSidebarRowProps {
   sidebarViewportWidth: number;
   groupMode: GroupMode;
   getMonogram: (name: string) => string;
-  getAvatarInfo: (id: string) => { avatarUrl: string | null; userId: string };
+  getAvatarInfo: (id: string) => { avatarUrl: string | null; userId: string; email: string | null };
 }
 
 export const ASSIGNEE_AVATAR_TIER_BREAKPOINTS = {
@@ -34,6 +35,11 @@ export const resolveAssigneeMinRowHeight = (sidebarWidth: number): number => {
   if (sidebarWidth >= ASSIGNEE_AVATAR_TIER_BREAKPOINTS.compact) return 88;
   return 72;
 };
+
+// Shared styling for the avatar-click profile popover (desktop and mobile).
+const PROFILE_POPOVER_CLASS = 'w-auto min-w-[12rem] max-w-[min(18rem,80vw)] px-5 py-4';
+const AVATAR_TRIGGER_CLASS =
+  'flex-shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1';
 
 const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
   row,
@@ -74,14 +80,14 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
         {isMobileAssigneeTimeline ? (
           showAssigneeAvatar ? (
             (() => {
-              const { avatarUrl, userId } = getAvatarInfo(row.id);
+              const { avatarUrl, userId, email } = getAvatarInfo(row.id);
               return (
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
                       type="button"
                       aria-label={row.name}
-                      className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                      className={AVATAR_TRIGGER_CLASS}
                     >
                       <UserAvatar
                         size="sm"
@@ -93,8 +99,14 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
                       />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side="right" align="center" className="w-auto max-w-[70vw] px-3 py-2 text-sm font-medium">
-                    {row.name}
+                  <PopoverContent side="right" align="center" className={PROFILE_POPOVER_CLASS}>
+                    <AssigneeProfileCard
+                      name={row.name}
+                      email={email}
+                      avatarUrl={avatarUrl}
+                      colorSeed={userId}
+                      initials={getMonogram(row.name)}
+                    />
                   </PopoverContent>
                 </Popover>
               );
@@ -103,16 +115,34 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
         ) : isAssignee ? (
           <>
             {showAssigneeAvatar ? (() => {
-              const { avatarUrl, userId } = getAvatarInfo(row.id);
+              const { avatarUrl, userId, email } = getAvatarInfo(row.id);
               return (
-                <UserAvatar
-                  size={avatarSize}
-                  initials={getMonogram(row.name)}
-                  avatarUrl={avatarUrl}
-                  colorSeed={userId}
-                  showInitialsOverlay
-                  className="flex-shrink-0"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={row.name}
+                      className={AVATAR_TRIGGER_CLASS}
+                    >
+                      <UserAvatar
+                        size={avatarSize}
+                        initials={getMonogram(row.name)}
+                        avatarUrl={avatarUrl}
+                        colorSeed={userId}
+                        showInitialsOverlay
+                      />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="center" className={PROFILE_POPOVER_CLASS}>
+                    <AssigneeProfileCard
+                      name={row.name}
+                      email={email}
+                      avatarUrl={avatarUrl}
+                      colorSeed={userId}
+                      initials={getMonogram(row.name)}
+                    />
+                  </PopoverContent>
+                </Popover>
               );
             })() : null}
             <span

@@ -7,6 +7,102 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.35] - 2026-07-24
+### Fixed
+- The notifications service component is no longer held back by browser caching — push updates reach installed apps right away.
+
+## [0.9.34] - 2026-07-24
+### Added
+- The installed app icon now shows an unread notification badge: it arrives with each push and clears once you have read everything.
+
+## [0.9.33] - 2026-07-24
+### Added
+- Motio can now be installed on your phone as an app. On iPhone, add it to your Home Screen and push notifications arrive right on your phone — even when the app is closed.
+
+## [0.9.32] - 2026-07-23
+### Changed
+- The Contacts tab now has a single search across people, companies, tags, roles and phones. Added tag, company and role filters.
+
+## [0.9.31] - 2026-07-23
+### Fixed
+- Fixed bell notification texts: deadline reminders and task edits no longer show up as "Unknown user assigned you".
+
+## [0.9.30] - 2026-07-23
+### Fixed
+- The Projects tab now shows every project milestone, including far-off ones — previously only the next couple of months were visible. The Milestones block no longer ends up shorter than its neighbors.
+
+## [0.9.29] - 2026-07-22
+### Added
+- The registration form now shows the password requirements below the password field.
+
+## [0.9.28] - 2026-07-21
+### Security
+- Hardened image uploads: only safe image formats are accepted.
+
+## [0.9.27] - 2026-07-21
+### Security
+- Added password strength requirements for sign-up and password changes.
+
+## [0.9.26] - 2026-07-21
+### Security
+- Strengthened data protection by closing several paths for unauthorized access to accounts and workspaces.
+
+## [0.9.25] - 2026-07-20
+### Fixed
+- Fixed dashboards collapsing after switching to the heatmap and back — previously only a page reload would restore them.
+
+## [0.9.24] - 2026-07-20
+### Changed
+- Project notes with an attached image now show a small image badge, so you can spot them before opening the note.
+
+## [0.9.23] - 2026-07-20
+### Changed
+- Clicking a browser notification now opens the task itself on the timeline — a mention opens it with the comments in view.
+
+## [0.9.22] - 2026-07-20
+### Changed
+- No documented changes.
+
+## [0.9.21] - 2026-07-20
+### Added
+- Browser notifications for your tasks: when a task is assigned to you, you're mentioned in a comment, your task changes, or a deadline is near. Turn them on in account settings and pick which events you want.
+
+## [0.9.20] - 2026-07-19
+### Changed
+- Minor internal improvements.
+
+## [0.9.19] - 2026-07-19
+### Changed
+- No documented changes.
+
+## [0.9.18] - 2026-07-19
+### Changed
+- Minor internal improvements.
+
+## [0.9.17] - 2026-07-19
+### Changed
+- No documented changes.
+
+## [0.9.16] - 2026-07-19
+### Fixed
+- Fixed some bugs.
+
+## [0.9.15] - 2026-07-19
+### Changed
+- Minor internal improvements.
+
+## [0.9.14] - 2026-07-19
+### Changed
+- The "Start for free" button now opens the registration form directly, and the sign-in screen has a clear "Create an account" button. Sign-in and registration screens are now fully and consistently translated.
+
+## [0.9.13] - 2026-07-19
+### Added
+- New users now receive a welcome email with getting-started tips after their first sign-in.
+
+## [0.9.12] - 2026-07-18
+### Added
+- Clicking a person's avatar on the timeline opens a card with a larger photo, their name, and email.
+
 ## [0.9.11] - 2026-07-17
 ### Changed
 - The workload heatmap can now be scrolled by dragging it with the left mouse button.

@@ -23,6 +23,21 @@ const STORAGE_BUCKET = "task-media";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour for signed download URLs
 const UTF8_HEADER_PREFIX = "utf8:";
 
+// Strict allowlist of RASTER image types only. Never accept image/svg+xml: an
+// SVG can carry <script> and, if served inline (e.g. opened directly in a tab),
+// executes in our origin — a stored XSS. Raster images cannot execute script.
+const ALLOWED_IMAGE_MIME = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/heic",
+  "image/heif",
+  "image/bmp",
+  "image/tiff",
+]);
+
 const allowedOrigin = (Deno.env.get("APP_URL") ?? "").replace(/\/+$/, "");
 
 const { supabaseAdmin } = createSupabaseClients(supabaseUrl, serviceRoleKey);
@@ -240,8 +255,10 @@ const handleUpload = async (req: Request) => {
   }
 
   const mimeType = (req.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
-  if (!mimeType.startsWith("image/")) {
-    return jsonResponse({ error: "Only image uploads are supported." }, 400);
+  if (!ALLOWED_IMAGE_MIME.has(mimeType)) {
+    return jsonResponse({
+      error: "Unsupported image type. Allowed: PNG, JPEG, GIF, WebP, AVIF, HEIC, BMP, TIFF.",
+    }, 400);
   }
 
   let bytes: Uint8Array;
@@ -396,11 +413,18 @@ const handleDownload = async (req: Request, mediaId: string) => {
     return jsonResponse({ error: "Stored image payload is corrupted." }, 500);
   }
 
+  // Defense-in-depth: only serve known raster types inline. Anything else (e.g.
+  // a legacy SVG) is forced to download as a neutral type, so it can never render
+  // as a document and execute script. nosniff stops MIME-sniffing around it.
+  const storedMime = data.mime_type ?? "";
+  const isSafeRaster = ALLOWED_IMAGE_MIME.has(storedMime);
   return new Response(bytes, {
     status: 200,
     headers: {
       ...corsHeaders,
-      "Content-Type": data.mime_type || "application/octet-stream",
+      "Content-Type": isSafeRaster ? storedMime : "application/octet-stream",
+      "Content-Disposition": isSafeRaster ? "inline" : "attachment",
+      "X-Content-Type-Options": "nosniff",
       "Content-Length": String(bytes.byteLength),
       "Cache-Control": "private, no-store, max-age=0",
     },

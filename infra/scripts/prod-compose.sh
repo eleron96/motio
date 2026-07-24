@@ -77,6 +77,11 @@ if [[ ! -x "infra/scripts/keycloak-ensure-realm-bruteforce.sh" ]]; then
   exit 1
 fi
 
+if [[ ! -x "infra/scripts/keycloak-ensure-realm-passwordpolicy.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-realm-passwordpolicy.sh" >&2
+  exit 1
+fi
+
 if [[ ! -x "infra/scripts/keycloak-backup-db.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-backup-db.sh" >&2
   exit 1
@@ -348,6 +353,7 @@ infra/scripts/keycloak-ensure-realm-branding.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-frontend-url.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-session-policy.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-bruteforce.sh "$env_file"
+infra/scripts/keycloak-ensure-realm-passwordpolicy.sh "$env_file"
 
 if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" == "true" ]]; then
   infra/scripts/keycloak-backup-db.sh "$env_file" "$compose_file"

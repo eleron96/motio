@@ -1,6 +1,6 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { lazyNamed } from '@/shared/lib/lazyComponent';
-import { ResponsiveGridLayout, cloneLayout, useContainerWidth } from 'react-grid-layout';
+import { ResponsiveGridLayout, cloneLayout } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -93,6 +93,38 @@ const getStatsVariantKey = (widget: DashboardWidget) => (
   resolveDashboardIncludeDisabledAssignees(widget) ? 'includeDisabled' : 'activeOnly'
 );
 
+/**
+ * Container-width tracker that survives the canvas being remounted.
+ *
+ * react-grid-layout's own useContainerWidth attaches its ResizeObserver to the
+ * container node exactly once, but this page remounts the canvas on every
+ * dashboards ↔ heatmap switch (the two views wrap it in different parents), so
+ * the observer keeps watching the dead node: it reports width 0 and never
+ * recovers, collapsing every widget until a full page reload. A callback ref
+ * re-attaches the observer to whichever node is currently mounted instead.
+ */
+const useRemountSafeContainerWidth = (initialWidth = 1280) => {
+  const [width, setWidth] = useState(initialWidth);
+  const observerRef = useRef<ResizeObserver | null>(null);
+  const containerRef = useCallback((node: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+    if (!node) return;
+    setWidth(node.offsetWidth);
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver((entries) => {
+        const next = entries[0]?.contentRect.width;
+        // Ignore the 0-width blips a detaching node can emit — a real container
+        // is never 0px wide, and latching 0 is exactly the bug this hook fixes.
+        if (typeof next === 'number' && next > 0) setWidth(next);
+      });
+      observer.observe(node);
+      observerRef.current = observer;
+    }
+  }, []);
+  return { width, containerRef };
+};
+
 const DashboardPage = () => {
   usePageSeo({
     title: 'Motio — Dashboard',
@@ -129,7 +161,7 @@ const DashboardPage = () => {
     startY: number;
     moved: boolean;
   } | null>(null);
-  const { width, containerRef } = useContainerWidth({ measureBeforeMount: true });
+  const { width, containerRef } = useRemountSafeContainerWidth();
   const gridCompactor = useMemo(() => ({
     type: 'vertical' as const,
     allowOverlap: false,
@@ -174,6 +206,7 @@ const DashboardPage = () => {
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
+  const workspacesLoaded = useAuthStore((state) => state.workspacesLoaded);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const currentWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === currentWorkspaceId) ?? null,
@@ -603,8 +636,8 @@ const DashboardPage = () => {
     [canEdit, canAddWidget, isHeatmapView],
   );
 
-  if (isSuperAdmin) {
-    return <Navigate to="/app/admin/users" replace />;
+  if (isSuperAdmin && workspacesLoaded && workspaces.length === 0) {
+    return <Navigate to="/app/admin" replace />;
   }
 
   if (isWorkspaceSwitching) {
@@ -807,9 +840,7 @@ const DashboardPage = () => {
 
   const dashboardCanvas = (
     <div
-      // react-grid-layout types containerRef as RefObject<HTMLDivElement | null>;
-      // cast to the element ref shape React's `ref` prop expects (type-only).
-      ref={containerRef as React.RefObject<HTMLDivElement>}
+      ref={containerRef}
       data-tour="dashboard-canvas"
       className={cn('flex-1 overflow-auto', isTouchReorderMode && 'dashboard-mobile-interactions')}
       style={{

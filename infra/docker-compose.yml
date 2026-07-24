@@ -135,6 +135,8 @@ services:
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
       PGRST_DB_USE_LEGACY_GUCS: "false"
+      # L-1: do not serve the OpenAPI spec (table/column/RPC catalog) to clients.
+      PGRST_OPENAPI_MODE: disabled
 
   realtime:
     image: ghcr.io/supabase/realtime:v2.30.34
@@ -189,6 +191,21 @@ services:
       TASK_MEDIA_USER_QUOTA_BYTES: ${TASK_MEDIA_USER_QUOTA_BYTES:-209715200}
       TASK_MEDIA_WORKSPACE_QUOTA_BYTES: ${TASK_MEDIA_WORKSPACE_QUOTA_BYTES:-2147483648}
       TASK_MEDIA_TOKEN_TTL_SECONDS: ${TASK_MEDIA_TOKEN_TTL_SECONDS:-315360000}
+      # Local dev has no SMTP account: the mailer detects the empty host and
+      # degrades to dry-run (renders + logs instead of sending).
+      MAILER_SMTP_HOST: ${MAILER_SMTP_HOST:-${GOTRUE_SMTP_HOST:-}}
+      MAILER_SMTP_PORT: ${MAILER_SMTP_PORT:-${GOTRUE_SMTP_PORT:-465}}
+      MAILER_SMTP_USER: ${MAILER_SMTP_USER:-${GOTRUE_SMTP_USER:-}}
+      MAILER_SMTP_PASS: ${MAILER_SMTP_PASS:-${GOTRUE_SMTP_PASS:-}}
+      MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL:-${GOTRUE_SMTP_ADMIN_EMAIL:-}}
+      MAILER_FROM_NAME: ${MAILER_FROM_NAME:-${GOTRUE_SMTP_SENDER_NAME:-Motio}}
+      MAILER_WELCOME_ENABLED: ${MAILER_WELCOME_ENABLED:-true}
+      MAILER_DRY_RUN: ${MAILER_DRY_RUN:-0}
+      # Web Push (browser notifications). Empty by default in local dev — the
+      # push function reports "not configured" until a VAPID keypair is set.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@localhost}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
     command: ["start", "--main-service", "/home/deno/functions/main", "--port", "9000"]
@@ -222,6 +239,9 @@ services:
       PURGE_CRON: ${PURGE_CRON:-0 4 * * *}
       PURGE_CRON_ENABLED: ${PURGE_CRON_ENABLED:-true}
       EXPORT_WORKER_CRON: ${EXPORT_WORKER_CRON:-*/5 * * * *}
+      BROADCAST_TICK_CRON: ${BROADCAST_TICK_CRON:-*/1 * * * *}
+      PUSH_TICK_CRON: ${PUSH_TICK_CRON:-*/1 * * * *}
+      DEADLINE_SCAN_CRON: ${DEADLINE_SCAN_CRON:-0 6 * * *}
       EXPORT_CLEANUP_CRON: ${EXPORT_CLEANUP_CRON:-0 5 * * *}
       EXPORT_CLEANUP_BATCH_LIMIT: ${EXPORT_CLEANUP_BATCH_LIMIT:-100}
       ACCOUNT_DELETION_HEALTH_CRON: ${ACCOUNT_DELETION_HEALTH_CRON:-15 * * * *}
@@ -288,6 +308,8 @@ services:
       VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-timeline-supabase}
       VITE_OAUTH2_PROXY_ENABLED: ${VITE_OAUTH2_PROXY_ENABLED:-true}
       VITE_OAUTH2_PROXY_SIGN_OUT_PATH: ${VITE_OAUTH2_PROXY_SIGN_OUT_PATH:-/oauth2/sign_out}
+      VITE_FEATURE_PUSH: ${VITE_FEATURE_PUSH:-false}
+      VITE_PUSH_VAPID_PUBLIC_KEY: ${VITE_PUSH_VAPID_PUBLIC_KEY:-}
       CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ../:/app

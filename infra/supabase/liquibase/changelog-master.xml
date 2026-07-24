@@ -1540,4 +1540,256 @@
     <sqlFile path="../migrations/0112_add_milestone_include_in_workload.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 
+  <changeSet id="0113_add_welcome_email_sent_at.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0113_add_welcome_email_sent_at.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0113_add_welcome_email_sent_at.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0114_add_marketing_emails_opt_in.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0114_add_marketing_emails_opt_in.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0114_add_marketing_emails_opt_in.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0115_add_email_broadcasts.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0115_add_email_broadcasts.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0115_add_email_broadcasts.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0116_broadcast_segments_scheduling.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0116_broadcast_segments_scheduling.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0116_broadcast_segments_scheduling.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0117_broadcast_recipient_claim.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0117_broadcast_recipient_claim.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0117_broadcast_recipient_claim.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0118_add_push_notifications.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0118_add_push_notifications.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0118_add_push_notifications.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0119_push_subscriptions_grants.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0119_push_subscriptions_grants.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0119_push_subscriptions_grants.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0120_push_delivery.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0120_push_delivery.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0120_push_delivery.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0121_notify_task_updated.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0121_notify_task_updated.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0121_notify_task_updated.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0122_scan_upcoming_deadlines.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0122_scan_upcoming_deadlines.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0122_scan_upcoming_deadlines.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0123_push_click_deep_link.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0123_push_click_deep_link.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0123_push_click_deep_link.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0124_revoke_keycloak_identity_helpers_from_public.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0124_revoke_keycloak_identity_helpers_from_public.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0124_revoke_keycloak_identity_helpers_from_public.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0125_secure_active_member_view.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0125_secure_active_member_view.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0125_secure_active_member_view.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0126_revoke_seed_workspace_from_public.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0126_revoke_seed_workspace_from_public.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0126_revoke_seed_workspace_from_public.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0127_lock_down_liquibase_tables.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0127_lock_down_liquibase_tables.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0127_lock_down_liquibase_tables.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0128_profile_lifecycle_guard.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0128_profile_lifecycle_guard.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0128_profile_lifecycle_guard.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0129_guard_workspace_owner_role.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0129_guard_workspace_owner_role.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0129_guard_workspace_owner_role.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
+  <changeSet id="0130_lock_member_activity.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0130_lock_member_activity.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0130_lock_member_activity.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>

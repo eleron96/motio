@@ -222,9 +222,17 @@ msgstr "1 комментарий"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зарезервированных слов."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A deadline is approaching"
+msgstr "Приближается дедлайн"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
 msgstr "Человек, которого можно переиспользовать в проектах."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "A task is assigned to me"
+msgstr "Мне назначили задачу"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -257,7 +265,7 @@ msgstr "Принято"
 msgid "Access"
 msgstr "Доступ"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 msgid "Access denied"
 msgstr "Нет доступа"
 
@@ -287,6 +295,8 @@ msgstr "Настройки аккаунта"
 msgid "Action failed"
 msgstr "Действие не выполнено"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Actions"
@@ -296,6 +306,7 @@ msgstr "Действия"
 msgid "active"
 msgstr "активен"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -447,6 +458,11 @@ msgstr "администратор"
 msgid "Admin"
 msgstr "Администратор"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Admin sections"
+msgstr "Разделы админки"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Advanced filters"
 msgstr "Расширенные фильтры"
@@ -461,6 +477,10 @@ msgstr "После окончания периода восстановлени�
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All"
 msgstr "Все"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "All active users"
+msgstr "Все активные пользователи"
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All assignees"
@@ -477,7 +497,7 @@ msgstr "Все изменения сохранены"
 msgid "All contacts"
 msgstr "Все контакты"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "All current data will be lost."
 msgstr "Все текущие данные будут потеряны."
 
@@ -485,6 +505,10 @@ msgstr "Все текущие данные будут потеряны."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All projects"
 msgstr "Все проекты"
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "All results"
+msgstr "Все результаты"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -501,6 +525,10 @@ msgstr "Все настройки"
 msgid "All statuses"
 msgstr "Все статусы"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "All subscribers"
+msgstr "Все подписчики"
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "All tasks"
 msgstr "Все задачи"
@@ -509,9 +537,18 @@ msgstr "Все задачи"
 msgid "Analytics"
 msgstr "Аналитика"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Announcement"
+msgstr "Анонс"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 msgstr "Любая задача добавляется за 10 секунд. Не потому что мы забыли выкатить больше фич. Это и есть позиция продукта."
+
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "App version"
+msgstr "Версия приложения"
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Apply changes to repeating tasks?"
@@ -556,6 +593,14 @@ msgstr "Архивные проекты скрыты в фильтрах."
 msgid "Area chart"
 msgstr "Площадная диаграмма"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Assign"
+msgstr "Назначить"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Assign an easter egg"
+msgstr "Назначить пасхалку"
+
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Assign project"
 msgstr "Назначить проект"
@@ -572,6 +617,10 @@ msgstr "назначил(а) вас на задачу"
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Assignees"
 msgstr "Исполнители"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Audience"
+msgstr "Аудитория"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Authentication error"
@@ -627,6 +676,14 @@ msgstr "Вернуться к сегодняшней дате"
 msgid "Backup & restore"
 msgstr "Бэкап и восстановление"
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Backups"
+msgstr "Бэкапы"
+
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Backups stored"
+msgstr "Бэкапов хранится"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Bar chart"
 msgstr "Столбчатая диаграмма"
@@ -634,6 +691,18 @@ msgstr "Столбчатая диаграмма"
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Двухнедельная (раз в две недели)"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Broadcast"
+msgstr "Рассылка"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Browser notifications"
+msgstr "Уведомления в браузере"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "By email domain"
+msgstr "По домену почты"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "By project"
@@ -647,6 +716,10 @@ msgstr "По статусу"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "By user"
 msgstr "По пользователю"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "By workspace"
+msgstr "По воркспейсу"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
@@ -662,6 +735,8 @@ msgstr "Календарь (месяц)"
 msgid "Calendar range"
 msgstr "Диапазон календаря"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
@@ -710,6 +785,7 @@ msgstr "Диапазон календаря"
 msgid "Cancel"
 msgstr "Отмена"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Canceled"
 msgstr "Отменено"
@@ -725,6 +801,10 @@ msgstr "Отменен"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Cancelled status"
 msgstr "Отмененный статус"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Change easter egg"
+msgstr "Сменить пасхалку"
 
 #. placeholder {0}: externalForm.source.projectIds.length
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -772,6 +852,10 @@ msgstr "Проверяем приглашение..."
 msgid "Choose a customer to see their projects."
 msgstr "Выберите клиента, чтобы увидеть его проекты."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Choose an audience"
+msgstr "Выберите аудиторию"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Choose an heir for workspaces where you are the sole admin."
 msgstr "Выберите преемника для рабочих пространств, где вы — единственный администратор."
@@ -805,6 +889,8 @@ msgid "Clear date filter"
 msgstr "Сбросить дату"
 
 #: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Clear filters"
@@ -817,7 +903,6 @@ msgstr "Удалить фото"
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -880,6 +965,7 @@ msgid "Comments"
 msgstr "Комментарии"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -928,6 +1014,11 @@ msgstr "Контакты"
 #~ msgid "Contacts arrive in a later phase"
 #~ msgstr "Контакты добавим позже"
 
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityBlock.tsx
+msgid "Contains an image"
+msgstr "Есть вложенная картинка"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Continue"
@@ -955,6 +1046,10 @@ msgstr "Скопировать email"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Скопировать телефон"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Couldn't enable notifications. Please try again."
+msgstr "Не удалось включить уведомления. Попробуйте ещё раз."
 
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Couldn't start the demo session."
@@ -1051,6 +1146,14 @@ msgstr "Создать задачу"
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Create workspace"
 msgstr "Создать воркспейс"
+
+#: src/features/auth/pages/AuthPage.tsx
+msgid "Create your account"
+msgstr "Создание аккаунта"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Created"
+msgstr "Создано"
 
 #. placeholder {0}: result.created ?? 0
 #: src/features/planner/components/TaskDetailPanel.tsx
@@ -1186,6 +1289,7 @@ msgstr "Экспорт данных завершился с ошибкой: {0}"
 #~ msgid "Data export ready"
 #~ msgstr "Экспорт данных готов"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Date"
@@ -1208,6 +1312,10 @@ msgid "Day off"
 msgstr "Выходной"
 
 #: src/features/auth/components/InviteNotifications.tsx
+msgid "Deadline is approaching"
+msgstr "Приближается дедлайн"
+
+#: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
 msgstr "Отклонить"
 
@@ -1220,6 +1328,7 @@ msgstr "Отклонено"
 msgid "default"
 msgstr "по умолчанию"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/dashboard/pages/DashboardPage.tsx
@@ -1385,6 +1494,10 @@ msgstr "Удаление рабочего пространства необра�
 msgid "Deleting…"
 msgstr "Удаление…"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Delivered"
+msgstr "Доставлено"
+
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Demo is not configured"
 #~ msgstr "Демо не настроено"
@@ -1527,6 +1640,10 @@ msgstr "Напр. Передано клиенту"
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Каждое утро начинается с короткого брифа. Что на тебе сегодня, какие майлстоуны на этой неделе, где команде нужна твоя помощь. До того как ты откроешь что-то ещё."
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Easter eggs"
+msgstr "Пасхалки"
+
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -1620,6 +1737,11 @@ msgstr "Редактор"
 msgid "Editors and admins add widgets here to build the dashboard."
 msgstr "Редакторы и администраторы добавляют здесь виджеты, чтобы собрать дашборд."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Egg"
+msgstr "Пасхалка"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Email"
 msgstr "Email"
@@ -1691,11 +1813,16 @@ msgstr "Введите название рабочего пространств�
 msgid "Equals"
 msgstr "Равно"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Error"
 msgstr "Ошибка"
 
@@ -1762,6 +1889,15 @@ msgstr "Внешний"
 msgid "External (not in Motio)"
 msgstr "Внешний (не в Motio)"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "failed"
+msgstr "ошибок"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Failed"
+msgstr "Ошибка"
+
 #: src/features/planner/components/TaskCommentSection.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Failed to add comment"
@@ -1816,6 +1952,10 @@ msgstr "Не удалось загрузить задачи."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Failed to publish note."
 msgstr "Не удалось опубликовать заметку."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Failed to start the broadcast."
+msgstr "Не удалось запустить рассылку."
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Failed to update comment"
@@ -1983,6 +2123,10 @@ msgstr "Общие"
 msgid "Generate a new export"
 msgstr "Сформировать новый экспорт"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Get notified in this browser about your tasks, even when Motio isn't open."
+msgstr "Получайте в этом браузере уведомления о задачах, даже когда Motio закрыт."
+
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Get started for free →"
 #~ msgstr "Начать бесплатно →"
@@ -2080,6 +2224,7 @@ msgstr "Высокий"
 msgid "High priority"
 msgstr "Высокий приоритет"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/pages/MembersPage.tsx
 msgid "History"
@@ -2108,6 +2253,10 @@ msgstr "Праздник:"
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "Я соглашаюсь с <0>Политикой конфиденциальности</0>"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "I'm mentioned in a comment"
+msgstr "Меня упомянули в комментарии"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
@@ -2253,6 +2402,10 @@ msgstr "Последний экспорт завершился с ошибкой
 msgid "Last in series"
 msgstr "Последняя в серии"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Latest backup"
+msgstr "Последний бэкап"
+
 #: src/shared/lib/accentColor.ts
 msgid "Lavender"
 msgstr "Лавандовый"
@@ -2300,7 +2453,7 @@ msgstr "Загрузить более старые комментарии"
 msgid "Loading available countries..."
 msgstr "Загрузка списка стран..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Loading backups..."
 msgstr "Загрузка бэкапов..."
 
@@ -2314,6 +2467,10 @@ msgstr "Загрузка дашборда..."
 msgid "Loading data..."
 msgstr "Загрузка данных..."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Loading easter eggs..."
+msgstr "Загрузка пасхалок..."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Loading editor..."
@@ -2325,6 +2482,7 @@ msgstr "Загрузка редактора..."
 msgid "Loading groups..."
 msgstr "Загрузка групп..."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Loading history..."
 msgstr "Загрузка истории..."
@@ -2359,7 +2517,7 @@ msgstr "Считаем загрузку..."
 msgid "Loading workspace..."
 msgstr "Загрузка воркспейса..."
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Loading workspaces..."
 msgstr "Загрузка воркспейсов..."
 
@@ -2417,6 +2575,10 @@ msgstr "Отметить как прочитанное"
 msgid "Mark as unread"
 msgstr "Отметить как непрочитанное"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Marketing news — only to opted-in users, with an unsubscribe link."
+msgstr "Маркетинговые новости — только подписавшимся, с ссылкой на отписку."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Match all rules (AND)"
 msgstr "Совпадают все правила (И)"
@@ -2463,6 +2625,10 @@ msgstr "упомянул(а) вас в комментарии"
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 msgid "Menu"
 msgstr "Меню"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Message"
+msgstr "Текст"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "Milestone"
@@ -2625,6 +2791,14 @@ msgstr "name@example.com"
 msgid "Never"
 msgstr "Никогда"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "New announcement"
+#~ msgstr "Новый анонс"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "New broadcast"
+msgstr "Новая рассылка"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "New contact"
@@ -2762,6 +2936,14 @@ msgstr "Исполнителей пока нет."
 msgid "No available members."
 msgstr "Нет доступных участников."
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "No backups"
+msgstr "Нет бэкапов"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "No broadcasts yet."
+msgstr "Рассылок ещё не было."
+
 #: src/features/projects/components/ContactsDetailPanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "No client"
@@ -2771,6 +2953,7 @@ msgstr "Нет доступных участников."
 msgid "No code"
 msgstr "Без кода"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -2784,6 +2967,7 @@ msgstr "Без компании"
 #~ msgstr "Контактных данных пока нет."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No contacts found."
 msgstr "Контакты не найдены."
 
@@ -2851,10 +3035,18 @@ msgstr "Нет данных"
 msgid "No description."
 msgstr "Нет описания."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "No device is subscribed in this browser."
+#~ msgstr "В этом браузере нет активной подписки."
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No disabled members."
 msgstr "Нет отключенных участников."
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "No easter eggs assigned."
+msgstr "Пасхалки никому не назначены."
 
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
@@ -3015,6 +3207,14 @@ msgstr "Нет проектов, соответствующих фильтрам
 msgid "No projects match the current search."
 msgstr "Нет проектов под текущий поиск."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "No recipients match this audience."
+msgstr "Под эту аудиторию нет получателей."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No role"
+msgstr "Без роли"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "No rules yet."
 msgstr "Правил пока нет."
@@ -3034,6 +3234,10 @@ msgstr "Без SaaS-привязки"
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
 msgstr "Подзадач пока нет."
+
+#: src/features/projects/components/ContactsPeoplePanel.tsx
+msgid "No tag"
+msgstr "Без тега"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TagMultiSelect.tsx
@@ -3093,6 +3297,10 @@ msgstr "Рабочие пространства не требуют вашего
 msgid "No workspaces."
 msgstr "Нет воркспейсов."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "Nobody has opted in yet."
+#~ msgstr "Пока никто не подписался."
+
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -3112,6 +3320,8 @@ msgstr "Не равно"
 msgid "Not tracked"
 msgstr "Не отслеживается"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -3131,6 +3341,18 @@ msgstr "Ничего не найдено по текущим фильтрам."
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 msgid "Notifications"
 msgstr "Уведомления"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Notifications are blocked in this browser. Allow them in the site settings and try again."
+msgstr "Уведомления заблокированы в этом браузере. Разрешите их в настройках сайта и попробуйте снова."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Notifications on iPhone and iPad"
+msgstr "Уведомления на iPhone и iPad"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
+msgstr "Редкие анонсы и советы. В каждом письме — отписка в один клик."
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Occurrences"
@@ -3165,6 +3387,10 @@ msgstr "В понедельник я мог открыть три разные �
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "Один <0>понятный таймлайн</0><1/> для всей команды"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "One of my tasks changes"
+msgstr "Изменилась моя задача"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
 msgstr "Доступны только отключенные участники."
@@ -3173,7 +3399,7 @@ msgstr "Доступны только отключенные участники.
 msgid "Only for {scopedAssigneeName}"
 msgstr "Только для {scopedAssigneeName}"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 msgid "Only super admins can access this page."
 msgstr "Доступ к админке есть только у супер-администратора."
 
@@ -3245,6 +3471,10 @@ msgstr "Открыть команду"
 #~ msgid "Open to a small group of teams"
 #~ msgstr "Открыто для небольшой группы команд"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Optional"
+msgstr "Необязательно"
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "overdue"
 msgstr "просрочено"
@@ -3256,6 +3486,10 @@ msgstr "Просрочено на {diff} д"
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "overloaded"
 msgstr "перегруз"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Overview"
+msgstr "Обзор"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Owner"
@@ -3352,6 +3586,10 @@ msgstr "Период"
 msgid "Phone"
 msgstr "Телефон"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Pick a user and an egg."
+msgstr "Выберите пользователя и пасхалку."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Pie chart (Donut)"
 msgstr "Круговая диаграмма (пончик)"
@@ -3374,6 +3612,10 @@ msgstr "Закреплено"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Place tasks on the timeline. Assign them to people and projects."
 msgstr "Разместите задачи на таймлайне. Назначьте людей и проекты."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Plain text. Blank line starts a new paragraph."
+msgstr "Обычный текст. Пустая строка — новый абзац."
 
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Please select an image file."
@@ -3419,8 +3661,18 @@ msgid "Privacy Policy"
 msgstr "Политика конфиденциальности"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Product news by email"
+msgstr "Новости продукта на почту"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Profile"
 msgstr "Профиль"
+
+#. placeholder {0}: progress.sent + progress.failed
+#. placeholder {1}: progress.total
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Progress: {0} / {1}"
+msgstr "Прогресс: {0} / {1}"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -3505,6 +3757,10 @@ msgstr "Удалить сейчас"
 msgid "purge_after"
 msgstr "purge_after"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Push notifications aren't available right now."
+msgstr "Push-уведомления сейчас недоступны."
+
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #~ msgid "Read or edit a single project activity entry."
@@ -3522,6 +3778,11 @@ msgstr "Только чтение"
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Ready to bring clarity to your team?"
 #~ msgstr "Готовы навести порядок в команде?"
+
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Recipients: {0}"
+msgstr "Получателей: {0}"
 
 #: src/shared/lib/repeatLabels.ts
 msgid "Recurring"
@@ -3697,6 +3958,7 @@ msgid "Right-click to add your first widget."
 msgstr "Щелкните правой кнопкой, чтобы добавить первый виджет."
 
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Role"
@@ -3774,6 +4036,24 @@ msgstr "Сохранено."
 msgid "Saving..."
 msgstr "Сохранение..."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Schedule"
+msgstr "Запланировать"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Schedule this broadcast?"
+msgstr "Запланировать рассылку?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Scheduled"
+msgstr "Запланирована"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Scheduled for"
+msgstr "Запланировано на"
+
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #~ msgid "Scroll left"
 #~ msgstr "Прокрутить влево"
@@ -3794,8 +4074,12 @@ msgstr "Поиск и фильтры"
 #~ msgstr "Поиск по активности..."
 
 #: src/features/projects/components/ProjectsSidebar.tsx
-msgid "Search companies..."
-msgstr "Поиск компании..."
+#~ msgid "Search companies..."
+#~ msgstr "Поиск компании..."
+
+#: src/features/projects/components/ProjectsSidebar.tsx
+msgid "Search contacts..."
+msgstr "Поиск по контактам..."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Search countries..."
@@ -3823,8 +4107,8 @@ msgid "Search notes..."
 msgstr "Поиск по заметкам..."
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-msgid "Search people"
-msgstr "Поиск по людям"
+#~ msgid "Search people"
+#~ msgstr "Поиск по людям"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "Search people and companies..."
@@ -3976,10 +4260,15 @@ msgstr "Выбрать задачу {0}"
 msgid "Select type"
 msgstr "Выберите тип"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Select user"
+msgstr "Выберите пользователя"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Select value"
 msgstr "Выберите значение"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Select workspace"
 msgstr "Выберите рабочее пространство"
@@ -3992,17 +4281,59 @@ msgstr "Self-hosted"
 msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
 msgstr "Self-hosted планировщик задач для команды на одном экране, общем таймлайне. Без кастомных полей, автоматизаций и шума. Сделан из реальной проектной боли, а не из стартапной теории."
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Send"
+msgstr "Отправить"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Send a test"
+#~ msgstr "Отправить тест"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Send invite"
 msgstr "Отправить приглашение"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Send now"
+msgstr "Отправить сейчас"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "Send this announcement?"
+#~ msgstr "Отправить анонс?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Send this broadcast?"
+msgstr "Отправить рассылку?"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Sending"
+msgstr "Отправляется"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Sending invites needs a real account. Sign up in 30 seconds and we'll bring you back here."
 msgstr "Чтобы отправлять приглашения, нужен настоящий аккаунт. Регистрация — 30 секунд, мы вернём вас сюда."
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sending…"
+#~ msgstr "Отправляем…"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Sent"
+msgstr "Отправлено"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#~ msgid "Sent — check your notifications."
+#~ msgstr "Отправлено — проверьте уведомления."
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Sent invites"
 msgstr "Отправленные приглашения"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Service notice"
+msgstr "Служебное уведомление"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "set manually"
@@ -4091,7 +4422,7 @@ msgstr "Войти"
 msgid "Sign in required"
 msgstr "Требуется вход"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/components/AdminLayout.tsx
 #: src/features/auth/components/AccountRestoreScreen.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/marketing/pages/LandingPage.tsx
@@ -4166,6 +4497,7 @@ msgstr "Начать бесплатно →"
 msgid "Start now →"
 msgstr "Начни сейчас →"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -4199,6 +4531,19 @@ msgstr "Статусы"
 msgid "Stop tracking"
 msgstr "Перестать отслеживать"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Storage used"
+msgstr "Занято места"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Subject"
+msgstr "Тема"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "Subscribers: {audienceCount}"
+#~ msgstr "Подписчиков: {audienceCount}"
+
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask actions"
 msgstr "Действия с подзадачей"
@@ -4213,6 +4558,7 @@ msgstr "Название подзадачи"
 msgid "Subtasks"
 msgstr "Подзадачи"
 
+#: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -4259,6 +4605,10 @@ msgstr "Плотность задач и вехи на ближайшие мес
 msgid "Task details"
 msgstr "Детали задачи"
 
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Task media across all users"
+msgstr "Медиа задач по всем пользователям"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4273,6 +4623,10 @@ msgstr "Название задачи"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Task types"
 msgstr "Типы задач"
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "Task update"
+msgstr "Обновление по задаче"
 
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Task updates"
@@ -4357,9 +4711,13 @@ msgstr "Терракотовый"
 msgid "Text value"
 msgstr "Текстовое значение"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "The database will be replaced with backup {name}."
 msgstr "База данных будет заменена содержимым бэкапа {name}."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#~ msgid "The email will go to {0} subscribed users. This cannot be recalled."
+#~ msgstr "Письмо уйдёт {0} подписанным пользователям. Отозвать его нельзя."
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
@@ -4381,7 +4739,7 @@ msgstr "Выбранная задача не существует или был�
 msgid "The tool I wanted to use"
 msgstr "Инструмент, которым я сам хотел пользоваться"
 
-#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "Воркспейс и все его данные будут удалены без возможности восстановления."
 
@@ -4416,6 +4774,15 @@ msgstr "После окончания периода восстановлени�
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "This and following"
 msgstr "Эта и последующие"
+
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "This announcement will go to {0} opted-in users."
+msgstr "Анонс уйдёт {0} подписанным пользователям."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "This browser can't show notifications here."
+msgstr "Этот браузер не может показывать здесь уведомления."
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "This comment will be permanently removed and cannot be recovered."
@@ -4486,7 +4853,14 @@ msgstr "Песочница скоро сбросится. Создайте бе�
 msgid "This section contains invitations, roles and workspace access for your team."
 msgstr "В этом разделе находятся приглашения, роли и доступ команды к рабочему пространству."
 
+#. placeholder {0}: audienceCount ?? 0
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "This SERVICE notice will go to {0} active users, ignoring their marketing opt-in. Use only for genuinely essential messages."
+msgstr "Это СЛУЖЕБНОЕ уведомление уйдёт {0} активным пользователям, игнорируя их согласие на рассылки. Используйте только для действительно важных сообщений."
+
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/planner/components/PushDeepLink.tsx
+#: src/features/planner/components/PushDeepLink.tsx
 msgid "This task has been deleted."
 msgstr "Эта задача была удалена."
 
@@ -4559,6 +4933,10 @@ msgstr "Название А–Я"
 msgid "Title Z–A"
 msgstr "Название Я–А"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
+msgstr "Чтобы получать пуш-уведомления на iOS, добавьте Motio на экран «Домой»: нажмите «Поделиться» в Safari, выберите «На экран “Домой”», затем включите уведомления здесь, уже в установленном приложении."
+
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "today"
 msgstr "сегодня"
@@ -4570,6 +4948,10 @@ msgstr "сегодня"
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Today"
 msgstr "Сегодня"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Toggle easter egg"
+msgstr "Переключить пасхалку"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Toggle workload heatmap"
@@ -4615,6 +4997,10 @@ msgstr "Отслеживаемый проект"
 msgid "Tracking"
 msgstr "Отслеживание"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Transactional — to all active users, no opt-out. Use only for account, maintenance or legal notices."
+msgstr "Транзакционное — всем активным пользователям, без отписки. Только для писем об аккаунте, работах или правовых изменениях."
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Transfer & leave"
 msgstr "Передать и покинуть"
@@ -4649,6 +5035,8 @@ msgstr "Попробовать демо — без регистрации"
 msgid "Try Motio now"
 msgstr "Попробуйте Motio сейчас"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4811,6 +5199,10 @@ msgstr "Обновите данные вехи."
 msgid "Update the current dashboard name."
 msgstr "Обновите название текущей панели."
 
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "updated a task"
+msgstr "изменил(а) задачу"
+
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Upload or remove your profile photo."
 msgstr "Загрузите или удалите фото профиля."
@@ -4843,6 +5235,8 @@ msgstr "Используйте эту кнопку, чтобы добавить 
 msgid "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
 msgstr "Используйте эту кнопку, чтобы добавить людей в рабочее пространство. После присоединения их можно назначать на задачи проекта."
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "User"
@@ -4855,6 +5249,11 @@ msgstr "UUID пользователя"
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "User workspaces"
 msgstr "Воркспейсы пользователя"
+
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/pages/AdminOverviewPage.tsx
+msgid "Users"
+msgstr "Пользователи"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "View all workspaces where this user is a member."
@@ -4993,6 +5392,8 @@ msgstr "Настройки рабочего пространства"
 msgid "Workspace template"
 msgstr "Шаблон рабочего пространства"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/pages/AdminOverviewPage.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Workspaces"
 msgstr "Рабочие пространства"

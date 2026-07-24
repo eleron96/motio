@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { z } from "npm:zod@3.25.76";
 import { ADMIN_ACTIONS } from "../_shared/actions.ts";
+import { captureException } from "../_shared/sentryCapture.ts";
+import { buildUnsubscribeUrl, getMailerConfig, sendEmail } from "../_shared/mailer.ts";
+import { renderBroadcastEmail } from "../_shared/broadcastEmail.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -29,6 +32,7 @@ import {
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const appUrl = Deno.env.get("APP_URL") ?? "";
 
 const { supabaseAdmin } = createSupabaseClients(supabaseUrl, serviceRoleKey);
 
@@ -104,11 +108,58 @@ const adminRequestSchema = z.discriminatedUnion("action", [
     displayName: z.string().optional(),
   }).strict(),
   z.object({
+    action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI),
+  }).strict(),
+  z.object({
     action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_DELETE),
     userId: z.string().min(1),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.KEYCLOAK_SYNC),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_SAVE),
+    id: z.string().uuid().optional(),
+    userId: z.string().uuid(),
+    eggKey: z.string().min(1).max(64),
+    enabled: z.boolean(),
+    note: z.string().max(500).optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_DELETE),
+    id: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_AUDIENCE),
+    messageType: z.enum(["announcement", "service"]),
+    audienceKind: z.enum(["subscribers", "domain", "workspace", "all_active"]),
+    audienceValue: z.string().max(255).optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_SEND),
+    subject: z.string().min(1).max(200),
+    body: z.string().min(1).max(10000),
+    messageType: z.enum(["announcement", "service"]),
+    audienceKind: z.enum(["subscribers", "domain", "workspace", "all_active"]),
+    audienceValue: z.string().max(255).optional(),
+    scheduledAt: z.string().datetime().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_PROCESS),
+    broadcastId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_CANCEL),
+    broadcastId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.BROADCASTS_TICK),
   }).strict(),
 ]);
 
@@ -138,6 +189,12 @@ const getAuthUser = async (req: Request) => {
   return { user: authData.user };
 };
 
+// Keycloak is the source of truth for super-admin access: the realm role
+// app_super_admin decides, and the super_admins table is only a synced cache.
+// Fail closed: when Keycloak cannot be consulted for a Keycloak-backed user,
+// access is denied rather than trusted from the cache. The one exception is
+// the break-glass reserve admin — a password-based GoTrue user with no
+// Keycloak identity — whose access comes from the table and is alerted on.
 const ensureSuperAdmin = async (userId: string) => {
   const { data: superAdminRow, error } = await supabaseAdmin
     .from("super_admins")
@@ -147,19 +204,38 @@ const ensureSuperAdmin = async (userId: string) => {
 
   const inTable = Boolean(superAdminRow && !error);
 
+  const identityResult = await findKeycloakIdentityForUser(supabaseAdmin, userId);
+  if ("error" in identityResult) {
+    captureException(new Error(`super-admin check failed to read identities: ${identityResult.error}`), {
+      tags: { function: "admin", stage: "ensure-super-admin" },
+    });
+    return false;
+  }
+
+  const providerId = identityResult.identity?.providerId;
+  if (!providerId) {
+    if (inTable) {
+      captureException(new Error("break-glass super-admin access used (no Keycloak identity)"), {
+        tags: { function: "admin", stage: "break-glass-access" },
+      });
+    }
+    return inTable;
+  }
+
   const keycloakReady = ensureKeycloakReady(keycloakConfig);
   if ("error" in keycloakReady) {
-    return inTable;
+    captureException(new Error(`super-admin check denied: Keycloak not configured: ${keycloakReady.error}`), {
+      tags: { function: "admin", stage: "ensure-super-admin" },
+    });
+    return false;
   }
 
-  const identityResult = await findKeycloakIdentityForUser(supabaseAdmin, userId);
-  if ("error" in identityResult || !identityResult.identity?.providerId) {
-    return inTable;
-  }
-
-  const keycloakRoles = await getUserRealmRoles(keycloakConfig, identityResult.identity.providerId);
+  const keycloakRoles = await getUserRealmRoles(keycloakConfig, providerId);
   if ("error" in keycloakRoles) {
-    return inTable;
+    captureException(new Error(`super-admin check denied: Keycloak unavailable: ${keycloakRoles.error}`), {
+      tags: { function: "admin", stage: "ensure-super-admin" },
+    });
+    return false;
   }
 
   const hasSuperAdminRole = (keycloakRoles.roles ?? []).some((role) => role.name === "app_super_admin");
@@ -889,6 +965,529 @@ const handleSuperAdminsDelete = async () => {
   return jsonResponse({ error: "Super admin assignment is managed in Keycloak." }, 400);
 };
 
+// ── Easter eggs: daily-brief overlays assigned per user. Effects live in the
+// frontend catalog; these handlers only manage WHO gets WHICH key. The table
+// enforces at most one ACTIVE egg per user (partial unique index), so enabling
+// one first switches off the user's other active rows.
+const handleEasterEggsList = async () => {
+  const { data: rows, error } = await supabaseAdmin
+    .from("easter_egg_targets")
+    .select("id, egg_key, user_id, enabled, note, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  const userIds = Array.from(new Set((rows ?? []).map((row) => row.user_id)));
+  const profileResult = await getProfileMap(supabaseAdmin, userIds);
+  if ("error" in profileResult) {
+    return jsonResponse({ error: profileResult.error }, 400);
+  }
+
+  const targets = (rows ?? []).map((row) => {
+    const profile = profileResult.profiles.get(row.user_id);
+    return {
+      id: row.id,
+      eggKey: row.egg_key,
+      userId: row.user_id,
+      userEmail: profile?.email ?? null,
+      userDisplayName: profile?.displayName ?? null,
+      enabled: row.enabled,
+      note: row.note,
+      createdAt: row.created_at,
+    };
+  });
+
+  return jsonResponse({ targets });
+};
+
+const handleEasterEggsSave = async (
+  payload: { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string },
+) => {
+  if (payload.enabled) {
+    let disableOthers = supabaseAdmin
+      .from("easter_egg_targets")
+      .update({ enabled: false })
+      .eq("user_id", payload.userId)
+      .eq("enabled", true);
+    if (payload.id) {
+      disableOthers = disableOthers.neq("id", payload.id);
+    }
+    const { error: disableError } = await disableOthers;
+    if (disableError) {
+      return jsonResponse({ error: disableError.message }, 400);
+    }
+  }
+
+  if (payload.id) {
+    const { error } = await supabaseAdmin
+      .from("easter_egg_targets")
+      .update({
+        egg_key: payload.eggKey,
+        enabled: payload.enabled,
+        note: payload.note ?? null,
+      })
+      .eq("id", payload.id);
+    if (error) {
+      return jsonResponse({ error: error.message }, 400);
+    }
+  } else {
+    const { error } = await supabaseAdmin
+      .from("easter_egg_targets")
+      .insert({
+        user_id: payload.userId,
+        egg_key: payload.eggKey,
+        enabled: payload.enabled,
+        note: payload.note ?? null,
+      });
+    if (error) {
+      return jsonResponse({ error: error.message }, 400);
+    }
+  }
+
+  return jsonResponse({ success: true });
+};
+
+const handleEasterEggsDelete = async (payload: { id: string }) => {
+  const { error } = await supabaseAdmin
+    .from("easter_egg_targets")
+    .delete()
+    .eq("id", payload.id);
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+  return jsonResponse({ success: true });
+};
+
+
+// ── Product broadcasts: opt-in announcement emails. The send action
+// snapshots the audience into a queue; process works through it in small
+// batches (the edge runtime has a request time budget, and the frontend
+// keeps calling process until nothing is pending). Single-admin tool — no
+// concurrent-claim machinery on the queue by design.
+const BROADCAST_BATCH_SIZE = 25;
+
+type BroadcastMessageType = "announcement" | "service";
+type BroadcastAudienceKind = "subscribers" | "domain" | "workspace" | "all_active";
+interface AudienceParams {
+  messageType: BroadcastMessageType;
+  audienceKind: BroadcastAudienceKind;
+  audienceValue?: string;
+}
+
+const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Resolve a segment to recipient rows (id + email). Enforces the consent
+// boundary in code: only announcements respect the marketing opt-in; service
+// (transactional) mail goes to the whole ACTIVE segment. Returns an error
+// string for a malformed segment value rather than silently emailing nobody
+// or — worse — everybody.
+const resolveBroadcastAudience = async (
+  params: AudienceParams,
+): Promise<{ recipients: Array<{ id: string; email: string }> } | { error: string }> => {
+  const optInGate = params.messageType === "announcement";
+
+  const finalize = (rows: Array<{ id: string; email: string | null }>) => ({
+    recipients: rows
+      .filter((row) => Boolean(row.email))
+      .map((row) => ({ id: row.id, email: row.email as string })),
+  });
+
+  if (params.audienceKind === "workspace") {
+    const workspaceId = (params.audienceValue ?? "").trim();
+    if (!UUID_RE.test(workspaceId)) {
+      return { error: "A valid workspace must be selected." };
+    }
+    const { data: memberRows, error: memberError } = await supabaseAdmin
+      .from("workspace_members")
+      .select("user_id")
+      .eq("workspace_id", workspaceId);
+    if (memberError) return { error: memberError.message };
+    const userIds = Array.from(new Set((memberRows ?? []).map((row) => row.user_id)));
+    if (userIds.length === 0) return { recipients: [] };
+
+    let query = supabaseAdmin
+      .from("profiles")
+      .select("id, email")
+      .in("id", userIds)
+      .eq("status", "ACTIVE");
+    if (optInGate) query = query.eq("marketing_emails_opt_in", true);
+    const { data, error } = await query;
+    if (error) return { error: error.message };
+    return finalize(data ?? []);
+  }
+
+  let query = supabaseAdmin
+    .from("profiles")
+    .select("id, email")
+    .eq("status", "ACTIVE");
+
+  // Consent gate is purely a function of message type: announcements always
+  // respect the opt-in (every segment kind, including all_active which then
+  // just equals "subscribers"); service mail never applies it.
+  if (optInGate) {
+    query = query.eq("marketing_emails_opt_in", true);
+  }
+
+  if (params.audienceKind === "domain") {
+    const domain = (params.audienceValue ?? "").trim().replace(/^@/, "").toLowerCase();
+    // Validated against a strict domain regex, so it cannot carry PostgREST
+    // ilike metacharacters (%, _, comma) that would broaden the match.
+    if (!DOMAIN_RE.test(domain)) {
+      return { error: "Enter a valid email domain, e.g. example.com." };
+    }
+    query = query.ilike("email", `%@${domain}`);
+  }
+
+  // "subscribers" adds nothing beyond the opt-in gate above; "all_active"
+  // (service only in practice) deliberately skips the gate.
+  const { data, error } = await query;
+  if (error) return { error: error.message };
+  return finalize(data ?? []);
+};
+
+const handleBroadcastsAudience = async (payload: AudienceParams) => {
+  const resolved = await resolveBroadcastAudience(payload);
+  if ("error" in resolved) {
+    return jsonResponse({ error: resolved.error }, 400);
+  }
+  return jsonResponse({ count: resolved.recipients.length });
+};
+
+// Snapshot the resolved audience into the queue. The broadcast row is already
+// 'sending' by the time this runs (immediate send inserts it so; the ticker
+// atomically promotes a due scheduled row before calling). Records
+// total_recipients and finalizes an empty audience to 'sent'.
+const queueBroadcastRecipients = async (
+  broadcastId: string,
+  params: AudienceParams,
+): Promise<{ total: number } | { error: string }> => {
+  const resolved = await resolveBroadcastAudience(params);
+  if ("error" in resolved) {
+    // Terminal: an unresolved audience must not leave the row stuck 'sending'
+    // with an empty queue, which would jam the ticker's oldest-first pipeline.
+    await supabaseAdmin
+      .from("email_broadcasts")
+      .update({ status: "failed", finished_at: new Date().toISOString() })
+      .eq("id", broadcastId);
+    return { error: resolved.error };
+  }
+  const audience = resolved.recipients;
+
+  if (audience.length === 0) {
+    await supabaseAdmin
+      .from("email_broadcasts")
+      .update({ status: "sent", total_recipients: 0, finished_at: new Date().toISOString() })
+      .eq("id", broadcastId);
+    return { total: 0 };
+  }
+
+  const { error: queueError } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .insert(audience.map((row) => ({
+      broadcast_id: broadcastId,
+      user_id: row.id,
+      email: row.email,
+    })));
+  if (queueError) {
+    await supabaseAdmin
+      .from("email_broadcasts")
+      .update({ status: "failed", finished_at: new Date().toISOString() })
+      .eq("id", broadcastId);
+    return { error: queueError.message };
+  }
+
+  await supabaseAdmin
+    .from("email_broadcasts")
+    .update({ total_recipients: audience.length })
+    .eq("id", broadcastId);
+  return { total: audience.length };
+};
+
+const handleBroadcastsSend = async (
+  payload: {
+    subject: string;
+    body: string;
+    messageType: BroadcastMessageType;
+    audienceKind: BroadcastAudienceKind;
+    audienceValue?: string;
+    scheduledAt?: string;
+  },
+  actorId: string,
+) => {
+  // Scheduled for the future → store the intent; the ticker resolves the
+  // audience and sends at fire time (kept fresh, and independent of the tab).
+  const scheduledAtMs = payload.scheduledAt ? Date.parse(payload.scheduledAt) : NaN;
+  const isScheduled = Number.isFinite(scheduledAtMs) && scheduledAtMs > Date.now() + 30_000;
+
+  const { data: broadcast, error: insertError } = await supabaseAdmin
+    .from("email_broadcasts")
+    .insert({
+      subject: payload.subject,
+      body: payload.body,
+      created_by: actorId,
+      message_type: payload.messageType,
+      audience_kind: payload.audienceKind,
+      audience_value: payload.audienceValue ?? null,
+      status: isScheduled ? "scheduled" : "sending",
+      scheduled_at: isScheduled ? new Date(scheduledAtMs).toISOString() : null,
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !broadcast) {
+    return jsonResponse({ error: insertError?.message ?? "Failed to create broadcast" }, 400);
+  }
+
+  if (isScheduled) {
+    return jsonResponse({ broadcastId: broadcast.id, scheduled: true });
+  }
+
+  const queued = await queueBroadcastRecipients(broadcast.id, payload);
+  if ("error" in queued) {
+    return jsonResponse({ error: queued.error }, 400);
+  }
+  return jsonResponse({ broadcastId: broadcast.id, total: queued.total });
+};
+
+const handleBroadcastsCancel = async (payload: { broadcastId: string }) => {
+  const { data, error } = await supabaseAdmin
+    .from("email_broadcasts")
+    .update({ status: "canceled", finished_at: new Date().toISOString() })
+    .eq("id", payload.broadcastId)
+    .eq("status", "scheduled")
+    .select("id")
+    .maybeSingle();
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+  if (!data) {
+    return jsonResponse({ error: "Only a scheduled broadcast can be canceled." }, 409);
+  }
+  return jsonResponse({ success: true });
+};
+
+// Cron entry point: promote due scheduled broadcasts into the queue, then
+// process one batch of the oldest in-flight broadcast. This makes delivery
+// independent of the admin tab and delivers scheduled sends.
+const handleBroadcastsTick = async () => {
+  const nowIso = new Date().toISOString();
+  const { data: due } = await supabaseAdmin
+    .from("email_broadcasts")
+    .select("id, message_type, audience_kind, audience_value")
+    .eq("status", "scheduled")
+    .lte("scheduled_at", nowIso)
+    .order("scheduled_at", { ascending: true })
+    .limit(5);
+
+  for (const row of due ?? []) {
+    // Atomically claim the scheduled row before resolving its audience, so a
+    // concurrent cancel (which requires status='scheduled') or another tick
+    // cannot double-promote it. Only the winner queues recipients.
+    const { data: promoted } = await supabaseAdmin
+      .from("email_broadcasts")
+      .update({ status: "sending" })
+      .eq("id", row.id)
+      .eq("status", "scheduled")
+      .select("id")
+      .maybeSingle();
+    if (!promoted) continue;
+
+    await queueBroadcastRecipients(row.id, {
+      messageType: row.message_type as BroadcastMessageType,
+      audienceKind: row.audience_kind as BroadcastAudienceKind,
+      audienceValue: row.audience_value ?? undefined,
+    });
+  }
+
+  const { data: inflight } = await supabaseAdmin
+    .from("email_broadcasts")
+    .select("id")
+    .eq("status", "sending")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (inflight) {
+    return processBroadcastBatch(inflight.id);
+  }
+  return jsonResponse({ promoted: (due ?? []).length, processed: 0 });
+};
+
+const handleBroadcastsProcess = (payload: { broadcastId: string }) =>
+  processBroadcastBatch(payload.broadcastId);
+
+const processBroadcastBatch = async (broadcastId: string) => {
+  // Atomically claim a batch (FOR UPDATE SKIP LOCKED, flips pending->sending):
+  // the admin tab's loop and the cron ticker can run concurrently without ever
+  // grabbing the same recipient, so nobody is emailed twice.
+  const { data: claimed, error: claimError } = await supabaseAdmin
+    .rpc("claim_broadcast_recipients", { p_broadcast_id: broadcastId, p_limit: BROADCAST_BATCH_SIZE });
+
+  if (claimError) {
+    return jsonResponse({ error: claimError.message }, 400);
+  }
+
+  const batch = (claimed ?? []) as Array<{ id: string; user_id: string; email: string }>;
+
+  if (batch.length > 0) {
+    const { data: broadcast, error: broadcastError } = await supabaseAdmin
+      .from("email_broadcasts")
+      .select("subject, body, message_type")
+      .eq("id", broadcastId)
+      .single();
+    if (broadcastError || !broadcast) {
+      return jsonResponse({ error: broadcastError?.message ?? "Broadcast not found" }, 404);
+    }
+
+    // Service (transactional) mail carries no unsubscribe link or header —
+    // only marketing announcements do.
+    const isAnnouncement = broadcast.message_type !== "service";
+
+    // Re-fetch each recipient's live consent + status: honoring an opt-out or
+    // account deletion that happened AFTER the audience was snapshotted. Also
+    // supplies the render locale.
+    const profileOf = new Map<string, { locale: string; status: string; optIn: boolean }>();
+    const { data: profileRows } = await supabaseAdmin
+      .from("profiles")
+      .select("id, locale, status, marketing_emails_opt_in")
+      .in("id", batch.map((row) => row.user_id));
+    (profileRows ?? []).forEach((row) => profileOf.set(row.id, {
+      locale: row.locale,
+      status: row.status,
+      optIn: Boolean(row.marketing_emails_opt_in),
+    }));
+
+    const mailerConfig = getMailerConfig();
+
+    for (const recipient of batch) {
+      const profile = profileOf.get(recipient.user_id);
+      const active = profile?.status === "ACTIVE";
+      // Announcements must still be opted-in at send time; service mail only
+      // requires an active account.
+      const eligible = active && (!isAnnouncement || profile?.optIn === true);
+      if (!eligible) {
+        await supabaseAdmin
+          .from("email_broadcast_recipients")
+          .update({ status: "skipped" })
+          .eq("id", recipient.id);
+        continue;
+      }
+
+      const unsubscribeUrl = isAnnouncement
+        ? await buildUnsubscribeUrl(appUrl, recipient.user_id)
+        : null;
+      const rendered = renderBroadcastEmail({
+        locale: profile?.locale === "ru" ? "ru" : "en",
+        messageType: isAnnouncement ? "announcement" : "service",
+        subject: broadcast.subject,
+        body: broadcast.body,
+        unsubscribeUrl,
+      });
+
+      try {
+        await sendEmail(mailerConfig, {
+          to: recipient.email,
+          subject: rendered.subject,
+          html: rendered.html,
+          text: rendered.text,
+          ...(unsubscribeUrl ? { headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` } } : {}),
+        });
+        await supabaseAdmin
+          .from("email_broadcast_recipients")
+          .update({ status: "sent", sent_at: new Date().toISOString() })
+          .eq("id", recipient.id);
+      } catch (sendError) {
+        await supabaseAdmin
+          .from("email_broadcast_recipients")
+          .update({ status: "failed", error: String(sendError).slice(0, 500) })
+          .eq("id", recipient.id);
+        captureException(sendError, { tags: { function: "admin", stage: "broadcast-send" } });
+      }
+
+      // Gentle pacing for the SMTP relay.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+  }
+
+  const { count: sentCount } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id", { count: "exact", head: true })
+    .eq("broadcast_id", broadcastId)
+    .eq("status", "sent");
+  const { count: failedCount } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id", { count: "exact", head: true })
+    .eq("broadcast_id", broadcastId)
+    .eq("status", "failed");
+  // "Done" means nothing is pending AND nothing is mid-flight ('sending' left
+  // by another concurrent processor) — so the last finisher marks it sent.
+  const { count: unfinished } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id", { count: "exact", head: true })
+    .eq("broadcast_id", broadcastId)
+    .in("status", ["pending", "sending"]);
+  // Guard against the window where a broadcast is already 'sending' but its
+  // recipients haven't been inserted yet (send/promote commits the row before
+  // queueBroadcastRecipients commits the queue). Never finalize an unpopulated
+  // queue to 'sent' — a genuinely empty audience is finalized inside
+  // queueBroadcastRecipients and never reaches this path as 'sending'.
+  const { count: totalRows } = await supabaseAdmin
+    .from("email_broadcast_recipients")
+    .select("id", { count: "exact", head: true })
+    .eq("broadcast_id", broadcastId);
+
+  const remaining = unfinished ?? 0;
+  const done = (totalRows ?? 0) > 0 && remaining === 0;
+  await supabaseAdmin
+    .from("email_broadcasts")
+    .update({
+      sent_count: sentCount ?? 0,
+      failed_count: failedCount ?? 0,
+      ...(done ? { status: "sent", finished_at: new Date().toISOString() } : {}),
+    })
+    .eq("id", broadcastId);
+
+  return jsonResponse({
+    remaining,
+    processed: batch.length,
+    sentCount: sentCount ?? 0,
+    failedCount: failedCount ?? 0,
+    done,
+  });
+};
+
+const handleBroadcastsList = async () => {
+  const { data, error } = await supabaseAdmin
+    .from("email_broadcasts")
+    .select("id, subject, status, message_type, audience_kind, audience_value, total_recipients, sent_count, failed_count, scheduled_at, created_at, finished_at")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  return jsonResponse({
+    broadcasts: (data ?? []).map((row) => ({
+      id: row.id,
+      subject: row.subject,
+      status: row.status,
+      messageType: row.message_type,
+      audienceKind: row.audience_kind,
+      audienceValue: row.audience_value,
+      totalRecipients: row.total_recipients,
+      sentCount: row.sent_count,
+      failedCount: row.failed_count,
+      scheduledAt: row.scheduled_at,
+      createdAt: row.created_at,
+      finishedAt: row.finished_at,
+    })),
+  });
+};
+
 const handleKeycloakSync = async () => {
   const result = await syncAllUsersToKeycloak();
 
@@ -951,9 +1550,30 @@ export const handler = async (req: Request) => {
     });
   }
 
+  // The broadcast ticker is invoked by the backup-service cron with the
+  // service-role key (no user session), like bootstrap.sync. Gate it on the
+  // key and run before the super-admin check.
+  if (action === ADMIN_ACTIONS.BROADCASTS_TICK) {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
+    if (!token || token !== serviceRoleKey) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    return handleBroadcastsTick();
+  }
+
   const authResult = await getAuthUser(req);
   if ("error" in authResult) {
     return jsonResponse({ error: authResult.error }, authResult.status ?? 401);
+  }
+
+  // whoami is the only action available to every signed-in user: it answers
+  // "am I a super admin?" and, as a side effect, syncs the cache table with
+  // the Keycloak role — this is what lets a role granted in Keycloak surface
+  // in the app without any manual table edits.
+  if (action === ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI) {
+    const whoamiIsSuperAdmin = await ensureSuperAdmin(authResult.user.id);
+    return jsonResponse({ isSuperAdmin: whoamiIsSuperAdmin });
   }
 
   const isSuperAdmin = await ensureSuperAdmin(authResult.user.id);
@@ -989,6 +1609,32 @@ export const handler = async (req: Request) => {
       return handleSuperAdminsDelete();
     case ADMIN_ACTIONS.KEYCLOAK_SYNC:
       return handleKeycloakSync();
+    case ADMIN_ACTIONS.EASTER_EGGS_LIST:
+      return handleEasterEggsList();
+    case ADMIN_ACTIONS.EASTER_EGGS_SAVE:
+      return handleEasterEggsSave(payload as { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string });
+    case ADMIN_ACTIONS.EASTER_EGGS_DELETE:
+      return handleEasterEggsDelete(payload as { id: string });
+    case ADMIN_ACTIONS.BROADCASTS_AUDIENCE:
+      return handleBroadcastsAudience(payload as AudienceParams);
+    case ADMIN_ACTIONS.BROADCASTS_SEND:
+      return handleBroadcastsSend(
+        payload as {
+          subject: string;
+          body: string;
+          messageType: BroadcastMessageType;
+          audienceKind: BroadcastAudienceKind;
+          audienceValue?: string;
+          scheduledAt?: string;
+        },
+        authResult.user.id,
+      );
+    case ADMIN_ACTIONS.BROADCASTS_PROCESS:
+      return handleBroadcastsProcess(payload as { broadcastId: string });
+    case ADMIN_ACTIONS.BROADCASTS_LIST:
+      return handleBroadcastsList();
+    case ADMIN_ACTIONS.BROADCASTS_CANCEL:
+      return handleBroadcastsCancel(payload as { broadcastId: string });
     default:
       return jsonResponse({ error: "Unknown action" }, 400);
   }

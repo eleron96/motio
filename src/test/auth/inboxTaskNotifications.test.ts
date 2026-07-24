@@ -66,4 +66,61 @@ describe('mapInboxTaskNotifications', () => {
     expect(notifications[0]?.commentId).toBeNull();
     expect(notifications[0]?.commentPreview).toBeNull();
   });
+
+  it('passes deadline_approaching and task_updated through with their own types', () => {
+    const notifications = mapInboxTaskNotifications(
+      [
+        {
+          id: 'notification-3',
+          workspace_id: 'workspace-1',
+          actor_user_id: null,
+          type: 'deadline_approaching',
+          task_id: 'task-1',
+          task_title_snapshot: 'Поправить ТЭП АК',
+          task_start_date_snapshot: '2026-07-22',
+          created_at: '2026-07-23T06:00:00.000Z',
+          read_at: null,
+        },
+        {
+          id: 'notification-4',
+          workspace_id: 'workspace-1',
+          actor_user_id: 'user-2',
+          type: 'task_updated',
+          task_id: 'task-1',
+          task_title_snapshot: 'Поправить ТЭП АК',
+          task_start_date_snapshot: '2026-07-22',
+          created_at: '2026-07-23T07:00:00.000Z',
+          read_at: null,
+        },
+      ],
+      new Map([['workspace-1', 'Workspace']]),
+      new Map([['user-2', { displayName: 'Anna', email: 'anna@example.com' }]]),
+      new Map([['task-1', { title: 'Поправить ТЭП АК', startDate: '2026-07-22' }]]),
+    );
+
+    expect(notifications.map((n) => n.type)).toEqual(['deadline_approaching', 'task_updated']);
+    expect(notifications[0]?.actorUserId).toBeNull();
+    expect(notifications[0]?.actorDisplayName).toBeNull();
+  });
+
+  it('drops rows whose type this build does not know instead of relabeling them', () => {
+    const notifications = mapInboxTaskNotifications(
+      [{
+        id: 'notification-5',
+        workspace_id: 'workspace-1',
+        actor_user_id: null,
+        type: 'future_notification_type',
+        task_id: 'task-1',
+        task_title_snapshot: 'Task title',
+        task_start_date_snapshot: '2026-07-22',
+        created_at: '2026-07-23T06:00:00.000Z',
+        read_at: null,
+      }],
+      new Map([['workspace-1', 'Workspace']]),
+      new Map(),
+      new Map(),
+    );
+
+    expect(notifications).toEqual([]);
+  });
 });

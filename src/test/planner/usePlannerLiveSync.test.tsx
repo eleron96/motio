@@ -195,17 +195,16 @@ const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
             return {
               in: (_inField: string, ids: string[]) => milestoneFlush(ids, ctx),
               gt: (_gtField: string, _since: string) => ({
-                gte: (_gteField: string, _start: string) => ({
-                  lte: (_lteField: string, _end: string) => ({
-                    order: (_orderField: string, _opts: { ascending: boolean }) => ({
-                      limit: (_limit: number) => milestoneDelta(ctx),
-                    }),
-                  }),
+                order: (_orderField: string, _opts: { ascending: boolean }) => ({
+                  limit: (_limit: number) => milestoneDelta(ctx),
                 }),
               }),
-              gte: (_gteField: string, _start: string) => ({
-                lte: (_lteField: string, _end: string) => milestoneIds(ctx),
-              }),
+              // Milestone queries are not windowed by date: the id-list query
+              // awaits the builder right after `.eq(...)`, so the chain object
+              // itself must be thenable.
+              then: (...args: Parameters<QueryResult<Array<{ id: string }>>['then']>) => (
+                milestoneIds(ctx).then(...args)
+              ),
             };
           },
         }),
@@ -293,6 +292,59 @@ describe('usePlannerLiveSync', () => {
 
     expect(supabaseMocks.from).toHaveBeenCalledWith('tasks');
     expect(usePlannerStore.getState().tasks.map((task) => task.id)).toEqual(['task-1']);
+
+    view.unmount();
+  });
+
+  it('upserts far-future milestones outside the loaded task range and removes deleted ones', async () => {
+    usePlannerStore.setState({ timelineInteractingUntil: 0 });
+    // Already in the store, but the flush response won't return it → deleted remotely.
+    usePlannerStore.getState().upsertMilestones([{
+      id: 'milestone-gone',
+      title: 'Deleted milestone',
+      projectId: 'project-1',
+      date: '2026-03-15',
+      note: null,
+      statusOverride: null,
+      includeInWorkload: true,
+    }]);
+
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
+      milestoneFlush: async () => ({
+        data: [{
+          id: 'milestone-far',
+          workspace_id: workspaceOne,
+          title: 'Far milestone',
+          project_id: 'project-1',
+          // Far outside rangeFor's March 2026 window: must be kept anyway.
+          date: '2026-12-23',
+          note: null,
+          status_override: null,
+          include_in_workload: true,
+          updated_at: '2026-03-10T10:00:00.000Z',
+        }],
+        error: null,
+      }),
+    }));
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    act(() => {
+      supabaseMocks.emitMilestoneUpsert('milestone-far');
+      supabaseMocks.emitMilestoneUpsert('milestone-gone');
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(420);
+    });
+
+    expect(supabaseMocks.from).toHaveBeenCalledWith('milestones');
+    expect(usePlannerStore.getState().milestones.map((milestone) => milestone.id)).toEqual(['milestone-far']);
 
     view.unmount();
   });

@@ -1,4 +1,6 @@
-FROM node:20-bookworm-slim AS builder
+# Official Docker library images via AWS ECR Public mirror: same images,
+# no anonymous Docker Hub pull limits (which repeatedly 429'd test deploys).
+FROM public.ecr.aws/docker/library/node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -22,6 +24,8 @@ ARG VITE_FEATURE_PROJECT_CARD
 ARG VITE_FEATURE_PROJECT_CARD_MOBILE
 ARG VITE_FEATURE_WORKLOAD_HEATMAP
 ARG VITE_FEATURE_PEOPLE_SUGGEST
+ARG VITE_FEATURE_PUSH
+ARG VITE_PUSH_VAPID_PUBLIC_KEY
 
 ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
 ENV VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
@@ -38,11 +42,13 @@ ENV VITE_FEATURE_PROJECT_CARD=${VITE_FEATURE_PROJECT_CARD}
 ENV VITE_FEATURE_PROJECT_CARD_MOBILE=${VITE_FEATURE_PROJECT_CARD_MOBILE}
 ENV VITE_FEATURE_WORKLOAD_HEATMAP=${VITE_FEATURE_WORKLOAD_HEATMAP}
 ENV VITE_FEATURE_PEOPLE_SUGGEST=${VITE_FEATURE_PEOPLE_SUGGEST}
+ENV VITE_FEATURE_PUSH=${VITE_FEATURE_PUSH}
+ENV VITE_PUSH_VAPID_PUBLIC_KEY=${VITE_PUSH_VAPID_PUBLIC_KEY}
 ENV NODE_OPTIONS=--max-old-space-size=2048
 
 RUN npm run lingui:compile && npm run build
 
-FROM nginx:1.27-alpine
+FROM public.ecr.aws/docker/library/nginx:1.27-alpine
 
 COPY infra/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
