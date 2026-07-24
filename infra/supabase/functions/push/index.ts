@@ -186,6 +186,23 @@ const handleFlush = async () => {
     .select("id, user_id, endpoint, p256dh, auth")
     .in("user_id", recipientIds);
 
+  // Unread totals per recipient for the app-icon badge. One query for the whole
+  // batch; counted in JS since PostgREST has no GROUP BY. The claimed rows are
+  // still unread themselves, so they are included.
+  const { data: unreadRows } = await supabaseAdmin
+    .from("user_notifications")
+    .select("recipient_user_id")
+    .in("recipient_user_id", recipientIds)
+    .is("read_at", null)
+    .is("deleted_at", null)
+    .limit(10000);
+
+  const unreadByUser = new Map<string, number>();
+  for (const r of unreadRows ?? []) {
+    const id = (r as { recipient_user_id: string }).recipient_user_id;
+    unreadByUser.set(id, (unreadByUser.get(id) ?? 0) + 1);
+  }
+
   const subsByUser = new Map<string, PushSubscriptionRecord[]>();
   for (const s of subs ?? []) {
     const list = subsByUser.get(s.user_id) ?? [];
@@ -221,6 +238,7 @@ const handleFlush = async () => {
       { taskId: row.task_id, workspaceId: row.workspace_id },
       appUrl,
     );
+    payload.badge = unreadByUser.get(row.recipient_user_id);
 
     for (const sub of userSubs) {
       const result = await sendWebPush(sub, payload);

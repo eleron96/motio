@@ -23,7 +23,8 @@ describe("brand asset routing", () => {
     expect(indexHtml).toContain('media="(prefers-color-scheme: dark)"');
     expect(indexHtml).toContain('data-theme-favicon="active"');
     expect(indexHtml).toContain('data-theme-favicon="shortcut"');
-    expect(indexHtml).toContain('rel="apple-touch-icon" href="/logo.png"');
+    expect(indexHtml).toContain('rel="apple-touch-icon" href="/apple-touch-icon.png"');
+    expect(indexHtml).toContain('rel="manifest" href="/manifest.json"');
     // Social/canonical tags must be ABSOLUTE URLs — crawlers (LinkedIn/Telegram)
     // don't resolve relative og:image/og:url, so a relative path = no preview.
     expect(indexHtml).toContain('link rel="canonical" href="https://motio.nikog.net/"');
@@ -87,5 +88,31 @@ describe("brand asset routing", () => {
     expect(loginScript).toContain("favicon-theme-light.png");
     expect(loginScript).toContain("favicon-theme-dark.png");
     expect(existsSync(resolve(repoRoot, "public", "logo.png"))).toBe(true);
+  });
+
+  // PWA install assets: iOS reads the manifest and icons unauthenticated when
+  // adding to the Home Screen, so they must exist and bypass oauth2-proxy in
+  // BOTH Caddyfiles. Icons referenced by the manifest must ship in public/.
+  it("keeps PWA manifest, icons and Caddy whitelist in sync", () => {
+    const manifest = JSON.parse(readRepoText("public", "manifest.json")) as {
+      display: string;
+      start_url: string;
+      icons: { src: string }[];
+    };
+    expect(manifest.display).toBe("standalone");
+    expect(manifest.start_url).toBe("/app");
+    for (const icon of manifest.icons) {
+      expect(existsSync(resolve(repoRoot, "public", icon.src.replace(/^\//, "")))).toBe(true);
+    }
+    expect(existsSync(resolve(repoRoot, "public", "apple-touch-icon.png"))).toBe(true);
+
+    for (const caddy of ["Caddyfile", "Caddyfile.testing"]) {
+      const config = readRepoText("infra", "caddy", caddy);
+      expect(config).toContain("handle /manifest.json {");
+      expect(config).toContain("handle /pwa-icon-192.png {");
+      expect(config).toContain("handle /pwa-icon-512.png {");
+      expect(config).toContain("handle /apple-touch-icon.png {");
+      expect(config).toContain("handle /sw.js {");
+    }
   });
 });

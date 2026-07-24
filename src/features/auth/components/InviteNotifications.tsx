@@ -99,6 +99,22 @@ export const InviteNotifications: React.FC = () => {
   const totalBadgeCount = pendingCount + unreadTaskCount;
   const hasBadge = totalBadgeCount > 0;
   const badgeLabel = useMemo(() => (totalBadgeCount > 9 ? '9+' : String(totalBadgeCount)), [totalBadgeCount]);
+
+  // Mirror the bell count onto the installed-PWA app icon (Badging API). Pushes
+  // set the badge while the app is closed; this keeps it in sync — and clears
+  // it — whenever the app is open and the count changes.
+  useEffect(() => {
+    const nav = navigator as Navigator & {
+      setAppBadge?: (count?: number) => Promise<void>;
+      clearAppBadge?: () => Promise<void>;
+    };
+    if (typeof nav.setAppBadge !== 'function') return;
+    if (totalBadgeCount > 0) {
+      nav.setAppBadge(totalBadgeCount).catch(() => {});
+    } else {
+      nav.clearAppBadge?.().catch(() => {});
+    }
+  }, [totalBadgeCount]);
   const bulkTaskActionBusy = bulkTaskAction !== null;
 
   const applyInviteUpdateToasts = useCallback((sentInvites: SentInviteSummary[]) => {

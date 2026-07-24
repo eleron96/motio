@@ -24,7 +24,15 @@ self.addEventListener('push', (event) => {
     data: { url: data.url || '/' },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  const jobs = [self.registration.showNotification(title, options)];
+  // App-icon badge (installed PWA): the server sends the recipient's unread
+  // count with each push. The open app re-syncs/clears it from the bell.
+  const unread = Number(data.badge);
+  if (Number.isFinite(unread) && unread > 0 && 'setAppBadge' in self.navigator) {
+    jobs.push(self.navigator.setAppBadge(unread).catch(() => {}));
+  }
+
+  event.waitUntil(Promise.all(jobs));
 });
 
 self.addEventListener('notificationclick', (event) => {
