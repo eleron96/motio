@@ -8,6 +8,8 @@ export interface PushContent {
   body: string;
   url: string;
   tag?: string;
+  /** Recipient's unread count — the SW mirrors it onto the app icon badge. */
+  badge?: number;
 }
 
 export const renderTestPush = (locale: PushLocale, appUrl: string): PushContent => {
