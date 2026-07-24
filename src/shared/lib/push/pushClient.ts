@@ -33,6 +33,27 @@ export const isPushSupported = (): boolean =>
 
 export const isPushConfiguredClient = (): boolean => VAPID_PUBLIC_KEY.length > 0;
 
+// iPhone/iPad detection. iPadOS 13+ masquerades as macOS Safari, so a
+// Macintosh UA with a multi-touch screen counts as iPad.
+export const isIosDevice = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) return true;
+  return navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1;
+};
+
+// True when running as an installed Home Screen app rather than a browser tab.
+export const isStandaloneDisplayMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  if (window.matchMedia?.('(display-mode: standalone)').matches) return true;
+  return (navigator as Navigator & { standalone?: boolean }).standalone === true;
+};
+
+// iOS Safari only exposes the Push API inside an installed Home Screen app
+// (iOS 16.4+). True when we're on iOS in a plain tab without push — i.e. the
+// user could unlock notifications by installing Motio to the Home Screen.
+export const needsIosInstallForPush = (): boolean =>
+  isIosDevice() && !isStandaloneDisplayMode() && !isPushSupported();
+
 export const getNotificationPermission = (): NotificationPermission =>
   ('Notification' in window ? Notification.permission : 'denied');
 

@@ -30,6 +30,7 @@ import {
   getNotificationPermission,
   hasActivePushSubscription,
   isPushSupported,
+  needsIosInstallForPush,
   subscribeToPush,
   unsubscribeFromPush,
 } from '@/shared/lib/push/pushClient';
@@ -109,6 +110,9 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   // Browser push. `pushSupported` folds the feature flag together with runtime
   // capability detection so the whole block simply hides where push can't work.
   const [pushSupported] = useState(() => isPushEnabled() && isPushSupported());
+  // iOS tab without push: show an "install to Home Screen" hint instead of the
+  // toggle — that's the only way Safari delivers Web Push (iOS 16.4+).
+  const [iosPushInstallHint] = useState(() => isPushEnabled() && needsIosInstallForPush());
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [pushOnAssignment, setPushOnAssignment] = useState(true);
@@ -669,6 +673,15 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                           </div>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {!isDemo && iosPushInstallHint && (
+                    <div className="space-y-2 border-t pt-4 text-left">
+                      <Label>{t`Notifications on iPhone and iPad`}</Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t`To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose "Add to Home Screen", then enable notifications here in the installed app.`}
+                      </p>
                     </div>
                   )}
 

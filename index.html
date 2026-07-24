@@ -22,7 +22,16 @@
     />
     <link rel="icon" type="image/png" href="/favicon-theme-light.png" data-theme-favicon="active" />
     <link rel="shortcut icon" href="/favicon-theme-light.png" data-theme-favicon="shortcut" />
-    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- PWA: installable app; on iOS 16.4+ an installed (Home Screen) app is
+         what unlocks Web Push, so keep the manifest + apple metas in sync. -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Motio" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14181f" media="(prefers-color-scheme: dark)" />
     <title>Motio — One timeline for your whole team. 10 seconds per task.</title>
     <meta name="description" content="Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory." />
     <meta name="robots" content="index, follow" />

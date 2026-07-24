@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Motio can now be installed on your phone as an app. On iPhone, add it to your Home Screen and push notifications arrive right on your phone — even when the app is closed.
+
 ## [0.9.32] - 2026-07-23
 ### Changed
 - The Contacts tab now has a single search across people, companies, tags, roles and phones. Added tag, company and role filters.
