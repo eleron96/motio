@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.35] - 2026-07-24
 ### Fixed
 - The notifications service component is no longer held back by browser caching — push updates reach installed apps right away.
 
