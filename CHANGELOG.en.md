@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.34] - 2026-07-24
 ### Added
 - The installed app icon now shows an unread notification badge: it arrives with each push and clears once you have read everything.
 
