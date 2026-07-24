@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.33] - 2026-07-24
 ### Added
 - Motio can now be installed on your phone as an app. On iPhone, add it to your Home Screen and push notifications arrive right on your phone — even when the app is closed.
 

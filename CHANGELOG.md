@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.33] - 2026-07-24
 ### Added
 - Motio теперь устанавливается на телефон как приложение. На iPhone после добавления на экран „Домой“ пуш-уведомления приходят прямо на телефон — даже при закрытом приложении.
 
