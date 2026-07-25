@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- The morning brief has a new look: overdue tasks and tasks due today are now separate blocks with a count for each at the top. Long lists stay collapsed and open with one tap.
+- Upcoming milestones now show the date alongside how many days are left.
 
 ## [0.9.36] - 2026-07-25
 ### Changed

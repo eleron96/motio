@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { fetchUrgentTasks } from '@/infrastructure/tasks/urgentTasksRepository';
 import type { Milestone, Task } from '@/features/planner/types/planner';
+import { splitDailyBriefTasks } from '../lib/dailyBriefBuckets';
 
 type UseDailyBriefDataParams = {
   workspaceId: string;
@@ -11,8 +12,12 @@ type UseDailyBriefDataParams = {
 };
 
 type UseDailyBriefDataResult = {
-  urgentTasks: Task[];
+  /** Due strictly before today. */
+  overdueTasks: Task[];
+  /** Due today. */
+  todayTasks: Task[];
   upcomingMilestones: Milestone[];
+  todayKey: string;
   loading: boolean;
 };
 
@@ -42,9 +47,15 @@ export const useDailyBriefData = ({
     (m) => m.date >= today && m.date <= in7Days,
   );
 
+  // The fetch already narrows to end_date <= today, so both buckets come out of
+  // the same rows — no extra request, no aggregate on the server.
+  const { overdue, today: dueToday } = splitDailyBriefTasks(tasksQuery.data ?? [], today);
+
   return {
-    urgentTasks: tasksQuery.data ?? [],
+    overdueTasks: overdue,
+    todayTasks: dueToday,
     upcomingMilestones,
+    todayKey: today,
     loading: tasksQuery.isLoading,
   };
 };

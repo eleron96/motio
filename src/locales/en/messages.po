@@ -57,6 +57,13 @@ msgstr "{0, plural, one {# day streak} other {# day streak}}"
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# project} other {# projects}}"
 
+#. placeholder {0}: overdueTasks.length
+#. placeholder {0}: todayTasks.length
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "{0, plural, one {# task} other {# tasks}}"
+msgstr "{0, plural, one {# task} other {# tasks}}"
+
 #. placeholder {0}: assigneeIds.length
 #. placeholder {0}: task.assigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -160,6 +167,14 @@ msgstr "{actor} updated workspace access."
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "{customersCount} customers"
 msgstr "{customersCount} customers"
+
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "{days, plural, one {# day} other {# days}}"
+msgstr "{days, plural, one {# day} other {# days}}"
+
+#: src/features/daily-brief/components/DailyBriefTaskList.tsx
+msgid "{hiddenCount, plural, one {and # more} other {and # more}}"
+msgstr "{hiddenCount, plural, one {and # more} other {and # more}}"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "{milestoneCount} milestone"
@@ -946,6 +961,10 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
+#: src/features/daily-brief/components/DailyBriefTaskList.tsx
+msgid "Collapse"
+msgstr "Collapse"
+
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Collapse filters"
 msgstr "Collapse filters"
@@ -1315,6 +1334,10 @@ msgstr "Day off"
 msgid "Deadline is approaching"
 msgstr "Deadline is approaching"
 
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Deadlines this week"
+msgstr "Deadlines this week"
+
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
 msgstr "Decline"
@@ -1613,6 +1636,10 @@ msgstr "Drag & drop or click to select a photo"
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Drag and drop image files into the description area."
 msgstr "Drag and drop image files into the description area."
+
+#: src/features/daily-brief/components/DailyBriefStats.tsx
+msgid "due today"
+msgstr "due today"
 
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
@@ -2656,8 +2683,8 @@ msgid "Milestones"
 msgstr "Milestones"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
-msgid "Milestones in the next 7 days"
-msgstr "Milestones in the next 7 days"
+#~ msgid "Milestones in the next 7 days"
+#~ msgstr "Milestones in the next 7 days"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Milestones still ahead"
@@ -3282,8 +3309,8 @@ msgid "No upcoming milestones in the next 7 days."
 msgstr "No upcoming milestones in the next 7 days."
 
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
-msgid "No urgent tasks. Great job!"
-msgstr "No urgent tasks. Great job!"
+#~ msgid "No urgent tasks. Great job!"
+#~ msgstr "No urgent tasks. Great job!"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "No widgets yet."
@@ -3332,9 +3359,17 @@ msgstr "Note"
 msgid "Notes"
 msgstr "Notes"
 
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Nothing due today."
+msgstr "Nothing due today."
+
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Nothing matches the current filters."
 msgstr "Nothing matches the current filters."
+
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Nothing overdue. Great job!"
+msgstr "Nothing overdue. Great job!"
 
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
@@ -3476,12 +3511,17 @@ msgid "Optional"
 msgstr "Optional"
 
 #: src/features/auth/components/ProfileSummary.tsx
+#: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "overdue"
 msgstr "overdue"
 
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Overdue"
+msgstr "Overdue"
+
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
-msgid "Overdue by {diff}d"
-msgstr "Overdue by {diff}d"
+#~ msgid "Overdue by {diff}d"
+#~ msgstr "Overdue by {diff}d"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "overloaded"
@@ -4942,7 +4982,7 @@ msgid "today"
 msgstr "today"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
-#: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
+#: src/features/daily-brief/components/DailyBriefModal.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -5208,8 +5248,8 @@ msgid "Upload or remove your profile photo."
 msgstr "Upload or remove your profile photo."
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
-msgid "Urgent tasks"
-msgstr "Urgent tasks"
+#~ msgid "Urgent tasks"
+#~ msgstr "Urgent tasks"
 
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Use current workspace"
