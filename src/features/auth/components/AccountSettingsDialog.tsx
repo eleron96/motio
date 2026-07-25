@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -18,9 +18,13 @@ import { useShallow } from 'zustand/react/shallow';
 import { Switch } from '@/shared/ui/switch';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { localeLabels, type Locale } from '@/shared/lib/locale';
-import { APP_VERSION, getLatestReleaseNotes } from '@/shared/lib/releaseNotes';
+import { APP_VERSION } from '@/shared/lib/appVersion';
+// Type-only: the module inlines both CHANGELOG files, so it is loaded on demand
+// when the notes dialog opens (see the effect below), never with this component.
+import type { ReleaseNotesEntry } from '@/shared/lib/releaseNotes';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { AvatarWithEditButton } from './AvatarWithEditButton';
+import { ReleaseNotesList } from './ReleaseNotesList';
 import { ProfileSummary } from './ProfileSummary';
 import { useProfileSummary } from '@/features/auth/hooks/useProfileSummary';
 import { DeleteAccountWizard } from './DeleteAccountWizard';
@@ -195,7 +199,30 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     { value: 'en', label: localeLabels.en },
     { value: 'ru', label: localeLabels.ru },
   ];
-  const releaseNotes = useMemo(() => getLatestReleaseNotes(locale), [locale]);
+  // Fetched only once the dialog is open: the module carries the full changelog.
+  // `null` means "not loaded yet" and renders a loading line; `[]` means loaded
+  // and genuinely empty.
+  const [releaseNotes, setReleaseNotes] = useState<ReleaseNotesEntry[] | null>(null);
+
+  useEffect(() => {
+    if (!releaseNotesOpen) return;
+
+    let cancelled = false;
+    void import('@/shared/lib/releaseNotes')
+      .then(({ getRecentReleaseNotes }) => {
+        if (cancelled) return;
+        setReleaseNotes(getRecentReleaseNotes(locale));
+      })
+      .catch(() => {
+        // A failed chunk load is handled globally (preloadErrorReload); locally
+        // just fall back to the empty state instead of a stuck spinner.
+        if (!cancelled) setReleaseNotes([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [releaseNotesOpen, locale]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -779,22 +806,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
               {isRussianLocale ? `Версия ${APP_VERSION}` : `Version ${APP_VERSION}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1 text-left">
-            {releaseNotes.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                {isRussianLocale ? 'Нет записей о последних изменениях.' : 'No recent change entries available.'}
-              </p>
-            )}
-            {releaseNotes.map((section) => (
-              <section key={section.title} className="space-y-2">
-                <h4 className="text-sm font-semibold text-foreground">{section.title}</h4>
-                <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
-                  {section.items.map((item) => (
-                    <li key={`${section.title}-${item}`}>{item}</li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+          <div className="max-h-[60vh] space-y-6 overflow-y-auto pr-1 text-left">
+            <ReleaseNotesList entries={releaseNotes} isRussianLocale={isRussianLocale} />
           </div>
         </DialogContent>
       </Dialog>
