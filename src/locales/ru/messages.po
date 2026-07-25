@@ -57,6 +57,13 @@ msgstr "{0, plural, one {# день подряд} few {# дня подряд} ma
 msgid "{0, plural, one {# project} other {# projects}}"
 msgstr "{0, plural, one {# проект} few {# проекта} many {# проектов} other {# проекта}}"
 
+#. placeholder {0}: overdueTasks.length
+#. placeholder {0}: todayTasks.length
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "{0, plural, one {# task} other {# tasks}}"
+msgstr "{0, plural, one {# задача} few {# задачи} many {# задач} other {# задачи}}"
+
 #. placeholder {0}: assigneeIds.length
 #. placeholder {0}: task.assigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -160,6 +167,14 @@ msgstr "{actor}: доступ рабочего пространства обно
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "{customersCount} customers"
 msgstr "Клиентов: {customersCount}"
+
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "{days, plural, one {# day} other {# days}}"
+msgstr "{days, plural, one {# день} few {# дня} many {# дней} other {# дня}}"
+
+#: src/features/daily-brief/components/DailyBriefTaskList.tsx
+msgid "{hiddenCount, plural, one {and # more} other {and # more}}"
+msgstr "{hiddenCount, plural, one {и ещё #} few {и ещё #} many {и ещё #} other {и ещё #}}"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "{milestoneCount} milestone"
@@ -946,6 +961,10 @@ msgstr "Закрытые"
 msgid "Code"
 msgstr "Код"
 
+#: src/features/daily-brief/components/DailyBriefTaskList.tsx
+msgid "Collapse"
+msgstr "Свернуть"
+
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Collapse filters"
 msgstr "Свернуть фильтры"
@@ -1315,6 +1334,10 @@ msgstr "Выходной"
 msgid "Deadline is approaching"
 msgstr "Приближается дедлайн"
 
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Deadlines this week"
+msgstr "Дедлайны на неделе"
+
 #: src/features/auth/components/InviteNotifications.tsx
 msgid "Decline"
 msgstr "Отклонить"
@@ -1613,6 +1636,10 @@ msgstr "Перетащите или нажмите, чтобы выбрать ф
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Drag and drop image files into the description area."
 msgstr "Перетащите изображения в область описания."
+
+#: src/features/daily-brief/components/DailyBriefStats.tsx
+msgid "due today"
+msgstr "на сегодня"
 
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
@@ -2656,8 +2683,8 @@ msgid "Milestones"
 msgstr "Вехи"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
-msgid "Milestones in the next 7 days"
-msgstr "Вехи в ближайшие 7 дней"
+#~ msgid "Milestones in the next 7 days"
+#~ msgstr "Вехи в ближайшие 7 дней"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Milestones still ahead"
@@ -3282,8 +3309,8 @@ msgid "No upcoming milestones in the next 7 days."
 msgstr "Вех в ближайшие 7 дней нет."
 
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
-msgid "No urgent tasks. Great job!"
-msgstr "Срочных задач нет. Отличная работа!"
+#~ msgid "No urgent tasks. Great job!"
+#~ msgstr "Срочных задач нет. Отличная работа!"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "No widgets yet."
@@ -3332,9 +3359,17 @@ msgstr "Заметка"
 msgid "Notes"
 msgstr "Заметки"
 
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Nothing due today."
+msgstr "На сегодня задач нет."
+
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Nothing matches the current filters."
 msgstr "Ничего не найдено по текущим фильтрам."
+
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Nothing overdue. Great job!"
+msgstr "Просрочек нет. Отлично!"
 
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
@@ -3476,12 +3511,17 @@ msgid "Optional"
 msgstr "Необязательно"
 
 #: src/features/auth/components/ProfileSummary.tsx
+#: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "overdue"
 msgstr "просрочено"
 
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Overdue"
+msgstr "Просрочено"
+
 #: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
-msgid "Overdue by {diff}d"
-msgstr "Просрочено на {diff} д"
+#~ msgid "Overdue by {diff}d"
+#~ msgstr "Просрочено на {diff} д"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "overloaded"
@@ -4942,7 +4982,7 @@ msgid "today"
 msgstr "сегодня"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
-#: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
+#: src/features/daily-brief/components/DailyBriefModal.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -5208,8 +5248,8 @@ msgid "Upload or remove your profile photo."
 msgstr "Загрузите или удалите фото профиля."
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
-msgid "Urgent tasks"
-msgstr "Срочные задачи"
+#~ msgid "Urgent tasks"
+#~ msgstr "Срочные задачи"
 
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Use current workspace"
