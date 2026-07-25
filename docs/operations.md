@@ -121,12 +121,16 @@ NEXT_VERSION=0.10.0 make deploy   # with an explicit version
 
 `infra/scripts/deploy-remote.sh`:
 
-1. rsyncs the local working tree to the server (`.env`, `notes/`, `dist/`,
+1. **pre-deploy gate** — refuses to deploy a dirty working tree, then runs `lint`,
+   `typecheck` and `test` (~1 min). It runs before the first rsync, so a failure
+   leaves production untouched. Bypass for emergencies:
+   `DEPLOY_SKIP_CHECKS=1 make deploy`;
+2. rsyncs the local working tree to the server (`.env`, `notes/`, `dist/`,
    `node_modules/` etc. are excluded — the server `.env` is managed by hand over SSH);
-2. runs `prod-compose.sh` on the server (migrations, Keycloak ensure scripts,
+3. runs `prod-compose.sh` on the server (migrations, Keycloak ensure scripts,
    frontend build — see `up-prod` above);
-3. the version bump and changelog rotation happen **on the server**;
-4. pulls the updated `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md` and
+4. the version bump and changelog rotation happen **on the server**;
+5. pulls the updated `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md` and
    `infra/releases.log` back into the local repo.
 
 After a successful deploy, commit the synced release artifacts:

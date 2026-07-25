@@ -7,6 +7,28 @@ remote_dir="${DEPLOY_PATH:-/opt/new_toggl}"
 
 echo "Deploy target: ${host}:${remote_dir}"
 
+# Pre-deploy gate. rsync below ships the working tree as-is and the server-side
+# `vite build` does not typecheck, so this is the only thing standing between a
+# local edit and production. Runs before the first rsync: if it fails, nothing
+# has left the machine and prod is untouched.
+#
+# The clean-tree check is not redundant with the test run — an uncommitted edit
+# can be perfectly valid (and vite.config.ts is not even part of tsconfig.app),
+# yet still not be the code you think you are deploying.
+if [[ "${DEPLOY_SKIP_CHECKS:-0}" != "1" ]]; then
+  if [[ -n "$(git -C "${root_dir}" status --porcelain)" ]]; then
+    git -C "${root_dir}" status --short
+    echo "Refusing to deploy: the working tree is not clean (see above)."
+    echo "Commit or stash the changes — or re-run with DEPLOY_SKIP_CHECKS=1 if you mean it."
+    exit 1
+  fi
+  npm --prefix "${root_dir}" run lint
+  npm --prefix "${root_dir}" run typecheck
+  npm --prefix "${root_dir}" run test
+else
+  echo "!!! Pre-deploy checks SKIPPED (DEPLOY_SKIP_CHECKS=1) !!!"
+fi
+
 rsync_output="$(
   rsync -az --itemize-changes \
     --exclude '.git' \
