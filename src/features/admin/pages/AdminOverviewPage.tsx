@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
-import { APP_VERSION } from '@/shared/lib/releaseNotes';
+import { APP_VERSION } from '@/shared/lib/appVersion';
 import { formatDate, formatStorageMain } from '@/features/admin/lib/format';
 
 interface MetricCardProps {
