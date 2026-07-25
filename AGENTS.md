@@ -144,6 +144,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 ## 5.4. Remote deploy (production)
 
 1. Основной путь: `make deploy` (алиас `make deploy-remote [NEXT_VERSION=X.Y.Z]`). Что происходит:
+   - **Гейт перед деплоем**: скрипт отказывается катить грязное рабочее дерево, затем гоняет `lint`, `typecheck`, `test` (~1 мин). Стоит до первого rsync — при падении на прод не уходит ничего. Аварийный обход: `DEPLOY_SKIP_CHECKS=1 make deploy`. Отсюда следствие: артефакты предыдущего деплоя надо закоммитить (`make release-sync`) прежде, чем катить снова.
    - Локальное рабочее дерево уходит на сервер по rsync (`.env`, `notes/`, `dist/` и пр. исключены).
    - VERSION бампается автоматически **на сервере** (`prod-compose.sh`): PATCH+1 либо явный `NEXT_VERSION`.
    - Там же секция `Unreleased` переносится в `CHANGELOG.md`/`CHANGELOG.en.md` и дописывается `infra/releases.log`; при падении сборки web артефакты откатываются.
