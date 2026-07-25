@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.36] - 2026-07-25
 ### Changed
 - The “Latest changes” dialog now shows the last 40 releases instead of only the current one, and app pages load faster.
 
