@@ -16,6 +16,17 @@ import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { buildCalendarMonths } from '@/features/planner/lib/calendarMonths';
+import { CalendarLegendPanel } from '@/features/planner/components/timeline/CalendarLegendPanel';
+import {
+  DEFAULT_CALENDAR_OVERLAY_VISIBILITY,
+  type CalendarOverlayCategory,
+  type CalendarOverlayVisibility,
+} from '@/features/planner/lib/calendarDayMarkers';
+import {
+  getCalendarLegendStorageKey,
+  readCalendarLegend,
+  writeCalendarLegend,
+} from '@/features/planner/lib/calendarLegendStorage';
 import { Milestone } from '@/features/planner/types/planner';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { t } from '@lingui/macro';
@@ -74,6 +85,11 @@ export const CalendarTimeline: React.FC = () => {
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const containerRef = useRef<HTMLDivElement>(null);
   const monthRefs = useRef(new Map<string, HTMLDivElement>());
+  // Legend state. Persisted per user and per workspace; `legendHydrated` stops
+  // the defaults from overwriting what was stored before the read effect runs
+  // (the same guard the sidebar width needs in PlannerPage).
+  const [legend, setLegend] = useState<CalendarOverlayVisibility>(DEFAULT_CALENDAR_OVERLAY_VISIBILITY);
+  const legendHydratedRef = useRef(false);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -229,6 +245,33 @@ export const CalendarTimeline: React.FC = () => {
     }
   }, [currentDate, months.length]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!user?.id || !currentWorkspaceId) return;
+    legendHydratedRef.current = false;
+    const stored = readCalendarLegend(
+      window.localStorage,
+      getCalendarLegendStorageKey(user.id, currentWorkspaceId),
+    );
+    setLegend(stored ?? DEFAULT_CALENDAR_OVERLAY_VISIBILITY);
+    legendHydratedRef.current = true;
+  }, [currentWorkspaceId, user?.id]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!legendHydratedRef.current) return;
+    if (!user?.id || !currentWorkspaceId) return;
+    writeCalendarLegend(
+      window.localStorage,
+      getCalendarLegendStorageKey(user.id, currentWorkspaceId),
+      legend,
+    );
+  }, [currentWorkspaceId, legend, user?.id]);
+
+  const handleLegendToggle = useCallback((category: CalendarOverlayCategory) => {
+    setLegend((current) => ({ ...current, [category]: !current[category] }));
+  }, []);
+
   const handleDateClick = useCallback((day: Date) => {
     const nextDate = format(day, 'yyyy-MM-dd');
     // Force retrigger of the same attention animation when opening the day timeline from calendar.
@@ -273,7 +316,7 @@ export const CalendarTimeline: React.FC = () => {
             ref={containerRef}
             className="h-full min-h-0 overflow-y-scroll overflow-x-hidden overscroll-contain scrollbar-hidden scroll-smooth select-none"
           >
-          <div className="mx-auto w-full max-w-6xl px-4 py-4 space-y-8">
+          <div className="w-full max-w-6xl px-4 py-4 space-y-8">
             {years.map(([year, yearMonths]) => (
               <div key={year} className="grid gap-4 md:grid-cols-[80px,1fr]">
                 <div className="text-lg font-semibold text-muted-foreground">{year}</div>
@@ -334,7 +377,7 @@ export const CalendarTimeline: React.FC = () => {
                                 className="relative flex h-11 w-9 flex-col items-center justify-start pt-0.5"
                                 onDoubleClick={inMonth ? () => handleDateClick(day) : undefined}
                               >
-                                {isHoliday && (
+                                {legend.holidays && isHoliday && (
                                   <div
                                     className={cn(
                                       'pointer-events-none absolute inset-x-1 top-0.5 h-7 bg-rose-200/70',
@@ -357,7 +400,7 @@ export const CalendarTimeline: React.FC = () => {
                                           {format(day, 'd')}
                                         </span>
                                         <span className="pointer-events-none flex h-1.5 items-center justify-center gap-0.5">
-                                          {milestonesForDay.slice(0, 4).map((milestone) => {
+                                          {legend.milestones && milestonesForDay.slice(0, 4).map((milestone) => {
                                             const project = projectById.get(milestone.projectId);
                                             const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
                                             const dotColor = hexToRgba(color, 0.8) ?? color;
@@ -369,7 +412,7 @@ export const CalendarTimeline: React.FC = () => {
                                               />
                                             );
                                           })}
-                                          {milestonesForDay.length > 4 && (
+                                          {legend.milestones && milestonesForDay.length > 4 && (
                                             <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/70" />
                                           )}
                                         </span>
@@ -383,7 +426,7 @@ export const CalendarTimeline: React.FC = () => {
                                         className="w-56 rounded-lg border border-border bg-card/95 p-0 text-xs text-foreground shadow-md backdrop-blur"
                                       >
                                         <div className="space-y-2 p-3">
-                                          {milestonesForDay.length > 0 && (
+                                          {legend.milestones && milestonesForDay.length > 0 && (
                                             <div className="space-y-1 border-b border-border/60 pb-2">
                                               <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
                                                 {t`Milestones`}
@@ -429,7 +472,7 @@ export const CalendarTimeline: React.FC = () => {
                                             <span className="text-muted-foreground">{t`Mine`}</span>
                                             <span className="font-semibold">{counts.mine}</span>
                                           </div>
-                                          {holidayNames.length > 0 && (
+                                          {legend.holidays && holidayNames.length > 0 && (
                                             <div className="border-t border-border/60 pt-1 text-[11px] text-muted-foreground">
                                               <span className="text-foreground">{t`Holiday:`}</span>{' '}
                                               {holidayNames.join(', ')}
@@ -499,6 +542,11 @@ export const CalendarTimeline: React.FC = () => {
           )}
         </Button>
         </div>
+
+        <CalendarLegendPanel
+          visibility={legend}
+          onToggle={handleLegendToggle}
+        />
 
         <MilestoneDialog
           open={milestoneDialogOpen}

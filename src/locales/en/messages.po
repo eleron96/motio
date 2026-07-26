@@ -237,6 +237,10 @@ msgstr "1 comment"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "A circle on the day; split when several people are away."
+msgstr "A circle on the day; split when several people are away."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "A deadline is approaching"
 msgstr "A deadline is approaching"
@@ -745,6 +749,10 @@ msgstr "Calendar"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Calendar (month)"
 msgstr "Calendar (month)"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Calendar legend"
+msgstr "Calendar legend"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Calendar range"
@@ -1526,6 +1534,10 @@ msgstr "Deleting…"
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Delivered"
 msgstr "Delivered"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Deliveries, coloured by project."
+msgstr "Deliveries, coloured by project."
 
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Demo is not configured"
@@ -3367,6 +3379,10 @@ msgstr "No workspaces."
 msgid "Non-working day"
 msgstr "Non-working day"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Non-working days of the country set for the workspace."
+msgstr "Non-working days of the country set for the workspace."
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "None"
@@ -3451,6 +3467,10 @@ msgstr "On Monday I'd open three different tabs to answer one simple question: w
 #: src/features/projects/components/ContactsDetailPanel.tsx
 #~ msgid "On projects"
 #~ msgstr "On projects"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "On the calendar"
+msgstr "On the calendar"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "One <0>clear timeline</0><1/> for your whole team"
@@ -4482,9 +4502,17 @@ msgstr "Show disabled people to add them."
 msgid "Show disabled users"
 msgstr "Show disabled users"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Show holidays"
+msgstr "Show holidays"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show legend"
 msgstr "Show legend"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Show milestones"
+msgstr "Show milestones"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show tasks without an assignee"
@@ -4493,6 +4521,10 @@ msgstr "Show tasks without an assignee"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show tasks without an assignee."
 msgstr "Show tasks without an assignee."
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Show team time off"
+msgstr "Show team time off"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show the department workload board on the dashboard"
