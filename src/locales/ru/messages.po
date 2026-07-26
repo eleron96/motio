@@ -770,6 +770,7 @@ msgstr "Диапазон календаря"
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -820,6 +821,10 @@ msgstr "Отмененный статус"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Change easter egg"
 msgstr "Сменить пасхалку"
+
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+msgid "Change the days or remove the time off."
+msgstr "Измените даты или удалите отметку."
 
 #. placeholder {0}: externalForm.source.projectIds.length
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -1362,6 +1367,7 @@ msgstr "по умолчанию"
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -1589,6 +1595,10 @@ msgstr "Сбросить"
 msgid "Discard task?"
 msgstr "Отменить задачу?"
 
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Discard time off?"
+msgstr "Отменить отметку?"
+
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Dismiss"
 msgstr "Закрыть"
@@ -1783,6 +1793,7 @@ msgstr "Включить участника"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
+#: src/features/planner/components/TimeOffFields.tsx
 msgid "End date"
 msgstr "Дата окончания"
 
@@ -1954,6 +1965,10 @@ msgstr "Не удалось удалить комментарий"
 msgid "Failed to delete subtask."
 msgstr "Не удалось удалить подзадачу."
 
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+msgid "Failed to delete the time off."
+msgstr "Не удалось удалить отметку."
+
 #: src/features/planner/components/TaskCommentSection.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Failed to load comments"
@@ -1979,6 +1994,12 @@ msgstr "Не удалось загрузить задачи."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Failed to publish note."
 msgstr "Не удалось опубликовать заметку."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/timeline/TimeOffBar.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+msgid "Failed to save the time off."
+msgstr "Не удалось сохранить отметку."
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Failed to start the broadcast."
@@ -2602,9 +2623,21 @@ msgstr "Отметить как прочитанное"
 msgid "Mark as unread"
 msgstr "Отметить как непрочитанное"
 
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/timeline/TimeOffBar.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+msgid "Mark time off"
+msgstr "Отметить выходной"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Marketing news — only to opted-in users, with an unsubscribe link."
 msgstr "Маркетинговые новости — только подписавшимся, с ссылкой на отписку."
+
+#: src/features/planner/components/TimeOffFields.tsx
+msgid "marking yourself"
+msgstr "отмечаете себе"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Match all rules (AND)"
@@ -3350,6 +3383,7 @@ msgstr "Не отслеживается"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
+#: src/features/planner/components/TimeOffFields.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Note"
@@ -3614,6 +3648,10 @@ msgstr "Разделы команды"
 msgid "Period"
 msgstr "Период"
 
+#: src/features/planner/components/TimeOffFields.tsx
+msgid "Person"
+msgstr "Кто"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -3629,6 +3667,14 @@ msgstr "Телефон"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Pick a user and an egg."
 msgstr "Выберите пользователя и пасхалку."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Pick both dates."
+msgstr "Укажите обе даты."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Pick the days you will be away."
+msgstr "Выберите дни, когда вас не будет."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Pie chart (Donut)"
@@ -4035,6 +4081,7 @@ msgstr "Шалфейный"
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -4229,12 +4276,17 @@ msgid "Select a milestone to view details."
 msgstr "Выберите веху, чтобы увидеть детали."
 
 #: src/features/members/pages/MembersPage.tsx
+#: src/features/planner/components/TimeOffFields.tsx
 msgid "Select a person"
 msgstr "Выберите участника"
 
 #: src/features/members/components/MemberTasksPanel.tsx
 msgid "Select a person to view details."
 msgstr "Выберите участника, чтобы увидеть детали."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Select a person."
+msgstr "Выберите человека."
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Select a project"
@@ -4512,6 +4564,7 @@ msgid "Start"
 msgstr "Начать"
 
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/TimeOffFields.tsx
 msgid "Start date"
 msgstr "Дата начала"
 
@@ -4623,6 +4676,7 @@ msgid "Tags"
 msgstr "Теги"
 
 #: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Task"
 msgstr "Задача"
@@ -4759,6 +4813,11 @@ msgstr "База данных будет заменена содержимым �
 #~ msgid "The email will go to {0} subscribed users. This cannot be recalled."
 #~ msgstr "Письмо уйдёт {0} подписанным пользователям. Отозвать его нельзя."
 
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+msgid "The end date cannot be earlier than the start date."
+msgstr "Дата окончания не может быть раньше даты начала."
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
 msgstr "Срок действия предыдущего файла экспорта истёк. Запросите его ещё раз."
@@ -4794,6 +4853,17 @@ msgstr "Нет других активных участников, которы�
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "There is no one to transfer ownership to. Delete the workspace instead if you no longer need it."
 msgstr "Передать владение некому. Если рабочее пространство больше не нужно — удалите его."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/timeline/TimeOffBar.tsx
+#: src/features/planner/components/timeline/TimeOffBar.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+#: src/features/planner/components/timeline/TimeOffEditDialog.tsx
+msgid "These days are already marked as time off."
+msgstr "На эти дни уже есть отметка."
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "These members are derived from this project's tasks. Use + to pin them explicitly."
@@ -5295,6 +5365,10 @@ msgstr "Воркспейсы пользователя"
 msgid "Users"
 msgstr "Пользователи"
 
+#: src/features/planner/components/TimeOffFields.tsx
+msgid "Vacation, day off, sick leave..."
+msgstr "Отпуск, отгул, больничный..."
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "View all workspaces where this user is a member."
 msgstr "Посмотрите все рабочие пространства, в которых состоит этот пользователь."
@@ -5325,6 +5399,10 @@ msgstr "наблюдатель"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Viewer"
 msgstr "Просмотр"
+
+#: src/features/planner/components/TimeOffFields.tsx
+msgid "Visible to the whole team."
+msgstr "Видно всей команде."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Visual timeline"
@@ -5500,6 +5578,10 @@ msgstr "У вас есть 30 дней, чтобы восстановить ак
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "You have unsaved changes. Close without creating the task?"
 msgstr "У вас есть несохраненные изменения. Закрыть без создания задачи?"
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "You have unsaved changes. Close without marking the time off?"
+msgstr "Есть несохранённые изменения. Закрыть без отметки?"
 
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
