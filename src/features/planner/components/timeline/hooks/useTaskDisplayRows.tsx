@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { t } from '@lingui/macro';
 import { Assignee, Filters, GroupMode, Project, Task } from '@/features/planner/types/planner';
+import { EMPTY_TIME_OFF_INDEX, timeOffExtraLanes, timeOffLaneOffset, type TimeOffIndex } from '@/features/planner/lib/timeOff';
 import {
   buildTimelineDisplayRows,
   calculateTimelineRowHeights,
@@ -11,6 +12,7 @@ import {
 } from '@/features/planner/lib/timelineSelectors';
 import { getTaskPosition, MIN_ROW_HEIGHT, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
 import { TaskBar } from '../TaskBar';
+import { TimeOffBar } from '../TimeOffBar';
 import { resolveAssigneeMinRowHeight } from '../TimelineSidebarRow';
 
 const ASSIGNEE_ROW_GAP = 20;
@@ -28,6 +30,10 @@ interface UseTaskDisplayRowsParams {
   dayWidth: number;
   canEdit: boolean;
   sidebarViewportWidth: number;
+  timeOffIndex?: TimeOffIndex;
+  myAssigneeIdForTimeOff?: string | null;
+  canManageAnyTimeOff?: boolean;
+  onOpenTimeOff?: (id: string) => void;
 }
 
 export const useTaskDisplayRows = ({
@@ -43,6 +49,10 @@ export const useTaskDisplayRows = ({
   dayWidth,
   canEdit,
   sidebarViewportWidth,
+  timeOffIndex = EMPTY_TIME_OFF_INDEX,
+  myAssigneeIdForTimeOff = null,
+  canManageAnyTimeOff = false,
+  onOpenTimeOff,
 }: UseTaskDisplayRowsParams) => {
   const filteredTasks = useMemo(
     () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
@@ -82,13 +92,25 @@ export const useTaskDisplayRows = ({
     ? Math.max(MIN_ROW_HEIGHT, resolveAssigneeMinRowHeight(sidebarViewportWidth))
     : MIN_ROW_HEIGHT;
 
+  // One extra lane in every row that carries a time-off bar; task packing
+  // itself is untouched.
+  const extraLanesByRow = useMemo(() => {
+    const extra: Record<string, number> = {};
+    timeOffIndex.byRowId.forEach((records, rowId) => {
+      const lanes = timeOffExtraLanes(records);
+      if (lanes > 0) extra[rowId] = lanes;
+    });
+    return extra;
+  }, [timeOffIndex]);
+
   const rowHeights = useMemo(
     () => calculateTimelineRowHeights(tasksByRow, {
       minRowHeight: effectiveMinRowHeight,
       taskHeight: TASK_HEIGHT,
       taskGap: TASK_GAP,
+      extraLanesByRow,
     }),
-    [tasksByRow, effectiveMinRowHeight],
+    [tasksByRow, effectiveMinRowHeight, extraLanesByRow],
   );
 
   const displayRows = useMemo(
@@ -114,6 +136,29 @@ export const useTaskDisplayRows = ({
     displayRows.forEach((row) => {
       const rowAssigneeId = groupMode === 'assignee' && row.id !== 'unassigned' ? row.id : null;
       const taskElements: React.ReactNode[] = [];
+      const rowTimeOff = rowAssigneeId ? timeOffIndex.byRowId.get(rowAssigneeId) : undefined;
+      // The bar owns lane 0, so task bars in this row start one lane lower.
+      const laneOffset = timeOffLaneOffset(rowTimeOff);
+      rowTimeOff?.forEach((record) => {
+        const position = getTaskPosition(
+          record.startDate,
+          record.endDate,
+          visibleDays,
+          dayWidth,
+        );
+        if (!position) return;
+        taskElements.push(
+          <TimeOffBar
+            key={record.id}
+            record={record}
+            position={position}
+            dayWidth={dayWidth}
+            siblings={rowTimeOff}
+            canEditOwn={canManageAnyTimeOff || record.assigneeId === myAssigneeIdForTimeOff}
+            onOpenDetail={onOpenTimeOff}
+          />,
+        );
+      });
       row.tasks.forEach((task) => {
         const position = getTaskPosition(
           task.startDate,
@@ -129,7 +174,7 @@ export const useTaskDisplayRows = ({
             position={position}
             dayWidth={dayWidth}
             visibleDays={visibleDays}
-            lane={task.lane}
+            lane={task.lane + laneOffset}
             canEdit={canEdit}
             rowAssigneeId={rowAssigneeId}
           />,
@@ -138,7 +183,7 @@ export const useTaskDisplayRows = ({
       elementsByRowId.set(row.id, taskElements);
     });
     return elementsByRowId;
-  }, [canEdit, dayWidth, displayRows, groupMode, visibleDays]);
+  }, [canEdit, canManageAnyTimeOff, dayWidth, displayRows, groupMode, myAssigneeIdForTimeOff, onOpenTimeOff, timeOffIndex, visibleDays]);
 
   return { displayRows, rowTaskElementsById };
 };
