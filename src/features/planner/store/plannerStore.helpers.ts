@@ -22,6 +22,7 @@ import {
   Tag,
   Task,
   TaskPriority,
+  TimeOff,
   TaskSubtask,
   TaskType,
   ViewMode,
@@ -154,6 +155,15 @@ export type MilestoneRow = {
   include_in_workload?: boolean | null;
 };
 
+export type TimeOffRow = {
+  id: string;
+  workspace_id: string;
+  assignee_id: string;
+  start_date: string;
+  end_date: string;
+  note: string | null;
+};
+
 export type TaskSubtaskRow = {
   id: string;
   task_id: string;
@@ -171,6 +181,17 @@ export type SupabaseResult<T> = {
 
 export type MutationResult = {
   error?: string;
+};
+
+/**
+ * Time-off writes carry a machine-readable reason so the UI can show a specific
+ * message instead of a raw Postgres string. `overlap` is 23P01 (the person
+ * already has days off in that period), `invalidRange` is 23514 (end before
+ * start) — both are raised by the guards in migration 0131 and arrive with the
+ * same code on every environment.
+ */
+export type TimeOffMutationResult = MutationResult & {
+  code?: 'overlap' | 'invalidRange';
 };
 
 export type AssigneeUniqueTaskCountRow = {
@@ -338,6 +359,14 @@ export const mapMilestoneRow = (row: MilestoneRow): Milestone => ({
   note: row.note ?? null,
   statusOverride: row.status_override ?? null,
   includeInWorkload: row.include_in_workload ?? true,
+});
+
+export const mapTimeOffRow = (row: TimeOffRow): TimeOff => ({
+  id: row.id,
+  assigneeId: row.assignee_id,
+  startDate: row.start_date,
+  endDate: row.end_date,
+  note: row.note ?? null,
 });
 
 export const mapTaskSubtaskRow = (row: TaskSubtaskRow): TaskSubtask => ({
