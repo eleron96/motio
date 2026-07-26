@@ -14,6 +14,7 @@ import {
   DEMO_SEED_TAGS,
   DEMO_SEED_TASKS,
   DEMO_SEED_MILESTONES,
+  DEMO_SEED_TIME_OFF,
   DEMO_SEED_CUSTOMERS,
   DEMO_SEED_CUSTOMER_CONTACTS,
   DEMO_SEED_PROJECT_MEMBERS,
@@ -38,7 +39,7 @@ interface PersistedState {
   // layouts that rendered cramped and jittered). v4: drop any v3 cache that
   // may have persisted a jitter-drifted layout before the store no-op guard.
   // v5: dashboards reshaped to mirror prod widget mix (assignee-centric).
-  schemaVersion: 5;
+  schemaVersion: 6;
   lastActivityAt: number;
   user: { id: string; email: string; display_name: string };
   workspaceId: string;
@@ -202,6 +203,16 @@ const buildFreshState = (): DemoStore => {
       created_at: nowIso,
       updated_at: nowIso,
     })),
+    time_off: DEMO_SEED_TIME_OFF.map((r) => ({
+      id: r.id,
+      workspace_id: workspaceId,
+      assignee_id: r.assignee_id,
+      start_date: addDays(anchor, r.start_offset_days),
+      end_date: addDays(anchor, r.end_offset_days),
+      note: r.note,
+      created_at: nowIso,
+      updated_at: nowIso,
+    })),
     milestones: DEMO_SEED_MILESTONES.map((m) => ({
       id: m.id,
       workspace_id: workspaceId,
@@ -290,7 +301,7 @@ const loadPersisted = (): DemoStore | null => {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as PersistedState;
-    if (parsed.schemaVersion !== 5) return null;
+    if (parsed.schemaVersion !== 6) return null;
     if (Date.now() - parsed.lastActivityAt > TTL_MS) return null;
     return {
       user: parsed.user,
@@ -306,7 +317,7 @@ const loadPersisted = (): DemoStore | null => {
 const persist = (store: DemoStore): void => {
   if (!isBrowser) return;
   const payload: PersistedState = {
-    schemaVersion: 5,
+    schemaVersion: 6,
     lastActivityAt: store.lastActivityAt,
     user: store.user,
     workspaceId: store.workspaceId,

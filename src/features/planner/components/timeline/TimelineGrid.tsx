@@ -1,13 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { TimelineHeader } from './TimelineHeader';
 import { TimelineRow } from './TimelineRow';
 import { MilestoneDialog } from './MilestoneDialog';
+import { TimeOffEditDialog } from './TimeOffEditDialog';
 import { MilestoneLayer } from './MilestoneLayer';
 import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
+import { buildTimeOffIndex, EMPTY_TIME_OFF_INDEX, NO_TIME_OFF } from '@/features/planner/lib/timeOff';
+import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import {
   buildAssigneeGroupMap,
   resolveCurrentUserAssigneeId,
@@ -83,6 +86,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const tasks = usePlannerStore((state) => state.tasks);
   const milestones = usePlannerStore((state) => state.milestones);
+  // NO_TIME_OFF (frozen constant), not `?? []`: partial store mocks in tests do
+  // not carry the field, and a fresh array each render would defeat the row memo.
+  const timeOff = usePlannerStore((state) => state.timeOff ?? NO_TIME_OFF);
+  const timeOffDragPreview = usePlannerStore((state) => state.timeOffDragPreview ?? null);
   const projects = usePlannerStore((state) => state.projects);
   const assignees = usePlannerStore((state) => state.assignees);
   const memberGroupAssignments = usePlannerStore((state) => state.memberGroupAssignments);
@@ -122,6 +129,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     [assignees, user?.id],
   );
 
+  const [editingTimeOffId, setEditingTimeOffId] = useState<string | null>(null);
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
 
@@ -154,6 +163,15 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     fallbackHolidayLabel: t`Non-working day`,
     holidayLabel: t`Holiday`,
   });
+  // Time-off records of the visible window, grouped by row. Assignee grouping
+  // only: project rows have no person, so there is nothing to shade there.
+  const timeOffIndex = useMemo(
+    () => (isTimeOffEnabled() && groupMode === 'assignee'
+      ? buildTimeOffIndex(timeOff, visibleDays, timeOffDragPreview)
+      : EMPTY_TIME_OFF_INDEX),
+    [groupMode, timeOff, timeOffDragPreview, visibleDays],
+  );
+
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
   const totalSurfaceWidth = `calc(${resolvedSidebarWidth} + ${totalWidth}px)`;
@@ -280,6 +298,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     dayWidth,
     canEdit,
     sidebarViewportWidth,
+    timeOffIndex,
+    myAssigneeIdForTimeOff: myAssigneeId,
+    canManageAnyTimeOff: currentWorkspaceRole === 'admin',
+    onOpenTimeOff: setEditingTimeOffId,
   });
 
   // ─── Other handlers ────────────────────────────────────────────────────────
@@ -296,7 +318,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   }, [setTimelineAttentionDate, timelineAttentionDate]);
 
   const handleCreateTaskAt = useCallback((date: string, rowId: string) => {
-    if (!canEdit) return;
+    // Viewers may open the dialog too — it opens in time-off-only mode for them.
+    if (!canEdit && !isTimeOffEnabled()) return;
     if (Date.now() - lastDragTimeRef.current < 200) return;
     const defaults: {
       startDate: string;
@@ -495,8 +518,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     viewMode={viewMode}
                     todayKey={todayKey}
                     holidayDates={holidayDates}
+                    timeOffDays={timeOffIndex.daysByRowId.get(row.id)}
                     height={row.height}
-                    canEdit={canEdit}
+                    canEdit={canEdit || isTimeOffEnabled()}
+                    canCreateTask={canEdit}
                     onCreateTask={handleCreateTaskAt}
                   >
                     {rowTaskElementsById.get(row.id)}
@@ -538,6 +563,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           {t`Today`}
         </Button>
       )}
+
+      <TimeOffEditDialog
+        recordId={editingTimeOffId}
+        onOpenChange={(nextOpen) => { if (!nextOpen) setEditingTimeOffId(null); }}
+      />
 
       <MilestoneDialog
         open={milestoneDialogOpen}
