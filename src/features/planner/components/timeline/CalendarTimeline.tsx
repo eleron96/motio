@@ -39,7 +39,7 @@ import {
   writeCalendarLegend,
   type CalendarLegendState,
 } from '@/features/planner/lib/calendarLegendStorage';
-import { Milestone, TimeOff } from '@/features/planner/types/planner';
+import { Assignee, Milestone, TimeOff } from '@/features/planner/types/planner';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -120,6 +120,7 @@ export const CalendarTimeline: React.FC = () => {
     ));
   }, [dateLocale, locale]);
   const fallbackHolidayLabel = t`Non-working day`;
+  const unknownPersonLabel = t`Unknown user`;
 
   const holidayCountryCode = useMemo(() => {
     const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
@@ -307,11 +308,29 @@ export const CalendarTimeline: React.FC = () => {
   // People shown on the calendar. A LOCAL selection, deliberately separate from
   // the global people filter: that one narrows tasks and milestones everywhere,
   // while this one only decides whose days off are marked here.
-  const calendarPeople = useMemo(
-    () => assignees.filter((assignee) => assignee.isActive)
-      .sort((left, right) => left.name.localeCompare(right.name)),
-    [assignees],
-  );
+  const calendarPeople = useMemo(() => {
+    const known = assignees.filter((assignee) => assignee.isActive);
+    const knownIds = new Set(known.map((assignee) => assignee.id));
+
+    // People who have time off but are not in the assignee list: that list is
+    // pruned to those with an account or a task in the loaded window, while time
+    // off arrives on its own window. Without this they would be marked on the
+    // calendar with no way to untick them.
+    const strangers = new Map<string, Assignee>();
+    timeOff.forEach((record) => {
+      if (knownIds.has(record.assigneeId) || strangers.has(record.assigneeId)) return;
+      strangers.set(record.assigneeId, {
+        id: record.assigneeId,
+        name: unknownPersonLabel,
+        isActive: true,
+        email: null,
+        phone: null,
+      });
+    });
+
+    return [...known, ...strangers.values()]
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [assignees, timeOff, unknownPersonLabel]);
 
   const handleTogglePerson = useCallback((assigneeId: string) => {
     setLegendState((current) => ({
