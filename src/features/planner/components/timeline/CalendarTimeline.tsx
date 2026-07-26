@@ -15,6 +15,7 @@ import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
+import { buildCalendarMonths } from '@/features/planner/lib/calendarMonths';
 import { Milestone } from '@/features/planner/types/planner';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { t } from '@lingui/macro';
@@ -26,19 +27,13 @@ import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/h
 import { buildAssigneeGroupMap, selectFilteredTasks } from '@/features/planner/lib/timelineSelectors';
 import {
   addDays,
-  addMonths,
-  addYears,
   endOfMonth,
-  endOfYear,
   endOfWeek,
   eachDayOfInterval,
   format,
   isWeekend,
-  max,
-  min,
   parseISO,
   startOfMonth,
-  startOfYear,
   startOfWeek,
   isSameMonth,
 } from 'date-fns';
@@ -162,23 +157,10 @@ export const CalendarTimeline: React.FC = () => {
     return counts;
   }, [filteredTasks, myAssigneeId]);
 
-  const months = useMemo(() => {
-    const baseDate = parseISO(currentDate);
-    const startDates = filteredTasks.map((task) => parseISO(task.startDate));
-    const endDates = filteredTasks.map((task) => parseISO(task.endDate));
-    const minTaskDate = min([baseDate, ...startDates]);
-    const maxTaskDate = max([baseDate, ...endDates]);
-
-    const rangeStart = startOfYear(addYears(minTaskDate, -1));
-    const rangeEnd = endOfYear(addYears(maxTaskDate, 5));
-    const result: Date[] = [];
-    let cursor = startOfMonth(rangeStart);
-    while (cursor <= rangeEnd) {
-      result.push(cursor);
-      cursor = addMonths(cursor, 1);
-    }
-    return result;
-  }, [currentDate, filteredTasks]);
+  // Two years around the current date — see lib/calendarMonths.ts for why the
+  // window no longer follows the task span. The arrows and the "Today" button
+  // move currentDate, so the window follows the user.
+  const months = useMemo(() => buildCalendarMonths(currentDate), [currentDate]);
 
   const years = useMemo(() => {
     const grouped = new Map<number, Date[]>();
