@@ -129,41 +129,16 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
     });
   }
 
-  return (
-    <aside
-      className={cn(
-        'hidden w-56 shrink-0 flex-col border-l border-border bg-card md:flex',
-        className,
-      )}
-      aria-label={t`Calendar legend`}
-    >
-      <div className="border-b border-border px-4 py-3 text-sm font-semibold text-foreground">
-        {t`On the calendar`}
-      </div>
-
-      <div className="flex-1 space-y-1 overflow-y-auto p-2">
-        {rows.map((row) => (
-          <label
-            key={row.category}
-            className="flex cursor-pointer items-start gap-2 rounded-md p-2 hover:bg-muted/60"
-          >
-            <Checkbox
-              className="mt-0.5"
-              checked={visibility[row.category]}
-              onCheckedChange={() => onToggle(row.category)}
-            />
-            {row.swatch}
-            <span className="min-w-0">
-              <span className="block text-sm leading-snug">{row.label}</span>
-              <span className="block text-[11px] leading-snug text-muted-foreground">{row.hint}</span>
-            </span>
-          </label>
-        ))}
-      </div>
-
-      {showTimeOffRow && visibility.timeOff && (people.length > 0 || unknownPeopleIds.length > 0) && onTogglePerson && (
-        <div className="border-t border-border">
-          <div className="space-y-2 px-3 pb-2 pt-3">
+  // Nested under its own checkbox rather than parked at the bottom of the
+  // panel: the list only makes sense for that category, and a separate section
+  // left a hole in the middle.
+  const peopleBlock = showTimeOffRow
+    && visibility.timeOff
+    && (people.length > 0 || unknownPeopleIds.length > 0)
+    && onTogglePerson
+    ? (
+        <div className="ml-5 border-l border-border pl-2">
+          <div className="space-y-2 px-1 pb-1 pt-1">
             <button
               type="button"
               className="flex w-full items-center gap-1 rounded-md px-1 py-0.5 text-left text-[11px] uppercase tracking-wide text-muted-foreground hover:text-foreground"
@@ -214,7 +189,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
           </div>
 
           {!isCollapsed && searchable && (
-            <div className="px-3 pb-2 pt-1">
+            <div className="px-1 pb-2">
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -225,7 +200,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
           )}
 
           {!isCollapsed && (
-          <div className="max-h-64 space-y-0.5 overflow-y-auto px-2 pb-2">
+          <div className="max-h-56 space-y-0.5 overflow-y-auto px-1 pb-2">
             {visiblePeople.length === 0 && (
               <p className="px-2 py-1 text-[11px] text-muted-foreground">{t`Nobody found`}</p>
             )}
@@ -266,7 +241,41 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
           </div>
           )}
         </div>
+      )
+    : null;
+
+  return (
+    <aside
+      className={cn(
+        'hidden w-56 shrink-0 flex-col border-l border-border bg-card md:flex',
+        className,
       )}
+      aria-label={t`Calendar legend`}
+    >
+      <div className="border-b border-border px-4 py-3 text-sm font-semibold text-foreground">
+        {t`On the calendar`}
+      </div>
+
+      <div className="flex-1 space-y-1 overflow-y-auto p-2">
+        {rows.map((row) => (
+          <React.Fragment key={row.category}>
+            <label className="flex cursor-pointer items-start gap-2 rounded-md p-2 hover:bg-muted/60">
+              <Checkbox
+                className="mt-0.5"
+                checked={visibility[row.category]}
+                onCheckedChange={() => onToggle(row.category)}
+              />
+              {row.swatch}
+              <span className="min-w-0">
+                <span className="block text-sm leading-snug">{row.label}</span>
+                <span className="block text-[11px] leading-snug text-muted-foreground">{row.hint}</span>
+              </span>
+            </label>
+            {row.category === 'timeOff' && peopleBlock}
+          </React.Fragment>
+        ))}
+      </div>
+
     </aside>
   );
 };
