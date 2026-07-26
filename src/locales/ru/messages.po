@@ -3405,6 +3405,10 @@ msgstr "Нет"
 msgid "Not equals"
 msgstr "Не равно"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Not on the team"
+msgstr "Не в команде"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Not tracked"
 msgstr "Не отслеживается"
@@ -5289,7 +5293,6 @@ msgstr "неизвестная роль"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
-#: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 #: src/shared/lib/workspaceMemberActivity.ts
