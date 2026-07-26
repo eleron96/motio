@@ -66,8 +66,15 @@ export const resolveTimeOffColor = (
   assigneeId: string,
 ): string => colors.get(assigneeId) ?? TIME_OFF_PALETTE[hashToPaletteIndex(assigneeId)];
 
-/** Beyond this the slices are too thin to tell apart; the rest becomes "+N". */
+/**
+ * Beyond this the slices are too thin to tell apart on a 28px circle. The last
+ * slice then turns neutral and stands for "and N more" — the day card lists
+ * everyone by name anyway.
+ */
 export const MAX_PIE_SEGMENTS = 4;
+
+/** Colour of the slice that stands for the people who did not get their own. */
+export const TIME_OFF_OVERFLOW_COLOR = 'hsl(220, 14%, 78%)';
 
 export type DayPie = {
   /** Colours actually drawn, at most MAX_PIE_SEGMENTS. */
@@ -91,9 +98,20 @@ export const buildDayPie = (
   const people = Array.from(new Set(records.map((record) => record.assigneeId)))
     .sort((left, right) => left.localeCompare(right));
 
+  const overflow = Math.max(0, people.length - MAX_PIE_SEGMENTS);
+
+  // With an overflow the last slice is neutral and represents everyone left,
+  // so the circle never claims to show more people than it can distinguish.
+  const shown = overflow > 0
+    ? [
+      ...people.slice(0, MAX_PIE_SEGMENTS - 1).map((id) => resolveTimeOffColor(colors, id)),
+      TIME_OFF_OVERFLOW_COLOR,
+    ]
+    : people.map((id) => resolveTimeOffColor(colors, id));
+
   return {
-    colors: people.slice(0, MAX_PIE_SEGMENTS).map((id) => resolveTimeOffColor(colors, id)),
-    overflow: Math.max(0, people.length - MAX_PIE_SEGMENTS),
+    colors: shown,
+    overflow: overflow > 0 ? overflow + 1 : 0,
     total: people.length,
   };
 };

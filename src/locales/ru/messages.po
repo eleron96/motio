@@ -2114,6 +2114,10 @@ msgstr "Финальный"
 msgid "Final status"
 msgstr "Финальный статус"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Find a person"
+msgstr "Найти человека"
+
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
 msgstr "Найти или добавить клиента..."
@@ -3373,6 +3377,10 @@ msgstr "Рабочие пространства не требуют вашего
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "No workspaces."
 msgstr "Нет воркспейсов."
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Nobody found"
+msgstr "Никого не найдено"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #~ msgid "Nobody has opted in yet."
@@ -5281,6 +5289,7 @@ msgstr "неизвестная роль"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 #: src/shared/lib/workspaceMemberActivity.ts

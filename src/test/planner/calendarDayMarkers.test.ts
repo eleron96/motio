@@ -13,6 +13,7 @@ import {
   buildPieBackground,
   buildTimeOffColorMap,
   MAX_PIE_SEGMENTS,
+  TIME_OFF_OVERFLOW_COLOR,
   TIME_OFF_PALETTE,
   resolveTimeOffColor,
 } from '@/features/planner/lib/timeOffPalette';
@@ -222,14 +223,27 @@ describe('buildDayPie', () => {
     expect(forward.colors).toEqual(reversed.colors);
   });
 
-  it('caps the slices and reports the overflow', () => {
+  it('shows everyone while they still fit', () => {
+    const pie = buildDayPie(
+      ['a1', 'a2', 'a3', 'a4'].map((id, index) => record({ id: `t${index}`, assigneeId: id })),
+      colors,
+    );
+
+    expect(pie.colors).toHaveLength(4);
+    expect(pie.overflow).toBe(0);
+    expect(pie.colors).not.toContain(TIME_OFF_OVERFLOW_COLOR);
+  });
+
+  it('folds the tail into one neutral slice once they stop fitting', () => {
     const pie = buildDayPie(
       ['a1', 'a2', 'a3', 'a4', 'a5'].map((id, index) => record({ id: `t${index}`, assigneeId: id })),
       colors,
     );
 
     expect(pie.colors).toHaveLength(MAX_PIE_SEGMENTS);
-    expect(pie.overflow).toBe(1);
+    expect(pie.colors.at(-1)).toBe(TIME_OFF_OVERFLOW_COLOR);
+    // Three people keep their own colour, two share the neutral slice.
+    expect(pie.overflow).toBe(2);
     expect(pie.total).toBe(5);
   });
 });

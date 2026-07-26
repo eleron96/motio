@@ -2,6 +2,7 @@ import React from 'react';
 import { t } from '@lingui/macro';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 import { cn } from '@/shared/lib/classNames';
 import { isPersonShown } from '@/features/planner/lib/calendarDayMarkers';
 import { resolveTimeOffColor } from '@/features/planner/lib/timeOffPalette';
@@ -29,6 +30,9 @@ export interface CalendarLegendPanelProps {
   className?: string;
 }
 
+/** Above this many people the list gets a filter box. */
+const SEARCH_THRESHOLD = 10;
+
 type LegendRow = {
   category: CalendarOverlayCategory;
   label: string;
@@ -54,6 +58,17 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
   myAssigneeId = null,
   className,
 }) => {
+  // A search box only earns its space once the list stops fitting; below that it
+  // is one more thing to look past.
+  const [query, setQuery] = React.useState('');
+  const searchable = people.length > SEARCH_THRESHOLD;
+  const visiblePeople = React.useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return people;
+    return people.filter((person) => person.name.toLowerCase().includes(needle));
+  }, [people, query]);
+  const shownCount = selectedPeople === null ? people.length : selectedPeople.length;
+
   const rows: LegendRow[] = [
     {
       category: 'holidays',
@@ -127,6 +142,11 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
           <div className="flex items-center justify-between px-4 py-2">
             <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
               {t`People`}
+              {people.length > 0 && (
+                <span className="ml-1 normal-case tracking-normal">
+                  {shownCount}/{people.length}
+                </span>
+              )}
             </span>
             <span className="flex gap-1">
               <Button
@@ -152,8 +172,22 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
             </span>
           </div>
 
+          {searchable && (
+            <div className="px-3 pb-2">
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={t`Find a person`}
+                className="h-7 text-sm"
+              />
+            </div>
+          )}
+
           <div className="max-h-64 space-y-0.5 overflow-y-auto px-2 pb-2">
-            {people.map((person) => (
+            {visiblePeople.length === 0 && (
+              <p className="px-2 py-1 text-[11px] text-muted-foreground">{t`Nobody found`}</p>
+            )}
+            {visiblePeople.map((person) => (
               <label
                 key={person.id}
                 className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/60"
