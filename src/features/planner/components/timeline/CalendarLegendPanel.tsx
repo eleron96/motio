@@ -144,7 +144,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
     && (people.length > 0 || unknownPeopleIds.length > 0)
     && onTogglePerson
     ? (
-        <div className="ml-5 border-l border-border pl-2">
+        <div className="ml-6 pr-1">
           <div className="space-y-2 px-1 pb-1 pt-1">
             <button
               type="button"
@@ -246,17 +246,17 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
                 <div
                   key={person.id}
                   className={cn(
-                    'group flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/60',
+                    'group relative flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/60',
                     !shown && 'opacity-45',
                   )}
                 >
                   {/* The avatar carries the colour the calendar draws, so the
                       row needs no second colour chip next to the checkbox. */}
-                  <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+                  <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5">
                     <Checkbox checked={shown} onCheckedChange={() => onTogglePerson(person.id)} />
                     <span
                       aria-hidden="true"
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-medium text-foreground/70 ring-1 ring-border"
+                      className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-medium text-foreground/70 ring-1 ring-border"
                       style={{ backgroundColor: shown ? color : 'transparent' }}
                     >
                       {getPersonMonogram(person.name, '?')}
@@ -270,7 +270,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
                     <button
                       type="button"
                       onClick={() => onShowOnlyPerson(person.id)}
-                      className="shrink-0 rounded-full border border-border px-2 py-px text-[10px] text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 max-md:opacity-100"
+                      className="absolute right-1 top-1/2 hidden -translate-y-1/2 rounded-full border border-border bg-card px-2 py-px text-[10px] text-muted-foreground shadow-sm hover:text-foreground focus-visible:block group-hover:block max-md:block"
                     >
                       {t`only`}
                     </button>
@@ -292,7 +292,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
   return (
     <aside
       className={cn(
-        'hidden w-56 shrink-0 flex-col border-l border-border bg-card md:flex',
+        'hidden w-64 shrink-0 flex-col border-l border-border bg-card md:flex',
         className,
       )}
       aria-label={t`Calendar legend`}
