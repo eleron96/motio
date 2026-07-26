@@ -307,11 +307,36 @@ export const CalendarTimeline: React.FC = () => {
   // People shown on the calendar. A LOCAL selection, deliberately separate from
   // the global people filter: that one narrows tasks and milestones everywhere,
   // while this one only decides whose days off are marked here.
-  const calendarPeople = useMemo(
-    () => assignees.filter((assignee) => assignee.isActive)
-      .sort((left, right) => left.name.localeCompare(right.name)),
+  // Only people who actually have time off inside the rendered window. A tick
+  // box for somebody who never leaves toggles nothing — it just costs a row, and
+  // a thirty-person team turns the panel into a wall of checkboxes. The list
+  // shrinks and grows with the window as the user scrolls through years.
+  const peopleIdsWithTimeOff = useMemo(() => {
+    if (months.length === 0) return new Set<string>();
+    const windowStart = format(months[0], 'yyyy-MM-dd');
+    const windowEnd = format(endOfMonth(months[months.length - 1]), 'yyyy-MM-dd');
+    const ids = new Set<string>();
+    timeOff.forEach((record) => {
+      if (record.endDate < windowStart || record.startDate > windowEnd) return;
+      ids.add(record.assigneeId);
+    });
+    return ids;
+  }, [months, timeOff]);
+
+  const activePeople = useMemo(
+    () => assignees.filter((assignee) => assignee.isActive),
     [assignees],
   );
+
+  const calendarPeople = useMemo(
+    () => activePeople
+      .filter((assignee) => peopleIdsWithTimeOff.has(assignee.id))
+      .sort((left, right) => left.name.localeCompare(right.name)),
+    [activePeople, peopleIdsWithTimeOff],
+  );
+
+  /** Teammates with nothing to show in this window — counted, not listed. */
+  const peopleWithoutTimeOff = activePeople.length - calendarPeople.length;
 
   // People with time off who are not in the assignee list — that list is pruned
   // to those with an account or a task in the loaded window, while time off
@@ -320,10 +345,8 @@ export const CalendarTimeline: React.FC = () => {
   // otherwise their circles sit on the calendar with no way to hide them.
   const unknownPeopleIds = useMemo(() => {
     const knownIds = new Set(calendarPeople.map((person) => person.id));
-    return Array.from(new Set(
-      timeOff.map((record) => record.assigneeId).filter((id) => !knownIds.has(id)),
-    ));
-  }, [calendarPeople, timeOff]);
+    return Array.from(peopleIdsWithTimeOff).filter((id) => !knownIds.has(id));
+  }, [calendarPeople, peopleIdsWithTimeOff]);
 
   const handleTogglePerson = useCallback((assigneeId: string) => {
     setLegendState((current) => ({
@@ -691,6 +714,7 @@ export const CalendarTimeline: React.FC = () => {
           onTogglePerson={handleTogglePerson}
           unknownPeopleIds={unknownPeopleIds}
           onToggleUnknownPeople={handleToggleUnknownPeople}
+          hiddenPeopleCount={peopleWithoutTimeOff}
           onShowAllPeople={handleShowAllPeople}
           onShowOnlyMe={handleShowOnlyMe}
           myAssigneeId={myAssigneeId}

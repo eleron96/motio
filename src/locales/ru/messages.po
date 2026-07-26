@@ -3585,6 +3585,10 @@ msgstr "Открыть команду"
 msgid "Optional"
 msgstr "Необязательно"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Others are not away in this range"
+msgstr "Остальные не отсутствуют в этом диапазоне"
+
 #: src/features/auth/components/ProfileSummary.tsx
 #: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "overdue"

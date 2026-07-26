@@ -3585,6 +3585,10 @@ msgstr "Open team"
 msgid "Optional"
 msgstr "Optional"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Others are not away in this range"
+msgstr "Others are not away in this range"
+
 #: src/features/auth/components/ProfileSummary.tsx
 #: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "overdue"
