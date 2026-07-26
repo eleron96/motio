@@ -202,7 +202,12 @@ export interface DemoSeedTimeOff {
 export const DEMO_SEED_TIME_OFF: DemoSeedTimeOff[] = [
   {"id":"88888888-0000-0000-0000-000000000001","assignee_id":"22222222-0000-0000-0000-000000000007","start_offset_days":3,"end_offset_days":7,"note":"vacation"},
   {"id":"88888888-0000-0000-0000-000000000002","assignee_id":"22222222-0000-0000-0000-000000000003","start_offset_days":-6,"end_offset_days":-5,"note":null},
-  {"id":"88888888-0000-0000-0000-000000000003","assignee_id":"22222222-0000-0000-0000-000000000002","start_offset_days":9,"end_offset_days":9,"note":"day off"}
+  {"id":"88888888-0000-0000-0000-000000000003","assignee_id":"22222222-0000-0000-0000-000000000002","start_offset_days":9,"end_offset_days":9,"note":"day off"},
+  {"id":"99999999-0000-0000-0000-000000000001","assignee_id":"22222222-0000-0000-0000-000000000001","start_offset_days":4,"end_offset_days":10,"note":"vacation"},
+  {"id":"99999999-0000-0000-0000-000000000002","assignee_id":"22222222-0000-0000-0000-000000000005","start_offset_days":5,"end_offset_days":6,"note":null},
+  {"id":"99999999-0000-0000-0000-000000000003","assignee_id":"22222222-0000-0000-0000-000000000006","start_offset_days":6,"end_offset_days":12,"note":"sick leave"},
+  {"id":"99999999-0000-0000-0000-000000000004","assignee_id":"22222222-0000-0000-0000-000000000004","start_offset_days":6,"end_offset_days":8,"note":null},
+  {"id":"99999999-0000-0000-0000-000000000005","assignee_id":"22222222-0000-0000-0000-000000000003","start_offset_days":18,"end_offset_days":24,"note":"vacation"}
 ];
 
 export const DEMO_SEED_MILESTONES: DemoSeedMilestone[] = [

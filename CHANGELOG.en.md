@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.38] - 2026-07-26
+### Added
+- The calendar got a panel on the right: holidays, milestones and team time off can each be switched on or off. Days when somebody is away are marked with a circle in that person's colour; several people split the circle into slices, and hovering shows who is away and until when.
+
+
+### Changed
+- The calendar now shows two years around the current date instead of the whole task history, so it opens noticeably faster. The New Year break is marked in full, and for years whose production calendar is not published yet the holidays are derived from the Labour Code.
+
 ## [0.9.37] - 2026-07-26
 ### Changed
 - The morning brief has a new look: overdue tasks and tasks due today are now separate blocks with a count for each at the top. Long lists stay collapsed and open with one tap.

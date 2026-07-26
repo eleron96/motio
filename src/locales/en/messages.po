@@ -237,6 +237,10 @@ msgstr "1 comment"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "A circle on the day; split when several people are away."
+msgstr "A circle on the day; split when several people are away."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "A deadline is approaching"
 msgstr "A deadline is approaching"
@@ -487,6 +491,7 @@ msgid "After the grace period, all data (comments, tasks, profile) will be anony
 msgstr "After the grace period, all data (comments, tasks, profile) will be anonymized and cannot be recovered."
 
 #: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -659,6 +664,10 @@ msgstr "Auto"
 msgid "auto from history"
 msgstr "auto from history"
 
+#: src/features/planner/components/timeline/CalendarTimeline.tsx
+msgid "Away"
+msgstr "Away"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -745,6 +754,10 @@ msgstr "Calendar"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Calendar (month)"
 msgstr "Calendar (month)"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Calendar legend"
+msgstr "Calendar legend"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Calendar range"
@@ -1527,6 +1540,10 @@ msgstr "Deleting…"
 msgid "Delivered"
 msgstr "Delivered"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Deliveries, coloured by project."
+msgstr "Deliveries, coloured by project."
+
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "Demo is not configured"
 #~ msgstr "Demo is not configured"
@@ -2097,6 +2114,10 @@ msgstr "Final"
 msgid "Final status"
 msgstr "Final status"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Find a person"
+msgstr "Find a person"
+
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
 msgstr "Find or add customer..."
@@ -2297,6 +2318,10 @@ msgstr "Holiday calendar"
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 msgid "Holiday:"
 msgstr "Holiday:"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Holidays"
+msgstr "Holidays"
 
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
@@ -2705,6 +2730,7 @@ msgstr "Milestone name..."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -3357,6 +3383,10 @@ msgstr "No workspaces need your attention — you can continue."
 msgid "No workspaces."
 msgstr "No workspaces."
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Nobody found"
+msgstr "Nobody found"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #~ msgid "Nobody has opted in yet."
 #~ msgstr "Nobody has opted in yet."
@@ -3367,6 +3397,10 @@ msgstr "No workspaces."
 msgid "Non-working day"
 msgstr "Non-working day"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Non-working days of the country set for the workspace."
+msgstr "Non-working days of the country set for the workspace."
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "None"
@@ -3375,6 +3409,10 @@ msgstr "None"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Not equals"
 msgstr "Not equals"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Not on the team"
+msgstr "Not on the team"
 
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Not tracked"
@@ -3452,6 +3490,10 @@ msgstr "On Monday I'd open three different tabs to answer one simple question: w
 #~ msgid "On projects"
 #~ msgstr "On projects"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "On the calendar"
+msgstr "On the calendar"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "One <0>clear timeline</0><1/> for your whole team"
 msgstr "One <0>clear timeline</0><1/> for your whole team"
@@ -3460,6 +3502,10 @@ msgstr "One <0>clear timeline</0><1/> for your whole team"
 msgid "One of my tasks changes"
 msgstr "One of my tasks changes"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#~ msgid "only"
+#~ msgstr "only"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
 msgstr "Only disabled people are available."
@@ -3467,6 +3513,10 @@ msgstr "Only disabled people are available."
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 msgid "Only for {scopedAssigneeName}"
 msgstr "Only for {scopedAssigneeName}"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Only me"
+msgstr "Only me"
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Only super admins can access this page."
@@ -3543,6 +3593,10 @@ msgstr "Open team"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Optional"
 msgstr "Optional"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Others are not away in this range"
+msgstr "Others are not away in this range"
 
 #: src/features/auth/components/ProfileSummary.tsx
 #: src/features/daily-brief/components/DailyBriefStats.tsx
@@ -3623,6 +3677,7 @@ msgstr "Pending"
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 msgid "People"
@@ -4482,9 +4537,25 @@ msgstr "Show disabled people to add them."
 msgid "Show disabled users"
 msgstr "Show disabled users"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Show everyone"
+msgstr "Show everyone"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#~ msgid "Show holidays"
+#~ msgstr "Show holidays"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show legend"
 msgstr "Show legend"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#~ msgid "Show milestones"
+#~ msgstr "Show milestones"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Show only this person"
+msgstr "Show only this person"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show tasks without an assignee"
@@ -4493,6 +4564,10 @@ msgstr "Show tasks without an assignee"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show tasks without an assignee."
 msgstr "Show tasks without an assignee."
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#~ msgid "Show team time off"
+#~ msgstr "Show team time off"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show the department workload board on the dashboard"
@@ -4769,6 +4844,10 @@ msgstr "Team access"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Team planning workspace."
 msgstr "Team planning workspace."
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Team time off"
+msgstr "Team time off"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/marketing/pages/LandingPage.tsx
@@ -5239,6 +5318,7 @@ msgstr "unknown role"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "Unknown user"
