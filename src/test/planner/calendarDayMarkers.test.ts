@@ -11,7 +11,6 @@ import {
   buildTimeOffColorMap,
   MAX_PIE_SEGMENTS,
   TIME_OFF_PALETTE,
-  TIME_OFF_UNKNOWN_COLOR,
   resolveTimeOffColor,
 } from '@/features/planner/lib/timeOffPalette';
 import type { Assignee, TimeOff } from '@/features/planner/types/planner';
@@ -146,8 +145,12 @@ describe('time-off colours', () => {
     expect(colors.get('person-00')).toBe(colors.get(`person-${TIME_OFF_PALETTE.length}`));
   });
 
-  it('falls back to a neutral colour for an unknown person', () => {
-    expect(resolveTimeOffColor(new Map(), 'ghost')).toBe(TIME_OFF_UNKNOWN_COLOR);
+  it('still gives an unknown person a stable palette colour, not a grey blob', () => {
+    const first = resolveTimeOffColor(new Map(), 'ghost');
+
+    expect(TIME_OFF_PALETTE).toContain(first);
+    expect(resolveTimeOffColor(new Map(), 'ghost')).toBe(first);
+    expect(resolveTimeOffColor(new Map(), 'other-ghost')).not.toBe('');
   });
 });
 

@@ -33,8 +33,20 @@ export const TIME_OFF_PALETTE: string[] = [
   'hsl(85, 50%, 76%)', // lime
 ];
 
-/** Used when a record points at somebody the client does not know about. */
-export const TIME_OFF_UNKNOWN_COLOR = 'hsl(220, 12%, 80%)';
+/**
+ * A record can point at somebody the client does not hold: the assignee list is
+ * pruned to people with an account or a task in the loaded window, while time
+ * off arrives on its own window. Such a person still gets a stable palette
+ * colour (hashed from the id) rather than a grey blob — colliding with someone
+ * else's colour is a far smaller problem than a row of identical grey circles.
+ */
+const hashToPaletteIndex = (value: string): number => {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 1_000_000_007;
+  }
+  return hash % TIME_OFF_PALETTE.length;
+};
 
 /**
  * Stable colour per person: position in the id-sorted list of people, wrapping
@@ -52,7 +64,7 @@ export const buildTimeOffColorMap = (assignees: Assignee[]): Map<string, string>
 export const resolveTimeOffColor = (
   colors: Map<string, string>,
   assigneeId: string,
-): string => colors.get(assigneeId) ?? TIME_OFF_UNKNOWN_COLOR;
+): string => colors.get(assigneeId) ?? TIME_OFF_PALETTE[hashToPaletteIndex(assigneeId)];
 
 /** Beyond this the slices are too thin to tell apart; the rest becomes "+N". */
 export const MAX_PIE_SEGMENTS = 4;
