@@ -2,6 +2,7 @@ import React from 'react';
 import { t } from '@lingui/macro';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
+import { ChevronDown } from 'lucide-react';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { cn } from '@/shared/lib/classNames';
 import { isPersonShown } from '@/features/planner/lib/calendarDayMarkers';
@@ -26,6 +27,8 @@ export interface CalendarLegendPanelProps {
   /** People with time off who are not on the assignee list; shown as one row. */
   unknownPeopleIds?: string[];
   onToggleUnknownPeople?: () => void;
+  /** Teammates with no time off in the window — counted, not listed. */
+  hiddenPeopleCount?: number;
   onShowAllPeople?: () => void;
   onShowOnlyMe?: () => void;
   /** Enables the "Only me" shortcut; absent when the viewer has no person row. */
@@ -35,6 +38,9 @@ export interface CalendarLegendPanelProps {
 
 /** Above this many people the list gets a filter box. */
 const SEARCH_THRESHOLD = 10;
+
+/** Above this many the list starts folded. */
+const COLLAPSE_THRESHOLD = 8;
 
 type LegendRow = {
   category: CalendarOverlayCategory;
@@ -58,6 +64,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
   onTogglePerson,
   unknownPeopleIds = [],
   onToggleUnknownPeople,
+  hiddenPeopleCount = 0,
   onShowAllPeople,
   onShowOnlyMe,
   myAssigneeId = null,
@@ -66,6 +73,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
   // A search box only earns its space once the list stops fitting; below that it
   // is one more thing to look past.
   const [query, setQuery] = React.useState('');
+  const [collapsed, setCollapsed] = React.useState(false);
   const searchable = people.length > SEARCH_THRESHOLD;
   const visiblePeople = React.useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -73,6 +81,11 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
     return people.filter((person) => person.name.toLowerCase().includes(needle));
   }, [people, query]);
   const totalCount = people.length + (unknownPeopleIds.length > 0 ? 1 : 0);
+  // A long list starts folded so the panel stays compact; a short one is open,
+  // because folding four names away helps nobody.
+  const autoCollapsed = totalCount > COLLAPSE_THRESHOLD;
+  const [collapseTouched, setCollapseTouched] = React.useState(false);
+  const isCollapsed = collapseTouched ? collapsed : autoCollapsed;
   const unknownShown = selectedPeople === null
     || unknownPeopleIds.every((id) => selectedPeople.includes(id));
   const shownCount = selectedPeople === null
@@ -151,17 +164,30 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
       {showTimeOffRow && visibility.timeOff && (people.length > 0 || unknownPeopleIds.length > 0) && onTogglePerson && (
         <div className="border-t border-border">
           <div className="space-y-2 px-3 pb-2 pt-3">
-            <div className="px-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+            <button
+              type="button"
+              className="flex w-full items-center gap-1 rounded-md px-1 py-0.5 text-left text-[11px] uppercase tracking-wide text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setCollapseTouched(true);
+                setCollapsed(!isCollapsed);
+              }}
+              aria-expanded={!isCollapsed}
+            >
+              <ChevronDown
+                className={cn('h-3 w-3 shrink-0 transition-transform', isCollapsed && '-rotate-90')}
+                aria-hidden="true"
+              />
               {t`People`}
-              {people.length > 0 && (
-                <span className="ml-1.5 normal-case tracking-normal">
+              {totalCount > 0 && (
+                <span className="normal-case tracking-normal">
                   {shownCount}/{totalCount}
                 </span>
               )}
-            </div>
+            </button>
             {/* Segments, not buttons: they also SHOW the state — neither is lit
                 when an arbitrary subset is picked, which is the cue that the
                 calendar is filtered. */}
+            {!isCollapsed && (
             <SegmentedControl surface="compact" className="w-full">
               <SegmentedControlItem
                 type="button"
@@ -184,9 +210,10 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
                 </SegmentedControlItem>
               )}
             </SegmentedControl>
+            )}
           </div>
 
-          {searchable && (
+          {!isCollapsed && searchable && (
             <div className="px-3 pb-2 pt-1">
               <Input
                 value={query}
@@ -197,6 +224,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
             </div>
           )}
 
+          {!isCollapsed && (
           <div className="max-h-64 space-y-0.5 overflow-y-auto px-2 pb-2">
             {visiblePeople.length === 0 && (
               <p className="px-2 py-1 text-[11px] text-muted-foreground">{t`Nobody found`}</p>
@@ -230,7 +258,13 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
                 <span className="min-w-0 truncate text-sm leading-snug">{person.name}</span>
               </label>
             ))}
+            {hiddenPeopleCount > 0 && (
+              <p className="border-t border-border/60 px-2 pt-2 text-[11px] leading-snug text-muted-foreground">
+                {t`Others are not away in this range`} ({hiddenPeopleCount})
+              </p>
+            )}
           </div>
+          )}
         </div>
       )}
     </aside>
