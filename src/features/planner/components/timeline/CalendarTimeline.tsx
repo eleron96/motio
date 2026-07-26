@@ -16,18 +16,29 @@ import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { buildCalendarMonths } from '@/features/planner/lib/calendarMonths';
+import { formatDateRange } from '@/features/planner/lib/dateUtils';
 import { CalendarLegendPanel } from '@/features/planner/components/timeline/CalendarLegendPanel';
 import {
+  buildTimeOffByDate,
   DEFAULT_CALENDAR_OVERLAY_VISIBILITY,
+  selectCalendarTimeOff,
   type CalendarOverlayCategory,
   type CalendarOverlayVisibility,
 } from '@/features/planner/lib/calendarDayMarkers';
+import { NO_TIME_OFF } from '@/features/planner/lib/timeOff';
+import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
+import {
+  buildDayPie,
+  buildPieBackground,
+  buildTimeOffColorMap,
+  resolveTimeOffColor,
+} from '@/features/planner/lib/timeOffPalette';
 import {
   getCalendarLegendStorageKey,
   readCalendarLegend,
   writeCalendarLegend,
 } from '@/features/planner/lib/calendarLegendStorage';
-import { Milestone } from '@/features/planner/types/planner';
+import { Milestone, TimeOff } from '@/features/planner/types/planner';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -56,6 +67,7 @@ export const CalendarTimeline: React.FC = () => {
   const {
     tasks,
     milestones,
+    timeOff,
     projects,
     assignees,
     memberGroupAssignments,
@@ -68,6 +80,7 @@ export const CalendarTimeline: React.FC = () => {
   } = usePlannerStore(useShallow((state) => ({
     tasks: state.tasks,
     milestones: state.milestones,
+    timeOff: state.timeOff ?? NO_TIME_OFF,
     projects: state.projects,
     assignees: state.assignees,
     memberGroupAssignments: state.memberGroupAssignments,
@@ -126,6 +139,11 @@ export const CalendarTimeline: React.FC = () => {
     [projects]
   );
 
+  const assigneeById = useMemo(
+    () => new Map(assignees.map((assignee) => [assignee.id, assignee])),
+    [assignees],
+  );
+
   const filteredMilestones = useMemo(() => {
     if (filters.projectIds.length === 0) return milestones;
     return milestones.filter((milestone) => filters.projectIds.includes(milestone.projectId));
@@ -177,6 +195,18 @@ export const CalendarTimeline: React.FC = () => {
   // window no longer follows the task span. The arrows and the "Today" button
   // move currentDate, so the window follows the user.
   const months = useMemo(() => buildCalendarMonths(currentDate), [currentDate]);
+
+  // One stable colour per person, and one pass over the records for the whole
+  // two-year window — the day cell only does a Map lookup.
+  const timeOffColors = useMemo(() => buildTimeOffColorMap(assignees), [assignees]);
+  const timeOffEnabled = isTimeOffEnabled();
+  const timeOffByDate = useMemo(() => {
+    if (!timeOffEnabled || !legend.timeOff || months.length === 0) return new Map<string, TimeOff[]>();
+    const windowStart = months[0];
+    const windowEnd = endOfMonth(months[months.length - 1]);
+    return buildTimeOffByDate(selectCalendarTimeOff(timeOff, assigneeById), windowStart, windowEnd);
+  }, [assigneeById, legend.timeOff, months, timeOff, timeOffEnabled]);
+
 
   const years = useMemo(() => {
     const grouped = new Map<number, Date[]>();
@@ -370,6 +400,8 @@ export const CalendarTimeline: React.FC = () => {
                               : 'rounded-none';
                             const holidayNames = holidayMap[key] ?? [];
                             const milestonesForDay = milestonesByDate.get(key) ?? [];
+                            const timeOffForDay = inMonth ? timeOffByDate.get(key) : undefined;
+                            const dayPie = timeOffForDay ? buildDayPie(timeOffForDay, timeOffColors) : null;
 
                             const cell = (
                               <div
@@ -389,15 +421,28 @@ export const CalendarTimeline: React.FC = () => {
                                   <HoverCard openDelay={350} closeDelay={150}>
                                     <HoverCardTrigger asChild>
                                       <div className="relative z-10 flex w-full cursor-default flex-col items-center gap-0.5">
-                                        <span
-                                          className={cn(
-                                            'flex h-7 w-7 items-center justify-center text-xs',
-                                            weekend && inMonth && 'text-amber-600',
-                                            counts.total > 0 && 'font-semibold',
-                                            today ? 'rounded-full border border-sky-500/70 bg-sky-100/70 text-sky-700' : 'rounded-md',
+                                        <span className="relative flex h-7 w-7 items-center justify-center">
+                                          {dayPie && (
+                                            // The away-circle sits BEHIND the number: holidays keep their
+                                            // pill and today keeps its ring, so a day can carry all three
+                                            // without three competing circles.
+                                            <span
+                                              aria-hidden="true"
+                                              className="absolute inset-0 rounded-full ring-1 ring-card"
+                                              style={{ background: buildPieBackground(dayPie) }}
+                                            />
                                           )}
-                                        >
-                                          {format(day, 'd')}
+                                          <span
+                                            className={cn(
+                                              'relative flex h-7 w-7 items-center justify-center text-xs',
+                                              weekend && inMonth && !dayPie && 'text-amber-600',
+                                              counts.total > 0 && 'font-semibold',
+                                              dayPie && 'font-semibold text-foreground',
+                                              today ? 'rounded-full border border-sky-500/70 bg-sky-100/70 text-sky-700' : 'rounded-md',
+                                            )}
+                                          >
+                                            {format(day, 'd')}
+                                          </span>
                                         </span>
                                         <span className="pointer-events-none flex h-1.5 items-center justify-center gap-0.5">
                                           {legend.milestones && milestonesForDay.slice(0, 4).map((milestone) => {
@@ -472,6 +517,35 @@ export const CalendarTimeline: React.FC = () => {
                                             <span className="text-muted-foreground">{t`Mine`}</span>
                                             <span className="font-semibold">{counts.mine}</span>
                                           </div>
+                                          {dayPie && timeOffForDay && (
+                                            <div className="space-y-1 border-t border-border/60 pt-1.5">
+                                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                                {t`Away`}
+                                              </div>
+                                              <div className="space-y-0.5">
+                                                {timeOffForDay.map((record) => {
+                                                  const person = assigneeById.get(record.assigneeId);
+                                                  return (
+                                                    <div key={record.id} className="flex items-start gap-2">
+                                                      <span
+                                                        className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                                                        style={{ backgroundColor: resolveTimeOffColor(timeOffColors, record.assigneeId) }}
+                                                      />
+                                                      <span className="min-w-0">
+                                                        <span className="block truncate text-[11px] text-foreground">
+                                                          {person?.name ?? t`Unknown user`}
+                                                        </span>
+                                                        <span className="block truncate text-[10px] text-muted-foreground">
+                                                          {formatDateRange(record.startDate, record.endDate, dateLocale)}
+                                                          {record.note ? ` · ${record.note}` : ''}
+                                                        </span>
+                                                      </span>
+                                                    </div>
+                                                  );
+                                                })}
+                                              </div>
+                                            </div>
+                                          )}
                                           {legend.holidays && holidayNames.length > 0 && (
                                             <div className="border-t border-border/60 pt-1 text-[11px] text-muted-foreground">
                                               <span className="text-foreground">{t`Holiday:`}</span>{' '}
@@ -546,6 +620,7 @@ export const CalendarTimeline: React.FC = () => {
         <CalendarLegendPanel
           visibility={legend}
           onToggle={handleLegendToggle}
+          showTimeOffRow={timeOffEnabled}
         />
 
         <MilestoneDialog
