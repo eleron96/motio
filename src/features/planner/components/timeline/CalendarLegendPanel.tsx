@@ -1,8 +1,8 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { cn } from '@/shared/lib/classNames';
 import { isPersonShown } from '@/features/planner/lib/calendarDayMarkers';
 import { resolveTimeOffColor } from '@/features/planner/lib/timeOffPalette';
@@ -139,41 +139,44 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
 
       {showTimeOffRow && visibility.timeOff && people.length > 0 && onTogglePerson && (
         <div className="border-t border-border">
-          <div className="flex items-center justify-between px-4 py-2">
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          <div className="space-y-2 px-3 pb-2 pt-3">
+            <div className="px-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               {t`People`}
               {people.length > 0 && (
-                <span className="ml-1 normal-case tracking-normal">
+                <span className="ml-1.5 normal-case tracking-normal">
                   {shownCount}/{people.length}
                 </span>
               )}
-            </span>
-            <span className="flex gap-1">
-              <Button
+            </div>
+            {/* Segments, not buttons: they also SHOW the state — neither is lit
+                when an arbitrary subset is picked, which is the cue that the
+                calendar is filtered. */}
+            <SegmentedControl surface="compact" className="w-full">
+              <SegmentedControlItem
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-[11px]"
+                size="xs"
+                fullWidth
+                active={selectedPeople === null}
                 onClick={onShowAllPeople}
               >
                 {t`All`}
-              </Button>
+              </SegmentedControlItem>
               {myAssigneeId && (
-                <Button
+                <SegmentedControlItem
                   type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-[11px]"
+                  size="xs"
+                  fullWidth
+                  active={selectedPeople?.length === 1 && selectedPeople[0] === myAssigneeId}
                   onClick={onShowOnlyMe}
                 >
                   {t`Only me`}
-                </Button>
+                </SegmentedControlItem>
               )}
-            </span>
+            </SegmentedControl>
           </div>
 
           {searchable && (
-            <div className="px-3 pb-2">
+            <div className="px-3 pb-2 pt-1">
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
