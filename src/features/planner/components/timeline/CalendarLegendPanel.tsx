@@ -255,26 +255,32 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
                   <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5">
                     <Checkbox checked={shown} onCheckedChange={() => onTogglePerson(person.id)} />
                     <span
-                      aria-hidden="true"
-                      className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-medium text-foreground/70 ring-1 ring-border"
+                      role={onShowOnlyPerson ? 'button' : undefined}
+                      tabIndex={onShowOnlyPerson ? 0 : undefined}
+                      title={onShowOnlyPerson ? t`Show only this person` : undefined}
+                      onClick={onShowOnlyPerson
+                        ? (event) => {
+                          event.preventDefault();
+                          onShowOnlyPerson(person.id);
+                        }
+                        : undefined}
+                      onKeyDown={onShowOnlyPerson
+                        ? (event) => {
+                          if (event.key !== 'Enter' && event.key !== ' ') return;
+                          event.preventDefault();
+                          onShowOnlyPerson(person.id);
+                        }
+                        : undefined}
+                      className={cn(
+                        'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-medium text-foreground/70 ring-1 ring-border',
+                        onShowOnlyPerson && 'cursor-pointer hover:ring-2 hover:ring-primary/50',
+                      )}
                       style={{ backgroundColor: shown ? color : 'transparent' }}
                     >
                       {getPersonMonogram(person.name, '?')}
                     </span>
                     <span className="min-w-0 truncate text-sm leading-snug">{person.name}</span>
                   </label>
-                  {onShowOnlyPerson && (
-                    // Visible on hover on a pointer device, always on touch —
-                    // picking one person out of twenty must not mean unticking
-                    // nineteen.
-                    <button
-                      type="button"
-                      onClick={() => onShowOnlyPerson(person.id)}
-                      className="absolute right-1 top-1/2 hidden -translate-y-1/2 rounded-full border border-border bg-card px-2 py-px text-[10px] text-muted-foreground shadow-sm hover:text-foreground focus-visible:block group-hover:block max-md:block"
-                    >
-                      {t`only`}
-                    </button>
-                  )}
                 </div>
               );
             })}

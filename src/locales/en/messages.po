@@ -3503,8 +3503,8 @@ msgid "One of my tasks changes"
 msgstr "One of my tasks changes"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
-msgid "only"
-msgstr "only"
+#~ msgid "only"
+#~ msgstr "only"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
@@ -4552,6 +4552,10 @@ msgstr "Show legend"
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #~ msgid "Show milestones"
 #~ msgstr "Show milestones"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Show only this person"
+msgstr "Show only this person"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show tasks without an assignee"
