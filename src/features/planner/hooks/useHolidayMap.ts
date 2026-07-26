@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { addDays, format, startOfYear } from 'date-fns';
+import { addDays, format, isWeekend, startOfYear } from 'date-fns';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { fetchHolidays } from '@/infrastructure/holidays/holidayApi';
 import {
@@ -74,10 +74,13 @@ export const useHolidayMap = ({
 
         const entries: Record<string, string[]> = {};
 
-        // Production calendar for RU. Weekends are kept, not skipped: the
-        // timeline drops them itself (shouldApplyHolidayHatch), while the
-        // calendar must show a New Year break as one solid stretch, exactly
-        // like the official production calendar does.
+        // Production calendar for RU. Ordinary Saturdays and Sundays are
+        // skipped: isdayoff marks EVERY non-working day, weekends included, so
+        // keeping them would paint half the calendar as a holiday. What this
+        // branch adds are the working days the government turned into days off
+        // (3 and 10 May 2027, say). Holidays that legitimately fall on a
+        // weekend — 3 January, for instance — arrive below, from the named
+        // holidays and from the statutory fallback, and are NOT filtered there.
         if (holidayCountryCode === 'RU') {
           const raw = response.productionCalendar;
           if (isEmptyProductionCalendar(raw)) {
@@ -92,8 +95,9 @@ export const useHolidayMap = ({
             const yearStart = startOfYear(new Date(year, 0, 1));
             for (let index = 0; index < raw!.length; index += 1) {
               if (raw![index] !== '1') continue;
-              const key = format(addDays(yearStart, index), 'yyyy-MM-dd');
-              entries[key] = [fallbackHolidayLabel];
+              const day = addDays(yearStart, index);
+              if (isWeekend(day)) continue;
+              entries[format(day, 'yyyy-MM-dd')] = [fallbackHolidayLabel];
             }
           }
         }
