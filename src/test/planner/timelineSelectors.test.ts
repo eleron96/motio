@@ -217,4 +217,26 @@ describe('timelineSelectors', () => {
     });
     expect(hiddenUnassignedRows.some((row) => row.id === 'unassigned')).toBe(false);
   });
+
+  it('reserves one extra lane for a row that carries a time-off bar', () => {
+    const rowTasks = {
+      a1: [{ ...makeTask({ id: 't1', assigneeIds: ['a1'] }), lane: 0 }],
+      a2: [],
+    };
+    const options = { minRowHeight: 56, taskHeight: 40, taskGap: 4 };
+
+    const base = calculateTimelineRowHeights(rowTasks, options);
+    // One lane either way: 16 + 1 * 44 = 60 (getMaxLanes returns 1 for an empty row).
+    expect(base.a1).toBe(60);
+    expect(base.a2).toBe(60);
+
+    const withTimeOff = calculateTimelineRowHeights(rowTasks, {
+      ...options,
+      extraLanesByRow: { a1: 1, a2: 1 },
+    });
+    // a1: the bar takes lane 0 and the task moves down — two lanes, 16 + 2 * 44.
+    expect(withTimeOff.a1).toBe(104);
+    // a2 has no tasks, so the bar is its ONLY lane: 60, not 104.
+    expect(withTimeOff.a2).toBe(60);
+  });
 });

@@ -10,6 +10,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The morning brief has a new look: overdue tasks and tasks due today are now separate blocks with a count for each at the top. Long lists stay collapsed and open with one tap.
 - Upcoming milestones now show the date alongside how many days are left.
 
+
+### Added
+- Mark your days off right on the timeline: they shade your row and the marker behaves like a regular bar. Your teammates' days stay unchanged.
 ## [0.9.36] - 2026-07-25
 ### Changed
 - The “Latest changes” dialog now shows the last 40 releases instead of only the current one, and app pages load faster.

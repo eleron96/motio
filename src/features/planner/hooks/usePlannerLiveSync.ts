@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { t } from '@lingui/macro';
 import { Milestone, MilestoneStatusOverride, TaskPriority, ViewMode } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 
 import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
 
@@ -31,6 +32,15 @@ type MilestoneSyncRow = {
   status_override: MilestoneStatusOverride | null;
   include_in_workload?: boolean | null;
   updated_at: string;
+};
+
+type TimeOffSyncRow = {
+  id: string;
+  workspace_id: string;
+  assignee_id: string;
+  start_date: string;
+  end_date: string;
+  note: string | null;
 };
 
 type TaskCommentSyncRow = {
@@ -517,6 +527,9 @@ export const usePlannerLiveSync = (
     const requestReconcile = (_reason: 'focus' | 'fallback' | 'resubscribe' | 'channel') => {
       if (!active) return;
       reconcileRequested = true;
+      // Events missed while disconnected are invisible to the time-off channel,
+      // so a reconcile refetches its window too.
+      void refreshTimeOff();
       void runSyncRunner();
     };
 
@@ -556,6 +569,46 @@ export const usePlannerLiveSync = (
     const queueMilestoneDelete = (id: string) => {
       pendingMilestoneUpserts.delete(id);
       removeMilestonesByIds([id]);
+    };
+
+    // time_off is sparse (a handful of rows per workspace), so a realtime event
+    // just refetches the loaded window instead of the per-id reconcile the tasks
+    // pipeline needs. Debounced so a burst of edits costs one request.
+    let timeOffRefreshTimer: number | null = null;
+    const refreshTimeOff = async () => {
+      if (!active || !isTimeOffEnabled()) return;
+      // rangeRef is the window this effect was built for — the same source the
+      // task pipeline uses, and unlike store.loadedRange it is guaranteed to be
+      // in sync with workspaceRef for the lifetime of this subscription.
+      const range = rangeRef;
+      const { data, error } = await supabase
+        .from('time_off')
+        .select('id, workspace_id, assignee_id, start_date, end_date, note')
+        .eq('workspace_id', workspaceRef)
+        .gte('end_date', range.start)
+        .lte('start_date', range.end);
+      if (!active || error || !data) {
+        if (error) console.error(error);
+        return;
+      }
+      usePlannerStore.getState().setTimeOff(
+        (data as TimeOffSyncRow[]).map((row) => ({
+          id: row.id,
+          assigneeId: row.assignee_id,
+          startDate: row.start_date,
+          endDate: row.end_date,
+          note: row.note ?? null,
+        })),
+      );
+    };
+
+    const queueTimeOffRefresh = () => {
+      if (!active || !isTimeOffEnabled() || typeof window === 'undefined') return;
+      if (timeOffRefreshTimer) window.clearTimeout(timeOffRefreshTimer);
+      timeOffRefreshTimer = window.setTimeout(() => {
+        timeOffRefreshTimer = null;
+        void refreshTimeOff();
+      }, EVENT_FLUSH_MS);
     };
 
     const queueTaskCommentCountRefresh = (taskId: string) => {
@@ -701,6 +754,22 @@ export const usePlannerLiveSync = (
           if (typeof changedId === 'string') {
             queueMilestoneUpsert(changedId);
           }
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_off',
+          filter: `workspace_id=eq.${workspaceRef}`,
+        },
+        () => {
+          if (!active) return;
+          // DELETE payloads only carry the identity columns, and the table is
+          // REPLICA IDENTITY FULL (migration 0131) so the workspace filter above
+          // still matches them. Either way a refetch is the whole reconcile.
+          queueTimeOffRefresh();
         },
       )
       .subscribe((status) => handleChannelStatus(status, epoch));

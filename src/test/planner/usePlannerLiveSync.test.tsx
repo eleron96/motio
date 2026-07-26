@@ -30,6 +30,7 @@ const supabaseMocks = vi.hoisted(() => {
   let taskHandler: ((payload: RealtimePayload) => void) | null = null;
   let milestoneHandler: ((payload: RealtimePayload) => void) | null = null;
   let taskCommentHandler: ((payload: RealtimePayload) => void) | null = null;
+  let timeOffHandler: ((payload: RealtimePayload) => void) | null = null;
   let statusHandler: ((status: string) => void) | null = null;
 
   const channelApi = {
@@ -46,6 +47,9 @@ const supabaseMocks = vi.hoisted(() => {
       }
       if (filter.table === 'task_comments') {
         taskCommentHandler = handler;
+      }
+      if (filter.table === 'time_off') {
+        timeOffHandler = handler;
       }
       return channelApi;
     }),
@@ -88,6 +92,17 @@ const supabaseMocks = vi.hoisted(() => {
         eventType: 'INSERT',
         old: null,
         new: { task_id: taskId },
+      });
+    },
+    hasTimeOffSubscription: () => timeOffHandler !== null,
+    emitTimeOffChange: () => {
+      if (!timeOffHandler) {
+        throw new Error('Time off realtime handler is not attached');
+      }
+      timeOffHandler({
+        eventType: 'DELETE',
+        old: { id: 'time-off-1' },
+        new: null,
       });
     },
     emitStatus: (status: string) => {
@@ -263,6 +278,57 @@ describe('usePlannerLiveSync', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
+
+  it('subscribes to time_off and refetches the window when a record changes', async () => {
+    // The subscription and its refetch are gated on the feature flag.
+    vi.stubEnv('VITE_FEATURE_TIME_OFF', 'true');
+    const timeOffRows = [{
+      id: 'time-off-1',
+      workspace_id: workspaceOne,
+      assignee_id: 'assignee-1',
+      start_date: '2026-08-03',
+      end_date: '2026-08-07',
+      note: 'vacation',
+    }];
+    supabaseMocks.from.mockImplementation((table: string) => {
+      if (table !== 'time_off') {
+        return createRealtimeFromMock()(table);
+      }
+      const builder = {
+        select: () => builder,
+        eq: () => builder,
+        gte: () => builder,
+        lte: () => Promise.resolve({ data: timeOffRows, error: null }),
+      };
+      return builder;
+    });
+
+    render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    expect(supabaseMocks.hasTimeOffSubscription()).toBe(true);
+
+    act(() => {
+      supabaseMocks.emitTimeOffChange();
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(320);
+    });
+
+    expect(usePlannerStore.getState().timeOff).toEqual([{
+      id: 'time-off-1',
+      assigneeId: 'assignee-1',
+      startDate: '2026-08-03',
+      endDate: '2026-08-07',
+      note: 'vacation',
+    }]);
   });
 
   it('reschedules deferred upserts and applies them after interaction window ends', async () => {
