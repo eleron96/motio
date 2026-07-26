@@ -3405,6 +3405,10 @@ msgstr "None"
 msgid "Not equals"
 msgstr "Not equals"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Not on the team"
+msgstr "Not on the team"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Not tracked"
 msgstr "Not tracked"
@@ -5289,7 +5293,6 @@ msgstr "unknown role"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
-#: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 #: src/shared/lib/workspaceMemberActivity.ts

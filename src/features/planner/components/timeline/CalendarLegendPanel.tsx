@@ -23,6 +23,9 @@ export interface CalendarLegendPanelProps {
   peopleColors?: Map<string, string>;
   selectedPeople?: CalendarPeopleSelection;
   onTogglePerson?: (assigneeId: string) => void;
+  /** People with time off who are not on the assignee list; shown as one row. */
+  unknownPeopleIds?: string[];
+  onToggleUnknownPeople?: () => void;
   onShowAllPeople?: () => void;
   onShowOnlyMe?: () => void;
   /** Enables the "Only me" shortcut; absent when the viewer has no person row. */
@@ -53,6 +56,8 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
   peopleColors,
   selectedPeople = null,
   onTogglePerson,
+  unknownPeopleIds = [],
+  onToggleUnknownPeople,
   onShowAllPeople,
   onShowOnlyMe,
   myAssigneeId = null,
@@ -67,7 +72,13 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
     if (!needle) return people;
     return people.filter((person) => person.name.toLowerCase().includes(needle));
   }, [people, query]);
-  const shownCount = selectedPeople === null ? people.length : selectedPeople.length;
+  const totalCount = people.length + (unknownPeopleIds.length > 0 ? 1 : 0);
+  const unknownShown = selectedPeople === null
+    || unknownPeopleIds.every((id) => selectedPeople.includes(id));
+  const shownCount = selectedPeople === null
+    ? totalCount
+    : people.filter((person) => selectedPeople.includes(person.id)).length
+      + (unknownPeopleIds.length > 0 && unknownShown ? 1 : 0);
 
   const rows: LegendRow[] = [
     {
@@ -137,14 +148,14 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
         ))}
       </div>
 
-      {showTimeOffRow && visibility.timeOff && people.length > 0 && onTogglePerson && (
+      {showTimeOffRow && visibility.timeOff && (people.length > 0 || unknownPeopleIds.length > 0) && onTogglePerson && (
         <div className="border-t border-border">
           <div className="space-y-2 px-3 pb-2 pt-3">
             <div className="px-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               {t`People`}
               {people.length > 0 && (
                 <span className="ml-1.5 normal-case tracking-normal">
-                  {shownCount}/{people.length}
+                  {shownCount}/{totalCount}
                 </span>
               )}
             </div>
@@ -189,6 +200,15 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
           <div className="max-h-64 space-y-0.5 overflow-y-auto px-2 pb-2">
             {visiblePeople.length === 0 && (
               <p className="px-2 py-1 text-[11px] text-muted-foreground">{t`Nobody found`}</p>
+            )}
+            {unknownPeopleIds.length > 0 && !query.trim() && onToggleUnknownPeople && (
+              <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/60">
+                <Checkbox checked={unknownShown} onCheckedChange={onToggleUnknownPeople} />
+                <span className="h-3 w-3 shrink-0 rounded-full bg-muted-foreground/40 ring-1 ring-border" />
+                <span className="min-w-0 truncate text-sm leading-snug text-muted-foreground">
+                  {t`Not on the team`} ({unknownPeopleIds.length})
+                </span>
+              </label>
             )}
             {visiblePeople.map((person) => (
               <label

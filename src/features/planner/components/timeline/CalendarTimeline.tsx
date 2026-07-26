@@ -39,7 +39,7 @@ import {
   writeCalendarLegend,
   type CalendarLegendState,
 } from '@/features/planner/lib/calendarLegendStorage';
-import { Assignee, Milestone, TimeOff } from '@/features/planner/types/planner';
+import { Milestone, TimeOff } from '@/features/planner/types/planner';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -120,7 +120,6 @@ export const CalendarTimeline: React.FC = () => {
     ));
   }, [dateLocale, locale]);
   const fallbackHolidayLabel = t`Non-working day`;
-  const unknownPersonLabel = t`Unknown user`;
 
   const holidayCountryCode = useMemo(() => {
     const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
@@ -308,29 +307,23 @@ export const CalendarTimeline: React.FC = () => {
   // People shown on the calendar. A LOCAL selection, deliberately separate from
   // the global people filter: that one narrows tasks and milestones everywhere,
   // while this one only decides whose days off are marked here.
-  const calendarPeople = useMemo(() => {
-    const known = assignees.filter((assignee) => assignee.isActive);
-    const knownIds = new Set(known.map((assignee) => assignee.id));
+  const calendarPeople = useMemo(
+    () => assignees.filter((assignee) => assignee.isActive)
+      .sort((left, right) => left.name.localeCompare(right.name)),
+    [assignees],
+  );
 
-    // People who have time off but are not in the assignee list: that list is
-    // pruned to those with an account or a task in the loaded window, while time
-    // off arrives on its own window. Without this they would be marked on the
-    // calendar with no way to untick them.
-    const strangers = new Map<string, Assignee>();
-    timeOff.forEach((record) => {
-      if (knownIds.has(record.assigneeId) || strangers.has(record.assigneeId)) return;
-      strangers.set(record.assigneeId, {
-        id: record.assigneeId,
-        name: unknownPersonLabel,
-        isActive: true,
-        email: null,
-        phone: null,
-      });
-    });
-
-    return [...known, ...strangers.values()]
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }, [assignees, timeOff, unknownPersonLabel]);
+  // People with time off who are not in the assignee list — that list is pruned
+  // to those with an account or a task in the loaded window, while time off
+  // arrives on its own window. They share ONE row instead of a column of
+  // identical "unknown user" lines, but they still have to be switchable:
+  // otherwise their circles sit on the calendar with no way to hide them.
+  const unknownPeopleIds = useMemo(() => {
+    const knownIds = new Set(calendarPeople.map((person) => person.id));
+    return Array.from(new Set(
+      timeOff.map((record) => record.assigneeId).filter((id) => !knownIds.has(id)),
+    ));
+  }, [calendarPeople, timeOff]);
 
   const handleTogglePerson = useCallback((assigneeId: string) => {
     setLegendState((current) => ({
@@ -338,10 +331,25 @@ export const CalendarTimeline: React.FC = () => {
       people: togglePersonSelection(
         current.people,
         assigneeId,
-        calendarPeople.map((person) => person.id),
+        [...calendarPeople.map((person) => person.id), ...unknownPeopleIds],
       ),
     }));
-  }, [calendarPeople]);
+  }, [calendarPeople, unknownPeopleIds]);
+
+  const handleToggleUnknownPeople = useCallback(() => {
+    setLegendState((current) => {
+      const allIds = [...calendarPeople.map((person) => person.id), ...unknownPeopleIds];
+      const shown = current.people === null || unknownPeopleIds.every((id) => current.people?.includes(id));
+      const base = current.people ?? allIds;
+      const next = shown
+        ? base.filter((id) => !unknownPeopleIds.includes(id))
+        : [...base, ...unknownPeopleIds.filter((id) => !base.includes(id))];
+      return {
+        ...current,
+        people: allIds.every((id) => next.includes(id)) ? null : next,
+      };
+    });
+  }, [calendarPeople, unknownPeopleIds]);
 
   const handleShowAllPeople = useCallback(() => {
     setLegendState((current) => ({ ...current, people: null }));
@@ -681,6 +689,8 @@ export const CalendarTimeline: React.FC = () => {
           peopleColors={timeOffColors}
           selectedPeople={legendState.people}
           onTogglePerson={handleTogglePerson}
+          unknownPeopleIds={unknownPeopleIds}
+          onToggleUnknownPeople={handleToggleUnknownPeople}
           onShowAllPeople={handleShowAllPeople}
           onShowOnlyMe={handleShowOnlyMe}
           myAssigneeId={myAssigneeId}
