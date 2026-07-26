@@ -186,6 +186,25 @@ export const DEMO_SEED_TASKS: DemoSeedTask[] = [
   {"id":"66666666-0000-0000-0000-000000000123","title":"Careers page copy refresh","project_id":"11111111-0000-0000-0000-000000000013","assignee_ids":["22222222-0000-0000-0000-000000000010"],"status_id":"33333333-0000-0000-0000-000000000003","type_id":"44444444-0000-0000-0000-000000000005","priority":"medium","tag_ids":["55555555-0000-0000-0000-000000000008","55555555-0000-0000-0000-000000000002"],"description":"Sharper intro, clearer levels.","start_offset_days":-2,"end_offset_days":4,"sort_order":123}
 ];
 
+export interface DemoSeedTimeOff {
+  id: string;
+  assignee_id: string;
+  start_offset_days: number;
+  end_offset_days: number;
+  note: string | null;
+}
+
+/**
+ * Days off for the sandbox. Deliberately NOT covering the anchor day: the
+ * dashboard demo test asserts today's absent count, and a record spanning today
+ * would move that number.
+ */
+export const DEMO_SEED_TIME_OFF: DemoSeedTimeOff[] = [
+  {"id":"88888888-0000-0000-0000-000000000001","assignee_id":"22222222-0000-0000-0000-000000000007","start_offset_days":3,"end_offset_days":7,"note":"vacation"},
+  {"id":"88888888-0000-0000-0000-000000000002","assignee_id":"22222222-0000-0000-0000-000000000003","start_offset_days":-6,"end_offset_days":-5,"note":null},
+  {"id":"88888888-0000-0000-0000-000000000003","assignee_id":"22222222-0000-0000-0000-000000000002","start_offset_days":9,"end_offset_days":9,"note":"day off"}
+];
+
 export const DEMO_SEED_MILESTONES: DemoSeedMilestone[] = [
   {"id":"77777777-0000-0000-0000-000000000001","project_id":"11111111-0000-0000-0000-000000000001","title":"Landing pages brand migration live","offset_days":-14,"sort_order":1},
   {"id":"77777777-0000-0000-0000-000000000002","project_id":"11111111-0000-0000-0000-000000000001","title":"Pricing page A/B test kickoff","offset_days":-2,"sort_order":2},

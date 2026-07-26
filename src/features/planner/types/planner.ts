@@ -177,6 +177,32 @@ export interface Milestone {
   includeInWorkload: boolean;
 }
 
+/**
+ * A person's day off — vacation, a single day off and sick leave are ONE
+ * unified record (deliberately no kind field). Belongs to a person, never to a
+ * project, and is never a Task: it must not be counted as work, must not
+ * trigger assignment notifications or deadline pushes, and must not be hidden
+ * by the project/status/type filters.
+ */
+export interface TimeOff {
+  id: string;
+  assigneeId: string;
+  startDate: string; // ISO date
+  endDate: string; // ISO date, inclusive
+  /** Optional free-text note — visible to every member of the workspace. */
+  note: string | null;
+}
+
+/**
+ * The period a bar is being dragged/resized to, before it is committed. Kept in
+ * the store so the grey cell shading follows the bar during the gesture.
+ */
+export type TimeOffDragPreview = {
+  id: string;
+  startDate: string;
+  endDate: string;
+} | null;
+
 export type CommentAuthorStatus = 'ACTIVE' | 'PENDING_DELETION' | 'PURGED';
 
 export interface TaskComment {
@@ -208,6 +234,8 @@ export interface Filters {
 export interface PlannerState {
   tasks: Task[];
   milestones: Milestone[];
+  timeOff: TimeOff[];
+  timeOffDragPreview: TimeOffDragPreview;
   projects: Project[];
   trackedProjectIds: string[];
   customers: Customer[];

@@ -204,12 +204,22 @@ export const calculateTimelineRowHeights = (
     minRowHeight: number;
     taskHeight: number;
     taskGap: number;
+    /**
+     * Lanes reserved above the task lanes, per row — currently one for a
+     * time-off bar, which owns lane 0 and never enters calculateTaskLanes.
+     * A row whose only content is that bar needs ONE lane, not two, hence the
+     * empty-row branch (getMaxLanes returns 1 for an empty row).
+     */
+    extraLanesByRow?: Record<string, number>;
   },
 ) => {
   const heights: Record<string, number> = {};
   Object.entries(tasksByRow).forEach(([groupId, rowTasks]) => {
-    const maxLanes = getMaxLanes(rowTasks);
-    const calculatedHeight = 16 + maxLanes * (options.taskHeight + options.taskGap);
+    const extraLanes = options.extraLanesByRow?.[groupId] ?? 0;
+    const lanes = rowTasks.length === 0
+      ? Math.max(1, extraLanes)
+      : getMaxLanes(rowTasks) + extraLanes;
+    const calculatedHeight = 16 + lanes * (options.taskHeight + options.taskGap);
     heights[groupId] = Math.max(options.minRowHeight, calculatedHeight);
   });
   return heights;

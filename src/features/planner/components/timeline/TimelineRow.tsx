@@ -1,7 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { isWeekend, shouldApplyHolidayHatch } from '@/features/planner/lib/dateUtils';
-import { ViewMode } from '@/features/planner/types/planner';
+import { shouldShadeTimeOffDay } from '@/features/planner/lib/timeOff';
+import { TimeOff, ViewMode } from '@/features/planner/types/planner';
 import { cn } from '@/shared/lib/classNames';
 import {
   ContextMenu,
@@ -20,9 +21,14 @@ interface TimelineRowProps {
   viewMode: ViewMode;
   todayKey: string;
   holidayDates?: Set<string>;
+  /** dayKey -> the time-off record covering it, for THIS row only. */
+  timeOffDays?: Map<string, TimeOff>;
   height: number;
   children: React.ReactNode;
+  /** May open the create dialog by double-click (task editing OR marking time off). */
   canEdit?: boolean;
+  /** May create a TASK specifically — gates the context-menu item. */
+  canCreateTask?: boolean;
   onCreateTask?: (date: string, rowId: string) => void;
   onDateClick?: (date: string, rowId: string) => boolean | void;
 }
@@ -35,9 +41,11 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   viewMode,
   todayKey,
   holidayDates,
+  timeOffDays,
   height,
   children,
   canEdit = false,
+  canCreateTask,
   onCreateTask,
   onDateClick,
 }) => {
@@ -143,17 +151,27 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
               const nextDay = visibleDays[index + 1];
               const adjacentWeekend = weekend && nextDay !== undefined && isWeekend(nextDay);
               const isHoliday = shouldApplyHolidayHatch(dayKey, weekend, holidayDates);
+              // Time off shades WORKING days only: a weekend or a holiday inside
+              // the period is already non-working, so graphically it says
+              // nothing and would fight the existing hatch.
+              const isTimeOff = shouldShadeTimeOffDay(
+                timeOffDays?.has(dayKey) ?? false,
+                weekend,
+                isHoliday,
+              );
 
               return (
                 <div
                   key={index}
                   data-day-key={dayKey}
+                  data-time-off-shaded={isTimeOff ? 'true' : undefined}
                   className={cn(
                     'h-full border-r border-timeline-grid transition-colors relative',
                     weekend && 'bg-timeline-weekend/50',
                     adjacentWeekend && 'border-r-foreground/20',
                     isHoliday && 'holiday-hatch',
-                    today && 'today-hatch'
+                    today && 'today-hatch',
+                    isTimeOff && 'time-off-band'
                   )}
                   style={{ width: dayWidth }}
                 />
@@ -163,7 +181,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem
-            disabled={!canEdit || !contextDate || !onCreateTask}
+            disabled={!(canCreateTask ?? canEdit) || !contextDate || !onCreateTask}
             onSelect={() => {
               if (!contextDate || !onCreateTask) return;
               onCreateTask(contextDate, rowId);
@@ -190,9 +208,11 @@ const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps
   && prev.viewMode === next.viewMode
   && prev.todayKey === next.todayKey
   && prev.holidayDates === next.holidayDates
+  && prev.timeOffDays === next.timeOffDays
   && prev.height === next.height
   && prev.children === next.children
   && prev.canEdit === next.canEdit
+  && prev.canCreateTask === next.canCreateTask
   && prev.onCreateTask === next.onCreateTask
   && prev.onDateClick === next.onDateClick
 );
