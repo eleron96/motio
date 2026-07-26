@@ -39,7 +39,8 @@ interface PersistedState {
   // layouts that rendered cramped and jittered). v4: drop any v3 cache that
   // may have persisted a jitter-drifted layout before the store no-op guard.
   // v5: dashboards reshaped to mirror prod widget mix (assignee-centric).
-  schemaVersion: 6;
+  // v6: time_off table. v7: overlapping time off, so the calendar shows a pie.
+  schemaVersion: 7;
   lastActivityAt: number;
   user: { id: string; email: string; display_name: string };
   workspaceId: string;
@@ -301,7 +302,7 @@ const loadPersisted = (): DemoStore | null => {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as PersistedState;
-    if (parsed.schemaVersion !== 6) return null;
+    if (parsed.schemaVersion !== 7) return null;
     if (Date.now() - parsed.lastActivityAt > TTL_MS) return null;
     return {
       user: parsed.user,
@@ -317,7 +318,7 @@ const loadPersisted = (): DemoStore | null => {
 const persist = (store: DemoStore): void => {
   if (!isBrowser) return;
   const payload: PersistedState = {
-    schemaVersion: 6,
+    schemaVersion: 7,
     lastActivityAt: store.lastActivityAt,
     user: store.user,
     workspaceId: store.workspaceId,
