@@ -2319,6 +2319,10 @@ msgstr "Календарь праздников"
 msgid "Holiday:"
 msgstr "Праздник:"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Holidays"
+msgstr "Праздники"
+
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "Я соглашаюсь с <0>Политикой конфиденциальности</0>"
@@ -2726,6 +2730,7 @@ msgstr "Название вехи..."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -3496,6 +3501,10 @@ msgstr "Один <0>понятный таймлайн</0><1/> для всей к
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "One of my tasks changes"
 msgstr "Изменилась моя задача"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "only"
+msgstr "только"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
@@ -4529,16 +4538,20 @@ msgid "Show disabled users"
 msgstr "Показывать отключенных пользователей"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
-msgid "Show holidays"
-msgstr "Показывать праздники"
+msgid "Show everyone"
+msgstr "Показать всех"
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#~ msgid "Show holidays"
+#~ msgstr "Показывать праздники"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show legend"
 msgstr "Показывать легенду"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
-msgid "Show milestones"
-msgstr "Показывать вехи"
+#~ msgid "Show milestones"
+#~ msgstr "Показывать вехи"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show tasks without an assignee"
@@ -4549,8 +4562,8 @@ msgid "Show tasks without an assignee."
 msgstr "Показывать задачи без исполнителя."
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
-msgid "Show team time off"
-msgstr "Показывать выходные команды"
+#~ msgid "Show team time off"
+#~ msgstr "Показывать выходные команды"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show the department workload board on the dashboard"
@@ -4827,6 +4840,10 @@ msgstr "Доступ команды"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Team planning workspace."
 msgstr "Воркспейс для командного планирования."
+
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Team time off"
+msgstr "Выходные команды"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/marketing/pages/LandingPage.tsx

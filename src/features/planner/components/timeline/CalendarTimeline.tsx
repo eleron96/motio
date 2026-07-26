@@ -374,6 +374,10 @@ export const CalendarTimeline: React.FC = () => {
     });
   }, [calendarPeople, unknownPeopleIds]);
 
+  const handleShowOnlyPerson = useCallback((assigneeId: string) => {
+    setLegendState((current) => ({ ...current, people: [assigneeId] }));
+  }, []);
+
   const handleShowAllPeople = useCallback(() => {
     setLegendState((current) => ({ ...current, people: null }));
   }, []);
@@ -715,6 +719,7 @@ export const CalendarTimeline: React.FC = () => {
           unknownPeopleIds={unknownPeopleIds}
           onToggleUnknownPeople={handleToggleUnknownPeople}
           hiddenPeopleCount={peopleWithoutTimeOff}
+          onShowOnlyPerson={handleShowOnlyPerson}
           onShowAllPeople={handleShowAllPeople}
           onShowOnlyMe={handleShowOnlyMe}
           myAssigneeId={myAssigneeId}
