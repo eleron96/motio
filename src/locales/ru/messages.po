@@ -663,6 +663,10 @@ msgstr "Авто"
 msgid "auto from history"
 msgstr "авто по истории"
 
+#: src/features/planner/components/timeline/CalendarTimeline.tsx
+msgid "Away"
+msgstr "Отсутствуют"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -5271,6 +5275,7 @@ msgstr "неизвестная роль"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
+#: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "Unknown user"
