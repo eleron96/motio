@@ -20,10 +20,9 @@ import { formatDateRange } from '@/features/planner/lib/dateUtils';
 import { CalendarLegendPanel } from '@/features/planner/components/timeline/CalendarLegendPanel';
 import {
   buildTimeOffByDate,
-  DEFAULT_CALENDAR_OVERLAY_VISIBILITY,
   selectCalendarTimeOff,
+  togglePersonSelection,
   type CalendarOverlayCategory,
-  type CalendarOverlayVisibility,
 } from '@/features/planner/lib/calendarDayMarkers';
 import { NO_TIME_OFF } from '@/features/planner/lib/timeOff';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
@@ -34,9 +33,11 @@ import {
   resolveTimeOffColor,
 } from '@/features/planner/lib/timeOffPalette';
 import {
+  DEFAULT_CALENDAR_LEGEND_STATE,
   getCalendarLegendStorageKey,
   readCalendarLegend,
   writeCalendarLegend,
+  type CalendarLegendState,
 } from '@/features/planner/lib/calendarLegendStorage';
 import { Milestone, TimeOff } from '@/features/planner/types/planner';
 import { ArrowDown, ArrowUp } from 'lucide-react';
@@ -101,7 +102,8 @@ export const CalendarTimeline: React.FC = () => {
   // Legend state. Persisted per user and per workspace; `legendHydrated` stops
   // the defaults from overwriting what was stored before the read effect runs
   // (the same guard the sidebar width needs in PlannerPage).
-  const [legend, setLegend] = useState<CalendarOverlayVisibility>(DEFAULT_CALENDAR_OVERLAY_VISIBILITY);
+  const [legendState, setLegendState] = useState<CalendarLegendState>(DEFAULT_CALENDAR_LEGEND_STATE);
+  const legend = legendState.visibility;
   const legendHydratedRef = useRef(false);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
@@ -204,8 +206,12 @@ export const CalendarTimeline: React.FC = () => {
     if (!timeOffEnabled || !legend.timeOff || months.length === 0) return new Map<string, TimeOff[]>();
     const windowStart = months[0];
     const windowEnd = endOfMonth(months[months.length - 1]);
-    return buildTimeOffByDate(selectCalendarTimeOff(timeOff, assigneeById), windowStart, windowEnd);
-  }, [assigneeById, legend.timeOff, months, timeOff, timeOffEnabled]);
+    return buildTimeOffByDate(
+      selectCalendarTimeOff(timeOff, assigneeById, legendState.people),
+      windowStart,
+      windowEnd,
+    );
+  }, [assigneeById, legend.timeOff, legendState.people, months, timeOff, timeOffEnabled]);
 
 
   const years = useMemo(() => {
@@ -283,7 +289,7 @@ export const CalendarTimeline: React.FC = () => {
       window.localStorage,
       getCalendarLegendStorageKey(user.id, currentWorkspaceId),
     );
-    setLegend(stored ?? DEFAULT_CALENDAR_OVERLAY_VISIBILITY);
+    setLegendState(stored ?? DEFAULT_CALENDAR_LEGEND_STATE);
     legendHydratedRef.current = true;
   }, [currentWorkspaceId, user?.id]);
 
@@ -294,12 +300,43 @@ export const CalendarTimeline: React.FC = () => {
     writeCalendarLegend(
       window.localStorage,
       getCalendarLegendStorageKey(user.id, currentWorkspaceId),
-      legend,
+      legendState,
     );
-  }, [currentWorkspaceId, legend, user?.id]);
+  }, [currentWorkspaceId, legendState, user?.id]);
+
+  // People shown on the calendar. A LOCAL selection, deliberately separate from
+  // the global people filter: that one narrows tasks and milestones everywhere,
+  // while this one only decides whose days off are marked here.
+  const calendarPeople = useMemo(
+    () => assignees.filter((assignee) => assignee.isActive)
+      .sort((left, right) => left.name.localeCompare(right.name)),
+    [assignees],
+  );
+
+  const handleTogglePerson = useCallback((assigneeId: string) => {
+    setLegendState((current) => ({
+      ...current,
+      people: togglePersonSelection(
+        current.people,
+        assigneeId,
+        calendarPeople.map((person) => person.id),
+      ),
+    }));
+  }, [calendarPeople]);
+
+  const handleShowAllPeople = useCallback(() => {
+    setLegendState((current) => ({ ...current, people: null }));
+  }, []);
+
+  const handleShowOnlyMe = useCallback(() => {
+    setLegendState((current) => ({ ...current, people: myAssigneeId ? [myAssigneeId] : current.people }));
+  }, [myAssigneeId]);
 
   const handleLegendToggle = useCallback((category: CalendarOverlayCategory) => {
-    setLegend((current) => ({ ...current, [category]: !current[category] }));
+    setLegendState((current) => ({
+      ...current,
+      visibility: { ...current.visibility, [category]: !current.visibility[category] },
+    }));
   }, []);
 
   const handleDateClick = useCallback((day: Date) => {
@@ -621,6 +658,13 @@ export const CalendarTimeline: React.FC = () => {
           visibility={legend}
           onToggle={handleLegendToggle}
           showTimeOffRow={timeOffEnabled}
+          people={calendarPeople}
+          peopleColors={timeOffColors}
+          selectedPeople={legendState.people}
+          onTogglePerson={handleTogglePerson}
+          onShowAllPeople={handleShowAllPeople}
+          onShowOnlyMe={handleShowOnlyMe}
+          myAssigneeId={myAssigneeId}
         />
 
         <MilestoneDialog
