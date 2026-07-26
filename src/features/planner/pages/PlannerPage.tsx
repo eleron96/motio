@@ -6,6 +6,7 @@ import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
 import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
+import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { Button } from '@/shared/ui/button';
 import { Filter, Plus, SquarePen } from 'lucide-react';
@@ -156,6 +157,10 @@ const PlannerPage = () => {
   const membersWorkspaceId = useAuthStore((state) => state.membersWorkspaceId);
   const profilePreferences = useAuthStore((state) => state.profilePreferences);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
+  // Marking your own days off is not task editing: viewers may do it too, so the
+  // create button opens the dialog in time-off-only mode for them.
+  const timeOffOn = isTimeOffEnabled();
+  const canOpenCreateDialog = canEdit || timeOffOn;
 
   // The Week view is optional (per-user "week_view_enabled" preference). If a
   // user is on 'week' but the preference is off — e.g. they had it enabled and
@@ -367,7 +372,7 @@ const PlannerPage = () => {
               setAddTaskDefaults(null);
               setShowAddTask(true);
             }}
-            disabled={!canEdit}
+            disabled={!canOpenCreateDialog}
             className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card text-primary hover:bg-accent disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <SquarePen className="h-6 w-6" />
@@ -381,7 +386,7 @@ const PlannerPage = () => {
             }}
             size="sm"
             className="gap-2"
-            disabled={!canEdit}
+            disabled={!canOpenCreateDialog}
           >
             <Plus className="h-4 w-4" />
             {t`Add task`}
@@ -515,6 +520,8 @@ const PlannerPage = () => {
         initialEndDate={addTaskDefaults?.endDate}
         initialProjectId={addTaskDefaults?.projectId}
         initialAssigneeIds={addTaskDefaults?.assigneeIds}
+        timeOffEnabled={timeOffOn}
+        timeOffOnly={timeOffOn && !canEdit}
       />
     </>
   );

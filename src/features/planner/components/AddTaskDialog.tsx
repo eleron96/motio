@@ -8,6 +8,7 @@ import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSele
 import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
 import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 import { Button } from '@/shared/ui/button';
+import { cn } from '@/shared/lib/classNames';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
@@ -30,6 +31,10 @@ import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Plus, X } from 'lucide-react';
 import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';
 import { TaskPriority } from '@/features/planner/types/planner';
+import { TimeOffFields } from '@/features/planner/components/TimeOffFields';
+import { findTimeOffConflict, NO_TIME_OFF } from '@/features/planner/lib/timeOff';
+import { resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSelectors';
+import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { orderAssigneesForPopover } from '@/features/planner/lib/assigneePopoverOrder';
@@ -59,6 +64,10 @@ interface AddTaskDialogProps {
   initialAssigneeIds?: string[];
   /** Lock the project field to the initial value (used on the Projects tab). */
   lockProject?: boolean;
+  /** Planner only: offer the second mode, "Отметить выходной". */
+  timeOffEnabled?: boolean;
+  /** Open straight in time-off mode and hide the task tab (viewers cannot create tasks). */
+  timeOffOnly?: boolean;
   /** Called after a task is successfully created (e.g. to refetch a list). */
   onCreated?: () => void;
 }
@@ -112,6 +121,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   initialProjectId,
   initialAssigneeIds,
   lockProject = false,
+  timeOffEnabled = false,
+  timeOffOnly = false,
   onCreated,
 }) => {
   const {
@@ -125,6 +136,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     addTask,
     createRepeats,
     createTaskSubtasks,
+    timeOff,
+    addTimeOff,
   } = usePlannerStore(useShallow((state) => ({
     projects: state.projects,
     trackedProjectIds: state.trackedProjectIds,
@@ -136,8 +149,12 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     addTask: state.addTask,
     createRepeats: state.createRepeats,
     createTaskSubtasks: state.createTaskSubtasks,
+    timeOff: state.timeOff ?? NO_TIME_OFF,
+    addTimeOff: state.addTimeOff,
   })));
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
+  const currentUser = useAuthStore((state) => state.user);
+  const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const filteredAssignees = useFilteredAssignees(assignees);
   const activeProjects = useMemo(
     () => sortProjectsByTracking(
@@ -180,6 +197,17 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [repeatCreating, setRepeatCreating] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  // Second mode of this dialog: "Отметить выходной". Task fields stay mounted
+  // but hidden, so switching back and forth keeps what was already typed.
+  const [mode, setMode] = useState<'task' | 'time_off'>(timeOffOnly ? 'time_off' : 'task');
+  const [timeOffAssigneeId, setTimeOffAssigneeId] = useState('');
+  // Own dates: sharing the task form's state let a time-off edit silently
+  // rewrite the dates of the task draft the user had started.
+  const [timeOffStart, setTimeOffStart] = useState('');
+  const [timeOffEnd, setTimeOffEnd] = useState('');
+  const [timeOffNote, setTimeOffNote] = useState('');
+  const [timeOffError, setTimeOffError] = useState('');
+  const [timeOffSaving, setTimeOffSaving] = useState(false);
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
   const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
@@ -198,6 +226,25 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     if (!ids || ids.length === 0) return [];
     return sortAssigneeIds(ids);
   }, [sortAssigneeIds]);
+
+  const myAssigneeId = useMemo(
+    () => resolveCurrentUserAssigneeId(assignees, currentUser?.id),
+    [assignees, currentUser?.id],
+  );
+  // Admins record days off for anyone; everyone else only for themselves.
+  const canPickTimeOffAssignee = currentWorkspaceRole === 'admin';
+  const timeOffAvailable = timeOffEnabled && (canPickTimeOffAssignee || Boolean(myAssigneeId));
+  const timeOffSiblings = useMemo(
+    () => timeOff.filter((record) => record.assigneeId === timeOffAssigneeId),
+    [timeOff, timeOffAssigneeId],
+  );
+  const timeOffDatesFilled = Boolean(timeOffStart && timeOffEnd);
+  const timeOffConflict = useMemo(
+    () => (timeOffAssigneeId && timeOffDatesFilled
+      ? findTimeOffConflict({ startDate: timeOffStart, endDate: timeOffEnd }, timeOffSiblings)
+      : null),
+    [timeOffAssigneeId, timeOffDatesFilled, timeOffEnd, timeOffStart, timeOffSiblings],
+  );
 
   const markChanged = useCallback(() => {
     setHasChanges(true);
@@ -325,6 +372,55 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setAssigneePopoverFrozenOrderIds(null);
   }, [selectableAssignees, assigneeIds]);
 
+  // Assignees can arrive after the dialog opened (first load, workspace switch),
+  // so keep resolving until someone is picked instead of stranding the user.
+  useEffect(() => {
+    if (!open || timeOffAssigneeId || canPickTimeOffAssignee || !myAssigneeId) return;
+    setTimeOffAssigneeId(myAssigneeId);
+  }, [canPickTimeOffAssignee, myAssigneeId, open, timeOffAssigneeId]);
+
+  const handleSubmitTimeOff = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (timeOffSaving) return;
+    setTimeOffError('');
+
+    if (!timeOffAssigneeId) {
+      setTimeOffError(t`Select a person.`);
+      return;
+    }
+    if (!timeOffStart || !timeOffEnd) {
+      setTimeOffError(t`Pick both dates.`);
+      return;
+    }
+    const safeDates = clampTaskDates(timeOffStart, timeOffEnd);
+    if (findTimeOffConflict({ startDate: safeDates.startDate, endDate: safeDates.endDate }, timeOffSiblings)) {
+      setTimeOffError(t`These days are already marked as time off.`);
+      return;
+    }
+
+    setTimeOffSaving(true);
+    const result = await addTimeOff({
+      assigneeId: timeOffAssigneeId,
+      startDate: safeDates.startDate,
+      endDate: safeDates.endDate,
+      note: timeOffNote.trim() || null,
+    });
+    setTimeOffSaving(false);
+
+    if (result.error) {
+      // The database keeps the same invariant (0131): show the specific reason
+      // when it names one, otherwise the raw message.
+      if (result.code === 'overlap') setTimeOffError(t`These days are already marked as time off.`);
+      else if (result.code === 'invalidRange') setTimeOffError(t`The end date cannot be earlier than the start date.`);
+      else setTimeOffError(t`Failed to save the time off.`);
+      return;
+    }
+
+    setHasChanges(false);
+    onOpenChange(false);
+    onCreated?.();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -444,6 +540,8 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       setAssigneePopoverOpen(false);
       setAssigneePopoverFrozenOrderIds(null);
       setSubtasks([]);
+      setTimeOffError('');
+      setTimeOffSaving(false);
       return;
     }
     if (projectInitialized) return;
@@ -472,8 +570,22 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setAssigneePopoverOpen(false);
     setAssigneePopoverFrozenOrderIds(null);
     setSubtasks([]);
+    setMode(timeOffOnly ? 'time_off' : 'task');
+    // Prefill the person: an admin who double-clicked someone's row marks that
+    // person, everyone else marks themselves.
+    setTimeOffAssigneeId(
+      (canPickTimeOffAssignee ? nextAssignees[0] : null) ?? myAssigneeId ?? '',
+    );
+    setTimeOffStart(nextStart);
+    setTimeOffEnd(nextEnd);
+    setTimeOffNote('');
+    setTimeOffError('');
+    setTimeOffSaving(false);
     setProjectInitialized(true);
   }, [
+    canPickTimeOffAssignee,
+    myAssigneeId,
+    timeOffOnly,
     defaultStart,
     fallbackProjectId,
     initialAssigneeIds,
@@ -514,27 +626,100 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogScrollContent
-        className="flex w-full max-w-[880px] flex-col gap-0 p-0 max-md:max-h-[85dvh] max-md:w-[calc(100%-1.5rem)] max-md:rounded-2xl"
+        className={cn(
+          'flex w-full flex-col gap-0 p-0 max-md:max-h-[85dvh] max-md:w-[calc(100%-1.5rem)] max-md:rounded-2xl',
+          mode === 'time_off' ? 'max-w-[460px]' : 'max-w-[880px]',
+        )}
         onOpenAutoFocus={(event) => {
           // Focus the title field on open so the user can type without an extra click.
+          // In time-off mode there is no title field — leave focus on the dialog
+          // itself rather than on a hidden input.
           event.preventDefault();
-          titleInputRef.current?.focus();
+          if (mode === 'task') titleInputRef.current?.focus();
         }}
       >
-        {/* Full-height tint behind the parameters column, header and footer included. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 md:block"
-        />
+        {/* Full-height tint behind the parameters column, header and footer
+            included. Task layout only — the time-off form is a single column, so
+            the tint would just cut the dialog in half. */}
+        {mode === 'task' && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 md:block"
+          />
+        )}
         <DialogHeader className="relative px-6 pb-4 pr-12 pt-5">
-          <DialogTitle className="text-lg font-semibold tracking-tight">{t`Create new task`}</DialogTitle>
+          {timeOffAvailable && !timeOffOnly && (
+            <SegmentedControl surface="compact" className="mb-3 w-fit">
+              <SegmentedControlItem
+                type="button"
+                size="sm"
+                active={mode === 'task'}
+                onClick={() => setMode('task')}
+              >
+                {t`Task`}
+              </SegmentedControlItem>
+              <SegmentedControlItem
+                type="button"
+                size="sm"
+                active={mode === 'time_off'}
+                onClick={() => setMode('time_off')}
+              >
+                {t`Mark time off`}
+              </SegmentedControlItem>
+            </SegmentedControl>
+          )}
+          <DialogTitle className="text-lg font-semibold tracking-tight">
+            {mode === 'time_off' ? t`Mark time off` : t`Create new task`}
+          </DialogTitle>
           <DialogDescription className="sr-only">
-            {t`Fill out task fields and create a new task.`}
+            {mode === 'time_off'
+              ? t`Pick the days you will be away.`
+              : t`Fill out task fields and create a new task.`}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="relative flex flex-col max-md:min-h-0 max-md:flex-1">
-          <div className="grid md:grid-cols-[minmax(0,1fr)_340px] max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto">
+        <form onSubmit={mode === 'time_off' ? handleSubmitTimeOff : handleSubmit} className="relative flex flex-col max-md:min-h-0 max-md:flex-1">
+          {mode === 'time_off' && (
+            <div className="px-6 pb-6 pt-1 max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto">
+              <TimeOffFields
+                assignees={selectableAssignees}
+                assigneeId={timeOffAssigneeId}
+                onAssigneeChange={(id) => {
+                  markChanged();
+                  setTimeOffError('');
+                  setTimeOffAssigneeId(id);
+                }}
+                canPickAssignee={canPickTimeOffAssignee}
+                startDate={timeOffStart}
+                endDate={timeOffEnd}
+                note={timeOffNote}
+                onStartDateChange={(value) => {
+                  markChanged();
+                  setTimeOffError('');
+                  setTimeOffStart(value);
+                  setTimeOffEnd((previous) => (
+                    value && previous ? clampTaskDates(value, previous).endDate : previous
+                  ));
+                }}
+                onEndDateChange={(value) => {
+                  markChanged();
+                  setTimeOffError('');
+                  setTimeOffEnd(
+                    value && timeOffStart ? clampTaskDates(timeOffStart, value).endDate : value,
+                  );
+                }}
+                onNoteChange={(value) => {
+                  markChanged();
+                  setTimeOffNote(value);
+                }}
+                conflictMessage={timeOffError || (timeOffConflict ? t`These days are already marked as time off.` : null)}
+              />
+            </div>
+          )}
+          <div className={cn(
+            'grid md:grid-cols-[minmax(0,1fr)_340px] max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto',
+            mode === 'time_off' && 'hidden',
+          )}>
             {/* ── Left column: content */}
             <div className="space-y-4 px-6 pb-6">
               <ComposerEyebrow>{t`Information`}</ComposerEyebrow>
@@ -849,18 +1034,32 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             <Button type="button" variant="outline" onClick={requestClose}>
               {t`Cancel`}
             </Button>
-            <Button type="submit" disabled={!title.trim() || !statusId || !typeId || repeatCreating}>
-              <Plus className="w-4 h-4 mr-2" />
-              {t`Create task`}
-            </Button>
+            {mode === 'time_off' ? (
+              <Button
+                type="submit"
+                disabled={!timeOffAssigneeId || !timeOffDatesFilled || Boolean(timeOffConflict) || timeOffSaving}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {t`Mark time off`}
+              </Button>
+            ) : (
+              <Button type="submit" disabled={!title.trim() || !statusId || !typeId || repeatCreating}>
+                <Plus className="w-4 h-4 mr-2" />
+                {t`Create task`}
+              </Button>
+            )}
           </DialogFooter>
         </form>
         <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t`Discard task?`}</AlertDialogTitle>
+              <AlertDialogTitle>
+                {mode === 'time_off' ? t`Discard time off?` : t`Discard task?`}
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                {t`You have unsaved changes. Close without creating the task?`}
+                {mode === 'time_off'
+                  ? t`You have unsaved changes. Close without marking the time off?`
+                  : t`You have unsaved changes. Close without creating the task?`}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

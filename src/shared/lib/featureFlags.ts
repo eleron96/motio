@@ -67,3 +67,13 @@ export const isPeopleSuggestEnabled = (): boolean => (
 export const isPushEnabled = (): boolean => (
   readFlag(import.meta.env.VITE_FEATURE_PUSH)
 );
+
+/**
+ * When on, a person can mark their own days off ("Отметить выходной") on the
+ * timeline: the record renders as a bar on lane 0 of their row and shades the
+ * covered working days. Off by default so the table and the render can ship
+ * dormant; forced on in /demo so the sandbox always exhibits it.
+ */
+export const isTimeOffEnabled = (): boolean => (
+  isDemoRoute() || readFlag(import.meta.env.VITE_FEATURE_TIME_OFF)
+);

@@ -7,6 +7,7 @@ import { initialFilters } from '@/features/planner/store/plannerStore.helpers';
 import { createWorkspaceActions } from '@/features/planner/store/plannerStore.workspaceActions';
 import { createTaskActions } from '@/features/planner/store/plannerStore.taskActions';
 import { createCatalogActions } from '@/features/planner/store/plannerStore.catalogActions';
+import { createTimeOffActions } from '@/features/planner/store/plannerStore.timeOffActions';
 import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
 import { applyTaskCommentCountDelta } from '@/shared/domain/taskCommentCount';
 
@@ -15,6 +16,8 @@ export const usePlannerStore = create<PlannerStore>()(
     (set, get) => ({
       tasks: [],
       milestones: [],
+      timeOff: [],
+      timeOffDragPreview: null,
       projects: [],
       trackedProjectIds: [],
       customers: [],
@@ -56,6 +59,8 @@ export const usePlannerStore = create<PlannerStore>()(
       reset: () => set({
         tasks: [],
         milestones: [],
+        timeOff: [],
+        timeOffDragPreview: null,
         projects: [],
         trackedProjectIds: [],
         customers: [],
@@ -202,6 +207,7 @@ export const usePlannerStore = create<PlannerStore>()(
       ...createWorkspaceActions(set, get),
       ...createTaskActions(set, get),
       ...createCatalogActions(set, get),
+      ...createTimeOffActions(set, get),
 
       setViewMode: (mode) => set({ viewMode: mode }),
       setGroupMode: (mode) => set({ groupMode: mode }),

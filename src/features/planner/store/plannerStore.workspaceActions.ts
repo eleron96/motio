@@ -2,7 +2,7 @@ import { addYears, format, parseISO } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { isProjectCardEnabled } from '@/shared/lib/featureFlags';
+import { isProjectCardEnabled, isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
 import type {
@@ -25,11 +25,13 @@ import {
   mapStatusRow,
   mapTagRow,
   mapTaskTypeRow,
+  mapTimeOffRow,
   MemberGroupAssignmentRow,
   MemberGroupRow,
   ProjectTrackingRow,
   SupabaseResult,
   TaskRow,
+  TimeOffRow,
 } from '@/features/planner/store/plannerStore.helpers';
 import type { Assignee } from '@/features/planner/types/planner';
 import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
@@ -247,6 +249,17 @@ export const createWorkspaceActions = (
       .from('milestones')
       .select('id, workspace_id, title, project_id, date, note, status_override, include_in_workload')
       .eq('workspace_id', workspaceId);
+    // Time off IS windowed like tasks (unlike milestones): absences accumulate
+    // linearly with wall-clock time and nothing ever archives them, so an
+    // unwindowed query would grow heavier every year on the boot path.
+    const timeOffQuery = isTimeOffEnabled()
+      ? supabase
+          .from('time_off')
+          .select('id, workspace_id, assignee_id, start_date, end_date, note')
+          .eq('workspace_id', workspaceId)
+          .gte('end_date', start)
+          .lte('start_date', end)
+      : Promise.resolve({ data: [] as never[], error: null });
 
     const [
       tasksRes,
@@ -262,6 +275,7 @@ export const createWorkspaceActions = (
       taskTypesRes,
       tagsRes,
       milestonesRes,
+      timeOffRes,
       adminUserId,
     ] = await Promise.all([
       tasksQuery,
@@ -277,6 +291,7 @@ export const createWorkspaceActions = (
       taskTypesQuery,
       tagsQuery,
       milestonesQuery,
+      timeOffQuery,
       adminUserIdPromise,
     ]);
 
@@ -352,6 +367,14 @@ export const createWorkspaceActions = (
       groupId: (row as MemberGroupAssignmentRow).group_id ?? null,
     }));
 
+    // Deliberately NOT part of the fatal error chain above: that chain is
+    // all-or-nothing, so a broken time_off table (or a stale PostgREST schema
+    // cache right after the migration) would blank the whole planner. Degrade
+    // to "no bands" instead.
+    if (timeOffRes.error) console.error(timeOffRes.error);
+    const nextTimeOff = timeOffRes.error
+      ? []
+      : ((timeOffRes.data ?? []) as unknown as TimeOffRow[]).map(mapTimeOffRow);
     const nextProjects = (projectsRes.data ?? []).map(mapProjectRow);
     const nextCustomers = (customersRes.data ?? []).map(mapCustomerRow).sort((left, right) => (
       left.name.localeCompare(right.name)
@@ -372,6 +395,7 @@ export const createWorkspaceActions = (
         Object.entries(state.taskCommentCounts).filter(([taskId]) => nextTaskIds.has(taskId)),
       ),
       milestones: (milestonesRes.data ?? []).map(mapMilestoneRow),
+      timeOff: nextTimeOff,
       projects: nextProjects,
       trackedProjectIds: nextTrackedProjectIds,
       customers: nextCustomers,
