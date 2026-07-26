@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { addDays, format, isWeekend, startOfYear } from 'date-fns';
+import { addDays, format, startOfYear } from 'date-fns';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { fetchHolidays } from '@/infrastructure/holidays/holidayApi';
+import {
+  isEmptyProductionCalendar,
+  russianStatutoryHolidays,
+} from '@/features/planner/lib/russianHolidays';
 
 const HOLIDAY_RETRY_DELAY_MS = 30000;
 const DEFAULT_HOLIDAY_COUNTRY_CODE = 'RU';
@@ -70,16 +74,27 @@ export const useHolidayMap = ({
 
         const entries: Record<string, string[]> = {};
 
-        // Process production calendar for RU (weekday non-working days)
-        if (holidayCountryCode === 'RU' && response.productionCalendar) {
+        // Production calendar for RU. Weekends are kept, not skipped: the
+        // timeline drops them itself (shouldApplyHolidayHatch), while the
+        // calendar must show a New Year break as one solid stretch, exactly
+        // like the official production calendar does.
+        if (holidayCountryCode === 'RU') {
           const raw = response.productionCalendar;
-          const yearStart = startOfYear(new Date(year, 0, 1));
-          for (let index = 0; index < raw.length; index += 1) {
-            if (raw[index] !== '1') continue;
-            const day = addDays(yearStart, index);
-            if (isWeekend(day)) continue;
-            const key = format(day, 'yyyy-MM-dd');
-            entries[key] = [fallbackHolidayLabel];
+          if (isEmptyProductionCalendar(raw)) {
+            // The decree for this year is not out yet (isdayoff.ru answers with
+            // all zeros), so fall back to the statutory days from the Labour
+            // Code. Better a legally correct minimum than a January that ends
+            // on the 7th.
+            russianStatutoryHolidays(year).forEach((key) => {
+              entries[key] = [fallbackHolidayLabel];
+            });
+          } else {
+            const yearStart = startOfYear(new Date(year, 0, 1));
+            for (let index = 0; index < raw!.length; index += 1) {
+              if (raw![index] !== '1') continue;
+              const key = format(addDays(yearStart, index), 'yyyy-MM-dd');
+              entries[key] = [fallbackHolidayLabel];
+            }
           }
         }
 
