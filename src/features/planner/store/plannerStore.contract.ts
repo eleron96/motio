@@ -17,9 +17,11 @@ import {
   Task,
   TaskSubtask,
   TaskType,
+  TimeOff,
+  TimeOffDragPreview,
   ViewMode,
 } from '@/features/planner/types/planner';
-import { MutationResult } from '@/features/planner/store/plannerStore.helpers';
+import { MutationResult, TimeOffMutationResult } from '@/features/planner/store/plannerStore.helpers';
 import { RepeatCreateOptions } from '@/features/planner/lib/taskFormRules';
 import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 
@@ -170,6 +172,16 @@ export interface PlannerStore extends PlannerState {
   addMilestone: (milestone: Omit<Milestone, 'id'>) => Promise<MutationResult>;
   updateMilestone: (id: string, updates: Partial<Milestone>) => Promise<MutationResult>;
   deleteMilestone: (id: string) => Promise<MutationResult>;
+
+  addTimeOff: (input: Omit<TimeOff, 'id'>) => Promise<TimeOffMutationResult>;
+  updateTimeOff: (
+    id: string,
+    updates: Partial<Pick<TimeOff, 'startDate' | 'endDate' | 'note'>>,
+  ) => Promise<TimeOffMutationResult>;
+  deleteTimeOff: (id: string) => Promise<TimeOffMutationResult>;
+  /** Full replace after a realtime refetch — the table is sparse. */
+  setTimeOff: (records: TimeOff[]) => void;
+  setTimeOffDragPreview: (preview: TimeOffDragPreview) => void;
 
   setViewMode: (mode: ViewMode) => void;
   setGroupMode: (mode: GroupMode) => void;
