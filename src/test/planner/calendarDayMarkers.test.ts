@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildTimeOffByDate,
+  isPersonShown,
+  normalizePeopleSelection,
+  togglePersonSelection,
   DEFAULT_CALENDAR_OVERLAY_VISIBILITY,
   normalizeOverlayVisibility,
   selectCalendarTimeOff,
@@ -151,6 +154,45 @@ describe('time-off colours', () => {
     expect(TIME_OFF_PALETTE).toContain(first);
     expect(resolveTimeOffColor(new Map(), 'ghost')).toBe(first);
     expect(resolveTimeOffColor(new Map(), 'other-ghost')).not.toBe('');
+  });
+});
+
+describe('people selection', () => {
+  const all = ['a1', 'a2', 'a3'];
+
+  it('treats null as everyone and an empty list as nobody', () => {
+    expect(isPersonShown(null, 'a1')).toBe(true);
+    expect(isPersonShown([], 'a1')).toBe(false);
+    expect(isPersonShown(['a2'], 'a1')).toBe(false);
+  });
+
+  it('unticking one person starts an explicit list', () => {
+    expect(togglePersonSelection(null, 'a2', all)).toEqual(['a1', 'a3']);
+  });
+
+  it('ticking the last missing person collapses back to everyone', () => {
+    // Stored as "everyone" on purpose: a teammate added later is then included
+    // automatically instead of quietly missing from the calendar.
+    expect(togglePersonSelection(['a1', 'a3'], 'a2', all)).toBeNull();
+  });
+
+  it('can end up with nobody selected', () => {
+    expect(togglePersonSelection(['a1'], 'a1', all)).toEqual([]);
+  });
+
+  it('normalizes junk to everyone', () => {
+    expect(normalizePeopleSelection(undefined)).toBeNull();
+    expect(normalizePeopleSelection('a1')).toBeNull();
+    expect(normalizePeopleSelection(['a1', 5])).toBeNull();
+    expect(normalizePeopleSelection(['a1'])).toEqual(['a1']);
+  });
+
+  it('narrows the records the calendar draws', () => {
+    const assignees = new Map([['a1', assignee()], ['a2', assignee({ id: 'a2' })]]);
+    const records = [record(), record({ id: 't2', assigneeId: 'a2' })];
+
+    expect(selectCalendarTimeOff(records, assignees, ['a2']).map((item) => item.id)).toEqual(['t2']);
+    expect(selectCalendarTimeOff(records, assignees, null)).toHaveLength(2);
   });
 });
 

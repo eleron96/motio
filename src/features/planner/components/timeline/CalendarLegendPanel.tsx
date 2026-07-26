@@ -1,17 +1,31 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { Checkbox } from '@/shared/ui/checkbox';
+import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
+import { isPersonShown } from '@/features/planner/lib/calendarDayMarkers';
+import { resolveTimeOffColor } from '@/features/planner/lib/timeOffPalette';
 import type {
   CalendarOverlayCategory,
   CalendarOverlayVisibility,
+  CalendarPeopleSelection,
 } from '@/features/planner/lib/calendarDayMarkers';
+import type { Assignee } from '@/features/planner/types/planner';
 
 export interface CalendarLegendPanelProps {
   visibility: CalendarOverlayVisibility;
   onToggle: (category: CalendarOverlayCategory) => void;
   /** Rendered only when the time-off feature is available to this deployment. */
   showTimeOffRow?: boolean;
+  /** People whose time off can be shown; the list is hidden when empty. */
+  people?: Assignee[];
+  peopleColors?: Map<string, string>;
+  selectedPeople?: CalendarPeopleSelection;
+  onTogglePerson?: (assigneeId: string) => void;
+  onShowAllPeople?: () => void;
+  onShowOnlyMe?: () => void;
+  /** Enables the "Only me" shortcut; absent when the viewer has no person row. */
+  myAssigneeId?: string | null;
   className?: string;
 }
 
@@ -31,6 +45,13 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
   visibility,
   onToggle,
   showTimeOffRow = false,
+  people = [],
+  peopleColors,
+  selectedPeople = null,
+  onTogglePerson,
+  onShowAllPeople,
+  onShowOnlyMe,
+  myAssigneeId = null,
   className,
 }) => {
   const rows: LegendRow[] = [
@@ -100,6 +121,61 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
           </label>
         ))}
       </div>
+
+      {showTimeOffRow && visibility.timeOff && people.length > 0 && onTogglePerson && (
+        <div className="border-t border-border">
+          <div className="flex items-center justify-between px-4 py-2">
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {t`People`}
+            </span>
+            <span className="flex gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-[11px]"
+                onClick={onShowAllPeople}
+              >
+                {t`All`}
+              </Button>
+              {myAssigneeId && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[11px]"
+                  onClick={onShowOnlyMe}
+                >
+                  {t`Only me`}
+                </Button>
+              )}
+            </span>
+          </div>
+
+          <div className="max-h-64 space-y-0.5 overflow-y-auto px-2 pb-2">
+            {people.map((person) => (
+              <label
+                key={person.id}
+                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/60"
+              >
+                <Checkbox
+                  checked={isPersonShown(selectedPeople, person.id)}
+                  onCheckedChange={() => onTogglePerson(person.id)}
+                />
+                <span
+                  className="h-3 w-3 shrink-0 rounded-full ring-1 ring-border"
+                  style={{
+                    backgroundColor: peopleColors
+                      ? resolveTimeOffColor(peopleColors, person.id)
+                      : undefined,
+                  }}
+                />
+                <span className="min-w-0 truncate text-sm leading-snug">{person.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

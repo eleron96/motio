@@ -38,6 +38,41 @@ export const normalizeOverlayVisibility = (value: unknown): CalendarOverlayVisib
 };
 
 /**
+ * Which people the calendar marks. `null` means everyone — kept distinct from
+ * an empty array, which means the user has unticked every single person and
+ * should see nothing rather than everything.
+ */
+export type CalendarPeopleSelection = string[] | null;
+
+export const normalizePeopleSelection = (value: unknown): CalendarPeopleSelection => {
+  if (!Array.isArray(value)) return null;
+  const ids = value.filter((item): item is string => typeof item === 'string');
+  return ids.length === value.length ? ids : null;
+};
+
+export const isPersonShown = (
+  selection: CalendarPeopleSelection,
+  assigneeId: string,
+): boolean => selection === null || selection.includes(assigneeId);
+
+/** Toggle one person, keeping "everyone" as the state when nothing is excluded. */
+export const togglePersonSelection = (
+  selection: CalendarPeopleSelection,
+  assigneeId: string,
+  allIds: string[],
+): CalendarPeopleSelection => {
+  const current = selection ?? allIds;
+  const next = current.includes(assigneeId)
+    ? current.filter((id) => id !== assigneeId)
+    : [...current, assigneeId];
+
+  // Everyone ticked again — store it as "everyone" so people added later are
+  // included automatically instead of silently missing.
+  if (allIds.length > 0 && allIds.every((id) => next.includes(id))) return null;
+  return next;
+};
+
+/**
  * Records worth drawing: people who are still on the team. Deliberately NOT
  * narrowed by the people filter — the calendar answers "who is away in the
  * team", and a filter set for the timeline should not silently hide colleagues
@@ -46,7 +81,11 @@ export const normalizeOverlayVisibility = (value: unknown): CalendarOverlayVisib
 export const selectCalendarTimeOff = (
   records: TimeOff[],
   assigneeById: Map<string, Assignee>,
-): TimeOff[] => records.filter((record) => assigneeById.get(record.assigneeId)?.isActive !== false);
+  people: CalendarPeopleSelection = null,
+): TimeOff[] => records.filter((record) => (
+  assigneeById.get(record.assigneeId)?.isActive !== false
+  && isPersonShown(people, record.assigneeId)
+));
 
 const dayKey = (day: Date): string => format(day, 'yyyy-MM-dd');
 

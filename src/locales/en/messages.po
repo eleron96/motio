@@ -491,6 +491,7 @@ msgid "After the grace period, all data (comments, tasks, profile) will be anony
 msgstr "After the grace period, all data (comments, tasks, profile) will be anonymized and cannot be recovered."
 
 #: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -3492,6 +3493,10 @@ msgstr "Only disabled people are available."
 msgid "Only for {scopedAssigneeName}"
 msgstr "Only for {scopedAssigneeName}"
 
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+msgid "Only me"
+msgstr "Only me"
+
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Only super admins can access this page."
 msgstr "Only super admins can access this page."
@@ -3647,6 +3652,7 @@ msgstr "Pending"
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 msgid "People"
