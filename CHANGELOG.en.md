@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- The calendar shows three whole years — last, current and next, each in full from January to December.
+
+### Fixed
+- Fields in account settings no longer lose part of their highlight when selected.
 
 ## [0.9.39] - 2026-07-27
 ### Added

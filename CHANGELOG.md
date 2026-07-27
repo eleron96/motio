@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Календарь показывает три полных года — прошлый, текущий и следующий, каждый целиком с января по декабрь.
+
+### Fixed
+- В настройках аккаунта у полей больше не обрезается подсветка при выборе.
 
 ## [0.9.39] - 2026-07-27
 ### Added
