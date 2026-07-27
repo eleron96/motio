@@ -13,15 +13,16 @@ const css = readFileSync(resolve(process.cwd(), 'src/app/index.css'), 'utf8');
 const motifUris = css.match(/url\("data:image\/svg\+xml,[^"]*"\)/g) ?? [];
 
 describe('time-off motif assets', () => {
-  // Two per motif: the scattered tile that repeats across the band, and a single
+  // Three per motif: the scattered day tile, the single-stamp week tile, and a
   // glyph for the settings swatch (the tile is unreadable at 16px).
-  it('ships a tile and a glyph for every registered motif', () => {
+  it('ships a day tile, a week tile and a glyph for every registered motif', () => {
     for (const id of TIME_OFF_MOTIF_IDS) {
       expect(css).toContain(`[data-time-off-motif='${id}']`);
     }
-    expect(motifUris.length).toBe(TIME_OFF_MOTIF_IDS.length * 2);
-    expect((css.match(/--time-off-motif:/g) ?? []).length).toBe(TIME_OFF_MOTIF_IDS.length);
-    expect((css.match(/--time-off-glyph:/g) ?? []).length).toBe(TIME_OFF_MOTIF_IDS.length);
+    expect(motifUris.length).toBe(TIME_OFF_MOTIF_IDS.length * 3);
+    for (const variable of ['--time-off-motif:', '--time-off-motif-week:', '--time-off-glyph:']) {
+      expect((css.match(new RegExp(variable, 'g')) ?? []).length).toBe(TIME_OFF_MOTIF_IDS.length);
+    }
   });
 
   // Each cell paints its own mask, so a tile that does not divide the day width
