@@ -39,28 +39,49 @@ const wrapWithLane = (task: Task, lane: number): TaskWithLane => {
   return wrapped;
 };
 
+/** A period that owns lane 0 for its own days only — a time-off bar. */
+export type ReservedPeriod = { startDate: string; endDate: string };
+
+const overlapsReserved = (
+  task: Task,
+  reserved: ReservedPeriod[],
+): boolean => reserved.some(
+  (period) => task.startDate <= period.endDate && task.endDate >= period.startDate,
+);
+
 /**
  * Calculate lanes for tasks to avoid visual overlapping.
  * Tasks that overlap in time are placed in different lanes.
+ *
+ * `reservedLaneZero` lists periods that own lane 0 (the time-off bar, which is
+ * rendered outside this packer). A task is kept out of lane 0 only while it
+ * overlaps one of them: on every other day lane 0 stays available, so a row with
+ * a two-week vacation does not push its whole year of tasks down a lane.
  */
-export const calculateTaskLanes = (tasks: Task[]): TaskWithLane[] => {
+export const calculateTaskLanes = (
+  tasks: Task[],
+  reservedLaneZero: ReservedPeriod[] = [],
+): TaskWithLane[] => {
   if (tasks.length === 0) return [];
-  
+
   // Sort tasks by start date, then by end date
   const sortedTasks = [...tasks].sort((a, b) => {
     const startCompare = a.startDate.localeCompare(b.startDate);
     if (startCompare !== 0) return startCompare;
     return a.endDate.localeCompare(b.endDate);
   });
-  
+
   const result: TaskWithLane[] = [];
   const lanes: { endDate: string }[] = [];
-  
+
   for (const task of sortedTasks) {
+    const laneZeroTaken = reservedLaneZero.length > 0 && overlapsReserved(task, reservedLaneZero);
+
     // Find the first available lane
     let assignedLane = -1;
-    
+
     for (let i = 0; i < lanes.length; i++) {
+      if (i === 0 && laneZeroTaken) continue;
       // Check if this lane is free (task starts after lane's last task ends)
       if (!checkOverlap(task.startDate, task.endDate, lanes[i].endDate, lanes[i].endDate)) {
         // Check if task starts after lane ends
@@ -71,16 +92,22 @@ export const calculateTaskLanes = (tasks: Task[]): TaskWithLane[] => {
         }
       }
     }
-    
+
     // If no lane available, create a new one
     if (assignedLane === -1) {
+      // Lane 0 belongs to the bar for these days, and no lane exists yet: open it
+      // as an empty placeholder so later tasks that clear the period can still
+      // land there. '' sorts before every ISO date, so the lane reads as free.
+      if (lanes.length === 0 && laneZeroTaken) {
+        lanes.push({ endDate: '' });
+      }
       assignedLane = lanes.length;
       lanes.push({ endDate: task.endDate });
     }
-    
+
     result.push(wrapWithLane(task, assignedLane));
   }
-  
+
   return result;
 };
 

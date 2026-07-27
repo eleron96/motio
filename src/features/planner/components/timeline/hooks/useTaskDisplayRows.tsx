@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { t } from '@lingui/macro';
 import { Assignee, Filters, GroupMode, Project, Task } from '@/features/planner/types/planner';
-import { EMPTY_TIME_OFF_INDEX, timeOffExtraLanes, timeOffLaneOffset, type TimeOffIndex } from '@/features/planner/lib/timeOff';
+import { EMPTY_TIME_OFF_INDEX, timeOffMinLanes, timeOffReservedPeriods, type TimeOffIndex } from '@/features/planner/lib/timeOff';
+import type { ReservedPeriod } from '@/features/planner/lib/taskLanes';
 import {
   buildTimelineDisplayRows,
   calculateTimelineRowHeights,
@@ -79,28 +80,40 @@ export const useTaskDisplayRows = ({
     [groupMode, visibleAssignees, projects, myAssigneeId],
   );
 
+  // Rows are people only in assignee grouping; a project row has nobody to be away.
+  const reservedLaneZeroByRow = useMemo(() => {
+    if (groupMode !== 'assignee') return undefined;
+    const reserved: Record<string, ReservedPeriod[]> = {};
+    timeOffIndex.byRowId.forEach((records, rowId) => {
+      const periods = timeOffReservedPeriods(records);
+      if (periods.length > 0) reserved[rowId] = periods;
+    });
+    return Object.keys(reserved).length > 0 ? reserved : undefined;
+  }, [groupMode, timeOffIndex]);
+
   const tasksByRow = useMemo(
     () => groupTasksByTimelineRow({
       filteredTasks,
       groupItems,
       groupMode,
+      reservedLaneZeroByRow,
     }),
-    [filteredTasks, groupItems, groupMode],
+    [filteredTasks, groupItems, groupMode, reservedLaneZeroByRow],
   );
 
   const effectiveMinRowHeight = groupMode === 'assignee'
     ? Math.max(MIN_ROW_HEIGHT, resolveAssigneeMinRowHeight(sidebarViewportWidth))
     : MIN_ROW_HEIGHT;
 
-  // One extra lane in every row that carries a time-off bar; task packing
-  // itself is untouched.
-  const extraLanesByRow = useMemo(() => {
-    const extra: Record<string, number> = {};
+  // A row carrying a bar needs at least one lane even when it has no tasks; the
+  // lanes tasks actually use are already packed around the bar.
+  const minLanesByRow = useMemo(() => {
+    const minimums: Record<string, number> = {};
     timeOffIndex.byRowId.forEach((records, rowId) => {
-      const lanes = timeOffExtraLanes(records);
-      if (lanes > 0) extra[rowId] = lanes;
+      const lanes = timeOffMinLanes(records);
+      if (lanes > 0) minimums[rowId] = lanes;
     });
-    return extra;
+    return minimums;
   }, [timeOffIndex]);
 
   const rowHeights = useMemo(
@@ -108,9 +121,9 @@ export const useTaskDisplayRows = ({
       minRowHeight: effectiveMinRowHeight,
       taskHeight: TASK_HEIGHT,
       taskGap: TASK_GAP,
-      extraLanesByRow,
+      minLanesByRow,
     }),
-    [tasksByRow, effectiveMinRowHeight, extraLanesByRow],
+    [tasksByRow, effectiveMinRowHeight, minLanesByRow],
   );
 
   const displayRows = useMemo(
@@ -137,8 +150,6 @@ export const useTaskDisplayRows = ({
       const rowAssigneeId = groupMode === 'assignee' && row.id !== 'unassigned' ? row.id : null;
       const taskElements: React.ReactNode[] = [];
       const rowTimeOff = rowAssigneeId ? timeOffIndex.byRowId.get(rowAssigneeId) : undefined;
-      // The bar owns lane 0, so task bars in this row start one lane lower.
-      const laneOffset = timeOffLaneOffset(rowTimeOff);
       rowTimeOff?.forEach((record) => {
         const position = getTaskPosition(
           record.startDate,
@@ -174,7 +185,7 @@ export const useTaskDisplayRows = ({
             position={position}
             dayWidth={dayWidth}
             visibleDays={visibleDays}
-            lane={task.lane + laneOffset}
+            lane={task.lane}
             canEdit={canEdit}
             rowAssigneeId={rowAssigneeId}
           />,

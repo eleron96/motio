@@ -5,8 +5,8 @@ import {
   shouldShadeTimeOffDay,
   timeOffCoveredDays,
   timeOffCoversDay,
-  timeOffExtraLanes,
-  timeOffLaneOffset,
+  timeOffMinLanes,
+  timeOffReservedPeriods,
   withTimeOffPreview,
 } from '@/features/planner/lib/timeOff';
 import type { TimeOff } from '@/features/planner/types/planner';
@@ -63,15 +63,25 @@ describe('shouldShadeTimeOffDay', () => {
 });
 
 describe('lane math', () => {
-  it('reserves one extra lane for a row that has a record', () => {
-    expect(timeOffExtraLanes([record()])).toBe(1);
-    expect(timeOffLaneOffset([record()])).toBe(1);
+  it('requires at least one lane in a row that has a record', () => {
+    expect(timeOffMinLanes([record()])).toBe(1);
   });
 
   it('changes nothing for a row without records', () => {
-    expect(timeOffExtraLanes([])).toBe(0);
-    expect(timeOffExtraLanes(undefined)).toBe(0);
-    expect(timeOffLaneOffset(undefined)).toBe(0);
+    expect(timeOffMinLanes([])).toBe(0);
+    expect(timeOffMinLanes(undefined)).toBe(0);
+    expect(timeOffReservedPeriods(undefined)).toEqual([]);
+    expect(timeOffReservedPeriods([])).toEqual([]);
+  });
+
+  it('hands the packer just the periods, one per record', () => {
+    expect(timeOffReservedPeriods([
+      record(),
+      record({ id: 't2', startDate: '2026-09-01', endDate: '2026-09-02' }),
+    ])).toEqual([
+      { startDate: '2026-08-03', endDate: '2026-08-07' },
+      { startDate: '2026-09-01', endDate: '2026-09-02' },
+    ]);
   });
 });
 
