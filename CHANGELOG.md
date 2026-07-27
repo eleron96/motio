@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.39] - 2026-07-27
 ### Added
 - Дни отпуска теперь отмечаются не просто серой заливкой, а узором — их больше не спутать с обычными выходными. Узор можно выбрать в настройках: пальмы или солнце. Его увидят коллеги.
 
