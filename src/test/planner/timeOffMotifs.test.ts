@@ -1,7 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// The labels resolve through lingui at call time; the tagged-template stub is the
+// shape the rest of the suite uses.
+vi.mock('@lingui/macro', () => ({
+  t: (strings: TemplateStringsArray, ...values: unknown[]) => (
+    strings.reduce((acc, str, index) => acc + str + (values[index] ?? ''), '')
+  ),
+}));
+
 import {
   DEFAULT_TIME_OFF_MOTIF_ID,
   getTimeOffMotifId,
+  getTimeOffMotifLabel,
   isValidTimeOffMotifId,
   resolveRowMotif,
   resolveTimeOffMotifId,
@@ -17,6 +27,14 @@ describe('time-off motif registry', () => {
   it('has unique ids and contains its own default', () => {
     expect(new Set(TIME_OFF_MOTIF_IDS).size).toBe(TIME_OFF_MOTIF_IDS.length);
     expect(TIME_OFF_MOTIF_IDS).toContain(DEFAULT_TIME_OFF_MOTIF_ID);
+  });
+
+  // getTimeOffMotifLabel falls through to Palm, so a motif added to the registry
+  // without its own case would silently show up in the picker named "Palm".
+  it('gives every registered motif its own label', () => {
+    const labels = TIME_OFF_MOTIF_IDS.map(getTimeOffMotifLabel);
+
+    expect(new Set(labels).size).toBe(TIME_OFF_MOTIF_IDS.length);
   });
 
   it('accepts only known ids', () => {

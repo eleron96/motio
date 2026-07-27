@@ -18,12 +18,22 @@ import { t } from '@lingui/macro';
 
 export const TIME_OFF_MOTIF_PREFERENCE_KEY = 'time_off_motif';
 
-export type TimeOffMotifId = 'palm' | 'sun';
+export type TimeOffMotifId = 'palm' | 'sun' | 'mountains' | 'waves' | 'umbrella' | 'tent';
 
 /** Everyone starts with palms; an unknown or missing value falls back here. */
 export const DEFAULT_TIME_OFF_MOTIF_ID: TimeOffMotifId = 'palm';
 
-export const TIME_OFF_MOTIF_IDS: readonly TimeOffMotifId[] = ['palm', 'sun'] as const;
+// Order is the order of the picker. Every motif is line art that survives being
+// stamped at 13-19px — anything with detail finer than the stroke turns to mush
+// at the week-view size, which is what rules out the busier candidates.
+export const TIME_OFF_MOTIF_IDS: readonly TimeOffMotifId[] = [
+  'palm',
+  'sun',
+  'mountains',
+  'waves',
+  'umbrella',
+  'tent',
+] as const;
 
 const MOTIF_IDS = new Set<string>(TIME_OFF_MOTIF_IDS);
 
@@ -46,6 +56,14 @@ export const getTimeOffMotifLabel = (id: TimeOffMotifId): string => {
   switch (id) {
     case 'sun':
       return t`Sun`;
+    case 'mountains':
+      return t`Mountains`;
+    case 'waves':
+      return t`Waves`;
+    case 'umbrella':
+      return t`Umbrella`;
+    case 'tent':
+      return t`Tent`;
     case 'palm':
     default:
       return t`Palm`;

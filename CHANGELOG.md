@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Узоров для выходных стало шесть: к пальме и солнцу добавились горы, волны, зонт и палатка. Выбрать свой можно в настройках аккаунта.
 
 ## [0.9.40] - 2026-07-27
 ### Added

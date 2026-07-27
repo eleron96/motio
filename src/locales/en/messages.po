@@ -2842,6 +2842,10 @@ msgstr "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data lea
 msgid "Motio. One timeline for your whole team. 10 seconds per task."
 msgstr "Motio. One timeline for your whole team. 10 seconds per task."
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Mountains"
+msgstr "Mountains"
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Move mode is enabled. Drag the widget header."
 msgstr "Move mode is enabled. Drag the widget header."
@@ -4886,6 +4890,10 @@ msgstr "Template is used for all new workspaces."
 msgid "Template saved."
 msgstr "Template saved."
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Tent"
+msgstr "Tent"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Terms of Service"
 msgstr "Terms of Service"
@@ -5274,6 +5282,10 @@ msgstr "Type the phrase to confirm:"
 msgid "Types"
 msgstr "Types"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Umbrella"
+msgstr "Umbrella"
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Unarchive"
@@ -5514,6 +5526,10 @@ msgstr "Visual timeline"
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "VITE_SUPABASE_URL_DEMO and VITE_SUPABASE_ANON_KEY_DEMO are not set on this build. The demo sandbox needs an isolated Supabase project to run."
 #~ msgstr "VITE_SUPABASE_URL_DEMO and VITE_SUPABASE_ANON_KEY_DEMO are not set on this build. The demo sandbox needs an isolated Supabase project to run."
+
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Waves"
+msgstr "Waves"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."
