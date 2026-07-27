@@ -1345,6 +1345,7 @@ msgid "Day"
 msgstr "День"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/planner/components/timeline/TimeOffBar.tsx
 msgid "Day off"
 msgstr "Выходной"
 
@@ -2651,7 +2652,6 @@ msgstr "Отметить как непрочитанное"
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
-#: src/features/planner/components/timeline/TimeOffBar.tsx
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 msgid "Mark time off"
 msgstr "Отметить выходной"
