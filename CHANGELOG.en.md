@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Eight patterns for days off now: a beer and a star join the set.
+
+### Changed
+- The wave pattern is a real breaking wave, and the umbrella became a beach parasol.
 
 ## [0.9.41] - 2026-07-27
 ### Added

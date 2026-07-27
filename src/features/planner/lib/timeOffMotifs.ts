@@ -18,7 +18,15 @@ import { t } from '@lingui/macro';
 
 export const TIME_OFF_MOTIF_PREFERENCE_KEY = 'time_off_motif';
 
-export type TimeOffMotifId = 'palm' | 'sun' | 'mountains' | 'waves' | 'umbrella' | 'tent';
+export type TimeOffMotifId =
+  | 'palm'
+  | 'sun'
+  | 'mountains'
+  | 'waves'
+  | 'umbrella'
+  | 'tent'
+  | 'beer'
+  | 'star';
 
 /** Everyone starts with palms; an unknown or missing value falls back here. */
 export const DEFAULT_TIME_OFF_MOTIF_ID: TimeOffMotifId = 'palm';
@@ -33,6 +41,8 @@ export const TIME_OFF_MOTIF_IDS: readonly TimeOffMotifId[] = [
   'waves',
   'umbrella',
   'tent',
+  'beer',
+  'star',
 ] as const;
 
 const MOTIF_IDS = new Set<string>(TIME_OFF_MOTIF_IDS);
@@ -64,6 +74,10 @@ export const getTimeOffMotifLabel = (id: TimeOffMotifId): string => {
       return t`Umbrella`;
     case 'tent':
       return t`Tent`;
+    case 'beer':
+      return t`Beer`;
+    case 'star':
+      return t`Star`;
     case 'palm':
     default:
       return t`Palm`;

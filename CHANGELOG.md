@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Узоров для выходных стало восемь: добавились пиво и звезда.
+
+### Changed
+- Волна на выходных стала настоящей волной с барашком, а зонт — пляжным.
 
 ## [0.9.41] - 2026-07-27
 ### Added
