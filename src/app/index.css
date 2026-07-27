@@ -376,11 +376,13 @@
      handful of elements. Widening it to every day cell would put a mask on 2500+
      nodes of a 15000px drag-scrolled canvas. */
   [data-time-off-motif='palm'] {
-    --time-off-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-6 -6 36 36' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4'/%3E%3Cpath d='M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3'/%3E%3Cpath d='M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35z'/%3E%3Cpath d='M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14'/%3E%3C/svg%3E");
+    --time-off-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(4 4) scale(0.72)' stroke-width='2.1'%3E%3Cpath d='M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4'/%3E%3Cpath d='M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3'/%3E%3Cpath d='M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35z'/%3E%3Cpath d='M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14'/%3E%3C/g%3E%3Cg transform='translate(33 33) scale(0.55)' stroke-width='2.7'%3E%3Cpath d='M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4'/%3E%3Cpath d='M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3'/%3E%3Cpath d='M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35z'/%3E%3Cpath d='M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14'/%3E%3C/g%3E%3C/svg%3E");
+    --time-off-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2 -2 28 28' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke-width='1.9'%3E%3Cpath d='M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4'/%3E%3Cpath d='M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3'/%3E%3Cpath d='M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35z'/%3E%3Cpath d='M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14'/%3E%3C/g%3E%3C/svg%3E");
   }
 
   [data-time-off-motif='sun'] {
-    --time-off-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-6 -6 36 36' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2'/%3E%3Cpath d='M12 20v2'/%3E%3Cpath d='M4.93 4.93l1.41 1.41'/%3E%3Cpath d='M17.66 17.66l1.41 1.41'/%3E%3Cpath d='M2 12h2'/%3E%3Cpath d='M20 12h2'/%3E%3Cpath d='M6.34 17.66l-1.41 1.41'/%3E%3Cpath d='M19.07 4.93l-1.41 1.41'/%3E%3C/svg%3E");
+    --time-off-motif: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(4 4) scale(0.72)' stroke-width='2.1'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2'/%3E%3Cpath d='M12 20v2'/%3E%3Cpath d='M4.93 4.93l1.41 1.41'/%3E%3Cpath d='M17.66 17.66l1.41 1.41'/%3E%3Cpath d='M2 12h2'/%3E%3Cpath d='M20 12h2'/%3E%3Cpath d='M6.34 17.66l-1.41 1.41'/%3E%3Cpath d='M19.07 4.93l-1.41 1.41'/%3E%3C/g%3E%3Cg transform='translate(33 33) scale(0.55)' stroke-width='2.7'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2'/%3E%3Cpath d='M12 20v2'/%3E%3Cpath d='M4.93 4.93l1.41 1.41'/%3E%3Cpath d='M17.66 17.66l1.41 1.41'/%3E%3Cpath d='M2 12h2'/%3E%3Cpath d='M20 12h2'/%3E%3Cpath d='M6.34 17.66l-1.41 1.41'/%3E%3Cpath d='M19.07 4.93l-1.41 1.41'/%3E%3C/g%3E%3C/svg%3E");
+    --time-off-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2 -2 28 28' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke-width='1.9'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2'/%3E%3Cpath d='M12 20v2'/%3E%3Cpath d='M4.93 4.93l1.41 1.41'/%3E%3Cpath d='M17.66 17.66l1.41 1.41'/%3E%3Cpath d='M2 12h2'/%3E%3Cpath d='M20 12h2'/%3E%3Cpath d='M6.34 17.66l-1.41 1.41'/%3E%3Cpath d='M19.07 4.93l-1.41 1.41'/%3E%3C/g%3E%3C/svg%3E");
   }
 
   /* Body lives UNDER [data-time-off-motif]: with no attribute there is no
@@ -398,13 +400,14 @@
     mask-image: var(--time-off-motif);
     -webkit-mask-repeat: repeat;
     mask-repeat: repeat;
-    /* 24px is the one tile that divides BOTH day widths exactly — 120px in day
-       view, 48px in week view (DAY_WIDTH / WEEK_DAY_WIDTH in lib/dateUtils.ts).
-       Any other size would restart mid-motif at every cell edge and leave a row
-       of clipped stumps along the day boundaries. Change it only to another
-       common divisor of 120 and 48. */
-    -webkit-mask-size: 24px 24px;
-    mask-size: 24px 24px;
+    /* The tile MUST divide the day width exactly: the mask lives on each day
+       cell, so a tile that does not fit a whole number of times restarts
+       mid-stamp and leaves a row of clipped stumps along every day boundary.
+       60px fits 120px (DAY_WIDTH) twice; week view overrides it below. Each tile
+       carries two stamps on its diagonal, so tiling reads as a checkerboard
+       rather than a hard column grid. */
+    -webkit-mask-size: 60px 60px;
+    mask-size: 60px 60px;
     /* Anchored bottom-left: left so the horizontal tiling starts flush with the
        cell edge, bottom so the clipped row lands under the time-off bar (which
        covers the top 48px) instead of in the open grey below it. */
@@ -412,12 +415,19 @@
     mask-position: left bottom;
   }
 
-  /* Same art, one stamp, sized to its box — the preview swatch in the settings
-     picker. Keeps the SVG in exactly one place. */
+  /* Week view packs a day into WEEK_DAY_WIDTH = 48px, so the day-view tile no
+     longer divides it. 48 fits exactly once and keeps the same two stamps. */
+  [data-timeline-view='week'] .time-off-band::after {
+    -webkit-mask-size: 48px 48px;
+    mask-size: 48px 48px;
+  }
+
+  /* The picker preview shows ONE stamp, not the scattered tile — a 60px
+     composition shrunk into a 16px swatch would be unreadable. */
   .time-off-motif-swatch {
     background-color: currentColor;
-    -webkit-mask-image: var(--time-off-motif);
-    mask-image: var(--time-off-motif);
+    -webkit-mask-image: var(--time-off-glyph);
+    mask-image: var(--time-off-glyph);
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-size: contain;

@@ -13,11 +13,29 @@ const css = readFileSync(resolve(process.cwd(), 'src/app/index.css'), 'utf8');
 const motifUris = css.match(/url\("data:image\/svg\+xml,[^"]*"\)/g) ?? [];
 
 describe('time-off motif assets', () => {
-  it('ships one data URI per registered motif', () => {
+  // Two per motif: the scattered tile that repeats across the band, and a single
+  // glyph for the settings swatch (the tile is unreadable at 16px).
+  it('ships a tile and a glyph for every registered motif', () => {
     for (const id of TIME_OFF_MOTIF_IDS) {
       expect(css).toContain(`[data-time-off-motif='${id}']`);
     }
-    expect(motifUris.length).toBe(TIME_OFF_MOTIF_IDS.length);
+    expect(motifUris.length).toBe(TIME_OFF_MOTIF_IDS.length * 2);
+    expect((css.match(/--time-off-motif:/g) ?? []).length).toBe(TIME_OFF_MOTIF_IDS.length);
+    expect((css.match(/--time-off-glyph:/g) ?? []).length).toBe(TIME_OFF_MOTIF_IDS.length);
+  });
+
+  // Each cell paints its own mask, so a tile that does not divide the day width
+  // restarts mid-stamp and leaves clipped stumps along every day boundary.
+  it('sizes the tile to divide both day widths exactly', () => {
+    const dayTile = Number(/\n\s+mask-size: (\d+)px \1px;/.exec(
+      css.slice(css.indexOf('[data-time-off-motif] .time-off-band::after')),
+    )?.[1]);
+    const weekTile = Number(/mask-size: (\d+)px \1px;/.exec(
+      css.slice(css.indexOf("[data-timeline-view='week'] .time-off-band::after")),
+    )?.[1]);
+
+    expect(120 % dayTile).toBe(0);
+    expect(48 % weekTile).toBe(0);
   });
 
   it('keeps every data URI free of a raw "#"', () => {
