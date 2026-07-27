@@ -7,6 +7,8 @@ import {
   DEFAULT_CALENDAR_OVERLAY_VISIBILITY,
   normalizeOverlayVisibility,
   selectCalendarTimeOff,
+  timeOffCircleInsetClass,
+  TIME_OFF_HOLIDAY_CIRCLE_SCALE,
 } from '@/features/planner/lib/calendarDayMarkers';
 import {
   buildDayPie,
@@ -266,5 +268,20 @@ describe('buildPieBackground', () => {
 
   it('is transparent when nobody is away', () => {
     expect(buildPieBackground({ colors: [], overflow: 0, total: 0 })).toBe('transparent');
+  });
+});
+
+describe('away-circle size on a holiday', () => {
+  it('shrinks the circle on a public holiday and leaves it alone otherwise', () => {
+    expect(timeOffCircleInsetClass(true)).toBe('inset-[15%]');
+    expect(timeOffCircleInsetClass(false)).toBe('inset-0');
+  });
+
+  // The class has to be a literal for Tailwind to emit it, so nothing enforces
+  // that it still matches the documented ratio except this assertion.
+  it('keeps the literal class in step with the documented 70%', () => {
+    const inset = Number(/inset-\[(\d+(?:\.\d+)?)%\]/.exec(timeOffCircleInsetClass(true))?.[1]);
+
+    expect(1 - (inset * 2) / 100).toBeCloseTo(TIME_OFF_HOLIDAY_CIRCLE_SCALE, 5);
   });
 });

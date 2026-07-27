@@ -21,6 +21,7 @@ import { CalendarLegendPanel } from '@/features/planner/components/timeline/Cale
 import {
   buildTimeOffByDate,
   selectCalendarTimeOff,
+  timeOffCircleInsetClass,
   togglePersonSelection,
   type CalendarOverlayCategory,
 } from '@/features/planner/lib/calendarDayMarkers';
@@ -516,10 +517,14 @@ export const CalendarTimeline: React.FC = () => {
                                           {dayPie && (
                                             // The away-circle sits BEHIND the number: holidays keep their
                                             // pill and today keeps its ring, so a day can carry all three
-                                            // without three competing circles.
+                                            // without three competing circles. On a holiday it also steps
+                                            // back to 70% so the pill reads around it.
                                             <span
                                               aria-hidden="true"
-                                              className="absolute inset-0 rounded-full ring-1 ring-card"
+                                              className={cn(
+                                                'absolute rounded-full ring-1 ring-card',
+                                                timeOffCircleInsetClass(isHoliday),
+                                              )}
                                               style={{ background: buildPieBackground(dayPie) }}
                                             />
                                           )}
