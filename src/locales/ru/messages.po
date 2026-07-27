@@ -2842,6 +2842,10 @@ msgstr "Motio работает на вашей инфраструктуре. Н�
 msgid "Motio. One timeline for your whole team. 10 seconds per task."
 msgstr "Motio. Один таймлайн для всей команды. Любая задача за 10 секунд."
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Mountains"
+msgstr "Горы"
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Move mode is enabled. Drag the widget header."
 msgstr "Режим перемещения включен. Перетащите заголовок виджета."
@@ -4886,6 +4890,10 @@ msgstr "Шаблон используется для всех новых раб�
 msgid "Template saved."
 msgstr "Шаблон сохранен."
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Tent"
+msgstr "Палатка"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Terms of Service"
 msgstr "Условия использования"
@@ -5274,6 +5282,10 @@ msgstr "Введите фразу для подтверждения:"
 msgid "Types"
 msgstr "Типы"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Umbrella"
+msgstr "Зонт"
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Unarchive"
@@ -5514,6 +5526,10 @@ msgstr "Визуальный таймлайн"
 #: src/features/demo/providers/DemoBootstrap.tsx
 #~ msgid "VITE_SUPABASE_URL_DEMO and VITE_SUPABASE_ANON_KEY_DEMO are not set on this build. The demo sandbox needs an isolated Supabase project to run."
 #~ msgstr "VITE_SUPABASE_URL_DEMO и VITE_SUPABASE_ANON_KEY_DEMO не заданы для этой сборки. Демо-песочнице нужен отдельный Supabase-проект."
+
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Waves"
+msgstr "Волны"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."

@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Six patterns for days off now: mountains, waves, an umbrella and a tent join the palm and the sun. Pick yours in account settings.
 
 ## [0.9.40] - 2026-07-27
 ### Added
