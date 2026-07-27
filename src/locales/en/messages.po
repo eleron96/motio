@@ -717,6 +717,10 @@ msgstr "Backups stored"
 msgid "Bar chart"
 msgstr "Bar chart"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Beer"
+msgstr "Beer"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Biweekly (every 2 weeks)"
@@ -4647,6 +4651,10 @@ msgstr "Sort Z to A"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "SSO via Keycloak"
 msgstr "SSO via Keycloak"
+
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Star"
+msgstr "Star"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Start"

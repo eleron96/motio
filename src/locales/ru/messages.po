@@ -717,6 +717,10 @@ msgstr "Бэкапов хранится"
 msgid "Bar chart"
 msgstr "Столбчатая диаграмма"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Beer"
+msgstr "Пиво"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Двухнедельная (раз в две недели)"
@@ -4647,6 +4651,10 @@ msgstr "Сортировать Я→А"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "SSO via Keycloak"
 msgstr "SSO через Keycloak"
+
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Star"
+msgstr "Звезда"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Start"
