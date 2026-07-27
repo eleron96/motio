@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { TimelineRow } from '@/features/planner/components/timeline/TimelineRow';
 import type { TimeOff } from '@/features/planner/types/planner';
+import type { TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
 
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) => (
@@ -48,7 +49,11 @@ const daysMapFor = (item: TimeOff) => {
   return map;
 };
 
-const renderRow = (timeOffDays?: Map<string, TimeOff>, holidayDates?: Set<string>) => render(
+const renderRow = (
+  timeOffDays?: Map<string, TimeOff>,
+  holidayDates?: Set<string>,
+  timeOffMotif?: TimeOffMotifId,
+) => render(
   <TimelineRow
     rowId="a1"
     rowIndex={0}
@@ -58,6 +63,7 @@ const renderRow = (timeOffDays?: Map<string, TimeOff>, holidayDates?: Set<string
     todayKey="2026-08-03"
     holidayDates={holidayDates}
     timeOffDays={timeOffDays}
+    timeOffMotif={timeOffMotif}
     height={104}
   >
     {null}
@@ -92,5 +98,23 @@ describe('TimelineRow time-off shading', () => {
     const { container } = renderRow(daysMapFor(record));
 
     expect(container.querySelectorAll('[data-day-key]')).toHaveLength(WEEK.length);
+  });
+});
+
+describe('TimelineRow time-off motif', () => {
+  const rowRoot = (container: HTMLElement) => container.firstElementChild;
+
+  it('carries the motif on the row root, above both the cells and the bars', () => {
+    const { container } = renderRow(daysMapFor(record), undefined, 'sun');
+
+    expect(rowRoot(container)?.getAttribute('data-time-off-motif')).toBe('sun');
+  });
+
+  // The whole CSS body hangs off the attribute, so its absence is what keeps a
+  // row without time off looking exactly as it did before the feature existed.
+  it('omits the attribute entirely when no motif is given', () => {
+    const { container } = renderRow(undefined);
+
+    expect(rowRoot(container)?.hasAttribute('data-time-off-motif')).toBe(false);
   });
 });

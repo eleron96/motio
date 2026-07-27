@@ -42,6 +42,15 @@ import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { demoStore } from '@/features/demo/lib/demoDataStore';
 import { isWeekViewEnabled, WEEK_VIEW_PREFERENCE_KEY } from '@/features/planner/lib/weekViewPreference';
 import {
+  DEFAULT_TIME_OFF_MOTIF_ID,
+  getTimeOffMotifId,
+  getTimeOffMotifLabel,
+  isValidTimeOffMotifId,
+  TIME_OFF_MOTIF_IDS,
+  TIME_OFF_MOTIF_PREFERENCE_KEY,
+  type TimeOffMotifId,
+} from '@/features/planner/lib/timeOffMotifs';
+import {
   ACCENT_COLOR_PREFERENCE_KEY,
   ACCENT_SWATCHES,
   DEFAULT_ACCENT_ID,
@@ -125,6 +134,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [pushOnDeadline, setPushOnDeadline] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
   const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
+  const [timeOffMotifId, setTimeOffMotifId] = useState<TimeOffMotifId>(DEFAULT_TIME_OFF_MOTIF_ID);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
   // When the delete wizard opens the user elsewhere on the Profile tab (to fix their
   // display name), we need to switch tabs. Controlled value lets us do that.
@@ -156,6 +166,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setMarketingEmailsEnabled(data.marketingEmailsOptIn);
       setWeekViewEnabled(isWeekViewEnabled(data.preferences));
       setAccentId(getAccentColorId(data.preferences));
+      setTimeOffMotifId(getTimeOffMotifId(data.preferences));
 
       if (pushSupported) {
         const prefs = data.preferences;
@@ -386,6 +397,27 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     }
   };
 
+  const handleTimeOffMotifChange = async (nextId: string) => {
+    if (!user || !isValidTimeOffMotifId(nextId) || nextId === timeOffMotifId) return;
+    const previousId = timeOffMotifId;
+    const previousPrefs = currentPrefs;
+
+    // Optimistic: the timeline reads the motif straight off profilePreferences,
+    // which updateProfilePreferences refreshes on success — my own rows repaint
+    // without refetching the workspace. Roll back on failure.
+    setTimeOffMotifId(nextId);
+    const updatedPrefs = { ...currentPrefs, [TIME_OFF_MOTIF_PREFERENCE_KEY]: nextId };
+    setCurrentPrefs(updatedPrefs);
+
+    const { error: updateError } = await updateProfilePreferences(updatedPrefs);
+
+    if (updateError) {
+      setTimeOffMotifId(previousId);
+      setCurrentPrefs(previousPrefs);
+      setError(updateError);
+    }
+  };
+
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -596,6 +628,45 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                     </Select>
                     <p className="text-xs text-muted-foreground">
                       {t`Choose the accent color used across the interface`}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 border-t pt-4 text-left">
+                    <Label htmlFor="account-time-off-motif">{t`Time off pattern`}</Label>
+                    <Select
+                      value={timeOffMotifId}
+                      onValueChange={handleTimeOffMotifChange}
+                      disabled={!user || loading}
+                    >
+                      <SelectTrigger id="account-time-off-motif" aria-label={t`Time off pattern`}>
+                        {/* A div, not a span: the trigger's [&>span]:line-clamp
+                            would clobber the flex layout (see the accent row). */}
+                        <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                          <span className="truncate">{getTimeOffMotifLabel(timeOffMotifId)}</span>
+                          <span
+                            aria-hidden
+                            data-time-off-motif={timeOffMotifId}
+                            className="time-off-motif-swatch h-4 w-4 shrink-0 text-muted-foreground"
+                          />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIME_OFF_MOTIF_IDS.map((motifId) => (
+                          <SelectItem key={motifId} value={motifId}>
+                            <span className="flex items-center gap-2">
+                              <span
+                                aria-hidden
+                                data-time-off-motif={motifId}
+                                className="time-off-motif-swatch h-4 w-4 shrink-0 text-muted-foreground"
+                              />
+                              {getTimeOffMotifLabel(motifId)}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {t`The pattern drawn on your days off. Your teammates see it too`}
                     </p>
                   </div>
 
