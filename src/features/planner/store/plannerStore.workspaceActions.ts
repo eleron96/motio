@@ -34,6 +34,7 @@ import {
   TimeOffRow,
 } from '@/features/planner/store/plannerStore.helpers';
 import type { Assignee } from '@/features/planner/types/planner';
+import { getTimeOffMotifId, type TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
 import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
 import { buildWorkspaceMemberActivityActorSnapshot } from '@/shared/domain/workspaceMemberActivity';
 
@@ -70,29 +71,38 @@ const mapAssigneeTaskCounts = (rows: AssigneeUniqueTaskCountRow[] | null | undef
 };
 
 // The assignees table has no FK to profiles, so we can't embed avatar_url in the
-// assignees query. Fetch the avatars separately by user_id and merge them in.
-// Best-effort: on error the people just keep their initials monogram.
-const attachAssigneeAvatars = async (assignees: Assignee[]): Promise<void> => {
+// assignees query. Fetch the profile bits separately by user_id and merge them in.
+// Best-effort: on error the people just keep their initials monogram and the
+// default time-off motif.
+const attachAssigneeProfiles = async (assignees: Assignee[]): Promise<void> => {
   const ids = Array.from(
     new Set(assignees.map((a) => a.userId).filter((id): id is string => Boolean(id))),
   );
   if (ids.length === 0) return;
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, avatar_url')
+    .select('id, avatar_url, preferences')
     .in('id', ids);
   if (error || !data) return;
   const avatarById = new Map<string, string>();
+  const motifById = new Map<string, TimeOffMotifId>();
   for (const row of data) {
-    if (typeof row.id === 'string' && row.avatar_url) {
+    if (typeof row.id !== 'string') continue;
+    if (row.avatar_url) {
       avatarById.set(row.id, row.avatar_url as string);
     }
+    // Narrow the value HERE and never keep a teammate's raw preferences object:
+    // the row also carries their digest and push settings, which this client has
+    // no business holding on to.
+    const preferences = row.preferences as Record<string, unknown> | null | undefined;
+    motifById.set(row.id, getTimeOffMotifId(preferences));
   }
   for (const assignee of assignees) {
-    if (assignee.userId) {
-      const url = avatarById.get(assignee.userId);
-      if (url) assignee.avatar = url;
-    }
+    if (!assignee.userId) continue;
+    const url = avatarById.get(assignee.userId);
+    if (url) assignee.avatar = url;
+    const motif = motifById.get(assignee.userId);
+    if (motif) assignee.timeOffMotif = motif;
   }
 };
 
@@ -352,7 +362,7 @@ export const createWorkspaceActions = (
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);
 
-    await attachAssigneeAvatars(assignees);
+    await attachAssigneeProfiles(assignees);
     if (get().dataRequestId !== requestId) return;
 
     const memberGroups = (memberGroupsRes.data ?? [])
@@ -497,7 +507,7 @@ export const createWorkspaceActions = (
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);
 
-    await attachAssigneeAvatars(assignees);
+    await attachAssigneeProfiles(assignees);
 
     const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
 

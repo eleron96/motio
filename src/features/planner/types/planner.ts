@@ -1,3 +1,5 @@
+import type { TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
+
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type RepeatTaskUpdateScope = 'single' | 'following' | 'all';
 
@@ -75,6 +77,12 @@ export interface Assignee {
   id: string;
   name: string;
   avatar?: string;
+  /**
+   * Decorative stamp this person picked for their own time-off days, read from
+   * their profile alongside the avatar. People without an account never have one
+   * and fall back to the default.
+   */
+  timeOffMotif?: TimeOffMotifId;
   userId?: string | null;
   isActive: boolean;
   /** Phase 4: optional contact info shown in the project-card Team popup. */

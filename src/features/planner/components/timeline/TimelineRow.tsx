@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { isWeekend, shouldApplyHolidayHatch } from '@/features/planner/lib/dateUtils';
 import { shouldShadeTimeOffDay } from '@/features/planner/lib/timeOff';
 import { TimeOff, ViewMode } from '@/features/planner/types/planner';
+import type { TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
 import { cn } from '@/shared/lib/classNames';
 import {
   ContextMenu,
@@ -23,6 +24,12 @@ interface TimelineRowProps {
   holidayDates?: Set<string>;
   /** dayKey -> the time-off record covering it, for THIS row only. */
   timeOffDays?: Map<string, TimeOff>;
+  /**
+   * Decorative stamp for this person's time-off days. Absent when the row has no
+   * record — the CSS body hangs off the attribute, so no attribute means no
+   * pseudo-element at all.
+   */
+  timeOffMotif?: TimeOffMotifId;
   height: number;
   children: React.ReactNode;
   /** May open the create dialog by double-click (task editing OR marking time off). */
@@ -42,6 +49,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   todayKey,
   holidayDates,
   timeOffDays,
+  timeOffMotif,
   height,
   children,
   canEdit = false,
@@ -126,8 +134,14 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   }, [canEdit, getDateAtClientX, onCreateTask, rowId]);
 
   return (
-    <div 
+    // The motif attribute sits on the row root, the common ancestor of the day
+    // cells and the bar layer, so one declaration paints every covered day.
+    <div
       className="relative border-b border-border box-border"
+      data-time-off-motif={timeOffMotif}
+      // The motif tile has to divide the day width exactly, and that width
+      // changes with the view — the CSS picks the tile off this.
+      data-timeline-view={viewMode}
       style={{ height }}
     >
       {/* Grid background */}
@@ -209,6 +223,7 @@ const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps
   && prev.todayKey === next.todayKey
   && prev.holidayDates === next.holidayDates
   && prev.timeOffDays === next.timeOffDays
+  && prev.timeOffMotif === next.timeOffMotif
   && prev.height === next.height
   && prev.children === next.children
   && prev.canEdit === next.canEdit

@@ -10,6 +10,7 @@ import { MilestoneLayer } from './MilestoneLayer';
 import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
 import { buildTimeOffIndex, EMPTY_TIME_OFF_INDEX, NO_TIME_OFF } from '@/features/planner/lib/timeOff';
+import { resolveRowMotif, type TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import {
   buildAssigneeGroupMap,
@@ -112,6 +113,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const workspaces = useAuthStore((state) => state.workspaces);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const members = useAuthStore((state) => state.members);
+  const myProfilePreferences = useAuthStore((state) => state.profilePreferences);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const filteredAssignees = useFilteredAssignees(assignees);
   const activeFilteredAssignees = useMemo(
@@ -171,6 +173,26 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       : EMPTY_TIME_OFF_INDEX),
     [groupMode, timeOff, timeOffDragPreview, visibleDays],
   );
+
+  // Decorative motif per row. Mine comes from the live preference so the settings
+  // picker repaints my row at once; a teammate's rides along on their assignee
+  // record. Only rows that actually carry time off get an entry — every other row
+  // stays attribute-less and unchanged.
+  const motifByRowId = useMemo(() => {
+    const motifs = new Map<string, TimeOffMotifId>();
+    if (timeOffIndex.byRowId.size === 0) return motifs;
+    const motifByAssigneeId = new Map(
+      assignees.map((assignee) => [assignee.id, assignee.timeOffMotif]),
+    );
+    timeOffIndex.byRowId.forEach((_records, rowId) => {
+      motifs.set(rowId, resolveRowMotif({
+        isMe: rowId === myAssigneeId,
+        myPreferences: myProfilePreferences,
+        assigneeMotif: motifByAssigneeId.get(rowId),
+      }));
+    });
+    return motifs;
+  }, [assignees, myAssigneeId, myProfilePreferences, timeOffIndex]);
 
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const totalWidth = visibleDays.length * dayWidth;
@@ -519,6 +541,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     todayKey={todayKey}
                     holidayDates={holidayDates}
                     timeOffDays={timeOffIndex.daysByRowId.get(row.id)}
+                    timeOffMotif={motifByRowId.get(row.id)}
                     height={row.height}
                     canEdit={canEdit || isTimeOffEnabled()}
                     canCreateTask={canEdit}

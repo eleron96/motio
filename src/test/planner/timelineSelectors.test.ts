@@ -218,25 +218,52 @@ describe('timelineSelectors', () => {
     expect(hiddenUnassignedRows.some((row) => row.id === 'unassigned')).toBe(false);
   });
 
-  it('reserves one extra lane for a row that carries a time-off bar', () => {
+  it('treats the time-off lane as a minimum, not as an added lane', () => {
     const rowTasks = {
+      // A task that does NOT overlap the bar keeps lane 0 — the row stays one lane.
       a1: [{ ...makeTask({ id: 't1', assigneeIds: ['a1'] }), lane: 0 }],
+      // No tasks at all: the bar is the row's only lane.
       a2: [],
+      // A task the packer already pushed под the bar — two lanes.
+      a3: [{ ...makeTask({ id: 't3', assigneeIds: ['a3'] }), lane: 1 }],
     };
     const options = { minRowHeight: 56, taskHeight: 40, taskGap: 4 };
 
     const base = calculateTimelineRowHeights(rowTasks, options);
-    // One lane either way: 16 + 1 * 44 = 60 (getMaxLanes returns 1 for an empty row).
+    // One lane: 16 + 1 * 44 = 60 (getMaxLanes returns 1 for an empty row).
     expect(base.a1).toBe(60);
     expect(base.a2).toBe(60);
+    expect(base.a3).toBe(104);
 
     const withTimeOff = calculateTimelineRowHeights(rowTasks, {
       ...options,
-      extraLanesByRow: { a1: 1, a2: 1 },
+      minLanesByRow: { a1: 1, a2: 1, a3: 1 },
     });
-    // a1: the bar takes lane 0 and the task moves down — two lanes, 16 + 2 * 44.
-    expect(withTimeOff.a1).toBe(104);
-    // a2 has no tasks, so the bar is its ONLY lane: 60, not 104.
+    // The regression this replaced: a1 used to become 104 and left an empty
+    // strip above its task on every day outside the period.
+    expect(withTimeOff.a1).toBe(60);
     expect(withTimeOff.a2).toBe(60);
+    expect(withTimeOff.a3).toBe(104);
+  });
+
+  it('packs task lanes around the reserved period, per row', () => {
+    const rowTasks = groupTasksByTimelineRow({
+      filteredTasks: [
+        makeTask({ id: 'before', assigneeIds: ['a1'], startDate: '2026-08-01', endDate: '2026-08-05' }),
+        makeTask({ id: 'during', assigneeIds: ['a1'], startDate: '2026-08-12', endDate: '2026-08-14' }),
+        // Same dates, different person — nobody reserved a lane in that row.
+        makeTask({ id: 'other', assigneeIds: ['a2'], startDate: '2026-08-12', endDate: '2026-08-14' }),
+      ],
+      groupItems: [
+        { id: 'a1', name: 'A1', color: undefined },
+        { id: 'a2', name: 'A2', color: undefined },
+      ],
+      groupMode: 'assignee',
+      reservedLaneZeroByRow: { a1: [{ startDate: '2026-08-10', endDate: '2026-08-23' }] },
+    });
+
+    expect(rowTasks.a1.find((task) => task.id === 'before')?.lane).toBe(0);
+    expect(rowTasks.a1.find((task) => task.id === 'during')?.lane).toBe(1);
+    expect(rowTasks.a2.find((task) => task.id === 'other')?.lane).toBe(0);
   });
 });

@@ -535,6 +535,7 @@ msgstr "All results"
 msgid "All set!"
 msgstr "All set!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "All settings"
 msgstr "All settings"
@@ -569,6 +570,10 @@ msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more fea
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
 msgstr "App version"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Appearance"
+msgstr "Appearance"
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Apply changes to repeating tasks?"
@@ -1345,6 +1350,7 @@ msgid "Day"
 msgstr "Day"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/planner/components/timeline/TimeOffBar.tsx
 msgid "Day off"
 msgstr "Day off"
 
@@ -2651,7 +2657,6 @@ msgstr "Mark as unread"
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
-#: src/features/planner/components/timeline/TimeOffBar.tsx
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 msgid "Mark time off"
 msgstr "Mark time off"
@@ -3443,6 +3448,7 @@ msgstr "Nothing matches the current filters."
 msgid "Nothing overdue. Great job!"
 msgstr "Nothing overdue. Great job!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
@@ -3641,6 +3647,10 @@ msgstr "Page {pageIndex} / {totalPages}"
 msgid "Page {pageIndex} of {totalPages}"
 msgstr "Page {pageIndex} of {totalPages}"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Palm"
+msgstr "Palm"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Parameters"
@@ -3767,8 +3777,8 @@ msgid "Plug into your identity provider out of the box."
 msgstr "Plug into your identity provider out of the box."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
-msgid "Preferences"
-msgstr "Preferences"
+#~ msgid "Preferences"
+#~ msgstr "Preferences"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
@@ -4726,6 +4736,10 @@ msgstr "Subtask title"
 msgid "Subtasks"
 msgstr "Subtasks"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Sun"
+msgstr "Sun"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
@@ -4896,6 +4910,10 @@ msgstr "The database will be replaced with backup {name}."
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 msgid "The end date cannot be earlier than the start date."
 msgstr "The end date cannot be earlier than the start date."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "The pattern drawn on your days off. Your teammates see it too"
+msgstr "The pattern drawn on your days off. Your teammates see it too"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
@@ -5100,6 +5118,11 @@ msgstr "This will schedule immediate purge for user {forcePurgeTrimmed}. The use
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "this workspace"
 msgstr "this workspace"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Time off pattern"
+msgstr "Time off pattern"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/workspace/lib/appNavigation.ts

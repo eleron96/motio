@@ -1,30 +1,35 @@
 // Which months the calendar view renders.
 //
-// Deliberately a sliding window around the current date rather than the span of
-// the task list: the old rule (earliest task -1 year … latest task +5 years)
-// produced 84-108 month cards and ~3900 day cells. That is slow to render, and
-// it is also dishonest — milestones and time off are loaded around the current
-// date, so the far-out months showed empty days that read as "nothing here"
-// instead of "not loaded".
+// WHOLE calendar years — last year, this year, next year — rather than a sliding
+// window of N months either side. A window anchored on the current date cuts both
+// end years in half, so January of "last year" is on screen in July but gone in
+// August; whole years mean the page always starts on a 1 January and ends on a
+// 31 December, and the year headings each cover twelve cards.
+//
+// Still bounded, and that is the point: the original rule (earliest task -1 year
+// … latest task +5 years) produced 84-108 month cards and ~3900 day cells, slow
+// to render and dishonest besides — milestones and time off are loaded around the
+// current date, so far-out months showed empty days that read as "nothing here"
+// rather than "not loaded". Three years is 36 cards, roughly 1500 cells.
 
-import { addMonths, parseISO, startOfMonth } from 'date-fns';
+import { addMonths } from 'date-fns';
 
-/** Twelve months back and twelve forward — two years on screen at a time. */
-export const CALENDAR_MONTHS_BACK = 12;
-export const CALENDAR_MONTHS_FORWARD = 12;
+/** One year back and one forward, plus the current one — three on screen. */
+export const CALENDAR_YEARS_BACK = 1;
+export const CALENDAR_YEARS_FORWARD = 1;
+
+const MONTHS_IN_YEAR = 12;
 
 export const buildCalendarMonths = (
   currentDate: string,
-  monthsBack: number = CALENDAR_MONTHS_BACK,
-  monthsForward: number = CALENDAR_MONTHS_FORWARD,
+  yearsBack: number = CALENDAR_YEARS_BACK,
+  yearsForward: number = CALENDAR_YEARS_FORWARD,
 ): Date[] => {
-  const baseDate = parseISO(currentDate);
-  const rangeEnd = startOfMonth(addMonths(baseDate, monthsForward));
-  const months: Date[] = [];
-  let cursor = startOfMonth(addMonths(baseDate, -monthsBack));
-  while (cursor <= rangeEnd) {
-    months.push(cursor);
-    cursor = addMonths(cursor, 1);
-  }
-  return months;
+  // The YEAR of the current date, not the date itself: the window has to snap to
+  // January so it does not drift month by month as the user navigates.
+  const year = Number(currentDate.slice(0, 4));
+  const firstMonth = new Date(year - yearsBack, 0, 1);
+  const total = (yearsBack + yearsForward + 1) * MONTHS_IN_YEAR;
+
+  return Array.from({ length: total }, (_, index) => addMonths(firstMonth, index));
 };
