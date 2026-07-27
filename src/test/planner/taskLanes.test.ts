@@ -52,6 +52,81 @@ describe('calculateTaskLanes — lane assignment', () => {
   });
 });
 
+describe('calculateTaskLanes — lane 0 reserved for a time-off bar', () => {
+  // The vacation in the screenshot that started this: Aug 10-23.
+  const vacation = [{ startDate: '2026-08-10', endDate: '2026-08-23' }];
+
+  it('leaves lane 0 to tasks that end before the period', () => {
+    const before = makeTask({ id: 'before', startDate: '2026-08-01', endDate: '2026-08-05' });
+    const result = calculateTaskLanes([before], vacation);
+    expect(byId(result, 'before').lane).toBe(0);
+  });
+
+  it('leaves lane 0 to tasks that start after the period', () => {
+    const after = makeTask({ id: 'after', startDate: '2026-08-25', endDate: '2026-08-28' });
+    const result = calculateTaskLanes([after], vacation);
+    expect(byId(result, 'after').lane).toBe(0);
+  });
+
+  it('keeps lane 0 on both sides while pushing only the overlapping task down', () => {
+    const before = makeTask({ id: 'before', startDate: '2026-08-01', endDate: '2026-08-05' });
+    const during = makeTask({ id: 'during', startDate: '2026-08-12', endDate: '2026-08-14' });
+    const after = makeTask({ id: 'after', startDate: '2026-08-25', endDate: '2026-08-28' });
+
+    const result = calculateTaskLanes([before, during, after], vacation);
+
+    expect(byId(result, 'before').lane).toBe(0);
+    expect(byId(result, 'during').lane).toBe(1);
+    expect(byId(result, 'after').lane).toBe(0);
+    expect(getMaxLanes(result)).toBe(2);
+  });
+
+  it('pushes a task that merely touches the edge of the period', () => {
+    const touchesStart = makeTask({ id: 'touches', startDate: '2026-08-05', endDate: '2026-08-10' });
+    const result = calculateTaskLanes([touchesStart], vacation);
+    expect(byId(result, 'touches').lane).toBe(1);
+  });
+
+  it('pushes a task that spans the whole period', () => {
+    const spans = makeTask({ id: 'spans', startDate: '2026-07-01', endDate: '2026-09-30' });
+    const result = calculateTaskLanes([spans], vacation);
+    expect(byId(result, 'spans').lane).toBe(1);
+  });
+
+  it('never lets two overlapping tasks share a lane once one is pushed down', () => {
+    // Both overlap the vacation AND each other, so they need lanes 1 and 2.
+    const first = makeTask({ id: 'first', startDate: '2026-08-11', endDate: '2026-08-20' });
+    const second = makeTask({ id: 'second', startDate: '2026-08-15', endDate: '2026-08-22' });
+
+    const result = calculateTaskLanes([first, second], vacation);
+
+    expect(byId(result, 'first').lane).toBe(1);
+    expect(byId(result, 'second').lane).toBe(2);
+  });
+
+  it('handles two separate periods in one row', () => {
+    const periods = [
+      { startDate: '2026-08-10', endDate: '2026-08-12' },
+      { startDate: '2026-09-01', endDate: '2026-09-03' },
+    ];
+    const between = makeTask({ id: 'between', startDate: '2026-08-20', endDate: '2026-08-25' });
+    const inSecond = makeTask({ id: 'in-second', startDate: '2026-09-02', endDate: '2026-09-02' });
+
+    const result = calculateTaskLanes([between, inSecond], periods);
+
+    expect(byId(result, 'between').lane).toBe(0);
+    expect(byId(result, 'in-second').lane).toBe(1);
+  });
+
+  it('packs exactly as before when no period is reserved', () => {
+    const a = makeTask({ id: 'a', startDate: '2026-08-12', endDate: '2026-08-14' });
+    const b = makeTask({ id: 'b', startDate: '2026-08-13', endDate: '2026-08-15' });
+
+    expect(calculateTaskLanes([a, b])).toEqual(calculateTaskLanes([a, b], []));
+    expect(byId(calculateTaskLanes([a, b], []), 'a').lane).toBe(0);
+  });
+});
+
 describe('calculateTaskLanes — referential identity (memo stability)', () => {
   it('returns the same wrapper reference when the task objects are unchanged', () => {
     const a = makeTask({ id: 'a', startDate: '2026-02-20', endDate: '2026-02-21' });

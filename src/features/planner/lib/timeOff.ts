@@ -47,14 +47,25 @@ export const shouldShadeTimeOffDay = (
   isHoliday: boolean,
 ): boolean => covered && !isWeekend && !isHoliday;
 
-/** The bar always owns lane 0, so a row with a record needs one extra lane. */
-export const timeOffExtraLanes = (rowRecords: TimeOff[] | undefined): number => (
+/**
+ * The bar always owns lane 0, so a row with a record needs at least one lane —
+ * a MINIMUM, not an extra lane on top of the task lanes. Task bars are packed
+ * around the record by calculateTaskLanes and only move down where they actually
+ * overlap it; everywhere else lane 0 stays theirs.
+ */
+export const timeOffMinLanes = (rowRecords: TimeOff[] | undefined): number => (
   rowRecords && rowRecords.length > 0 ? 1 : 0
 );
 
-/** Task bars shift down by one lane in rows that carry a time-off bar. */
-export const timeOffLaneOffset = (rowRecords: TimeOff[] | undefined): number => (
-  timeOffExtraLanes(rowRecords)
+/**
+ * The periods that own lane 0 in this row, in the shape calculateTaskLanes wants.
+ */
+export const timeOffReservedPeriods = (
+  rowRecords: TimeOff[] | undefined,
+): { startDate: string; endDate: string }[] => (
+  rowRecords && rowRecords.length > 0
+    ? rowRecords.map(({ startDate, endDate }) => ({ startDate, endDate }))
+    : []
 );
 
 /** Apply an in-flight drag/resize on top of the stored record. */
