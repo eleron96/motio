@@ -1,0 +1,73 @@
+import { t } from '@lingui/macro';
+
+// The decorative motif stamped on a person's time-off days.
+//
+// It is DECORATION and personal flair, nothing more: every motif is drawn in the
+// same --muted-foreground at the same alpha, so no choice is louder than another
+// and none of them encodes a reason (holiday / sick leave / trip). The grey band
+// keeps carrying the meaning "not a working day"; the motif only makes that band
+// impossible to confuse with a Saturday.
+//
+// The motif belongs to the PERSON, not to the viewer: I pick the stamp for my own
+// time off and my teammates see it. That is why it travels on Assignee, resolved
+// through resolveRowMotif.
+//
+// The art itself lives ONLY in src/app/index.css, keyed by [data-time-off-motif].
+// Adding a motif therefore costs two edits — an entry here and a block there — in
+// exchange for a single source of the SVG and markup that never carries a data URI.
+
+export const TIME_OFF_MOTIF_PREFERENCE_KEY = 'time_off_motif';
+
+export type TimeOffMotifId = 'palm' | 'sun';
+
+/** Everyone starts with palms; an unknown or missing value falls back here. */
+export const DEFAULT_TIME_OFF_MOTIF_ID: TimeOffMotifId = 'palm';
+
+export const TIME_OFF_MOTIF_IDS: readonly TimeOffMotifId[] = ['palm', 'sun'] as const;
+
+const MOTIF_IDS = new Set<string>(TIME_OFF_MOTIF_IDS);
+
+export const isValidTimeOffMotifId = (value: unknown): value is TimeOffMotifId =>
+  typeof value === 'string' && MOTIF_IDS.has(value);
+
+/** Narrow a raw value (a neighbour's stored preference) to a motif. */
+export const resolveTimeOffMotifId = (value: unknown): TimeOffMotifId => (
+  isValidTimeOffMotifId(value) ? value : DEFAULT_TIME_OFF_MOTIF_ID
+);
+
+/** Read my own motif out of the profile preferences blob. */
+export const getTimeOffMotifId = (
+  preferences: Record<string, unknown> | null | undefined,
+): TimeOffMotifId => resolveTimeOffMotifId(preferences?.[TIME_OFF_MOTIF_PREFERENCE_KEY]);
+
+// Resolved at call time so the label follows the active locale, exactly like
+// getAccentLabel in shared/lib/accentColor.ts.
+export const getTimeOffMotifLabel = (id: TimeOffMotifId): string => {
+  switch (id) {
+    case 'sun':
+      return t`Sun`;
+    case 'palm':
+    default:
+      return t`Palm`;
+  }
+};
+
+/**
+ * The motif to stamp on one timeline row.
+ *
+ * My own row reads the live preference so the picker repaints it immediately;
+ * a teammate's row reads the value that came with their profile. This is also
+ * the seam to change if the motif ever becomes a property of a single time-off
+ * record rather than of the person.
+ */
+export const resolveRowMotif = ({
+  isMe,
+  myPreferences,
+  assigneeMotif,
+}: {
+  isMe: boolean;
+  myPreferences?: Record<string, unknown> | null;
+  assigneeMotif?: unknown;
+}): TimeOffMotifId => (
+  isMe ? getTimeOffMotifId(myPreferences) : resolveTimeOffMotifId(assigneeMotif)
+);
