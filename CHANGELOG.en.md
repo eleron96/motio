@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Days off are now marked with a pattern instead of plain grey shading, so they can no longer be mistaken for an ordinary weekend. Pick yours in settings — palms or sun. Your teammates see it too.
+
+### Changed
+- Account settings open in the same centered modal as workspace settings.
+- The time-off bar leads with the note and moves the dates to the second line, so the reason someone is away reads first.
+- Time off no longer pushes a person's other tasks down a lane: they only move on the days the time off actually covers.
+- On the calendar the away-circle is smaller on public holidays, so the holiday still shows around it.
 
 ## [0.9.38] - 2026-07-26
 ### Added

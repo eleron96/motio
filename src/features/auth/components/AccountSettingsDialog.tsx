@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
@@ -420,14 +419,37 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex h-full w-full max-w-full flex-col gap-0 p-0 sm:w-[480px] sm:max-w-[480px]">
-          <SheetHeader className="px-6 pb-3 pt-6 text-left">
-            <SheetTitle>{t`Account settings`}</SheetTitle>
-            <SheetDescription className="sr-only">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        {/*
+          A centered modal, matching workspace settings. Sheet and Dialog are the
+          same Radix primitive, so role/aria/scroll-lock/Esc are unchanged — only
+          the classes and the open animation differ.
+
+          The height is FIXED, not a max: the whole vertical chain hangs off it —
+          Tabs (overflow-hidden) → the single scroller below → the pinned version
+          footer, plus the h-full/mt-auto that pin "N mo in Motio" and Log out to
+          the bottom of the Profile tab. With a content height h-full collapses,
+          mt-auto stops pinning, and overflow-hidden clips the bottom with no
+          scrollbar to recover it.
+
+          svh, not dvh: dvh tracks the browser chrome, so on iOS a fixed-height
+          card would resize under the finger while the Preferences tab scrolls.
+          The dvh uses elsewhere in this repo are all max-h caps, where that
+          movement is invisible.
+
+          Width keeps today's 480px rather than copying workspace settings'
+          sm:w-[840px] md:w-[980px] — those steps are inverted (at 640-767px the
+          card is wider than the viewport and gets clipped by the centering), and
+          this content is laid out for 480px anyway.
+        */}
+        <DialogContent className="flex h-[90svh] w-[90vw] max-w-[480px] flex-col gap-0 overflow-hidden rounded-lg p-0">
+          {/* text-left stays verbatim: it beats the primitive's text-center sm:text-left. */}
+          <DialogHeader className="px-6 pb-3 pt-6 text-left">
+            <DialogTitle>{t`Account settings`}</DialogTitle>
+            <DialogDescription className="sr-only">
               {t`Manage your profile and account preferences.`}
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <Tabs
             value={activeTab}
@@ -859,9 +881,15 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
               </a>
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
+      {/*
+        Siblings ON PURPOSE, not children: today they survive the settings surface
+        closing and keep their own state. Moving them inside would break the focus
+        trap and kill the delete wizard mid-flow. (AvatarEditModal is the opposite
+        case — it is mounted inside so it resets with the surface.)
+      */}
       {accountDeletionEnabled && (
         <DeleteAccountWizard
           open={deleteWizardOpen}
