@@ -7,6 +7,20 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.40] - 2026-07-27
+### Added
+- Days off are now marked with a pattern instead of plain grey shading, so they can no longer be mistaken for an ordinary weekend. Pick yours in settings — palms or sun. Your teammates see it too.
+
+### Changed
+- Account settings open in the same centered modal as workspace settings.
+- The calendar shows three whole years — last, current and next, each in full from January to December.
+- The time-off bar leads with the note and moves the dates to the second line, so the reason someone is away reads first.
+- Time off no longer pushes a person's other tasks down a lane: they only move on the days the time off actually covers.
+- On the calendar the away-circle is smaller on public holidays, so the holiday still shows around it.
+
+### Fixed
+- Fields in account settings no longer lose part of their highlight when selected.
+
 ## [0.9.38] - 2026-07-26
 ### Added
 - The calendar got a panel on the right: holidays, milestones and team time off can each be switched on or off. Days when somebody is away are marked with a circle in that person's colour; several people split the circle into slices, and hovering shows who is away and until when.

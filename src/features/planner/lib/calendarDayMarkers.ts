@@ -129,3 +129,30 @@ export const buildTimeOffByDate = (
 
   return byDate;
 };
+
+/**
+ * How much of the day cell the away-circle takes on a public holiday.
+ *
+ * On a statutory holiday nobody is working anyway, so the circle steps back to
+ * 70% of its diameter: the rose holiday pill stays readable around it instead of
+ * the two marks merging into one blob. Same reasoning as the timeline, which
+ * skips shading holidays outright (shouldShadeTimeOffDay) — the calendar keeps a
+ * quieter mark rather than none, because here the circle is the only thing
+ * saying who is away.
+ *
+ * Weekends are NOT included: they carry no pill to compete with, and the amber
+ * day number already tells them apart.
+ */
+export const TIME_OFF_HOLIDAY_CIRCLE_SCALE = 0.7;
+
+/**
+ * Tailwind inset for the away-circle. A square box inset by N% on every side is
+ * (100 - 2N)% wide, so 15% yields exactly the 70% above.
+ *
+ * The class is a LITERAL on purpose: Tailwind scans source text, so a value
+ * built by string interpolation would never make it into the stylesheet and the
+ * circle would silently keep its full size. The unit test pins the two together.
+ */
+export const timeOffCircleInsetClass = (isHoliday: boolean): string => (
+  isHoliday ? 'inset-[15%]' : 'inset-0'
+);

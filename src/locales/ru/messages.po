@@ -535,6 +535,7 @@ msgstr "Все результаты"
 msgid "All set!"
 msgstr "Всё готово!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "All settings"
 msgstr "Все настройки"
@@ -569,6 +570,10 @@ msgstr "Любая задача добавляется за 10 секунд. Н�
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
 msgstr "Версия приложения"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Appearance"
+msgstr "Оформление"
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Apply changes to repeating tasks?"
@@ -1345,6 +1350,7 @@ msgid "Day"
 msgstr "День"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/planner/components/timeline/TimeOffBar.tsx
 msgid "Day off"
 msgstr "Выходной"
 
@@ -2651,7 +2657,6 @@ msgstr "Отметить как непрочитанное"
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
-#: src/features/planner/components/timeline/TimeOffBar.tsx
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 msgid "Mark time off"
 msgstr "Отметить выходной"
@@ -3443,6 +3448,7 @@ msgstr "Ничего не найдено по текущим фильтрам."
 msgid "Nothing overdue. Great job!"
 msgstr "Просрочек нет. Отлично!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
@@ -3641,6 +3647,10 @@ msgstr "Страница {pageIndex} / {totalPages}"
 msgid "Page {pageIndex} of {totalPages}"
 msgstr "Страница {pageIndex} из {totalPages}"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Palm"
+msgstr "Пальма"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Parameters"
@@ -3767,8 +3777,8 @@ msgid "Plug into your identity provider out of the box."
 msgstr "Подключение к вашему провайдеру идентификации из коробки."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
-msgid "Preferences"
-msgstr "Предпочтения"
+#~ msgid "Preferences"
+#~ msgstr "Предпочтения"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
@@ -4726,6 +4736,10 @@ msgstr "Название подзадачи"
 msgid "Subtasks"
 msgstr "Подзадачи"
 
+#: src/features/planner/lib/timeOffMotifs.ts
+msgid "Sun"
+msgstr "Солнце"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
@@ -4896,6 +4910,10 @@ msgstr "База данных будет заменена содержимым �
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 msgid "The end date cannot be earlier than the start date."
 msgstr "Дата окончания не может быть раньше даты начала."
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "The pattern drawn on your days off. Your teammates see it too"
+msgstr "Узор, которым отмечаются ваши выходные. Его видит вся команда"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
@@ -5100,6 +5118,11 @@ msgstr "Для пользователя {forcePurgeTrimmed} будет запл�
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "this workspace"
 msgstr "это рабочее пространство"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Time off pattern"
+msgstr "Узор выходных"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/workspace/lib/appNavigation.ts

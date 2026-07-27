@@ -1,5 +1,5 @@
 import { Assignee, Filters, GroupMode, MemberGroupAssignment, Project, Task } from '@/features/planner/types/planner';
-import { TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
+import { ReservedPeriod, TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
@@ -150,10 +150,16 @@ export const groupTasksByTimelineRow = ({
   filteredTasks,
   groupItems,
   groupMode,
+  reservedLaneZeroByRow,
 }: {
   filteredTasks: Task[];
   groupItems: TimelineGroupItem[];
   groupMode: GroupMode;
+  /**
+   * Per row, the periods where lane 0 belongs to a time-off bar. Only assignee
+   * grouping passes them — a project row has no person to be away.
+   */
+  reservedLaneZeroByRow?: Record<string, ReservedPeriod[]>;
 }): Record<string, TaskWithLane[]> => {
   const grouped: Record<string, TaskWithLane[]> = {};
   groupItems.forEach((item) => {
@@ -192,7 +198,7 @@ export const groupTasksByTimelineRow = ({
   });
 
   Object.entries(tasksPerGroup).forEach(([groupId, rowTasks]) => {
-    grouped[groupId] = calculateTaskLanes(rowTasks);
+    grouped[groupId] = calculateTaskLanes(rowTasks, reservedLaneZeroByRow?.[groupId]);
   });
 
   return grouped;
@@ -205,20 +211,21 @@ export const calculateTimelineRowHeights = (
     taskHeight: number;
     taskGap: number;
     /**
-     * Lanes reserved above the task lanes, per row — currently one for a
+     * Lanes the row must have even with no tasks in them — currently one for a
      * time-off bar, which owns lane 0 and never enters calculateTaskLanes.
-     * A row whose only content is that bar needs ONE lane, not two, hence the
-     * empty-row branch (getMaxLanes returns 1 for an empty row).
+     * A MINIMUM, not an addition: tasks that overlap the bar were already packed
+     * below it by calculateTaskLanes, and tasks outside its days keep lane 0, so
+     * adding a lane here would leave an empty strip above every other row.
      */
-    extraLanesByRow?: Record<string, number>;
+    minLanesByRow?: Record<string, number>;
   },
 ) => {
   const heights: Record<string, number> = {};
   Object.entries(tasksByRow).forEach(([groupId, rowTasks]) => {
-    const extraLanes = options.extraLanesByRow?.[groupId] ?? 0;
-    const lanes = rowTasks.length === 0
-      ? Math.max(1, extraLanes)
-      : getMaxLanes(rowTasks) + extraLanes;
+    const minLanes = options.minLanesByRow?.[groupId] ?? 0;
+    // getMaxLanes returns 1 for an empty row, so a row whose only content is the
+    // bar still gets exactly one lane.
+    const lanes = Math.max(getMaxLanes(rowTasks), minLanes);
     const calculatedHeight = 16 + lanes * (options.taskHeight + options.taskGap);
     heights[groupId] = Math.max(options.minRowHeight, calculatedHeight);
   });

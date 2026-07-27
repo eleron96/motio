@@ -45,8 +45,9 @@ const periodFor = (gesture: Gesture, daysDelta: number) => (
 
 /**
  * The "Отметить выходной" bar. Always sits on lane 0 — first in the row, above
- * every task bar — and never goes through calculateTaskLanes, so task packing is
- * unchanged and only the row height grows by one lane.
+ * every task bar. It is rendered outside calculateTaskLanes, which instead
+ * receives its period and keeps task bars out of lane 0 ONLY on the days it
+ * covers: outside them the row packs exactly as it did before the record existed.
  *
  * Drag and resize mirror TaskBar: mouse only (touch devices edit through the
  * dialog), window listeners, commit inside mouse-up. While the gesture runs the
@@ -77,7 +78,12 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
 
   const dateLocale = resolveDateFnsLocale(locale);
   const range = formatDateRange(record.startDate, record.endDate, dateLocale);
-  const label = t`Mark time off`;
+  // "Day off", not "Mark time off": the bar is the record, not the action that
+  // creates it. Reuses the msgid the workload heatmap already ships.
+  const label = t`Day off`;
+  // The note rides on the headline so the reason is the first thing read; the
+  // dates drop to the second line on their own.
+  const headline = record.note ? `${label} — ${record.note}` : label;
   const title = record.note ? `${label} · ${range} · ${record.note}` : `${label} · ${range}`;
   const canDrag = canEditOwn && !isMobile;
 
@@ -205,10 +211,8 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
         />
       )}
 
-      <span className="truncate text-ui-sm font-medium leading-tight">{label}</span>
-      <span className="truncate text-ui-xs leading-tight opacity-80">
-        {record.note ? `${range} · ${record.note}` : range}
-      </span>
+      <span className="truncate text-ui-sm font-medium leading-tight">{headline}</span>
+      <span className="truncate text-ui-xs leading-tight opacity-80">{range}</span>
 
       {canDrag && (
         <div
