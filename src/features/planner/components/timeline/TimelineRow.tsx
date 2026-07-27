@@ -139,6 +139,9 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
     <div
       className="relative border-b border-border box-border"
       data-time-off-motif={timeOffMotif}
+      // The motif tile has to divide the day width exactly, and that width
+      // changes with the view — the CSS picks the tile off this.
+      data-timeline-view={viewMode}
       style={{ height }}
     >
       {/* Grid background */}
