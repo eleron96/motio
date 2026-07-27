@@ -517,7 +517,13 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
             )}
 
             {(!isMobile || mobileSectionOpen) && (
-              <div className="min-w-0 flex-1 overflow-y-auto pr-1">
+              // px-1.5 / -ml-1.5: overflow-y:auto makes the other axis `auto` too,
+              // so this scrollport clips horizontally as well. Focus rings sit 4px
+              // outside their control (ring-2 + ring-offset-2) and the panes run
+              // flush to its left edge, so without the padding every focused field
+              // loses the left side of its ring. The negative margin cancels the
+              // padding, leaving the content exactly where it was.
+              <div className="-ml-1.5 min-w-0 flex-1 overflow-y-auto px-1.5">
                 {isMobile && (
                   <button
                     type="button"
