@@ -10,8 +10,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { AlertTriangle, CalendarDays, Database, LogOut, Pencil, Sliders, Trash2, User } from 'lucide-react';
+import {
+  AlertTriangle,
+  Bell,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Database,
+  LogOut,
+  Palette,
+  Pencil,
+  Trash2,
+  User,
+  UserCog,
+} from 'lucide-react';
+import { cn } from '@/shared/lib/classNames';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Switch } from '@/shared/ui/switch';
@@ -65,18 +79,7 @@ interface AccountSettingsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Shared trigger class — underline style (active tab gets a bottom border + primary color)
-// rather than the default filled pill, to match the handoff "Variant B" design.
-// On mobile we let tabs keep their natural width (left-aligned), on >=sm we stretch
-// them evenly across the sheet so the underline feels balanced.
-const TAB_TRIGGER_CLASS = [
-  'gap-2 rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5',
-  'sm:flex-1 sm:px-2',
-  '-mb-px text-sm font-medium text-muted-foreground shadow-none',
-  'data-[state=active]:border-primary data-[state=active]:bg-transparent',
-  'data-[state=active]:text-primary data-[state=active]:shadow-none',
-  'data-[state=active]:font-semibold',
-].join(' ');
+type SectionId = 'profile' | 'appearance' | 'notifications' | 'data' | 'danger';
 
 export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ open, onOpenChange }) => {
   const {
@@ -114,6 +117,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [releaseNotesOpen, setReleaseNotesOpen] = useState(false);
   const [deleteWizardOpen, setDeleteWizardOpen] = useState(false);
   const isDemo = useIsDemo();
+  const isMobile = useIsMobile();
   // The data tab (account deletion + export) is meaningless for an anon
   // demo session — the cleanup cron handles "deletion" automatically.
   const accountDeletionEnabled = isAccountDeletionEnabled() && !isDemo;
@@ -135,9 +139,10 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
   const [timeOffMotifId, setTimeOffMotifId] = useState<TimeOffMotifId>(DEFAULT_TIME_OFF_MOTIF_ID);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
-  // When the delete wizard opens the user elsewhere on the Profile tab (to fix their
-  // display name), we need to switch tabs. Controlled value lets us do that.
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'data'>('profile');
+  const [activeSection, setActiveSection] = useState<SectionId>('profile');
+  // Mobile drills in: the rail is a full-width list, picking a row swaps it for the
+  // section. Same pattern as workspace settings.
+  const [mobileSectionOpen, setMobileSectionOpen] = useState(false);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -192,7 +197,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   useEffect(() => {
     if (open) return;
     setReleaseNotesOpen(false);
-    setActiveTab('profile');
+    setActiveSection('profile');
+    setMobileSectionOpen(false);
   }, [open]);
 
   const signedInLabel = getAccountSignedInLabel(user, t`Unknown user`);
@@ -417,6 +423,54 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     }
   };
 
+  // Export and deletion both hang off the same flag, so the rail loses two rows at
+  // once when it is off — never a lone "Danger zone" with nothing above it.
+  const sections: Array<{ id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+    { id: 'profile', label: t`Profile`, icon: User },
+    { id: 'appearance', label: t`Appearance`, icon: Palette },
+    { id: 'notifications', label: t`Notifications`, icon: Bell },
+    ...(accountDeletionEnabled
+      ? ([
+        { id: 'data' as const, label: t`Data`, icon: Database },
+        { id: 'danger' as const, label: t`Danger zone`, icon: AlertTriangle },
+      ])
+      : []),
+  ];
+
+  const activeLabel = sections.find((section) => section.id === activeSection)?.label ?? '';
+
+  const renderNav = (onPick?: () => void) => (
+    <nav className="flex flex-col gap-1">
+      {sections.map((section) => {
+        const Icon = section.icon;
+        const active = section.id === activeSection;
+        const danger = section.id === 'danger';
+        return (
+          <button
+            key={section.id}
+            type="button"
+            onClick={() => {
+              setActiveSection(section.id);
+              onPick?.();
+            }}
+            aria-current={active ? 'page' : undefined}
+            className={cn(
+              'flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors',
+              active
+                ? 'bg-muted font-medium text-foreground'
+                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+              danger && (active ? 'text-destructive' : 'hover:text-destructive'),
+            )}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate">{section.label}</span>
+            {isMobile && <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />}
+          </button>
+        );
+      })}
+    </nav>
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -425,63 +479,64 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
           same Radix primitive, so role/aria/scroll-lock/Esc are unchanged — only
           the classes and the open animation differ.
 
-          The height is FIXED, not a max: the whole vertical chain hangs off it —
-          Tabs (overflow-hidden) → the single scroller below → the pinned version
-          footer, plus the h-full/mt-auto that pin "N mo in Motio" and Log out to
-          the bottom of the Profile tab. With a content height h-full collapses,
-          mt-auto stops pinning, and overflow-hidden clips the bottom with no
-          scrollbar to recover it.
+          The height is FIXED, not a max: min-h-0 flex-1 on the row below only
+          bounds the scroller if the card itself has a definite height. With a
+          content height the pane stops scrolling and overflow-hidden clips it
+          with no scrollbar to recover.
 
           svh, not dvh: dvh tracks the browser chrome, so on iOS a fixed-height
-          card would resize under the finger while the Preferences tab scrolls.
-          The dvh uses elsewhere in this repo are all max-h caps, where that
-          movement is invisible.
+          card would resize under the finger mid-scroll. The other dvh uses in
+          this repo are all max-h caps, where that movement is invisible.
 
-          Width keeps today's 480px rather than copying workspace settings'
-          sm:w-[840px] md:w-[980px] — those steps are inverted (at 640-767px the
-          card is wider than the viewport and gets clipped by the centering), and
-          this content is laid out for 480px anyway.
+          Same 980px cap as workspace settings, but expressed as w-[90vw] +
+          max-w rather than its sm:w-[840px] md:w-[980px] steps: those are
+          inverted, so between 640 and 767px the card is wider than the viewport
+          and gets clipped by the centering transform.
         */}
-        <DialogContent className="flex h-[90svh] w-[90vw] max-w-[480px] flex-col gap-0 overflow-hidden rounded-lg p-0">
-          {/* text-left stays verbatim: it beats the primitive's text-center sm:text-left. */}
-          <DialogHeader className="px-6 pb-3 pt-6 text-left">
-            <DialogTitle>{t`Account settings`}</DialogTitle>
-            <DialogDescription className="sr-only">
+        <DialogContent className="flex h-[90svh] w-[90vw] max-w-[980px] flex-col overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCog className="h-5 w-5" />
+              {t`Account settings`}
+            </DialogTitle>
+            <DialogDescription>
               {t`Manage your profile and account preferences.`}
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as typeof activeTab)}
-            className="flex flex-1 flex-col overflow-hidden"
-          >
-            <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0 px-5 sm:justify-stretch">
-              <TabsTrigger value="profile" className={TAB_TRIGGER_CLASS}>
-                <User className="h-4 w-4" />
-                {t`Profile`}
-              </TabsTrigger>
-              <TabsTrigger value="preferences" className={TAB_TRIGGER_CLASS}>
-                <Sliders className="h-4 w-4" />
-                {t`Preferences`}
-              </TabsTrigger>
-              {accountDeletionEnabled && (
-                <TabsTrigger value="data" className={TAB_TRIGGER_CLASS}>
-                  <Database className="h-4 w-4" />
-                  {t`Data`}
-                </TabsTrigger>
-              )}
-            </TabsList>
+          {/*
+            One rail, one content column, and each pane written exactly once: on
+            mobile the rail becomes the full-width list and the content replaces it
+            after a pick (drill-in), on desktop they sit side by side.
+          */}
+          <div className="mt-2 flex min-h-0 flex-1 gap-6">
+            {(!isMobile || !mobileSectionOpen) && (
+              <div className={cn(isMobile ? 'w-full' : 'w-[200px] shrink-0 border-r border-border pr-3')}>
+                {renderNav(isMobile ? () => setMobileSectionOpen(true) : undefined)}
+              </div>
+            )}
 
-            <div className="flex-1 overflow-y-auto">
-              {/* ---------------- PROFILE TAB ---------------- */}
-              {/* `flex` on the panel overrides the inactive `[hidden]` attribute (author styles
-                  beat the UA rule), which would leave a full-height ghost panel covering the other
-                  tabs — force it back to display:none while inactive. */}
-              <TabsContent
-                value="profile"
-                className="mt-0 flex h-full flex-col px-6 py-5 focus-visible:outline-none data-[state=inactive]:hidden"
-              >
+            {(!isMobile || mobileSectionOpen) && (
+              <div className="min-w-0 flex-1 overflow-y-auto pr-1">
+                {isMobile && (
+                  <button
+                    type="button"
+                    onClick={() => setMobileSectionOpen(false)}
+                    className="-ml-1 mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    {t`All settings`}
+                  </button>
+                )}
+                <h2 className={cn('mb-4 text-base font-semibold', activeSection === 'danger' && 'text-destructive')}>
+                  {activeLabel}
+                </h2>
+                {/* The card is 980px wide; settings rows read badly stretched across
+                    the whole of it, so the pane keeps a comfortable measure. */}
+                <div className="max-w-[560px] pb-2">
+              {/* ---------------- PROFILE ---------------- */}
+              {activeSection === 'profile' && (
+              <div className="space-y-5">
                 <div className="flex flex-col items-center space-y-4 text-center">
                   {user && (
                     <AvatarWithEditButton
@@ -557,7 +612,9 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                   <ProfileSummary summary={summary} animate={open} />
                 </div>
 
-                <div className="mt-auto flex flex-col items-center gap-3 pt-6">
+                {/* No longer pinned with mt-auto: the pane scrolls inside the rail
+                    layout instead of owning the full card height. */}
+                <div className="flex flex-col items-center gap-3 border-t pt-5">
                   {summary.monthsInMotio !== null && (
                     <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
                       <CalendarDays className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -593,10 +650,11 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                     </Button>
                   )}
                 </div>
-              </TabsContent>
+              </div>
+              )}
 
-              {/* ---------------- PREFERENCES TAB ---------------- */}
-              <TabsContent value="preferences" className="mt-0 px-6 py-5 focus-visible:outline-none">
+              {/* ---------------- APPEARANCE ---------------- */}
+              {activeSection === 'appearance' && (
                 <div className="space-y-5">
                   <div className="space-y-2 text-left">
                     <Label htmlFor="account-language">{t`Language`}</Label>
@@ -693,6 +751,30 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                   </div>
 
                   <div className="space-y-2 border-t pt-4 text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="week-view-toggle" className="cursor-pointer">
+                        {t`Week view on the timeline`}
+                      </Label>
+                      <Switch
+                        id="week-view-toggle"
+                        checked={weekViewEnabled}
+                        onCheckedChange={handleWeekViewToggle}
+                        disabled={!user || loading}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t`Add a "Week" button next to Day and Calendar`}
+                    </p>
+                  </div>
+
+                  {error && <div className="text-sm text-destructive">{error}</div>}
+                </div>
+              )}
+
+              {/* ---------------- NOTIFICATIONS ---------------- */}
+              {activeSection === 'notifications' && (
+                <div className="space-y-5">
+                  <div className="space-y-2 text-left">
                     <div className="flex items-center justify-between gap-3">
                       <Label htmlFor="daily-brief-toggle" className="cursor-pointer">
                         {t`Daily brief`}
@@ -805,63 +887,48 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                     </div>
                   )}
 
-                  <div className="space-y-2 border-t pt-4 text-left">
-                    <div className="flex items-center justify-between gap-3">
-                      <Label htmlFor="week-view-toggle" className="cursor-pointer">
-                        {t`Week view on the timeline`}
-                      </Label>
-                      <Switch
-                        id="week-view-toggle"
-                        checked={weekViewEnabled}
-                        onCheckedChange={handleWeekViewToggle}
-                        disabled={!user || loading}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t`Add a "Week" button next to Day and Calendar`}
+                  {error && <div className="text-sm text-destructive">{error}</div>}
+                </div>
+              )}
+
+              {/* ---------------- DATA ---------------- */}
+              {activeSection === 'data' && (
+                <div className="space-y-5">
+                  <DataExportButton />
+                  {error && <div className="text-sm text-destructive">{error}</div>}
+                </div>
+              )}
+
+              {/* ---------------- DANGER ZONE ---------------- */}
+              {activeSection === 'danger' && (
+                <div className="space-y-5">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+                    <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+                      {t`Account deletion is permanent. We will ask you to confirm your email.`}
                     </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full gap-2 border-destructive/40 bg-background text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => setDeleteWizardOpen(true)}
+                      disabled={!user || loading}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {t`Delete my account`}
+                    </Button>
                   </div>
 
                   {error && <div className="text-sm text-destructive">{error}</div>}
                 </div>
-              </TabsContent>
-
-              {/* ---------------- DATA TAB ---------------- */}
-              {accountDeletionEnabled && (
-                <TabsContent value="data" className="mt-0 px-6 py-5 focus-visible:outline-none">
-                  <div className="space-y-5">
-                    <DataExportButton />
-
-                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-                      <div className="mb-2 flex items-center gap-2 text-destructive">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        <span className="text-xs font-semibold uppercase tracking-wide">
-                          {t`Danger zone`}
-                        </span>
-                      </div>
-                      <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-                        {t`Account deletion is permanent. We will ask you to confirm your email.`}
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full gap-2 border-destructive/40 bg-background text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => setDeleteWizardOpen(true)}
-                        disabled={!user || loading}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        {t`Delete my account`}
-                      </Button>
-                    </div>
-
-                    {error && <div className="text-sm text-destructive">{error}</div>}
-                  </div>
-                </TabsContent>
               )}
-            </div>
-          </Tabs>
+                </div>
+              </div>
+            )}
+          </div>
 
-          <div className="space-y-2 border-t px-6 py-3 text-center text-[11px] text-muted-foreground">
+          {/* Spans the full card, below both the rail and the content. -mx-6/-mb-6
+              cancels the dialog's own padding so the rule reaches both edges. */}
+          <div className="-mx-6 -mb-6 space-y-2 border-t px-6 py-3 text-center text-[11px] text-muted-foreground">
             <button
               type="button"
               onClick={() => setReleaseNotesOpen(true)}

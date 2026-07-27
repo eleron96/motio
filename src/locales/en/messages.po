@@ -535,6 +535,7 @@ msgstr "All results"
 msgid "All set!"
 msgstr "All set!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "All settings"
 msgstr "All settings"
@@ -569,6 +570,10 @@ msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more fea
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
 msgstr "App version"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Appearance"
+msgstr "Appearance"
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Apply changes to repeating tasks?"
@@ -3443,6 +3448,7 @@ msgstr "Nothing matches the current filters."
 msgid "Nothing overdue. Great job!"
 msgstr "Nothing overdue. Great job!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
@@ -3771,8 +3777,8 @@ msgid "Plug into your identity provider out of the box."
 msgstr "Plug into your identity provider out of the box."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
-msgid "Preferences"
-msgstr "Preferences"
+#~ msgid "Preferences"
+#~ msgstr "Preferences"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"

@@ -535,6 +535,7 @@ msgstr "Все результаты"
 msgid "All set!"
 msgstr "Всё готово!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "All settings"
 msgstr "Все настройки"
@@ -569,6 +570,10 @@ msgstr "Любая задача добавляется за 10 секунд. Н�
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
 msgstr "Версия приложения"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Appearance"
+msgstr "Оформление"
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Apply changes to repeating tasks?"
@@ -3443,6 +3448,7 @@ msgstr "Ничего не найдено по текущим фильтрам."
 msgid "Nothing overdue. Great job!"
 msgstr "Просрочек нет. Отлично!"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/workspace/components/WorkspaceMobileDrawer.tsx
@@ -3771,8 +3777,8 @@ msgid "Plug into your identity provider out of the box."
 msgstr "Подключение к вашему провайдеру идентификации из коробки."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
-msgid "Preferences"
-msgstr "Предпочтения"
+#~ msgid "Preferences"
+#~ msgstr "Предпочтения"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
