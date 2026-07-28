@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.44] - 2026-07-28
 ### Changed
 - The workload heatmap now accounts for time off: a day's tasks are divided among the people actually there, so days with absences read hotter. The day popover shows how many are away, and a day with the whole team off is shown as non-working.
 
