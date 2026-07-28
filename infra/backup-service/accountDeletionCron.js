@@ -157,23 +157,6 @@ const tickPush = async (rawCtx) => {
   }
 };
 
-const tickDeadlineScan = async (rawCtx) => {
-  const ctx = buildCtx(rawCtx);
-  try {
-    // Creates 'deadline_approaching' notifications for tasks due today/tomorrow;
-    // the push flush then delivers them. Idempotent (one reminder per task).
-    const result = await postFunction(ctx, PUSH_PATH, { action: 'push.deadlines.scan' });
-    if (result && result.created) {
-      ctx.logger.log(`[deadline-scan cron] created=${result.created}`);
-    }
-    return result ?? {};
-  } catch (error) {
-    ctx.logger.error(`[deadline-scan cron] failed: ${error.message}`);
-    ctx.captureException(error, { tags: { job: 'deadline-scan' } });
-    throw error;
-  }
-};
-
 const deleteExpiredExportFile = async (ctx, filePath) => {
   if (!filePath) return { ok: true, skipped: true };
   const url = `${ctx.supabaseUrl}/storage/v1/object/${EXPORT_BUCKET}/${encodeURI(filePath)}`;
@@ -271,7 +254,6 @@ module.exports = {
   tickHealthCheck,
   tickBroadcast,
   tickPush,
-  tickDeadlineScan,
   // exported for tests
   deleteExpiredExportFile,
   postFunction,

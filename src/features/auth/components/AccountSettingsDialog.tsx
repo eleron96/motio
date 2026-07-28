@@ -134,7 +134,6 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [pushOnAssignment, setPushOnAssignment] = useState(true);
   const [pushOnMention, setPushOnMention] = useState(true);
   const [pushOnTaskChange, setPushOnTaskChange] = useState(true);
-  const [pushOnDeadline, setPushOnDeadline] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
   const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
   const [timeOffMotifId, setTimeOffMotifId] = useState<TimeOffMotifId>(DEFAULT_TIME_OFF_MOTIF_ID);
@@ -177,7 +176,6 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
         setPushOnAssignment(prefs.push_on_assignment !== false);
         setPushOnMention(prefs.push_on_mention !== false);
         setPushOnTaskChange(prefs.push_on_task_change !== false);
-        setPushOnDeadline(prefs.push_on_deadline !== false);
         // The toggle reflects THIS browser: on only when permission is granted
         // and an active push subscription actually exists here.
         const deviceSubscribed = getNotificationPermission() === 'granted'
@@ -342,7 +340,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   };
 
   const updatePushEventPref = async (
-    key: 'push_on_assignment' | 'push_on_mention' | 'push_on_task_change' | 'push_on_deadline',
+    key: 'push_on_assignment' | 'push_on_mention' | 'push_on_task_change',
     checked: boolean,
     setLocal: (value: boolean) => void,
     previous: boolean,
@@ -865,17 +863,6 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                               id="push-task-change"
                               checked={pushOnTaskChange}
                               onCheckedChange={(checked) => updatePushEventPref('push_on_task_change', checked, setPushOnTaskChange, pushOnTaskChange)}
-                              disabled={pushBusy}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between gap-3">
-                            <Label htmlFor="push-deadline" className="cursor-pointer text-sm font-normal">
-                              {t`A deadline is approaching`}
-                            </Label>
-                            <Switch
-                              id="push-deadline"
-                              checked={pushOnDeadline}
-                              onCheckedChange={(checked) => updatePushEventPref('push_on_deadline', checked, setPushOnDeadline, pushOnDeadline)}
                               disabled={pushBusy}
                             />
                           </div>

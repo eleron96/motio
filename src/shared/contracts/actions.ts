@@ -27,7 +27,6 @@ export const ADMIN_ACTIONS = {
 export const PUSH_ACTIONS = {
   TEST: 'push.test',
   FLUSH: 'push.flush',
-  DEADLINES_SCAN: 'push.deadlines.scan',
 } as const;
 
 export const INVITE_ACTIONS = {

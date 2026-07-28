@@ -67,7 +67,7 @@ describe('mapInboxTaskNotifications', () => {
     expect(notifications[0]?.commentPreview).toBeNull();
   });
 
-  it('passes deadline_approaching and task_updated through with their own types', () => {
+  it('drops retired deadline reminders and keeps task_updated', () => {
     const notifications = mapInboxTaskNotifications(
       [
         {
@@ -98,9 +98,8 @@ describe('mapInboxTaskNotifications', () => {
       new Map([['task-1', { title: 'Поправить ТЭП АК', startDate: '2026-07-22' }]]),
     );
 
-    expect(notifications.map((n) => n.type)).toEqual(['deadline_approaching', 'task_updated']);
-    expect(notifications[0]?.actorUserId).toBeNull();
-    expect(notifications[0]?.actorDisplayName).toBeNull();
+    expect(notifications.map((n) => n.type)).toEqual(['task_updated']);
+    expect(notifications[0]?.actorDisplayName).toBe('Anna');
   });
 
   it('drops rows whose type this build does not know instead of relabeling them', () => {

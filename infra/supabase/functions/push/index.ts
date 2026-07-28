@@ -31,7 +31,6 @@ const PREF_KEY_BY_TYPE: Record<string, string> = {
   task_assigned: "push_on_assignment",
   comment_mention: "push_on_mention",
   task_updated: "push_on_task_change",
-  deadline_approaching: "push_on_deadline",
 };
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -217,8 +216,10 @@ const handleFlush = async () => {
     const recipient = profileMap.get(row.recipient_user_id);
     if (!recipient || !recipient.optIn) continue;
 
+    // A type this build no longer pushes (retired deadline reminders) has no pref
+    // key: skip it rather than deliver a notification with empty text.
     const prefKey = PREF_KEY_BY_TYPE[row.type];
-    if (prefKey && recipient.prefs[prefKey] === false) continue;
+    if (!prefKey || recipient.prefs[prefKey] === false) continue;
 
     const userSubs = subsByUser.get(row.recipient_user_id);
     if (!userSubs || userSubs.length === 0) continue;
@@ -264,22 +265,6 @@ const handleFlush = async () => {
   return jsonResponse({ processed: rows.length, sent, done });
 };
 
-// Create 'deadline_approaching' notifications for tasks due today/tomorrow. The
-// flush pass then delivers them. Idempotent (one reminder per task). Invoked by
-// the daily ticker with the service-role bearer.
-const handleDeadlinesScan = async () => {
-  const { data, error } = await supabaseAdmin.rpc("scan_upcoming_deadlines");
-  if (error) {
-    captureException(new Error(`deadline scan failed: ${error.message}`), {
-      tags: { function: "push", stage: "deadlines" },
-    });
-    return jsonResponse({ error: error.message }, 500);
-  }
-  const created = typeof data === "number" ? data : 0;
-  console.log(`[push:deadlines] created=${created}`);
-  return jsonResponse({ created });
-};
-
 const handlePush = async (req: Request) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
@@ -292,13 +277,13 @@ const handlePush = async (req: Request) => {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
 
-  // Service-role (cron) actions: gated by the service-role bearer, no user
+  // Service-role (cron) action: gated by the service-role bearer, no user
   // session — mirrors the broadcasts.tick pattern.
-  if (payload.action === PUSH_ACTIONS.FLUSH || payload.action === PUSH_ACTIONS.DEADLINES_SCAN) {
+  if (payload.action === PUSH_ACTIONS.FLUSH) {
     if (!isServiceRole(req)) {
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
-    return payload.action === PUSH_ACTIONS.FLUSH ? handleFlush() : handleDeadlinesScan();
+    return handleFlush();
   }
 
   // User (JWT) actions.
