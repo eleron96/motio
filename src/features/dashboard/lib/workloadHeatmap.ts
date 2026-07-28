@@ -8,9 +8,16 @@
 // from a high percentile of the team's recent history — so a team that normally
 // runs 6 tasks/person reads differently from one that runs 2.
 //
-//   taskShare      = (taskCount / activeHeadcount) / capacity
-//   pinnedPeople   = min(milestoneKernelSum(day) * MILESTONE_CREW, headcount)
-//   percent        = round((taskShare + pinnedPeople / headcount) * 100)  // may exceed 100
+//   available      = activeHeadcount - people away on that day
+//   taskShare      = (taskCount / available) / capacity
+//   pinnedPeople   = min(milestoneKernelSum(day) * MILESTONE_CREW, available)
+//   percent        = round((taskShare + pinnedPeople / available) * 100)  // may exceed 100
+//
+// The denominator is who is actually AVAILABLE that day, not the whole team: with
+// two of six on vacation the same tasks land on four people and the day has to
+// read hotter. The tasks of an absent person stay in the numerator — the work does
+// not go away with them. A day where nobody is available is not a load at all and
+// the caller renders it as a non-working day instead of dividing by (almost) zero.
 //
 // Milestones are measured in PEOPLE, not in a fixed percent: a delivery pins a
 // small crew that cannot be shifted to other objects, so the same delivery reads
@@ -19,7 +26,7 @@
 // deliveries hit a small team hard. The pinned crew is capped at the whole team:
 // milestones alone can show a full day, but only real tasks push past 100%.
 
-import type { DashboardMilestone } from '@/features/dashboard/types/dashboard';
+import type { DashboardMilestone, DashboardTimeOff } from '@/features/dashboard/types/dashboard';
 
 export type WorkloadDay = {
   date: string; // ISO 'YYYY-MM-DD'
@@ -85,6 +92,68 @@ export const milestoneKernelSum = (
   return total;
 };
 
+// ---------------------------------------------------------------- absences ----
+
+const nextIsoDay = (iso: string): string => {
+  const date = parseIsoDate(iso);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+};
+
+/**
+ * How many people are away on each day of the window.
+ *
+ * Records arrive whole — the query selects everything that INTERSECTS the window,
+ * so a vacation may start before it and end after it — hence the clip to the
+ * window before walking the days. Both ends are inclusive, mirroring the time_off
+ * table (migration 0131) and `timeOffCoversDay` on the timeline.
+ *
+ * Only records of currently active assignees count: a disabled person is not in
+ * the headcount either, so counting their absence would shrink the denominator
+ * twice. Days are keyed by ISO date; a person is counted once per day even if
+ * two records somehow cover it.
+ */
+export const awayCountByDate = (
+  records: DashboardTimeOff[],
+  activeAssigneeIds: ReadonlySet<string>,
+  window: { startIso: string; endIso: string },
+): Map<string, number> => {
+  const counts = new Map<string, number>();
+  if (records.length === 0 || activeAssigneeIds.size === 0) return counts;
+
+  const peopleByDay = new Map<string, Set<string>>();
+  for (const record of records) {
+    if (!activeAssigneeIds.has(record.assigneeId)) continue;
+    const from = record.startDate > window.startIso ? record.startDate : window.startIso;
+    const to = record.endDate < window.endIso ? record.endDate : window.endIso;
+    if (from > to) continue;
+    for (let iso = from; iso <= to; iso = nextIsoDay(iso)) {
+      const people = peopleByDay.get(iso);
+      if (people) people.add(record.assigneeId);
+      else peopleByDay.set(iso, new Set([record.assigneeId]));
+    }
+  }
+
+  peopleByDay.forEach((people, iso) => counts.set(iso, people.size));
+  return counts;
+};
+
+/** People who can actually pick up work that day. Never negative. */
+export const availableHeadcount = (headcount: number, awayCount: number): number => (
+  Math.max(headcount - awayCount, 0)
+);
+
+/**
+ * One sample for the capacity auto-calibration: the day's per-person load.
+ * Returns null for a day with nobody available — such a day says nothing about
+ * how much a person normally carries, and dividing by a floor of 1 would inflate
+ * the team's "normal" load and make every other day read cooler than it is.
+ */
+export const historyLoadPerPerson = (
+  taskCount: number,
+  available: number,
+): number | null => (available > 0 ? taskCount / available : null);
+
 const percentile = (sortedAsc: number[], p: number): number => {
   if (sortedAsc.length === 0) return 0;
   if (sortedAsc.length === 1) return sortedAsc[0];
@@ -114,19 +183,22 @@ export const resolveCapacity = (
 };
 
 // Percent of a full day. Not clamped: >100 is overload and is shown as such.
-// The milestone crew is capped at the whole team — deadlines can't pin more
-// people than exist — so overload past 100% always comes from actual tasks.
+// `available` is the people who can work that day (headcount minus absences), so
+// the milestone crew is capped at the people who are actually there — deadlines
+// can't pin more than that — and overload past 100% always comes from real tasks.
+// The floor of 1 is a divide-by-zero guard only: a day with nobody available is
+// rendered as a non-working day and never reaches this function.
 export const dayPercent = (
   taskCount: number,
-  headcount: number,
+  available: number,
   capacity: number,
   kernelSum: number,
 ): number => {
   const safeCapacity = capacity > 0 ? capacity : DEFAULT_CAPACITY_PER_PERSON;
-  const safeHeadcount = Math.max(headcount, 1);
-  const taskShare = (taskCount / safeHeadcount) / safeCapacity;
-  const pinnedPeople = Math.min(kernelSum * MILESTONE_CREW, safeHeadcount);
-  return Math.round((taskShare + pinnedPeople / safeHeadcount) * 100);
+  const safeAvailable = Math.max(available, 1);
+  const taskShare = (taskCount / safeAvailable) / safeCapacity;
+  const pinnedPeople = Math.min(kernelSum * MILESTONE_CREW, safeAvailable);
+  return Math.round((taskShare + pinnedPeople / safeAvailable) * 100);
 };
 
 export const levelForPercent = (percent: number): HeatmapLevel => {

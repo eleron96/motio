@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Тепловая карта загрузки теперь учитывает отпуска: задачи дня делятся на тех, кто в этот день на месте, поэтому дни с отпусками читаются горячее. В подсказке дня видно, сколько человек отсутствует, а если отпуск у всех — день показан нерабочим.
 
 ## [0.9.43] - 2026-07-28
 ### Changed

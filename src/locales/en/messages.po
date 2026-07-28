@@ -673,6 +673,12 @@ msgstr "auto from history"
 msgid "Away"
 msgstr "Away"
 
+#. placeholder {0}: day.awayCount
+#. placeholder {1}: day.headcount
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Away: {0} of {1}"
+msgstr "Away: {0} of {1}"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -4950,6 +4956,10 @@ msgstr "The selected task does not exist or was deleted."
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "The tool I wanted to use"
 msgstr "The tool I wanted to use"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "The whole team is away"
+msgstr "The whole team is away"
 
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
