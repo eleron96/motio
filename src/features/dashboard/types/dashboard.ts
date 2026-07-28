@@ -110,6 +110,18 @@ export type DashboardMilestone = {
   includeInWorkload: boolean;
 };
 
+/**
+ * A person's days off inside the heatmap window. Only what the workload math
+ * needs — the note stays on the timeline, where the record is edited.
+ */
+export type DashboardTimeOff = {
+  id: string;
+  assigneeId: string;
+  /** Inclusive on both ends, mirroring the time_off table (migration 0131). */
+  startDate: string;
+  endDate: string;
+};
+
 export type DashboardStatsRow = {
   assignee_id: string | null;
   assignee_name: string | null;

@@ -673,6 +673,12 @@ msgstr "авто по истории"
 msgid "Away"
 msgstr "Отсутствуют"
 
+#. placeholder {0}: day.awayCount
+#. placeholder {1}: day.headcount
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Away: {0} of {1}"
+msgstr "В отпуске: {0} из {1}"
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -4950,6 +4956,10 @@ msgstr "Выбранная задача не существует или был�
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "The tool I wanted to use"
 msgstr "Инструмент, которым я сам хотел пользоваться"
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "The whole team is away"
+msgstr "Вся команда в отпуске"
 
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
