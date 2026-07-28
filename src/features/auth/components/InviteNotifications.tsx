@@ -655,13 +655,11 @@ export const InviteNotifications: React.FC = () => {
                         ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
                         : notification.type === 'task_updated'
                           ? <>{actorLabel} {t`updated a task`} · {notification.workspaceName}</>
-                          : notification.type === 'deadline_approaching'
-                            ? <>{t`Deadline is approaching`} · {notification.workspaceName}</>
-                            : notification.type === 'export_ready'
-                              ? <>{t`Open Account settings to download the file.`}</>
-                              : notification.type === 'export_failed'
-                                ? <>{t`Try again from Account settings.`}</>
-                                : <>{t`Task update`} · {notification.workspaceName}</>;
+                          : notification.type === 'export_ready'
+                            ? <>{t`Open Account settings to download the file.`}</>
+                            : notification.type === 'export_failed'
+                              ? <>{t`Try again from Account settings.`}</>
+                              : <>{t`Task update`} · {notification.workspaceName}</>;
 
                     const titleText = isExport
                       ? (notification.type === 'export_ready'
@@ -687,19 +685,36 @@ export const InviteNotifications: React.FC = () => {
                         }}
                         className={cn(
                           'group relative cursor-pointer rounded-md border p-2.5 text-left transition-all duration-150',
-                          'hover:border-primary/50 hover:bg-accent hover:shadow-sm',
+                          'hover:border-primary/50 hover:shadow-sm',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                           'active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100',
-                          isUnread && 'border-primary/40 bg-primary/5',
+                          // Unread rows carry the accent (left bar + tinted fill + bold
+                          // title); read rows stay flat and muted, so the difference is
+                          // obvious at a glance instead of a barely-there tint. Hover
+                          // deepens each row's own fill instead of flattening unread
+                          // ones into the neutral accent.
+                          isUnread
+                            ? 'border-primary/60 bg-primary/10 pl-4 shadow-sm hover:bg-primary/[0.16]'
+                            : 'border-border bg-card hover:bg-accent',
                           isBusy && 'pointer-events-none opacity-60',
                         )}
                       >
+                        {isUnread && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-y-1.5 left-1 w-1 rounded-full bg-primary"
+                          />
+                        )}
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <p className={cn(
-                              'truncate text-sm font-medium leading-snug',
+                              'truncate text-sm leading-snug',
+                              isUnread ? 'font-semibold text-foreground' : 'font-normal text-foreground/80',
                               taskGone && 'text-muted-foreground line-through',
-                            )}>{titleText}</p>
+                            )}>
+                              {isUnread && <span className="sr-only">{t`Unread`}: </span>}
+                              {titleText}
+                            </p>
                             {!isExport && notification.type === 'comment_mention' && notification.commentPreview && (
                               <p className="mt-0.5 truncate text-xs italic text-muted-foreground">
                                 "{notification.commentPreview}"

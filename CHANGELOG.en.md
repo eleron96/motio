@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Unread notifications now stand out at a glance: a coloured bar on the left, a tinted card and a bold title.
+
+### Removed
+- Deadline reminders are gone — no new ones arrive, and the old ones disappeared from the list.
 
 ## [0.9.42] - 2026-07-27
 ### Added

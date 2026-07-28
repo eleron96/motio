@@ -242,8 +242,8 @@ msgid "A circle on the day; split when several people are away."
 msgstr "Кружок на дне; делится, если отсутствует несколько человек."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
-msgid "A deadline is approaching"
-msgstr "Приближается дедлайн"
+#~ msgid "A deadline is approaching"
+#~ msgstr "Приближается дедлайн"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
@@ -1359,8 +1359,8 @@ msgid "Day off"
 msgstr "Выходной"
 
 #: src/features/auth/components/InviteNotifications.tsx
-msgid "Deadline is approaching"
-msgstr "Приближается дедлайн"
+#~ msgid "Deadline is approaching"
+#~ msgstr "Приближается дедлайн"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "Deadlines this week"
@@ -5380,6 +5380,10 @@ msgstr "Группа без названия"
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Unpin"
 msgstr "Открепить"
+
+#: src/features/auth/components/InviteNotifications.tsx
+msgid "Unread"
+msgstr "Не прочитано"
 
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx

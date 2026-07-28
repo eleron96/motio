@@ -27,8 +27,7 @@ export const renderTestPush = (locale: PushLocale, appUrl: string): PushContent 
 export type NotificationPushType =
   | "task_assigned"
   | "comment_mention"
-  | "task_updated"
-  | "deadline_approaching";
+  | "task_updated";
 
 export interface NotificationPushInput {
   type: NotificationPushType;
@@ -90,10 +89,6 @@ export const renderNotificationPush = (
       body = actor
         ? (ru ? `${actor} изменил(а) задачу: ${title}` : `${actor} updated: ${title}`)
         : (ru ? `Изменена задача: ${title}` : `Updated: ${title}`);
-      break;
-    case "deadline_approaching":
-      heading = ru ? "Скоро дедлайн" : "Deadline approaching";
-      body = ru ? `Приближается срок: ${title}` : `Due soon: ${title}`;
       break;
   }
 
