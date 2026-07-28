@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.43] - 2026-07-28
 ### Changed
 - Непрочитанные уведомления в списке теперь видно сразу: цветная полоска слева, подсветка карточки и жирный заголовок.
 
