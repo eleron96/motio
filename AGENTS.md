@@ -137,7 +137,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 - `make keycloak-backup-db`
 - `make keycloak-audit-realm`
 - `make keycloak-export-realm`
-4. Realm-настройки Keycloak применяются автоматически ensure-скриптами при каждом prod-деплое: `prod-compose.sh` вызывает `infra/scripts/keycloak-ensure-*.sh` (client-secret, client-urls, realm-ssl-required, realm-branding, realm-frontend-url, realm-session-policy, realm-bruteforce). Новую realm-настройку вносить новым ensure-скриптом по этому же образцу, а не правкой realm-JSON: импорт JSON применяется только при первичной инициализации realm.
+4. Realm-настройки Keycloak применяются автоматически ensure-скриптами при каждом prod-деплое: `prod-compose.sh` вызывает `infra/scripts/keycloak-ensure-*.sh` (client-secret, client-urls, realm-ssl-required, realm-branding, realm-frontend-url, realm-session-policy, realm-bruteforce, realm-passwordpolicy, realm-user-profile). Новую realm-настройку вносить новым ensure-скриптом по этому же образцу, а не правкой realm-JSON: импорт JSON применяется только при первичной инициализации realm.
 
 Не обходить скрипт `infra/scripts/prod-compose.sh` ручными шагами.
 
