@@ -90,7 +90,7 @@ What `up-prod` does (in order):
 - validates the required invite-only variables;
 - applies Keycloak realm settings via the `infra/scripts/keycloak-ensure-*.sh` scripts
   (client secret, client URLs, SSL-required, branding, frontend URL, session policy,
-  brute-force protection);
+  brute-force protection, password policy, user profile);
 - backs up `keycloak-db` before the realm audit (if `AUTO_KEYCLOAK_PRE_SYNC_BACKUP=true`);
 - runs the Keycloak realm drift audit (audit-only by default);
 - takes a pre-migration backup (if `AUTO_PRE_MIGRATION_BACKUP=true`);
