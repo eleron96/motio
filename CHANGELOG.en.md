@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Pasting text from another app now brings over only the text, lists and images — the source app's styling no longer breaks the task description.
+
 ## [0.9.46] - 2026-07-29
 ### Fixed
 - Editing a recurring task no longer floods its assignee: the whole series produces a single notification instead of one per occurrence.
