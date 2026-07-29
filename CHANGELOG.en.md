@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Editing a recurring task no longer floods its assignee: the whole series produces a single notification instead of one per occurrence.
+
 ## [0.9.45] - 2026-07-29
 ### Changed
 - Sign-up no longer asks for a first and last name — an email and a password are enough. The name can be filled in later in account settings.
