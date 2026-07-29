@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.46] - 2026-07-29
 ### Fixed
 - Editing a recurring task no longer floods its assignee: the whole series produces a single notification instead of one per occurrence.
 
