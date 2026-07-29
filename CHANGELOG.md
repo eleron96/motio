@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.45] - 2026-07-29
 ### Changed
 - При регистрации больше не нужно указывать имя и фамилию — достаточно почты и пароля. Имя можно заполнить позже в настройках аккаунта.
 
