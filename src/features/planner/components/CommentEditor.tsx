@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
+import { normalizePastedCommentHtml } from '@/shared/lib/pastedRichText';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
@@ -740,7 +741,21 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
           if (file) {
             e.preventDefault();
             void handleImageFile(file);
+            return;
           }
+          // Same normalisation as the description editor: strip the source
+          // app's layout instead of pasting its markup verbatim.
+          const html = e.clipboardData?.getData('text/html') ?? '';
+          if (!html) return;
+          e.preventDefault();
+          const normalized = normalizePastedCommentHtml(html);
+          if (normalized.trim()) {
+            document.execCommand('insertHTML', false, normalized);
+          } else {
+            const text = e.clipboardData?.getData('text/plain') ?? '';
+            if (text) document.execCommand('insertText', false, text);
+          }
+          syncFromEditor();
         }}
         onMouseDown={(e) => {
           // Resize handle interaction (mirrors RichTextEditor)

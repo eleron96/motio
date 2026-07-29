@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Bold, Italic, Underline, Strikethrough, List, ListOrdered, Quote, Image } from 'lucide-react';
 import { sanitizeTaskRichText } from '@/shared/lib/sanitizer';
+import { normalizePastedTaskHtml } from '@/shared/lib/pastedRichText';
 import { Button } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/sonner';
 import { cn } from '@/shared/lib/classNames';
@@ -431,17 +432,40 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const handlePaste = async (event: React.ClipboardEvent<HTMLDivElement>) => {
     if (disabled) return;
-    const items = Array.from(event.clipboardData?.items ?? []);
+    const clipboard = event.clipboardData;
+    const items = Array.from(clipboard?.items ?? []);
     const imageItems = items.filter((item) => item.type.startsWith('image/'));
-    if (imageItems.length === 0) return;
+    if (imageItems.length > 0) {
+      event.preventDefault();
+      saveSelection();
+      for (const item of imageItems) {
+        const file = item.getAsFile();
+        if (file) {
+          await handleImageFile(file);
+        }
+      }
+      return;
+    }
+
+    // Rich text copied from another app carries that app's layout in its
+    // inline styles — chat toolbars, backgrounds, fonts, and metadata parked
+    // off-screen. Insert our own normalised version instead of letting the
+    // browser drop the source markup in verbatim.
+    const html = clipboard?.getData('text/html') ?? '';
+    if (!html) return;
     event.preventDefault();
-    saveSelection();
-    for (const item of imageItems) {
-      const file = item.getAsFile();
-      if (file) {
-        await handleImageFile(file);
+    const normalized = normalizePastedTaskHtml(html);
+    if (normalized.trim()) {
+      document.execCommand('insertHTML', false, normalized);
+    } else {
+      // Everything was layout — fall back to the plain-text flavour so the
+      // paste still lands instead of silently doing nothing.
+      const text = clipboard?.getData('text/plain') ?? '';
+      if (text) {
+        document.execCommand('insertText', false, text);
       }
     }
+    syncFromEditor();
   };
 
   const handleImageButtonClick = () => {
