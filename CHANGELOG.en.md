@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.52] - 2026-07-30
 ### Added
 - Workspace settings now offer 20 colours instead of 12, and they are noticeably easier to tell apart.
 - A person's colour now also fills the circle with their initials, everywhere it appears: the timeline, tasks, comments, the member list. That circle used to be coloured at random and did not match their day-off circles or chart series.
