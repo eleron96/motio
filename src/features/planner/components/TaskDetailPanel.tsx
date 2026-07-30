@@ -166,6 +166,7 @@ export const TaskDetailPanel: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subtaskEditingDirty, setSubtaskEditingDirty] = useState(false);
+  const [subtaskEditingActive, setSubtaskEditingActive] = useState(false);
 
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
@@ -554,6 +555,14 @@ export const TaskDetailPanel: React.FC = () => {
           className="flex w-full max-w-[940px] flex-col gap-0 p-0"
           // Don't auto-focus (and select) the title input when the panel opens.
           onOpenAutoFocus={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => {
+            // While a subtask is being edited or a draft is typed, Escape
+            // belongs to that field — it cancels the text, not the whole task.
+            // The field's own handler still sees the key and clears itself.
+            if (subtaskEditingActive || newSubtaskTitle !== '') {
+              e.preventDefault();
+            }
+          }}
           onInteractOutside={(e) => {
             if (shouldIgnoreOutsideInteraction(e.target)) {
               e.preventDefault();
@@ -711,6 +720,7 @@ export const TaskDetailPanel: React.FC = () => {
                 onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
                 onDelete={(id) => void handleDeleteSubtask(id)}
                 onEditingDirtyChange={setSubtaskEditingDirty}
+                onEditingActiveChange={setSubtaskEditingActive}
               />
 
               {/* ── Comments section */}
