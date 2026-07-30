@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- The assignee photo in the timeline profile card is now noticeably larger, scaling to the screen and to the photo's own quality.
+
 ## [0.9.47] - 2026-07-29
 ### Fixed
 - Pasting text from another app now brings over only the text, lists and images — the source app's styling no longer breaks the task description.
