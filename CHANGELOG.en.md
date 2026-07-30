@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.51] - 2026-07-30
 ### Added
 - Workspace settings now have a People section where everyone can be given a colour from a palette. An admin sets it for anyone, everybody else for themselves. The colour shows up on dashboard charts, on day-off circles in the calendar and behind the initials in an avatar.
 

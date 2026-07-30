@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.51] - 2026-07-30
 ### Added
 - В настройках рабочего пространства появился раздел «Люди»: каждому можно выбрать цвет из палитры. Администратор назначает цвет любому, остальные — себе. Цвет виден на графиках дашборда, на кружках отпусков в календаре и за инициалами в аватаре.
 
