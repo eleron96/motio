@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.48] - 2026-07-30
 ### Changed
 - The assignee photo in the timeline profile card is now noticeably larger, scaling to the screen and to the photo's own quality.
 
