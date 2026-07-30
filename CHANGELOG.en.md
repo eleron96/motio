@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.49] - 2026-07-30
 ### Fixed
 - A subtask can now be written across several lines while you create the task: the text wraps and stays fully visible, and the field grows as you type — just like editing a subtask inside an open task.
 - Escape while editing a subtask no longer closes the whole task: the key clears the text in that field and leaves the task open.
