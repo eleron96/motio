@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.50] - 2026-07-30
 ### Changed
 - Subtasks in the create-task dialog now look the same as inside an open task: the same bordered, highlighted fields. Trailing blank lines are dropped as soon as you leave the field, so it no longer stays stretched.
 
