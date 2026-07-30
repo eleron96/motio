@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.48] - 2026-07-30
 ### Changed
 - Аватар в карточке сотрудника на таймлайне стал заметно крупнее — размер подстраивается под экран и качество фотографии.
 
