@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Plus, X } from 'lucide-react';
 import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';
@@ -902,7 +903,9 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                                 onClick={(event) => event.stopPropagation()}
                                 onCheckedChange={(checked) => setAssigneeChecked(assignee.id, checked === true)}
                               />
-                              <UserAvatar
+                              <PersonAvatar
+                                assigneeId={assignee.id}
+                                userId={assignee.userId}
                                 avatarUrl={assignee.avatar}
                                 initials={getPersonMonogram(assignee.name, 'U')}
                                 colorSeed={assignee.userId ?? assignee.id}

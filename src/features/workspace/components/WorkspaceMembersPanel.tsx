@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Switch } from '@/shared/ui/switch';
 import { Badge } from '@/shared/ui/badge';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
@@ -562,7 +563,8 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     return (
       <div key={member.userId} className="grid items-center gap-3 rounded-md border px-3 py-3 md:grid-cols-[1fr,140px,180px,120px,90px]">
         <div className="flex items-center gap-3 min-w-0">
-          <UserAvatar
+          <PersonAvatar
+            userId={member.userId}
             name={member.displayName ?? member.email}
             avatarUrl={member.avatarUrl}
             colorSeed={member.userId}

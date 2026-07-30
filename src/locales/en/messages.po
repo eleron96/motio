@@ -1694,6 +1694,10 @@ msgstr "Drag & drop or click to select a photo"
 msgid "Drag and drop image files into the description area."
 msgstr "Drag and drop image files into the description area."
 
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Draw everyone in their own colour from workspace settings instead of the palette."
+msgstr "Draw everyone in their own colour from workspace settings instead of the palette."
+
 #: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "due today"
 msgstr "due today"
@@ -3455,6 +3459,10 @@ msgstr "Not on the team"
 msgid "Not tracked"
 msgstr "Not tracked"
 
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Not used while people's colours are on."
+msgstr "Not used while people's colours are on."
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
@@ -3741,6 +3749,11 @@ msgstr "People on a project"
 #: src/features/members/pages/MembersPage.tsx
 msgid "People sections"
 msgstr "People sections"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "People's colours"
+msgstr "People's colours"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Period"

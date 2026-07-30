@@ -358,6 +358,9 @@ const normalizeWidget = (widget: Partial<DashboardWidget>): DashboardWidget => {
     groupBy: widget.groupBy ?? 'none',
     size: normalizeWidgetSize(type, widget.size),
     barPalette: hasPalette ? (widget.barPalette ?? DEFAULT_BAR_PALETTE) : undefined,
+    // Widgets saved before the toggle existed carry no flag and must keep the
+    // colours they are showing today, so the default is on.
+    useAssigneeColors: hasPalette ? (widget.useAssigneeColors ?? true) : undefined,
     showLegend: hasPalette ? (widget.showLegend ?? true) : undefined,
     milestoneView,
     milestoneCalendarMode,

@@ -34,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Copy, MoreVertical, RotateCw, Trash2 } from 'lucide-react';
 import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
@@ -791,7 +792,9 @@ export const TaskDetailPanel: React.FC = () => {
                                   onCheckedChange={() => handleAssigneeToggle(assignee.id)}
                                   disabled={isDisabled}
                                 />
-                                <UserAvatar
+                                <PersonAvatar
+                                  assigneeId={assignee.id}
+                                  userId={assignee.userId}
                                   avatarUrl={assignee.avatar}
                                   initials={getPersonMonogram(assignee.name, 'U')}
                                   colorSeed={assignee.userId ?? assignee.id}

@@ -22,6 +22,7 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { toast } from '@/shared/ui/sonner';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import type { TaskComment } from '@/features/planner/types/planner';
 import { sanitizeCommentHtml, deleteTaskComment, updateTaskComment } from '@/infrastructure/tasks/taskCommentsRepository';
 import { type TaskCommentMentionCandidate } from '@/shared/domain/taskCommentMentionCandidates';
@@ -84,7 +85,8 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
   return (
     <div className="group relative flex gap-2.5 py-2.5">
       {/* Avatar */}
-      <UserAvatar
+      <PersonAvatar
+        userId={comment.authorId}
         name={comment.authorDisplayName}
         colorSeed={comment.authorId}
         size="sm"

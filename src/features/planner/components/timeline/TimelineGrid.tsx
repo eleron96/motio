@@ -27,6 +27,7 @@ import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { getPersonMonogram } from '@/shared/domain/personName';
+import { usePersonColors } from '@/features/planner/hooks/usePersonColors';
 import { useDragScroll } from './hooks/useDragScroll';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useTimelineViewport } from './hooks/useTimelineViewport';
@@ -373,6 +374,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     onCreateTask?.(defaults);
   }, [assignees, canEdit, groupMode, lastDragTimeRef, onCreateTask, projects]);
 
+  const personColors = usePersonColors();
+
   const getSidebarRowMonogram = useCallback((rowName: string) => getPersonMonogram(rowName, 'U'), []);
 
   const getAssigneeAvatarInfo = useCallback((rowId: string): {
@@ -390,9 +393,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       avatarUrl: member?.avatarUrl ?? null,
       userId,
       email: member?.email ?? assignee?.email ?? null,
-      color: assignee?.color ?? null,
+      // The colour in effect, not just a hand-picked one: an avatar has to match
+      // the person's day-off circles and chart series either way.
+      color: personColors.byAssigneeId.get(rowId) ?? null,
     };
-  }, [assignees, members]);
+  }, [assignees, members, personColors]);
 
   // Stable noop so MilestoneLayer's onCreateMilestone prop doesn't change every
   // render for non-editors (an inline `() => {}` would defeat its memo).

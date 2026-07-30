@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { AvatarEditModal } from './AvatarEditModal';
 import { t } from '@lingui/macro';
 
@@ -25,7 +26,8 @@ export const AvatarWithEditButton: React.FC<AvatarWithEditButtonProps> = ({
   return (
     <>
       <div className="relative inline-block">
-        <UserAvatar
+        <PersonAvatar
+          userId={userId}
           avatarUrl={avatarUrl}
           initials={initials}
           colorSeed={userId}

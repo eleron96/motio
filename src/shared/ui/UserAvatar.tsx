@@ -40,7 +40,7 @@ const overlayHeight: Record<AvatarSize, string> = {
   profile: 'h-[36px]',
 };
 
-interface UserAvatarProps {
+export interface UserAvatarProps {
   /** Public URL of the uploaded photo, if any */
   avatarUrl?: string | null;
   /**

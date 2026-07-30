@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { usePersonColors } from '@/features/planner/hooks/usePersonColors';
 import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { ACTIVITY_HTML_TAG_RE } from '@/features/projects/lib/projectActivityContent';
@@ -166,6 +167,7 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
   workspaceId,
 }) => {
   const isMobile = useIsMobile();
+  const personColors = usePersonColors();
   // M2: mobile users can publish + edit entries via bottom sheets. The
   // desktop inline RTE composer remains the same.
   const canEditEntries = canEdit;
@@ -377,7 +379,10 @@ export const ActivityBlock: React.FC<ActivityBlockProps> = ({
               <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
                 <span
                   className="h-1.5 w-1.5 rounded-full"
-                  style={{ background: getMonogramColor(entry.authorId ?? entry.authorDisplayName) }}
+                  style={{
+                    background: (entry.authorId ? personColors.byUserId.get(entry.authorId) : undefined)
+                      ?? getMonogramColor(entry.authorId ?? entry.authorDisplayName),
+                  }}
                 />
                 <span>{entry.authorDisplayName}</span>
                 {canEditEntries ? (

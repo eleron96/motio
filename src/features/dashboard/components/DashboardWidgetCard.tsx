@@ -59,7 +59,7 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { CHART_GRID_STROKE_COLOR, DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
-import { isPersonColor } from '@/shared/lib/personColor';
+import { buildPersonColorMap } from '@/features/planner/lib/timeOffPalette';
 
 const filterLabels: Record<DashboardStatusFilter, string> = {
   all: t`All statuses`,
@@ -492,18 +492,16 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     });
     return map;
   }, [hasSourceTimeSeries, isTimeSeriesChart, sourceSeries, sourceSeriesKeys]);
-  // A person who picked a colour in workspace settings keeps it here, so the
-  // same human reads the same on every chart, in the calendar and on their
-  // avatar. Everyone else still falls back to the widget's palette.
+  // With "person colours" on, every person is drawn in their own colour: the one
+  // picked in workspace settings, or the automatic one the calendar gives them.
+  // buildPersonColorMap is the calendar's own function, so the two views agree.
+  // Switched off, the widget palette paints everything, as it did before person
+  // colours existed.
   const personColorBySeries = React.useMemo(() => {
     const map = new Map<string, string>();
-    if (widget.groupBy !== 'assignee') return map;
+    if (widget.groupBy !== 'assignee' || widget.useAssigneeColors === false) return map;
 
-    const colorByAssigneeId = new Map(
-      assignees
-        .filter((assignee) => isPersonColor(assignee.color))
-        .map((assignee) => [assignee.id, assignee.color as string]),
-    );
+    const colorByAssigneeId = buildPersonColorMap(assignees);
     if (colorByAssigneeId.size === 0) return map;
 
     // Both spellings a chart may pass in: the label (bar/pie cells) and the
@@ -520,7 +518,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       }
     });
     return map;
-  }, [assignees, sourceSeries, sourceSeriesKeys, widget.groupBy]);
+  }, [assignees, sourceSeries, sourceSeriesKeys, widget.groupBy, widget.useAssigneeColors]);
   const getSeriesColor = React.useCallback((seriesNameOrKey: string, index: number) => {
     const personColor = personColorBySeries.get(seriesNameOrKey);
     if (personColor) return personColor;
