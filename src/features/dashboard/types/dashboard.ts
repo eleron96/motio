@@ -139,6 +139,13 @@ export type DashboardStatsRow = {
 export type DashboardSeriesItem = {
   name: string;
   value: number;
+  /**
+   * Id of the entity the series stands for — an assignee, project, status or
+   * task type — or a sentinel like 'unassigned'. Carried so a series can be
+   * painted in that entity's own colour instead of a palette slot; a label is
+   * not enough, two people can share a name.
+   */
+  groupId?: string;
 };
 
 export type DashboardSeriesRow = {
@@ -164,6 +171,8 @@ export type DashboardTimeSeriesPoint = {
 export type DashboardSeriesKey = {
   key: string;
   label: string;
+  /** See DashboardSeriesItem.groupId — same id, for time-series charts. */
+  groupId?: string;
 };
 
 export type DashboardWidgetData = {

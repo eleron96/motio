@@ -5,12 +5,13 @@
 // linear in the tail of the string, so real workspaces get hues one degree
 // apart — a pie split between such people reads as one solid circle.
 //
-// Assignment is by POSITION in the workspace's own list of people, sorted by id.
-// A new teammate lands at the end and never shifts anyone else's colour, which
-// is what makes the mapping stable across sessions and devices. (A colour
-// column on the assignee would be stabler still — worth doing only if a
-// workspace ever outgrows the palette and the wrap-around becomes visible.)
+// Since 0135 a person can be given an explicit colour in workspace settings,
+// and that one wins. Without it, assignment is by POSITION in the workspace's own
+// list of people, sorted by id: a new teammate lands at the end and never shifts
+// anyone else's colour, which is what keeps the fallback stable across sessions
+// and devices.
 
+import { isPersonColor } from '@/shared/lib/personColor';
 import type { Assignee, TimeOff } from '@/features/planner/types/planner';
 
 /**
@@ -49,14 +50,24 @@ const hashToPaletteIndex = (value: string): number => {
 };
 
 /**
- * Stable colour per person: position in the id-sorted list of people, wrapping
- * around the palette if a workspace ever has more than twelve.
+ * Colour per person: the one picked in workspace settings if there is one,
+ * otherwise the automatic fallback — position in the id-sorted list of people,
+ * wrapping around the palette if a workspace ever has more than twelve.
+ *
+ * The presets offered in settings are the same twelve hues (PERSON_PRESET_COLORS
+ * in shared/lib/colors, hex spelling of this palette), so a chosen colour and an
+ * auto-assigned one are indistinguishable to the eye.
  */
 export const buildTimeOffColorMap = (assignees: Assignee[]): Map<string, string> => {
   const ordered = [...assignees].sort((left, right) => left.id.localeCompare(right.id));
   const colors = new Map<string, string>();
   ordered.forEach((assignee, index) => {
-    colors.set(assignee.id, TIME_OFF_PALETTE[index % TIME_OFF_PALETTE.length]);
+    colors.set(
+      assignee.id,
+      isPersonColor(assignee.color)
+        ? assignee.color
+        : TIME_OFF_PALETTE[index % TIME_OFF_PALETTE.length],
+    );
   });
   return colors;
 };

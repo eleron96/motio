@@ -375,7 +375,12 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   const getSidebarRowMonogram = useCallback((rowName: string) => getPersonMonogram(rowName, 'U'), []);
 
-  const getAssigneeAvatarInfo = useCallback((rowId: string): { avatarUrl: string | null; userId: string; email: string | null } => {
+  const getAssigneeAvatarInfo = useCallback((rowId: string): {
+    avatarUrl: string | null;
+    userId: string;
+    email: string | null;
+    color: string | null;
+  } => {
     const assignee = assignees.find((a) => a.id === rowId);
     const userId = assignee?.userId ?? rowId;
     const member = members.find((m) => m.userId === userId);
@@ -385,6 +390,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       avatarUrl: member?.avatarUrl ?? null,
       userId,
       email: member?.email ?? assignee?.email ?? null,
+      color: assignee?.color ?? null,
     };
   }, [assignees, members]);
 

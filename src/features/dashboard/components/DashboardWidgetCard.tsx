@@ -39,6 +39,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/shared/ui/c
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import {
   DashboardStatusFilter,
+  DashboardAssigneeOption,
   DashboardMilestone,
   DashboardOption,
   DashboardWidget,
@@ -58,6 +59,7 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { CHART_GRID_STROKE_COLOR, DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
+import { isPersonColor } from '@/shared/lib/personColor';
 
 const filterLabels: Record<DashboardStatusFilter, string> = {
   all: t`All statuses`,
@@ -83,6 +85,8 @@ interface DashboardWidgetCardProps {
   editing: boolean;
   milestones?: DashboardMilestone[];
   projects?: DashboardOption[];
+  /** Only the colours are read: a person grouped series is painted in their own. */
+  assignees?: DashboardAssigneeOption[];
   breakpoint?: DashboardBreakpoint;
   viewportProfile?: DashboardViewportProfile;
   touchInteractionMode?: boolean;
@@ -102,6 +106,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   editing,
   milestones = [],
   projects = [],
+  assignees = [],
   breakpoint = 'lg',
   viewportProfile = 'desktop',
   touchInteractionMode = false,
@@ -487,10 +492,41 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     });
     return map;
   }, [hasSourceTimeSeries, isTimeSeriesChart, sourceSeries, sourceSeriesKeys]);
+  // A person who picked a colour in workspace settings keeps it here, so the
+  // same human reads the same on every chart, in the calendar and on their
+  // avatar. Everyone else still falls back to the widget's palette.
+  const personColorBySeries = React.useMemo(() => {
+    const map = new Map<string, string>();
+    if (widget.groupBy !== 'assignee') return map;
+
+    const colorByAssigneeId = new Map(
+      assignees
+        .filter((assignee) => isPersonColor(assignee.color))
+        .map((assignee) => [assignee.id, assignee.color as string]),
+    );
+    if (colorByAssigneeId.size === 0) return map;
+
+    // Both spellings a chart may pass in: the label (bar/pie cells) and the
+    // sanitized series key (line/area).
+    sourceSeries.forEach((item) => {
+      const color = item.groupId ? colorByAssigneeId.get(item.groupId) : undefined;
+      if (color) map.set(item.name, color);
+    });
+    sourceSeriesKeys.forEach((seriesKey) => {
+      const color = seriesKey.groupId ? colorByAssigneeId.get(seriesKey.groupId) : undefined;
+      if (color) {
+        map.set(seriesKey.key, color);
+        map.set(seriesKey.label, color);
+      }
+    });
+    return map;
+  }, [assignees, sourceSeries, sourceSeriesKeys, widget.groupBy]);
   const getSeriesColor = React.useCallback((seriesNameOrKey: string, index: number) => {
+    const personColor = personColorBySeries.get(seriesNameOrKey);
+    if (personColor) return personColor;
     const resolvedIndex = colorIndexBySeries.get(seriesNameOrKey) ?? index;
     return paletteColors[resolvedIndex % paletteColors.length];
-  }, [colorIndexBySeries, paletteColors]);
+  }, [colorIndexBySeries, paletteColors, personColorBySeries]);
   const chartLabelDataKey = getDashboardChartLabelDataKey(widget.type);
   const formatTooltipLabel = React.useCallback((value: string | number | undefined) => (
     formatDashboardChartTooltipLabel(widget.type, value, dateLocale)

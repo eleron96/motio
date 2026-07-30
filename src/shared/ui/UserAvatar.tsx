@@ -1,6 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { toMonogramColor } from '@/shared/lib/personColor';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { cn } from '@/shared/lib/classNames';
 
@@ -52,6 +53,12 @@ interface UserAvatarProps {
   initials?: string;
   /** Seed for deterministic monogram background color (defaults to name/initials) */
   colorSeed?: string;
+  /**
+   * Colour this person picked in workspace settings (#rrggbb). Takes precedence
+   * over the id-hashed seed colour, converted to monogram density first so the
+   * white initials stay readable — see shared/lib/personColor.
+   */
+  color?: string | null;
   size?: AvatarSize;
   className?: string;
   /**
@@ -69,12 +76,14 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   name,
   initials,
   colorSeed = '',
+  color,
   size = 'md',
   className,
   showInitialsOverlay = false,
 }) => {
   const resolvedInitials = initials ?? getPersonMonogram(name, '?');
-  const bgColor = getMonogramColor(colorSeed || name || resolvedInitials);
+  const bgColor = toMonogramColor(color)
+    ?? getMonogramColor(colorSeed || name || resolvedInitials);
   const hasPhoto = Boolean(avatarUrl);
 
   return (

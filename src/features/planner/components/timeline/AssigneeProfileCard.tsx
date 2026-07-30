@@ -6,6 +6,8 @@ interface AssigneeProfileCardProps {
   email: string | null;
   avatarUrl: string | null;
   colorSeed: string;
+  /** Colour picked in workspace settings; null keeps the id-hashed monogram. */
+  color?: string | null;
   initials: string;
 }
 
@@ -65,6 +67,7 @@ export const AssigneeProfileCard: React.FC<AssigneeProfileCardProps> = ({
   email,
   avatarUrl,
   colorSeed,
+  color,
   initials,
 }) => {
   const resolutionCap = useResolutionCap(avatarUrl);
@@ -83,6 +86,7 @@ export const AssigneeProfileCard: React.FC<AssigneeProfileCardProps> = ({
         initials={initials}
         avatarUrl={avatarUrl}
         colorSeed={colorSeed}
+        color={color}
         className={
           'h-[var(--assignee-avatar)] w-[var(--assignee-avatar)]'
           + ' text-[length:calc(var(--assignee-avatar)*0.32)]'

@@ -19,6 +19,7 @@ import {
   TIME_OFF_PALETTE,
   resolveTimeOffColor,
 } from '@/features/planner/lib/timeOffPalette';
+import { PERSON_PRESET_COLORS } from '@/shared/lib/colors';
 import type { Assignee, TimeOff } from '@/features/planner/types/planner';
 
 const record = (over: Partial<TimeOff> = {}): TimeOff => ({
@@ -140,6 +141,31 @@ describe('time-off colours', () => {
     expect(after.get('a')).toBe(before.get('a'));
     expect(after.get('b')).toBe(before.get('b'));
     expect(after.get('z')).toBe(TIME_OFF_PALETTE[2]);
+  });
+
+  it('prefers the colour a person picked in workspace settings', () => {
+    const picked = PERSON_PRESET_COLORS[4];
+    const colors = buildTimeOffColorMap([
+      assignee({ id: 'a' }),
+      assignee({ id: 'b', color: picked }),
+    ]);
+
+    expect(colors.get('b')).toBe(picked);
+    // The neighbour keeps its automatic slot — one person's choice must not
+    // reshuffle the rest of the team.
+    expect(colors.get('a')).toBe(TIME_OFF_PALETTE[0]);
+  });
+
+  it('ignores a stored colour that is not a #rrggbb value', () => {
+    const colors = buildTimeOffColorMap([assignee({ id: 'a', color: 'chartreuse' })]);
+
+    expect(colors.get('a')).toBe(TIME_OFF_PALETTE[0]);
+  });
+
+  it('falls back to the palette once a colour is reset to auto', () => {
+    const colors = buildTimeOffColorMap([assignee({ id: 'a', color: null })]);
+
+    expect(colors.get('a')).toBe(TIME_OFF_PALETTE[0]);
   });
 
   it('wraps around when a workspace outgrows the palette', () => {

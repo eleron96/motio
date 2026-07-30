@@ -641,6 +641,18 @@ const rpcHandlers: Record<string, (args: Record<string, unknown>) => Result> = {
   assignee_unique_task_counts: (args) => ok(assigneeUniqueTaskCounts(args)),
   // Workload heatmap board — per-day task density (migration 0102).
   workspace_workload_heatmap: (args) => ok(workspaceWorkloadHeatmap(args)),
+  // Person colour (migration 0135). The permission check the real function does
+  // is pointless here: the demo visitor is the workspace admin by construction.
+  set_assignee_color: (args) => {
+    const assigneeId = args.p_assignee_id as string;
+    const color = (args.p_color ?? null) as string | null;
+    if (color !== null && !/^#[0-9a-fA-F]{6}$/.test(color)) return fail('Colour must be #rrggbb');
+    const row = demoStore.table('assignees').find((item) => item.id === assigneeId);
+    if (!row) return fail('Assignee does not exist');
+    row.color = color;
+    demoStore.touch();
+    return ok(null);
+  },
   // Account / admin — should never fire on demo (UI is hidden), but
   // return a clear error if they somehow do.
   request_data_export: () => fail('Disabled on demo'),

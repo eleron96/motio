@@ -215,7 +215,7 @@ export const createWorkspaceActions = (
       : Promise.resolve({ data: [] as never[], error: null });
     const assigneesQuery = supabase
       .from('assignees')
-      .select('id, workspace_id, name, user_id, is_active, email, phone')
+      .select('id, workspace_id, name, user_id, is_active, email, phone, color')
       .eq('workspace_id', workspaceId);
     const projectMembersQuery = projectCardOn
       ? supabase
@@ -485,7 +485,7 @@ export const createWorkspaceActions = (
 
     const { data, error } = await supabase
       .from('assignees')
-      .select('id, workspace_id, name, user_id, is_active, email, phone')
+      .select('id, workspace_id, name, user_id, is_active, email, phone, color')
       .eq('workspace_id', workspaceId);
 
     if (error) {

@@ -23,6 +23,16 @@ import {
   buildDemoDashboardLayouts,
 } from './demoSeed';
 
+// Colours for a few demo teammates, so /demo shows what a workspace looks like
+// once people have been given colours (dashboard series, calendar day-off
+// circles, monogram backgrounds). Values come from PERSON_PRESET_COLORS.
+const DEMO_SEED_ASSIGNEE_COLORS: Record<string, string> = {
+  '22222222-0000-0000-0000-000000000001': '#a7ccf1', // Emma Taylor — blue
+  '22222222-0000-0000-0000-000000000002': '#f7c9a1', // Ben Harper — orange
+  '22222222-0000-0000-0000-000000000005': '#a0e3c2', // Mark Sullivan — green
+  '22222222-0000-0000-0000-000000000012': '#dab8ea', // Advisory Consultant — violet
+};
+
 const STORAGE_KEY = 'motio.demo.state.v1';
 const TTL_MS = 24 * 60 * 60 * 1000;
 const DEMO_USER_ID_PREFIX = 'demo-user-';
@@ -40,7 +50,7 @@ interface PersistedState {
   // may have persisted a jitter-drifted layout before the store no-op guard.
   // v5: dashboards reshaped to mirror prod widget mix (assignee-centric).
   // v6: time_off table. v7: overlapping time off, so the calendar shows a pie.
-  schemaVersion: 7;
+  schemaVersion: 8;
   lastActivityAt: number;
   user: { id: string; email: string; display_name: string };
   workspaceId: string;
@@ -173,6 +183,9 @@ const buildFreshState = (): DemoStore => {
         is_active: true,
         email: null,
         phone: null,
+        // A few people carry a hand-picked colour so the demo shows both halves
+        // of the feature; everyone else stays on the automatic palette.
+        color: DEMO_SEED_ASSIGNEE_COLORS[a.id] ?? null,
         created_at: nowIso,
       })),
       // auto-assignee for the demo visitor themselves
@@ -184,6 +197,7 @@ const buildFreshState = (): DemoStore => {
         is_active: true,
         email: user.email,
         phone: null,
+        color: null,
         created_at: nowIso,
       },
     ],
@@ -302,7 +316,7 @@ const loadPersisted = (): DemoStore | null => {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as PersistedState;
-    if (parsed.schemaVersion !== 7) return null;
+    if (parsed.schemaVersion !== 8) return null;
     if (Date.now() - parsed.lastActivityAt > TTL_MS) return null;
     return {
       user: parsed.user,
@@ -318,7 +332,7 @@ const loadPersisted = (): DemoStore | null => {
 const persist = (store: DemoStore): void => {
   if (!isBrowser) return;
   const payload: PersistedState = {
-    schemaVersion: 7,
+    schemaVersion: 8,
     lastActivityAt: store.lastActivityAt,
     user: store.user,
     workspaceId: store.workspaceId,

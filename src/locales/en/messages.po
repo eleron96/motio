@@ -249,6 +249,10 @@ msgstr "A circle on the day; split when several people are away."
 msgid "A person you can reuse across projects."
 msgstr "A person you can reuse across projects."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials."
+msgstr "A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "A task is assigned to me"
 msgstr "A task is assigned to me"
@@ -658,6 +662,7 @@ msgstr "Authentication failed."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Auto"
 msgstr "Auto"
 
@@ -1006,6 +1011,15 @@ msgstr "Collapse filters"
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Color"
 msgstr "Color"
+
+#. placeholder {0}: person.name
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Colour of {0}"
+msgstr "Colour of {0}"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Colours"
+msgstr "Colours"
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Comment actions"
@@ -3270,6 +3284,10 @@ msgstr "No options"
 msgid "No past milestones."
 msgstr "No past milestones."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "No people in this workspace yet."
+msgstr "No people in this workspace yet."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
@@ -3704,6 +3722,7 @@ msgstr "Pending"
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "People"
 msgstr "People"
 
@@ -5702,6 +5721,10 @@ msgstr "You are the owner of this workspace. Transfer ownership to another membe
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 msgstr "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "You can change your own colour. Only an admin can recolour the rest of the team."
+msgstr "You can change your own colour. Only an admin can recolour the rest of the team."
 
 #. placeholder {0}: formatRetryAfter(retryAfter)
 #: src/features/auth/components/DataExportButton.tsx

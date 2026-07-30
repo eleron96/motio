@@ -14,7 +14,13 @@ interface TimelineSidebarRowProps {
   sidebarViewportWidth: number;
   groupMode: GroupMode;
   getMonogram: (name: string) => string;
-  getAvatarInfo: (id: string) => { avatarUrl: string | null; userId: string; email: string | null };
+  getAvatarInfo: (id: string) => {
+    avatarUrl: string | null;
+    userId: string;
+    email: string | null;
+    /** Colour picked in workspace settings; null keeps the id-hashed monogram. */
+    color?: string | null;
+  };
 }
 
 export const ASSIGNEE_AVATAR_TIER_BREAKPOINTS = {
@@ -82,7 +88,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
         {isMobileAssigneeTimeline ? (
           showAssigneeAvatar ? (
             (() => {
-              const { avatarUrl, userId, email } = getAvatarInfo(row.id);
+              const { avatarUrl, userId, email, color } = getAvatarInfo(row.id);
               return (
                 <Popover>
                   <PopoverTrigger asChild>
@@ -96,6 +102,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
                         initials={getMonogram(row.name)}
                         avatarUrl={avatarUrl}
                         colorSeed={userId}
+                        color={color}
                         showInitialsOverlay
                         className="shadow-sm ring-1 ring-border/60"
                       />
@@ -107,6 +114,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
                       email={email}
                       avatarUrl={avatarUrl}
                       colorSeed={userId}
+                      color={color}
                       initials={getMonogram(row.name)}
                     />
                   </PopoverContent>
@@ -117,7 +125,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
         ) : isAssignee ? (
           <>
             {showAssigneeAvatar ? (() => {
-              const { avatarUrl, userId, email } = getAvatarInfo(row.id);
+              const { avatarUrl, userId, email, color } = getAvatarInfo(row.id);
               return (
                 <Popover>
                   <PopoverTrigger asChild>
@@ -131,6 +139,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
                         initials={getMonogram(row.name)}
                         avatarUrl={avatarUrl}
                         colorSeed={userId}
+                        color={color}
                         showInitialsOverlay
                       />
                     </button>
@@ -141,6 +150,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
                       email={email}
                       avatarUrl={avatarUrl}
                       colorSeed={userId}
+                      color={color}
                       initials={getMonogram(row.name)}
                     />
                   </PopoverContent>
