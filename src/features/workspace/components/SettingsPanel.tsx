@@ -718,7 +718,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
                     size="sm"
                     name={person.name}
                     colorSeed={person.userId ?? person.id}
-                    color={person.color}
+                    color={effectiveColorById.get(person.id)}
                     className="shrink-0"
                   />
                   <span className="min-w-0 flex-1 truncate text-sm text-foreground">

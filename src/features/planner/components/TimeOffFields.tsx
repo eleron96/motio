@@ -4,6 +4,7 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { getMinEndDate } from '@/features/planner/lib/dateUtils';
 import type { Assignee } from '@/features/planner/types/planner';
@@ -69,7 +70,9 @@ export const TimeOffFields: React.FC<TimeOffFieldsProps> = ({
             id={`${idPrefix}-assignee`}
             className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm"
           >
-            <UserAvatar
+            <PersonAvatar
+              assigneeId={person?.id}
+              userId={person?.userId}
               name={person?.name ?? null}
               avatarUrl={person?.avatar ?? null}
               initials={getPersonMonogram(person?.name ?? '', 'U')}

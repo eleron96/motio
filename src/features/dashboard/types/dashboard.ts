@@ -51,6 +51,12 @@ export type DashboardWidget = {
   groupBy?: DashboardGroupBy;
   size?: DashboardWidgetSize;
   barPalette?: DashboardBarPalette;
+  /**
+   * Paint each person in their own colour instead of the widget palette. Only
+   * meaningful when grouping by assignee; defaults to on, which is how charts
+   * behaved when person colours shipped.
+   */
+  useAssigneeColors?: boolean;
   showLegend?: boolean;
   milestoneView?: DashboardMilestoneView;
   milestoneCalendarMode?: DashboardMilestoneCalendarMode;

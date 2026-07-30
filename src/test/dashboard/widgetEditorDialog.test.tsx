@@ -97,3 +97,61 @@ describe('WidgetEditorDialog disabled assignee toggle', () => {
     expect(screen.getByRole('option', { name: 'Disabled User' })).toBeInTheDocument();
   });
 });
+
+
+describe("WidgetEditorDialog people's colours toggle", () => {
+  const renderEditor = (widget: Partial<DashboardWidget> = {}, onSave = vi.fn()) => {
+    render(
+      <WidgetEditorDialog
+        open
+        onOpenChange={vi.fn()}
+        statuses={[]}
+        projects={[]}
+        assignees={[{ id: 'active-1', name: 'Active User', isActive: true }]}
+        groups={[]}
+        initialWidget={buildChartWidget(widget)}
+        onSave={onSave}
+      />,
+    );
+    return onSave;
+  };
+
+  it('is on for a widget saved before the toggle existed', () => {
+    renderEditor();
+
+    expect(screen.getByRole('switch', { name: "People's colours" })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('reads back the stored choice', () => {
+    renderEditor({ useAssigneeColors: false });
+
+    expect(screen.getByRole('switch', { name: "People's colours" })).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('only appears where people are actually shown', () => {
+    renderEditor({ groupBy: 'project' });
+
+    expect(screen.queryByRole('switch', { name: "People's colours" })).not.toBeInTheDocument();
+  });
+
+  it('idles the palette select while it is on, and frees it when off', async () => {
+    const user = userEvent.setup();
+    renderEditor();
+
+    expect(screen.getByText("Not used while people's colours are on.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole('switch', { name: "People's colours" }));
+
+    expect(screen.queryByText("Not used while people's colours are on.")).not.toBeInTheDocument();
+  });
+
+  it('saves the switched-off state on the widget', async () => {
+    const user = userEvent.setup();
+    const onSave = renderEditor();
+
+    await user.click(screen.getByRole('switch', { name: "People's colours" }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ useAssigneeColors: false }));
+  });
+});

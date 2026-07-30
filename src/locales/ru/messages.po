@@ -1694,6 +1694,10 @@ msgstr "Перетащите или нажмите, чтобы выбрать ф
 msgid "Drag and drop image files into the description area."
 msgstr "Перетащите изображения в область описания."
 
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Draw everyone in their own colour from workspace settings instead of the palette."
+msgstr "Рисовать каждого его цветом из настроек пространства, а не цветом палитры."
+
 #: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "due today"
 msgstr "на сегодня"
@@ -3455,6 +3459,10 @@ msgstr "Не в команде"
 msgid "Not tracked"
 msgstr "Не отслеживается"
 
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Not used while people's colours are on."
+msgstr "Не используется, пока включены цвета людей."
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
@@ -3741,6 +3749,11 @@ msgstr "Люди в проекте"
 #: src/features/members/pages/MembersPage.tsx
 msgid "People sections"
 msgstr "Разделы команды"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "People's colours"
+msgstr "Цвета людей"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Period"

@@ -19,28 +19,42 @@ export const PROJECT_PRESET_COLORS = [
 ] as const;
 
 /**
- * Colours a person can be given in workspace settings. Deliberately the same
- * twelve pastel hues the calendar already assigns automatically (see
- * features/planner/lib/timeOffPalette), so a hand-picked colour is
- * indistinguishable from an auto-assigned one — hex here, HSL there, identical
- * values.
+ * Colours a person can be given in workspace settings, and the automatic
+ * fallback the calendar hands out by position (see
+ * features/planner/lib/timeOffPalette) — one list, so a hand-picked colour and
+ * an auto-assigned one are the same kind of colour.
  *
- * Pastel is a requirement, not a taste: the colour becomes the background of a
- * 28px day circle in the calendar with the day number drawn on top.
+ * Twenty hues, 18° apart, each with its own saturation and lightness picked to
+ * push the colours apart: the closest pair is ΔE(Lab) ≈ 20, where the previous
+ * twelve-colour list had pairs down to 7.7 — "violet" and "periwinkle" were
+ * effectively the same swatch. src/test/shared/personPalette.test.ts enforces
+ * that floor so a future edit cannot quietly reintroduce a lookalike.
+ *
+ * Staying light is a requirement, not a taste: the colour becomes the background
+ * of a 28px day circle in the calendar with the day number drawn on top, and the
+ * avatar monogram derives a darker shade of the same hue for white initials.
  */
 export const PERSON_PRESET_COLORS = [
-  '#a7ccf1', // blue — hsl(210, 72%, 80%)
-  '#a0e3c2', // green — hsl(150, 55%, 76%)
-  '#f7c9a1', // orange — hsl(28, 85%, 80%)
-  '#dab8ea', // violet — hsl(280, 55%, 82%)
-  '#f4b9cc', // pink — hsl(340, 72%, 84%)
-  '#9ddae7', // teal — hsl(190, 60%, 76%)
-  '#f3e291', // yellow — hsl(50, 80%, 76%)
-  '#cabeef', // periwinkle — hsl(255, 60%, 84%)
-  '#f1bcb1', // coral — hsl(10, 70%, 82%)
-  '#b0ddb0', // sage — hsl(120, 40%, 78%)
-  '#e6bcd8', // mauve — hsl(320, 45%, 82%)
-  '#c7e0a3', // lime — hsl(85, 50%, 76%)
+  '#e7cfcf', // rose mist — hue 0
+  '#cea08d', // clay — hue 18
+  '#deb373', // amber — hue 36
+  '#e5d96c', // butter — hue 54
+  '#bac68b', // olive — hue 72
+  '#a8d779', // apple — hue 90
+  '#84e56c', // lawn — hue 108
+  '#bcf0c1', // mint cream — hue 126
+  '#76db9e', // jade — hue 144
+  '#89c8b5', // eucalyptus — hue 162
+  '#c4f3f3', // ice — hue 180
+  '#6fbfe2', // sky — hue 198
+  '#c2d6f4', // powder blue — hue 216
+  '#8088d0', // denim — hue 234
+  '#afa6d3', // lavender — hue 252
+  '#a86ce5', // amethyst — hue 270
+  '#c27dd4', // orchid — hue 288
+  '#e2a2db', // lilac — hue 306
+  '#de73b3', // fuchsia — hue 324
+  '#ce8da0', // dusty rose — hue 342
 ] as const;
 
 export const DASHBOARD_PASTEL_SKY_COLORS = [

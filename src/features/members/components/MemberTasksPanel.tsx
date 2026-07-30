@@ -16,6 +16,7 @@ import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-co
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
@@ -144,7 +145,9 @@ export const MemberTasksPanel = ({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <UserAvatar
+                  <PersonAvatar
+                    assigneeId={selectedAssignee.id}
+                    userId={selectedAssignee.userId}
                     name={selectedAssignee.name}
                     avatarUrl={selectedAssignee.avatar}
                     colorSeed={selectedAssignee.userId ?? selectedAssignee.id}

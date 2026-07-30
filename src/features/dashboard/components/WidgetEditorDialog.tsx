@@ -122,6 +122,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   const [includeDisabledAssignees, setIncludeDisabledAssignees] = useState(false);
   const [size, setSize] = useState<'small' | 'medium' | 'large'>('small');
   const [barPalette, setBarPalette] = useState<DashboardBarPalette>(DEFAULT_BAR_PALETTE);
+  const [useAssigneeColors, setUseAssigneeColors] = useState(true);
   const [showLegend, setShowLegend] = useState(true);
   const [milestoneView, setMilestoneView] = useState<DashboardMilestoneView>('list');
   const [milestoneCalendarMode, setMilestoneCalendarMode] = useState<DashboardMilestoneCalendarMode>('month');
@@ -201,6 +202,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       setIncludeDisabledAssignees(Boolean(initialWidget.includeDisabledAssignees));
       setSize(initialWidget.size ?? 'small');
       setBarPalette(initialWidget.barPalette ?? DEFAULT_BAR_PALETTE);
+      setUseAssigneeColors(initialWidget.useAssigneeColors ?? true);
       setShowLegend(initialWidget.showLegend ?? true);
       setMilestoneView(normalizedMilestoneView);
       setMilestoneCalendarMode(normalizedCalendarMode);
@@ -252,6 +254,9 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   const showGroupBy = isChartType;
   const showTaskFilters = isTaskWidget;
   const showAssigneeGroupingControls = showGroupBy && usesDashboardAssigneeGrouping(groupBy);
+  // With person colours on, every person is drawn in their own colour, so the
+  // palette has nobody left to paint — show it, but idle.
+  const paletteIdle = showAssigneeGroupingControls && useAssigneeColors;
   const canSave = title.trim().length > 0;
 
   const orderedStatuses = useMemo(
@@ -368,6 +373,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       period: normalizedPeriod,
       size,
       barPalette: nextIsChartType ? barPalette : undefined,
+      useAssigneeColors: nextIsChartType ? useAssigneeColors : undefined,
       showLegend: nextIsChartType ? showLegend : undefined,
       milestoneView: nextIsMilestone ? milestoneView : undefined,
       milestoneCalendarMode: nextIsMilestone ? milestoneCalendarMode : undefined,
@@ -543,8 +549,14 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
           {showGroupBy && (
             <div className="space-y-2">
               <Label>{t`Chart palette`}</Label>
+              {paletteIdle && (
+                <p className="text-xs text-muted-foreground">
+                  {t`Not used while people's colours are on.`}
+                </p>
+              )}
               <Select
                 value={barPalette}
+                disabled={paletteIdle}
                 onValueChange={(value) => setBarPalette(value as DashboardBarPalette)}
               >
                 <SelectTrigger>
@@ -571,6 +583,22 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {showAssigneeGroupingControls && (
+            <div className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">{t`People's colours`}</div>
+                <div className="text-xs text-muted-foreground">
+                  {t`Draw everyone in their own colour from workspace settings instead of the palette.`}
+                </div>
+              </div>
+              <Switch
+                checked={useAssigneeColors}
+                onCheckedChange={setUseAssigneeColors}
+                aria-label={t`People's colours`}
+              />
             </div>
           )}
 

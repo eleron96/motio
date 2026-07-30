@@ -24,6 +24,7 @@ import { normalizePastedCommentHtml } from '@/shared/lib/pastedRichText';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import {
   hasTaskCommentRichTags,
   normalizeTaskCommentEditorHtml,
@@ -832,7 +833,8 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
                   onMouseEnter={() => setMentionHighlight(idx)}
                 >
                   {/* Avatar / monogram */}
-                  <UserAvatar
+                  <PersonAvatar
+                    userId={candidate.userId}
                     name={candidate.name}
                     colorSeed={candidate.userId}
                     size="xs"
