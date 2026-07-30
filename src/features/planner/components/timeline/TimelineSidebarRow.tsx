@@ -37,7 +37,9 @@ export const resolveAssigneeMinRowHeight = (sidebarWidth: number): number => {
 };
 
 // Shared styling for the avatar-click profile popover (desktop and mobile).
-const PROFILE_POPOVER_CLASS = 'w-auto min-w-[12rem] max-w-[min(18rem,80vw)] px-5 py-4';
+// Wide enough for the enlarged photo inside AssigneeProfileCard, still capped
+// against the viewport so it never overruns a phone screen.
+const PROFILE_POPOVER_CLASS = 'w-auto min-w-[12rem] max-w-[min(28rem,92vw)] px-5 py-4';
 const AVATAR_TRIGGER_CLASS =
   'flex-shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1';
 
