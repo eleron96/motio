@@ -251,6 +251,12 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
               event.preventDefault();
               onAdd();
             }}
+            onBlur={() => {
+              // Trailing blank lines never reach the saved subtask, so drop them
+              // here instead of leaving the field stretched over empty rows.
+              const trimmed = newSubtaskTitle.trim();
+              if (trimmed !== newSubtaskTitle) onNewTitleChange(trimmed);
+            }}
             rows={1}
             placeholder={t`Subtask title`}
             disabled={subtasksSaving}

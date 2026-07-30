@@ -770,14 +770,14 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
               <div className="space-y-1.5">
                 <Label className="block">{t`Subtasks`}</Label>
                 {subtasks.length > 0 && (
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     {subtasks.map((subtask) => (
                       <div
                         key={subtask.id}
-                        className="group flex items-start gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
+                        className="group flex items-start gap-2.5"
                       >
                         <span
-                          className="mt-0.5 h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
+                          className="mt-2.5 h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
                           aria-hidden="true"
                         />
                         <AutoGrowTextarea
@@ -796,15 +796,23 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                               handleRemoveSubtask(subtask.id);
                             }
                           }}
+                          onBlur={() => {
+                            // Trailing blank lines are dropped on save anyway; shed
+                            // them here so the field stops showing phantom height.
+                            const trimmed = subtask.title.trim();
+                            if (trimmed !== subtask.title) {
+                              handleDraftSubtaskTitleChange(subtask.id, trimmed);
+                            }
+                          }}
                           rows={1}
                           placeholder={t`Subtask title`}
-                          className="min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-sm leading-snug focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="min-h-[36px] min-w-0 flex-1 text-sm"
                         />
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+                          className="mt-1.5 h-6 w-6 shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
                           onClick={() => handleRemoveSubtask(subtask.id)}
                           aria-label={t`Remove subtask`}
                         >

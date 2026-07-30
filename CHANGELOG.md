@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Подзадачи при создании задачи выглядят так же, как в открытой задаче: те же поля с рамкой и подсветкой. Лишние пустые строки в конце убираются, как только уходишь из поля, поэтому оно больше не остаётся растянутым.
 
 ## [0.9.49] - 2026-07-30
 ### Fixed
