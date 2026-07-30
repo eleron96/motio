@@ -12,7 +12,7 @@
 Plan work across people and projects on a drag-and-drop timeline,
 keep the whole team's workload visible — self-hosted, with SSO out of the box.
 
-[![Version](https://img.shields.io/badge/version-0.9.48-blue.svg)](./CHANGELOG.en.md)
+[![Version](https://img.shields.io/badge/version-0.9.49-blue.svg)](./CHANGELOG.en.md)
 [![React](https://img.shields.io/badge/React-18-61dafb.svg?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5-646cff.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
