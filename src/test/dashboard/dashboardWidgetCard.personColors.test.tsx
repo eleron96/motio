@@ -35,6 +35,7 @@ vi.mock('recharts', async () => {
 import { DashboardWidgetCard } from '@/features/dashboard/components/DashboardWidgetCard';
 import { buildPersonColorMap, TIME_OFF_PALETTE } from '@/features/planner/lib/timeOffPalette';
 import { getBarPalette } from '@/features/dashboard/lib/dashboardUtils';
+import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import type {
   DashboardAssigneeOption,
@@ -154,5 +155,103 @@ describe('DashboardWidgetCard person colours', () => {
     // Same id as a person on purpose: grouping by project must not borrow a
     // person's colour just because the ids happen to match.
     expect(swatchColors()).not.toContain(asRendered(PICKED_BLUE));
+  });
+});
+
+
+describe('DashboardWidgetCard project and status colours', () => {
+  const projects = [
+    { id: 'project-1', name: 'Alpha', color: '#3b82f6' },
+    { id: 'project-2', name: 'Beta' },
+  ];
+  const statuses = [
+    { id: 'status-1', name: 'To do', emoji: null, isFinal: false, isCancelled: false, color: '#22c55e' },
+  ];
+
+  beforeEach(() => {
+    useLocaleStore.getState().setLocale('en');
+    if (typeof globalThis.ResizeObserver === 'undefined') {
+      globalThis.ResizeObserver = class {
+        observe() {}
+        disconnect() {}
+      } as unknown as typeof ResizeObserver;
+    }
+  });
+
+  const renderProjects = (overrides: Partial<DashboardWidget> = {}) => render(
+    <DashboardWidgetCard
+      widget={widget({ groupBy: 'project', ...overrides })}
+      data={{
+        total: 6,
+        series: [
+          { name: 'Alpha', value: 3, groupId: 'project-1' },
+          { name: 'Beta', value: 2, groupId: 'project-2' },
+          { name: 'No project', value: 1, groupId: 'no-project' },
+        ],
+      }}
+      loading={false}
+      error={null}
+      editing={false}
+      projects={projects}
+      statuses={statuses}
+    />,
+  );
+
+  it('paints a project in its own colour by default', () => {
+    renderProjects();
+
+    expect(swatchColors()).toContain(asRendered('#3b82f6'));
+  });
+
+  it('marks "No project" as neutral grey rather than a project colour', () => {
+    renderProjects();
+
+    expect(swatchColors()).toContain(asRendered(DEFAULT_NEUTRAL_COLOR));
+  });
+
+  it('leaves a project without a colour on the palette', () => {
+    renderProjects();
+
+    // Beta carries no colour of its own, so it takes a palette slot.
+    const palette = getBarPalette(undefined);
+    expect(swatchColors().some((color) => palette.map(asRendered).includes(color))).toBe(true);
+  });
+
+  it('falls back to the palette entirely when the toggle is off', () => {
+    renderProjects({ useProjectColors: false });
+
+    expect(swatchColors()).not.toContain(asRendered('#3b82f6'));
+  });
+
+  it('paints a status in its own colour by default', () => {
+    render(
+      <DashboardWidgetCard
+        widget={widget({ groupBy: 'status' })}
+        data={{ total: 4, series: [{ name: 'To do', value: 4, groupId: 'status-1' }] }}
+        loading={false}
+        error={null}
+        editing={false}
+        projects={projects}
+        statuses={statuses}
+      />,
+    );
+
+    expect(swatchColors()).toContain(asRendered('#22c55e'));
+  });
+
+  it('keeps a status on the palette when its toggle is off', () => {
+    render(
+      <DashboardWidgetCard
+        widget={widget({ groupBy: 'status', useStatusColors: false })}
+        data={{ total: 4, series: [{ name: 'To do', value: 4, groupId: 'status-1' }] }}
+        loading={false}
+        error={null}
+        editing={false}
+        projects={projects}
+        statuses={statuses}
+      />,
+    );
+
+    expect(swatchColors()).not.toContain(asRendered('#22c55e'));
   });
 });

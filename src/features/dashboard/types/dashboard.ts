@@ -57,6 +57,10 @@ export type DashboardWidget = {
    * behaved when person colours shipped.
    */
   useAssigneeColors?: boolean;
+  /** Same for projects, which carry a colour of their own. Defaults to on. */
+  useProjectColors?: boolean;
+  /** Same for statuses. Defaults to on. */
+  useStatusColors?: boolean;
   showLegend?: boolean;
   milestoneView?: DashboardMilestoneView;
   milestoneCalendarMode?: DashboardMilestoneCalendarMode;

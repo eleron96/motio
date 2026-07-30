@@ -1695,6 +1695,14 @@ msgid "Drag and drop image files into the description area."
 msgstr "Drag and drop image files into the description area."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Draw every project in its own colour instead of the palette."
+msgstr "Draw every project in its own colour instead of the palette."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Draw every status in its own colour instead of the palette."
+msgstr "Draw every status in its own colour instead of the palette."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw everyone in their own colour from workspace settings instead of the palette."
 msgstr "Draw everyone in their own colour from workspace settings instead of the palette."
 
@@ -3460,8 +3468,12 @@ msgid "Not tracked"
 msgstr "Not tracked"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-msgid "Not used while people's colours are on."
-msgstr "Not used while people's colours are on."
+msgid "Not used while own colours are on."
+msgstr "Not used while own colours are on."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#~ msgid "Not used while people's colours are on."
+#~ msgstr "Not used while people's colours are on."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -3891,6 +3903,11 @@ msgstr "Project"
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Project actions"
 msgstr "Project actions"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Project colours"
+msgstr "Project colours"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -4741,6 +4758,11 @@ msgstr "Start now →"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Status"
 msgstr "Status"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Status colours"
+msgstr "Status colours"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
