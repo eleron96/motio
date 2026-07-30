@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.53] - 2026-07-30
 ### Added
 - Dashboard widgets grouped by project or by status are now drawn in those entities' own colours, the ones set in settings. The "No project" column stays grey. Widget settings carry toggles to go back to the plain palette.
 
