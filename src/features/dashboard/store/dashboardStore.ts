@@ -358,9 +358,11 @@ const normalizeWidget = (widget: Partial<DashboardWidget>): DashboardWidget => {
     groupBy: widget.groupBy ?? 'none',
     size: normalizeWidgetSize(type, widget.size),
     barPalette: hasPalette ? (widget.barPalette ?? DEFAULT_BAR_PALETTE) : undefined,
-    // Widgets saved before the toggle existed carry no flag and must keep the
-    // colours they are showing today, so the default is on.
+    // Widgets saved before a toggle existed carry no flag. Defaulting to on is
+    // what makes an entity's own colour the norm rather than an opt-in.
     useAssigneeColors: hasPalette ? (widget.useAssigneeColors ?? true) : undefined,
+    useProjectColors: hasPalette ? (widget.useProjectColors ?? true) : undefined,
+    useStatusColors: hasPalette ? (widget.useStatusColors ?? true) : undefined,
     showLegend: hasPalette ? (widget.showLegend ?? true) : undefined,
     milestoneView,
     milestoneCalendarMode,

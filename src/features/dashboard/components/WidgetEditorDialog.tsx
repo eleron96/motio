@@ -123,6 +123,8 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   const [size, setSize] = useState<'small' | 'medium' | 'large'>('small');
   const [barPalette, setBarPalette] = useState<DashboardBarPalette>(DEFAULT_BAR_PALETTE);
   const [useAssigneeColors, setUseAssigneeColors] = useState(true);
+  const [useProjectColors, setUseProjectColors] = useState(true);
+  const [useStatusColors, setUseStatusColors] = useState(true);
   const [showLegend, setShowLegend] = useState(true);
   const [milestoneView, setMilestoneView] = useState<DashboardMilestoneView>('list');
   const [milestoneCalendarMode, setMilestoneCalendarMode] = useState<DashboardMilestoneCalendarMode>('month');
@@ -203,6 +205,8 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       setSize(initialWidget.size ?? 'small');
       setBarPalette(initialWidget.barPalette ?? DEFAULT_BAR_PALETTE);
       setUseAssigneeColors(initialWidget.useAssigneeColors ?? true);
+      setUseProjectColors(initialWidget.useProjectColors ?? true);
+      setUseStatusColors(initialWidget.useStatusColors ?? true);
       setShowLegend(initialWidget.showLegend ?? true);
       setMilestoneView(normalizedMilestoneView);
       setMilestoneCalendarMode(normalizedCalendarMode);
@@ -254,9 +258,13 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   const showGroupBy = isChartType;
   const showTaskFilters = isTaskWidget;
   const showAssigneeGroupingControls = showGroupBy && usesDashboardAssigneeGrouping(groupBy);
-  // With person colours on, every person is drawn in their own colour, so the
-  // palette has nobody left to paint — show it, but idle.
-  const paletteIdle = showAssigneeGroupingControls && useAssigneeColors;
+  const showProjectColorToggle = showGroupBy && groupBy === 'project';
+  const showStatusColorToggle = showGroupBy && groupBy === 'status';
+  // While an entity's own colours are on, every series already has a colour, so
+  // the palette has nothing left to paint — show it, but idle.
+  const paletteIdle = (showAssigneeGroupingControls && useAssigneeColors)
+    || (showProjectColorToggle && useProjectColors)
+    || (showStatusColorToggle && useStatusColors);
   const canSave = title.trim().length > 0;
 
   const orderedStatuses = useMemo(
@@ -374,6 +382,8 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
       size,
       barPalette: nextIsChartType ? barPalette : undefined,
       useAssigneeColors: nextIsChartType ? useAssigneeColors : undefined,
+      useProjectColors: nextIsChartType ? useProjectColors : undefined,
+      useStatusColors: nextIsChartType ? useStatusColors : undefined,
       showLegend: nextIsChartType ? showLegend : undefined,
       milestoneView: nextIsMilestone ? milestoneView : undefined,
       milestoneCalendarMode: nextIsMilestone ? milestoneCalendarMode : undefined,
@@ -551,7 +561,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
               <Label>{t`Chart palette`}</Label>
               {paletteIdle && (
                 <p className="text-xs text-muted-foreground">
-                  {t`Not used while people's colours are on.`}
+                  {t`Not used while own colours are on.`}
                 </p>
               )}
               <Select
@@ -598,6 +608,38 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
                 checked={useAssigneeColors}
                 onCheckedChange={setUseAssigneeColors}
                 aria-label={t`People's colours`}
+              />
+            </div>
+          )}
+
+          {showProjectColorToggle && (
+            <div className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">{t`Project colours`}</div>
+                <div className="text-xs text-muted-foreground">
+                  {t`Draw every project in its own colour instead of the palette.`}
+                </div>
+              </div>
+              <Switch
+                checked={useProjectColors}
+                onCheckedChange={setUseProjectColors}
+                aria-label={t`Project colours`}
+              />
+            </div>
+          )}
+
+          {showStatusColorToggle && (
+            <div className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">{t`Status colours`}</div>
+                <div className="text-xs text-muted-foreground">
+                  {t`Draw every status in its own colour instead of the palette.`}
+                </div>
+              </div>
+              <Switch
+                checked={useStatusColors}
+                onCheckedChange={setUseStatusColors}
+                aria-label={t`Status colours`}
               />
             </div>
           )}

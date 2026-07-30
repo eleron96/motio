@@ -40,6 +40,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shar
 import {
   DashboardStatusFilter,
   DashboardAssigneeOption,
+  DashboardStatus,
   DashboardMilestone,
   DashboardOption,
   DashboardWidget,
@@ -87,6 +88,8 @@ interface DashboardWidgetCardProps {
   projects?: DashboardOption[];
   /** Only the colours are read: a person grouped series is painted in their own. */
   assignees?: DashboardAssigneeOption[];
+  /** Same, for a status grouped series. */
+  statuses?: DashboardStatus[];
   breakpoint?: DashboardBreakpoint;
   viewportProfile?: DashboardViewportProfile;
   touchInteractionMode?: boolean;
@@ -107,6 +110,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   milestones = [],
   projects = [],
   assignees = [],
+  statuses = [],
   breakpoint = 'lg',
   viewportProfile = 'desktop',
   touchInteractionMode = false,
@@ -492,39 +496,69 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     });
     return map;
   }, [hasSourceTimeSeries, isTimeSeriesChart, sourceSeries, sourceSeriesKeys]);
-  // With "person colours" on, every person is drawn in their own colour: the one
-  // picked in workspace settings, or the automatic one the calendar gives them.
-  // buildPersonColorMap is the calendar's own function, so the two views agree.
-  // Switched off, the widget palette paints everything, as it did before person
-  // colours existed.
-  const personColorBySeries = React.useMemo(() => {
+  // Each grouping can be drawn in the colours its own entities carry rather than
+  // in palette slots: people get the colour from workspace settings (or the
+  // automatic one the calendar hands them — buildPersonColorMap is the calendar's
+  // own function, so both views agree), projects and statuses get theirs from
+  // their settings. Turn the matching toggle off and the widget palette paints
+  // everything, as it did before.
+  const entityColorByGroupId = React.useMemo(() => {
+    const groupBy = widget.groupBy;
+    if (groupBy === 'assignee' && widget.useAssigneeColors !== false) {
+      return buildPersonColorMap(assignees);
+    }
+    if (groupBy === 'project' && widget.useProjectColors !== false) {
+      const map = new Map<string, string>(
+        projects
+          .filter((project) => project.color)
+          .map((project) => [project.id, project.color as string]),
+      );
+      // "No project" is an absence, not a project — grey says so.
+      map.set('no-project', DEFAULT_NEUTRAL_COLOR);
+      return map;
+    }
+    if (groupBy === 'status' && widget.useStatusColors !== false) {
+      return new Map<string, string>(
+        statuses
+          .filter((status) => status.color)
+          .map((status) => [status.id, status.color]),
+      );
+    }
+    return new Map<string, string>();
+  }, [
+    assignees,
+    projects,
+    statuses,
+    widget.groupBy,
+    widget.useAssigneeColors,
+    widget.useProjectColors,
+    widget.useStatusColors,
+  ]);
+  const entityColorBySeries = React.useMemo(() => {
     const map = new Map<string, string>();
-    if (widget.groupBy !== 'assignee' || widget.useAssigneeColors === false) return map;
-
-    const colorByAssigneeId = buildPersonColorMap(assignees);
-    if (colorByAssigneeId.size === 0) return map;
+    if (entityColorByGroupId.size === 0) return map;
 
     // Both spellings a chart may pass in: the label (bar/pie cells) and the
     // sanitized series key (line/area).
     sourceSeries.forEach((item) => {
-      const color = item.groupId ? colorByAssigneeId.get(item.groupId) : undefined;
+      const color = item.groupId ? entityColorByGroupId.get(item.groupId) : undefined;
       if (color) map.set(item.name, color);
     });
     sourceSeriesKeys.forEach((seriesKey) => {
-      const color = seriesKey.groupId ? colorByAssigneeId.get(seriesKey.groupId) : undefined;
+      const color = seriesKey.groupId ? entityColorByGroupId.get(seriesKey.groupId) : undefined;
       if (color) {
         map.set(seriesKey.key, color);
         map.set(seriesKey.label, color);
       }
     });
     return map;
-  }, [assignees, sourceSeries, sourceSeriesKeys, widget.groupBy, widget.useAssigneeColors]);
+  }, [entityColorByGroupId, sourceSeries, sourceSeriesKeys]);
   const getSeriesColor = React.useCallback((seriesNameOrKey: string, index: number) => {
-    const personColor = personColorBySeries.get(seriesNameOrKey);
-    if (personColor) return personColor;
+    const entityColor = entityColorBySeries.get(seriesNameOrKey);
+    if (entityColor) return entityColor;
     const resolvedIndex = colorIndexBySeries.get(seriesNameOrKey) ?? index;
     return paletteColors[resolvedIndex % paletteColors.length];
-  }, [colorIndexBySeries, paletteColors, personColorBySeries]);
+  }, [colorIndexBySeries, entityColorBySeries, paletteColors]);
   const chartLabelDataKey = getDashboardChartLabelDataKey(widget.type);
   const formatTooltipLabel = React.useCallback((value: string | number | undefined) => (
     formatDashboardChartTooltipLabel(widget.type, value, dateLocale)

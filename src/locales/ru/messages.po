@@ -1695,6 +1695,14 @@ msgid "Drag and drop image files into the description area."
 msgstr "Перетащите изображения в область описания."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Draw every project in its own colour instead of the palette."
+msgstr "Рисовать каждый проект его цветом, а не цветом палитры."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Draw every status in its own colour instead of the palette."
+msgstr "Рисовать каждый статус его цветом, а не цветом палитры."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw everyone in their own colour from workspace settings instead of the palette."
 msgstr "Рисовать каждого его цветом из настроек пространства, а не цветом палитры."
 
@@ -3460,8 +3468,12 @@ msgid "Not tracked"
 msgstr "Не отслеживается"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-msgid "Not used while people's colours are on."
-msgstr "Не используется, пока включены цвета людей."
+msgid "Not used while own colours are on."
+msgstr "Не используется, пока включены собственные цвета."
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#~ msgid "Not used while people's colours are on."
+#~ msgstr "Не используется, пока включены цвета людей."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -3891,6 +3903,11 @@ msgstr "Проект"
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Project actions"
 msgstr "Действия с проектом"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Project colours"
+msgstr "Цвета проектов"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -4741,6 +4758,11 @@ msgstr "Начни сейчас →"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Status"
 msgstr "Статус"
+
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetEditorDialog.tsx
+msgid "Status colours"
+msgstr "Цвета статусов"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx

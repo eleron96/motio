@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Виджеты дашборда с разбивкой по проектам и по статусам теперь сразу рисуются их собственными цветами — теми же, что в настройках. Столбец «Без проекта» остаётся серым. В настройках виджета есть переключатели, чтобы вернуть обычную палитру.
 
 ## [0.9.52] - 2026-07-30
 ### Added
