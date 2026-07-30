@@ -92,3 +92,22 @@ describe('SubtasksSection Escape handling', () => {
     expect(composer).toHaveValue('');
   });
 });
+
+describe('SubtasksSection draft trimming', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('sheds trailing blank lines from the composer on blur', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    const composer = screen.getByPlaceholderText('Subtask title');
+    await user.type(composer, 'One{Shift>}{Enter}{/Shift}Two{Shift>}{Enter}{/Shift}{Shift>}{Enter}{/Shift}');
+    expect(composer).toHaveValue('One\nTwo\n\n');
+
+    await user.tab();
+
+    expect(composer).toHaveValue('One\nTwo');
+  });
+});

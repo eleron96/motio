@@ -195,6 +195,29 @@ describe('AddTaskDialog draft subtasks', () => {
     });
   });
 
+  it('sheds trailing blank lines once the draft subtask loses focus', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AddTaskDialog
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    await screen.findByLabelText('Title *');
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+
+    const subtaskField = screen.getByPlaceholderText('Subtask title');
+    await user.type(subtaskField, 'first line{enter}second line{enter}{enter}{enter}');
+    expect(subtaskField).toHaveValue('first line\nsecond line\n\n\n');
+
+    await user.click(screen.getByLabelText('Title *'));
+
+    // Only the trailing emptiness goes; the line break inside stays.
+    expect(subtaskField).toHaveValue('first line\nsecond line');
+  });
+
   it('adds another draft subtask from the button and drops the empty ones', async () => {
     const user = userEvent.setup();
 
