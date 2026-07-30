@@ -34,6 +34,8 @@ const { plannerState, authState } = vi.hoisted(() => ({
     addTag: vi.fn(),
     updateTag: vi.fn(),
     deleteTag: vi.fn(),
+    assignees: [],
+    setAssigneeColor: vi.fn(async () => ({})),
     workspaceId: 'workspace-1',
     applyWorkspaceTemplate: vi.fn(async () => ({ error: undefined })),
     filters: { hideUnassigned: false },

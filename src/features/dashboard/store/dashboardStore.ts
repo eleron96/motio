@@ -860,7 +860,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         .order('created_at', { ascending: true }),
       supabase
         .from('assignees')
-        .select('id, name, user_id, is_active')
+        .select('id, name, user_id, is_active, color')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: true }),
       supabase
@@ -916,6 +916,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         id: row.id as string,
         name: row.name as string,
         isActive: row.is_active ?? true,
+        color: (row as { color?: string | null }).color ?? undefined,
       }));
 
     const groups = (groupsRes.data ?? []).map((row) => ({

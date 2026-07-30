@@ -88,6 +88,12 @@ export interface Assignee {
   /** Phase 4: optional contact info shown in the project-card Team popup. */
   email: string | null;
   phone: string | null;
+  /**
+   * Colour picked in workspace settings (PERSON_PRESET_COLORS), shared by the
+   * whole workspace. null means nobody chose one and the automatic calendar
+   * palette applies — see features/planner/lib/timeOffPalette.
+   */
+  color?: string | null;
 }
 
 /**

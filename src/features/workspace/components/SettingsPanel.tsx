@@ -33,6 +33,7 @@ import {
   ChevronRight,
   Building2,
   Eye,
+  Users,
   Workflow,
   LayoutTemplate,
   AlertTriangle,
@@ -47,7 +48,10 @@ import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
-import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
+import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR, PERSON_PRESET_COLORS } from '@/shared/lib/colors';
+import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { buildTimeOffColorMap } from '@/features/planner/lib/timeOffPalette';
+import { canEditPersonColor, isPersonColor } from '@/shared/lib/personColor';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsPanelProps {
@@ -57,7 +61,7 @@ interface SettingsPanelProps {
 
 import { fetchHolidayCountries, type HolidayCountryOption } from '@/infrastructure/holidays/holidayApi';
 
-type SectionId = 'general' | 'display' | 'workflow' | 'template' | 'danger';
+type SectionId = 'general' | 'display' | 'people' | 'workflow' | 'template' | 'danger';
 
 // A settings sub-block: a heading (and optional description) above its controls.
 const Block: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({
@@ -125,6 +129,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     statuses, addStatus, updateStatus, deleteStatus,
     taskTypes, addTaskType, updateTaskType, deleteTaskType,
     tags, addTag, updateTag, deleteTag,
+    assignees, setAssigneeColor,
     workspaceId,
     applyWorkspaceTemplate,
     filters,
@@ -142,6 +147,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     addTag: state.addTag,
     updateTag: state.updateTag,
     deleteTag: state.deleteTag,
+    assignees: state.assignees,
+    setAssigneeColor: state.setAssigneeColor,
     workspaceId: state.workspaceId,
     applyWorkspaceTemplate: state.applyWorkspaceTemplate,
     filters: state.filters,
@@ -194,6 +201,30 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const [heatmapSaving, setHeatmapSaving] = useState(false);
   const [heatmapCapacityInput, setHeatmapCapacityInput] = useState('');
   const [heatmapCapacitySaving, setHeatmapCapacitySaving] = useState(false);
+
+  const [savingColorId, setSavingColorId] = useState<string | null>(null);
+  const [peopleColorError, setPeopleColorError] = useState('');
+
+  const colorPeople = useMemo(() => (
+    (assignees ?? [])
+      .filter((assignee) => assignee.isActive)
+      .slice()
+      .sort((left, right) => left.name.localeCompare(right.name))
+  ), [assignees]);
+  // What each person is drawn in right now: their own colour, or the automatic
+  // one the calendar would pick. The swatch must show the colour in effect, not
+  // an empty state, or "no colour chosen" would read as "no colour at all".
+  const effectiveColorById = useMemo(() => buildTimeOffColorMap(assignees ?? []), [assignees]);
+
+  const handlePersonColorChange = async (assigneeId: string, color: string | null) => {
+    setSavingColorId(assigneeId);
+    setPeopleColorError('');
+    const result = await setAssigneeColor(assigneeId, color);
+    if (result.error) {
+      setPeopleColorError(result.error);
+    }
+    setSavingColorId(null);
+  };
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
@@ -456,6 +487,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const sections: Array<{ id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
     { id: 'general', label: t`General`, icon: Building2 },
     { id: 'display', label: t`Display`, icon: Eye },
+    { id: 'people', label: t`People`, icon: Users },
     { id: 'workflow', label: t`Workflow`, icon: Workflow },
     { id: 'template', label: t`Template`, icon: LayoutTemplate },
     { id: 'danger', label: t`Danger zone`, icon: AlertTriangle },
@@ -654,6 +686,74 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           )}
         </Block>
       )}
+    </div>
+  );
+
+  const peopleContent = (
+    <div className="space-y-5">
+      <Block
+        title={t`Colours`}
+        description={t`A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials.`}
+      >
+        {peopleColorError && (
+          <p className="text-sm text-destructive">{peopleColorError}</p>
+        )}
+        {colorPeople.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t`No people in this workspace yet.`}</p>
+        ) : (
+          <div className="space-y-1">
+            {colorPeople.map((person) => {
+              const canEditPerson = canEditPersonColor({
+                isAdmin,
+                assigneeUserId: person.userId,
+                currentUserId: user?.id,
+              });
+              const hasOwnColor = isPersonColor(person.color);
+              return (
+                <div
+                  key={person.id}
+                  className="flex items-center gap-3 rounded-md px-1.5 py-1.5 hover:bg-muted/60"
+                >
+                  <UserAvatar
+                    size="sm"
+                    name={person.name}
+                    colorSeed={person.userId ?? person.id}
+                    color={person.color}
+                    className="shrink-0"
+                  />
+                  <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                    {person.name}
+                  </span>
+                  {hasOwnColor && canEditPerson && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-7 shrink-0 px-2 text-xs text-muted-foreground hover:text-foreground"
+                      disabled={savingColorId === person.id}
+                      onClick={() => void handlePersonColorChange(person.id, null)}
+                    >
+                      {t`Auto`}
+                    </Button>
+                  )}
+                  <ColorPicker
+                    value={effectiveColorById.get(person.id) ?? PERSON_PRESET_COLORS[0]}
+                    presets={PERSON_PRESET_COLORS}
+                    allowCustom={false}
+                    disabled={!canEditPerson || savingColorId === person.id}
+                    aria-label={t`Colour of ${person.name}`}
+                    onChange={(color) => void handlePersonColorChange(person.id, color)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {!isAdmin && (
+          <p className="text-xs text-muted-foreground">
+            {t`You can change your own colour. Only an admin can recolour the rest of the team.`}
+          </p>
+        )}
+      </Block>
     </div>
   );
 
@@ -936,6 +1036,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const sectionContent: Record<SectionId, React.ReactNode> = {
     general: generalContent,
     display: displayContent,
+    people: peopleContent,
     workflow: workflowContent,
     template: templateContent,
     danger: dangerContent,

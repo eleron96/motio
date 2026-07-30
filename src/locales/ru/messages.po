@@ -249,6 +249,10 @@ msgstr "Кружок на дне; делится, если отсутствуе�
 msgid "A person you can reuse across projects."
 msgstr "Человек, которого можно переиспользовать в проектах."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials."
+msgstr "Цвет человека используется на графиках дашборда, на кружках его отпусков в календаре и за инициалами."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "A task is assigned to me"
 msgstr "Мне назначили задачу"
@@ -658,6 +662,7 @@ msgstr "Ошибка аутентификации."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Auto"
 msgstr "Авто"
 
@@ -1006,6 +1011,15 @@ msgstr "Свернуть фильтры"
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Color"
 msgstr "Цвет"
+
+#. placeholder {0}: person.name
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Colour of {0}"
+msgstr "Цвет: {0}"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Colours"
+msgstr "Цвета"
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Comment actions"
@@ -3270,6 +3284,10 @@ msgstr "Нет вариантов"
 msgid "No past milestones."
 msgstr "Нет прошедших вех."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "No people in this workspace yet."
+msgstr "В этом пространстве пока нет людей."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
@@ -3704,6 +3722,7 @@ msgstr "Ожидает"
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
 msgid "People"
 msgstr "Участники"
 
@@ -5702,6 +5721,10 @@ msgstr "Вы владелец этого рабочего пространств
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 msgstr "Вы единственный администратор в этих рабочих пространствах. Выберите преемника или удалите рабочее пространство."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "You can change your own colour. Only an admin can recolour the rest of the team."
+msgstr "Свой цвет можно менять самому. Остальным цвет меняет только администратор."
 
 #. placeholder {0}: formatRetryAfter(retryAfter)
 #: src/features/auth/components/DataExportButton.tsx

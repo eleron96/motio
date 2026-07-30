@@ -798,6 +798,7 @@ const DashboardPage = () => {
           editing={canEdit}
           milestones={milestones}
           projects={projects}
+          assignees={assignees}
           breakpoint={currentBreakpoint}
           viewportProfile={currentViewportProfile}
           touchInteractionMode={isTouchReorderMode}

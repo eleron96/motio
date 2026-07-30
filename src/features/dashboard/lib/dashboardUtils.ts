@@ -192,14 +192,16 @@ export const buildWidgetData = (
   const filtered = rows.filter((row) => (
     statusFilter.has(row.status_id) && matchesFilterGroups(row, widget.filterGroups)
   ));
-  const seriesMap = new Map<string, { name: string; value: number }>();
+  // Keyed by group id, and the id travels out with the series so a chart can
+  // paint it in the entity's own colour (see DashboardSeriesItem.groupId).
+  const seriesMap = new Map<string, { name: string; value: number; groupId: string }>();
 
   if (groupBy === 'assignee') {
     filtered.forEach((row) => {
       if (!widget.includeUnassigned && !row.assignee_id) return;
       const key = row.assignee_id ?? 'unassigned';
       const name = row.assignee_name ?? 'Unassigned';
-      const existing = seriesMap.get(key) ?? { name, value: 0 };
+      const existing = seriesMap.get(key) ?? { name, value: 0, groupId: key };
       existing.value += row.total;
       seriesMap.set(key, existing);
     });
@@ -210,7 +212,7 @@ export const buildWidgetData = (
       const name = status
         ? formatStatusLabel(status.name, status.emoji)
         : row.status_name;
-      const existing = seriesMap.get(key) ?? { name, value: 0 };
+      const existing = seriesMap.get(key) ?? { name, value: 0, groupId: key };
       existing.value += row.total;
       seriesMap.set(key, existing);
     });
@@ -220,7 +222,7 @@ export const buildWidgetData = (
       const name = row.project_id
         ? projectNameById.get(row.project_id) ?? row.project_name ?? 'No project'
         : 'No project';
-      const existing = seriesMap.get(key) ?? { name, value: 0 };
+      const existing = seriesMap.get(key) ?? { name, value: 0, groupId: key };
       existing.value += row.total;
       seriesMap.set(key, existing);
     });
@@ -228,7 +230,7 @@ export const buildWidgetData = (
     filtered.forEach((row) => {
       const key = row.task_type_id ?? 'no-type';
       const name = row.task_type_name ?? NO_TYPE_LABEL;
-      const existing = seriesMap.get(key) ?? { name, value: 0 };
+      const existing = seriesMap.get(key) ?? { name, value: 0, groupId: key };
       existing.value += row.total;
       seriesMap.set(key, existing);
     });
@@ -295,7 +297,9 @@ export const buildTimeSeriesData = (
     }
     const seriesKey = toSeriesKey(rawKey);
     if (!seriesKeysMap.has(seriesKey)) {
-      seriesKeysMap.set(seriesKey, { key: seriesKey, label });
+      // rawKey is kept as groupId: toSeriesKey flattens every non-alphanumeric
+      // character, so the id cannot be recovered from the key afterwards.
+      seriesKeysMap.set(seriesKey, { key: seriesKey, label, groupId: rawKey });
     }
     totalsByKey.set(seriesKey, (totalsByKey.get(seriesKey) ?? 0) + row.total);
     pushValue(row.bucket_date, seriesKey, row.total);
@@ -318,6 +322,7 @@ export const buildTimeSeriesData = (
   const series = seriesKeys.map((item) => ({
     name: item.label,
     value: item.total,
+    groupId: item.groupId,
   }));
 
   return { total, series, timeSeries, seriesKeys: seriesKeys.map(({ total: _total, ...rest }) => rest) };

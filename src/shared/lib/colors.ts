@@ -18,6 +18,31 @@ export const PROJECT_PRESET_COLORS = [
   '#84cc16',
 ] as const;
 
+/**
+ * Colours a person can be given in workspace settings. Deliberately the same
+ * twelve pastel hues the calendar already assigns automatically (see
+ * features/planner/lib/timeOffPalette), so a hand-picked colour is
+ * indistinguishable from an auto-assigned one — hex here, HSL there, identical
+ * values.
+ *
+ * Pastel is a requirement, not a taste: the colour becomes the background of a
+ * 28px day circle in the calendar with the day number drawn on top.
+ */
+export const PERSON_PRESET_COLORS = [
+  '#a7ccf1', // blue — hsl(210, 72%, 80%)
+  '#a0e3c2', // green — hsl(150, 55%, 76%)
+  '#f7c9a1', // orange — hsl(28, 85%, 80%)
+  '#dab8ea', // violet — hsl(280, 55%, 82%)
+  '#f4b9cc', // pink — hsl(340, 72%, 84%)
+  '#9ddae7', // teal — hsl(190, 60%, 76%)
+  '#f3e291', // yellow — hsl(50, 80%, 76%)
+  '#cabeef', // periwinkle — hsl(255, 60%, 84%)
+  '#f1bcb1', // coral — hsl(10, 70%, 82%)
+  '#b0ddb0', // sage — hsl(120, 40%, 78%)
+  '#e6bcd8', // mauve — hsl(320, 45%, 82%)
+  '#c7e0a3', // lime — hsl(85, 50%, 76%)
+] as const;
+
 export const DASHBOARD_PASTEL_SKY_COLORS = [
   '#aec6cf',
   '#ffb7c5',
