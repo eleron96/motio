@@ -10,6 +10,7 @@ import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { Input } from '@/shared/ui/input';
+import { AutoGrowTextarea } from '@/shared/ui/auto-grow-textarea';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
@@ -773,13 +774,13 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                     {subtasks.map((subtask) => (
                       <div
                         key={subtask.id}
-                        className="group flex items-center gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
+                        className="group flex items-start gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
                       >
                         <span
-                          className="h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
+                          className="mt-0.5 h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
                           aria-hidden="true"
                         />
-                        <input
+                        <AutoGrowTextarea
                           ref={(element) => {
                             if (element && focusSubtaskIdRef.current === subtask.id) {
                               element.focus();
@@ -789,18 +790,15 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                           value={subtask.title}
                           onChange={(event) => handleDraftSubtaskTitleChange(subtask.id, event.target.value)}
                           onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                              event.preventDefault();
-                              handleAddDraftSubtask();
-                              return;
-                            }
+                            // Enter breaks the line; a new subtask comes from the button below.
                             if (event.key === 'Backspace' && subtask.title === '') {
                               event.preventDefault();
                               handleRemoveSubtask(subtask.id);
                             }
                           }}
+                          rows={1}
                           placeholder={t`Subtask title`}
-                          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                          className="min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-sm leading-snug focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
                         <Button
                           type="button"
