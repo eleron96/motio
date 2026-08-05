@@ -73,3 +73,26 @@ if (typeof htmlElementProto.releasePointerCapture !== "function") {
 if (typeof htmlElementProto.scrollIntoView !== "function") {
   htmlElementProto.scrollIntoView = () => {};
 }
+
+// jsdom ships no PointerEvent, and Testing Library then falls back to a plain
+// Event — which drops clientX/clientY, so pointer-driven gestures (the mobile
+// swipe deck, the menu sheet's drag-to-dismiss) look like zero-distance moves.
+// MouseEvent already carries the coordinates; only pointerId has to be added.
+if (typeof (window as Window & { PointerEvent?: unknown }).PointerEvent !== "function") {
+  class PointerEventPolyfill extends MouseEvent {
+    readonly pointerId: number;
+    readonly pointerType: string;
+
+    constructor(type: string, params: PointerEventInit = {}) {
+      super(type, params);
+      this.pointerId = params.pointerId ?? 0;
+      this.pointerType = params.pointerType ?? "touch";
+    }
+  }
+
+  Object.defineProperty(window, "PointerEvent", {
+    writable: true,
+    configurable: true,
+    value: PointerEventPolyfill,
+  });
+}

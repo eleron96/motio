@@ -36,6 +36,8 @@ const segmentedControlItemVariants = cva(
       size: {
         xs: "h-7 px-3 text-ui-xs",
         sm: "h-8 px-3 text-ui-sm",
+        // Phone-sized: a full-height thumb target instead of a pointer one.
+        touch: "h-10 px-3 text-ui-sm",
       },
       fullWidth: {
         true: "w-full",

@@ -5,8 +5,12 @@ import { t } from '@lingui/macro';
 import { WorkspaceSwitcher } from '@/features/workspace/components/WorkspaceSwitcher';
 import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
 import { WorkspacePillNav } from '@/features/workspace/components/WorkspacePillNav';
-import { WorkspaceMobileDrawer } from '@/features/workspace/components/WorkspaceMobileDrawer';
+import { WorkspaceMobileMenuSheet } from '@/features/workspace/components/WorkspaceMobileMenuSheet';
+import { MobileWorkspacesScreen } from '@/features/workspace/components/MobileWorkspacesScreen';
+import { useMobileMenu } from '@/features/workspace/components/MobileMenuContext';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
+import { MobileNotificationsScreen } from '@/features/auth/components/MobileNotificationsScreen';
+import { useInboxFeed } from '@/features/auth/hooks/useInboxFeed';
 import { AccountBadgeButton } from '@/features/auth/components/AccountBadgeButton';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
@@ -31,21 +35,49 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const basePath = useAppBasePath();
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const { open: menuOpen, openMenu, closeMenu } = useMobileMenu();
+  const [mobileScreen, setMobileScreen] = React.useState<'workspaces' | 'notifications' | null>(null);
+  const closeScreens = React.useCallback(() => setMobileScreen(null), []);
+  // Only one inbox feed may run at a time (it owns the polling loop): the bell
+  // mounts it on desktop, the header here on mobile. The /demo sandbox has no
+  // backend, so its feed stays disabled — same as the bell being absent there.
+  const inbox = useInboxFeed({
+    enabled: isMobile && basePath === '/app',
+    onDismiss: closeScreens,
+  });
+
+  const backToMenu = React.useCallback(() => {
+    setMobileScreen(null);
+    openMenu();
+  }, [openMenu]);
 
   if (isMobile) {
     return (
       <>
         <header className="border-b border-border bg-card">
-          <WorkspacePillNav onOpenDrawer={() => setDrawerOpen(true)} />
+          <WorkspacePillNav onOpenMenu={openMenu} unreadCount={inbox.totalBadgeCount} />
         </header>
-        <WorkspaceMobileDrawer
-          open={drawerOpen}
-          onOpenChange={setDrawerOpen}
+        <WorkspaceMobileMenuSheet
+          open={menuOpen}
+          onOpenChange={(next) => (next ? openMenu() : closeMenu())}
           onOpenSettings={onOpenSettings}
           onOpenAccountSettings={onOpenAccountSettings}
+          onOpenWorkspaces={() => setMobileScreen('workspaces')}
+          onOpenNotifications={basePath === '/app' ? () => setMobileScreen('notifications') : undefined}
+          unreadCount={inbox.totalBadgeCount}
           settingsDisabled={settingsDisabled}
           showSettingsButton={showSettingsButton}
+        />
+        <MobileWorkspacesScreen
+          open={mobileScreen === 'workspaces'}
+          onOpenChange={(next) => { if (!next) closeScreens(); }}
+          onBack={backToMenu}
+        />
+        <MobileNotificationsScreen
+          open={mobileScreen === 'notifications'}
+          onOpenChange={(next) => { if (!next) closeScreens(); }}
+          onBack={backToMenu}
+          feed={inbox}
         />
         {primaryAction ? <MobileFab>{primaryAction}</MobileFab> : null}
       </>
