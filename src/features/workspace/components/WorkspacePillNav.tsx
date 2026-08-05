@@ -2,6 +2,9 @@ import React from 'react';
 import { NavLink, useMatch, useResolvedPath } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import {
   getAppNavigationItems,
   type AppNavigationItem,
@@ -31,8 +34,9 @@ const PILL_ICON_GAP = 6;
 const TRANSITION = 'width 320ms cubic-bezier(.4,.8,.3,1.05), padding 320ms cubic-bezier(.4,.8,.3,1.05), background-color 200ms ease, color 200ms ease';
 
 interface WorkspacePillNavProps {
-  onOpenDrawer: () => void;
-  hasNotification?: boolean;
+  onOpenMenu: () => void;
+  /** Unread invites + task notifications, shown as a badge on the avatar. */
+  unreadCount?: number;
   className?: string;
 }
 
@@ -78,10 +82,19 @@ const PillButton: React.FC<PillButtonProps> = ({ item, width }) => {
 };
 
 export const WorkspacePillNav: React.FC<WorkspacePillNavProps> = ({
-  onOpenDrawer,
+  onOpenMenu,
+  unreadCount = 0,
   className,
 }) => {
   const basePath = useAppBasePath();
+  const user = useAuthStore((state) => state.user);
+  const profileDisplayName = useAuthStore((state) => state.profileDisplayName);
+  const profileAvatarUrl = useAuthStore((state) => state.profileAvatarUrl);
+  const initials = getAccountInitials(
+    profileDisplayName,
+    getAccountSignedInLabel(user, t`Unknown user`),
+  );
+  const badgeLabel = unreadCount > 9 ? '9+' : String(unreadCount);
   const items = React.useMemo(() => getAppNavigationItems(basePath), [basePath]);
   const measureRef = React.useRef<HTMLDivElement | null>(null);
   const [labelWidths, setLabelWidths] = React.useState<Record<string, number>>({});
@@ -108,22 +121,40 @@ export const WorkspacePillNav: React.FC<WorkspacePillNavProps> = ({
       className={cn('flex w-full items-center px-3 py-2', className)}
       style={{ gap: GAP }}
     >
+      {/*
+        The user's own avatar opens the menu — it doubles as the account entry
+        point and carries the unread badge, so the phone header needs no separate
+        bell or account button.
+      */}
       <button
         type="button"
-        onClick={onOpenDrawer}
+        onClick={onOpenMenu}
         aria-label={t`Open menu`}
         className={cn(
-          'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full',
+          'relative inline-flex shrink-0 items-center justify-center rounded-full',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         )}
         style={{ width: ROUND, height: ROUND }}
       >
-        <img
-          src="/favicon-theme-light.png"
-          alt=""
-          className="h-full w-full object-contain"
-          draggable={false}
+        <PersonAvatar
+          userId={user?.id}
+          avatarUrl={profileAvatarUrl}
+          initials={initials}
+          colorSeed={user?.id}
+          size="md"
         />
+        {unreadCount > 0 && (
+          <>
+            <span
+              className="absolute -right-0.5 -top-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold leading-none text-destructive-foreground ring-2 ring-card"
+              aria-hidden="true"
+            >
+              {badgeLabel}
+            </span>
+            {/* The visible badge caps at 9+; the exact count is for the reader. */}
+            <span className="sr-only">{t`Unread notifications`}: {unreadCount}</span>
+          </>
+        )}
       </button>
 
       <div className="ml-auto flex items-center" style={{ gap: GAP }}>

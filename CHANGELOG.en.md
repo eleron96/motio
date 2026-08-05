@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- On a phone the menu now opens from your own avatar in the top bar, which also carries the unread count. Instead of a side drawer, a panel slides up from the bottom with large rows: workspace, workspace settings, notifications, account settings.
+- Settings open full screen on a phone: switch sections from the strip at the top or by swiping left and right, dots at the bottom show where you are, and swiping right on the first section takes you back to the menu.
+- Toggles, steppers and the language picker are bigger on a phone — sized for a thumb.
+- Notifications and workspace switching open as their own screens instead of cramped popups.
+- The phone menu closes with a flick down anywhere on the panel, not just on the grabber, so the corner close button is gone. Swiping up expands the menu to full screen, with the app version and author now shown at its bottom — the version left account settings. Tapping the version opens the latest changes.
+- "Sign out" in profile settings moved to the very bottom, became a compact button and now asks for confirmation — no more accidental taps.
+- The section dots sit higher, clear of the iPhone home indicator.
 
 ## [0.9.53] - 2026-07-30
 ### Added
