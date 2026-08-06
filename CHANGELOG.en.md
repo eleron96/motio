@@ -19,6 +19,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Picking a project when creating a task works again on a phone: the list opens as its own screen and scrolls normally, with a search box when there are many projects.
 - The create-task form no longer slides off the top of the screen when the keyboard opens — it fills the screen, and the Back arrow and the action buttons stay put.
 - Settings screens on a phone stopped drifting under the keyboard while typing.
+- The project picker also closes with a swipe to the right, not just the back arrow.
+- The Cancel and Create task buttons sit higher above the bottom edge, clear of the screen's rounded corners.
+- The task card on a phone now opens like the create form: full screen, with a back arrow, scrolling body and pinned Cancel/Done; the created/updated line moved above them.
 
 ## [0.9.53] - 2026-07-30
 ### Added
