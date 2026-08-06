@@ -7,6 +7,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 ### Changed
+- The floating buttons on a phone — add task, filters and legend — are now the same size and sit higher above the bottom edge, clear of the screen's rounded corner.
+- Status, priority, type, tags, repeat and assignees are picked on a full-screen list you can scroll with a finger, instead of dropdowns you could not scroll past.
 - On a phone the menu now opens from your own avatar in the top bar, which also carries the unread count. Instead of a side drawer, a panel slides up from the bottom with large rows: workspace, workspace settings, notifications, account settings.
 - Settings open full screen on a phone: switch sections from the strip at the top or by swiping left and right, dots at the bottom show where you are, and swiping right on the first section takes you back to the menu.
 - Toggles, steppers and the language picker are bigger on a phone — sized for a thumb.
@@ -16,6 +18,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The section dots sit higher, clear of the iPhone home indicator.
 - On a phone, swipe the top bar left or right to move between sections (Timeline, Dashboard, Projects, Team).
 ### Fixed
+- The @-mention suggestions in comments no longer open underneath the keyboard — the list moves above the line you are typing on.
+- Task fields no longer run off the right edge on a phone — the iPhone stopped zooming the page in when you start typing. The description and comments fit the screen, and the keyboard no longer covers them: the form scrolls to the field you are in.
 - Picking a project when creating a task works again on a phone: the list opens as its own screen and scrolls normally, with a search box when there are many projects.
 - The create-task form no longer slides off the top of the screen when the keyboard opens — it fills the screen, and the Back arrow and the action buttons stay put.
 - Settings screens on a phone stopped drifting under the keyboard while typing.
@@ -23,6 +27,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The Cancel and Create task buttons sit higher above the bottom edge, clear of the screen's rounded corners.
 - The task card on a phone now opens like the create form: full screen, with a back arrow, scrolling body and pinned Cancel/Done; the created/updated line moved above them.
 
+
+### Added
+- The calendar on a phone got its legend: a button in the corner opens what each mark on a day means, with switches for holidays, milestones and team time off, and a picker for whose time off to show.
 ## [0.9.53] - 2026-07-30
 ### Added
 - Dashboard widgets grouped by project or by status are now drawn in those entities' own colours, the ones set in settings. The "No project" column stays grey. Widget settings carry toggles to go back to the plain palette.
