@@ -237,7 +237,7 @@ msgstr "1 комментарий"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зарезервированных слов."
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "A circle on the day; split when several people are away."
 msgstr "Кружок на дне; делится, если отсутствует несколько человек."
 
@@ -501,6 +501,7 @@ msgstr "После окончания периода восстановлени�
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -943,6 +944,7 @@ msgid "Choose where to apply this change."
 msgstr "Выберите, к каким задачам применить это изменение."
 
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -1590,7 +1592,7 @@ msgstr "Удаление…"
 msgid "Delivered"
 msgstr "Доставлено"
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Deliveries, coloured by project."
 msgstr "Сдачи, цвет — по проекту."
 
@@ -2182,6 +2184,7 @@ msgid "Final status"
 msgstr "Финальный статус"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Find a person"
 msgstr "Найти человека"
 
@@ -2387,7 +2390,7 @@ msgstr "Календарь праздников"
 msgid "Holiday:"
 msgstr "Праздник:"
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Holidays"
 msgstr "Праздники"
 
@@ -2797,7 +2800,7 @@ msgstr "Название вехи..."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -3467,6 +3470,7 @@ msgid "No workspaces."
 msgstr "Нет воркспейсов."
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Nobody found"
 msgstr "Никого не найдено"
 
@@ -3480,7 +3484,7 @@ msgstr "Никого не найдено"
 msgid "Non-working day"
 msgstr "Нерабочий день"
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Non-working days of the country set for the workspace."
 msgstr "Нерабочие дни страны, выбранной для пространства."
 
@@ -3494,6 +3498,7 @@ msgid "Not equals"
 msgstr "Не равно"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Not on the team"
 msgstr "Не в команде"
 
@@ -3590,6 +3595,8 @@ msgstr "В понедельник я мог открыть три разные �
 #~ msgstr "В проектах"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "On the calendar"
 msgstr "На календаре"
 
@@ -3614,6 +3621,7 @@ msgid "Only for {scopedAssigneeName}"
 msgstr "Только для {scopedAssigneeName}"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Only me"
 msgstr "Только я"
 
@@ -3695,6 +3703,7 @@ msgid "Optional"
 msgstr "Необязательно"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Others are not away in this range"
 msgstr "Остальные не отсутствуют в этом диапазоне"
 
@@ -3782,6 +3791,7 @@ msgstr "Ожидает"
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -5006,7 +5016,7 @@ msgstr "Доступ команды"
 msgid "Team planning workspace."
 msgstr "Воркспейс для командного планирования."
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Team time off"
 msgstr "Выходные команды"
 
