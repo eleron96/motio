@@ -137,7 +137,7 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-0 top-2 h-6 w-6 opacity-0 group-hover:opacity-100 focus:opacity-100"
+              className="absolute right-0 top-2 h-6 w-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100"
               aria-label={t`Comment actions`}
             >
               <MoreHorizontal className="h-3.5 w-3.5" />

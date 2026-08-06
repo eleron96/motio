@@ -26,8 +26,15 @@ interface MobilePickerScreenProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   options: MobilePickerOption[];
-  value: string;
-  onValueChange: (value: string) => void;
+  /** Single mode: the chosen value. Ignored when `values` is given. */
+  value?: string;
+  onValueChange?: (value: string) => void;
+  /**
+   * Multi mode: the chosen values. Rows become checkboxes and the screen stays
+   * open as you tick them — you leave with Back.
+   */
+  values?: string[];
+  onValuesChange?: (values: string[]) => void;
   /** Show a search field above the list. */
   searchable?: boolean;
   searchPlaceholder?: string;
@@ -55,6 +62,8 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
   options,
   value,
   onValueChange,
+  values,
+  onValuesChange,
   searchable = false,
   searchPlaceholder,
   emptyLabel,
@@ -80,11 +89,26 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
     });
   }, [filter, options, query]);
 
+  const multiple = Array.isArray(values);
+
   const pick = (option: MobilePickerOption) => {
     if (option.disabled) return;
-    onValueChange(option.value);
+    if (multiple) {
+      const current = values ?? [];
+      const next = current.includes(option.value)
+        ? current.filter((item) => item !== option.value)
+        : [...current, option.value];
+      onValuesChange?.(next);
+      // Stays open: ticking several boxes in a row is the whole point.
+      return;
+    }
+    onValueChange?.(option.value);
     onOpenChange(false);
   };
+
+  const isSelected = (option: MobilePickerOption) => (
+    multiple ? (values ?? []).includes(option.value) : option.value === value
+  );
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -143,7 +167,7 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3.5 py-3 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
               {visible.map((option, index) => {
-                const selected = option.value === value;
+                const selected = isSelected(option);
                 return (
                   <React.Fragment key={option.value}>
                     {index > 0 && <div className="ml-4 h-px bg-border" />}
@@ -151,7 +175,9 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
                       type="button"
                       onClick={() => pick(option)}
                       disabled={option.disabled}
-                      aria-pressed={selected}
+                      {...(multiple
+                        ? { role: 'checkbox' as const, 'aria-checked': selected }
+                        : { 'aria-pressed': selected })}
                       className={cn(
                         'flex w-full items-center gap-3 px-4 py-3 text-left',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
@@ -173,7 +199,21 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
                       {option.note && (
                         <span className="shrink-0 text-xs text-muted-foreground">{option.note}</span>
                       )}
-                      {selected && <Check className="h-[18px] w-[18px] shrink-0 text-foreground" />}
+                      {multiple ? (
+                        // A box you tick, so it is obvious several can be on at
+                        // once — a lone check mark reads as "the chosen one".
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            'inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[7px] border-[1.5px]',
+                            selected ? 'border-primary bg-primary text-primary-foreground' : 'border-input',
+                          )}
+                        >
+                          {selected && <Check className="h-4 w-4" />}
+                        </span>
+                      ) : (
+                        selected && <Check className="h-[18px] w-[18px] shrink-0 text-foreground" />
+                      )}
                     </button>
                   </React.Fragment>
                 );
