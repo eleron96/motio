@@ -18,6 +18,7 @@ import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { buildCalendarMonths } from '@/features/planner/lib/calendarMonths';
 import { formatDateRange } from '@/features/planner/lib/dateUtils';
 import { CalendarLegendPanel } from '@/features/planner/components/timeline/CalendarLegendPanel';
+import { MobileCalendarLegendScreen } from '@/features/planner/components/timeline/MobileCalendarLegendScreen';
 import {
   buildTimeOffByDate,
   selectCalendarTimeOff,
@@ -41,11 +42,12 @@ import {
   type CalendarLegendState,
 } from '@/features/planner/lib/calendarLegendStorage';
 import { Milestone, TimeOff } from '@/features/planner/types/planner';
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDown, ArrowUp, Layers } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { buildAssigneeGroupMap, selectFilteredTasks } from '@/features/planner/lib/timelineSelectors';
@@ -106,6 +108,10 @@ export const CalendarTimeline: React.FC = () => {
   const [legendState, setLegendState] = useState<CalendarLegendState>(DEFAULT_CALENDAR_LEGEND_STATE);
   const legend = legendState.visibility;
   const legendHydratedRef = useRef(false);
+  // The legend is a column beside the grid on a desktop and a screen of its own
+  // on a phone; both read and write the same `legendState`.
+  const isMobile = useIsMobile();
+  const [mobileLegendOpen, setMobileLegendOpen] = useState(false);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -689,7 +695,10 @@ export const CalendarTimeline: React.FC = () => {
           variant="secondary"
           size="icon"
           className={cn(
-            'absolute bottom-4 right-4 shadow-md transition-all duration-200 ease-out',
+            // z-20: the day cells inside the scroller are `relative z-10`, and a
+            // floating button left on z-auto is painted — and click-blocked —
+            // by whichever week row happens to scroll under it.
+            'absolute bottom-4 right-4 z-20 shadow-md transition-all duration-200 ease-out',
             showTodayButton
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 translate-y-2 pointer-events-none'
@@ -711,7 +720,42 @@ export const CalendarTimeline: React.FC = () => {
             <ArrowDown className="h-4 w-4" />
           )}
         </Button>
+
+        {/* The way into the legend on a phone, where the side panel is hidden.
+            Opposite corner to "back to today" so the two never overlap, and it
+            stays put rather than fading with the scroll — nothing else on the
+            calendar says what the marks mean. */}
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          className="absolute bottom-4 left-4 z-20 shadow-md md:hidden"
+          onClick={() => setMobileLegendOpen(true)}
+          aria-label={t`On the calendar`}
+        >
+          <Layers className="h-4 w-4" />
+        </Button>
         </div>
+
+        <MobileCalendarLegendScreen
+          // Rotating a phone into landscape brings the desktop column back and
+          // hides the button that opened this — the screen must not outlive it.
+          open={mobileLegendOpen && isMobile}
+          onOpenChange={setMobileLegendOpen}
+          visibility={legend}
+          onToggle={handleLegendToggle}
+          showTimeOffRow={timeOffEnabled}
+          people={calendarPeople}
+          peopleColors={timeOffColors}
+          selectedPeople={legendState.people}
+          onTogglePerson={handleTogglePerson}
+          unknownPeopleIds={unknownPeopleIds}
+          onToggleUnknownPeople={handleToggleUnknownPeople}
+          hiddenPeopleCount={peopleWithoutTimeOff}
+          onShowAllPeople={handleShowAllPeople}
+          onShowOnlyMe={handleShowOnlyMe}
+          myAssigneeId={myAssigneeId}
+        />
 
         <CalendarLegendPanel
           visibility={legend}

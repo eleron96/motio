@@ -237,7 +237,7 @@ msgstr "1 comment"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "A circle on the day; split when several people are away."
 msgstr "A circle on the day; split when several people are away."
 
@@ -501,6 +501,7 @@ msgstr "After the grace period, all data (comments, tasks, profile) will be anon
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -943,6 +944,7 @@ msgid "Choose where to apply this change."
 msgstr "Choose where to apply this change."
 
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -1590,7 +1592,7 @@ msgstr "Deleting…"
 msgid "Delivered"
 msgstr "Delivered"
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Deliveries, coloured by project."
 msgstr "Deliveries, coloured by project."
 
@@ -2182,6 +2184,7 @@ msgid "Final status"
 msgstr "Final status"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Find a person"
 msgstr "Find a person"
 
@@ -2387,7 +2390,7 @@ msgstr "Holiday calendar"
 msgid "Holiday:"
 msgstr "Holiday:"
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Holidays"
 msgstr "Holidays"
 
@@ -2797,7 +2800,7 @@ msgstr "Milestone name..."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -3467,6 +3470,7 @@ msgid "No workspaces."
 msgstr "No workspaces."
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Nobody found"
 msgstr "Nobody found"
 
@@ -3480,7 +3484,7 @@ msgstr "Nobody found"
 msgid "Non-working day"
 msgstr "Non-working day"
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Non-working days of the country set for the workspace."
 msgstr "Non-working days of the country set for the workspace."
 
@@ -3494,6 +3498,7 @@ msgid "Not equals"
 msgstr "Not equals"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Not on the team"
 msgstr "Not on the team"
 
@@ -3590,6 +3595,8 @@ msgstr "On Monday I'd open three different tabs to answer one simple question: w
 #~ msgstr "On projects"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "On the calendar"
 msgstr "On the calendar"
 
@@ -3614,6 +3621,7 @@ msgid "Only for {scopedAssigneeName}"
 msgstr "Only for {scopedAssigneeName}"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Only me"
 msgstr "Only me"
 
@@ -3695,6 +3703,7 @@ msgid "Optional"
 msgstr "Optional"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Others are not away in this range"
 msgstr "Others are not away in this range"
 
@@ -3782,6 +3791,7 @@ msgstr "Pending"
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -5006,7 +5016,7 @@ msgstr "Team access"
 msgid "Team planning workspace."
 msgstr "Team planning workspace."
 
-#: src/features/planner/components/timeline/CalendarLegendPanel.tsx
+#: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Team time off"
 msgstr "Team time off"
 

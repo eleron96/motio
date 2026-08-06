@@ -43,8 +43,19 @@ export const MobileListGroup: React.FC<MobileListGroupProps> = ({ title, note, c
 
 interface MobileListRowProps {
   icon?: React.ReactNode;
+  /**
+   * Leading element rendered as-is, with no tinted tile behind it — for a colour
+   * swatch or an avatar, which carry their own shape.
+   */
+  leading?: React.ReactNode;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  /**
+   * How many lines the subtitle may take. One (the default) truncates, which is
+   * right for a value echoed back; a real sentence needs two, because a phone
+   * has no tooltip to hold the rest.
+   */
+  subtitleLines?: 1 | 2;
   /** Right-aligned secondary text (current value, count). */
   value?: React.ReactNode;
   /** Right-aligned control (switch, stepper) — rendered after `value`. */
@@ -65,8 +76,10 @@ interface MobileListRowProps {
 
 export const MobileListRow: React.FC<MobileListRowProps> = ({
   icon,
+  leading,
   title,
   subtitle,
+  subtitleLines = 1,
   value,
   right,
   badge,
@@ -90,6 +103,7 @@ export const MobileListRow: React.FC<MobileListRowProps> = ({
           {icon}
         </span>
       )}
+      {leading && <span className="flex shrink-0 items-center">{leading}</span>}
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
           <span className="truncate text-[15px] font-semibold leading-tight">{title}</span>
@@ -100,7 +114,14 @@ export const MobileListRow: React.FC<MobileListRowProps> = ({
           )}
         </span>
         {subtitle && (
-          <span className="mt-0.5 block truncate text-xs leading-snug text-muted-foreground">{subtitle}</span>
+          <span
+            className={cn(
+              'mt-0.5 block text-xs leading-snug text-muted-foreground',
+              subtitleLines === 2 ? 'line-clamp-2' : 'truncate',
+            )}
+          >
+            {subtitle}
+          </span>
         )}
       </span>
       {value != null && (

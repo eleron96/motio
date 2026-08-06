@@ -7,6 +7,7 @@ import { getPersonMonogram } from '@/shared/domain/personName';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { cn } from '@/shared/lib/classNames';
 import { isPersonShown } from '@/features/planner/lib/calendarDayMarkers';
+import { buildCalendarLegendRows } from '@/features/planner/components/timeline/calendarLegendRows';
 import { resolveTimeOffColor } from '@/features/planner/lib/timeOffPalette';
 import type {
   CalendarOverlayCategory,
@@ -44,13 +45,6 @@ const SEARCH_THRESHOLD = 10;
 
 /** Above this many the list starts folded. */
 const COLLAPSE_THRESHOLD = 8;
-
-type LegendRow = {
-  category: CalendarOverlayCategory;
-  label: string;
-  hint: string;
-  swatch: React.ReactNode;
-};
 
 /**
  * The legend on the right of the calendar: what each mark means, and a checkbox
@@ -100,41 +94,7 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
     : people.filter((person) => selectedPeople.includes(person.id)).length
       + (unknownPeopleIds.length > 0 && unknownShown ? 1 : 0);
 
-  const rows: LegendRow[] = [
-    {
-      category: 'holidays',
-      label: t`Holidays`,
-      hint: t`Non-working days of the country set for the workspace.`,
-      swatch: <span className="h-3.5 w-3.5 rounded-full bg-rose-200/70 ring-1 ring-border" />,
-    },
-    {
-      category: 'milestones',
-      label: t`Milestones`,
-      hint: t`Deliveries, coloured by project.`,
-      swatch: (
-        <span className="flex h-3.5 w-3.5 items-center justify-center gap-px">
-          <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-        </span>
-      ),
-    },
-  ];
-
-  if (showTimeOffRow) {
-    rows.push({
-      category: 'timeOff',
-      label: t`Team time off`,
-      hint: t`A circle on the day; split when several people are away.`,
-      swatch: (
-        <span
-          className="h-3.5 w-3.5 rounded-full ring-1 ring-border"
-          style={{
-            background: 'conic-gradient(from 0deg, hsl(210, 72%, 80%) 0deg 180deg, hsl(150, 55%, 76%) 181deg 360deg)',
-          }}
-        />
-      ),
-    });
-  }
+  const rows = buildCalendarLegendRows(showTimeOffRow);
 
   // Nested under its own checkbox rather than parked at the bottom of the
   // panel: the list only makes sense for that category, and a separate section
