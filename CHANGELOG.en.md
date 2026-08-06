@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.54] - 2026-08-06
 ### Changed
 - The floating buttons on a phone — add task, filters and legend — are now the same size and sit higher above the bottom edge, clear of the screen's rounded corner.
 - Status, priority, type, tags, repeat and assignees are picked on a full-screen list you can scroll with a finger, instead of dropdowns you could not scroll past.
@@ -30,6 +32,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 - The calendar on a phone got its legend: a button in the corner opens what each mark on a day means, with switches for holidays, milestones and team time off, and a picker for whose time off to show.
+
 ## [0.9.53] - 2026-07-30
 ### Added
 - Dashboard widgets grouped by project or by status are now drawn in those entities' own colours, the ones set in settings. The "No project" column stays grey. Widget settings carry toggles to go back to the plain palette.
