@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { ResponsiveSelect } from '@/shared/ui/responsive-select';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
@@ -891,64 +891,56 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5 min-w-0">
               <Label>{t`Status`}</Label>
-              <Select
+              <ResponsiveSelect
                 value={statusId}
                 onValueChange={(value) => {
                   markChanged();
                   setStatusId(value);
                 }}
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder={t`Select status`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {statuses.map(s => (
-                    <SelectItem key={s.id} value={s.id}>{formatStatusLabel(s.name, s.emoji)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                title={t`Status`}
+                placeholder={t`Select status`}
+                triggerClassName="bg-background"
+                options={statuses.map((s) => ({
+                  value: s.id,
+                  label: formatStatusLabel(s.name, s.emoji),
+                }))}
+              />
             </div>
 
             <div className="space-y-1.5 min-w-0">
               <Label>{t`Priority`}</Label>
-              <Select
+              <ResponsiveSelect
                 value={priority}
                 onValueChange={(value) => {
                   markChanged();
                   setPriority(value as TaskPriority | 'none');
                 }}
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder={t`Select priority`} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{t`No priority`}</SelectItem>
-                  <SelectItem value="low">{t`Low`}</SelectItem>
-                  <SelectItem value="medium">{t`Medium`}</SelectItem>
-                  <SelectItem value="high">{t`High`}</SelectItem>
-                </SelectContent>
-              </Select>
+                title={t`Priority`}
+                placeholder={t`Select priority`}
+                triggerClassName="bg-background"
+                options={[
+                  { value: 'none', label: t`No priority` },
+                  { value: 'low', label: t`Low` },
+                  { value: 'medium', label: t`Medium` },
+                  { value: 'high', label: t`High` },
+                ]}
+              />
             </div>
           </div>
 
           <div className="space-y-1.5">
             <Label>{t`Type`}</Label>
-            <Select
+            <ResponsiveSelect
               value={typeId}
               onValueChange={(value) => {
                 markChanged();
                 setTypeId(value);
               }}
-            >
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder={t`Select type`} />
-              </SelectTrigger>
-              <SelectContent>
-                {taskTypes.map(t => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              title={t`Type`}
+              placeholder={t`Select type`}
+              triggerClassName="bg-background"
+              options={taskTypes.map((type) => ({ value: type.id, label: type.name }))}
+            />
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">

@@ -2,7 +2,7 @@ import React from 'react';
 import { t } from '@lingui/macro';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { ResponsiveSelect } from '@/shared/ui/responsive-select';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
@@ -53,18 +53,18 @@ export const TimeOffFields: React.FC<TimeOffFieldsProps> = ({
           {t`Person`}
         </Label>
         {canPickAssignee ? (
-          <Select value={assigneeId} onValueChange={onAssigneeChange}>
-            <SelectTrigger id={`${idPrefix}-assignee`}>
-              <SelectValue placeholder={t`Select a person`} />
-            </SelectTrigger>
-            <SelectContent>
-              {assignees.map((assignee) => (
-                <SelectItem key={assignee.id} value={assignee.id}>
-                  {assignee.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ResponsiveSelect
+            value={assigneeId}
+            onValueChange={onAssigneeChange}
+            title={t`Person`}
+            placeholder={t`Select a person`}
+            searchPlaceholder={t`Search people`}
+            triggerId={`${idPrefix}-assignee`}
+            options={assignees.map((assignee) => ({
+              value: assignee.id,
+              label: assignee.name,
+            }))}
+          />
         ) : (
           <div
             id={`${idPrefix}-assignee`}

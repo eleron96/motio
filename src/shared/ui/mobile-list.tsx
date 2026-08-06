@@ -52,6 +52,11 @@ interface MobileListRowProps {
   /** Unread-style counter next to the title. */
   badge?: number;
   chevron?: boolean;
+  /**
+   * Set on rows that are options in a single-choice list — a tick alone is
+   * decoration a screen reader never announces.
+   */
+  selected?: boolean;
   onClick?: () => void;
   tone?: 'default' | 'danger';
   disabled?: boolean;
@@ -66,6 +71,7 @@ export const MobileListRow: React.FC<MobileListRowProps> = ({
   right,
   badge,
   chevron,
+  selected,
   onClick,
   tone = 'default',
   disabled,
@@ -126,6 +132,7 @@ export const MobileListRow: React.FC<MobileListRowProps> = ({
       type="button"
       onClick={onClick}
       disabled={disabled}
+      {...(selected === undefined ? {} : { 'aria-pressed': selected })}
       className={cn(
         rowClassName,
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',

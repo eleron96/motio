@@ -28,7 +28,7 @@ import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { ResponsiveSelect } from '@/shared/ui/responsive-select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -829,60 +829,54 @@ export const TaskDetailPanel: React.FC = () => {
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5 min-w-0">
               <Label>{t`Status`}</Label>
-              <Select
+              <ResponsiveSelect
                 value={task.statusId}
                 onValueChange={(v) => handleUpdate('statusId', v)}
                 disabled={isReadOnly}
-              >
-                <SelectTrigger className="min-w-0 overflow-hidden whitespace-nowrap bg-background text-left">
-                  <SelectValue placeholder={t`Select status`} className="truncate text-left" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statuses.map(s => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <span className="truncate">{formatStatusLabel(s.name, s.emoji)}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                title={t`Status`}
+                placeholder={t`Select status`}
+                triggerClassName="min-w-0 overflow-hidden whitespace-nowrap bg-background text-left"
+                valueClassName="truncate text-left"
+                itemLabelClassName="truncate"
+                options={statuses.map((s) => ({
+                  value: s.id,
+                  label: formatStatusLabel(s.name, s.emoji),
+                }))}
+              />
             </div>
 
             <div className="space-y-1.5 min-w-0">
               <Label>{t`Priority`}</Label>
-              <Select
+              <ResponsiveSelect
                 value={task.priority ?? 'none'}
                 onValueChange={(value) => handleUpdate('priority', value === 'none' ? null : (value as TaskPriority))}
                 disabled={isReadOnly}
-              >
-                <SelectTrigger className="bg-background text-left">
-                  <SelectValue placeholder={t`Select priority`} className="truncate text-left" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">{t`No priority`}</SelectItem>
-                  <SelectItem value="low">{t`Low`}</SelectItem>
-                  <SelectItem value="medium">{t`Medium`}</SelectItem>
-                  <SelectItem value="high">{t`High`}</SelectItem>
-                </SelectContent>
-              </Select>
+                title={t`Priority`}
+                placeholder={t`Select priority`}
+                triggerClassName="bg-background text-left"
+                valueClassName="truncate text-left"
+                options={[
+                  { value: 'none', label: t`No priority` },
+                  { value: 'low', label: t`Low` },
+                  { value: 'medium', label: t`Medium` },
+                  { value: 'high', label: t`High` },
+                ]}
+              />
             </div>
           </div>
 
           <div className="space-y-1.5">
             <Label>{t`Type`}</Label>
-            <Select
+            <ResponsiveSelect
               value={task.typeId}
               onValueChange={(v) => handleUpdate('typeId', v)}
               disabled={isReadOnly}
-            >
-              <SelectTrigger className="bg-background text-left">
-                <SelectValue placeholder={t`Select type`} className="truncate text-left" />
-              </SelectTrigger>
-              <SelectContent>
-                {taskTypes.map(t => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              title={t`Type`}
+              placeholder={t`Select type`}
+              triggerClassName="bg-background text-left"
+              valueClassName="truncate text-left"
+              options={taskTypes.map((type) => ({ value: type.id, label: type.name }))}
+            />
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
