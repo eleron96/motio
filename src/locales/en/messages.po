@@ -607,6 +607,8 @@ msgstr "Archive"
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -706,6 +708,8 @@ msgstr "Away: {0} of {1}"
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
+#: src/shared/ui/mobile-form-screen.tsx
+#: src/shared/ui/mobile-picker-screen.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
 msgid "Back"
 msgstr "Back"
@@ -942,6 +946,7 @@ msgstr "Choose where to apply this change."
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
+#: src/shared/ui/mobile-picker-screen.tsx
 msgid "Clear"
 msgstr "Clear"
 
@@ -3332,6 +3337,8 @@ msgstr "No priority"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
@@ -3348,6 +3355,7 @@ msgstr "No projects assigned to this customer."
 msgid "No projects for this member."
 msgstr "No projects for this member."
 
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 msgid "No projects found"
 msgstr "No projects found"
@@ -3509,6 +3517,10 @@ msgstr "Notes"
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "Nothing due today."
 msgstr "Nothing due today."
+
+#: src/shared/ui/mobile-picker-screen.tsx
+msgid "Nothing found"
+msgstr "Nothing found"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Nothing matches the current filters."
@@ -3909,6 +3921,7 @@ msgstr "Progress: {0} / {1}"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
@@ -4298,6 +4311,10 @@ msgstr "Scheduled for"
 #~ msgid "Scroll right"
 #~ msgstr "Scroll right"
 
+#: src/shared/ui/mobile-picker-screen.tsx
+msgid "Search"
+msgstr "Search"
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -4356,6 +4373,7 @@ msgstr "Search notes..."
 msgid "Search people..."
 msgstr "Search people..."
 
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Search projects"

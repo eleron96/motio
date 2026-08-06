@@ -5,6 +5,7 @@ import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
 import { MobileSwipeDeck } from '@/shared/ui/mobile-swipe-deck';
+import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
 
 export interface MobileStackSection {
   id: string;
@@ -51,6 +52,7 @@ export const MobileStackScreen: React.FC<MobileStackScreenProps> = ({
   onActiveChange,
   className,
 }) => {
+  const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
   const activeIndex = Math.max(0, sections.findIndex((section) => section.id === activeId));
   const single = sections.length <= 1;
   const items: MobilePillSubnavItem[] = sections.map((section) => ({
@@ -71,11 +73,19 @@ export const MobileStackScreen: React.FC<MobileStackScreenProps> = ({
           {...(description ? {} : { 'aria-describedby': undefined })}
           className={cn(
             // Opaque on purpose: the screen covers the app, it doesn't tint it.
-            'fixed inset-0 z-50 flex flex-col bg-muted outline-none',
+            'fixed inset-x-0 z-50 flex flex-col bg-muted outline-none',
             'duration-300 data-[state=closed]:animate-out data-[state=open]:animate-in',
             'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
             className,
           )}
+          style={{
+            // Bottom-anchored to the visual viewport: these sections carry text
+            // fields (workspace name, holiday country), and with a top anchor
+            // iOS would push the header — and the way back — off the screen.
+            bottom: keyboardOffset,
+            height: viewportHeight ? `${viewportHeight}px` : '100svh',
+            transition: 'bottom 150ms ease-out',
+          }}
         >
           {/* min-h, not h: where the top inset is non-zero (installed PWA) a
               fixed height would let the notch eat the row instead of moving it
