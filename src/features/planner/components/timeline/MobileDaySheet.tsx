@@ -4,6 +4,7 @@ import { t } from '@lingui/macro';
 import { format } from 'date-fns';
 import type { Locale } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/shared/ui/sheet';
+import { useSheetDragDismiss } from '@/shared/hooks/useSheetDragDismiss';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatDateRange } from '@/features/planner/lib/dateUtils';
@@ -72,6 +73,7 @@ export const MobileDaySheet: React.FC<MobileDaySheetProps> = ({
 }) => {
   const visibleMilestones = showMilestones ? milestones : [];
   const visibleHolidays = showHolidays ? holidayNames : [];
+  const drag = useSheetDragDismiss(() => onOpenChange(false));
 
   return (
     <Sheet open={day !== null} onOpenChange={onOpenChange}>
@@ -79,8 +81,10 @@ export const MobileDaySheet: React.FC<MobileDaySheetProps> = ({
         side="bottom"
         hideCloseButton
         className="max-h-[85svh] gap-0 overflow-y-auto overscroll-contain rounded-t-2xl p-0 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
+        style={drag.style}
+        {...drag.handlers}
       >
-        {/* A grabber instead of a corner X: the sheet is dismissed by swiping
+        {/* A grabber instead of a corner X: the sheet is dismissed by dragging
             it down or tapping outside, the way every other sheet here is. */}
         <div className="sticky top-0 z-10 bg-background pt-2">
           <div aria-hidden="true" className="mx-auto h-1 w-9 rounded-full bg-border" />
