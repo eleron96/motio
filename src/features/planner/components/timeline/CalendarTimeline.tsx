@@ -722,19 +722,19 @@ export const CalendarTimeline: React.FC = () => {
         </Button>
 
         {/* The way into the legend on a phone, where the side panel is hidden.
-            Opposite corner to "back to today" so the two never overlap, and it
-            stays put rather than fading with the scroll — nothing else on the
-            calendar says what the marks mean. */}
-        <Button
+            Same round card button as "filters" on the timeline, in the same
+            bottom-left corner: on this view that corner is free (the filter and
+            add buttons are hidden), so the two never collide and the thumb keeps
+            one habit across views. It stays put rather than fading with the
+            scroll — nothing else on the calendar says what the marks mean. */}
+        <button
           type="button"
-          variant="secondary"
-          size="icon"
-          className="absolute bottom-4 left-4 z-20 shadow-md md:hidden"
           onClick={() => setMobileLegendOpen(true)}
           aria-label={t`On the calendar`}
+          className="absolute bottom-4 left-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent md:hidden"
         >
-          <Layers className="h-4 w-4" />
-        </Button>
+          <Layers className="h-5 w-5 text-muted-foreground" />
+        </button>
         </div>
 
         <MobileCalendarLegendScreen
