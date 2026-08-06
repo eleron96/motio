@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.55] - 2026-08-06
 ### Fixed
 - Dialogs on a phone got rounded corners, and the close and overflow buttons in their corner got a proper tap target.
 - On a phone the project name no longer breaks in the middle of a word — it takes a line of its own, the full width of the card.
@@ -18,6 +19,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 - Filters open as a screen of their own on a phone: bigger rows and search fields, a count on every section, and sections with a selection already open.
+
 ## [0.9.54] - 2026-08-06
 ### Changed
 - The floating buttons on a phone — add task, filters and legend — are now the same size and sit higher above the bottom edge, clear of the screen's rounded corner.
