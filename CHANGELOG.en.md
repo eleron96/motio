@@ -14,6 +14,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The phone menu closes with a flick down anywhere on the panel, not just on the grabber, so the corner close button is gone. Swiping up expands the menu to full screen, with the app version and author now shown at its bottom — the version left account settings. Tapping the version opens the latest changes.
 - "Sign out" in profile settings moved to the very bottom, became a compact button and now asks for confirmation — no more accidental taps.
 - The section dots sit higher, clear of the iPhone home indicator.
+- On a phone, swipe the top bar left or right to move between sections (Timeline, Dashboard, Projects, Team).
 
 ## [0.9.53] - 2026-07-30
 ### Added

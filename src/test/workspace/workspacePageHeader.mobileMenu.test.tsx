@@ -228,6 +228,45 @@ describe('WorkspacePageHeader mobile menu', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
+  it('switches sections with a horizontal swipe on the header', async () => {
+    useIsMobileMock.mockReturnValue(true);
+
+    renderHeader('/app');
+    const nav = screen.getByTestId('mobile-pill-nav');
+
+    // Swipe left → next section.
+    fireEvent.pointerDown(nav, { pointerId: 1, clientX: 300, clientY: 40 });
+    fireEvent.pointerMove(nav, { pointerId: 1, clientX: 200, clientY: 40 });
+    fireEvent.pointerUp(nav, { pointerId: 1, clientX: 200, clientY: 40 });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent(/^\/app\/dashboard$/);
+    });
+
+    // Swipe right → back to the first section.
+    fireEvent.pointerDown(nav, { pointerId: 1, clientX: 200, clientY: 40 });
+    fireEvent.pointerMove(nav, { pointerId: 1, clientX: 320, clientY: 40 });
+    fireEvent.pointerUp(nav, { pointerId: 1, clientX: 320, clientY: 40 });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location')).toHaveTextContent(/^\/app$/);
+    });
+
+    // Swipe right on the first section — nowhere to go, stays put.
+    fireEvent.pointerDown(nav, { pointerId: 1, clientX: 200, clientY: 40 });
+    fireEvent.pointerMove(nav, { pointerId: 1, clientX: 320, clientY: 40 });
+    fireEvent.pointerUp(nav, { pointerId: 1, clientX: 320, clientY: 40 });
+
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/app$/);
+
+    // A short wobble is a tap, not a swipe.
+    fireEvent.pointerDown(nav, { pointerId: 1, clientX: 300, clientY: 40 });
+    fireEvent.pointerMove(nav, { pointerId: 1, clientX: 260, clientY: 40 });
+    fireEvent.pointerUp(nav, { pointerId: 1, clientX: 260, clientY: 40 });
+
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/app$/);
+  });
+
   it('expands to full screen on a swipe up and shows the app version at the bottom', async () => {
     useIsMobileMock.mockReturnValue(true);
     const user = userEvent.setup();
