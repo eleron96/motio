@@ -19,6 +19,7 @@ import { buildCalendarMonths } from '@/features/planner/lib/calendarMonths';
 import { formatDateRange } from '@/features/planner/lib/dateUtils';
 import { CalendarLegendPanel } from '@/features/planner/components/timeline/CalendarLegendPanel';
 import { MobileCalendarLegendScreen } from '@/features/planner/components/timeline/MobileCalendarLegendScreen';
+import { MobileDaySheet } from '@/features/planner/components/timeline/MobileDaySheet';
 import {
   buildTimeOffByDate,
   selectCalendarTimeOff,
@@ -112,6 +113,8 @@ export const CalendarTimeline: React.FC = () => {
   // on a phone; both read and write the same `legendState`.
   const isMobile = useIsMobile();
   const [mobileLegendOpen, setMobileLegendOpen] = useState(false);
+  /** The day whose sheet is open on a phone; null when nothing is open. */
+  const [daySheetDate, setDaySheetDate] = useState<Date | null>(null);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -437,6 +440,31 @@ export const CalendarTimeline: React.FC = () => {
     setMilestoneDialogOpen(true);
   }, [canEdit]);
 
+  // Everything the day sheet shows, looked up once for the open day. The cell
+  // loop cannot hand it over — the sheet lives outside the grid so that closing
+  // it does not depend on which month is still mounted.
+  const daySheetKey = daySheetDate ? format(daySheetDate, 'yyyy-MM-dd') : null;
+  const daySheetData = daySheetKey
+    ? {
+      counts: taskCounts.get(daySheetKey) ?? { total: 0, mine: 0 },
+      milestones: milestonesByDate.get(daySheetKey) ?? [],
+      timeOff: timeOffByDate.get(daySheetKey) ?? [],
+      holidayNames: holidayMap[daySheetKey] ?? [],
+    }
+    : { counts: { total: 0, mine: 0 }, milestones: [], timeOff: [], holidayNames: [] };
+
+  const closeDaySheet = useCallback(() => setDaySheetDate(null), []);
+
+  // Rotating a phone into landscape brings the desktop layout back and takes
+  // away both affordances that opened these — so neither may outlive it. Clear
+  // the state rather than just hiding: a hidden-but-still-set layer springs back
+  // the moment the phone is turned upright again.
+  useEffect(() => {
+    if (isMobile) return;
+    setDaySheetDate(null);
+    setMobileLegendOpen(false);
+  }, [isMobile]);
+
   return (
     <div className="flex h-full flex-1 min-h-0 overflow-hidden">
         <div className="relative flex-1 min-h-0">
@@ -505,7 +533,12 @@ export const CalendarTimeline: React.FC = () => {
                               <div
                                 key={key}
                                 className="relative flex h-11 w-9 flex-col items-center justify-start pt-0.5"
-                                onDoubleClick={inMonth ? () => handleDateClick(day) : undefined}
+                                // A phone gets a plain tap that opens the day sheet, and no
+                                // double-tap: the first tap already switches the view, so the
+                                // second one would land on a calendar that is no longer there —
+                                // and iOS reads a double-tap as zoom before anything else.
+                                onClick={isMobile && inMonth ? () => setDaySheetDate(day) : undefined}
+                                onDoubleClick={!isMobile && inMonth ? () => handleDateClick(day) : undefined}
                               >
                                 {legend.holidays && isHoliday && (
                                   <div
@@ -740,10 +773,27 @@ export const CalendarTimeline: React.FC = () => {
         </button>
         </div>
 
+        <MobileDaySheet
+          day={daySheetDate}
+          onOpenChange={(open) => { if (!open) closeDaySheet(); }}
+          counts={daySheetData.counts}
+          milestones={daySheetData.milestones}
+          showMilestones={legend.milestones}
+          timeOff={daySheetData.timeOff}
+          holidayNames={daySheetData.holidayNames}
+          showHolidays={legend.holidays}
+          projectById={projectById}
+          assigneeById={assigneeById}
+          timeOffColors={timeOffColors}
+          dateLocale={dateLocale}
+          canEdit={canEdit}
+          onOpenDay={(day) => { closeDaySheet(); handleDateClick(day); }}
+          onEditMilestone={(milestone) => { closeDaySheet(); handleEditMilestone(milestone); }}
+          onCreateMilestone={(day) => { closeDaySheet(); handleCreateMilestoneOnDate(day); }}
+        />
+
         <MobileCalendarLegendScreen
-          // Rotating a phone into landscape brings the desktop column back and
-          // hides the button that opened this — the screen must not outlive it.
-          open={mobileLegendOpen && isMobile}
+          open={mobileLegendOpen}
           onOpenChange={setMobileLegendOpen}
           visibility={legend}
           onToggle={handleLegendToggle}

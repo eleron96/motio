@@ -31,6 +31,10 @@ interface FilterSectionProps {
   collapsed?: boolean;
   disabled?: boolean;
   compact?: boolean;
+  /** Phone sizing: thumb-sized header, roomier body. */
+  touch?: boolean;
+  /** How many options in this section are picked; shown next to the title. */
+  count?: number;
 }
 
 const FilterSection: React.FC<FilterSectionProps> = ({
@@ -41,6 +45,8 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   collapsed = false,
   disabled = false,
   compact = false,
+  touch = false,
+  count = 0,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -52,8 +58,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     );
   }
 
-  const headerPadding = compact ? 'px-3 py-2' : 'px-4 py-3';
-  const bodyPadding = compact ? 'px-3 pb-2 space-y-1' : 'px-4 pb-3 space-y-2';
+  const headerPadding = touch ? 'px-4 py-3.5 min-h-14' : compact ? 'px-3 py-2' : 'px-4 py-3';
+  const bodyPadding = touch
+    ? 'px-4 pb-3 space-y-1'
+    : compact ? 'px-3 pb-2 space-y-1' : 'px-4 pb-3 space-y-2';
 
   return (
     <div className="border-b border-border last:border-b-0">
@@ -61,12 +69,22 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
+        aria-expanded={isOpen}
         className={`flex items-center gap-2 w-full ${headerPadding} transition-colors text-left ${
           disabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent'
         }`}
       >
         {icon}
-        <span className="text-sm font-medium flex-1">{title}</span>
+        <span className={`flex-1 ${touch ? 'text-[15px] font-semibold' : 'text-sm font-medium'}`}>
+          {title}
+        </span>
+        {/* A folded section otherwise hides its own state: the count is the only
+            thing saying "there is something picked in here". */}
+        {count > 0 && (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold leading-none text-primary-foreground">
+            {count}
+          </span>
+        )}
         {isOpen ? (
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         ) : (
@@ -86,11 +104,31 @@ interface FilterPanelProps {
   collapsed: boolean;
   onToggle: () => void;
   compact?: boolean;
+  /**
+   * Phone mode: thumb-sized rows and fields, no collapse chevron (the screen
+   * around it owns the way back), and no inner scroller of its own.
+   */
+  touch?: boolean;
 }
 
 const normalizeQuery = (value: string) => value.trim().toLowerCase();
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, compact = false }) => {
+/**
+ * Stand-in for ScrollArea where the host already scrolls. Radix's scroller adds
+ * a viewport with its own `overflow` and a `touch-none` scrollbar — nesting that
+ * inside a scrolling screen is how a list ends up refusing the finger.
+ */
+const PlainBody: React.FC<{ className?: string; children: React.ReactNode }> = ({
+  className,
+  children,
+}) => <div className={className}>{children}</div>;
+
+export const FilterPanel: React.FC<FilterPanelProps> = ({
+  collapsed,
+  onToggle,
+  compact = false,
+  touch = false,
+}) => {
   const {
     projects,
     trackedProjectIds,
@@ -184,6 +222,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
     filters.typeIds.length > 0 ||
     filters.tagIds.length > 0;
   
+  // Phone sizing, applied at every call site below so the six sections cannot
+  // drift apart. `h-7 text-xs` is a pointer size; a finger needs the whole row.
+  const searchInputClass = touch ? 'h-11 rounded-xl text-sm' : 'h-7 text-xs';
+  const checkboxClass = touch ? 'h-5 w-5' : undefined;
+  const rowClass = (enabled: boolean) => (
+    touch
+      ? `flex items-center gap-3 py-2.5 min-h-11 ${enabled ? 'cursor-pointer active:bg-muted/60' : 'cursor-not-allowed opacity-60'}`
+      : `flex items-center gap-2 py-1 ${enabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`
+  );
+
   const toggleFilter = (
     type: 'projectIds' | 'assigneeIds' | 'groupIds' | 'statusIds' | 'typeIds' | 'tagIds',
     id: string,
@@ -244,44 +292,69 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
     );
   }
   
+  // A phone hands this to a screen that already scrolls and already has a back
+  // arrow, so the panel drops its own scroller, its sidebar border and its
+  // collapse chevron rather than stacking a second set on top.
+  const Body = touch ? PlainBody : ScrollArea;
+
   return (
-    <div className="w-full border-r border-border bg-card flex flex-col h-full transition-all duration-200">
-      <div className={`flex items-center justify-between border-b border-border ${compact ? 'px-3 py-2' : 'px-4 py-3'}`}>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4" />
-          <span className="font-semibold text-sm">{t`Filters`}</span>
+    <div
+      className={`w-full bg-card flex flex-col ${
+        touch ? 'min-h-full' : 'border-r border-border h-full transition-all duration-200'
+      }`}
+    >
+      {/* On a phone this row is the "clear" bar, not a title bar — the screen
+          above already says "Filters". */}
+      {(!touch || hasActiveFilters) && (
+        <div
+          className={`flex items-center justify-between border-b border-border ${
+            touch ? 'px-4 py-2.5' : compact ? 'px-3 py-2' : 'px-4 py-3'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            <span className="font-semibold text-sm">
+              {touch ? t`Filter applied` : t`Filters`}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilterCriteria}
+                className={touch
+                  ? 'h-10 rounded-xl px-3 text-sm text-muted-foreground'
+                  : 'h-7 px-2 text-xs text-muted-foreground hover:text-foreground'}
+              >
+                {t`Clear`}
+              </Button>
+            )}
+            {!touch && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onToggle}
+                className="h-7 w-7"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilterCriteria}
-              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-            >
-              {t`Clear`}
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggle}
-            className="h-7 w-7"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <ScrollArea className="flex-1">
+      )}
+
+      <Body className="flex-1">
         <FilterSection
           title={t`Projects`}
           icon={<FolderKanban className="w-4 h-4 text-muted-foreground" />}
-          defaultOpen={false}
+          defaultOpen={filters.projectIds.length > 0}
           compact={compact}
+          touch={touch}
+          count={filters.projectIds.length}
         >
           <Input
-            className="h-7 text-xs"
+            className={searchInputClass}
             placeholder={t`Search projects...`}
             value={projectQuery}
             onChange={(event) => setProjectQuery(event.target.value)}
@@ -295,9 +368,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
           {filteredProjects.map(project => (
             <label
               key={project.id}
-              className="flex items-center gap-2 py-1 cursor-pointer"
+              className={rowClass(true)}
             >
               <Checkbox
+                className={checkboxClass}
                 checked={filters.projectIds.includes(project.id)}
                 onCheckedChange={() => toggleFilter('projectIds', project.id)}
               />
@@ -323,12 +397,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
         <FilterSection
           title={t`People`}
           icon={<Users className="w-4 h-4 text-muted-foreground" />}
-          defaultOpen={false}
+          defaultOpen={filters.assigneeIds.length > 0}
           disabled={isCalendarView}
           compact={compact}
+          touch={touch}
+          count={filters.assigneeIds.length}
         >
           <Input
-            className="h-7 text-xs"
+            className={searchInputClass}
             placeholder={t`Search people...`}
             value={peopleQuery}
             onChange={(event) => setPeopleQuery(event.target.value)}
@@ -343,11 +419,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
           {visibleAssignees.map(assignee => (
             <label
               key={assignee.id}
-              className={`flex items-center gap-2 py-1 ${
-                isCalendarView ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-              }`}
+              className={rowClass(!isCalendarView)}
             >
               <Checkbox
+                className={checkboxClass}
                 checked={filters.assigneeIds.includes(assignee.id)}
                 onCheckedChange={() => toggleFilter('assigneeIds', assignee.id)}
                 disabled={isCalendarView}
@@ -365,12 +440,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
         <FilterSection
           title={t`Groups`}
           icon={<UsersRound className="w-4 h-4 text-muted-foreground" />}
-          defaultOpen={false}
+          defaultOpen={filters.groupIds.length > 0}
           disabled={isCalendarView}
           compact={compact}
+          touch={touch}
+          count={filters.groupIds.length}
         >
           <Input
-            className="h-7 text-xs"
+            className={searchInputClass}
             placeholder={t`Search groups...`}
             value={groupQuery}
             onChange={(event) => setGroupQuery(event.target.value)}
@@ -385,11 +462,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
           {visibleGroups.map((group) => (
             <label
               key={group.id}
-              className={`flex items-center gap-2 py-1 ${
-                isCalendarView ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-              }`}
+              className={rowClass(!isCalendarView)}
             >
               <Checkbox
+                className={checkboxClass}
                 checked={filters.groupIds.includes(group.id)}
                 onCheckedChange={() => toggleFilter('groupIds', group.id)}
                 disabled={isCalendarView}
@@ -402,12 +478,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
         <FilterSection
           title={t`Status`}
           icon={<CircleDot className="w-4 h-4 text-muted-foreground" />}
-          defaultOpen={false}
+          defaultOpen={filters.statusIds.length > 0}
           disabled={isCalendarView}
           compact={compact}
+          touch={touch}
+          count={filters.statusIds.length}
         >
           <Input
-            className="h-7 text-xs"
+            className={searchInputClass}
             placeholder={t`Search status...`}
             value={statusQuery}
             onChange={(event) => setStatusQuery(event.target.value)}
@@ -419,11 +497,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
           {visibleStatuses.map(status => (
             <label
               key={status.id}
-              className={`flex items-center gap-2 py-1 ${
-                isCalendarView ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-              }`}
+              className={rowClass(!isCalendarView)}
             >
               <Checkbox
+                className={checkboxClass}
                 checked={filters.statusIds.includes(status.id)}
                 onCheckedChange={() => toggleFilter('statusIds', status.id)}
                 disabled={isCalendarView}
@@ -436,12 +513,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
         <FilterSection
           title={t`Type`}
           icon={<Layers className="w-4 h-4 text-muted-foreground" />}
-          defaultOpen={false}
+          defaultOpen={filters.typeIds.length > 0}
           disabled={isCalendarView}
           compact={compact}
+          touch={touch}
+          count={filters.typeIds.length}
         >
           <Input
-            className="h-7 text-xs"
+            className={searchInputClass}
             placeholder={t`Search types...`}
             value={typeQuery}
             onChange={(event) => setTypeQuery(event.target.value)}
@@ -453,11 +532,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
           {visibleTaskTypes.map(type => (
             <label
               key={type.id}
-              className={`flex items-center gap-2 py-1 ${
-                isCalendarView ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-              }`}
+              className={rowClass(!isCalendarView)}
             >
               <Checkbox
+                className={checkboxClass}
                 checked={filters.typeIds.includes(type.id)}
                 onCheckedChange={() => toggleFilter('typeIds', type.id)}
                 disabled={isCalendarView}
@@ -470,12 +548,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
         <FilterSection
           title={t`Tags`}
           icon={<Tag className="w-4 h-4 text-muted-foreground" />}
-          defaultOpen={false}
+          defaultOpen={filters.tagIds.length > 0}
           disabled={isCalendarView}
           compact={compact}
+          touch={touch}
+          count={filters.tagIds.length}
         >
           <Input
-            className="h-7 text-xs"
+            className={searchInputClass}
             placeholder={t`Search tags...`}
             value={tagQuery}
             onChange={(event) => setTagQuery(event.target.value)}
@@ -487,11 +567,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
           {visibleTags.map(tag => (
             <label
               key={tag.id}
-              className={`flex items-center gap-2 py-1 ${
-                isCalendarView ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-              }`}
+              className={rowClass(!isCalendarView)}
             >
               <Checkbox
+                className={checkboxClass}
                 checked={filters.tagIds.includes(tag.id)}
                 onCheckedChange={() => toggleFilter('tagIds', tag.id)}
                 disabled={isCalendarView}
@@ -504,7 +583,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ collapsed, onToggle, c
             </label>
           ))}
         </FilterSection>
-      </ScrollArea>
+      </Body>
     </div>
   );
 };

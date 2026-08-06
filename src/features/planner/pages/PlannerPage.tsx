@@ -28,6 +28,7 @@ import {
 } from '@/features/planner/lib/timelineSidebarWidthStorage';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 
 type AddTaskDefaults = {
   startDate: string;
@@ -429,8 +430,7 @@ const PlannerPage = () => {
         {/* Filter sidebar — in-flow on desktop, floating overlay on mobile */}
         {isMobile ? (
           <>
-            {filterCollapsed ? (
-              hideTimelineActions ? null : (
+            {filterCollapsed && !hideTimelineActions && (
                 <button
                   type="button"
                   aria-label={t`Expand filters`}
@@ -450,29 +450,31 @@ const PlannerPage = () => {
                 >
                   <Filter className="h-6 w-6 text-muted-foreground" />
                 </button>
-              )
-            ) : (
-              // Mobile: a solid, centered iOS-style modal (above the FAB/Today
-              // buttons) instead of a half-width drawer that left the timeline
-              // showing through and let the floating buttons sit on top of it.
-              <>
-                <button
-                  type="button"
-                  aria-label={t`Collapse filters`}
-                  className="fixed inset-0 z-50 bg-black/50"
-                  onClick={() => setFilterCollapsed(true)}
-                />
-                <div className="fixed left-1/2 top-1/2 z-[51] w-[min(92vw,360px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
-                  <div className="max-h-[80dvh] overflow-y-auto">
-                    <FilterPanel
-                      collapsed={false}
-                      onToggle={() => setFilterCollapsed(true)}
-                      compact
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+              )}
+
+            {/* Mobile: a screen of its own, the same shell every other phone
+                list uses. A centred card capped at 80dvh had two nested
+                scrollers, no anchor to the visual viewport (so the keyboard
+                covered the search fields it opened) and no way out but a 28px
+                chevron.
+                Mounted always and driven by `open`, not swapped in and out of
+                the tree: unmounting skips the slide-out, and this would be the
+                only phone screen that vanishes in a single frame.
+                `px-0` and not `p-0`: tailwind-merge lets `p-*` supersede the
+                shell's bottom safe-area padding, which is what keeps the last
+                row clear of the screen's rounded corner. */}
+            <MobileScreenShell
+              open={!filterCollapsed}
+              onOpenChange={(open) => { if (!open) setFilterCollapsed(true); }}
+              title={t`Filters`}
+              contentClassName="px-0 pt-0"
+            >
+              <FilterPanel
+                collapsed={false}
+                onToggle={() => setFilterCollapsed(true)}
+                touch
+              />
+            </MobileScreenShell>
           </>
         ) : (
           <div
