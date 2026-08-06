@@ -7,6 +7,17 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Dialogs on a phone got rounded corners, and the close and overflow buttons in their corner got a proper tap target.
+- On a phone the project name no longer breaks in the middle of a word — it takes a line of its own, the full width of the card.
+
+
+### Added
+- Tapping a day in the calendar on a phone opens what happens that day: milestones, who is away, the holiday, and how many tasks land there — all of them and yours. From there you can open the day or create a milestone; pull the sheet down to close it.
+
+
+### Changed
+- Filters open as a screen of their own on a phone: bigger rows and search fields, a count on every section, and sections with a selection already open.
 ## [0.9.54] - 2026-08-06
 ### Changed
 - The floating buttons on a phone — add task, filters and legend — are now the same size and sit higher above the bottom edge, clear of the screen's rounded corner.
