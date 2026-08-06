@@ -15,6 +15,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - "Sign out" in profile settings moved to the very bottom, became a compact button and now asks for confirmation — no more accidental taps.
 - The section dots sit higher, clear of the iPhone home indicator.
 - On a phone, swipe the top bar left or right to move between sections (Timeline, Dashboard, Projects, Team).
+### Fixed
+- Picking a project when creating a task works again on a phone: the list opens as its own screen and scrolls normally, with a search box when there are many projects.
+- The create-task form no longer slides off the top of the screen when the keyboard opens — it fills the screen, and the Back arrow and the action buttons stay put.
+- Settings screens on a phone stopped drifting under the keyboard while typing.
 
 ## [0.9.53] - 2026-07-30
 ### Added

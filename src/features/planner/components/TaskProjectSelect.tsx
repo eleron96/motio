@@ -8,6 +8,8 @@ import { cn } from '@/shared/lib/classNames';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Input } from '@/shared/ui/input';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { ChevronDown } from 'lucide-react';
+import { MobilePickerScreen, type MobilePickerOption } from '@/shared/ui/mobile-picker-screen';
 
 interface TaskProjectSelectProps {
   value: string;
@@ -53,20 +55,98 @@ export const TaskProjectSelect: React.FC<TaskProjectSelectProps> = ({
     clearProjectQuery();
   }, [clearProjectQuery, onValueChange]);
 
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+
+  if (isMobile) {
+    // A Radix Select popup can't be scrolled with a finger here (its viewport
+    // scrolls itself via arrow buttons, and the nested scroller never receives
+    // the touch), so on a phone the list becomes a screen of its own.
+    const options: MobilePickerOption[] = [
+      {
+        value: 'none',
+        label: t`No project`,
+        disabled: noProjectDisabled,
+        searchText: '',
+      },
+      ...projects.map((project) => ({
+        value: project.id,
+        label: formatProjectLabel(project.name, project.code),
+        // Name and code stay separate fields so the shared filter below matches
+        // exactly what the desktop list matches — one rule, both platforms.
+        searchText: project.name,
+        subtitle: undefined,
+        leading: (
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            style={{ backgroundColor: project.color }}
+          />
+        ),
+        note: showArchivedBadge && project.archived ? `(${t`Archived`})` : undefined,
+      })),
+    ];
+
+    return (
+      <>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setPickerOpen(true)}
+          className={cn(
+            'flex h-11 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            'disabled:cursor-not-allowed disabled:opacity-50',
+            triggerClassName,
+          )}
+        >
+          {selectedProject ? (
+            <span className="flex min-w-0 items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: selectedProject.color }}
+              />
+              <span className="truncate">
+                {formatProjectLabel(selectedProject.name, selectedProject.code)}
+              </span>
+              {showArchivedBadge && selectedProject.archived && (
+                <span className="shrink-0 text-[10px] text-muted-foreground">({t`Archived`})</span>
+              )}
+            </span>
+          ) : (
+            // Same two states the desktop trigger distinguishes: an explicit
+            // "no project" choice versus nothing chosen yet (a new milestone).
+            <span className="truncate text-muted-foreground">
+              {value === 'none' ? t`No project` : t`Select project`}
+            </span>
+          )}
+          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+        </button>
+
+        <MobilePickerScreen
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          title={t`Project`}
+          options={options}
+          value={value}
+          onValueChange={handleValueChange}
+          searchable={projects.length > 6}
+          searchPlaceholder={t`Search projects`}
+          emptyLabel={t`No projects found`}
+          filter={(option, query) => {
+            if (option.value === 'none') return false;
+            const project = projects.find((candidate) => candidate.id === option.value);
+            return project ? filterProjectsByQuery([project], query).length > 0 : false;
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <Select
       value={value}
       onValueChange={handleValueChange}
-      onOpenChange={(nextOpen) => {
-        handleProjectSelectOpenChange(nextOpen);
-        if (nextOpen) {
-          // Focus the visible search input on mobile so the virtual keyboard
-          // opens right away. Defer one frame so Radix finishes mounting.
-          requestAnimationFrame(() => {
-            if (isMobile) searchInputRef.current?.focus();
-          });
-        }
-      }}
+      // Desktop-only path — the phone gets MobilePickerScreen above.
+      onOpenChange={handleProjectSelectOpenChange}
       disabled={disabled}
     >
       <SelectTrigger className={cn('min-w-0 overflow-hidden', triggerClassName)}>

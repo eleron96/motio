@@ -607,6 +607,8 @@ msgstr "Архивировать"
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -706,6 +708,8 @@ msgstr "В отпуске: {0} из {1}"
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
+#: src/shared/ui/mobile-form-screen.tsx
+#: src/shared/ui/mobile-picker-screen.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
 msgid "Back"
 msgstr "Назад"
@@ -942,6 +946,7 @@ msgstr "Выберите, к каким задачам применить это
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
+#: src/shared/ui/mobile-picker-screen.tsx
 msgid "Clear"
 msgstr "Очистить"
 
@@ -3332,6 +3337,8 @@ msgstr "Без приоритета"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
@@ -3348,6 +3355,7 @@ msgstr "Нет проектов у этого клиента."
 msgid "No projects for this member."
 msgstr "Нет проектов у этого участника."
 
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 msgid "No projects found"
 msgstr "Проекты не найдены."
@@ -3509,6 +3517,10 @@ msgstr "Заметки"
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "Nothing due today."
 msgstr "На сегодня задач нет."
+
+#: src/shared/ui/mobile-picker-screen.tsx
+msgid "Nothing found"
+msgstr "Ничего не найдено"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Nothing matches the current filters."
@@ -3909,6 +3921,7 @@ msgstr "Прогресс: {0} / {1}"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
@@ -4298,6 +4311,10 @@ msgstr "Запланировано на"
 #~ msgid "Scroll right"
 #~ msgstr "Прокрутить вправо"
 
+#: src/shared/ui/mobile-picker-screen.tsx
+msgid "Search"
+msgstr "Поиск"
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -4356,6 +4373,7 @@ msgstr "Поиск по заметкам..."
 msgid "Search people..."
 msgstr "Поиск участников..."
 
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Search projects"
