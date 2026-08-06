@@ -96,7 +96,10 @@ export const MobileFormScreen: React.FC<MobileFormScreenProps> = ({
           </div>
 
           {footer && (
-            <div className="shrink-0 border-t border-border bg-card px-3.5 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-3">
+            // The extra 1.5rem is real clearance, not decoration: Safari reports
+            // safe-area-inset-bottom as 0 without viewport-fit=cover, so without
+            // it the buttons sit in the screen's rounded corners and get clipped.
+            <div className="shrink-0 border-t border-border bg-card px-3.5 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-3">
               {footer}
             </div>
           )}

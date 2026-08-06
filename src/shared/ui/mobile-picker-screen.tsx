@@ -5,6 +5,7 @@ import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
+import { useBackSwipe } from '@/shared/hooks/useBackSwipe';
 
 export interface MobilePickerOption {
   value: string;
@@ -61,6 +62,7 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
 }) => {
   const [query, setQuery] = React.useState('');
   const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
+  const backSwipe = useBackSwipe(() => onOpenChange(false));
 
   React.useEffect(() => {
     if (!open) setQuery('');
@@ -105,6 +107,8 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
             height: viewportHeight ? `${viewportHeight}px` : '100svh',
             transition: 'bottom 150ms ease-out',
           }}
+          // Swipe right to go back, the way the platform trains you to expect.
+          {...backSwipe}
         >
           <header className="flex min-h-14 shrink-0 items-center gap-1 border-b border-border bg-card px-1.5 pt-[env(safe-area-inset-top,0px)]">
             <button
