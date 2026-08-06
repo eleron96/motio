@@ -11,6 +11,7 @@ import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTit
 import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileFormScreen } from '@/shared/ui/mobile-form-screen';
+import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
@@ -512,6 +513,25 @@ export const TaskDetailPanel: React.FC = () => {
     requestTaskUpdate({ endDate: clampTaskDates(task.startDate, value).endDate });
   };
 
+  /**
+   * The mobile picker hands back the whole selection rather than one toggle, so
+   * it goes through the same guards (read-only, disabled people) and the same
+   * canonical ordering as toggling one by one.
+   */
+  const handleAssigneesChange = (nextIds: string[]) => {
+    if (!canEdit) return;
+    const allowed = nextIds.filter((id) => {
+      const assignee = assignees.find((candidate) => candidate.id === id);
+      if (!assignee) return false;
+      return assignee.isActive || task.assigneeIds.includes(id);
+    });
+    const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
+    const sorted = [...new Set(allowed)].sort((left, right) => (
+      (order.get(left) ?? 0) - (order.get(right) ?? 0)
+    ));
+    requestTaskUpdate({ assigneeIds: sorted });
+  };
+
   const handleAssigneeToggle = (assigneeId: string) => {
     if (!canEdit) return;
     const targetAssignee = assignees.find((assignee) => assignee.id === assigneeId);
@@ -562,7 +582,11 @@ export const TaskDetailPanel: React.FC = () => {
 
       {/* ── Header: project crumb, large title, actions.
           On wide screens the header block stops where the tinted
-          parameters panel begins, so the title never crosses into it. */}
+          parameters panel begins, so the title never crosses into it.
+          The wrapper is positioned so the actions button below anchors to this
+          header rather than to the phone screen, where it would paint over the
+          back arrow. */}
+      <div className="relative">
       <div className="relative px-6 pb-3 pr-20 pt-5 lg:mr-[340px] lg:pr-6">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           {currentProject ? (
@@ -622,7 +646,7 @@ export const TaskDetailPanel: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-10 top-2.5 h-8 w-8 text-muted-foreground"
+              className="absolute right-2 top-3 h-8 w-8 text-muted-foreground lg:right-10 lg:top-2.5"
               aria-label={t`Task actions`}
             >
               <MoreVertical className="h-4 w-4" />
@@ -644,10 +668,11 @@ export const TaskDetailPanel: React.FC = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+      </div>
 
-      <div className="relative grid lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="relative grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* ── Left column: description, subtasks, comments */}
-        <div className="space-y-5 px-6 pb-6 pt-1">
+        <div className="min-w-0 space-y-5 px-6 pb-6 pt-1">
           <div className="space-y-2">
             <ComposerEyebrow>{t`Description`}</ComposerEyebrow>
             {descriptionLoading ? (
@@ -736,6 +761,16 @@ export const TaskDetailPanel: React.FC = () => {
 
           <div className="space-y-1.5">
             <Label>{t`Assignees`}</Label>
+            {isMobile ? (
+              <MobileAssigneeField
+                label={assigneeLabel}
+                assignees={selectableAssignees}
+                selectedIds={task.assigneeIds}
+                disabled={isReadOnly}
+                onChange={handleAssigneesChange}
+                emptyLabel={t`No assignees available.`}
+              />
+            ) : (
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -788,9 +823,10 @@ export const TaskDetailPanel: React.FC = () => {
                 )}
               </PopoverContent>
             </Popover>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5 min-w-0">
               <Label>{t`Status`}</Label>
               <Select
@@ -849,7 +885,7 @@ export const TaskDetailPanel: React.FC = () => {
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5 min-w-0">
               <Label htmlFor="startDate">{t`Start Date`}</Label>
               <Input

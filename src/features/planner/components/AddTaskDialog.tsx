@@ -38,6 +38,7 @@ import { resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSel
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileFormScreen } from '@/shared/ui/mobile-form-screen';
+import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { orderAssigneesForPopover } from '@/features/planner/lib/assigneePopoverOrder';
@@ -670,11 +671,14 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
         </div>
       )}
       <div className={cn(
-        'grid md:grid-cols-[minmax(0,1fr)_340px]',
+        // grid-cols-1 is not cosmetic: without a template the implicit track sizes
+            // to min-content, so one unbreakable word in the description would widen
+            // the whole column and push every field off the right edge.
+            'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px]',
         mode === 'time_off' && 'hidden',
       )}>
         {/* ── Left column: content */}
-        <div className="space-y-4 px-6 pb-6">
+        <div className="min-w-0 space-y-4 px-6 pb-6">
           <ComposerEyebrow>{t`Information`}</ComposerEyebrow>
 
           <div className="space-y-1.5">
@@ -764,7 +768,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="mt-1.5 h-6 w-6 shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
+                      className="mt-1.5 h-6 w-6 shrink-0 opacity-100 md:opacity-0 md:focus-visible:opacity-100 md:group-hover:opacity-100"
                       onClick={() => handleRemoveSubtask(subtask.id)}
                       aria-label={t`Remove subtask`}
                     >
@@ -787,7 +791,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
         </div>
 
         {/* ── Right column: parameters panel */}
-        <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
+        <div className="min-w-0 space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
           <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
 
           <div className="space-y-1.5">
@@ -807,6 +811,17 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
 
           <div className="space-y-1.5">
             <Label>{t`Assignees`}</Label>
+            {isMobile ? (
+              <MobileAssigneeField
+                label={assigneeLabel}
+                assignees={orderedSelectableAssignees}
+                selectedIds={assigneeIds}
+                onChange={(ids) => {
+                  markChanged();
+                  setAssigneeIds(ids);
+                }}
+              />
+            ) : (
             <Popover open={assigneePopoverOpen} onOpenChange={handleAssigneePopoverOpenChange}>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-between bg-background font-normal">
@@ -870,9 +885,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 )}
               </PopoverContent>
             </Popover>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5 min-w-0">
               <Label>{t`Status`}</Label>
               <Select
@@ -935,7 +951,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5 min-w-0">
               <Label htmlFor="new-start">{t`Start date`}</Label>
               <Input

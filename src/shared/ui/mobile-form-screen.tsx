@@ -42,6 +42,46 @@ export const MobileFormScreen: React.FC<MobileFormScreenProps> = ({
   contentClassName,
 }) => {
   const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
+  const bodyRef = React.useRef<HTMLDivElement | null>(null);
+
+  const focusedFieldRef = React.useRef<HTMLElement | null>(null);
+
+  /**
+   * Remember what the keyboard was opened for. The screen shrinks to the visual
+   * viewport, but a field that sat near the bottom is now behind the keyboard —
+   * the browser only auto-scrolls its own scrolling box, and here that box is
+   * our body.
+   */
+  const handleFocusIn = (event: React.FocusEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement | null;
+    if (!target || typeof target.closest !== 'function') return;
+    const field = target.closest('input, textarea, select, [contenteditable="true"]') as HTMLElement | null;
+    if (!field) return;
+    focusedFieldRef.current = field;
+    // Some fields (a plain input in a short form) never trigger a viewport
+    // change; nudge once anyway so a tap always brings its field into view.
+    window.setTimeout(() => revealFocusedField(), 250);
+  };
+
+  const revealFocusedField = React.useCallback(() => {
+    const field = focusedFieldRef.current;
+    if (!field || !bodyRef.current?.contains(field)) return;
+    if (document.activeElement !== field && !field.contains(document.activeElement)) return;
+    field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, []);
+
+  // Driven by the actual keyboard, not by a guessed delay: the offset changes
+  // when it finishes animating, which is exactly when the scroll should happen.
+  React.useEffect(() => {
+    if (!open || keyboardOffset <= 0) return;
+    const raf = requestAnimationFrame(() => revealFocusedField());
+    return () => cancelAnimationFrame(raf);
+  }, [open, keyboardOffset, viewportHeight, revealFocusedField]);
+
+  React.useEffect(() => {
+    if (open) return;
+    focusedFieldRef.current = null;
+  }, [open]);
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -91,7 +131,16 @@ export const MobileFormScreen: React.FC<MobileFormScreenProps> = ({
             <div className="shrink-0 border-b border-border bg-card px-3.5 py-2.5">{toolbar}</div>
           )}
 
-          <div className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain', contentClassName)}>
+          <div
+            ref={bodyRef}
+            onFocus={handleFocusIn}
+            // overflow-x-hidden: a stray wide child must clip, never push the
+            // screen's own edges past the viewport.
+            // `relative`: absolutely positioned children inside the form (the
+            // task-actions button) must anchor here, not to the fixed screen,
+            // where they would land on top of the header.
+            className={cn('relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain', contentClassName)}
+          >
             {children}
           </div>
 

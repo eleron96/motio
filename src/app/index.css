@@ -828,3 +828,47 @@
     margin-left: auto;
   }
 }
+
+/*
+ * iOS Safari zooms the whole page whenever focus lands in a field smaller than
+ * 16px — and it never zooms back out. Every `position: fixed` layer (our mobile
+ * screens and sheets) then hangs off the right edge of the screen, which reads
+ * as "the form doesn't fit". So on phones nothing focusable may be under 16px.
+ */
+@media (max-width: 767px) {
+  /*
+   * `:not([data-native-size])` is not a filter, it is specificity: a bare
+   * `textarea` (0,0,1) loses to Tailwind's `.text-sm` (0,1,0) and the rule
+   * would silently do nothing. The attribute selector lifts every line to
+   * (0,1,1) so it wins — and doubles as the opt-out for anything that really
+   * wants its own size.
+   *
+   * Deliberately larger type is left alone: those fields never trip the zoom.
+   */
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([data-native-size]):not(.text-base):not(.text-lg):not(.text-xl):not(.text-2xl),
+  textarea:not([data-native-size]):not(.text-base):not(.text-lg):not(.text-xl),
+  select:not([data-native-size]),
+  [contenteditable='true']:not([data-native-size]) {
+    font-size: 16px;
+  }
+
+  /* ProseMirror paragraphs carry their own size from the editor's classes. */
+  [contenteditable='true'] p,
+  [contenteditable='true'] li {
+    font-size: 16px;
+  }
+}
+
+/* User content inside comments and descriptions must never widen its column. */
+.comment-body img,
+.rich-text-editor img,
+[contenteditable='true'] img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Long unbreakable tokens (URLs, file names) wrap instead of widening the column. */
+.rich-text-editor,
+.comment-body {
+  overflow-wrap: anywhere;
+}

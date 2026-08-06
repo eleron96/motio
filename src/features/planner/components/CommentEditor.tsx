@@ -662,7 +662,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
         className={cn(
           // ! needed: .rich-text-editor lives in @layer utilities too and wins
           // the source-order tie against plain utility overrides.
-          'rich-text-editor comment-editor-input !rounded-none !border-0 !ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 max-h-[40vh] overflow-y-auto leading-5',
+          'rich-text-editor comment-editor-input !rounded-none !border-0 !ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 max-h-[35svh] md:max-h-[40vh] overflow-y-auto leading-5',
           isFileDragOver && 'bg-primary/5',
           disabled && 'opacity-60 cursor-not-allowed',
         )}
