@@ -1,9 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
-import { X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { Tag } from '@/features/planner/types/planner';
 import { Popover, PopoverAnchor, PopoverContent } from '@/shared/ui/popover';
 import { cn } from '@/shared/lib/classNames';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobilePickerScreen, type MobilePickerOption } from '@/shared/ui/mobile-picker-screen';
 
 interface TagMultiSelectProps {
   tags: Tag[];
@@ -25,8 +27,10 @@ export const TagMultiSelect: React.FC<TagMultiSelectProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const isMobile = useIsMobile();
 
   const selectedTags = useMemo(
     () => tags.filter((tag) => selectedTagIds.includes(tag.id)),
@@ -49,6 +53,73 @@ export const TagMultiSelect: React.FC<TagMultiSelectProps> = ({
     setQuery('');
     inputRef.current?.focus();
   };
+
+  if (isMobile) {
+    // On a phone the chip box is the wrong shape twice over: the suggestion
+    // list floats over the form with a scroller a finger cannot reach, and the
+    // typed query fights the keyboard for the little room that is left. Here
+    // the field is a summary you tap, and the whole tag list is a screen —
+    // every tag shown at once, ticked or not, instead of a filtered typeahead.
+    const options: MobilePickerOption[] = tags.map((tag) => ({
+      value: tag.id,
+      label: tag.name,
+      searchText: tag.name,
+      leading: (
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: tag.color }} />
+      ),
+    }));
+
+    return (
+      <>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setPickerOpen(true)}
+          className={cn(
+            'flex min-h-11 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-left text-sm',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            'disabled:cursor-not-allowed disabled:opacity-50',
+          )}
+        >
+          {selectedTags.length === 0 ? (
+            <span className="text-muted-foreground">{disabled ? t`No tags` : t`Select tags`}</span>
+          ) : (
+            selectedTags.map((tag) => (
+              // Plain spans, not buttons: a chip inside a button cannot be a
+              // button too. Removing a tag happens by unticking it on the screen.
+              <span
+                key={tag.id}
+                className="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium"
+                style={{ borderColor: tag.color, color: tag.color }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                {tag.name}
+              </span>
+            ))
+          )}
+          <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+
+        <MobilePickerScreen
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          title={t`Tags`}
+          options={options}
+          values={selectedTagIds}
+          onValuesChange={(next) => {
+            // The parent owns a single-tag toggle, so hand it the one row that
+            // actually changed rather than replacing the whole selection.
+            const added = next.filter((id) => !selectedTagIds.includes(id));
+            const removed = selectedTagIds.filter((id) => !next.includes(id));
+            [...added, ...removed].forEach((tagId) => onToggleTag(tagId));
+          }}
+          searchable={tags.length > 8}
+          searchPlaceholder={t`Search tags`}
+          emptyLabel={t`No matching tags.`}
+        />
+      </>
+    );
+  }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {

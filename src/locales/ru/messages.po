@@ -647,6 +647,7 @@ msgstr "назначил(а) вас на задачу"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/MobileAssigneeField.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -709,7 +710,7 @@ msgstr "В отпуске: {0} из {1}"
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/shared/ui/mobile-form-screen.tsx
-#: src/shared/ui/mobile-picker-screen.tsx
+#: src/shared/ui/mobile-screen-shell.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
 msgid "Back"
 msgstr "Назад"
@@ -1139,6 +1140,7 @@ msgstr "Не удалось включить уведомления. Попро�
 #~ msgid "Couldn't start the demo session."
 #~ msgstr "Не удалось запустить демо."
 
+#: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Count"
 msgstr "Количество"
@@ -1869,6 +1871,7 @@ msgid "Enable member"
 msgstr "Включить участника"
 
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/MobileRepeatScreen.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/TimeOffFields.tsx
 msgid "End date"
@@ -2942,6 +2945,7 @@ msgid "name@example.com"
 msgstr "name@example.com"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
+#: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Never"
 msgstr "Никогда"
 
@@ -3074,6 +3078,7 @@ msgid "No archived projects."
 msgstr "Нет архивных проектов."
 
 #: src/features/planner/components/TaskDetailPanel.tsx
+#: src/features/planner/components/TaskDetailPanel.tsx
 msgid "No assignees available."
 msgstr "Нет доступных исполнителей."
 
@@ -3083,6 +3088,7 @@ msgid "No assignees on this project."
 msgstr "Нет исполнителей в этом проекте."
 
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/MobileAssigneeField.tsx
 msgid "No assignees yet."
 msgstr "Исполнителей пока нет."
 
@@ -3252,6 +3258,7 @@ msgid "No matches."
 msgstr "Совпадений нет."
 
 #: src/features/planner/components/TagMultiSelect.tsx
+#: src/features/planner/components/TagMultiSelect.tsx
 msgid "No matching tags."
 msgstr "Подходящих тегов нет."
 
@@ -3402,6 +3409,7 @@ msgstr "Без тега"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TagMultiSelect.tsx
+#: src/features/planner/components/TagMultiSelect.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "No tags"
 msgstr "Нет тегов"
@@ -3551,6 +3559,7 @@ msgstr "Уведомления на iPhone и iPad"
 msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
 msgstr "Редкие анонсы и советы. В каждом письме — отписка в один клик."
 
+#: src/features/planner/components/MobileRepeatScreen.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Occurrences"
 msgstr "Количество"
@@ -3805,6 +3814,7 @@ msgid "Period"
 msgstr "Период"
 
 #: src/features/planner/components/TimeOffFields.tsx
+#: src/features/planner/components/TimeOffFields.tsx
 msgid "Person"
 msgstr "Кто"
 
@@ -3891,6 +3901,8 @@ msgstr "Вводили ранее"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
@@ -4115,6 +4127,7 @@ msgid "Rename failed"
 msgstr "Не удалось переименовать"
 
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/MobileRepeatScreen.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
@@ -4123,19 +4136,23 @@ msgstr "Не удалось переименовать"
 msgid "Repeat"
 msgstr "Повтор"
 
+#: src/features/planner/components/MobileRepeatScreen.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat limit"
 msgstr "Ограничение повтора"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
+#: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat settings"
 msgstr "Настройки повтора"
 
+#: src/features/planner/components/MobileRepeatScreen.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat task"
 msgstr "Повторять задачу"
 
+#: src/features/planner/components/MobileRepeatScreen.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat type"
@@ -4359,9 +4376,10 @@ msgstr "Поиск вех..."
 msgid "Search notes..."
 msgstr "Поиск по заметкам..."
 
-#: src/features/projects/components/ContactsPeoplePanel.tsx
-#~ msgid "Search people"
-#~ msgstr "Поиск по людям"
+#: src/features/planner/components/MobileAssigneeField.tsx
+#: src/features/planner/components/TimeOffFields.tsx
+msgid "Search people"
+msgstr "Поиск по людям"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 #~ msgid "Search people and companies..."
@@ -4388,6 +4406,10 @@ msgstr "Поиск проектов..."
 #: src/features/planner/components/FilterPanel.tsx
 msgid "Search status..."
 msgstr "Поиск статуса..."
+
+#: src/features/planner/components/TagMultiSelect.tsx
+msgid "Search tags"
+msgstr "Поиск по тегам"
 
 #: src/features/planner/components/FilterPanel.tsx
 msgid "Search tags..."
@@ -4500,6 +4522,7 @@ msgid "Select priority"
 msgstr "Выберите приоритет"
 
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 msgid "Select project"
 msgstr "Выберите проект"
 
@@ -4507,6 +4530,10 @@ msgstr "Выберите проект"
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Select status"
 msgstr "Выберите статус"
+
+#: src/features/planner/components/TagMultiSelect.tsx
+msgid "Select tags"
+msgstr "Выберите теги"
 
 #. placeholder {0}: task.title
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -4791,7 +4818,9 @@ msgstr "Начни сейчас →"
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
@@ -4873,6 +4902,7 @@ msgstr "Тег"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/components/TagMultiSelect.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
@@ -4899,6 +4929,7 @@ msgid "Task density and milestones across the coming months"
 msgstr "Плотность задач и вехи на ближайшие месяцы"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
+#: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Task details"
@@ -5380,7 +5411,9 @@ msgstr "Попробуйте Motio сейчас"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Type"
@@ -5415,6 +5448,7 @@ msgstr "Разархивировать"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/MobileAssigneeField.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
@@ -5523,6 +5557,7 @@ msgid "until {0}"
 msgstr "до {0}"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
+#: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Until date"
 msgstr "До даты"
 
@@ -5618,6 +5653,7 @@ msgstr "Отпуск, отгул, больничный..."
 msgid "View all workspaces where this user is a member."
 msgstr "Посмотрите все рабочие пространства, в которых состоит этот пользователь."
 
+#: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "View and edit task details."
 msgstr "Просмотр и редактирование деталей задачи."
