@@ -441,11 +441,14 @@ const PlannerPage = () => {
                       groupMode === 'assignee'
                         ? 'clamp(48px, 14vw, 56px)'
                         : 'clamp(120px, 38vw, 152px)'
-                    } + 12px)`,
+                    } + 24px)`,
                   }}
-                  className="absolute bottom-4 z-30 h-11 w-11 rounded-full border border-border bg-card shadow-md flex items-center justify-center hover:bg-accent"
+                  // Same 56px round button as the "add task" FAB, and lifted the
+                  // same way: at 16px the button sat in the phone's rounded
+                  // corner and under the home indicator, which clipped it.
+                  className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] z-30 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent"
                 >
-                  <Filter className="h-5 w-5 text-muted-foreground" />
+                  <Filter className="h-6 w-6 text-muted-foreground" />
                 </button>
               )
             ) : (

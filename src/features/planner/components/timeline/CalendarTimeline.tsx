@@ -698,7 +698,10 @@ export const CalendarTimeline: React.FC = () => {
             // z-20: the day cells inside the scroller are `relative z-10`, and a
             // floating button left on z-auto is painted — and click-blocked —
             // by whichever week row happens to scroll under it.
-            'absolute bottom-4 right-4 z-20 shadow-md transition-all duration-200 ease-out',
+            'absolute right-4 z-20 shadow-md transition-all duration-200 ease-out',
+            // Lifted out of the phone's rounded corner, like the legend button
+            // in the opposite one; the desktop keeps its old 16px.
+            'bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] md:bottom-4',
             showTodayButton
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 translate-y-2 pointer-events-none'
@@ -731,9 +734,9 @@ export const CalendarTimeline: React.FC = () => {
           type="button"
           onClick={() => setMobileLegendOpen(true)}
           aria-label={t`On the calendar`}
-          className="absolute bottom-4 left-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent md:hidden"
+          className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] left-6 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent md:hidden"
         >
-          <Layers className="h-5 w-5 text-muted-foreground" />
+          <Layers className="h-6 w-6 text-muted-foreground" />
         </button>
         </div>
 
