@@ -684,6 +684,7 @@ msgid "auto from history"
 msgstr "авто по истории"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Away"
 msgstr "Отсутствуют"
 
@@ -1025,8 +1026,8 @@ msgid "Collapse"
 msgstr "Свернуть"
 
 #: src/features/planner/pages/PlannerPage.tsx
-msgid "Collapse filters"
-msgstr "Свернуть фильтры"
+#~ msgid "Collapse filters"
+#~ msgstr "Свернуть фильтры"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -1208,6 +1209,7 @@ msgstr "Создать аккаунт"
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TimelineHeader.tsx
 msgid "Create milestone"
 msgstr "Создать веху"
@@ -2113,6 +2115,7 @@ msgstr "Файл слишком большой"
 msgid "Fill out task fields and create a new task."
 msgstr "Заполните поля задачи и создайте новую задачу."
 
+#: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Filter applied"
 msgstr "Применён фильтр"
@@ -2170,6 +2173,7 @@ msgstr "Фильтр: {0}"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/pages/PlannerPage.tsx
 msgid "Filters"
 msgstr "Фильтры"
 
@@ -2378,6 +2382,7 @@ msgstr "Удерживайте заголовок виджета, чтобы в�
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Holiday"
 msgstr "Праздник"
@@ -2803,6 +2808,7 @@ msgstr "Название вехи..."
 #: src/features/planner/components/timeline/calendarLegendRows.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -2820,6 +2826,7 @@ msgid "Milestones still ahead"
 msgstr "Предстоящие вехи"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Mine"
 msgstr "Мои"
 
@@ -3694,6 +3701,10 @@ msgstr "Открытая схема данных. Выгрузить всё и �
 msgid "Open team"
 msgstr "Открыть команду"
 
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
+msgid "Open this day"
+msgstr "Открыть этот день"
+
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Open to a small group of teams"
 #~ msgstr "Открыто для небольшой группы команд"
@@ -3948,6 +3959,7 @@ msgstr "Прогресс: {0} / {1}"
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4979,6 +4991,7 @@ msgstr "Задача создана, но подзадачи не удалось
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Tasks"
@@ -5347,6 +5360,7 @@ msgid "Tools"
 msgstr "Инструменты"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Total"
 msgstr "Всего"
 
@@ -5518,6 +5532,7 @@ msgstr "неизвестная роль"
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/features/workspace/components/WorkspacePillNav.tsx

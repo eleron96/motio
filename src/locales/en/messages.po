@@ -684,6 +684,7 @@ msgid "auto from history"
 msgstr "auto from history"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Away"
 msgstr "Away"
 
@@ -1025,8 +1026,8 @@ msgid "Collapse"
 msgstr "Collapse"
 
 #: src/features/planner/pages/PlannerPage.tsx
-msgid "Collapse filters"
-msgstr "Collapse filters"
+#~ msgid "Collapse filters"
+#~ msgstr "Collapse filters"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -1208,6 +1209,7 @@ msgstr "Create account"
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TimelineHeader.tsx
 msgid "Create milestone"
 msgstr "Create milestone"
@@ -2113,6 +2115,7 @@ msgstr "File is too large"
 msgid "Fill out task fields and create a new task."
 msgstr "Fill out task fields and create a new task."
 
+#: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Filter applied"
 msgstr "Filter applied"
@@ -2170,6 +2173,7 @@ msgstr "Filter: {0}"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/planner/pages/PlannerPage.tsx
 msgid "Filters"
 msgstr "Filters"
 
@@ -2378,6 +2382,7 @@ msgstr "Hold the widget header to enable moving."
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 msgid "Holiday"
 msgstr "Holiday"
@@ -2803,6 +2808,7 @@ msgstr "Milestone name..."
 #: src/features/planner/components/timeline/calendarLegendRows.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -2820,6 +2826,7 @@ msgid "Milestones still ahead"
 msgstr "Milestones still ahead"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Mine"
 msgstr "Mine"
 
@@ -3694,6 +3701,10 @@ msgstr "Open source schema. Export everything, leave anytime."
 msgid "Open team"
 msgstr "Open team"
 
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
+msgid "Open this day"
+msgstr "Open this day"
+
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Open to a small group of teams"
 #~ msgstr "Open to a small group of teams"
@@ -3948,6 +3959,7 @@ msgstr "Progress: {0} / {1}"
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -4979,6 +4991,7 @@ msgstr "Task was created, but subtasks were not saved."
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Tasks"
@@ -5347,6 +5360,7 @@ msgid "Tools"
 msgstr "Tools"
 
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Total"
 msgstr "Total"
 
@@ -5518,6 +5532,7 @@ msgstr "unknown role"
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
+#: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/features/workspace/components/WorkspacePillNav.tsx
