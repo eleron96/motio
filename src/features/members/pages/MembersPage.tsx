@@ -6,8 +6,7 @@ import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
-import { format } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { PanelLeft, Plus } from 'lucide-react';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
 import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
@@ -27,8 +26,10 @@ import type { PlannerGroupMember } from '@/features/planner/store/plannerStore.c
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
 import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
+import { MobileSwipeDeck } from '@/shared/ui/mobile-swipe-deck';
+import { MembersMobileBrowserScreen } from '@/features/members/components/MembersMobileBrowserScreen';
+import { cn } from '@/shared/lib/classNames';
 import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
 import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
 import { Assignee } from '@/features/planner/types/planner';
@@ -38,6 +39,15 @@ import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
 import { useMembersPageMode } from '@/features/members/hooks/useMembersPageMode';
 import { useMemberTaskFetcher } from '@/features/members/hooks/useMemberTaskFetcher';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
+
+/**
+ * Order of the phone sections. The pill strip, the swipe deck and the dots all
+ * read from this one list, so they cannot disagree about what comes next.
+ */
+const MOBILE_SECTIONS: Array<{ id: 'tasks' | 'groups' }> = [
+  { id: 'tasks' },
+  { id: 'groups' },
+];
 
 const MembersPage = () => {
   usePageSeo({
@@ -64,7 +74,7 @@ const MembersPage = () => {
   } = useTaskScopeFilter();
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileBrowserOpen, setMobileBrowserOpen] = useState(false);
   const pageSize = 100;
   const isMobile = useIsMobile();
 
@@ -292,6 +302,18 @@ const MembersPage = () => {
     setGroupRemoveTarget(null);
   }, [groupRemoveTarget, handleAssignMemberToGroup]);
 
+  const [groupDeleteTarget, setGroupDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const requestGroupDeletion = useCallback((group: { id: string; name: string }) => {
+    setGroupDeleteTarget(group);
+  }, []);
+
+  const confirmGroupDeletion = useCallback(() => {
+    if (!groupDeleteTarget) return;
+    void handleDeleteGroup(groupDeleteTarget);
+    setGroupDeleteTarget(null);
+  }, [groupDeleteTarget, handleDeleteGroup]);
+
   useEffect(() => {
     const list = tab === 'active' ? activeVisibleAssignees : disabledVisibleAssignees;
     if (list.length === 0) {
@@ -353,14 +375,6 @@ const MembersPage = () => {
     pageSize,
     fetchAssigneeTaskCounts,
   });
-
-  const assigneeProjectIds = useMemo(() => {
-    const ids = new Set<string>();
-    assigneeTasks.forEach((task) => {
-      if (task.projectId) ids.add(task.projectId);
-    });
-    return ids;
-  }, [assigneeTasks]);
 
   const projectOptions = useMemo(
     () => [...projects].sort((a, b) => a.name.localeCompare(b.name)),
@@ -548,17 +562,19 @@ const MembersPage = () => {
     setMode('tasks');
   }, [assigneeByUserId, setMode, setSelectedAssigneeId, setTab]);
 
+  const mobileSectionIndex = Math.max(
+    0,
+    MOBILE_SECTIONS.findIndex((section) => section.id === mode),
+  );
   const mobileSheetLabel = mode === 'groups' ? t`Groups` : t`People`;
   const mobileSummary = mode === 'groups'
     ? (selectedGroup?.name ?? t`Select a group`)
     : (selectedAssignee?.name ?? t`Select a person`);
 
-  const renderMembersSidebar = (closeOnSelect = false) => (
+  const renderMembersSidebar = () => (
     <MembersSidebar
-      className={closeOnSelect ? 'w-full border-r-0' : undefined}
       mode={mode}
       onModeChange={setMode}
-      hideModeSelector={isMobile}
       isAdmin={isAdmin}
       tab={tab}
       onTabChange={setTab}
@@ -574,10 +590,7 @@ const MembersPage = () => {
       activeMemberGroups={activeMemberGroups}
       disabledMemberGroups={disabledMemberGroups}
       selectedAssigneeId={selectedAssigneeId}
-      onSelectAssignee={(assigneeId) => {
-        setSelectedAssigneeId(assigneeId);
-        if (closeOnSelect) setMobileSidebarOpen(false);
-      }}
+      onSelectAssignee={setSelectedAssigneeId}
       memberTaskCountsDate={memberTaskCountsDate}
       memberTaskCounts={memberTaskCounts}
       groupIdByUserId={groupIdByUserId}
@@ -595,121 +608,118 @@ const MembersPage = () => {
       groupsLoading={groupsLoading}
       sortedGroups={sortedGroups}
       selectedGroupId={selectedGroupId}
-      onSelectGroup={(groupId) => {
-        setSelectedGroupId(groupId);
-        if (closeOnSelect) setMobileSidebarOpen(false);
-      }}
+      onSelectGroup={setSelectedGroupId}
       onStartEditGroup={handleStartEditGroup}
-      onDeleteGroup={(group) => {
-        void handleDeleteGroup(group);
-      }}
+      onDeleteGroup={requestGroupDeletion}
     />
+  );
+
+  const renderGroupsPanel = () => (
+    <MembersGroupPanel
+      isMobile={isMobile}
+      isAdmin={isAdmin}
+      roleLabels={roleLabels}
+      selectedGroup={selectedGroup}
+      selectedGroupId={selectedGroupId}
+      editingGroupId={editingGroupId}
+      editingGroupName={editingGroupName}
+      onEditingGroupNameChange={setEditingGroupName}
+      onCancelEdit={() => { setEditingGroupId(null); setEditingGroupName(''); }}
+      onSaveGroupName={handleSaveGroupName}
+      groupActionLoading={groupActionLoading}
+      groupMembers={groupMembers}
+      groupMembersLoading={groupMembersLoading}
+      groupMembersError={groupMembersError}
+      members={members}
+      assigneeByUserId={assigneeByUserId}
+      onAddMember={handleAddMemberToGroup}
+      onMoveMember={openGroupMemberMoveDialog}
+      onRemoveMember={requestGroupMemberRemoval}
+      onGroupMemberClick={handleGroupMemberClick}
+      hasOtherGroups={groups.length > 1}
+    />
+  );
+
+  const renderTasksPanel = () => (
+      <MemberTasksPanel
+        selectedAssignee={selectedAssignee}
+        taskScope={taskScope}
+        onChangeTaskScope={(scope) => {
+          setTaskScope(scope);
+          setPageIndex(1);
+        }}
+        memberTaskCountsDate={memberTaskCountsDate}
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          setPageIndex(1);
+        }}
+        statusFilterLabel={statusFilterLabel}
+        setStatusPreset={setStatusPreset}
+        statuses={statuses}
+        statusFilterIds={statusFilterIds}
+        onToggleStatus={handleToggleStatus}
+        projectFilterLabel={projectFilterLabel}
+        projectOptions={projectOptions}
+        projectFilterIds={projectFilterIds}
+        onToggleProject={handleToggleProject}
+        pastFromDate={pastFromDate}
+        onPastFromDateChange={(value) => {
+          setPastFromDate(value);
+          setPageIndex(1);
+        }}
+        pastToDate={pastToDate}
+        onPastToDateChange={(value) => {
+          setPastToDate(value);
+          setPageIndex(1);
+        }}
+        pastSort={pastSort}
+        onPastSortChange={(value) => {
+          setPastSort(value);
+          setPageIndex(1);
+        }}
+        onClearFilters={() => {
+          setSearch('');
+          setStatusFilterIds([]);
+          setProjectFilterIds([]);
+          setPastFromDate('');
+          setPastToDate('');
+          setPageIndex(1);
+        }}
+        onRefresh={() => {
+          if (selectedAssigneeId) {
+            void fetchAssigneeTasks(selectedAssigneeId);
+          }
+          void refreshMemberTaskCounts();
+        }}
+        selectedAssigneeId={selectedAssigneeId}
+        tasksLoading={tasksLoading}
+        selectedCount={selectedCount}
+        onDeleteSelected={() => {
+          void handleDeleteSelected();
+        }}
+        tasksError={tasksError}
+        displayTaskRows={displayTaskRows}
+        allVisibleSelected={allVisibleSelected}
+        someVisibleSelected={someVisibleSelected}
+        onToggleAll={handleToggleAll}
+        statusById={statusById}
+        projectById={projectById}
+        selectedTaskIds={selectedTaskIds}
+        onSelectTask={setSelectedTaskId}
+        onToggleTask={handleToggleTask}
+        taskScopePageSize={pageSize}
+        displayTotalCount={displayTotalCount}
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        onPrevPage={() => setPageIndex((current) => Math.max(1, current - 1))}
+        onNextPage={() => setPageIndex((current) => Math.min(totalPages, current + 1))}
+      />
   );
 
   const renderMembersContent = () => (
     <section className="flex-1 overflow-hidden flex flex-col">
-      {mode === 'groups' && (
-        <MembersGroupPanel
-          isMobile={isMobile}
-          isAdmin={isAdmin}
-          roleLabels={roleLabels}
-          selectedGroup={selectedGroup}
-          selectedGroupId={selectedGroupId}
-          editingGroupId={editingGroupId}
-          editingGroupName={editingGroupName}
-          onEditingGroupNameChange={setEditingGroupName}
-          onCancelEdit={() => { setEditingGroupId(null); setEditingGroupName(''); }}
-          onSaveGroupName={handleSaveGroupName}
-          groupActionLoading={groupActionLoading}
-          groupMembers={groupMembers}
-          groupMembersLoading={groupMembersLoading}
-          groupMembersError={groupMembersError}
-          members={members}
-          assigneeByUserId={assigneeByUserId}
-          onAddMember={handleAddMemberToGroup}
-          onMoveMember={openGroupMemberMoveDialog}
-          onRemoveMember={requestGroupMemberRemoval}
-          onGroupMemberClick={handleGroupMemberClick}
-          hasOtherGroups={groups.length > 1}
-        />
-      )}
-
-      {mode === 'tasks' && (
-        <MemberTasksPanel
-          selectedAssignee={selectedAssignee}
-          taskScope={taskScope}
-          onChangeTaskScope={(scope) => {
-            setTaskScope(scope);
-            setPageIndex(1);
-          }}
-          memberTaskCountsDate={memberTaskCountsDate}
-          search={search}
-          onSearchChange={(value) => {
-            setSearch(value);
-            setPageIndex(1);
-          }}
-          statusFilterLabel={statusFilterLabel}
-          setStatusPreset={setStatusPreset}
-          statuses={statuses}
-          statusFilterIds={statusFilterIds}
-          onToggleStatus={handleToggleStatus}
-          projectFilterLabel={projectFilterLabel}
-          projectOptions={projectOptions}
-          projectFilterIds={projectFilterIds}
-          onToggleProject={handleToggleProject}
-          pastFromDate={pastFromDate}
-          onPastFromDateChange={(value) => {
-            setPastFromDate(value);
-            setPageIndex(1);
-          }}
-          pastToDate={pastToDate}
-          onPastToDateChange={(value) => {
-            setPastToDate(value);
-            setPageIndex(1);
-          }}
-          pastSort={pastSort}
-          onPastSortChange={(value) => {
-            setPastSort(value);
-            setPageIndex(1);
-          }}
-          onClearFilters={() => {
-            setSearch('');
-            setStatusFilterIds([]);
-            setProjectFilterIds([]);
-            setPastFromDate('');
-            setPastToDate('');
-            setPageIndex(1);
-          }}
-          onRefresh={() => {
-            if (selectedAssigneeId) {
-              void fetchAssigneeTasks(selectedAssigneeId);
-            }
-            void refreshMemberTaskCounts();
-          }}
-          selectedAssigneeId={selectedAssigneeId}
-          tasksLoading={tasksLoading}
-          selectedCount={selectedCount}
-          onDeleteSelected={() => {
-            void handleDeleteSelected();
-          }}
-          tasksError={tasksError}
-          displayTaskRows={displayTaskRows}
-          allVisibleSelected={allVisibleSelected}
-          someVisibleSelected={someVisibleSelected}
-          onToggleAll={handleToggleAll}
-          statusById={statusById}
-          projectById={projectById}
-          selectedTaskIds={selectedTaskIds}
-          onSelectTask={setSelectedTaskId}
-          onToggleTask={handleToggleTask}
-          taskScopePageSize={pageSize}
-          displayTotalCount={displayTotalCount}
-          pageIndex={pageIndex}
-          totalPages={totalPages}
-          onPrevPage={() => setPageIndex((current) => Math.max(1, current - 1))}
-          onNextPage={() => setPageIndex((current) => Math.min(totalPages, current + 1))}
-        />
-      )}
+      {mode === 'groups' ? renderGroupsPanel() : renderTasksPanel()}
     </section>
   );
 
@@ -736,34 +746,63 @@ const MembersPage = () => {
     <>
 
       {isMobile ? (
-        <>
-          {(() => {
-            const subnavItems: MobilePillSubnavItem[] = [
-              { id: 'tasks', label: t`People` },
-              { id: 'groups', label: t`Groups` },
-            ];
-            return (
-              <div className="border-b border-border bg-card">
-                <MobilePillSubnav
-                  items={subnavItems}
-                  activeId={mode}
-                  onChange={(id) => setMode(id as 'tasks' | 'groups')}
-                  ariaLabel={t`People sections`}
-                />
-              </div>
-            );
-          })()}
-          <MobilePageSheetLayout
-            open={mobileSidebarOpen}
-            onOpenChange={setMobileSidebarOpen}
-            browseLabel={mobileSheetLabel}
-            sheetTitle={mobileSheetLabel}
-            summary={mobileSummary}
-            sheetContent={renderMembersSidebar(true)}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {/* The strip scrolls sideways itself, so it must swallow the gesture
+              instead of letting the deck page under the finger. */}
+          <div data-swipe-ignore className="shrink-0 border-b border-border bg-card">
+            <MobilePillSubnav
+              items={MOBILE_SECTIONS.map((section) => ({
+                id: section.id,
+                label: section.id === 'tasks' ? t`People` : t`Groups`,
+              })) as MobilePillSubnavItem[]}
+              activeId={mode}
+              onChange={(id) => setMode(id as 'tasks' | 'groups')}
+              ariaLabel={t`People sections`}
+            />
+          </div>
+
+          <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-2.5">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 shrink-0 gap-2"
+              onClick={() => setMobileBrowserOpen(true)}
+            >
+              <PanelLeft className="h-4 w-4" />
+              {mobileSheetLabel}
+            </Button>
+            <div className="min-w-0 truncate text-xs text-muted-foreground">{mobileSummary}</div>
+          </div>
+
+          <MobileSwipeDeck
+            index={mobileSectionIndex}
+            count={MOBILE_SECTIONS.length}
+            onIndexChange={(next) => setMode(MOBILE_SECTIONS[next].id)}
           >
-            {renderMembersContent()}
-          </MobilePageSheetLayout>
-        </>
+            {MOBILE_SECTIONS.map((section) => (
+              <div key={section.id} className="flex h-full min-h-0 flex-col overflow-hidden">
+                {section.id === 'tasks' ? renderTasksPanel() : renderGroupsPanel()}
+              </div>
+            ))}
+          </MobileSwipeDeck>
+
+          <div
+            // Safari reports safe-area-inset-bottom as 0 without
+            // viewport-fit=cover, so the clearance has to be a real gap.
+            className="flex shrink-0 items-center justify-center gap-1.5 border-t border-border bg-card pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]"
+          >
+            {MOBILE_SECTIONS.map((section, index) => (
+              <span
+                key={section.id}
+                aria-hidden="true"
+                className={cn(
+                  'h-1.5 rounded-full transition-all duration-200',
+                  index === mobileSectionIndex ? 'w-4 bg-foreground' : 'w-1.5 bg-border',
+                )}
+              />
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="flex flex-1 min-h-0 overflow-hidden">
           {renderMembersSidebar()}
@@ -796,6 +835,60 @@ const MembersPage = () => {
         showAccountSettings={showAccountSettings}
         setShowAccountSettings={setShowAccountSettings}
       />
+
+      {isMobile && (
+        <MembersMobileBrowserScreen
+          open={mobileBrowserOpen}
+          onOpenChange={setMobileBrowserOpen}
+          mode={mode}
+          isAdmin={isAdmin}
+          groupActionLoading={groupActionLoading}
+          tab={tab}
+          onTabChange={setTab}
+          memberSearch={memberSearch}
+          onMemberSearchChange={setMemberSearch}
+          activeVisibleAssignees={activeVisibleAssignees}
+          disabledVisibleAssignees={disabledVisibleAssignees}
+          selectedAssigneeId={selectedAssigneeId}
+          onSelectAssignee={(assigneeId) => {
+            setSelectedAssigneeId(assigneeId);
+            setMobileBrowserOpen(false);
+          }}
+          memberTaskCounts={memberTaskCounts}
+          memberTaskCountsDate={memberTaskCountsDate}
+          groupIdByUserId={groupIdByUserId}
+          groupNameById={groupNameById}
+          // Every action closes the browser first: the dialogs it leads to sit
+          // below this screen in the stack, and the job is done once picked.
+          onAssignAssigneeGroup={(assignee) => {
+            setMobileBrowserOpen(false);
+            openAssigneeGroupDialog(assignee);
+          }}
+          onClearAssigneeGroup={(assignee) => {
+            setMobileBrowserOpen(false);
+            requestAssigneeGroupRemoval(assignee);
+          }}
+          groupSearch={groupSearch}
+          onGroupSearchChange={setGroupSearch}
+          sortedGroups={sortedGroups}
+          groupsLoading={groupsLoading}
+          groupsError={groupsError}
+          selectedGroupId={selectedGroupId}
+          onSelectGroup={(groupId) => {
+            setSelectedGroupId(groupId);
+            setMobileBrowserOpen(false);
+          }}
+          onRenameGroup={(group) => {
+            setMobileBrowserOpen(false);
+            setSelectedGroupId(group.id);
+            handleStartEditGroup(group);
+          }}
+          onDeleteGroup={(group) => {
+            setMobileBrowserOpen(false);
+            requestGroupDeletion(group);
+          }}
+        />
+      )}
 
       <AssignGroupDialog
         open={groupAssignTarget !== null}
@@ -835,6 +928,34 @@ const MembersPage = () => {
               }}
             >
               {t`Remove`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={groupDeleteTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setGroupDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Delete group?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`"${groupDeleteTarget?.name ?? ''}" disappears from the workspace. The people in it stay, just without a group.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(event) => {
+                event.preventDefault();
+                confirmGroupDeletion();
+              }}
+            >
+              {t`Delete`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

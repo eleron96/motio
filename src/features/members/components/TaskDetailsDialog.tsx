@@ -4,6 +4,9 @@ import { format, parseISO } from 'date-fns';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
+import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { hasRichTags } from '@/shared/domain/taskDescription';
@@ -37,135 +40,201 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
   selectedTaskCommentCount,
   onOpenTaskInTimeline,
   onClose,
-}) => (
-  <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="w-[95vw] max-w-2xl">
-      <DialogHeader>
-        <DialogTitle>{selectedTask?.title ?? t`Task details`}</DialogTitle>
-        <DialogDescription className="sr-only">
-          {t`View task details without leaving the members page.`}
-        </DialogDescription>
-      </DialogHeader>
-      {!selectedTask && (
-        <div className="text-sm text-muted-foreground">{t`Task not found.`}</div>
+}) => {
+  const isMobile = useIsMobile();
+
+  const status = selectedTask ? statusById.get(selectedTask.statusId) : null;
+  const projectLabel = selectedTaskProject
+    ? formatProjectLabel(selectedTaskProject.name, selectedTaskProject.code)
+    : t`No project`;
+  const statusLabel = status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`;
+  const datesLabel = selectedTask
+    ? `${format(parseISO(selectedTask.startDate), 'dd MMM yyyy')} – ${format(parseISO(selectedTask.endDate), 'dd MMM yyyy')}`
+    : '';
+  const typeLabel = selectedTask
+    ? (taskTypeById.get(selectedTask.typeId)?.name ?? t`Unknown`)
+    : '';
+  const assigneeNames = (selectedTask?.assigneeIds ?? [])
+    .map((id) => assigneeById.get(id))
+    .filter((assignee): assignee is Assignee => Boolean(assignee));
+  const commentsLabel = typeof selectedTaskCommentCount === 'number'
+    ? String(selectedTaskCommentCount)
+    : '...';
+
+  const description = (
+    <div>
+      <div className="text-xs text-muted-foreground">{t`Description`}</div>
+      {!selectedTask?.description && (
+        <div className="text-sm text-muted-foreground">{t`No description.`}</div>
       )}
-      {selectedTask && (
-        <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <div className="text-xs text-muted-foreground">{t`Project`}</div>
-              <div className="text-sm">
-                {selectedTaskProject
-                  ? formatProjectLabel(selectedTaskProject.name, selectedTaskProject.code)
-                  : t`No project`}
-              </div>
+      {selectedTask?.description && hasRichTags(selectedTask.description) && (
+        <div
+          className="text-sm leading-6"
+          dangerouslySetInnerHTML={{ __html: selectedTaskDescription }}
+        />
+      )}
+      {selectedTask?.description && !hasRichTags(selectedTask.description) && (
+        <div className="text-sm whitespace-pre-wrap">{selectedTaskDescription}</div>
+      )}
+    </div>
+  );
+
+  const tagList = selectedTaskTags.length === 0 ? (
+    <span className="text-xs text-muted-foreground">{t`No tags`}</span>
+  ) : (
+    <div className="flex flex-wrap gap-1.5">
+      {selectedTaskTags.map((tag) => (
+        <Badge
+          key={tag.id}
+          variant="outline"
+          className="text-[10px]"
+          style={{ borderColor: tag.color, color: tag.color }}
+        >
+          {tag.name}
+        </Badge>
+      ))}
+    </div>
+  );
+
+  if (isMobile) {
+    // A screen, not a card floating over the page: a task's description can run
+    // long, and a centred dialog would scroll inside itself on a small screen.
+    return (
+      <MobileScreenShell
+        open={open}
+        onOpenChange={(next) => {
+          onOpenChange(next);
+          if (!next) onClose();
+        }}
+        title={selectedTask?.title ?? t`Task details`}
+      >
+        {!selectedTask ? (
+          <p className="text-sm text-muted-foreground">{t`Task not found.`}</p>
+        ) : (
+          <div className="space-y-4">
+            <MobileListGroup>
+              <MobileListRow title={t`Project`} value={projectLabel} />
+              <MobileListRow title={t`Status`} value={statusLabel} />
+              <MobileListRow title={t`Dates`} value={datesLabel} />
+              <MobileListRow title={t`Type`} value={typeLabel} />
+              <MobileListRow title={t`Priority`} value={selectedTask.priority ?? t`None`} />
+              <MobileListRow title={t`Comments`} value={commentsLabel} />
+            </MobileListGroup>
+
+            <MobileListGroup title={t`Assignees`}>
+              {assigneeNames.length === 0 ? (
+                <MobileListRow title={t`Unassigned`} />
+              ) : (
+                assigneeNames.map((assignee) => (
+                  <MobileListRow
+                    key={assignee.id}
+                    title={assignee.name}
+                    value={assignee.isActive ? undefined : t`(disabled)`}
+                  />
+                ))
+              )}
+            </MobileListGroup>
+
+            <div className="rounded-2xl border border-border bg-card px-4 py-3">
+              <div className="text-xs text-muted-foreground">{t`Tags`}</div>
+              <div className="mt-1.5">{tagList}</div>
             </div>
-            <div>
-              <div className="text-xs text-muted-foreground">{t`Status`}</div>
-              <div className="text-sm">
-                {statusById.get(selectedTask.statusId)
-                  ? formatStatusLabel(
-                    statusById.get(selectedTask.statusId)!.name,
-                    statusById.get(selectedTask.statusId)!.emoji,
-                  )
-                  : t`Unknown`}
-              </div>
+
+            <div className="rounded-2xl border border-border bg-card px-4 py-3">
+              {description}
             </div>
-            <div>
-              <div className="text-xs text-muted-foreground">{t`Assignees`}</div>
-              <div className="flex flex-wrap gap-1">
-                {selectedTask.assigneeIds.length === 0 && (
-                  <span className="text-xs text-muted-foreground">{t`Unassigned`}</span>
-                )}
-                {selectedTask.assigneeIds.map((id) => {
-                  const assignee = assigneeById.get(id);
-                  if (!assignee) return null;
-                  return (
+
+            <Button className="h-12 w-full" onClick={onOpenTaskInTimeline}>
+              {t`Go to task`}
+            </Button>
+          </div>
+        )}
+      </MobileScreenShell>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[95vw] max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{selectedTask?.title ?? t`Task details`}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t`View task details without leaving the members page.`}
+          </DialogDescription>
+        </DialogHeader>
+        {!selectedTask && (
+          <div className="text-sm text-muted-foreground">{t`Task not found.`}</div>
+        )}
+        {selectedTask && (
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Project`}</div>
+                <div className="text-sm">{projectLabel}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Status`}</div>
+                <div className="text-sm">{statusLabel}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Assignees`}</div>
+                <div className="flex flex-wrap gap-1">
+                  {assigneeNames.length === 0 && (
+                    <span className="text-xs text-muted-foreground">{t`Unassigned`}</span>
+                  )}
+                  {assigneeNames.map((assignee) => (
                     <Badge key={assignee.id} variant="secondary" className="text-[10px]">
                       {assignee.name}
                       {!assignee.isActive && ` ${t`(disabled)`}`}
                     </Badge>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">{t`Dates`}</div>
-              <div className="text-sm text-muted-foreground">
-                {format(parseISO(selectedTask.startDate), 'dd MMM yyyy')} – {format(parseISO(selectedTask.endDate), 'dd MMM yyyy')}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">{t`Type`}</div>
-              <div className="text-sm">
-                {taskTypeById.get(selectedTask.typeId)?.name ?? t`Unknown`}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">{t`Priority`}</div>
-              <div className="text-sm">{selectedTask.priority ?? t`None`}</div>
-            </div>
-            <div>
-              <div className="text-xs text-muted-foreground">{t`Comments`}</div>
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant={typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 ? 'secondary' : 'outline'}
-                  className="min-w-8 justify-center text-[10px]"
-                >
-                  {typeof selectedTaskCommentCount === 'number' ? selectedTaskCommentCount : '...'}
-                </Badge>
-                {typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    {selectedTaskCommentCount === 1 ? t`1 comment` : t`${selectedTaskCommentCount} comments`}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="sm:col-span-2">
-              <div className="text-xs text-muted-foreground">{t`Tags`}</div>
-              {selectedTaskTags.length === 0 ? (
-                <div className="text-xs text-muted-foreground">{t`No tags`}</div>
-              ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedTaskTags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant="outline"
-                      className="text-[10px]"
-                      style={{ borderColor: tag.color, color: tag.color }}
-                    >
-                      {tag.name}
-                    </Badge>
                   ))}
                 </div>
-              )}
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Dates`}</div>
+                <div className="text-sm text-muted-foreground">{datesLabel}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Type`}</div>
+                <div className="text-sm">{typeLabel}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Priority`}</div>
+                <div className="text-sm">{selectedTask.priority ?? t`None`}</div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">{t`Comments`}</div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 ? 'secondary' : 'outline'}
+                    className="min-w-8 justify-center text-[10px]"
+                  >
+                    {commentsLabel}
+                  </Badge>
+                  {typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {selectedTaskCommentCount === 1 ? t`1 comment` : t`${selectedTaskCommentCount} comments`}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="sm:col-span-2">
+                <div className="text-xs text-muted-foreground">{t`Tags`}</div>
+                {tagList}
+              </div>
+            </div>
+            {description}
+            <div className="flex justify-end gap-2">
+              <Button onClick={onOpenTaskInTimeline}>
+                {t`Go to task`}
+              </Button>
+              <Button variant="outline" onClick={onClose}>
+                {t`Close`}
+              </Button>
             </div>
           </div>
-          <div>
-            <div className="text-xs text-muted-foreground">{t`Description`}</div>
-            {!selectedTask.description && (
-              <div className="text-sm text-muted-foreground">{t`No description.`}</div>
-            )}
-            {selectedTask.description && hasRichTags(selectedTask.description) && (
-              <div
-                className="text-sm leading-6"
-                dangerouslySetInnerHTML={{ __html: selectedTaskDescription }}
-              />
-            )}
-            {selectedTask.description && !hasRichTags(selectedTask.description) && (
-              <div className="text-sm whitespace-pre-wrap">{selectedTaskDescription}</div>
-            )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button onClick={onOpenTaskInTimeline}>
-              {t`Go to task`}
-            </Button>
-            <Button variant="outline" onClick={onClose}>
-              {t`Close`}
-            </Button>
-          </div>
-        </div>
-      )}
-    </DialogContent>
-  </Dialog>
-);
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
