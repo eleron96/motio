@@ -173,15 +173,19 @@ describe('MembersPage group add-member popover', () => {
     expect(within(screen.getByRole('dialog')).getByText('Disabled')).toBeInTheDocument();
   });
 
-  it('adds a member from a screen rather than a popover on a phone', async () => {
+  it('adds a member from inside the group screen on a phone', async () => {
     useIsMobileMock.mockReturnValue(true);
     const user = userEvent.setup();
 
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'Add member' }));
+    // Level one lists the groups; walking into one opens its own screen.
+    await user.click(await screen.findByText('Backend'));
 
-    const addScreen = await screen.findByRole('dialog');
+    const groupScreen = await screen.findByRole('dialog');
+    await user.click(within(groupScreen).getByRole('button', { name: 'Add member' }));
+
+    const addScreen = await screen.findByRole('dialog', { name: 'Add member' });
     // The list is plain rows on a scrolling screen, with the disabled-people
     // toggle as a row of its own instead of an icon button.
     expect(within(addScreen).getByRole('switch', { name: 'Show disabled people' })).toBeInTheDocument();

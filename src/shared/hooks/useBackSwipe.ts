@@ -13,7 +13,12 @@ const SWIPE_COMMIT_PX = 80;
  * vertical scrolling inside the screen is untouched; a horizontally scrollable
  * strip can opt out with `data-swipe-ignore`.
  *
- * Returns props to spread on the screen's root element.
+ * Returns a `ref` for the screen's root element plus props to spread on it.
+ * The ref is not decoration: once the drag is ours the browser has to be told
+ * to keep out, and that veto must be a non-passive `touchmove` listener —
+ * React attaches its own touch handlers passively, where `preventDefault` does
+ * nothing. Without it the browser can decide mid-drag that this was a scroll,
+ * fire `pointercancel`, and the screen stops following the finger halfway.
  */
 export const useBackSwipe = (onBack: (() => void) | undefined) => {
   const gestureRef = React.useRef<{
@@ -23,6 +28,27 @@ export const useBackSwipe = (onBack: (() => void) | undefined) => {
     dx: number;
     active: boolean;
   } | null>(null);
+  // A swipe still ends in a click on whatever was under the finger, so without
+  // this, going back would also open the row you swiped across.
+  const swallowClickRef = React.useRef(false);
+  const nodeRef = React.useRef<HTMLElement | null>(null);
+
+  const keepGesture = React.useCallback((event: TouchEvent) => {
+    if (!gestureRef.current?.active) return;
+    if (event.cancelable) event.preventDefault();
+  }, []);
+
+  // A callback ref rather than an effect: the screen's node comes and goes with
+  // the dialog, long after this hook first runs.
+  const ref = React.useCallback((node: HTMLElement | null) => {
+    if (nodeRef.current) {
+      nodeRef.current.removeEventListener('touchmove', keepGesture);
+    }
+    nodeRef.current = node;
+    if (node) {
+      node.addEventListener('touchmove', keepGesture, { passive: false });
+    }
+  }, [keepGesture]);
 
   const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
     if (!onBack) return;
@@ -32,6 +58,9 @@ export const useBackSwipe = (onBack: (() => void) | undefined) => {
       if (node.dataset.swipeIgnore !== undefined) return;
       node = node.parentElement;
     }
+    // Cleared when the next gesture starts rather than by the click that, on
+    // touch, may never come.
+    swallowClickRef.current = false;
     gestureRef.current = {
       pointerId: event.pointerId,
       x0: event.clientX,
@@ -56,6 +85,12 @@ export const useBackSwipe = (onBack: (() => void) | undefined) => {
         return;
       }
       gesture.active = true;
+      swallowClickRef.current = true;
+      // Keeps the events coming even once the finger leaves the element.
+      // Not implemented in jsdom, and absent on some older mobile engines.
+      if (typeof event.currentTarget.setPointerCapture === 'function') {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
     }
 
     gesture.dx = dx;
@@ -73,5 +108,12 @@ export const useBackSwipe = (onBack: (() => void) | undefined) => {
     gestureRef.current = null;
   };
 
-  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel };
+  const onClickCapture = (event: React.MouseEvent<HTMLElement>) => {
+    if (!swallowClickRef.current) return;
+    swallowClickRef.current = false;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  return { ref, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClickCapture };
 };

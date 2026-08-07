@@ -9,6 +9,7 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { splitMembersByAccess } from '@/shared/domain/workspaceMemberAccess';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 import { WorkspacePeopleColors } from '@/features/workspace/components/WorkspacePeopleColors';
+import { WorkspaceAccessMobile } from '@/features/workspace/components/WorkspaceAccessMobile';
 
 type MembersSectionTab = 'active' | 'disabled' | 'history' | 'colors';
 
@@ -29,6 +30,11 @@ export const WorkspaceMembersSection: React.FC = () => {
 
   const isAdmin = currentWorkspaceRole === 'admin';
   const isMobile = useIsMobile();
+
+  // A phone gets a menu and a screen per topic instead of this panel's tabs:
+  // the desktop rows carry their own selects and switches, which is what made
+  // the list unusable under a thumb.
+  const mobileAccess = isMobile ? <WorkspaceAccessMobile /> : null;
 
   const [tab, setTab] = useState<MembersSectionTab>('active');
 
@@ -59,6 +65,8 @@ export const WorkspaceMembersSection: React.FC = () => {
       { id: 'colors', label: t`Colours` },
     ]
     : [];
+
+  if (mobileAccess) return mobileAccess;
 
   return (
     <div className="space-y-4">

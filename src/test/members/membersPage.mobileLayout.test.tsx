@@ -52,7 +52,9 @@ vi.mock('@/infrastructure/members/memberTasksRepository', () => ({
 
 const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
-    assignees: [],
+    assignees: [
+      { id: 'a1', userId: 'u1', name: 'Anna Active', isActive: true },
+    ],
     memberGroupAssignments: [],
     projects: [],
     statuses: [],
@@ -76,7 +78,9 @@ const { plannerState, authState } = vi.hoisted(() => ({
   },
   authState: {
     user: { id: 'u1' },
-    members: [],
+    members: [
+      { userId: 'u1', role: 'admin', email: 'anna@example.com', displayName: 'Anna', groupId: null, avatarUrl: null },
+    ],
     currentWorkspaceId: 'w1',
     currentWorkspaceRole: 'admin',
     isSuperAdmin: false,
@@ -100,7 +104,7 @@ describe('MembersPage mobile layout', () => {
     useIsMobileMock.mockReset();
   });
 
-  it('browses people on a full screen instead of the desktop sidebar', async () => {
+  it('puts the list itself in the deck and walks into a person', async () => {
     useIsMobileMock.mockReturnValue(true);
     const user = userEvent.setup();
 
@@ -110,26 +114,21 @@ describe('MembersPage mobile layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Member tasks panel')).toBeInTheDocument();
-    expect(screen.getByText('Select a person')).toBeInTheDocument();
-    // The desktop sidebar has no place on a phone.
+    // Level one is the list, not a button that opens one.
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    expect(within(deck).getAllByPlaceholderText('Search people...').length).toBeGreaterThan(0);
     expect(screen.queryByText('Members sidebar')).not.toBeInTheDocument();
+    expect(screen.queryByText('Member tasks panel')).not.toBeInTheDocument();
 
-    // Two controls are labelled "People": the section pill (inside the subnav)
-    // and the trigger that opens the browse screen. Target the latter.
-    const subnav = screen.getByRole('navigation', { name: 'People sections' });
-    const browseButton = screen
-      .getAllByRole('button', { name: 'People' })
-      .find((button) => !subnav.contains(button));
-    expect(browseButton).toBeDefined();
-    await user.click(browseButton as HTMLElement);
+    await user.click(within(deck).getByText('Anna Active'));
 
-    const screenDialog = await screen.findByRole('dialog');
-    expect(within(screenDialog).getByPlaceholderText('Search people...')).toBeInTheDocument();
-    expect(within(screenDialog).getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    // Level two: the person's own screen, with a way back.
+    const detail = await screen.findByRole('dialog');
+    expect(within(detail).getByText('Member tasks panel')).toBeInTheDocument();
+    expect(within(detail).getByRole('button', { name: 'Back' })).toBeInTheDocument();
   });
 
-  it('keeps the sections swipeable', () => {
+  it('keeps both sections mounted so they can be swiped', () => {
     useIsMobileMock.mockReturnValue(true);
 
     render(
@@ -138,9 +137,9 @@ describe('MembersPage mobile layout', () => {
       </MemoryRouter>,
     );
 
-    // Both sections are mounted in the deck, so a swipe has somewhere to go.
     const deck = screen.getByTestId('mobile-swipe-deck');
-    expect(deck).toBeInTheDocument();
-    expect(within(deck).getByText('Member tasks panel')).toBeInTheDocument();
+    // People on one page, groups on the other.
+    expect(within(deck).getByPlaceholderText('Search people...')).toBeInTheDocument();
+    expect(within(deck).getByPlaceholderText('Search groups...')).toBeInTheDocument();
   });
 });

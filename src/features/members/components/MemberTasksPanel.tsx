@@ -15,7 +15,6 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
@@ -148,23 +147,31 @@ export const MemberTasksPanel = ({
           <div className={`border-b border-border ${sectionPadding}`}>
             <div className={`flex flex-wrap items-center justify-between gap-3 ${isMobile ? 'gap-2' : ''}`}>
               <div className={isMobile ? 'w-full space-y-2' : 'space-y-2'}>
-                <div className="flex items-center gap-3">
-                  <PersonAvatar
-                    assigneeId={selectedAssignee.id}
-                    userId={selectedAssignee.userId}
-                    name={selectedAssignee.name}
-                    avatarUrl={selectedAssignee.avatar}
-                    colorSeed={selectedAssignee.userId ?? selectedAssignee.id}
-                    size={isMobile ? 'md' : 'xl'}
-                    className="shrink-0"
-                  />
-                  <div className="min-w-0 flex-1 truncate text-lg font-semibold">
-                    {selectedAssignee.name}
-                  </div>
-                  {!selectedAssignee.isActive && (
+                {/* On a phone the name is already the screen's title; only the
+                    "disabled" mark still has to be said. */}
+                {isMobile ? (
+                  !selectedAssignee.isActive && (
                     <Badge variant="secondary">{t`Disabled`}</Badge>
-                  )}
-                </div>
+                  )
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <PersonAvatar
+                      assigneeId={selectedAssignee.id}
+                      userId={selectedAssignee.userId}
+                      name={selectedAssignee.name}
+                      avatarUrl={selectedAssignee.avatar}
+                      colorSeed={selectedAssignee.userId ?? selectedAssignee.id}
+                      size="xl"
+                      className="shrink-0"
+                    />
+                    <div className="min-w-0 flex-1 truncate text-lg font-semibold">
+                      {selectedAssignee.name}
+                    </div>
+                    {!selectedAssignee.isActive && (
+                      <Badge variant="secondary">{t`Disabled`}</Badge>
+                    )}
+                  </div>
+                )}
                 <SegmentedControl surface="filled" className={isMobile ? 'w-full' : undefined}>
                   <SegmentedControlItem
                     size={isMobile ? 'touch' : undefined}

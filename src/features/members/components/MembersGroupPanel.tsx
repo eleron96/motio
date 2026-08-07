@@ -150,7 +150,10 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="text-lg font-semibold">{selectedGroup.name}</div>
+                {/* The group's name is the screen's title on a phone. */}
+                {!isMobile && (
+                  <div className="text-lg font-semibold">{selectedGroup.name}</div>
+                )}
                 {isAdmin && isMobile && (
                   // A popover with its own scroller is unreachable with a
                   // finger; on a phone this list gets a screen of its own.

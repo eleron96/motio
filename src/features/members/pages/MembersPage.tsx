@@ -6,7 +6,7 @@ import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
-import { PanelLeft, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
 import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
@@ -28,7 +28,8 @@ import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
 import { MobileSwipeDeck } from '@/shared/ui/mobile-swipe-deck';
-import { MembersMobileBrowserScreen } from '@/features/members/components/MembersMobileBrowserScreen';
+import { MembersMobileList } from '@/features/members/components/MembersMobileList';
+import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 import { cn } from '@/shared/lib/classNames';
 import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
 import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
@@ -74,7 +75,9 @@ const MembersPage = () => {
   } = useTaskScopeFilter();
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [mobileBrowserOpen, setMobileBrowserOpen] = useState(false);
+  // Two levels on a phone: the deck of lists, and the detail pushed on top.
+  const [memberDetailOpen, setMemberDetailOpen] = useState(false);
+  const [groupDetailOpen, setGroupDetailOpen] = useState(false);
   const pageSize = 100;
   const isMobile = useIsMobile();
 
@@ -566,10 +569,6 @@ const MembersPage = () => {
     0,
     MOBILE_SECTIONS.findIndex((section) => section.id === mode),
   );
-  const mobileSheetLabel = mode === 'groups' ? t`Groups` : t`People`;
-  const mobileSummary = mode === 'groups'
-    ? (selectedGroup?.name ?? t`Select a group`)
-    : (selectedAssignee?.name ?? t`Select a person`);
 
   const renderMembersSidebar = () => (
     <MembersSidebar
@@ -761,19 +760,7 @@ const MembersPage = () => {
             />
           </div>
 
-          <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-2.5">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 shrink-0 gap-2"
-              onClick={() => setMobileBrowserOpen(true)}
-            >
-              <PanelLeft className="h-4 w-4" />
-              {mobileSheetLabel}
-            </Button>
-            <div className="min-w-0 truncate text-xs text-muted-foreground">{mobileSummary}</div>
-          </div>
-
+          {/* Each deck page is the list itself; tapping a row walks into it. */}
           <MobileSwipeDeck
             index={mobileSectionIndex}
             count={MOBILE_SECTIONS.length}
@@ -781,7 +768,42 @@ const MembersPage = () => {
           >
             {MOBILE_SECTIONS.map((section) => (
               <div key={section.id} className="flex h-full min-h-0 flex-col overflow-hidden">
-                {section.id === 'tasks' ? renderTasksPanel() : renderGroupsPanel()}
+                <MembersMobileList
+                  mode={section.id}
+                  isAdmin={isAdmin}
+                  groupActionLoading={groupActionLoading}
+                  tab={tab}
+                  onTabChange={setTab}
+                  memberSearch={memberSearch}
+                  onMemberSearchChange={setMemberSearch}
+                  activeVisibleAssignees={activeVisibleAssignees}
+                  disabledVisibleAssignees={disabledVisibleAssignees}
+                  onOpenAssignee={(assigneeId) => {
+                    setSelectedAssigneeId(assigneeId);
+                    setMemberDetailOpen(true);
+                  }}
+                  memberTaskCounts={memberTaskCounts}
+                  memberTaskCountsDate={memberTaskCountsDate}
+                  groupIdByUserId={groupIdByUserId}
+                  groupNameById={groupNameById}
+                  onAssignAssigneeGroup={openAssigneeGroupDialog}
+                  onClearAssigneeGroup={requestAssigneeGroupRemoval}
+                  groupSearch={groupSearch}
+                  onGroupSearchChange={setGroupSearch}
+                  sortedGroups={sortedGroups}
+                  groupsLoading={groupsLoading}
+                  groupsError={groupsError}
+                  onOpenGroup={(groupId) => {
+                    setSelectedGroupId(groupId);
+                    setGroupDetailOpen(true);
+                  }}
+                  onRenameGroup={(group) => {
+                    setSelectedGroupId(group.id);
+                    handleStartEditGroup(group);
+                    setGroupDetailOpen(true);
+                  }}
+                  onDeleteGroup={requestGroupDeletion}
+                />
               </div>
             ))}
           </MobileSwipeDeck>
@@ -837,57 +859,28 @@ const MembersPage = () => {
       />
 
       {isMobile && (
-        <MembersMobileBrowserScreen
-          open={mobileBrowserOpen}
-          onOpenChange={setMobileBrowserOpen}
-          mode={mode}
-          isAdmin={isAdmin}
-          groupActionLoading={groupActionLoading}
-          tab={tab}
-          onTabChange={setTab}
-          memberSearch={memberSearch}
-          onMemberSearchChange={setMemberSearch}
-          activeVisibleAssignees={activeVisibleAssignees}
-          disabledVisibleAssignees={disabledVisibleAssignees}
-          selectedAssigneeId={selectedAssigneeId}
-          onSelectAssignee={(assigneeId) => {
-            setSelectedAssigneeId(assigneeId);
-            setMobileBrowserOpen(false);
-          }}
-          memberTaskCounts={memberTaskCounts}
-          memberTaskCountsDate={memberTaskCountsDate}
-          groupIdByUserId={groupIdByUserId}
-          groupNameById={groupNameById}
-          // Every action closes the browser first: the dialogs it leads to sit
-          // below this screen in the stack, and the job is done once picked.
-          onAssignAssigneeGroup={(assignee) => {
-            setMobileBrowserOpen(false);
-            openAssigneeGroupDialog(assignee);
-          }}
-          onClearAssigneeGroup={(assignee) => {
-            setMobileBrowserOpen(false);
-            requestAssigneeGroupRemoval(assignee);
-          }}
-          groupSearch={groupSearch}
-          onGroupSearchChange={setGroupSearch}
-          sortedGroups={sortedGroups}
-          groupsLoading={groupsLoading}
-          groupsError={groupsError}
-          selectedGroupId={selectedGroupId}
-          onSelectGroup={(groupId) => {
-            setSelectedGroupId(groupId);
-            setMobileBrowserOpen(false);
-          }}
-          onRenameGroup={(group) => {
-            setMobileBrowserOpen(false);
-            setSelectedGroupId(group.id);
-            handleStartEditGroup(group);
-          }}
-          onDeleteGroup={(group) => {
-            setMobileBrowserOpen(false);
-            requestGroupDeletion(group);
-          }}
-        />
+        <>
+          {/* Second level: the person and their tasks, the group and its
+              people. Both come with a back arrow and the swipe-right that goes
+              with it. */}
+          <MobileScreenShell
+            open={memberDetailOpen}
+            onOpenChange={setMemberDetailOpen}
+            title={selectedAssignee?.name ?? t`Person`}
+            contentClassName="px-0 pt-0"
+          >
+            {renderTasksPanel()}
+          </MobileScreenShell>
+
+          <MobileScreenShell
+            open={groupDetailOpen}
+            onOpenChange={setGroupDetailOpen}
+            title={selectedGroup?.name ?? t`Group`}
+            contentClassName="px-0 pt-0"
+          >
+            {renderGroupsPanel()}
+          </MobileScreenShell>
+        </>
       )}
 
       <AssignGroupDialog
