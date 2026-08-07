@@ -171,15 +171,12 @@ export function useMemberGroups({
     setGroupActionLoading(false);
   }, [currentWorkspaceId, editingGroupId, editingGroupName, fetchGroups, isAdmin, updateMemberGroup]);
 
+  // Asking happens in the UI (a dialog the app draws), not here: a browser
+  // `confirm` blocks the page and looks nothing like the rest of the product.
   const handleDeleteGroup = useCallback(async (group?: MemberGroup) => {
     if (!currentWorkspaceId || !isAdmin) return;
     const targetGroupId = group?.id ?? selectedGroupId;
     if (!targetGroupId) return;
-    if (typeof window !== 'undefined') {
-      const groupName = group?.name ?? selectedGroup?.name ?? 'this group';
-      const confirmed = window.confirm(`Delete "${groupName}"?`);
-      if (!confirmed) return;
-    }
     setGroupActionLoading(true);
     setGroupsError('');
     const result = await deleteMemberGroup(currentWorkspaceId, targetGroupId);
@@ -190,7 +187,7 @@ export function useMemberGroups({
     }
     await fetchGroups();
     setGroupActionLoading(false);
-  }, [currentWorkspaceId, deleteMemberGroup, fetchGroups, isAdmin, selectedGroup?.name, selectedGroupId]);
+  }, [currentWorkspaceId, deleteMemberGroup, fetchGroups, isAdmin, selectedGroupId]);
 
   /**
    * The one way a person's group changes: joining one, moving between two, or

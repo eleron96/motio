@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import MembersPage from '@/features/members/pages/MembersPage';
@@ -28,6 +28,8 @@ vi.mock('@/features/workspace/components/WorkspacePageHeader', () => ({
   ),
 }));
 
+// Rendered on desktop only — its absence on a phone is part of what this
+// checks, so it stays mocked rather than dropped.
 vi.mock('@/features/members/components/MembersSidebar', () => ({
   MembersSidebar: () => <div>Members sidebar</div>,
 }));
@@ -98,7 +100,7 @@ describe('MembersPage mobile layout', () => {
     useIsMobileMock.mockReset();
   });
 
-  it('uses a sheet-based selector on mobile', async () => {
+  it('browses people on a full screen instead of the desktop sidebar', async () => {
     useIsMobileMock.mockReturnValue(true);
     const user = userEvent.setup();
 
@@ -110,10 +112,11 @@ describe('MembersPage mobile layout', () => {
 
     expect(screen.getByText('Member tasks panel')).toBeInTheDocument();
     expect(screen.getByText('Select a person')).toBeInTheDocument();
+    // The desktop sidebar has no place on a phone.
+    expect(screen.queryByText('Members sidebar')).not.toBeInTheDocument();
 
     // Two controls are labelled "People": the section pill (inside the subnav)
-    // and the sheet "browse" trigger. Target the browse trigger that opens the
-    // sidebar sheet.
+    // and the trigger that opens the browse screen. Target the latter.
     const subnav = screen.getByRole('navigation', { name: 'People sections' });
     const browseButton = screen
       .getAllByRole('button', { name: 'People' })
@@ -121,7 +124,23 @@ describe('MembersPage mobile layout', () => {
     expect(browseButton).toBeDefined();
     await user.click(browseButton as HTMLElement);
 
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Members sidebar')).toBeInTheDocument();
+    const screenDialog = await screen.findByRole('dialog');
+    expect(within(screenDialog).getByPlaceholderText('Search people...')).toBeInTheDocument();
+    expect(within(screenDialog).getByRole('button', { name: 'Back' })).toBeInTheDocument();
+  });
+
+  it('keeps the sections swipeable', () => {
+    useIsMobileMock.mockReturnValue(true);
+
+    render(
+      <MemoryRouter>
+        <MembersPage />
+      </MemoryRouter>,
+    );
+
+    // Both sections are mounted in the deck, so a swipe has somewhere to go.
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    expect(deck).toBeInTheDocument();
+    expect(within(deck).getByText('Member tasks panel')).toBeInTheDocument();
   });
 });

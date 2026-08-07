@@ -9,6 +9,10 @@ import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { Switch } from '@/shared/ui/switch';
+import { SearchInput } from '@/shared/ui/SearchInput';
+import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
+import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +77,7 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
   hasOtherGroups,
 }) => {
   const [addMemberPopoverOpen, setAddMemberPopoverOpen] = useState(false);
+  const [addMemberScreenOpen, setAddMemberScreenOpen] = useState(false);
   const [addMemberSearch, setAddMemberSearch] = useState('');
   const [showDisabledAddMembers, setShowDisabledAddMembers] = useState(false);
 
@@ -120,13 +125,14 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
             {editingGroupId === selectedGroup.id ? (
               <div className="flex flex-wrap items-center gap-2">
                 <Input
-                  className="w-full sm:w-[240px]"
+                  className={`w-full sm:w-[240px] ${isMobile ? 'h-11 text-base' : ''}`}
                   value={editingGroupName}
                   onChange={(event) => onEditingGroupNameChange(event.target.value)}
                   disabled={!isAdmin || groupActionLoading}
                 />
                 <Button
                   size="sm"
+                  className={isMobile ? 'h-11 px-5' : undefined}
                   onClick={onSaveGroupName}
                   disabled={!isAdmin || groupActionLoading || !editingGroupName.trim()}
                 >
@@ -135,6 +141,7 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
                 <Button
                   size="sm"
                   variant="ghost"
+                  className={isMobile ? 'h-11 px-5' : undefined}
                   onClick={onCancelEdit}
                   disabled={groupActionLoading}
                 >
@@ -144,7 +151,21 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
             ) : (
               <div className="flex items-center gap-3">
                 <div className="text-lg font-semibold">{selectedGroup.name}</div>
-                {isAdmin && (
+                {isAdmin && isMobile && (
+                  // A popover with its own scroller is unreachable with a
+                  // finger; on a phone this list gets a screen of its own.
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-11 gap-1.5"
+                    disabled={groupActionLoading}
+                    onClick={() => setAddMemberScreenOpen(true)}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    {t`Add member`}
+                  </Button>
+                )}
+                {isAdmin && !isMobile && (
                   <Popover open={addMemberPopoverOpen} onOpenChange={(open) => {
                     setAddMemberPopoverOpen(open);
                     if (!open) {
@@ -241,7 +262,9 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
                     return (
                       <div
                         key={member.userId}
-                        className="flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors hover:bg-muted/40"
+                        className={`flex items-center gap-2 rounded-lg border px-3 transition-colors hover:bg-muted/40 ${
+                          isMobile ? 'min-h-14 py-2.5' : 'py-2'
+                        }`}
                       >
                         <button
                           type="button"
@@ -269,7 +292,7 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                className={`shrink-0 p-0 text-muted-foreground hover:text-foreground ${isMobile ? 'h-11 w-11' : 'h-8 w-8'}`}
                                 disabled={groupActionLoading}
                                 aria-label={t`Member actions`}
                                 data-testid={`group-member-actions-${member.userId}`}
@@ -302,6 +325,75 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
             </>
           )}
         </div>
+      )}
+
+      {isMobile && (
+        <MobileScreenShell
+          open={addMemberScreenOpen}
+          onOpenChange={(next) => {
+            setAddMemberScreenOpen(next);
+            if (!next) {
+              setAddMemberSearch('');
+              setShowDisabledAddMembers(false);
+            }
+          }}
+          title={t`Add member`}
+          toolbar={(
+            <SearchInput
+              value={addMemberSearch}
+              onValueChange={setAddMemberSearch}
+              placeholder={t`Search members...`}
+              className="w-full"
+              inputClassName="h-11 rounded-xl text-sm"
+              clearLabel={t`Clear search`}
+              autoComplete="off"
+              spellCheck={false}
+              enterKeyHint="search"
+            />
+          )}
+        >
+          <div className="space-y-3">
+            <MobileListGroup>
+              <MobileListRow
+                title={t`Show disabled people`}
+                right={(
+                  <Switch
+                    size="touch"
+                    checked={showDisabledAddMembers}
+                    onCheckedChange={setShowDisabledAddMembers}
+                    aria-label={t`Show disabled people`}
+                  />
+                )}
+              />
+            </MobileListGroup>
+
+            {addMemberEmptyState ? (
+              <div className="space-y-1 px-1.5 py-6 text-sm text-muted-foreground">
+                <div>{addMemberEmptyState.title}</div>
+                {addMemberEmptyState.hint && (
+                  <div className="text-xs">{addMemberEmptyState.hint}</div>
+                )}
+              </div>
+            ) : (
+              <MobileListGroup>
+                {availableMembers.map((member) => (
+                  <MobileListRow
+                    key={member.userId}
+                    title={member.displayName || member.email}
+                    subtitle={member.displayName ? member.email : undefined}
+                    value={member.isActive ? undefined : t`Disabled`}
+                    disabled={groupActionLoading}
+                    onClick={() => {
+                      void onAddMember(member.userId);
+                      setAddMemberScreenOpen(false);
+                      setAddMemberSearch('');
+                    }}
+                  />
+                ))}
+              </MobileListGroup>
+            )}
+          </div>
+        </MobileScreenShell>
       )}
     </div>
   );

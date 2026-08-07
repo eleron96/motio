@@ -11,6 +11,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Inviting shows up on the active list only — it is gone from above the disabled list and the history log. Search now sits with the list it filters, and each tab carries its own heading.
 - The Team page keeps people and groups.
 
+### Changed
+- Team on a phone: the People and Groups sections swipe left and right, and picking a person or a group opens a full screen with thumb-sized rows, a search box and swipe-right to go back — instead of the side drawer.
+- A member's task filters open as their own screen on a phone: statuses and projects are now a list a finger can actually reach, and the button shows how many filters are on.
+- Renaming and deleting a group are reachable from a phone — until now they lived only in the right-click menu.
+- Deleting a group asks for confirmation inside the app instead of a browser system dialog.
+- A member's task opens full-screen on a phone: the fields read as a list, the description fits, and "Go to task" is a full-width button at the bottom.
+- Adding someone to a group opens its own screen on a phone, with search and a "Show disabled people" row — instead of a floating list a finger could not scroll.
+
 ### Added
 - A person's group is now visible and changeable straight from the people list: the group is named under their name, and the "..." next to it assigns a group or takes them out of one.
 - Inside a group every member got a "..." menu: move them to another group or remove them. Removing now asks for confirmation.
