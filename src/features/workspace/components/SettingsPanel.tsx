@@ -49,10 +49,9 @@ import { MobileStackScreen, type MobileStackSection } from '@/shared/ui/mobile-s
 import { MobileStepper } from '@/shared/ui/mobile-stepper';
 import { useMobileMenu } from '@/features/workspace/components/MobileMenuContext';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
-import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR, PERSON_PRESET_COLORS } from '@/shared/lib/colors';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { buildTimeOffColorMap } from '@/features/planner/lib/timeOffPalette';
-import { canEditPersonColor, isPersonColor } from '@/shared/lib/personColor';
+import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
+import { Block, SettingRow } from '@/features/workspace/components/settingsBlocks';
+import { WorkspaceMembersSection } from '@/features/workspace/components/WorkspaceMembersSection';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsPanelProps {
@@ -63,39 +62,6 @@ interface SettingsPanelProps {
 import { fetchHolidayCountries, type HolidayCountryOption } from '@/infrastructure/holidays/holidayApi';
 
 type SectionId = 'general' | 'display' | 'people' | 'workflow' | 'template' | 'danger';
-
-// A settings sub-block: a heading (and optional description) above its controls.
-const Block: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({
-  title,
-  description,
-  children,
-}) => (
-  <section className="space-y-3 border-t border-border pt-5 first:border-t-0 first:pt-0">
-    <div className="space-y-1">
-      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      {description && <p className="text-xs text-muted-foreground">{description}</p>}
-    </div>
-    {children}
-  </section>
-);
-
-// Reference-style row: label + description on the left, control on the right.
-const SettingRow: React.FC<{ title: React.ReactNode; description?: string; htmlFor?: string; children: React.ReactNode }> = ({
-  title,
-  description,
-  htmlFor,
-  children,
-}) => (
-  <div className="flex items-center justify-between gap-4">
-    <div className="min-w-0 space-y-0.5">
-      <Label htmlFor={htmlFor} className="block text-sm font-medium text-foreground">
-        {title}
-      </Label>
-      {description && <p className="text-xs text-muted-foreground">{description}</p>}
-    </div>
-    <div className="shrink-0">{children}</div>
-  </div>
-);
 
 const autoResize = (element: HTMLTextAreaElement | null) => {
   if (!element) return;
@@ -130,7 +96,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     statuses, addStatus, updateStatus, deleteStatus,
     taskTypes, addTaskType, updateTaskType, deleteTaskType,
     tags, addTag, updateTag, deleteTag,
-    assignees, setAssigneeColor,
     workspaceId,
     applyWorkspaceTemplate,
     filters,
@@ -148,8 +113,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     addTag: state.addTag,
     updateTag: state.updateTag,
     deleteTag: state.deleteTag,
-    assignees: state.assignees,
-    setAssigneeColor: state.setAssigneeColor,
     workspaceId: state.workspaceId,
     applyWorkspaceTemplate: state.applyWorkspaceTemplate,
     filters: state.filters,
@@ -207,30 +170,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     const parsed = Number(heatmapCapacityInput.trim().replace(',', '.'));
     return heatmapCapacityInput.trim() !== '' && Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [heatmapCapacityInput]);
-
-  const [savingColorId, setSavingColorId] = useState<string | null>(null);
-  const [peopleColorError, setPeopleColorError] = useState('');
-
-  const colorPeople = useMemo(() => (
-    (assignees ?? [])
-      .filter((assignee) => assignee.isActive)
-      .slice()
-      .sort((left, right) => left.name.localeCompare(right.name))
-  ), [assignees]);
-  // What each person is drawn in right now: their own colour, or the automatic
-  // one the calendar would pick. The swatch must show the colour in effect, not
-  // an empty state, or "no colour chosen" would read as "no colour at all".
-  const effectiveColorById = useMemo(() => buildTimeOffColorMap(assignees ?? []), [assignees]);
-
-  const handlePersonColorChange = async (assigneeId: string, color: string | null) => {
-    setSavingColorId(assigneeId);
-    setPeopleColorError('');
-    const result = await setAssigneeColor(assigneeId, color);
-    if (result.error) {
-      setPeopleColorError(result.error);
-    }
-    setSavingColorId(null);
-  };
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
@@ -492,7 +431,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const sections: Array<{ id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
     { id: 'general', label: t`General`, icon: Building2 },
     { id: 'display', label: t`Display`, icon: Eye },
-    { id: 'people', label: t`People`, icon: Users },
+    { id: 'people', label: t`Members and access`, icon: Users },
     { id: 'workflow', label: t`Workflow`, icon: Workflow },
     { id: 'template', label: t`Template`, icon: LayoutTemplate },
     { id: 'danger', label: t`Danger zone`, icon: AlertTriangle },
@@ -713,73 +652,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     </div>
   );
 
-  const peopleContent = (
-    <div className="space-y-5">
-      <Block
-        title={t`Colours`}
-        description={t`A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials.`}
-      >
-        {peopleColorError && (
-          <p className="text-sm text-destructive">{peopleColorError}</p>
-        )}
-        {colorPeople.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t`No people in this workspace yet.`}</p>
-        ) : (
-          <div className="space-y-1">
-            {colorPeople.map((person) => {
-              const canEditPerson = canEditPersonColor({
-                isAdmin,
-                assigneeUserId: person.userId,
-                currentUserId: user?.id,
-              });
-              const hasOwnColor = isPersonColor(person.color);
-              return (
-                <div
-                  key={person.id}
-                  className="flex items-center gap-3 rounded-md px-1.5 py-1.5 hover:bg-muted/60"
-                >
-                  <UserAvatar
-                    size="sm"
-                    name={person.name}
-                    colorSeed={person.userId ?? person.id}
-                    color={effectiveColorById.get(person.id)}
-                    className="shrink-0"
-                  />
-                  <span className="min-w-0 flex-1 truncate text-sm text-foreground">
-                    {person.name}
-                  </span>
-                  {hasOwnColor && canEditPerson && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-7 shrink-0 px-2 text-xs text-muted-foreground hover:text-foreground"
-                      disabled={savingColorId === person.id}
-                      onClick={() => void handlePersonColorChange(person.id, null)}
-                    >
-                      {t`Auto`}
-                    </Button>
-                  )}
-                  <ColorPicker
-                    value={effectiveColorById.get(person.id) ?? PERSON_PRESET_COLORS[0]}
-                    presets={PERSON_PRESET_COLORS}
-                    allowCustom={false}
-                    disabled={!canEditPerson || savingColorId === person.id}
-                    aria-label={t`Colour of ${person.name}`}
-                    onChange={(color) => void handlePersonColorChange(person.id, color)}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {!isAdmin && (
-          <p className="text-xs text-muted-foreground">
-            {t`You can change your own colour. Only an admin can recolour the rest of the team.`}
-          </p>
-        )}
-      </Block>
-    </div>
-  );
+  const peopleContent = <WorkspaceMembersSection />;
 
   const workflowContent = (
     <div className="space-y-5">
@@ -1123,7 +996,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
         />
       ) : (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[980px] w-[90vw] sm:w-[840px] md:w-[980px] h-[90vh] overflow-hidden flex flex-col">
+        {/* Wide enough for the member rows (role, group, status and actions all
+            sit on one line) without the settings forms looking stranded. */}
+        <DialogContent className="max-w-[1120px] w-[92vw] sm:w-[840px] md:w-[980px] lg:w-[1120px] h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="w-5 h-5" />

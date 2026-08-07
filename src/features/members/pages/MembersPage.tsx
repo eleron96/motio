@@ -8,11 +8,22 @@ import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
-import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
 import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
 import { MembersGroupPanel } from '@/features/members/components/MembersGroupPanel';
+import { AssignGroupDialog } from '@/features/members/components/AssignGroupDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/ui/alert-dialog';
+import type { PlannerGroupMember } from '@/features/planner/store/plannerStore.contract';
 import { hasRichTags, sanitizeTaskDescription } from '@/shared/domain/taskDescription';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
@@ -20,15 +31,13 @@ import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
 import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
 import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
 import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
-import { Task } from '@/features/planner/types/planner';
+import { Assignee } from '@/features/planner/types/planner';
 import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
 import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
 import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
 import { useMembersPageMode } from '@/features/members/hooks/useMembersPageMode';
 import { useMemberTaskFetcher } from '@/features/members/hooks/useMemberTaskFetcher';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
-
-type AccessTab = 'active' | 'disabled' | 'history';
 
 const MembersPage = () => {
   usePageSeo({
@@ -41,9 +50,7 @@ const MembersPage = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [tab, setTab] = useState<'active' | 'disabled'>('active');
-  const [mode, setMode] = useState<'tasks' | 'access' | 'groups'>('tasks');
-  const [accessTab, setAccessTab] = useState<AccessTab>('active');
-  const [accessSearch, setAccessSearch] = useState('');
+  const [mode, setMode] = useState<'tasks' | 'groups'>('tasks');
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [projectFilterIds, setProjectFilterIds] = useState<string[]>([]);
@@ -133,14 +140,10 @@ const MembersPage = () => {
 
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const isAdmin = currentWorkspaceRole === 'admin';
-  const prepareMembersAccess = useCallback(() => {
-    setMode('access');
-  }, []);
 
   useOnboardingTour({
     pageId: 'members',
     isAdmin,
-    prepareMembersAccess,
   });
 
   const roleLabels: Record<WorkspaceRole, string> = {
@@ -161,7 +164,6 @@ const MembersPage = () => {
     setMode,
     currentWorkspaceId,
     userId: user?.id,
-    isAdmin,
   });
 
   const {
@@ -192,8 +194,8 @@ const MembersPage = () => {
     handleStartEditGroup,
     handleSaveGroupName,
     handleDeleteGroup,
+    handleAssignMemberToGroup,
     handleAddMemberToGroup,
-    handleRemoveMemberFromGroup,
   } = useMemberGroups({
     currentWorkspaceId,
     isAdmin,
@@ -217,6 +219,8 @@ const MembersPage = () => {
     disabledMemberGroups,
     activeVisibleAssignees,
     disabledVisibleAssignees,
+    groupIdByUserId,
+    groupNameById,
   } = useMembersFilter({
     assignees,
     memberGroupAssignments,
@@ -227,6 +231,66 @@ const MembersPage = () => {
 
   const memberSortLabel = memberSort === 'asc' ? t`A-Z` : t`Z-A`;
   const groupSortLabel = groupSort === 'asc' ? t`A-Z` : t`Z-A`;
+
+  // Assigning a group is one flow with two entry points — the people list and a
+  // group's own member list — so both dialogs live here rather than in either.
+  const [groupAssignTarget, setGroupAssignTarget] = useState<{
+    userId: string;
+    name: string;
+    currentGroupId: string | null;
+  } | null>(null);
+  const [groupRemoveTarget, setGroupRemoveTarget] = useState<{
+    userId: string;
+    name: string;
+    groupName: string | null;
+  } | null>(null);
+
+  const openAssigneeGroupDialog = useCallback((assignee: Assignee) => {
+    if (!assignee.userId) return;
+    setGroupAssignTarget({
+      userId: assignee.userId,
+      name: assignee.name,
+      currentGroupId: groupIdByUserId.get(assignee.userId) ?? null,
+    });
+  }, [groupIdByUserId]);
+
+  const requestAssigneeGroupRemoval = useCallback((assignee: Assignee) => {
+    if (!assignee.userId) return;
+    const currentGroupId = groupIdByUserId.get(assignee.userId) ?? null;
+    setGroupRemoveTarget({
+      userId: assignee.userId,
+      name: assignee.name,
+      groupName: currentGroupId ? (groupNameById.get(currentGroupId) ?? null) : null,
+    });
+  }, [groupIdByUserId, groupNameById]);
+
+  const openGroupMemberMoveDialog = useCallback((member: PlannerGroupMember) => {
+    setGroupAssignTarget({
+      userId: member.userId,
+      name: member.displayName || member.email,
+      currentGroupId: selectedGroupId,
+    });
+  }, [selectedGroupId]);
+
+  const requestGroupMemberRemoval = useCallback((member: PlannerGroupMember) => {
+    setGroupRemoveTarget({
+      userId: member.userId,
+      name: member.displayName || member.email,
+      groupName: selectedGroup?.name ?? null,
+    });
+  }, [selectedGroup?.name]);
+
+  const handleGroupSelected = useCallback((groupId: string) => {
+    if (!groupAssignTarget) return;
+    void handleAssignMemberToGroup(groupAssignTarget.userId, groupId);
+    setGroupAssignTarget(null);
+  }, [groupAssignTarget, handleAssignMemberToGroup]);
+
+  const confirmGroupRemoval = useCallback(() => {
+    if (!groupRemoveTarget) return;
+    void handleAssignMemberToGroup(groupRemoveTarget.userId, null);
+    setGroupRemoveTarget(null);
+  }, [groupRemoveTarget, handleAssignMemberToGroup]);
 
   useEffect(() => {
     const list = tab === 'active' ? activeVisibleAssignees : disabledVisibleAssignees;
@@ -302,15 +366,6 @@ const MembersPage = () => {
     () => [...projects].sort((a, b) => a.name.localeCompare(b.name)),
     [projects],
   );
-  const activeAccessCount = useMemo(
-    () => members.filter((member) => assigneeByUserId.get(member.userId)?.isActive ?? true).length,
-    [assigneeByUserId, members],
-  );
-  const disabledAccessCount = useMemo(
-    () => members.filter((member) => !(assigneeByUserId.get(member.userId)?.isActive ?? true)).length,
-    [assigneeByUserId, members],
-  );
-
   useEffect(() => {
     setSelectedTaskIds(new Set());
   }, [selectedAssigneeId, pageIndex, projectFilterIds, search, statusFilterIds, taskScope, pastFromDate, pastToDate, pastSort]);
@@ -493,20 +548,10 @@ const MembersPage = () => {
     setMode('tasks');
   }, [assigneeByUserId, setMode, setSelectedAssigneeId, setTab]);
 
-  const mobileSheetLabel = mode === 'access'
-    ? t`Access`
-    : mode === 'groups'
-      ? t`Groups`
-      : t`People`;
-  const mobileSummary = mode === 'access'
-    ? accessTab === 'history'
-      ? t`History`
-      : accessTab === 'disabled'
-        ? t`Disabled people`
-        : t`Active people`
-    : mode === 'groups'
-      ? (selectedGroup?.name ?? t`Select a group`)
-      : (selectedAssignee?.name ?? t`Select a person`);
+  const mobileSheetLabel = mode === 'groups' ? t`Groups` : t`People`;
+  const mobileSummary = mode === 'groups'
+    ? (selectedGroup?.name ?? t`Select a group`)
+    : (selectedAssignee?.name ?? t`Select a person`);
 
   const renderMembersSidebar = (closeOnSelect = false) => (
     <MembersSidebar
@@ -517,15 +562,6 @@ const MembersPage = () => {
       isAdmin={isAdmin}
       tab={tab}
       onTabChange={setTab}
-      accessTab={accessTab}
-      onAccessTabChange={(nextTab) => {
-        setAccessTab(nextTab);
-        if (closeOnSelect) setMobileSidebarOpen(false);
-      }}
-      accessSearch={accessSearch}
-      onAccessSearchChange={setAccessSearch}
-      activeAccessCount={activeAccessCount}
-      disabledAccessCount={disabledAccessCount}
       memberSearch={memberSearch}
       onMemberSearchChange={setMemberSearch}
       memberSort={memberSort}
@@ -544,6 +580,11 @@ const MembersPage = () => {
       }}
       memberTaskCountsDate={memberTaskCountsDate}
       memberTaskCounts={memberTaskCounts}
+      groupIdByUserId={groupIdByUserId}
+      groupNameById={groupNameById}
+      onAssignAssigneeGroup={openAssigneeGroupDialog}
+      onClearAssigneeGroup={requestAssigneeGroupRemoval}
+      groupActionLoading={groupActionLoading}
       groupSearch={groupSearch}
       onGroupSearchChange={setGroupSearch}
       groupSort={groupSort}
@@ -567,15 +608,6 @@ const MembersPage = () => {
 
   const renderMembersContent = () => (
     <section className="flex-1 overflow-hidden flex flex-col">
-      {mode === 'access' && (
-        <div className={`flex-1 overflow-auto ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}>
-          <WorkspaceMembersPanel
-            accessTab={accessTab}
-            accessSearch={accessSearch}
-          />
-        </div>
-      )}
-
       {mode === 'groups' && (
         <MembersGroupPanel
           isMobile={isMobile}
@@ -595,8 +627,10 @@ const MembersPage = () => {
           members={members}
           assigneeByUserId={assigneeByUserId}
           onAddMember={handleAddMemberToGroup}
-          onRemoveMember={handleRemoveMemberFromGroup}
+          onMoveMember={openGroupMemberMoveDialog}
+          onRemoveMember={requestGroupMemberRemoval}
           onGroupMemberClick={handleGroupMemberClick}
+          hasOtherGroups={groups.length > 1}
         />
       )}
 
@@ -706,7 +740,6 @@ const MembersPage = () => {
           {(() => {
             const subnavItems: MobilePillSubnavItem[] = [
               { id: 'tasks', label: t`People` },
-              { id: 'access', label: t`Access` },
               { id: 'groups', label: t`Groups` },
             ];
             return (
@@ -714,7 +747,7 @@ const MembersPage = () => {
                 <MobilePillSubnav
                   items={subnavItems}
                   activeId={mode}
-                  onChange={(id) => setMode(id as 'tasks' | 'access' | 'groups')}
+                  onChange={(id) => setMode(id as 'tasks' | 'groups')}
                   ariaLabel={t`People sections`}
                 />
               </div>
@@ -763,6 +796,49 @@ const MembersPage = () => {
         showAccountSettings={showAccountSettings}
         setShowAccountSettings={setShowAccountSettings}
       />
+
+      <AssignGroupDialog
+        open={groupAssignTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setGroupAssignTarget(null);
+        }}
+        memberName={groupAssignTarget?.name ?? ''}
+        groups={groups}
+        currentGroupId={groupAssignTarget?.currentGroupId ?? null}
+        onSelect={handleGroupSelected}
+        loading={groupActionLoading}
+        isMobile={isMobile}
+      />
+
+      <AlertDialog
+        open={groupRemoveTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setGroupRemoveTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Remove from group?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {groupRemoveTarget?.groupName
+                ? t`${groupRemoveTarget.name} leaves "${groupRemoveTarget.groupName}" and ends up without a group. Their tasks are not affected.`
+                : t`They end up without a group. Their tasks are not affected.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(event) => {
+                event.preventDefault();
+                confirmGroupRemoval();
+              }}
+            >
+              {t`Remove`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

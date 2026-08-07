@@ -20,6 +20,10 @@ vi.mock('@/shared/ui/emoji-picker', () => ({
   ),
 }));
 
+vi.mock('@/features/workspace/components/WorkspaceMembersPanel', () => ({
+  WorkspaceMembersPanel: () => <div>Members panel</div>,
+}));
+
 const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
     statuses: [],
@@ -92,6 +96,19 @@ describe('SettingsPanel sections', () => {
     // Switching to Workflow reveals the statuses block.
     await user.click(screen.getByRole('button', { name: 'Workflow' }));
     expect(await screen.findByText('Statuses')).toBeInTheDocument();
+  });
+
+  it('puts team access under the Members and access section', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TooltipProvider>
+        <SettingsPanel open onOpenChange={() => {}} />
+      </TooltipProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Members and access' }));
+    expect(await screen.findByText('Members panel')).toBeInTheDocument();
   });
 
   it('exposes the "Unassigned" toggle under the Display section', async () => {

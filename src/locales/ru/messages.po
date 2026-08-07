@@ -76,6 +76,12 @@ msgstr "{0} исполнителей"
 msgid "{0} in series"
 msgstr "{0} в серии"
 
+#. placeholder {0}: groupRemoveTarget.name
+#. placeholder {1}: groupRemoveTarget.groupName
+#: src/features/members/pages/MembersPage.tsx
+msgid "{0} leaves \"{1}\" and ends up without a group. Their tasks are not affected."
+msgstr "{0} покидает «{1}» и остаётся без группы. На задачах это не отражается."
+
 #. placeholder {0}: milestonesInCalendar.length
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 msgid "{0} milestones"
@@ -249,7 +255,7 @@ msgstr "Кружок на дне; делится, если отсутствуе�
 msgid "A person you can reuse across projects."
 msgstr "Человек, которого можно переиспользовать в проектах."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials."
 msgstr "Цвет человека используется на графиках дашборда, на кружках его отпусков в календаре и за инициалами."
 
@@ -281,9 +287,6 @@ msgstr "Примите приглашение, чтобы присоединит
 msgid "Accepted"
 msgstr "Принято"
 
-#: src/features/members/components/MembersSidebar.tsx
-#: src/features/members/pages/MembersPage.tsx
-#: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Access"
 msgstr "Доступ"
@@ -291,6 +294,10 @@ msgstr "Доступ"
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Access denied"
 msgstr "Нет доступа"
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Access history"
+msgstr "История доступа"
 
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Account"
@@ -337,18 +344,18 @@ msgstr "активен"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/members/components/MembersSidebar.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "Active"
 msgstr "Активен"
 
 #: src/features/members/pages/MembersPage.tsx
-msgid "Active people"
-msgstr "Активные участники"
+#~ msgid "Active people"
+#~ msgstr "Активные участники"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #~ msgid "Activity"
@@ -634,6 +641,12 @@ msgstr "Площадная диаграмма"
 msgid "Assign"
 msgstr "Назначить"
 
+#: src/features/members/components/AssignGroupDialog.tsx
+#: src/features/members/components/MembersSidebar.tsx
+#: src/features/members/components/MembersSidebar.tsx
+msgid "Assign a group"
+msgstr "Назначить группу"
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Assign an easter egg"
 msgstr "Назначить пасхалку"
@@ -671,7 +684,7 @@ msgstr "Ошибка аутентификации."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "Auto"
 msgstr "Авто"
 
@@ -808,6 +821,7 @@ msgstr "Диапазон календаря"
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/members/components/MembersDialogs.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
+#: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
@@ -868,6 +882,11 @@ msgstr "Отмененный статус"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Change easter egg"
 msgstr "Сменить пасхалку"
+
+#: src/features/members/components/MembersSidebar.tsx
+#: src/features/members/components/MembersSidebar.tsx
+msgid "Change group"
+msgstr "Сменить группу"
 
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 msgid "Change the days or remove the time off."
@@ -940,6 +959,10 @@ msgstr "Выберите, как выглядит и работает прост
 msgid "Choose the accent color used across the interface"
 msgstr "Выберите акцентный цвет интерфейса"
 
+#: src/features/members/components/AssignGroupDialog.tsx
+msgid "Choose the group for {memberName}."
+msgstr "Выберите группу для {memberName}."
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Choose where to apply this change."
 msgstr "Выберите, к каким задачам применить это изменение."
@@ -970,7 +993,7 @@ msgstr "Очистить фильтры"
 msgid "Clear photo"
 msgstr "Удалить фото"
 
-#: src/features/members/components/MembersSidebar.tsx
+#: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -979,6 +1002,7 @@ msgstr "Удалить фото"
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Clear search"
 msgstr "Очистить поиск"
 
@@ -1035,11 +1059,12 @@ msgid "Color"
 msgstr "Цвет"
 
 #. placeholder {0}: person.name
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "Colour of {0}"
 msgstr "Цвет: {0}"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersSection.tsx
+#: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "Colours"
 msgstr "Цвета"
 
@@ -1267,6 +1292,8 @@ msgstr "Создает повторы на следующие 12 месяцев.
 msgid "Creates the specified number of repeats."
 msgstr "Создает указанное количество повторов."
 
+#: src/features/members/components/AssignGroupDialog.tsx
+#: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -1634,7 +1661,6 @@ msgstr "отключен"
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -1642,10 +1668,11 @@ msgstr "отключен"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "Disabled"
 msgstr "Отключен"
 
-#: src/features/members/pages/MembersPage.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Disabled people"
 msgstr "Отключенные участники"
 
@@ -2369,8 +2396,7 @@ msgid "High priority"
 msgstr "Высокий приоритет"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
-#: src/features/members/components/MembersSidebar.tsx
-#: src/features/members/pages/MembersPage.tsx
+#: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "History"
 msgstr "История"
 
@@ -2477,8 +2503,8 @@ msgid "Invite people and share access."
 msgstr "Приглашайте людей и делитесь доступом."
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Invite teammates"
-msgstr "Пригласите коллег"
+#~ msgid "Invite teammates"
+#~ msgstr "Пригласите коллег"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Invite teammates after you sign up"
@@ -2500,6 +2526,10 @@ msgstr "Пригласил"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Invites"
 msgstr "Приглашения"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Invites, roles and workspace access live in workspace settings, under \"Members and access\"."
+msgstr "Приглашения, роли и доступ к пространству живут в настройках рабочего пространства, в разделе «Участники и доступ»."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
@@ -2703,8 +2733,8 @@ msgid "Manage team roles, groups, and status."
 msgstr "Управляйте ролями, группами и статусом участников."
 
 #: src/features/workspace/components/WorkspaceMembersSheet.tsx
-msgid "Manage workspace members, roles, and invitations."
-msgstr "Управляйте участниками, ролями и приглашениями рабочего пространства."
+#~ msgid "Manage workspace members, roles, and invitations."
+#~ msgstr "Управляйте участниками, ролями и приглашениями рабочего пространства."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #~ msgid "Manage workspace settings, statuses, task types, and tags."
@@ -2766,6 +2796,8 @@ msgstr "Средний приоритет"
 msgid "Member"
 msgstr "Участник"
 
+#: src/features/members/components/MembersGroupPanel.tsx
+#: src/features/members/components/MembersSidebar.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Member actions"
 msgstr "Действия с участником"
@@ -2773,6 +2805,10 @@ msgstr "Действия с участником"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Members"
 msgstr "Участники"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Members and access"
+msgstr "Участники и доступ"
 
 #: src/features/planner/components/CommentEditor.tsx
 msgid "Mention a person"
@@ -2921,6 +2957,10 @@ msgstr "Горы"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Move mode is enabled. Drag the widget header."
 msgstr "Режим перемещения включен. Перетащите заголовок виджета."
+
+#: src/features/members/components/MembersGroupPanel.tsx
+msgid "Move to another group"
+msgstr "Перенести в другую группу"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "My team workspace"
@@ -3223,6 +3263,7 @@ msgstr "Пасхалки никому не назначены."
 msgid "No email or phone for this contact yet."
 msgstr "У контакта пока нет email или телефона."
 
+#: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/hooks/useMembersFilter.ts
 #: src/features/members/hooks/useMembersFilter.ts
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -3239,10 +3280,19 @@ msgstr "Без группы"
 msgid "No groups created yet."
 msgstr "Группы еще не созданы."
 
+#: src/features/members/components/AssignGroupDialog.tsx
+msgid "No groups found."
+msgstr "Групп не найдено."
+
+#: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/planner/components/FilterPanel.tsx
 msgid "No groups yet."
 msgstr "Групп пока нет."
+
+#: src/features/members/components/AssignGroupDialog.tsx
+msgid "No groups yet. Create one on the Groups tab first."
+msgstr "Групп пока нет. Сначала создайте группу на вкладке «Группы»."
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No history yet."
@@ -3336,7 +3386,7 @@ msgstr "Нет вариантов"
 msgid "No past milestones."
 msgstr "Нет прошедших вех."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "No people in this workspace yet."
 msgstr "В этом пространстве пока нет людей."
 
@@ -3805,7 +3855,6 @@ msgstr "Ожидает"
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
 msgid "People"
 msgstr "Участники"
 
@@ -3813,6 +3862,7 @@ msgstr "Участники"
 msgid "People access"
 msgstr "Участники"
 
+#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "People and groups"
 msgstr "Люди и группы"
@@ -4077,6 +4127,7 @@ msgstr "Повтор"
 msgid "Refresh"
 msgstr "Обновить"
 
+#: src/features/members/pages/MembersPage.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -4098,8 +4149,14 @@ msgid "Remove contact"
 msgstr "Удалить контакт"
 
 #: src/features/members/components/MembersGroupPanel.tsx
+#: src/features/members/components/MembersSidebar.tsx
+#: src/features/members/components/MembersSidebar.tsx
 msgid "Remove from group"
 msgstr "Удалить из группы"
+
+#: src/features/members/pages/MembersPage.tsx
+msgid "Remove from group?"
+msgstr "Убрать из группы?"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -4381,6 +4438,8 @@ msgstr "Поиск стран..."
 msgid "Search customers..."
 msgstr "Поиск клиентов..."
 
+#: src/features/members/components/AssignGroupDialog.tsx
+#: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/planner/components/FilterPanel.tsx
 msgid "Search groups..."
@@ -4408,8 +4467,8 @@ msgstr "Поиск по людям"
 #~ msgstr "Поиск людей и компаний..."
 
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/members/components/MembersSidebar.tsx
 #: src/features/planner/components/FilterPanel.tsx
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Search people..."
 msgstr "Поиск участников..."
 
@@ -5148,6 +5207,14 @@ msgstr "На эти дни уже есть отметка."
 msgid "These members are derived from this project's tasks. Use + to pin them explicitly."
 msgstr "Эти участники выведены из задач проекта. Нажми +, чтобы закрепить их явно."
 
+#: src/features/members/pages/MembersPage.tsx
+msgid "They end up without a group. Their tasks are not affected."
+msgstr "Человек остаётся без группы. На задачах это не отражается."
+
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "They keep their tasks and history but cannot open the workspace."
+msgstr "Задачи и история остаются, но открыть пространство они не могут."
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "They will lose access to this workspace. Tasks already assigned to them are not affected."
 msgstr "Участник потеряет доступ к рабочему пространству. Уже назначенные на него задачи не затрагиваются."
@@ -5239,8 +5306,8 @@ msgid "This sandbox resets soon. Create a free account to keep this timeline and
 msgstr "Песочница скоро сбросится. Создайте бесплатный аккаунт, чтобы сохранить этот таймлайн и начать свой."
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "This section contains invitations, roles and workspace access for your team."
-msgstr "В этом разделе находятся приглашения, роли и доступ команды к рабочему пространству."
+#~ msgid "This section contains invitations, roles and workspace access for your team."
+#~ msgstr "В этом разделе находятся приглашения, роли и доступ команды к рабочему пространству."
 
 #. placeholder {0}: audienceCount ?? 0
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -5635,6 +5702,7 @@ msgid "Use ISO code (for example RU, US, DE)."
 msgstr "Используйте ISO-код (например RU, US, DE)."
 
 #: src/features/onboarding/lib/onboardingTour.ts
+#: src/features/onboarding/lib/onboardingTour.ts
 msgid "Use Team to browse people, groups and task ownership inside the workspace."
 msgstr "Используйте раздел Team, чтобы просматривать людей, группы и распределение задач внутри рабочего пространства."
 
@@ -5647,8 +5715,8 @@ msgid "Use this button to add KPI, chart and milestone widgets to the dashboard.
 msgstr "Используйте эту кнопку, чтобы добавить на дашборд KPI, графики и виджеты вех."
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
-msgstr "Используйте эту кнопку, чтобы добавить людей в рабочее пространство. После присоединения их можно назначать на задачи проекта."
+#~ msgid "Use this button to add people to the workspace. After they join, you can assign them to project tasks."
+#~ msgstr "Используйте эту кнопку, чтобы добавить людей в рабочее пространство. После присоединения их можно назначать на задачи проекта."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -5747,6 +5815,10 @@ msgstr "Еженедельный повтор"
 msgid "Welcome to Motio!"
 msgstr "Добро пожаловать в Motio!"
 
+#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+msgid "Who changed roles, groups and access, and when."
+msgstr "Кто и когда менял роли, группы и доступ."
+
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Who takes over?"
 msgstr "Кто возьмёт на себя?"
@@ -5791,8 +5863,8 @@ msgid "Workspace limit reached (5)."
 msgstr "Достигнут лимит рабочих пространств (5)."
 
 #: src/features/workspace/components/WorkspaceMembersSheet.tsx
-msgid "Workspace members"
-msgstr "Участники рабочего пространства"
+#~ msgid "Workspace members"
+#~ msgstr "Участники рабочего пространства"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -5877,7 +5949,7 @@ msgstr "Вы владелец этого рабочего пространств
 msgid "You are the sole admin in these workspaces. Pick an heir or delete the workspace."
 msgstr "Вы единственный администратор в этих рабочих пространствах. Выберите преемника или удалите рабочее пространство."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "You can change your own colour. Only an admin can recolour the rest of the team."
 msgstr "Свой цвет можно менять самому. Остальным цвет меняет только администратор."
 

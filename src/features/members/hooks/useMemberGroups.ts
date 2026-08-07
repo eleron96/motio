@@ -192,33 +192,38 @@ export function useMemberGroups({
     setGroupActionLoading(false);
   }, [currentWorkspaceId, deleteMemberGroup, fetchGroups, isAdmin, selectedGroup?.name, selectedGroupId]);
 
-  const handleAddMemberToGroup = useCallback(async (userId: string) => {
-    if (!currentWorkspaceId || !isAdmin || !selectedGroupId) return;
+  /**
+   * The one way a person's group changes: joining one, moving between two, or
+   * being taken out (`null`). Everything else routes through here so loading,
+   * errors and the refetch cannot drift apart between the callers.
+   */
+  const handleAssignMemberToGroup = useCallback(async (userId: string, groupId: string | null) => {
+    if (!currentWorkspaceId || !isAdmin) return;
     setGroupActionLoading(true);
     setGroupsError('');
-    const result = await assignMemberToGroup(userId, selectedGroupId);
+    const result = await assignMemberToGroup(userId, groupId);
     if (result.error) {
       setGroupsError(result.error);
       setGroupActionLoading(false);
       return;
     }
-    await fetchSelectedGroupMembers(selectedGroupId);
+    // The open group is the list on screen: refresh it whether the person just
+    // joined it or just left it for somewhere else.
+    if (selectedGroupId) {
+      await fetchSelectedGroupMembers(selectedGroupId);
+    }
     setGroupActionLoading(false);
   }, [assignMemberToGroup, currentWorkspaceId, fetchSelectedGroupMembers, isAdmin, selectedGroupId]);
 
+  const handleAddMemberToGroup = useCallback(async (userId: string) => {
+    if (!selectedGroupId) return;
+    await handleAssignMemberToGroup(userId, selectedGroupId);
+  }, [handleAssignMemberToGroup, selectedGroupId]);
+
   const handleRemoveMemberFromGroup = useCallback(async (userId: string) => {
-    if (!currentWorkspaceId || !isAdmin || !selectedGroupId) return;
-    setGroupActionLoading(true);
-    setGroupsError('');
-    const result = await assignMemberToGroup(userId, null);
-    if (result.error) {
-      setGroupsError(result.error);
-      setGroupActionLoading(false);
-      return;
-    }
-    await fetchSelectedGroupMembers(selectedGroupId);
-    setGroupActionLoading(false);
-  }, [assignMemberToGroup, currentWorkspaceId, fetchSelectedGroupMembers, isAdmin, selectedGroupId]);
+    if (!selectedGroupId) return;
+    await handleAssignMemberToGroup(userId, null);
+  }, [handleAssignMemberToGroup, selectedGroupId]);
 
   return {
     groups,
@@ -248,6 +253,7 @@ export function useMemberGroups({
     handleStartEditGroup,
     handleSaveGroupName,
     handleDeleteGroup,
+    handleAssignMemberToGroup,
     handleAddMemberToGroup,
     handleRemoveMemberFromGroup,
   };

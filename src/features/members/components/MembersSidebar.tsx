@@ -1,10 +1,16 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { ArrowDownAZ, ArrowDownZA, ChevronDown, Layers, Search } from 'lucide-react';
+import { ArrowDownAZ, ArrowDownZA, ChevronDown, Layers, MoreHorizontal, Search } from 'lucide-react';
 import { Assignee } from '@/features/planner/types/planner';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/shared/ui/context-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
@@ -12,9 +18,8 @@ import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { cn } from '@/shared/lib/classNames';
 
-type Mode = 'tasks' | 'access' | 'groups';
+type Mode = 'tasks' | 'groups';
 type Tab = 'active' | 'disabled';
-type AccessTab = 'active' | 'disabled' | 'history';
 
 type MemberGroupBucket = {
   id: string;
@@ -34,12 +39,6 @@ type MembersSidebarProps = {
   isAdmin: boolean;
   tab: Tab;
   onTabChange: (tab: Tab) => void;
-  accessTab: AccessTab;
-  onAccessTabChange: (tab: AccessTab) => void;
-  accessSearch: string;
-  onAccessSearchChange: (value: string) => void;
-  activeAccessCount: number;
-  disabledAccessCount: number;
   memberSearch: string;
   onMemberSearchChange: (value: string) => void;
   memberSort: 'asc' | 'desc';
@@ -55,6 +54,12 @@ type MembersSidebarProps = {
   onSelectAssignee: (assigneeId: string) => void;
   memberTaskCountsDate: string | null;
   memberTaskCounts: Record<string, number>;
+  /** userId -> the group they are in, for the caption under each name. */
+  groupIdByUserId: Map<string, string | null>;
+  groupNameById: Map<string, string>;
+  onAssignAssigneeGroup: (assignee: Assignee) => void;
+  onClearAssigneeGroup: (assignee: Assignee) => void;
+  groupActionLoading: boolean;
   groupSearch: string;
   onGroupSearchChange: (value: string) => void;
   groupSort: 'asc' | 'desc';
@@ -79,12 +84,6 @@ export const MembersSidebar = ({
   hideModeSelector = false,
   tab,
   onTabChange,
-  accessTab,
-  onAccessTabChange,
-  accessSearch,
-  onAccessSearchChange,
-  activeAccessCount,
-  disabledAccessCount,
   memberSearch,
   onMemberSearchChange,
   memberSort,
@@ -100,6 +99,11 @@ export const MembersSidebar = ({
   onSelectAssignee,
   memberTaskCountsDate,
   memberTaskCounts,
+  groupIdByUserId,
+  groupNameById,
+  onAssignAssigneeGroup,
+  onClearAssigneeGroup,
+  groupActionLoading,
   groupSearch,
   onGroupSearchChange,
   groupSort,
@@ -119,6 +123,115 @@ export const MembersSidebar = ({
   const hasActiveTaskFilters = memberSearch.trim().length > 0
     || memberSort !== 'asc'
     || memberGroupBy !== 'none';
+
+  const renderAssigneeRow = (assignee: Assignee, options: { showDisabledBadge?: boolean } = {}) => {
+    const count = memberTaskCountsDate ? (memberTaskCounts[assignee.id] ?? 0) : null;
+    // Group membership hangs off the workspace account: people added by name
+    // only have nothing to assign a group to.
+    const userId = assignee.userId ?? null;
+    const canManageGroup = isAdmin && Boolean(userId);
+    const currentGroupId = userId ? (groupIdByUserId.get(userId) ?? null) : null;
+    const currentGroupName = currentGroupId ? (groupNameById.get(currentGroupId) ?? null) : null;
+    // With the list already bucketed by group, the caption would repeat the
+    // heading right above it.
+    const showGroupCaption = Boolean(userId) && memberGroupBy !== 'group';
+
+    const menuItems = (
+      <>
+        <ContextMenuItem onSelect={() => onAssignAssigneeGroup(assignee)} disabled={groupActionLoading}>
+          {currentGroupId ? t`Change group` : t`Assign a group`}
+        </ContextMenuItem>
+        {currentGroupId && (
+          <ContextMenuItem
+            onSelect={() => onClearAssigneeGroup(assignee)}
+            disabled={groupActionLoading}
+            className="text-destructive focus:text-destructive"
+          >
+            {t`Remove from group`}
+          </ContextMenuItem>
+        )}
+      </>
+    );
+
+    const row = (
+      <div className="relative">
+        <SelectableListItem
+          selected={selectedAssigneeId === assignee.id}
+          onClick={() => onSelectAssignee(assignee.id)}
+          className={cn(canManageGroup && 'pr-11')}
+        >
+          <div className="flex items-center gap-2">
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium leading-snug break-words line-clamp-2">
+                {assignee.name}
+              </span>
+              {showGroupCaption && (
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                  {currentGroupName ?? t`No group`}
+                </span>
+              )}
+            </span>
+            {options.showDisabledBadge && (
+              <Badge variant="secondary" size="xs">{t`Disabled`}</Badge>
+            )}
+            {count !== null && (
+              <Badge variant="secondary" size="xs" className="ml-auto">
+                {count}
+              </Badge>
+            )}
+          </div>
+        </SelectableListItem>
+
+        {canManageGroup && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  'absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground',
+                  compactFilters ? 'h-9 w-9' : 'h-7 w-7',
+                )}
+                aria-label={t`Member actions`}
+                data-testid={`assignee-actions-${assignee.id}`}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={() => onAssignAssigneeGroup(assignee)}
+                disabled={groupActionLoading}
+              >
+                {currentGroupId ? t`Change group` : t`Assign a group`}
+              </DropdownMenuItem>
+              {currentGroupId && (
+                <DropdownMenuItem
+                  onSelect={() => onClearAssigneeGroup(assignee)}
+                  disabled={groupActionLoading}
+                  className="text-destructive focus:text-destructive"
+                >
+                  {t`Remove from group`}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+    );
+
+    if (!canManageGroup) {
+      return <React.Fragment key={assignee.id}>{row}</React.Fragment>;
+    }
+
+    return (
+      <ContextMenu key={assignee.id}>
+        <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
+        <ContextMenuContent>{menuItems}</ContextMenuContent>
+      </ContextMenu>
+    );
+  };
+
   return (
     <aside className={cn('w-80 min-w-0 min-h-0 border-r border-border bg-card flex flex-col', className)}>
       {hideModeSelector ? null : (
@@ -130,13 +243,6 @@ export const MembersSidebar = ({
               data-tour="members-people-tab"
             >
               {t`People`}
-            </SegmentedControlItem>
-            <SegmentedControlItem
-              active={mode === 'access'}
-              onClick={() => onModeChange('access')}
-              data-tour="members-access-tab"
-            >
-              {t`Access`}
             </SegmentedControlItem>
             <SegmentedControlItem
               active={mode === 'groups'}
@@ -220,6 +326,12 @@ export const MembersSidebar = ({
               </div>
             </div>
           </div>
+          {/* Group changes start here too, so a failed one has to be readable
+              here — not only on the Groups tab where the error used to live. */}
+          {groupsError && (
+            <div className="px-4 pt-2 text-xs text-destructive">{groupsError}</div>
+          )}
+
           <TabsList className="mx-4 mt-2 grid grid-cols-2">
             <TabsTrigger value="active">{t`Active`}</TabsTrigger>
             <TabsTrigger value="disabled">{t`Disabled`}</TabsTrigger>
@@ -238,29 +350,7 @@ export const MembersSidebar = ({
                           {group.name}
                         </div>
                       )}
-                      {group.members.map((assignee) => {
-                        const count = memberTaskCountsDate
-                          ? (memberTaskCounts[assignee.id] ?? 0)
-                          : null;
-                        return (
-                          <SelectableListItem
-                            key={assignee.id}
-                            selected={selectedAssigneeId === assignee.id}
-                            onClick={() => onSelectAssignee(assignee.id)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium leading-snug break-words line-clamp-2">
-                                {assignee.name}
-                              </span>
-                              {count !== null && (
-                                <Badge variant="secondary" size="xs" className="ml-auto">
-                                  {count}
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectableListItem>
-                        );
-                      })}
+                      {group.members.map((assignee) => renderAssigneeRow(assignee))}
                     </div>
                   ))}
                 </div>
@@ -281,30 +371,9 @@ export const MembersSidebar = ({
                           {group.name}
                         </div>
                       )}
-                      {group.members.map((assignee) => {
-                        const count = memberTaskCountsDate
-                          ? (memberTaskCounts[assignee.id] ?? 0)
-                          : null;
-                        return (
-                          <SelectableListItem
-                            key={assignee.id}
-                            selected={selectedAssigneeId === assignee.id}
-                            onClick={() => onSelectAssignee(assignee.id)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium leading-snug break-words line-clamp-2">
-                                {assignee.name}
-                              </span>
-                              <Badge variant="secondary" size="xs">{t`Disabled`}</Badge>
-                              {count !== null && (
-                                <Badge variant="secondary" size="xs" className="ml-auto">
-                                  {count}
-                                </Badge>
-                              )}
-                            </div>
-                          </SelectableListItem>
-                        );
-                      })}
+                      {group.members.map((assignee) => (
+                        renderAssigneeRow(assignee, { showDisabledBadge: true })
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -312,60 +381,6 @@ export const MembersSidebar = ({
             </ScrollArea>
           </TabsContent>
         </Tabs>
-      )}
-
-      {mode === 'access' && (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="px-4 py-3 border-b border-border space-y-3">
-            {accessTab !== 'history' && (
-              <SearchInput
-                inputClassName="h-8"
-                placeholder={t`Search people...`}
-                value={accessSearch}
-                onValueChange={onAccessSearchChange}
-                clearLabel={t`Clear search`}
-              />
-            )}
-            <div className="space-y-2">
-              {[
-                {
-                  value: 'active' as const,
-                  label: t`Active`,
-                  count: activeAccessCount,
-                },
-                {
-                  value: 'disabled' as const,
-                  label: t`Disabled`,
-                  count: disabledAccessCount,
-                },
-                {
-                  value: 'history' as const,
-                  label: t`History`,
-                },
-              ].map((item) => (
-                <SelectableListItem
-                  key={item.value}
-                  selected={accessTab === item.value}
-                  size="lg"
-                  onClick={() => onAccessTabChange(item.value)}
-                  className="box-border"
-                >
-                  <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-                    <span className="min-w-0 text-sm font-medium">{item.label}</span>
-                    {typeof item.count === 'number' && (
-                      <Badge variant="secondary" size="xs" className="h-5 min-w-6 justify-center px-1.5 tabular-nums">
-                        {item.count}
-                      </Badge>
-                    )}
-                    {typeof item.count !== 'number' && (
-                      <span className="h-5 w-6" aria-hidden="true" />
-                    )}
-                  </div>
-                </SelectableListItem>
-              ))}
-            </div>
-          </div>
-        </div>
       )}
 
       {mode === 'groups' && (
