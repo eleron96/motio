@@ -40,6 +40,74 @@ const swipe = (deck: HTMLElement, from: number, to: number, y = 200) => {
 };
 
 describe('MobileSwipeDeck', () => {
+  it('vetoes the browser once the drag is clearly horizontal', () => {
+    const { deck } = renderDeck({ index: 0 });
+
+    fireEvent.pointerDown(deck, { pointerId: 1, clientX: 300, clientY: 200 });
+    fireEvent.pointerMove(deck, { pointerId: 1, clientX: 260, clientY: 202 });
+
+    // A cancelled touchmove is how the deck keeps the browser from taking the
+    // gesture for a scroll and firing pointercancel at it mid-drag.
+    const delivered = fireEvent.touchMove(deck, { cancelable: true });
+    expect(delivered).toBe(false);
+  });
+
+  it('leaves a vertical drag to the scroller', () => {
+    const { deck } = renderDeck({ index: 0 });
+
+    fireEvent.pointerDown(deck, { pointerId: 1, clientX: 200, clientY: 300 });
+    fireEvent.pointerMove(deck, { pointerId: 1, clientX: 202, clientY: 260 });
+
+    const delivered = fireEvent.touchMove(deck, { cancelable: true });
+    expect(delivered).toBe(true);
+  });
+
+  it('swallows the click a finished swipe leaves behind', () => {
+    const onRowClick = vi.fn();
+    const onIndexChange = vi.fn();
+
+    render(
+      <MobileSwipeDeck index={0} count={2} onIndexChange={onIndexChange}>
+        <button type="button" onClick={onRowClick}>Row</button>
+        <div>Page two</div>
+      </MobileSwipeDeck>,
+    );
+
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    Object.defineProperty(deck, 'offsetWidth', { configurable: true, value: DECK_WIDTH });
+    const row = screen.getByRole('button', { name: 'Row' });
+
+    // Swiping across a tappable row must page the deck, not open the row.
+    fireEvent.pointerDown(row, { pointerId: 1, clientX: 300, clientY: 200 });
+    fireEvent.pointerMove(deck, { pointerId: 1, clientX: 100, clientY: 200 });
+    fireEvent.pointerUp(deck, { pointerId: 1, clientX: 100, clientY: 200 });
+    fireEvent.click(row);
+
+    expect(onIndexChange).toHaveBeenCalledWith(1);
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it('still lets a plain tap through', () => {
+    const onRowClick = vi.fn();
+
+    render(
+      <MobileSwipeDeck index={0} count={2} onIndexChange={vi.fn()}>
+        <button type="button" onClick={onRowClick}>Row</button>
+        <div>Page two</div>
+      </MobileSwipeDeck>,
+    );
+
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    Object.defineProperty(deck, 'offsetWidth', { configurable: true, value: DECK_WIDTH });
+    const row = screen.getByRole('button', { name: 'Row' });
+
+    fireEvent.pointerDown(row, { pointerId: 1, clientX: 200, clientY: 200 });
+    fireEvent.pointerUp(deck, { pointerId: 1, clientX: 200, clientY: 200 });
+    fireEvent.click(row);
+
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+  });
+
   it('advances to the next page on a swipe left', () => {
     const { deck, onIndexChange } = renderDeck({ index: 0 });
 

@@ -79,6 +79,9 @@ export const MobileSwipeDeck: React.FC<MobileSwipeDeckProps> = ({
   const [dx, setDx] = React.useState(0);
   const [swiping, setSwiping] = React.useState(false);
   const reducedMotion = usePrefersReducedMotion();
+  // A finished swipe still ends in a click on the element under the finger —
+  // which, on a page of tappable rows, would open whatever you swiped across.
+  const swallowClickRef = React.useRef(false);
 
   const endGesture = React.useCallback((commit: boolean) => {
     const gesture = gestureRef.current;
@@ -100,6 +103,9 @@ export const MobileSwipeDeck: React.FC<MobileSwipeDeckProps> = ({
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     if (startsInsideHorizontalScroller(event.target, trackRef.current)) return;
+    // Cleared when the next gesture starts rather than by the click that, on
+    // touch, may never come.
+    swallowClickRef.current = false;
     gestureRef.current = {
       pointerId: event.pointerId,
       x0: event.clientX,
@@ -124,6 +130,7 @@ export const MobileSwipeDeck: React.FC<MobileSwipeDeckProps> = ({
         return;
       }
       gesture.axis = 'x';
+      swallowClickRef.current = true;
       setSwiping(true);
       // Not implemented in jsdom, and absent on some older mobile engines.
       if (typeof event.currentTarget.setPointerCapture === 'function') {
@@ -138,6 +145,28 @@ export const MobileSwipeDeck: React.FC<MobileSwipeDeckProps> = ({
     if (atFirstPage && travelled > 0 && !onEdgeBack) travelled *= EDGE_RESISTANCE;
     setDx(travelled);
   };
+
+  /**
+   * Once the gesture is ours, the browser must not still be considering it a
+   * scroll: `touch-action: pan-y` lets it change its mind mid-drag, take the
+   * touch for vertical scrolling and fire `pointercancel` — which reads, finger
+   * still down, as the page sliding and then snapping back.
+   *
+   * React attaches touch handlers passively, so the veto has to be a real
+   * listener with `passive: false`.
+   */
+  React.useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const keepGesture = (event: TouchEvent) => {
+      if (gestureRef.current?.axis !== 'x') return;
+      if (event.cancelable) event.preventDefault();
+    };
+
+    track.addEventListener('touchmove', keepGesture, { passive: false });
+    return () => track.removeEventListener('touchmove', keepGesture);
+  }, []);
 
   const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
     if (gestureRef.current && gestureRef.current.pointerId !== event.pointerId) return;
@@ -157,11 +186,19 @@ export const MobileSwipeDeck: React.FC<MobileSwipeDeckProps> = ({
       ref={trackRef}
       data-testid="mobile-swipe-deck"
       className={cn('relative min-h-0 flex-1 overflow-hidden', className)}
-      style={{ touchAction: 'pan-y' }}
+      // overscrollBehaviorX stops the page's own horizontal rubber-banding from
+      // competing for the same drag.
+      style={{ touchAction: 'pan-y', overscrollBehaviorX: 'none' }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
+      onClickCapture={(event) => {
+        if (!swallowClickRef.current) return;
+        swallowClickRef.current = false;
+        event.preventDefault();
+        event.stopPropagation();
+      }}
     >
       <div
         className="flex h-full"

@@ -12,7 +12,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The Team page keeps people and groups.
 
 ### Changed
-- Team on a phone: the People and Groups sections swipe left and right, and picking a person or a group opens a full screen with thumb-sized rows, a search box and swipe-right to go back — instead of the side drawer.
+- "Members and access" in settings is rebuilt for phones: instead of a strip of tabs there is a menu — Members / Invites / Access history / Colours — and each opens its own screen. A member's row is a name again; role, group, access and removal moved to that person's screen, where they used to take half a screen each behind two dropdowns a finger could not scroll.
+- Inviting someone from a phone happens on its own screen rather than in a popover over the keyboard.
+- The member list can now be sorted on a phone — by name, role, group or status. There was no sorting there at all before.
+- Team on a phone: the People and Groups sections swipe left and right, and each one is the list itself. Tapping a person opens their tasks, tapping a group opens its members; back is the arrow or a swipe right. The side drawer and its browse button are gone.
 - A member's task filters open as their own screen on a phone: statuses and projects are now a list a finger can actually reach, and the button shows how many filters are on.
 - Renaming and deleting a group are reachable from a phone — until now they lived only in the right-click menu.
 - Deleting a group asks for confirmation inside the app instead of a browser system dialog.

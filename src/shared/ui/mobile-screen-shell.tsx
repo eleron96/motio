@@ -37,13 +37,14 @@ export const MobileScreenShell: React.FC<MobileScreenShellProps> = ({
   contentClassName,
 }) => {
   const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
-  const backSwipe = useBackSwipe(() => onOpenChange(false));
+  const { ref: backSwipeRef, ...backSwipe } = useBackSwipe(() => onOpenChange(false));
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-[60] bg-black/40 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
+          ref={backSwipeRef}
           onOpenAutoFocus={(event) => event.preventDefault()}
           aria-describedby={undefined}
           className={cn(
@@ -56,9 +57,35 @@ export const MobileScreenShell: React.FC<MobileScreenShellProps> = ({
             bottom: keyboardOffset,
             height: viewportHeight ? `${viewportHeight}px` : '100svh',
             transition: 'bottom 150ms ease-out',
+            // Vertical scrolling stays the browser's; sideways is the back
+            // gesture's, and the page's own horizontal rubber-banding must not
+            // compete for it.
+            touchAction: 'pan-y',
+            overscrollBehaviorX: 'none',
           }}
-          // Swipe right to go back, the way the platform trains you to expect.
-          {...backSwipe}
+          // A portal escapes the DOM but not the React tree: without this,
+          // every pointer event here still bubbles into whatever rendered the
+          // screen — for the settings screens that is the section swipe deck,
+          // which read a back swipe as its own and paged to the section next
+          // door instead of letting this screen close.
+          data-swipe-ignore
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            backSwipe.onPointerDown(event);
+          }}
+          onPointerMove={(event) => {
+            event.stopPropagation();
+            backSwipe.onPointerMove(event);
+          }}
+          onPointerUp={(event) => {
+            event.stopPropagation();
+            backSwipe.onPointerUp(event);
+          }}
+          onPointerCancel={(event) => {
+            event.stopPropagation();
+            backSwipe.onPointerCancel();
+          }}
+          onClickCapture={backSwipe.onClickCapture}
         >
           <header className="flex min-h-14 shrink-0 items-center gap-1 border-b border-border bg-card px-1.5 pt-[env(safe-area-inset-top,0px)]">
             <button
