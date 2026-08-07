@@ -1,6 +1,14 @@
 import React from 'react';
 import { cn } from '@/shared/lib/classNames';
 
+/**
+ * Shape every labelled floating action shares on a phone: pill-round, thumb
+ * high, with room around the label. Kept here so the buttons on Projects,
+ * Milestones, Customers, Contacts, Team and the dashboard cannot drift apart.
+ * Icon-only FABs (the timeline's add-task) set their own round geometry.
+ */
+export const MOBILE_FAB_BUTTON_CLASS = 'h-12 gap-2 rounded-full px-5';
+
 interface MobileFabProps {
   children: React.ReactNode;
   className?: string;

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Mail, MoreHorizontal, Phone, Plus } from 'lucide-react';
+import { Mail, MoreHorizontal, Phone, Plus, SlidersHorizontal } from 'lucide-react';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import {
@@ -37,6 +37,10 @@ import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import type { CustomerContact, Project } from '@/features/planner/types/planner';
 import type { ContactEntry, ContactFilterOption } from '@/features/projects/lib/contactList';
 import { buildContactFilterOptions, filterContactEntries } from '@/features/projects/lib/contactList';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { SearchInput } from '@/shared/ui/SearchInput';
+import { ContactsMobileFiltersScreen } from '@/features/projects/components/ContactsMobileFiltersScreen';
+import { ContactDetailsMobileScreen } from '@/features/projects/components/ContactDetailsMobileScreen';
 
 interface ContactsPeoplePanelProps {
   /** People of the selected company bucket, already narrowed by the page-level
@@ -52,6 +56,16 @@ interface ContactsPeoplePanelProps {
   projectById: Map<string, Project>;
   canEdit: boolean;
   sectionPadding: string;
+  /** Directory search, owned by the page (the sidebar carries it on desktop). */
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  /**
+   * Bumped by the page to open the new-contact form. The button lives in the
+   * page header on a phone: inside the swipe deck a `fixed` element anchors to
+   * the deck's transform instead of the viewport, so it would not line up with
+   * the same button on the other sections.
+   */
+  createRequestId?: number;
   onAddContact: (
     payload: { name: string; company: string | null; role: string | null; email: string | null; phone: string | null; tag: string | null; customerId: string | null },
   ) => Promise<boolean>;
@@ -86,6 +100,9 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
   projectById,
   canEdit,
   sectionPadding,
+  search = '',
+  onSearchChange,
+  createRequestId = 0,
   onAddContact,
   onUpdateContact,
   onDeleteContact,
@@ -108,6 +125,17 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
     setRoleKeys([]);
   };
   const filterOptions = useMemo(() => buildContactFilterOptions(allEntries), [allEntries]);
+  const isMobile = useIsMobile();
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [openContact, setOpenContact] = useState<ContactEntry | null>(null);
+  const lastCreateRequestRef = React.useRef(createRequestId);
+
+  useEffect(() => {
+    if (createRequestId === lastCreateRequestRef.current) return;
+    lastCreateRequestRef.current = createRequestId;
+    setForm('new');
+  }, [createRequestId]);
+  const activeFilterCount = tagKeys.length + companyKeys.length + roleKeys.length;
 
   const visible = useMemo(
     () => filterContactEntries(entries, { tagKeys, companyKeys, roleKeys }),
@@ -238,32 +266,64 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
             <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">{title}</div>
             <div className="text-xs text-muted-foreground">{t`${entries.length} people`}</div>
           </div>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            {renderFilter(t`Tag`, t`No tag`, filterOptions.tags, tagKeys, (key) => (
-              setTagKeys((keys) => toggleKey(keys, key))
-            ))}
-            {renderFilter(t`Company`, t`No company`, filterOptions.companies, companyKeys, (key) => (
-              setCompanyKeys((keys) => toggleKey(keys, key))
-            ))}
-            {renderFilter(t`Role`, t`No role`, filterOptions.roles, roleKeys, (key) => (
-              setRoleKeys((keys) => toggleKey(keys, key))
-            ))}
-            {hasActiveFilters && (
-              <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={clearFilters}>
-                {t`Clear filters`}
-              </Button>
-            )}
-            {canEdit && (
-              <Button size="sm" className="gap-1" onClick={() => setForm('new')}>
-                <Plus className="h-4 w-4" />
-                {t`New contact`}
-              </Button>
-            )}
-          </div>
+          {!isMobile && (
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {renderFilter(t`Tag`, t`No tag`, filterOptions.tags, tagKeys, (key) => (
+                setTagKeys((keys) => toggleKey(keys, key))
+              ))}
+              {renderFilter(t`Company`, t`No company`, filterOptions.companies, companyKeys, (key) => (
+                setCompanyKeys((keys) => toggleKey(keys, key))
+              ))}
+              {renderFilter(t`Role`, t`No role`, filterOptions.roles, roleKeys, (key) => (
+                setRoleKeys((keys) => toggleKey(keys, key))
+              ))}
+              {hasActiveFilters && (
+                <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={clearFilters}>
+                  {t`Clear filters`}
+                </Button>
+              )}
+              {canEdit && (
+                <Button size="sm" className="gap-1" onClick={() => setForm('new')}>
+                  <Plus className="h-4 w-4" />
+                  {t`New contact`}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className={`flex-1 overflow-auto ${sectionPadding}`}>
+      {isMobile && (
+        <div className="shrink-0 space-y-2.5 border-b border-border bg-card px-3.5 py-2.5">
+          <SearchInput
+            value={search}
+            onValueChange={(value) => onSearchChange?.(value)}
+            placeholder={t`Search contacts...`}
+            className="w-full"
+            inputClassName="h-11 rounded-xl text-sm"
+            clearLabel={t`Clear search`}
+            autoComplete="off"
+            spellCheck={false}
+            enterKeyHint="search"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full justify-between"
+            onClick={() => setMobileFiltersOpen(true)}
+          >
+            <span className="inline-flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              {t`Filters`}
+            </span>
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="tabular-nums">{activeFilterCount}</Badge>
+            )}
+          </Button>
+        </div>
+      )}
+
+      <div className={`flex-1 overflow-auto ${sectionPadding} ${isMobile ? 'pb-24' : ''}`}>
         {entries.length === 0 && <div className="text-sm text-muted-foreground">{t`No contacts here yet.`}</div>}
         {entries.length > 0 && visible.length === 0 && (
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -283,7 +343,12 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
                   <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-muted text-[11px] font-semibold text-muted-foreground">
                     {buildInitials(entry.name)}
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={isMobile ? () => setOpenContact(entry) : undefined}
+                    disabled={!isMobile}
+                    className={`min-w-0 flex-1 text-left ${isMobile ? 'active:opacity-70' : 'cursor-default'}`}
+                  >
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="text-sm font-medium break-words [overflow-wrap:anywhere]">{entry.name}</span>
                       {entry.tag && (
@@ -295,7 +360,7 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
                         {[entry.role, entry.company].filter(Boolean).join(' · ')}
                       </div>
                     )}
-                  </div>
+                  </button>
                   <div className="hidden items-center gap-3 text-xs text-muted-foreground sm:flex">
                     {entry.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{entry.email}</span>}
                     {entry.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{entry.phone}</span>}
@@ -392,6 +457,42 @@ export const ContactsPeoplePanel: React.FC<ContactsPeoplePanelProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {isMobile && (
+        <ContactDetailsMobileScreen
+          entry={openContact}
+          onOpenChange={(next) => {
+            if (!next) setOpenContact(null);
+          }}
+          projects={openContact ? projectsOf(openContact) : []}
+          canEdit={canEdit}
+          onEdit={(entry) => {
+            setOpenContact(null);
+            setForm(entry);
+          }}
+          onDelete={(entry) => {
+            setOpenContact(null);
+            setDeleteTarget(entry);
+          }}
+        />
+      )}
+
+      {isMobile && (
+        <ContactsMobileFiltersScreen
+          open={mobileFiltersOpen}
+          onOpenChange={setMobileFiltersOpen}
+          companies={filterOptions.companies}
+          companyKeys={companyKeys}
+          onCompanyKeysChange={setCompanyKeys}
+          tags={filterOptions.tags}
+          tagKeys={tagKeys}
+          onTagKeysChange={setTagKeys}
+          roles={filterOptions.roles}
+          roleKeys={roleKeys}
+          onRoleKeysChange={setRoleKeys}
+          onClearAll={clearFilters}
+        />
+      )}
     </div>
   );
 };

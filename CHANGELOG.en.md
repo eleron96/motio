@@ -12,6 +12,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The Team page keeps people and groups.
 
 ### Changed
+- Projects on a phone: the side drawer is gone. Projects, Milestones, Customers and Contacts swipe left and right, the list is right there, and tapping a row opens it full-screen with back by arrow or swipe.
+- Milestones on a phone are one timeline: the list opens at the nearest milestone, scrolling up goes back in time and down goes forward, with months labelled. The current/past switch is gone. Tapping a milestone opens its screen with the date, status, project and note; "Open project" sits there, and "Edit" and "Delete" live under "..." in the header.
+- Contacts on a phone: company, tag and role filters each get their own screen with a search box, so the right one is findable however many there are.
+- The create buttons look the same everywhere on a phone: New project, New milestone, New customer, New contact, New group and Add widget are now one pill-shaped button in one place.
+- Contacts on a phone put search and "Filters" above the list, the way projects do, and "New contact" became the floating button every other list has. Until now there was no contact search on a phone at all.
+- A contact opens as a card on a phone: name, email and phone copy with a single tap, mail and call sit beside them, and Edit and Delete live under "..." in the header.
+- Project filters (customer, owner team, archived, sorting, grouping) are gathered on one screen with a count of what is applied — instead of four popovers a finger could not scroll.
+- The task filters inside a project became a screen too: statuses and assignees are a plain list.
 - "Members and access" in settings is rebuilt for phones: instead of a strip of tabs there is a menu — Members / Invites / Access history / Colours — and each opens its own screen. A member's row is a name again; role, group, access and removal moved to that person's screen, where they used to take half a screen each behind two dropdowns a finger could not scroll.
 - Inviting someone from a phone happens on its own screen rather than in a popover over the keyboard.
 - The member list can now be sorted on a phone — by name, role, group or status. There was no sorting there at all before.

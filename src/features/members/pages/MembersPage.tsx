@@ -30,6 +30,7 @@ import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-
 import { MobileSwipeDeck } from '@/shared/ui/mobile-swipe-deck';
 import { MembersMobileList } from '@/features/members/components/MembersMobileList';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
+import { MOBILE_FAB_BUTTON_CLASS } from '@/shared/ui/mobile-fab';
 import { cn } from '@/shared/lib/classNames';
 import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
 import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
@@ -725,7 +726,11 @@ const MembersPage = () => {
   useWorkspaceHeader(
     {
       primaryAction: mode === 'groups' && isAdmin ? (
-        <Button size="sm" className="gap-2" onClick={() => setCreatingGroup(true)}>
+        <Button
+          size={isMobile ? 'default' : 'sm'}
+          className={isMobile ? MOBILE_FAB_BUTTON_CLASS : 'gap-2'}
+          onClick={() => setCreatingGroup(true)}
+        >
           <Plus className="h-4 w-4" />
           {t`New group`}
         </Button>
@@ -734,7 +739,7 @@ const MembersPage = () => {
       onOpenAccountSettings: () => setShowAccountSettings(true),
       settingsDisabled: !canEdit,
     },
-    [mode, isAdmin, canEdit],
+    [mode, isAdmin, canEdit, isMobile],
   );
 
   if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {

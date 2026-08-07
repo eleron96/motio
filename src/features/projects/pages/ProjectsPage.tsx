@@ -51,8 +51,28 @@ import {
 import { ContactsPeoplePanel } from '@/features/projects/components/ContactsPeoplePanel';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { MobilePageSheetLayout } from '@/shared/ui/mobile-page-sheet-layout';
+import { MobilePillSubnav } from '@/shared/ui/mobile-pill-subnav';
+import { MobileSwipeDeck } from '@/shared/ui/mobile-swipe-deck';
+import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
+import { MOBILE_FAB_BUTTON_CLASS } from '@/shared/ui/mobile-fab';
+import { ProjectsMobileList } from '@/features/projects/components/ProjectsMobileList';
+import { MilestonesMobileSection } from '@/features/projects/components/MilestonesMobileSection';
+import { CustomersMobileList } from '@/features/projects/components/CustomersMobileList';
+import { ProjectsMobileFiltersScreen } from '@/features/projects/components/ProjectsMobileFiltersScreen';
+import { cn } from '@/shared/lib/classNames';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
+
+/**
+ * Phone sections, in the order they are swiped through. The pill strip, the
+ * deck and the dots all read this one list, so they cannot disagree about
+ * what comes next.
+ */
+const PROJECT_MOBILE_SECTIONS: Array<{ id: 'projects' | 'milestones' | 'customers' | 'contacts' }> = [
+  { id: 'projects' },
+  { id: 'milestones' },
+  { id: 'customers' },
+  { id: 'contacts' },
+];
 
 const ProjectsPage = () => {
   usePageSeo({
@@ -81,7 +101,13 @@ const ProjectsPage = () => {
     statusFilterIds, setStatusFilterIds,
   } = useTaskScopeFilter();
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  // Two levels on a phone: the deck of lists, and the detail pushed on top.
+  const [mobileProjectScreenOpen, setMobileProjectScreenOpen] = useState(false);
+  const [mobileProjectFiltersOpen, setMobileProjectFiltersOpen] = useState(false);
+  const [mobileCustomerScreenOpen, setMobileCustomerScreenOpen] = useState(false);
+  // Bumped to ask the contacts panel to open its new-contact form; the button
+  // itself belongs to the page header so it floats like every other one.
+  const [contactCreateRequest, setContactCreateRequest] = useState(0);
   const isMobile = useIsMobile();
   const pageSize = 100;
 
@@ -732,6 +758,7 @@ const ProjectsPage = () => {
     setMilestoneSearch,
     filteredActiveProjects,
     filteredArchivedProjects,
+    filteredMilestones,
     visibleMilestones,
     groupedMilestones,
     milestoneGroupLabel,
@@ -996,22 +1023,16 @@ const ProjectsPage = () => {
     [groupByCustomer, sortedCustomers, trackedProjectIds],
   );
 
-  const mobileSheetLabel = mode === 'milestones'
-    ? t`Milestones`
-    : mode === 'customers'
-      ? t`Customers`
-      : mode === 'contacts'
-        ? t`Contacts`
-        : t`Projects`;
-  const mobileSummary = mode === 'milestones'
-    ? (selectedMilestone?.title ?? t`Select a milestone`)
-    : mode === 'customers'
-      ? (selectedCustomer?.name ?? t`Select a customer`)
-      : mode === 'contacts'
-        ? (selectedCompanyKey === ALL_COMPANIES
-          ? t`All contacts`
-          : (companyBuckets.find((bucket) => bucket.key === selectedCompanyKey)?.company ?? t`No company`))
-        : (selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Select a project`);
+  const mobileSectionIndex = Math.max(
+    0,
+    PROJECT_MOBILE_SECTIONS.findIndex((section) => section.id === mode),
+  );
+  // Counted, not just flagged: the button carries the number so you can see how
+  // much is narrowing the list without opening the screen.
+  const mobileProjectFilterCount = customerFilterIds.length
+    + ownerGroupFilterIds.length
+    + (tab === 'archived' ? 1 : 0)
+    + (groupByCustomer ? 1 : 0);
 
   const projectCardEnabled = isProjectCardEnabled();
   const projectCardMobileEnabled = isProjectCardMobileEnabled();
@@ -1050,7 +1071,7 @@ const ProjectsPage = () => {
     );
   };
 
-  const renderProjectsSidebar = (closeOnSelect = false) => {
+  const renderProjectsSidebar = () => {
     // When the flag is on and in 'projects' mode, replace the legacy
     // multi-mode sidebar with the new card-style list. Mobile rendering is
     // gated separately by VITE_FEATURE_PROJECT_CARD_MOBILE so the M1 card
@@ -1073,7 +1094,6 @@ const ProjectsPage = () => {
           selectedProjectId={selectedProjectId}
           onSelectProject={(projectId) => {
             setSelectedProjectId(projectId);
-            if (closeOnSelect) setMobileSidebarOpen(false);
           }}
           search={projectSearch}
           onSearchChange={setProjectSearch}
@@ -1130,14 +1150,12 @@ const ProjectsPage = () => {
               selectedCustomerId={selectedCustomerId}
               onSelectCustomer={(customerId) => {
                 setSelectedCustomerId(customerId);
-                if (closeOnSelect) setMobileSidebarOpen(false);
               }}
               onStartCustomerEdit={startCustomerEdit}
               onRequestDeleteCustomer={requestDeleteCustomer}
               {...contactsSidebarProps}
               onSelectCompany={(key) => {
                 setSelectedCompanyKey(key);
-                if (closeOnSelect) setMobileSidebarOpen(false);
               }}
               milestoneTab={milestoneTab}
               onMilestoneTabChange={setMilestoneTab}
@@ -1155,7 +1173,6 @@ const ProjectsPage = () => {
               selectedMilestoneId={selectedMilestoneId}
               onSelectMilestone={(milestoneId) => {
                 setSelectedMilestoneId(milestoneId);
-                if (closeOnSelect) setMobileSidebarOpen(false);
               }}
               onOpenMilestoneSettings={handleOpenMilestoneSettings}
               onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
@@ -1181,7 +1198,6 @@ const ProjectsPage = () => {
               selectedProjectId={selectedProjectId}
               onSelectProject={(projectId) => {
                 setSelectedProjectId(projectId);
-                if (closeOnSelect) setMobileSidebarOpen(false);
               }}
               onToggleTrackedProject={(projectId, nextTracked) => {
                 void toggleTrackedProject(projectId, nextTracked);
@@ -1217,14 +1233,12 @@ const ProjectsPage = () => {
       selectedCustomerId={selectedCustomerId}
       onSelectCustomer={(customerId) => {
         setSelectedCustomerId(customerId);
-        if (closeOnSelect) setMobileSidebarOpen(false);
       }}
       onStartCustomerEdit={startCustomerEdit}
       onRequestDeleteCustomer={requestDeleteCustomer}
       {...contactsSidebarProps}
       onSelectCompany={(key) => {
         setSelectedCompanyKey(key);
-        if (closeOnSelect) setMobileSidebarOpen(false);
       }}
       milestoneTab={milestoneTab}
       onMilestoneTabChange={setMilestoneTab}
@@ -1242,7 +1256,6 @@ const ProjectsPage = () => {
       selectedMilestoneId={selectedMilestoneId}
       onSelectMilestone={(milestoneId) => {
         setSelectedMilestoneId(milestoneId);
-        if (closeOnSelect) setMobileSidebarOpen(false);
       }}
       onOpenMilestoneSettings={handleOpenMilestoneSettings}
       onOpenProjectFromMilestone={handleOpenProjectFromMilestone}
@@ -1268,7 +1281,6 @@ const ProjectsPage = () => {
       selectedProjectId={selectedProjectId}
       onSelectProject={(projectId) => {
         setSelectedProjectId(projectId);
-        if (closeOnSelect) setMobileSidebarOpen(false);
       }}
       onToggleTrackedProject={(projectId, nextTracked) => {
         void toggleTrackedProject(projectId, nextTracked);
@@ -1313,6 +1325,9 @@ const ProjectsPage = () => {
       projectById={projectById}
       canEdit={canEdit}
       sectionPadding={isMobile ? 'px-4 py-3' : 'px-6 py-4'}
+      search={contactSearch}
+      onSearchChange={handleContactSearchChange}
+      createRequestId={contactCreateRequest}
       onAddContact={handleAddCustomerContact}
       onUpdateContact={handleUpdateCustomerContact}
       onDeleteContact={handleDeleteCustomerContact}
@@ -1437,12 +1452,23 @@ const ProjectsPage = () => {
   useWorkspaceHeader(
     {
       // Contacts tab has its own "Add contact" button inside the panel.
-      primaryAction: mode === 'contacts' ? null : mode === 'customers' ? (
+      primaryAction: mode === 'contacts' ? (isMobile ? (
+        <Button
+          data-tour="projects-primary-action"
+          onClick={() => setContactCreateRequest((current) => current + 1)}
+          size={isMobile ? 'default' : 'sm'}
+          className={isMobile ? MOBILE_FAB_BUTTON_CLASS : 'gap-2'}
+          disabled={!canEdit}
+        >
+          <Plus className="h-4 w-4" />
+          {t`New contact`}
+        </Button>
+      ) : null) : mode === 'customers' ? (
         <Button
           data-tour="projects-primary-action"
           onClick={() => setCreateCustomerOpen(true)}
-          size="sm"
-          className="gap-2"
+          size={isMobile ? 'default' : 'sm'}
+          className={isMobile ? MOBILE_FAB_BUTTON_CLASS : 'gap-2'}
           disabled={!canEdit}
         >
           <Plus className="h-4 w-4" />
@@ -1452,8 +1478,8 @@ const ProjectsPage = () => {
         <Button
           data-tour="projects-primary-action"
           onClick={handleOpenCreateMilestone}
-          size="sm"
-          className="gap-2"
+          size={isMobile ? 'default' : 'sm'}
+          className={isMobile ? MOBILE_FAB_BUTTON_CLASS : 'gap-2'}
           disabled={!canEdit}
         >
           <Plus className="h-4 w-4" />
@@ -1463,8 +1489,8 @@ const ProjectsPage = () => {
         <Button
           data-tour="projects-primary-action"
           onClick={() => setCreateProjectOpen(true)}
-          size="sm"
-          className="gap-2"
+          size={isMobile ? 'default' : 'sm'}
+          className={isMobile ? MOBILE_FAB_BUTTON_CLASS : 'gap-2'}
           disabled={!canEdit}
         >
           <Plus className="h-4 w-4" />
@@ -1475,7 +1501,7 @@ const ProjectsPage = () => {
       onOpenAccountSettings: () => setShowAccountSettings(true),
       settingsDisabled: !canEdit,
     },
-    [mode, canEdit],
+    [mode, canEdit, isMobile],
   );
 
   if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
@@ -1502,18 +1528,110 @@ const ProjectsPage = () => {
       )}
 
       {isMobile ? (
-        <>
-          <MobilePageSheetLayout
-            open={mobileSidebarOpen}
-            onOpenChange={setMobileSidebarOpen}
-            browseLabel={mobileSheetLabel}
-            sheetTitle={mobileSheetLabel}
-            summary={mobileSummary}
-            sheetContent={renderProjectsSidebar(true)}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {/* The strip scrolls sideways itself, so it has to swallow the
+              gesture instead of letting the deck page under the finger. */}
+          <div
+            data-swipe-ignore
+            className="flex shrink-0 items-center gap-1 border-b border-border bg-card pr-1.5"
           >
-            {mode === 'contacts' ? renderContactsPeople() : renderProjectsMainPanel()}
-          </MobilePageSheetLayout>
-        </>
+            <div className="min-w-0 flex-1">
+              <MobilePillSubnav
+                items={PROJECT_MOBILE_SECTIONS.map((section) => ({
+                  id: section.id,
+                  label: section.id === 'projects'
+                    ? t`Projects`
+                    : section.id === 'milestones'
+                      ? t`Milestones`
+                      : section.id === 'customers'
+                        ? t`Customers`
+                        : t`Contacts`,
+                }))}
+                activeId={PROJECT_MOBILE_SECTIONS[mobileSectionIndex].id}
+                onChange={(id) => setMode(id as typeof mode)}
+                ariaLabel={t`Project sections`}
+              />
+            </div>
+          </div>
+
+          <MobileSwipeDeck
+            index={mobileSectionIndex}
+            count={PROJECT_MOBILE_SECTIONS.length}
+            onIndexChange={(next) => setMode(PROJECT_MOBILE_SECTIONS[next].id)}
+          >
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+              <ProjectsMobileList
+                projects={tab === 'archived' ? filteredArchivedProjects : filteredActiveProjects}
+                customerById={customerById}
+                milestones={milestones}
+                trackedProjectIdSet={trackedProjectIdSet}
+                canEdit={canEdit}
+                search={projectSearch}
+                onSearchChange={setProjectSearch}
+                activeFilterCount={mobileProjectFilterCount}
+                onOpenFilters={() => setMobileProjectFiltersOpen(true)}
+                onOpenProject={(project) => {
+                  setMode('projects');
+                  setSelectedProjectId(project.id);
+                  setMobileProjectScreenOpen(true);
+                }}
+                onToggleTracked={(projectId, nextTracked) => {
+                  void toggleTrackedProject(projectId, nextTracked);
+                }}
+                onOpenSettings={openProjectSettings}
+                onToggleArchived={handleToggleProjectArchived}
+                onRequestDelete={requestDeleteProject}
+                showArchived={tab === 'archived'}
+              />
+            </div>
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+              <MilestonesMobileSection
+                milestones={filteredMilestones}
+                projectById={projectById}
+                customerById={customerById}
+                search={milestoneSearch}
+                onSearchChange={setMilestoneSearch}
+                canEdit={canEdit}
+                onOpenProject={handleOpenProjectFromMilestone}
+                onEditMilestone={handleOpenMilestoneSettings}
+                onRequestDelete={requestDeleteMilestone}
+              />
+            </div>
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+              <CustomersMobileList
+                customers={filteredCustomers}
+                search={customerSearch}
+                onSearchChange={setCustomerSearch}
+                projects={projects}
+                onOpenCustomer={(customer) => {
+                  setMode('customers');
+                  setSelectedCustomerId(customer.id);
+                  setMobileCustomerScreenOpen(true);
+                }}
+              />
+            </div>
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+              {renderContactsPeople()}
+            </div>
+          </MobileSwipeDeck>
+
+          <div
+            // Safari reports safe-area-inset-bottom as 0 without
+            // viewport-fit=cover, so the clearance has to be a real gap.
+            className="flex shrink-0 items-center justify-center gap-1.5 border-t border-border bg-card pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]"
+          >
+            {PROJECT_MOBILE_SECTIONS.map((section, index) => (
+              <span
+                key={section.id}
+                aria-hidden="true"
+                className={cn(
+                  'h-1.5 rounded-full transition-all duration-200',
+                  index === mobileSectionIndex ? 'w-4 bg-foreground' : 'w-1.5 bg-border',
+                )}
+              />
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="flex flex-1 min-h-0 overflow-hidden">
           <ResizablePanelGroup
@@ -1530,6 +1648,53 @@ const ProjectsPage = () => {
             </ResizablePanel>
           </ResizablePanelGroup>
         </div>
+      )}
+
+      {isMobile && (
+        <>
+          {/* Second level: the project itself, with a back arrow and the swipe
+              that goes with it. */}
+          <MobileScreenShell
+            open={mobileProjectScreenOpen && mode === 'projects' && Boolean(selectedProject)}
+            onOpenChange={setMobileProjectScreenOpen}
+            title={selectedProject ? formatProjectLabel(selectedProject.name, selectedProject.code) : t`Project`}
+            contentClassName="px-0 pt-0"
+          >
+            {renderProjectsMainPanel()}
+          </MobileScreenShell>
+
+          <ProjectsMobileFiltersScreen
+            open={mobileProjectFiltersOpen}
+            onOpenChange={setMobileProjectFiltersOpen}
+            customers={sortedCustomers}
+            customerFilterIds={customerFilterIds}
+            onToggleCustomer={handleToggleCustomer}
+            memberGroups={memberGroups}
+            ownerGroupFilterIds={ownerGroupFilterIds}
+            onToggleOwnerGroup={handleToggleOwnerGroupFilter}
+            groupByCustomer={groupByCustomer}
+            onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
+            showArchived={tab === 'archived'}
+            onToggleShowArchived={() => setTab(tab === 'archived' ? 'active' : 'archived')}
+            nameSort={nameSort}
+            onToggleNameSort={() => setNameSort(nameSort === 'asc' ? 'desc' : 'asc')}
+            onClearAll={() => {
+              setCustomerFilterIds([]);
+              setOwnerGroupFilterIds([]);
+              setGroupByCustomer(false);
+              setTab('active');
+            }}
+          />
+
+          <MobileScreenShell
+            open={mobileCustomerScreenOpen && mode === 'customers' && Boolean(selectedCustomer)}
+            onOpenChange={setMobileCustomerScreenOpen}
+            title={selectedCustomer?.name ?? t`Customer`}
+            contentClassName="px-0 pt-0"
+          >
+            {renderProjectsMainPanel()}
+          </MobileScreenShell>
+        </>
       )}
 
       <ProjectsDialogs

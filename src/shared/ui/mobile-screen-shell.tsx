@@ -12,6 +12,8 @@ interface MobileScreenShellProps {
   title: string;
   /** Row pinned under the header — a search box, a filter strip. */
   toolbar?: React.ReactNode;
+  /** Control pinned to the right of the title — usually an actions menu. */
+  action?: React.ReactNode;
   children: React.ReactNode;
   /** Extra classes for the scrolling body. */
   contentClassName?: string;
@@ -33,6 +35,7 @@ export const MobileScreenShell: React.FC<MobileScreenShellProps> = ({
   onOpenChange,
   title,
   toolbar,
+  action,
   children,
   contentClassName,
 }) => {
@@ -96,9 +99,16 @@ export const MobileScreenShell: React.FC<MobileScreenShellProps> = ({
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <DialogPrimitive.Title className="min-w-0 flex-1 truncate pr-11 text-center text-base font-semibold">
+            <DialogPrimitive.Title
+              className={cn(
+                'min-w-0 flex-1 truncate text-center text-base font-semibold',
+                // Balances the back arrow so the title stays optically centred.
+                action ? undefined : 'pr-11',
+              )}
+            >
               {title}
             </DialogPrimitive.Title>
+            {action && <div className="shrink-0">{action}</div>}
           </header>
 
           {toolbar && (
