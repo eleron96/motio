@@ -1,4 +1,4 @@
-import { driver, type DriveStep, type Driver, type DriverHook, type PopoverDOM } from 'driver.js';
+import { driver, type DriveStep, type Driver, type PopoverDOM } from 'driver.js';
 import { t } from '@lingui/macro';
 import { getNextOnboardingPage, type OnboardingPageId } from '@/features/onboarding/lib/onboardingFlow';
 
@@ -10,7 +10,6 @@ type CreateOnboardingTourArgs = {
   onAdvance: (nextPage: OnboardingPageId) => void;
   onDismiss: () => void;
   onComplete: () => void;
-  prepareMembersAccess?: () => void;
 };
 
 type TourDestroyAction =
@@ -18,23 +17,6 @@ type TourDestroyAction =
   | { type: 'advance'; nextPage: OnboardingPageId }
   | { type: 'complete' }
   | null;
-
-const MEMBERS_ADD_MEMBER_SELECTOR = '[data-tour="members-add-member"]';
-
-const moveToNextStepWhenReady = (
-  driverInstance: Driver,
-  selector: string,
-  attemptsLeft = 12,
-) => {
-  if (document.querySelector(selector) || attemptsLeft <= 0) {
-    driverInstance.moveNext();
-    return;
-  }
-
-  window.setTimeout(() => {
-    moveToNextStepWhenReady(driverInstance, selector, attemptsLeft - 1);
-  }, 100);
-};
 
 const buildPlannerSteps = (advanceToNextPage: (nextPage: OnboardingPageId) => void): DriveStep[] => [
   {
@@ -161,7 +143,6 @@ const buildProjectsSteps = (
 
 const buildMembersSteps = (
   isAdmin: boolean,
-  prepareMembersAccess: (() => void) | undefined,
   completeTour: () => void,
 ): DriveStep[] => {
   if (!isAdmin) {
@@ -187,27 +168,21 @@ const buildMembersSteps = (
     ];
   }
 
-  const openAccessModeAndContinue: DriverHook = (_element, _step, { driver: driverInstance }) => {
-    prepareMembersAccess?.();
-    moveToNextStepWhenReady(driverInstance, MEMBERS_ADD_MEMBER_SELECTOR);
-  };
-
   return [
     {
-      element: '[data-tour="members-access-tab"]',
+      element: '[data-tour="members-people-tab"]',
       popover: {
-        title: t`Team access`,
-        description: t`This section contains invitations, roles and workspace access for your team.`,
+        title: t`People and groups`,
+        description: t`Use Team to browse people, groups and task ownership inside the workspace.`,
         nextBtnText: t`Next`,
         prevBtnText: t`Back`,
-        onNextClick: openAccessModeAndContinue,
       },
     },
     {
-      element: '[data-tour="members-add-member"]',
+      element: '[data-tour="settings-btn"]',
       popover: {
-        title: t`Invite teammates`,
-        description: t`Use this button to add people to the workspace. After they join, you can assign them to project tasks.`,
+        title: t`Team access`,
+        description: t`Invites, roles and workspace access live in workspace settings, under "Members and access".`,
         nextBtnText: t`Next`,
         prevBtnText: t`Back`,
       },
@@ -246,7 +221,6 @@ const buildSteps = ({
   onAdvance,
   onComplete,
   pageId,
-  prepareMembersAccess,
 }: Omit<CreateOnboardingTourArgs, 'onDismiss'>) => {
   switch (pageId) {
     case 'planner':
@@ -256,7 +230,7 @@ const buildSteps = ({
     case 'projects':
       return buildProjectsSteps(Boolean(canEdit), Boolean(hasProjectAssigneeTarget), onAdvance);
     case 'members':
-      return buildMembersSteps(Boolean(isAdmin), prepareMembersAccess, onComplete);
+      return buildMembersSteps(Boolean(isAdmin), onComplete);
     default:
       return [];
   }
@@ -270,7 +244,6 @@ export const createOnboardingTour = ({
   onAdvance,
   onDismiss,
   onComplete,
-  prepareMembersAccess,
 }: CreateOnboardingTourArgs): Driver => {
   let destroyAction: TourDestroyAction = null;
 
@@ -297,7 +270,6 @@ export const createOnboardingTour = ({
     isAdmin,
     onAdvance: advanceToNextPage,
     onComplete: completeTour,
-    prepareMembersAccess,
   });
 
   const tourDriver = driver({

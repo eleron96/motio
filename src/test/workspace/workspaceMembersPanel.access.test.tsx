@@ -1,6 +1,7 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { WorkspaceMembersPanel } from '@/features/workspace/components/WorkspaceMembersPanel';
 
 vi.mock('@lingui/macro', () => ({
@@ -81,21 +82,17 @@ describe('WorkspaceMembersPanel access content', () => {
   });
 
   it('renders controlled active, disabled, and history views', async () => {
-    const { rerender } = render(
-      <WorkspaceMembersPanel accessTab="active" accessSearch="anna" />,
-    );
+    const { rerender } = render(<WorkspaceMembersPanel accessTab="active" />);
 
     expect(screen.getByText('Team access')).toBeInTheDocument();
     expect(await screen.findByText('anna@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('niko@example.com')).not.toBeInTheDocument();
+    // The current user's row carries a "(you)" suffix in the same node.
+    expect(screen.getByText(/niko@example\.com/)).toBeInTheDocument();
     expect(screen.queryByText('ivan@example.com')).not.toBeInTheDocument();
 
-    rerender(<WorkspaceMembersPanel accessTab="disabled" accessSearch="" />);
+    rerender(<WorkspaceMembersPanel accessTab="disabled" />);
     expect(await screen.findByText('ivan@example.com')).toBeInTheDocument();
     expect(screen.queryByText('anna@example.com')).not.toBeInTheDocument();
-
-    rerender(<WorkspaceMembersPanel accessTab="disabled" accessSearch="zzz" />);
-    expect(await screen.findByText('No matches.')).toBeInTheDocument();
 
     rerender(<WorkspaceMembersPanel accessTab="history" />);
     expect(await screen.findByText('Niko changed Ivan from viewer to editor.')).toBeInTheDocument();
@@ -106,6 +103,36 @@ describe('WorkspaceMembersPanel access content', () => {
         limit: 100,
       });
     });
+  });
+
+  it('filters the list from its own search field', async () => {
+    const user = userEvent.setup();
+
+    render(<WorkspaceMembersPanel accessTab="active" />);
+
+    expect(await screen.findByText('anna@example.com')).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Search people...'), 'anna');
+    expect(screen.getByText('anna@example.com')).toBeInTheDocument();
+    expect(screen.queryByText(/niko@example\.com/)).not.toBeInTheDocument();
+
+    await user.clear(screen.getByPlaceholderText('Search people...'));
+    await user.type(screen.getByPlaceholderText('Search people...'), 'zzz');
+    expect(await screen.findByText('No matches.')).toBeInTheDocument();
+  });
+
+  it('keeps inviting on the active list and out of the other two', async () => {
+    const { rerender } = render(<WorkspaceMembersPanel accessTab="active" />);
+
+    expect(await screen.findByRole('button', { name: 'Add member' })).toBeInTheDocument();
+
+    rerender(<WorkspaceMembersPanel accessTab="disabled" />);
+    expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Sent invites')).not.toBeInTheDocument();
+
+    rerender(<WorkspaceMembersPanel accessTab="history" />);
+    expect(screen.queryByRole('button', { name: 'Add member' })).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search people...')).not.toBeInTheDocument();
   });
 
   it('marks the workspace owner and offers a Leave action on the current user row', async () => {

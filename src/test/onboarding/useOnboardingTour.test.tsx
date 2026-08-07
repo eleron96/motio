@@ -47,16 +47,13 @@ const driverDouble = {
 const TestComponent = ({
   pageId,
   isAdmin,
-  prepareMembersAccess,
 }: {
   pageId: 'members';
   isAdmin: boolean;
-  prepareMembersAccess: () => void;
 }) => {
   useOnboardingTour({
     pageId,
     isAdmin,
-    prepareMembersAccess,
   });
 
   return null;
@@ -79,16 +76,10 @@ describe('useOnboardingTour', () => {
     });
   });
 
-  it('opens Team access before starting the members admin segment', async () => {
-    const prepareMembersAccess = vi.fn();
-
+  it('starts the members segment once the page has had time to settle', async () => {
     render(
       <MemoryRouter>
-        <TestComponent
-          pageId="members"
-          isAdmin
-          prepareMembersAccess={prepareMembersAccess}
-        />
+        <TestComponent pageId="members" isAdmin />
       </MemoryRouter>,
     );
 
@@ -96,7 +87,6 @@ describe('useOnboardingTour', () => {
       await Promise.resolve();
     });
 
-    expect(prepareMembersAccess).toHaveBeenCalledTimes(1);
     expect(createOnboardingTourMock).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -108,9 +98,10 @@ describe('useOnboardingTour', () => {
     });
 
     expect(createOnboardingTourMock).toHaveBeenCalledTimes(1);
+    expect(createOnboardingTourMock.mock.calls[0][0]).toMatchObject({
+      pageId: 'members',
+      isAdmin: true,
+    });
     expect(driverDouble.drive).toHaveBeenCalledTimes(1);
-    expect(prepareMembersAccess.mock.invocationCallOrder[0]).toBeLessThan(
-      createOnboardingTourMock.mock.invocationCallOrder[0],
-    );
   });
 });

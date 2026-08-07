@@ -40,6 +40,12 @@ vi.mock('@/shared/ui/emoji-picker', () => ({
   EmojiPicker: () => <div>Emoji picker</div>,
 }));
 
+// Colours now share their section with the access lists; those have their own
+// tests and their own store calls, so they stay out of this one.
+vi.mock('@/features/workspace/components/WorkspaceMembersPanel', () => ({
+  WorkspaceMembersPanel: () => <div>Members panel</div>,
+}));
+
 const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
     statuses: [],
@@ -97,8 +103,16 @@ const openPeopleSection = async () => {
       <SettingsPanel open onOpenChange={() => {}} />
     </TooltipProvider>,
   );
-  await user.click(screen.getByRole('button', { name: 'People' }));
-  await screen.findByText('Colours');
+  await user.click(screen.getByRole('button', { name: 'Members and access' }));
+  // An admin lands on the access list, so the palette is one tab away; a
+  // non-admin is already there and has no tabs to click.
+  const coloursTab = screen.queryByRole('button', { name: 'Colours' });
+  if (coloursTab) {
+    await user.click(coloursTab);
+  }
+  await screen.findByText(
+    "A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials.",
+  );
   return user;
 };
 
@@ -119,7 +133,9 @@ describe('SettingsPanel people colours', () => {
     expect(screen.getByText('Me')).toBeInTheDocument();
     expect(screen.getByText('Teammate')).toBeInTheDocument();
     expect(screen.getByText('External')).toBeInTheDocument();
-    expect(screen.queryByText('Disabled')).not.toBeInTheDocument();
+    // Named by the swatch rather than the label: "Disabled" is also an access
+    // tab in this section now.
+    expect(screen.queryByRole('button', { name: 'Colour of Disabled' })).not.toBeInTheDocument();
   });
 
   it('saves the picked colour for the chosen person', async () => {

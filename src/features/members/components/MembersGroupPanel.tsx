@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
-import { Eye, EyeOff, UserPlus, X } from 'lucide-react';
+import { Eye, EyeOff, MoreHorizontal, UserPlus } from 'lucide-react';
 import { WorkspaceRole } from '@/features/auth/store/authStore';
 import { Assignee } from '@/features/planner/types/planner';
 import { PlannerGroup, PlannerGroupMember } from '@/features/planner/store/plannerStore.contract';
@@ -9,6 +9,12 @@ import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu';
 
 interface MemberRef {
   userId: string;
@@ -34,8 +40,13 @@ interface MembersGroupPanelProps {
   members: MemberRef[];
   assigneeByUserId: Map<string, Assignee>;
   onAddMember: (userId: string) => Promise<void>;
-  onRemoveMember: (userId: string) => Promise<void>;
+  /** Opens the group picker for someone already in this group. */
+  onMoveMember: (member: PlannerGroupMember) => void;
+  /** Asks to take them out; the confirmation lives with the page. */
+  onRemoveMember: (member: PlannerGroupMember) => void;
   onGroupMemberClick: (userId: string) => void;
+  /** True when there is somewhere else to move people to. */
+  hasOtherGroups: boolean;
 }
 
 export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
@@ -56,8 +67,10 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
   members,
   assigneeByUserId,
   onAddMember,
+  onMoveMember,
   onRemoveMember,
   onGroupMemberClick,
+  hasOtherGroups,
 }) => {
   const [addMemberPopoverOpen, setAddMemberPopoverOpen] = useState(false);
   const [addMemberSearch, setAddMemberSearch] = useState('');
@@ -251,16 +264,35 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
                           </div>
                         </button>
                         {isAdmin && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="shrink-0 h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                            disabled={groupActionLoading}
-                            onClick={() => void onRemoveMember(member.userId)}
-                            title={t`Remove from group`}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                disabled={groupActionLoading}
+                                aria-label={t`Member actions`}
+                                data-testid={`group-member-actions-${member.userId}`}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onSelect={() => onMoveMember(member)}
+                                disabled={groupActionLoading || !hasOtherGroups}
+                              >
+                                {t`Move to another group`}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onSelect={() => onRemoveMember(member)}
+                                disabled={groupActionLoading}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                {t`Remove from group`}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </div>
                     );
