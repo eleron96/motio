@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.56] - 2026-08-07
 ### Changed
 - Invites, roles and workspace access moved from the Team page into workspace settings, under "Members and access". Active people, disabled people, history and everyone's colours are now tabs in one place.
 - Inviting shows up on the active list only — it is gone from above the disabled list and the history log. Search now sits with the list it filters, and each tab carries its own heading.
