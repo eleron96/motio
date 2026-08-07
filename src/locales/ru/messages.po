@@ -3178,7 +3178,7 @@ msgstr "Новая рассылка"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-#: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/pages/ProjectsPage.tsx
 msgid "New contact"
 msgstr "Новый контакт"
 
