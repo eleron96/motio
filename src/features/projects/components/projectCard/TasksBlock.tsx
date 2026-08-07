@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { Calendar, Plus, RefreshCcw, Repeat, Search } from 'lucide-react';
+import { Calendar, Plus, RefreshCcw, Repeat, Search, SlidersHorizontal } from 'lucide-react';
 import type {
   Assignee,
   Status,
@@ -13,6 +13,8 @@ import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { ProjectTasksFiltersScreen } from '@/features/projects/components/projectCard/ProjectTasksFiltersScreen';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
@@ -82,6 +84,14 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
   pageIndex, totalPages, onPrevPage, onNextPage, totalCount,
   canEdit = false, onAddTask,
 }) => {
+  const isMobile = useIsMobile();
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  // Counted, not just flagged: the button carries the number so you can see
+  // how much is filtering the list without opening the screen.
+  const activeFilterCount = (search.trim().length > 0 ? 1 : 0)
+    + statusFilterIds.length
+    + assigneeFilterIds.length;
+
   return (
     <section className="flex max-h-[520px] min-h-[320px] flex-col rounded-2xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center gap-2">
@@ -103,23 +113,29 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-8"
-            placeholder={t`Search tasks...`}
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
-        </div>
-        <SegmentedControl surface="filled">
+        {!isMobile && (
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-8"
+              placeholder={t`Search tasks...`}
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+            />
+          </div>
+        )}
+        <SegmentedControl surface="filled" className={isMobile ? 'w-full' : undefined}>
           <SegmentedControlItem
+            size={isMobile ? 'touch' : undefined}
+            fullWidth={isMobile}
             active={taskScope === 'current'}
             onClick={() => onChangeTaskScope('current')}
           >
             {t`Current`}
           </SegmentedControlItem>
           <SegmentedControlItem
+            size={isMobile ? 'touch' : undefined}
+            fullWidth={isMobile}
             active={taskScope === 'past'}
             onClick={() => onChangeTaskScope('past')}
           >
@@ -128,6 +144,35 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
         </SegmentedControl>
       </div>
 
+      {isMobile ? (
+        <div className="mb-3 flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 flex-1 justify-between"
+            onClick={() => setMobileFiltersOpen(true)}
+          >
+            <span className="inline-flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              {t`Filters`}
+            </span>
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="tabular-nums">{activeFilterCount}</Badge>
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-11 w-11 shrink-0"
+            onClick={onRefreshTasks}
+            disabled={tasksLoading}
+            aria-label={t`Refresh`}
+          >
+            <RefreshCcw className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>
@@ -197,6 +242,7 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
           {t`Refresh`}
         </Button>
       </div>
+      )}
 
       <div className="flex-1 min-h-0 overflow-y-auto pr-2">
         {tasksLoading && (
@@ -297,6 +343,23 @@ export const TasksBlock: React.FC<TasksBlockProps> = ({
             </Button>
           </div>
         </div>
+      )}
+
+      {isMobile && (
+        <ProjectTasksFiltersScreen
+          open={mobileFiltersOpen}
+          onOpenChange={setMobileFiltersOpen}
+          search={search}
+          onSearchChange={onSearchChange}
+          statuses={statuses}
+          statusFilterIds={statusFilterIds}
+          onToggleStatus={onToggleStatus}
+          setStatusPreset={setStatusPreset}
+          assigneeOptions={assigneeOptions}
+          assigneeFilterIds={assigneeFilterIds}
+          onToggleAssignee={onToggleAssignee}
+          onClearFilters={onClearFilters}
+        />
       )}
     </section>
   );
