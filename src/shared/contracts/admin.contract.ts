@@ -139,6 +139,30 @@ const adminBroadcastsTickRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.BROADCASTS_TICK),
 }).strict();
 
+const announcementLevelSchema = z.enum(['info', 'critical']);
+const announcementAudienceKindSchema = z.enum(['all_active', 'domain', 'workspace']);
+
+const adminAnnouncementsPublishRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH),
+  titleRu: z.string().min(1).max(200),
+  titleEn: z.string().max(200).optional(),
+  bodyRu: z.string().max(2000).optional(),
+  bodyEn: z.string().max(2000).optional(),
+  level: announcementLevelSchema,
+  audienceKind: announcementAudienceKindSchema,
+  audienceValue: z.string().max(255).optional(),
+  endsAt: z.string().datetime().optional(),
+}).strict();
+
+const adminAnnouncementsListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_LIST),
+}).strict();
+
+const adminAnnouncementsUnpublishRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UNPUBLISH),
+  announcementId: z.string().uuid(),
+}).strict();
+
 export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBootstrapSyncRequestSchema,
   adminUsersListRequestSchema,
@@ -163,6 +187,9 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBroadcastsListRequestSchema,
   adminBroadcastsCancelRequestSchema,
   adminBroadcastsTickRequestSchema,
+  adminAnnouncementsPublishRequestSchema,
+  adminAnnouncementsListRequestSchema,
+  adminAnnouncementsUnpublishRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;

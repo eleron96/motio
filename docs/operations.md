@@ -281,6 +281,47 @@ loads without errors, and a subsequent standard restore on top works too.
 
 ---
 
+## In-app announcements
+
+Two channels reach users: email (Admin → Broadcast) and a banner inside the
+product. Pick per message — email for anything people should keep, a banner for
+"here is what changed" that belongs where they already are.
+
+A banner is published by inserting a row; there is no admin form yet.
+
+```sql
+insert into public.app_announcements
+  (title_ru, title_en, body_ru, body_en, level, audience_kind, ends_at, published, created_by)
+values (
+  'Мобильная версия обновилась',
+  'The mobile app got a rebuild',
+  'Разделы листаются свайпом, списки открываются сразу.',
+  'Sections swipe sideways and the lists are right there.',
+  'info',            -- 'info' draws a strip; 'critical' interrupts with a modal
+  'all_active',      -- or 'domain' / 'workspace' with audience_value set
+  now() + interval '14 days',
+  true,
+  (select id from auth.users where email = 'you@example.com')
+);
+```
+
+Each person sees it once: closing it writes a row into
+`app_announcement_reads`, which is keyed by (announcement, user) so a banner
+dismissed on the desktop stays dismissed on the phone. Nothing has to be
+cleaned up afterwards — an expired `ends_at` simply stops the announcement.
+
+To pull one back before its window ends:
+
+```sql
+update public.app_announcements set published = false where id = '<uuid>';
+```
+
+To see how it landed:
+
+```sql
+select count(*) from public.app_announcement_reads where announcement_id = '<uuid>';
+```
+
 ## Security checklist
 
 Before going to production:

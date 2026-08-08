@@ -24,7 +24,11 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 import { invokeAdminFunction } from '@/infrastructure/auth/functionsGateway';
 import { ADMIN_ACTIONS } from '@/shared/contracts/actions';
 import { formatDate } from '@/features/admin/lib/format';
+import { AdminAnnouncementForm } from '@/features/admin/components/AdminAnnouncementForm';
 
+// Two ways to reach people: mail they keep, or a banner where they already
+// are. Chosen per message — nothing is sent to both automatically.
+type Channel = 'email' | 'banner';
 type MessageType = 'announcement' | 'service';
 type AudienceKind = 'subscribers' | 'domain' | 'workspace' | 'all_active';
 
@@ -59,6 +63,7 @@ const AdminBroadcastPage: React.FC = () => {
   const locale = useLocaleStore((state) => state.locale);
 
   const [messageType, setMessageType] = useState<MessageType>('announcement');
+  const [channel, setChannel] = useState<Channel>('email');
   const [audienceKind, setAudienceKind] = useState<AudienceKind>('subscribers');
   const [domainValue, setDomainValue] = useState('');
   const [workspaceValue, setWorkspaceValue] = useState('');
@@ -242,9 +247,33 @@ const AdminBroadcastPage: React.FC = () => {
 
   const availableKinds = kindsForType(messageType);
 
+  const channelSwitch = (
+    <div className="space-y-1.5">
+      <Label>{t`Channel`}</Label>
+      <SegmentedControl>
+        <SegmentedControlItem active={channel === 'email'} onClick={() => setChannel('email')}>
+          {t`Email`}
+        </SegmentedControlItem>
+        <SegmentedControlItem active={channel === 'banner'} onClick={() => setChannel('banner')}>
+          {t`In the app`}
+        </SegmentedControlItem>
+      </SegmentedControl>
+    </div>
+  );
+
+  if (channel === 'banner') {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-md border p-4">{channelSwitch}</div>
+        <AdminAnnouncementForm workspaces={adminWorkspaces} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border p-4 space-y-4">
+        {channelSwitch}
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold">{t`New broadcast`}</div>
           <div className="text-xs text-muted-foreground">

@@ -276,6 +276,10 @@ msgstr "A person you can reuse across projects."
 msgid "A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials."
 msgstr "A person's colour is used on dashboard charts, on their day-off circles in the calendar and behind their initials."
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "A strip above the workspace that can be dismissed."
+msgstr "A strip above the workspace that can be dismissed."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "A task is assigned to me"
 msgstr "A task is assigned to me"
@@ -354,6 +358,7 @@ msgstr "Account settings"
 msgid "Action failed"
 msgstr "Action failed"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -553,6 +558,8 @@ msgstr "After the grace period, all data (comments, tasks, profile) will be anon
 msgid "All"
 msgstr "All"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "All active users"
 msgstr "All active users"
@@ -710,6 +717,8 @@ msgstr "assigned you to task"
 msgid "Assignees"
 msgstr "Assignees"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Audience"
 msgstr "Audience"
@@ -790,6 +799,11 @@ msgstr "Backups"
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Backups stored"
 msgstr "Backups stored"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Banner"
+msgstr "Banner"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Bar chart"
@@ -954,6 +968,10 @@ msgstr "Changes apply everywhere this person appears ({0} projects)."
 #: src/features/demo/components/DemoBanner.tsx
 msgid "Changes won't be saved. The sandbox resets after 24 hours of inactivity."
 msgstr "Changes won't be saved. The sandbox resets after 24 hours of inactivity."
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "Channel"
+msgstr "Channel"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Chart"
@@ -1807,6 +1825,14 @@ msgstr "Discard time off?"
 msgid "Dismiss"
 msgstr "Dismiss"
 
+#: src/features/announcements/components/AnnouncementsHost.tsx
+msgid "Dismiss announcement"
+msgstr "Dismiss announcement"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Dismissed"
+msgstr "Dismissed"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Display"
 msgstr "Display"
@@ -2003,14 +2029,23 @@ msgstr "Editors and admins add widgets here to build the dashboard."
 msgid "Egg"
 msgstr "Egg"
 
+#: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Email"
 msgstr "Email"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Email domain"
+msgstr "Email domain"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Emoji"
 msgstr "Emoji"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Empty means it stays until each person dismisses it."
+msgstr "Empty means it stays until each person dismisses it."
 
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -2080,6 +2115,8 @@ msgstr "Enter workspace name and optionally configure a template."
 msgid "Equals"
 msgstr "Equals"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
@@ -2448,6 +2485,10 @@ msgstr "Go to timeline"
 msgid "Good morning, {displayName}!"
 msgstr "Good morning, {displayName}!"
 
+#: src/features/announcements/components/AnnouncementsHost.tsx
+msgid "Got it"
+msgstr "Got it"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
@@ -2539,6 +2580,7 @@ msgstr "High"
 msgid "High priority"
 msgstr "High priority"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "History"
@@ -2593,6 +2635,11 @@ msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where 
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Important"
+msgstr "Important"
+
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 msgid "In {diff} days"
 msgstr "In {diff} days"
@@ -2604,6 +2651,10 @@ msgstr "in progress"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "In progress"
 msgstr "In progress"
+
+#: src/features/admin/pages/AdminBroadcastPage.tsx
+msgid "In the app"
+msgstr "In the app"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Include disabled users in filters, totals, and legends."
@@ -2633,6 +2684,10 @@ msgstr "Insert image"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Interface color"
 msgstr "Interface color"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Interrupts once with a dialog. Use for maintenance and outages."
+msgstr "Interrupts once with a dialog. Use for maintenance and outages."
 
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Invalid name."
@@ -2742,6 +2797,10 @@ msgstr "Lavender"
 msgid "Leave"
 msgstr "Leave"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Leave empty to reuse the Russian text"
+msgstr "Leave empty to reuse the Russian text"
+
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Leave workspace"
@@ -2755,6 +2814,11 @@ msgstr "Leave workspace?"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
 msgstr "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Level"
+msgstr "Level"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Like what you see? Save your work."
@@ -3168,9 +3232,9 @@ msgstr "name@example.com"
 msgid "Never"
 msgstr "Never"
 
-#: src/features/admin/pages/AdminBroadcastPage.tsx
-#~ msgid "New announcement"
-#~ msgstr "New announcement"
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "New announcement"
+msgstr "New announcement"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "New broadcast"
@@ -3294,6 +3358,10 @@ msgstr "No active projects."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "No advanced filters. Add a group to build custom rules."
 msgstr "No advanced filters. Add a group to build custom rules."
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "No announcements yet."
+msgstr "No announcements yet."
 
 #: src/features/projects/components/ProjectsMobileList.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -4308,6 +4376,7 @@ msgstr "Projects & milestones"
 #~ msgid "Projects sections"
 #~ msgstr "Projects sections"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Publish"
@@ -4840,6 +4909,10 @@ msgstr "Select a person."
 msgid "Select a project to view details."
 msgstr "Select a project to view details."
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Select a workspace"
+msgstr "Select a workspace"
+
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Select a workspace member"
 msgstr "Select a workspace member"
@@ -5077,6 +5150,10 @@ msgstr "Show the department workload board on the dashboard"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show unassigned"
 msgstr "Show unassigned"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Show until"
+msgstr "Show until"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "Showing archived"
@@ -5435,6 +5512,14 @@ msgstr "Terms of Service"
 msgid "Terracotta"
 msgstr "Terracotta"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Text (EN)"
+msgstr "Text (EN)"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Text (RU)"
+msgstr "Text (RU)"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Text value"
 msgstr "Text value"
@@ -5688,11 +5773,20 @@ msgstr "Time off pattern"
 msgid "Timeline"
 msgstr "Timeline"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Title"
 msgstr "Title"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Title (EN)"
+msgstr "Title (EN)"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Title (RU)"
+msgstr "Title (RU)"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -5946,6 +6040,10 @@ msgstr "Unnamed group"
 msgid "Unpin"
 msgstr "Unpin"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Unpublish"
+msgstr "Unpublish"
+
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Unread"
 msgstr "Unread"
@@ -5965,6 +6063,10 @@ msgstr "Unsaved changes"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #~ msgid "Untagged"
 #~ msgstr "Untagged"
+
+#: src/features/admin/components/AdminAnnouncementForm.tsx
+msgid "Until"
+msgstr "Until"
 
 #. placeholder {0}: formatUntil(params.until)
 #. placeholder {0}: formatUntilShort(projectedEnd)
@@ -6175,6 +6277,7 @@ msgstr "Workflow"
 msgid "Workload heatmap"
 msgstr "Workload heatmap"
 
+#: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Workspace"

@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- The broadcast history in the admin console answered "permission denied" on the testing stand — the table was missing its grants. A migration now grants them, the same way on every stand.
+
+### Added
+- In-app announcements: the admin broadcast page now asks which channel to use — email or a banner inside the app. A banner sits above the workspace; something urgent interrupts with a "Got it" dialog. Each person sees it once — dismissed on the desktop means dismissed on the phone. The history shows how many people closed it, and an announcement can be pulled back.
 
 ## [0.9.56] - 2026-08-07
 ### Changed
