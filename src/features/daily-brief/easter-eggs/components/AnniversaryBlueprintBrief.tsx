@@ -78,7 +78,7 @@ export const AnniversaryBlueprintBrief = () => {
   // The anniversary year belongs under the numeral. Without one — no room on a
   // small screen — it falls back to signing off in the corner.
   const signOff = numeral
-    ? { x: numeral.left + numeral.width / 2, y: numeral.top + numeral.height + 42, anchor: 'middle' as const }
+    ? { x: numeral.left + numeral.width / 2, y: numeral.top + numeral.height + 52, anchor: 'middle' as const }
     : measured
       ? { ...bottomRightAnchor(viewport, card ?? null), anchor: 'end' as const }
       : null;
@@ -217,7 +217,7 @@ export const AnniversaryBlueprintBrief = () => {
         {titleBlock && (
           <g className={styles.caption}>
             <text x={titleBlock.x} y={titleBlock.y} className={styles.practice}>{PRACTICE}</text>
-            <text x={titleBlock.x} y={titleBlock.y + 34} className={styles.year}>{YEAR_FROM}</text>
+            <text x={titleBlock.x} y={titleBlock.y + 46} className={styles.year}>{YEAR_FROM}</text>
           </g>
         )}
 
