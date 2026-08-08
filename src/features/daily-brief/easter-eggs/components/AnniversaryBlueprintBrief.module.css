@@ -16,7 +16,10 @@
   overflow: hidden;
   pointer-events: none;
   contain: layout paint style;
-  color: hsl(var(--foreground));
+  /* The dialog dims the page to black/80 in every theme, so the sheet is
+     always drawn on a dark ground — theme ink would read as a stray dark
+     line on it. */
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* Spans the viewport: the drawing is positioned against the card, not centred. */
@@ -39,10 +42,11 @@
   animation-iteration-count: infinite;
 }
 
+/* Construction lines: present, never the thing you notice. */
 .axis {
   stroke: currentColor;
   stroke-width: 1;
-  opacity: 0.55;
+  opacity: 0.16;
 }
 
 /* Traces the card so it reads as the part on the sheet. Gold at half strength:
@@ -50,13 +54,13 @@
 .outline {
   stroke: #f5c96b;
   stroke-width: 1.5;
-  opacity: 0.55;
+  opacity: 0.65;
 }
 
 .dimension {
-  stroke: currentColor;
-  stroke-width: 1.5;
-  opacity: 0.7;
+  stroke: #f5c96b;
+  stroke-width: 2;
+  opacity: 0.8;
 }
 
 .numeral {
@@ -79,17 +83,17 @@
 
 .practice {
   fill: currentColor;
-  font-size: 22px;
+  font-size: 38px;
   font-weight: 600;
-  letter-spacing: 0.36em;
-  opacity: 0.95;
+  letter-spacing: 0.42em;
+  opacity: 1;
 }
 
 .year {
   fill: #f5c96b;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 500;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.28em;
 }
 
 .sparks {
