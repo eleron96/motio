@@ -10,7 +10,14 @@ import { lazyNamed } from '@/shared/lib/lazyComponent';
  * and a line to `EGG_CATALOG`. Assigning it to a user is then a DB row, no deploy.
  * Each effect is a body-level portal overlay that respects prefers-reduced-motion.
  */
-export type EggKey = 'shabbat' | 'six-seven' | 'mashallah';
+export type EggKey =
+  | 'shabbat'
+  | 'six-seven'
+  | 'mashallah'
+  // Anniversary effects: keyed by what they look like, not by whose
+  // anniversary it is, so the next one can reuse them.
+  | 'anniversary-blueprint'
+  | 'anniversary-salute';
 
 /** Master kill switch — set to false to disable every easter egg at once. */
 export const EASTER_EGGS_ENABLED = true;
@@ -19,6 +26,14 @@ export const EGG_CATALOG: Record<EggKey, LazyExoticComponent<ComponentType>> = {
   shabbat: lazyNamed(() => import('./components/ShabbatBrief'), 'ShabbatBrief'),
   'six-seven': lazyNamed(() => import('./components/SixSevenBrief'), 'SixSevenBrief'),
   mashallah: lazyNamed(() => import('./components/MashallahBrief'), 'MashallahBrief'),
+  'anniversary-blueprint': lazyNamed(
+    () => import('./components/AnniversaryBlueprintBrief'),
+    'AnniversaryBlueprintBrief',
+  ),
+  'anniversary-salute': lazyNamed(
+    () => import('./components/AnniversarySaluteBrief'),
+    'AnniversarySaluteBrief',
+  ),
 };
 
 /** Narrows an unknown value (e.g. an RPC result) to a known catalog key. */
