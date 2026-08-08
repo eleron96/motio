@@ -88,6 +88,7 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
       <PersonAvatar
         userId={comment.authorId}
         name={comment.authorDisplayName}
+        avatarUrl={comment.authorAvatarUrl}
         colorSeed={comment.authorId}
         size="sm"
         className="mt-0.5 h-7 w-7 shrink-0 text-[10px]"

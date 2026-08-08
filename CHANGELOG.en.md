@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 ### Fixed
+- Comments show faces again: both the list that opens on "@" and the avatar beside a comment fell back to initials instead of the person's uploaded photo.
 - The admin console no longer answers "Access denied" when the access check could not reach the server — during a deploy, for instance. It now says the check failed, retries on its own and offers a "Try again" button.
 
 ### Added

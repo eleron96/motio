@@ -224,6 +224,7 @@ export interface TaskComment {
   taskId: string;
   authorId: string;
   authorDisplayName: string;
+  authorAvatarUrl: string | null;
   authorStatus: CommentAuthorStatus;
   content: string; // sanitized HTML
   mentionedUserIds: string[];

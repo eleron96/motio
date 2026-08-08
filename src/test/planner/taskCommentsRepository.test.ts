@@ -147,7 +147,12 @@ describe('taskCommentsRepository', () => {
               in: (_field: string, ids: string[]) => {
                 queriedProfileIds.push(ids);
                 return Promise.resolve({
-                  data: [{ id: 'user-1', display_name: 'Live User', status: 'ACTIVE' }],
+                  data: [{
+                    id: 'user-1',
+                    display_name: 'Live User',
+                    avatar_url: 'https://cdn.example/u1.png',
+                    status: 'ACTIVE',
+                  }],
                   error: null,
                 });
               },
@@ -163,7 +168,7 @@ describe('taskCommentsRepository', () => {
 
     expect(taskCommentSelectCalls).toHaveLength(1);
     expect(taskCommentSelectCalls[0]).not.toContain('profiles');
-    expect(profileSelectCalls).toEqual(['id, display_name, status']);
+    expect(profileSelectCalls).toEqual(['id, display_name, avatar_url, status']);
     expect(queriedProfileIds).toEqual([['user-1', 'user-2']]);
     expect(result).toEqual({
       data: {
@@ -173,6 +178,9 @@ describe('taskCommentsRepository', () => {
             taskId: 'task-1',
             authorId: 'user-1',
             authorDisplayName: 'Live User',
+            // The photo travels with the comment, so the avatar beside it is a
+            // face rather than initials.
+            authorAvatarUrl: 'https://cdn.example/u1.png',
             authorStatus: 'ACTIVE',
             content: '<p>Hello</p>',
             mentionedUserIds: ['user-2'],
@@ -185,6 +193,7 @@ describe('taskCommentsRepository', () => {
             taskId: 'task-1',
             authorId: 'user-2',
             authorDisplayName: 'Missing Profile User',
+            authorAvatarUrl: null,
             authorStatus: 'ACTIVE',
             content: '<p>Fallback</p>',
             mentionedUserIds: [],

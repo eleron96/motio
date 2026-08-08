@@ -864,10 +864,11 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
                   }}
                   onMouseEnter={() => setMentionHighlight(idx)}
                 >
-                  {/* Avatar / monogram */}
+                  {/* Photo when the person has one, monogram otherwise */}
                   <PersonAvatar
                     userId={candidate.userId}
                     name={candidate.name}
+                    avatarUrl={candidate.avatarUrl}
                     colorSeed={candidate.userId}
                     size="xs"
                     className="shrink-0"
