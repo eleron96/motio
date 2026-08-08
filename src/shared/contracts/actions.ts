@@ -22,6 +22,10 @@ export const ADMIN_ACTIONS = {
   BROADCASTS_LIST: 'broadcasts.list',
   BROADCASTS_CANCEL: 'broadcasts.cancel',
   BROADCASTS_TICK: 'broadcasts.tick',
+  // In-app announcements: the second channel next to email.
+  ANNOUNCEMENTS_PUBLISH: 'announcements.publish',
+  ANNOUNCEMENTS_LIST: 'announcements.list',
+  ANNOUNCEMENTS_UNPUBLISH: 'announcements.unpublish',
 } as const;
 
 export const PUSH_ACTIONS = {

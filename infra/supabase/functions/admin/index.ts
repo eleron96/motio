@@ -161,6 +161,24 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.BROADCASTS_TICK),
   }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH),
+    titleRu: z.string().min(1).max(200),
+    titleEn: z.string().max(200).optional(),
+    bodyRu: z.string().max(2000).optional(),
+    bodyEn: z.string().max(2000).optional(),
+    level: z.enum(["info", "critical"]),
+    audienceKind: z.enum(["all_active", "domain", "workspace"]),
+    audienceValue: z.string().max(255).optional(),
+    endsAt: z.string().datetime().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UNPUBLISH),
+    announcementId: z.string().uuid(),
+  }).strict(),
 ]);
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -1148,6 +1166,99 @@ const resolveBroadcastAudience = async (
   return finalize(data ?? []);
 };
 
+// ── In-app announcements: the second channel. An announcement is a row; the
+// app reads it through get_my_announcements() and records dismissals per
+// person, so nothing here has to think about who has already seen what.
+const handleAnnouncementsPublish = async (
+  payload: {
+    titleRu: string;
+    titleEn?: string;
+    bodyRu?: string;
+    bodyEn?: string;
+    level: "info" | "critical";
+    audienceKind: "all_active" | "domain" | "workspace";
+    audienceValue?: string;
+    endsAt?: string;
+  },
+  actorId: string,
+) => {
+  if (payload.audienceKind !== "all_active" && !payload.audienceValue) {
+    return jsonResponse({ error: "Audience value is required." }, 400);
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("app_announcements")
+    .insert({
+      title_ru: payload.titleRu,
+      // English falls back to the Russian text: a half-translated announcement
+      // is worse than one that reads the same in both.
+      title_en: payload.titleEn?.trim() || payload.titleRu,
+      body_ru: payload.bodyRu?.trim() || null,
+      body_en: payload.bodyEn?.trim() || payload.bodyRu?.trim() || null,
+      level: payload.level,
+      audience_kind: payload.audienceKind,
+      audience_value: payload.audienceKind === "all_active" ? null : payload.audienceValue,
+      ends_at: payload.endsAt ?? null,
+      published: true,
+      created_by: actorId,
+    })
+    .select("id")
+    .single();
+
+  if (error) return jsonResponse({ error: error.message }, 400);
+  return jsonResponse({ announcementId: data?.id ?? null });
+};
+
+const handleAnnouncementsList = async () => {
+  const { data, error } = await supabaseAdmin
+    .from("app_announcements")
+    .select("id, title_ru, level, audience_kind, audience_value, published, starts_at, ends_at, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) return jsonResponse({ error: error.message }, 400);
+
+  const rows = data ?? [];
+  const ids = rows.map((row) => row.id as string);
+  // How many people closed it — the only delivery signal an in-app channel has.
+  const seen = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: reads } = await supabaseAdmin
+      .from("app_announcement_reads")
+      .select("announcement_id")
+      .in("announcement_id", ids);
+    for (const read of reads ?? []) {
+      const key = read.announcement_id as string;
+      seen.set(key, (seen.get(key) ?? 0) + 1);
+    }
+  }
+
+  return jsonResponse({
+    announcements: rows.map((row) => ({
+      id: row.id,
+      title: row.title_ru,
+      level: row.level,
+      audienceKind: row.audience_kind,
+      audienceValue: row.audience_value,
+      published: row.published,
+      startsAt: row.starts_at,
+      endsAt: row.ends_at,
+      createdAt: row.created_at,
+      dismissedCount: seen.get(row.id as string) ?? 0,
+    })),
+  });
+};
+
+const handleAnnouncementsUnpublish = async (payload: { announcementId: string }) => {
+  const { error } = await supabaseAdmin
+    .from("app_announcements")
+    .update({ published: false })
+    .eq("id", payload.announcementId);
+
+  if (error) return jsonResponse({ error: error.message }, 400);
+  return jsonResponse({ ok: true });
+};
+
 const handleBroadcastsAudience = async (payload: AudienceParams) => {
   const resolved = await resolveBroadcastAudience(payload);
   if ("error" in resolved) {
@@ -1615,6 +1726,24 @@ export const handler = async (req: Request) => {
       return handleEasterEggsSave(payload as { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string });
     case ADMIN_ACTIONS.EASTER_EGGS_DELETE:
       return handleEasterEggsDelete(payload as { id: string });
+    case ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH:
+      return handleAnnouncementsPublish(
+        payload as {
+          titleRu: string;
+          titleEn?: string;
+          bodyRu?: string;
+          bodyEn?: string;
+          level: "info" | "critical";
+          audienceKind: "all_active" | "domain" | "workspace";
+          audienceValue?: string;
+          endsAt?: string;
+        },
+        authResult.user.id,
+      );
+    case ADMIN_ACTIONS.ANNOUNCEMENTS_LIST:
+      return handleAnnouncementsList();
+    case ADMIN_ACTIONS.ANNOUNCEMENTS_UNPUBLISH:
+      return handleAnnouncementsUnpublish(payload as { announcementId: string });
     case ADMIN_ACTIONS.BROADCASTS_AUDIENCE:
       return handleBroadcastsAudience(payload as AudienceParams);
     case ADMIN_ACTIONS.BROADCASTS_SEND:

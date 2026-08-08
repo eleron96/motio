@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useLayoutEffect, useMemo
 import { Outlet } from 'react-router-dom';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { MobileMenuProvider } from '@/features/workspace/components/MobileMenuContext';
+import { AnnouncementsHost } from '@/features/announcements/components/AnnouncementsHost';
 import { PendingDeletionBanner } from '@/shared/components/PendingDeletionBanner';
 
 /**
@@ -68,6 +69,9 @@ export const WorkspaceLayout: React.FC = () => {
             settingsDisabled={config?.settingsDisabled ?? false}
             showSettingsButton={config?.showSettingsButton ?? true}
           />
+          {/* Below the header so the product's own chrome stays put, above the
+              page so an announcement cannot be scrolled past unseen. */}
+          <AnnouncementsHost />
           <Outlet />
         </div>
       </MobileMenuProvider>

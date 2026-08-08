@@ -631,6 +631,9 @@ const rpcHandlers: Record<string, (args: Record<string, unknown>) => Result> = {
   // Daily-brief easter egg — no eggs in the demo sandbox (the brief itself is
   // suppressed on /demo anyway); return null instead of warning.
   get_my_daily_brief_egg: () => ok(null),
+  // Announcements are an admin's channel to real users; the sandbox has none.
+  get_my_announcements: () => ok([]),
+  dismiss_announcement: () => ok(null),
   // Dashboard aggregates — computed from the seeded tasks so the demo
   // dashboard shows real KPIs, bars, pies and trend lines (mirrors the
   // migration-0055 SQL client-side).
