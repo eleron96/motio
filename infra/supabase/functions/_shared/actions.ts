@@ -26,6 +26,9 @@ export const ADMIN_ACTIONS = {
   ANNOUNCEMENTS_PUBLISH: 'announcements.publish',
   ANNOUNCEMENTS_LIST: 'announcements.list',
   ANNOUNCEMENTS_UNPUBLISH: 'announcements.unpublish',
+  ANNOUNCEMENTS_UPDATE: 'announcements.update',
+  ANNOUNCEMENTS_DELETE: 'announcements.delete',
+  ANNOUNCEMENTS_RESET_READS: 'announcements.resetReads',
 } as const;
 
 export const PUSH_ACTIONS = {

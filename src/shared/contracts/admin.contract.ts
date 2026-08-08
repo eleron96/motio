@@ -152,6 +152,7 @@ const adminAnnouncementsPublishRequestSchema = z.object({
   audienceKind: announcementAudienceKindSchema,
   audienceValue: z.string().max(255).optional(),
   endsAt: z.string().datetime().optional(),
+  published: z.boolean().optional(),
 }).strict();
 
 const adminAnnouncementsListRequestSchema = z.object({
@@ -160,6 +161,31 @@ const adminAnnouncementsListRequestSchema = z.object({
 
 const adminAnnouncementsUnpublishRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UNPUBLISH),
+  announcementId: z.string().uuid(),
+}).strict();
+
+const adminAnnouncementsUpdateRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE),
+  announcementId: z.string().uuid(),
+  titleRu: z.string().min(1).max(200).optional(),
+  titleEn: z.string().max(200).optional(),
+  bodyRu: z.string().max(2000).optional(),
+  bodyEn: z.string().max(2000).optional(),
+  level: announcementLevelSchema.optional(),
+  audienceKind: announcementAudienceKindSchema.optional(),
+  audienceValue: z.string().max(255).nullable().optional(),
+  startsAt: z.string().datetime().optional(),
+  endsAt: z.string().datetime().nullable().optional(),
+  published: z.boolean().optional(),
+}).strict();
+
+const adminAnnouncementsDeleteRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_DELETE),
+  announcementId: z.string().uuid(),
+}).strict();
+
+const adminAnnouncementsResetReadsRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_RESET_READS),
   announcementId: z.string().uuid(),
 }).strict();
 
@@ -190,6 +216,9 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminAnnouncementsPublishRequestSchema,
   adminAnnouncementsListRequestSchema,
   adminAnnouncementsUnpublishRequestSchema,
+  adminAnnouncementsUpdateRequestSchema,
+  adminAnnouncementsDeleteRequestSchema,
+  adminAnnouncementsResetReadsRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;

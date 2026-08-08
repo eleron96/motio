@@ -171,12 +171,35 @@ const adminRequestSchema = z.discriminatedUnion("action", [
     audienceKind: z.enum(["all_active", "domain", "workspace"]),
     audienceValue: z.string().max(255).optional(),
     endsAt: z.string().datetime().optional(),
+    published: z.boolean().optional(),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_LIST),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UNPUBLISH),
+    announcementId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE),
+    announcementId: z.string().uuid(),
+    titleRu: z.string().min(1).max(200).optional(),
+    titleEn: z.string().max(200).optional(),
+    bodyRu: z.string().max(2000).optional(),
+    bodyEn: z.string().max(2000).optional(),
+    level: z.enum(["info", "critical"]).optional(),
+    audienceKind: z.enum(["all_active", "domain", "workspace"]).optional(),
+    audienceValue: z.string().max(255).nullable().optional(),
+    startsAt: z.string().datetime().optional(),
+    endsAt: z.string().datetime().nullable().optional(),
+    published: z.boolean().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_DELETE),
+    announcementId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_RESET_READS),
     announcementId: z.string().uuid(),
   }).strict(),
 ]);
@@ -1179,6 +1202,7 @@ const handleAnnouncementsPublish = async (
     audienceKind: "all_active" | "domain" | "workspace";
     audienceValue?: string;
     endsAt?: string;
+    published?: boolean;
   },
   actorId: string,
 ) => {
@@ -1199,7 +1223,9 @@ const handleAnnouncementsPublish = async (
       audience_kind: payload.audienceKind,
       audience_value: payload.audienceKind === "all_active" ? null : payload.audienceValue,
       ends_at: payload.endsAt ?? null,
-      published: true,
+      // A draft is the same row unpublished: it can be edited and published
+      // later from the history menu.
+      published: payload.published ?? true,
       created_by: actorId,
     })
     .select("id")
@@ -1209,10 +1235,72 @@ const handleAnnouncementsPublish = async (
   return jsonResponse({ announcementId: data?.id ?? null });
 };
 
+const handleAnnouncementsUpdate = async (payload: {
+  announcementId: string;
+  titleRu?: string;
+  titleEn?: string;
+  bodyRu?: string;
+  bodyEn?: string;
+  level?: "info" | "critical";
+  audienceKind?: "all_active" | "domain" | "workspace";
+  audienceValue?: string | null;
+  startsAt?: string;
+  endsAt?: string | null;
+  published?: boolean;
+}) => {
+  const patch: Record<string, unknown> = {};
+  if (payload.titleRu !== undefined) patch.title_ru = payload.titleRu;
+  if (payload.titleEn !== undefined) patch.title_en = payload.titleEn || payload.titleRu;
+  if (payload.bodyRu !== undefined) patch.body_ru = payload.bodyRu || null;
+  if (payload.bodyEn !== undefined) patch.body_en = payload.bodyEn || payload.bodyRu || null;
+  if (payload.level !== undefined) patch.level = payload.level;
+  if (payload.audienceKind !== undefined) patch.audience_kind = payload.audienceKind;
+  if (payload.audienceValue !== undefined) patch.audience_value = payload.audienceValue;
+  if (payload.startsAt !== undefined) patch.starts_at = payload.startsAt;
+  if (payload.endsAt !== undefined) patch.ends_at = payload.endsAt;
+  if (payload.published !== undefined) patch.published = payload.published;
+
+  if (Object.keys(patch).length === 0) {
+    return jsonResponse({ error: "Nothing to update." }, 400);
+  }
+  if (patch.audience_kind === "all_active") patch.audience_value = null;
+
+  const { error } = await supabaseAdmin
+    .from("app_announcements")
+    .update(patch)
+    .eq("id", payload.announcementId);
+
+  if (error) return jsonResponse({ error: error.message }, 400);
+  return jsonResponse({ ok: true });
+};
+
+const handleAnnouncementsDelete = async (payload: { announcementId: string }) => {
+  // Dismissals cascade with the row; nothing to clean up separately.
+  const { error } = await supabaseAdmin
+    .from("app_announcements")
+    .delete()
+    .eq("id", payload.announcementId);
+
+  if (error) return jsonResponse({ error: error.message }, 400);
+  return jsonResponse({ ok: true });
+};
+
+// Clearing the dismissals is how a corrected announcement reaches the people
+// who already closed the old wording — otherwise it would stay hidden for them.
+const handleAnnouncementsResetReads = async (payload: { announcementId: string }) => {
+  const { error } = await supabaseAdmin
+    .from("app_announcement_reads")
+    .delete()
+    .eq("announcement_id", payload.announcementId);
+
+  if (error) return jsonResponse({ error: error.message }, 400);
+  return jsonResponse({ ok: true });
+};
+
 const handleAnnouncementsList = async () => {
   const { data, error } = await supabaseAdmin
     .from("app_announcements")
-    .select("id, title_ru, level, audience_kind, audience_value, published, starts_at, ends_at, created_at")
+    .select("id, title_ru, title_en, body_ru, body_en, level, audience_kind, audience_value, published, starts_at, ends_at, created_at")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -1237,6 +1325,9 @@ const handleAnnouncementsList = async () => {
     announcements: rows.map((row) => ({
       id: row.id,
       title: row.title_ru,
+      titleEn: row.title_en,
+      bodyRu: row.body_ru,
+      bodyEn: row.body_en,
       level: row.level,
       audienceKind: row.audience_kind,
       audienceValue: row.audience_value,
@@ -1737,6 +1828,7 @@ export const handler = async (req: Request) => {
           audienceKind: "all_active" | "domain" | "workspace";
           audienceValue?: string;
           endsAt?: string;
+          published?: boolean;
         },
         authResult.user.id,
       );
@@ -1744,6 +1836,24 @@ export const handler = async (req: Request) => {
       return handleAnnouncementsList();
     case ADMIN_ACTIONS.ANNOUNCEMENTS_UNPUBLISH:
       return handleAnnouncementsUnpublish(payload as { announcementId: string });
+    case ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE:
+      return handleAnnouncementsUpdate(payload as {
+        announcementId: string;
+        titleRu?: string;
+        titleEn?: string;
+        bodyRu?: string;
+        bodyEn?: string;
+        level?: "info" | "critical";
+        audienceKind?: "all_active" | "domain" | "workspace";
+        audienceValue?: string | null;
+        startsAt?: string;
+        endsAt?: string | null;
+        published?: boolean;
+      });
+    case ADMIN_ACTIONS.ANNOUNCEMENTS_DELETE:
+      return handleAnnouncementsDelete(payload as { announcementId: string });
+    case ADMIN_ACTIONS.ANNOUNCEMENTS_RESET_READS:
+      return handleAnnouncementsResetReads(payload as { announcementId: string });
     case ADMIN_ACTIONS.BROADCASTS_AUDIENCE:
       return handleBroadcastsAudience(payload as AudienceParams);
     case ADMIN_ACTIONS.BROADCASTS_SEND:

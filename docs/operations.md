@@ -287,7 +287,30 @@ Two channels reach users: email (Admin → Broadcast) and a banner inside the
 product. Pick per message — email for anything people should keep, a banner for
 "here is what changed" that belongs where they already are.
 
-A banner is published by inserting a row; there is no admin form yet.
+Banners are written in Admin → Broadcast, with the channel switch set to the
+in-app option. The form takes both locales, the level and the audience, and
+either publishes straight away or keeps the text as a draft.
+
+Below the form is the history, where every announcement carries its state —
+draft, scheduled, live or finished — and a `⋯` menu:
+
+- **Edit** — reopens the announcement in the form above. It does not reach people
+  who already closed it.
+- **Duplicate** — copies the wording into a new announcement, leaving the
+  original alone.
+- **Publish again** — sets a new window (a start date in the future schedules it)
+  and offers to clear the dismissals, which is what brings the announcement back
+  to people who have already closed it.
+- **Show again to everyone** — clears the dismissals on their own.
+- **Unpublish / Publish** — takes it off, or puts a draft up.
+- **Delete** — removes the announcement and its delivery history.
+
+Each person sees an announcement once: closing it writes a row into
+`app_announcement_reads`, keyed by (announcement, user), so a banner dismissed on
+the desktop stays dismissed on the phone. Nothing has to be cleaned up
+afterwards — an expired `ends_at` simply stops the announcement.
+
+The same thing can be done in SQL when the admin console is out of reach:
 
 ```sql
 insert into public.app_announcements
@@ -303,23 +326,15 @@ values (
   true,
   (select id from auth.users where email = 'you@example.com')
 );
-```
 
-Each person sees it once: closing it writes a row into
-`app_announcement_reads`, which is keyed by (announcement, user) so a banner
-dismissed on the desktop stays dismissed on the phone. Nothing has to be
-cleaned up afterwards — an expired `ends_at` simply stops the announcement.
-
-To pull one back before its window ends:
-
-```sql
+-- pull one back before its window ends
 update public.app_announcements set published = false where id = '<uuid>';
-```
 
-To see how it landed:
-
-```sql
+-- how it landed
 select count(*) from public.app_announcement_reads where announcement_id = '<uuid>';
+
+-- show it again to everyone who closed it
+delete from public.app_announcement_reads where announcement_id = '<uuid>';
 ```
 
 ## Security checklist
