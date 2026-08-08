@@ -22,6 +22,13 @@ import {
   WorkspaceMemberActivityEntry,
 } from '@/shared/domain/workspaceMemberActivity';
 
+// Three quick tries cover a functions container that is restarting mid-deploy
+// without making a genuinely signed-out tab wait.
+const SUPER_ADMIN_PROBE_ATTEMPTS = 3;
+const SUPER_ADMIN_PROBE_RETRY_MS = 400;
+// Bootstrap waits for the probe, so it needs an end: retries plus slack.
+const SUPER_ADMIN_PROBE_TIMEOUT_MS = 10_000;
+
 export type WorkspaceRole = 'viewer' | 'editor' | 'admin';
 
 export type AccountStatus = 'ACTIVE' | 'PENDING_DELETION' | 'PURGED';
@@ -175,6 +182,8 @@ interface AuthState {
   profilePurgeAfter: string | null;
   isSuperAdmin: boolean;
   superAdminLoading: boolean;
+  // "We could not ask" is not the same answer as "you are not an admin".
+  superAdminCheckFailed: boolean;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
   setSignOutRedirectInProgress: (value: boolean) => void;
@@ -367,6 +376,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   profilePurgeAfter: null,
   isSuperAdmin: false,
   superAdminLoading: false,
+  superAdminCheckFailed: false,
   setSession: (session) => {
     const user = session?.user ?? null;
     set({
@@ -383,33 +393,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profilePurgeAfter: null,
       isSuperAdmin: false,
       superAdminLoading: Boolean(user),
+      superAdminCheckFailed: false,
     });
   },
   setLoading: (loading) => set({ loading }),
   setSignOutRedirectInProgress: (value) => set({ signOutRedirectInProgress: value }),
   resolveSuperAdmin: async (user) => {
     if (!user) {
-      set({ isSuperAdmin: false, superAdminLoading: false });
+      set({ isSuperAdmin: false, superAdminLoading: false, superAdminCheckFailed: false });
       return false;
     }
-    set({ superAdminLoading: true });
+    set({ superAdminLoading: true, superAdminCheckFailed: false });
     try {
       // Keycloak is the source of truth: whoami checks the app_super_admin
       // realm role server-side (and syncs the cache table), so granting or
       // revoking the role in Keycloak takes effect on the next sign-in —
       // no in-app admin lists involved.
-      const { data, error } = await invokeAdminFunction<{ isSuperAdmin?: boolean }>({
-        action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
-      });
-      const isSuperAdmin = !error && Boolean(data?.isSuperAdmin);
-      // A super admin with workspaces is a regular working account (the owner
-      // with the Keycloak role), so their workspace state must stay intact —
-      // no reset here. The workspace-less service account is steered to the
-      // admin console by the pages' redirect instead.
-      set({ isSuperAdmin, superAdminLoading: false });
-      return isSuperAdmin;
+      //
+      // The probe runs once per session, so a single failed call used to lock
+      // the console out until a reload: a deploy that restarts the functions
+      // container is enough. Retry briefly, and when it still will not answer,
+      // record that the check failed instead of pretending the role is absent.
+      for (let attempt = 0; attempt < SUPER_ADMIN_PROBE_ATTEMPTS; attempt += 1) {
+        const { data, error } = await invokeAdminFunction<{ isSuperAdmin?: boolean }>({
+          action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
+        });
+        if (!error) {
+          // A super admin with workspaces is a regular working account (the
+          // owner with the Keycloak role), so their workspace state must stay
+          // intact — no reset here. The workspace-less service account is
+          // steered to the admin console by the pages' redirect instead.
+          const isSuperAdmin = Boolean(data?.isSuperAdmin);
+          set({ isSuperAdmin, superAdminLoading: false, superAdminCheckFailed: false });
+          return isSuperAdmin;
+        }
+        if (attempt < SUPER_ADMIN_PROBE_ATTEMPTS - 1) {
+          await new Promise((resolve) => {
+            setTimeout(resolve, SUPER_ADMIN_PROBE_RETRY_MS * (attempt + 1));
+          });
+        }
+      }
+      set({ isSuperAdmin: false, superAdminLoading: false, superAdminCheckFailed: true });
+      return false;
     } catch (_error) {
-      set({ isSuperAdmin: false, superAdminLoading: false });
+      set({ isSuperAdmin: false, superAdminLoading: false, superAdminCheckFailed: true });
       return false;
     }
   },
@@ -532,7 +559,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // which runs concurrently in AuthProvider. It flips superAdminLoading
       // on synchronously before this fetch can reach here, so waiting it out
       // closes the race without sequencing the whole bootstrap.
-      while (get().superAdminLoading) {
+      const probeDeadline = Date.now() + SUPER_ADMIN_PROBE_TIMEOUT_MS;
+      while (get().superAdminLoading && Date.now() < probeDeadline) {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
       // A workspace-less super admin is the break-glass service account: it

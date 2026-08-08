@@ -933,6 +933,10 @@ msgstr "Проверьте почту"
 msgid "Checkerboard"
 msgstr "Шахматная"
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Checking access…"
+msgstr "Проверяем доступ…"
+
 #: src/features/auth/pages/InvitePage.tsx
 #: src/features/auth/pages/InvitePage.tsx
 msgid "Checking invite..."
@@ -1179,6 +1183,10 @@ msgstr "Скопировать имя"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Скопировать телефон"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Could not check access"
+msgstr "Не удалось проверить доступ"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Couldn't enable notifications. Please try again."
@@ -5235,6 +5243,10 @@ msgstr "Выбранный участник станет владельцем р
 msgid "The selected task does not exist or was deleted."
 msgstr "Выбранная задача не существует или была удалена."
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "The server did not answer. This usually passes on its own — try again in a moment."
+msgstr "Сервер не ответил. Обычно это проходит само — попробуйте ещё раз через минуту."
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "The tool I wanted to use"
 msgstr "Инструмент, которым я сам хотел пользоваться"
@@ -5563,6 +5575,7 @@ msgid "Transfer ownership of this workspace to another member. You keep your acc
 msgstr "Передайте владение этим рабочим пространством другому участнику. Доступ сохранится, но вы перестанете быть владельцем."
 
 #: src/app/PageErrorBoundary.tsx
+#: src/features/admin/components/AdminLayout.tsx
 msgid "Try again"
 msgstr "Попробовать снова"
 
