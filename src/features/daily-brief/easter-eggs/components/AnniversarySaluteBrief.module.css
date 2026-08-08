@@ -1,0 +1,92 @@
+/* Daily-brief easter egg styling. Class names are consumed via the CSS-module
+   `styles` object (the bursts are created imperatively), so they stay scoped to
+   this feature. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  /* Sits above the dialog dimming (z-50) but below the brief card (z-60),
+     so the salute goes off behind the report. See DailyBriefModal. */
+  z-index: 55;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+/* One burst: a point the rays fan out from. */
+.burst {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 0;
+  height: 0;
+}
+
+.ray {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--length);
+  height: 1px;
+  transform-origin: 0 50%;
+  transform: rotate(var(--angle)) scaleX(0);
+  background: linear-gradient(90deg, rgba(245, 201, 107, 0.9), rgba(245, 201, 107, 0));
+  animation: rayOut var(--duration) cubic-bezier(0.16, 0.84, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Every few bursts leaves the numeral behind instead of a fan. */
+.numeral {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  transform: translate(-50%, -50%) scale(0.4);
+  font-size: var(--size);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(245, 201, 107, 0.95);
+  opacity: 0;
+  animation: numeralPop var(--duration) ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes rayOut {
+  0% {
+    transform: rotate(var(--angle)) scaleX(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes numeralPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ray,
+  .numeral {
+    animation: none !important;
+  }
+}
