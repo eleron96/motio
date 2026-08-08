@@ -6,6 +6,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
 import { APP_VERSION } from '@/shared/lib/appVersion';
 import { formatDate, formatStorageMain } from '@/features/admin/lib/format';
+import { AdminMessagingSummary } from '@/features/admin/components/AdminMessagingSummary';
 
 interface MetricCardProps {
   label: string;
@@ -105,6 +106,8 @@ const AdminOverviewPage: React.FC = () => {
           value={APP_VERSION}
         />
       </div>
+
+      <AdminMessagingSummary />
     </div>
   );
 };

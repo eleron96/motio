@@ -294,8 +294,8 @@ either publishes straight away or keeps the text as a draft.
 Below the form is the history, where every announcement carries its state —
 draft, scheduled, live or finished — and a `⋯` menu:
 
-- **Edit** — reopens the announcement in the form above. It does not reach people
-  who already closed it.
+- **Edit** — opens the announcement in its own dialog; the form above always
+  means "new announcement". Editing does not reach people who already closed it.
 - **Duplicate** — copies the wording into a new announcement, leaving the
   original alone.
 - **Publish again** — sets a new window (a start date in the future schedules it)
@@ -304,6 +304,10 @@ draft, scheduled, live or finished — and a `⋯` menu:
 - **Show again to everyone** — clears the dismissals on their own.
 - **Unpublish / Publish** — takes it off, or puts a draft up.
 - **Delete** — removes the announcement and its delivery history.
+
+The console's overview page carries a Messaging summary built from the same
+data: which announcement is on screen for users right now, how many are
+scheduled or still drafts, and where the last email broadcast got to.
 
 Each person sees an announcement once: closing it writes a row into
 `app_announcement_reads`, keyed by (announcement, user), so a banner dismissed on

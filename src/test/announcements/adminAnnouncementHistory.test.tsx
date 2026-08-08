@@ -66,6 +66,9 @@ const callsFor = (action: string) => invoke.mock.calls
   .map(([payload]) => payload as Record<string, unknown>)
   .filter((payload) => payload.action === action);
 
+/** The form and the edit dialog carry the same labels; ids tell them apart. */
+const newFormTitle = () => document.getElementById('announcement-new-title-ru') as HTMLInputElement;
+
 const openRowMenu = async (user: ReturnType<typeof userEvent.setup>, title: string) => {
   const cell = await screen.findByText(title);
   const tableRow = cell.closest('tr');
@@ -98,7 +101,7 @@ describe('AdminAnnouncementForm history actions', () => {
     expect(await statusOf('Закончилось')).toBe('Finished');
   });
 
-  it('loads an announcement into the form for editing and saves it back', async () => {
+  it('edits an announcement in its own dialog and saves it back', async () => {
     const user = userEvent.setup();
     serveRows([row({ audienceKind: 'domain', audienceValue: 'example.com' })]);
 
@@ -106,12 +109,16 @@ describe('AdminAnnouncementForm history actions', () => {
     await openRowMenu(user, 'Мобильная версия');
     await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
 
-    expect(screen.getByText('Edit announcement')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Мобильная версия')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Swipe between sections.')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('example.com')).toBeInTheDocument();
+    // Editing lives in a dialog so it can never be mistaken for the "new
+    // announcement" form, which stays empty underneath.
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Edit announcement')).toBeInTheDocument();
+    expect(within(dialog).getByDisplayValue('Мобильная версия')).toBeInTheDocument();
+    expect(within(dialog).getByDisplayValue('Swipe between sections.')).toBeInTheDocument();
+    expect(within(dialog).getByDisplayValue('example.com')).toBeInTheDocument();
+    expect(newFormTitle()).toHaveValue('');
 
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
 
     expect(callsFor(ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE)).toEqual([{
       action: ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE,
@@ -137,7 +144,9 @@ describe('AdminAnnouncementForm history actions', () => {
     await openRowMenu(user, 'Мобильная версия');
     await user.click(screen.getByRole('menuitem', { name: 'Duplicate' }));
 
-    expect(screen.getByText('New announcement')).toBeInTheDocument();
+    // A duplicate fills the form above — it is a new announcement, not an edit.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(newFormTitle()).toHaveValue('Мобильная версия');
     await user.click(screen.getByRole('button', { name: 'Publish' }));
 
     expect(callsFor(ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE)).toHaveLength(0);
@@ -238,7 +247,7 @@ describe('AdminAnnouncementForm history actions', () => {
     serveRows([]);
 
     render(<AdminAnnouncementForm workspaces={[]} />);
-    await user.type(screen.getAllByRole('textbox')[0], 'Тихий черновик');
+    await user.type(newFormTitle(), 'Тихий черновик');
     await user.click(screen.getByRole('button', { name: 'Save as draft' }));
 
     expect(callsFor(ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH)[0]).toMatchObject({

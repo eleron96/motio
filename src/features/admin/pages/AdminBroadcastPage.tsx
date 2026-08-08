@@ -25,27 +25,17 @@ import { invokeAdminFunction } from '@/infrastructure/auth/functionsGateway';
 import { ADMIN_ACTIONS } from '@/shared/contracts/actions';
 import { formatDate } from '@/features/admin/lib/format';
 import { AdminAnnouncementForm } from '@/features/admin/components/AdminAnnouncementForm';
+import type {
+  BroadcastAudienceKind,
+  BroadcastMessageType,
+  BroadcastRow,
+} from '@/features/admin/lib/broadcasts';
 
 // Two ways to reach people: mail they keep, or a banner where they already
 // are. Chosen per message — nothing is sent to both automatically.
 type Channel = 'email' | 'banner';
-type MessageType = 'announcement' | 'service';
-type AudienceKind = 'subscribers' | 'domain' | 'workspace' | 'all_active';
-
-interface BroadcastRow {
-  id: string;
-  subject: string;
-  status: string;
-  messageType: MessageType;
-  audienceKind: AudienceKind;
-  audienceValue: string | null;
-  totalRecipients: number;
-  sentCount: number;
-  failedCount: number;
-  scheduledAt: string | null;
-  createdAt: string;
-  finishedAt: string | null;
-}
+type MessageType = BroadcastMessageType;
+type AudienceKind = BroadcastAudienceKind;
 
 // The audience-kind options depend on message type: announcements target
 // subscribers (opt-in respected); a service notice can address all active users
