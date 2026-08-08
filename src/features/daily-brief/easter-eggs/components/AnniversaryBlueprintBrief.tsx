@@ -16,12 +16,16 @@ const prefersReducedMotion = () =>
   && typeof window.matchMedia === 'function'
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** Stroke timing as CSS custom properties, which React's types do not model. */
-const pen = (length: number, delay: string, duration: string): CSSProperties => ({
-  '--len': String(length),
-  '--delay': delay,
-  '--duration': duration,
-} as CSSProperties);
+/**
+ * One pass of the drawing: pen down, hold, fade, start over. Shared by the CSS
+ * (as `--cycle`) and by the sparks, which fire once per lap.
+ */
+const CYCLE_MS = 9000;
+/** Into the cycle, right after the numeral is drawn. */
+const SPARKS_AT_MS = 3100;
+
+/** Stroke length as a CSS custom property, which React's types do not model. */
+const pen = (length: number): CSSProperties => ({ '--len': String(length) } as CSSProperties);
 
 /** The sheet's title block: who, and the span the anniversary covers. */
 const PRACTICE = 'СПИЧ';
@@ -33,9 +37,6 @@ const NUMERAL = { width: 120, height: 92 } as const;
 const TWO_PATH = 'M4 26 a24 24 0 0 1 48 0 c0 24 -48 34 -48 62 h50';
 const ZERO = { cx: 88, cy: 48, rx: 30, ry: 42 } as const;
 
-/** The pen reaches the numeral only after the outline is down. */
-const SPARKS_DELAY_MS = 2600;
-
 const SPARK_CONFIG = {
   count: 24,
   minDistance: 60,
@@ -44,20 +45,21 @@ const SPARK_CONFIG = {
 
 /**
  * Anniversary easter egg: the brief is drawn on, the way a sheet is. The card
- * itself becomes the part on the drawing — an outline is traced around it,
- * dimension lines go down along its edges, and a gold "20" is drawn stroke by
- * stroke in whichever margin has room, then hatched and sparked. The margins
- * carry the title block: the practice and its founding year down the left, the
- * current year in the bottom-right corner, the way a sheet is signed off.
+ * itself becomes the part on the drawing — an outline is traced around it and
+ * dimension lines go down along its edges. The practice and its founding year
+ * stand in the left margin; a gold "20" is drawn stroke by stroke on the other
+ * side with the anniversary year beneath it, hatched and sparked.
+ *
+ * The whole thing loops for as long as the brief is open, so it is not missed
+ * by someone who looked away.
  *
  * Everything is laid out *around* the card rather than behind it: the card is
  * measured at runtime (see useBriefCardBounds), so nothing important ends up
  * hidden under the report. If the card leaves no room — a small phone — the
  * numeral is skipped and only the outline is drawn.
  *
- * A body-level portal below the card (z-index lives in the CSS module). No
- * title and no text by design. Under reduced motion the drawing is simply
- * already finished when it appears.
+ * A body-level portal below the card (z-index lives in the CSS module). Under
+ * reduced motion the drawing simply stands still, finished.
  */
 export const AnniversaryBlueprintBrief = () => {
   const sparksRef = useRef<HTMLDivElement | null>(null);
@@ -68,12 +70,19 @@ export const AnniversaryBlueprintBrief = () => {
   // the numeral under it for a frame and then jump it aside.
   const measured = card !== undefined;
   const titleBlock = measured ? leftMarginAnchor(viewport, card ?? null) : null;
-  const signOff = measured ? bottomRightAnchor(viewport, card ?? null) : null;
   // The left margin is the title block's; the numeral goes elsewhere unless
   // there is nowhere else at all.
   const numeral = measured
     ? placeBesideCard(viewport, card ?? null, NUMERAL, { avoid: titleBlock ? ['left'] : [] })
     : null;
+  // The anniversary year belongs under the numeral. Without one — no room on a
+  // small screen — it falls back to signing off in the corner.
+  const signOff = numeral
+    ? { x: numeral.left + numeral.width / 2, y: numeral.top + numeral.height + 42, anchor: 'middle' as const }
+    : measured
+      ? { ...bottomRightAnchor(viewport, card ?? null), anchor: 'end' as const }
+      : null;
+
   // Primitives, so the scatter re-runs when the numeral moves and not when a
   // fresh object with the same values comes back from a re-render.
   const sparkX = numeral ? numeral.left + numeral.width / 2 : null;
@@ -111,13 +120,18 @@ export const AnniversaryBlueprintBrief = () => {
       }
     };
 
+    // In step with the linework: the first scatter lands just after the numeral
+    // is drawn, and every lap from then on hits the same point in the cycle.
+    let lap = 0;
     const start = window.setTimeout(() => {
       timeouts.delete(start);
       scatter();
-    }, SPARKS_DELAY_MS);
+      lap = window.setInterval(scatter, CYCLE_MS);
+    }, SPARKS_AT_MS);
     timeouts.add(start);
 
     return () => {
+      window.clearInterval(lap);
       timeouts.forEach((id) => window.clearTimeout(id));
       timeouts.clear();
       container.replaceChildren();
@@ -140,7 +154,11 @@ export const AnniversaryBlueprintBrief = () => {
   const dimensionX = outline ? outline.left - 18 : 0;
 
   return createPortal(
-    <div className={styles.overlay} aria-hidden="true">
+    <div
+      className={styles.overlay}
+      style={{ '--cycle': `${CYCLE_MS}ms` } as CSSProperties}
+      aria-hidden="true"
+    >
       <svg
         className={styles.sheet}
         viewBox={`0 0 ${viewport.width} ${viewport.height}`}
@@ -157,22 +175,22 @@ export const AnniversaryBlueprintBrief = () => {
           <>
             {/* Axes through the card's centre: the sheet before anything is on it. */}
             <line
-              className={`${styles.stroke} ${styles.axis}`}
-              style={pen(viewport.width, '0s', '0.7s')}
+              className={`${styles.stroke} ${styles.axis} ${styles.drawAxisX}`}
+              style={pen(viewport.width)}
               x1="0" y1={card!.top + card!.height / 2}
               x2={viewport.width} y2={card!.top + card!.height / 2}
             />
             <line
-              className={`${styles.stroke} ${styles.axis}`}
-              style={pen(viewport.height, '0.15s', '0.6s')}
+              className={`${styles.stroke} ${styles.axis} ${styles.drawAxisY}`}
+              style={pen(viewport.height)}
               x1={card!.left + card!.width / 2} y1="0"
               x2={card!.left + card!.width / 2} y2={viewport.height}
             />
 
             {/* The card, outlined the way a part is. */}
             <rect
-              className={`${styles.stroke} ${styles.outline}`}
-              style={pen(outlineLength, '0.35s', '1.1s')}
+              className={`${styles.stroke} ${styles.outline} ${styles.drawOutline}`}
+              style={pen(outlineLength)}
               x={outline.left} y={outline.top}
               width={outline.width} height={outline.height}
               rx="14"
@@ -180,15 +198,15 @@ export const AnniversaryBlueprintBrief = () => {
 
             {/* Dimension lines along its width and height, ticks included. */}
             <path
-              className={`${styles.stroke} ${styles.dimension}`}
-              style={pen(outline.width + 24, '0.9s', '0.7s')}
+              className={`${styles.stroke} ${styles.dimension} ${styles.drawDimX}`}
+              style={pen(outline.width + 24)}
               d={`M${outline.left} ${dimensionY} H${outline.left + outline.width}`
                 + ` M${outline.left} ${dimensionY - 6} V${dimensionY + 6}`
                 + ` M${outline.left + outline.width} ${dimensionY - 6} V${dimensionY + 6}`}
             />
             <path
-              className={`${styles.stroke} ${styles.dimension}`}
-              style={pen(outline.height + 24, '1.05s', '0.7s')}
+              className={`${styles.stroke} ${styles.dimension} ${styles.drawDimY}`}
+              style={pen(outline.height + 24)}
               d={`M${dimensionX} ${outline.top} V${outline.top + outline.height}`
                 + ` M${dimensionX - 6} ${outline.top} H${dimensionX + 6}`
                 + ` M${dimensionX - 6} ${outline.top + outline.height} H${dimensionX + 6}`}
@@ -203,31 +221,31 @@ export const AnniversaryBlueprintBrief = () => {
           </g>
         )}
 
-        {signOff && (
-          <text
-            x={signOff.x}
-            y={signOff.y}
-            textAnchor="end"
-            className={`${styles.caption} ${styles.year}`}
-          >
-            {YEAR_TO}
-          </text>
-        )}
-
         {numeral && (
           <g transform={`translate(${numeral.left} ${numeral.top}) scale(${numeral.width / NUMERAL.width})`}>
             <path
-              className={`${styles.stroke} ${styles.numeral}`}
-              style={pen(210, '1.4s', '0.9s')}
+              className={`${styles.stroke} ${styles.numeral} ${styles.drawTwo}`}
+              style={pen(210)}
               d={TWO_PATH}
             />
             <ellipse
-              className={`${styles.stroke} ${styles.numeral}`}
-              style={pen(230, '1.8s', '1s')}
+              className={`${styles.stroke} ${styles.numeral} ${styles.drawZero}`}
+              style={pen(230)}
               cx={ZERO.cx} cy={ZERO.cy} rx={ZERO.rx} ry={ZERO.ry}
             />
             <ellipse className={styles.hatch} cx={ZERO.cx} cy={ZERO.cy} rx={ZERO.rx} ry={ZERO.ry} />
           </g>
+        )}
+
+        {signOff && (
+          <text
+            x={signOff.x}
+            y={signOff.y}
+            textAnchor={signOff.anchor}
+            className={`${styles.caption} ${styles.year}`}
+          >
+            {YEAR_TO}
+          </text>
         )}
       </svg>
 
