@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './AnniversarySaluteBrief.module.css';
+import { useBriefCardBounds, viewportBox } from '../useBriefCardBounds';
+import { pointClearOfCard, type Box } from '../lib/briefLayout';
 
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -25,15 +27,29 @@ const CONFIG = {
  * just thin gold rays fanning out from a point, and every few bursts a "20"
  * flashing in outline instead of a fan.
  *
- * A body-level portal behind the brief card (z-index lives in the CSS module).
+ * Bursts go off around the card, never under it: the card is measured at
+ * runtime (see useBriefCardBounds) and points that would land behind it are
+ * rejected, so the salute stays where it can actually be seen.
+ *
+ * A body-level portal below the brief card (z-index lives in the CSS module).
  * Bursts are created imperatively while mounted and torn down on unmount.
  */
 export const AnniversarySaluteBrief = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const card = useBriefCardBounds();
+  // Held in a ref so a card that moves — a rotated phone, a card that grew as
+  // its content loaded — steers the next burst without restarting the salute
+  // and blanking what is already in the air.
+  const cardRef = useRef<Box | null>(null);
+  const ready = card !== undefined;
+
+  useEffect(() => {
+    cardRef.current = card ?? null;
+  }, [card]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || prefersReducedMotion()) return undefined;
+    if (!container || !ready || prefersReducedMotion()) return undefined;
 
     let liveBursts = 0;
     let burstIndex = 0;
@@ -61,8 +77,8 @@ export const AnniversarySaluteBrief = () => {
       numeral.textContent = '20';
       const duration = random(1.6, 2.1);
 
-      numeral.style.setProperty('--x', `${x}vw`);
-      numeral.style.setProperty('--y', `${y}vh`);
+      numeral.style.setProperty('--x', `${x}px`);
+      numeral.style.setProperty('--y', `${y}px`);
       numeral.style.setProperty('--size', `${random(64, 104)}px`);
       numeral.style.setProperty('--duration', `${duration}s`);
 
@@ -74,8 +90,8 @@ export const AnniversarySaluteBrief = () => {
     const createFan = (x: number, y: number) => {
       const burst = document.createElement('div');
       burst.className = styles.burst;
-      burst.style.setProperty('--x', `${x}vw`);
-      burst.style.setProperty('--y', `${y}vh`);
+      burst.style.setProperty('--x', `${x}px`);
+      burst.style.setProperty('--y', `${y}px`);
 
       const rayCount = Math.round(random(CONFIG.minRays, CONFIG.maxRays));
       // A shared start angle keeps each fan even rather than clumped.
@@ -101,10 +117,22 @@ export const AnniversarySaluteBrief = () => {
       retire(burst, longest * 1000 + 260);
     };
 
+    // Inset so a burst never clips against the very edge of the screen.
+    const field = (): Box => {
+      const view = viewportBox();
+      return {
+        left: view.width * 0.08,
+        top: view.height * 0.1,
+        width: view.width * 0.84,
+        height: view.height * 0.78,
+      };
+    };
+
+    const somewhereClear = () => pointClearOfCard(field(), cardRef.current, Math.random);
+
     const fire = () => {
       if (liveBursts < CONFIG.maxLiveBursts) {
-        const x = random(12, 88);
-        const y = random(14, 74);
+        const { x, y } = somewhereClear();
         burstIndex += 1;
         if (burstIndex % CONFIG.numeralEvery === 0) createNumeral(x, y);
         else createFan(x, y);
@@ -113,8 +141,12 @@ export const AnniversarySaluteBrief = () => {
     };
 
     // Open with two bursts so the salute starts immediately, then settle in.
-    createFan(random(20, 45), random(20, 40));
-    schedule(() => createFan(random(55, 80), random(30, 55)), 320);
+    const opening = somewhereClear();
+    createFan(opening.x, opening.y);
+    schedule(() => {
+      const second = somewhereClear();
+      createFan(second.x, second.y);
+    }, 320);
     schedule(fire, 900);
 
     return () => {
@@ -122,7 +154,7 @@ export const AnniversarySaluteBrief = () => {
       timeouts.clear();
       container.replaceChildren();
     };
-  }, []);
+  }, [ready]);
 
   return createPortal(
     <div ref={containerRef} className={styles.overlay} aria-hidden="true" />,
