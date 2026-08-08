@@ -1,5 +1,5 @@
 import React from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, waitFor } from '@testing-library/react';
 import { AnniversaryBlueprintBrief } from '@/features/daily-brief/easter-eggs/components/AnniversaryBlueprintBrief';
 import { AnniversarySaluteBrief } from '@/features/daily-brief/easter-eggs/components/AnniversarySaluteBrief';
@@ -76,7 +76,7 @@ describe('anniversary eggs lay themselves out around the brief card', () => {
     expect(Number(outline.getAttribute('height'))).toBeGreaterThan(CARD.height);
   });
 
-  it('writes the title block down the left and signs off bottom-right', async () => {
+  it('writes the practice down the left and the anniversary year under the numeral', async () => {
     mountCard();
 
     render(<AnniversaryBlueprintBrief />);
@@ -100,10 +100,41 @@ describe('anniversary eggs lay themselves out around the brief card', () => {
     expect(Number(from!.getAttribute('x'))).toBe(Number(practice!.getAttribute('x')));
     expect(Number(from!.getAttribute('y'))).toBeGreaterThan(Number(practice!.getAttribute('y')));
 
-    // The current year signs the sheet off in the far corner.
-    expect(to!.getAttribute('text-anchor')).toBe('end');
-    expect(Number(to!.getAttribute('x'))).toBeGreaterThan(CARD.left + CARD.width);
-    expect(Number(to!.getAttribute('y'))).toBeGreaterThan(CARD.top + CARD.height);
+    // The anniversary year is centred under the numeral, not stranded in a
+    // corner of its own.
+    const group = document.querySelector('g[transform]')!;
+    const { x: numeralX, y: numeralY } = parseTranslate(group.getAttribute('transform') ?? '');
+    expect(to!.getAttribute('text-anchor')).toBe('middle');
+    expect(Number(to!.getAttribute('x'))).toBeGreaterThan(numeralX);
+    expect(Number(to!.getAttribute('y'))).toBeGreaterThan(numeralY);
+  });
+
+  it('keeps drawing for as long as the brief is open', async () => {
+    vi.useFakeTimers();
+    try {
+      mountCard();
+      render(<AnniversaryBlueprintBrief />);
+
+      // A frame passes, the card is measured, the linework goes down.
+      await act(async () => { vi.advanceTimersByTime(60); });
+      expect(document.querySelector('svg rect')).toBeTruthy();
+
+      const sparkCount = () => document.querySelectorAll('span[style*="--dx"]').length;
+
+      await act(async () => { vi.advanceTimersByTime(3200); });
+      expect(sparkCount()).toBeGreaterThan(0);
+
+      // They live a second or so and clear out...
+      await act(async () => { vi.advanceTimersByTime(2200); });
+      expect(sparkCount()).toBe(0);
+
+      // ...and the next lap brings them back at the same point in the cycle,
+      // rather than the sheet sitting finished for whoever looked away.
+      await act(async () => { vi.advanceTimersByTime(6800); });
+      expect(sparkCount()).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('fires every salute burst somewhere the card does not hide', async () => {
