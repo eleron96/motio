@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.57] - 2026-08-08
 ### Fixed
 - История рассылок в админке на тестовом стенде отвечала «permission denied» — таблице не хватало прав. Теперь права выдаются миграцией, одинаково на всех стендах.
 
