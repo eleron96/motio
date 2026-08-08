@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  bottomRightAnchor,
   CARD_MARGIN,
   freeZones,
   isBehindCard,
+  leftMarginAnchor,
   placeBesideCard,
   pointClearOfCard,
   type Box,
@@ -101,6 +103,40 @@ describe('briefLayout', () => {
     const point = pointClearOfCard(desktop, card, random);
 
     expect(isBehindCard(point, card)).toBe(false);
+  });
+
+  it('writes the title block in the left margin, clear of the card', () => {
+    const anchor = leftMarginAnchor(desktop, card);
+
+    expect(anchor).not.toBeNull();
+    expect(anchor!.x).toBeGreaterThan(0);
+    expect(anchor!.x).toBeLessThan(card.left - CARD_MARGIN);
+  });
+
+  it('leaves the title block out when the margin is too narrow to read', () => {
+    const phone: Box = { left: 0, top: 0, width: 390, height: 844 };
+    const phoneCard: Box = { left: 16, top: 240, width: 358, height: 380 };
+
+    // Better nothing than a word sliced by the card's edge.
+    expect(leftMarginAnchor(phone, phoneCard)).toBeNull();
+  });
+
+  it('signs off in the bottom-right corner', () => {
+    const anchor = bottomRightAnchor(desktop, card);
+
+    expect(anchor.x).toBeLessThan(desktop.width);
+    expect(anchor.y).toBeGreaterThan(desktop.height * 0.8);
+    expect(isBehindCard(anchor, card)).toBe(false);
+  });
+
+  it('lifts the sign-off off a card that reaches the bottom-right corner', () => {
+    const tall: Box = { left: 200, top: 100, width: 1200, height: 780 };
+
+    const anchor = bottomRightAnchor(desktop, tall);
+
+    expect(isBehindCard(anchor, tall)).toBe(false);
+    // Above the card, since there is no room left underneath it.
+    expect(anchor.y).toBeLessThan(tall.top);
   });
 
   it('falls back to a plain point when nothing is clear', () => {

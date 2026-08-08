@@ -76,6 +76,36 @@ describe('anniversary eggs lay themselves out around the brief card', () => {
     expect(Number(outline.getAttribute('height'))).toBeGreaterThan(CARD.height);
   });
 
+  it('writes the title block down the left and signs off bottom-right', async () => {
+    mountCard();
+
+    render(<AnniversaryBlueprintBrief />);
+
+    await waitFor(() => {
+      if (!document.querySelector('svg rect')) throw new Error('not measured yet');
+    });
+
+    const texts = Array.from(document.querySelectorAll('svg text'));
+    const byContent = (value: string) => texts.find((node) => node.textContent === value);
+
+    const practice = byContent('СПИЧ');
+    const from = byContent('2006');
+    const to = byContent('2026');
+    expect(practice).toBeDefined();
+    expect(from).toBeDefined();
+    expect(to).toBeDefined();
+
+    // The practice and its founding year sit together in the left margin.
+    expect(Number(practice!.getAttribute('x'))).toBeLessThan(CARD.left);
+    expect(Number(from!.getAttribute('x'))).toBe(Number(practice!.getAttribute('x')));
+    expect(Number(from!.getAttribute('y'))).toBeGreaterThan(Number(practice!.getAttribute('y')));
+
+    // The current year signs the sheet off in the far corner.
+    expect(to!.getAttribute('text-anchor')).toBe('end');
+    expect(Number(to!.getAttribute('x'))).toBeGreaterThan(CARD.left + CARD.width);
+    expect(Number(to!.getAttribute('y'))).toBeGreaterThan(CARD.top + CARD.height);
+  });
+
   it('fires every salute burst somewhere the card does not hide', async () => {
     mountCard();
 
