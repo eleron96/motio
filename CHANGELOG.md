@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.59] - 2026-08-08
 ### Changed
 - В админке списки пользователей, рабочих пространств, пасхалок и резервных копий больше не вываливаются целиком: страницами по 10, 50 или 100 строк. Выбранный размер запоминается для каждого раздела отдельно.
 
