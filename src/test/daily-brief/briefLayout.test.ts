@@ -85,6 +85,23 @@ describe('briefLayout', () => {
     expect(overlaps(placement!, phoneCard)).toBe(false);
   });
 
+  it('keeps the numeral out of the margin the title block has claimed', () => {
+    const placement = placeBesideCard(desktop, card, numeral, { avoid: ['left'] });
+
+    expect(placement).not.toBeNull();
+    expect(placement!.side).not.toBe('left');
+  });
+
+  it('uses the claimed margin anyway when it is the only room left', () => {
+    // A card hard against the right edge leaves nothing but the left margin.
+    const rightHugging: Box = { left: 300, top: 0, width: 1140, height: 900 };
+
+    const placement = placeBesideCard(desktop, rightHugging, numeral, { avoid: ['left'] });
+
+    // A cramped numeral still beats no numeral.
+    expect(placement?.side).toBe('left');
+  });
+
   it('knows which points the card would hide', () => {
     expect(isBehindCard({ x: 700, y: 400 }, card)).toBe(true);
     expect(isBehindCard({ x: 100, y: 100 }, card)).toBe(false);
