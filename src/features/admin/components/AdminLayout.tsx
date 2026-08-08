@@ -37,9 +37,19 @@ const AdminLayout: React.FC = () => {
     robots: 'noindex, nofollow',
   });
 
-  const { user, isSuperAdmin, signOut } = useAuthStore(useShallow((state) => ({
+  const {
+    user,
+    isSuperAdmin,
+    superAdminLoading,
+    superAdminCheckFailed,
+    resolveSuperAdmin,
+    signOut,
+  } = useAuthStore(useShallow((state) => ({
     user: state.user,
     isSuperAdmin: state.isSuperAdmin,
+    superAdminLoading: state.superAdminLoading,
+    superAdminCheckFailed: state.superAdminCheckFailed,
+    resolveSuperAdmin: state.resolveSuperAdmin,
     signOut: state.signOut,
   })));
   const isMobile = useIsMobile();
@@ -49,6 +59,38 @@ const AdminLayout: React.FC = () => {
 
   if (!user) {
     return null;
+  }
+
+  if (!isSuperAdmin && superAdminLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>{t`Checking access…`}</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // A failed check is not a refusal: a deploy restarting the functions
+  // container while the console is open used to read as "Access denied".
+  if (!isSuperAdmin && superAdminCheckFailed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>{t`Could not check access`}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>{t`The server did not answer. This usually passes on its own — try again in a moment.`}</p>
+            <Button type="button" onClick={() => void resolveSuperAdmin(user)}>
+              {t`Try again`}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (!isSuperAdmin) {

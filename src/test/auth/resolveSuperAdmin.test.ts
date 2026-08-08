@@ -20,7 +20,7 @@ const asUser = { id: 'u1' } as never;
 describe('resolveSuperAdmin via superAdmins.whoami', () => {
   beforeEach(() => {
     functionsInvoke.mockReset();
-    useAuthStore.setState({ isSuperAdmin: false, superAdminLoading: false });
+    useAuthStore.setState({ isSuperAdmin: false, superAdminLoading: false, superAdminCheckFailed: false });
   });
 
   it('returns false without calling the function when there is no user', async () => {
@@ -64,12 +64,37 @@ describe('resolveSuperAdmin via superAdmins.whoami', () => {
     expect(useAuthStore.getState().isSuperAdmin).toBe(false);
   });
 
-  it('fails closed when the admin function errors', async () => {
+  it('rides out a probe that fails while the functions container restarts', async () => {
+    functionsInvoke
+      .mockResolvedValueOnce({ data: null, error: { message: 'boom' } })
+      .mockResolvedValueOnce({ data: { isSuperAdmin: true }, error: null });
+
+    const result = await useAuthStore.getState().resolveSuperAdmin(asUser);
+
+    expect(result).toBe(true);
+    expect(useAuthStore.getState().isSuperAdmin).toBe(true);
+    expect(useAuthStore.getState().superAdminCheckFailed).toBe(false);
+  });
+
+  it('fails closed when the admin function keeps erroring, but says the check failed', async () => {
     functionsInvoke.mockResolvedValue({ data: null, error: { message: 'boom' } });
 
     const result = await useAuthStore.getState().resolveSuperAdmin(asUser);
 
     expect(result).toBe(false);
     expect(useAuthStore.getState().isSuperAdmin).toBe(false);
+    // The console shows "could not check" instead of "access denied", so a
+    // deploy no longer locks an admin out of their own tab.
+    expect(useAuthStore.getState().superAdminCheckFailed).toBe(true);
+    expect(functionsInvoke).toHaveBeenCalledTimes(3);
+  });
+
+  it('clears the failed flag once the probe answers', async () => {
+    useAuthStore.setState({ superAdminCheckFailed: true });
+    functionsInvoke.mockResolvedValue({ data: { isSuperAdmin: false }, error: null });
+
+    await useAuthStore.getState().resolveSuperAdmin(asUser);
+
+    expect(useAuthStore.getState().superAdminCheckFailed).toBe(false);
   });
 });
