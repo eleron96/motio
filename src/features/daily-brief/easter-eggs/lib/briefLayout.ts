@@ -132,3 +132,46 @@ export const pointClearOfCard = (
   }
   return point;
 };
+
+export interface Anchor {
+  x: number;
+  y: number;
+}
+
+/**
+ * A caption's spot in the left margin, and null when the card leaves no margin
+ * worth writing in — better nothing than a word sliced by the card's edge.
+ */
+export const leftMarginAnchor = (
+  viewport: Box,
+  card: Box | null,
+  minWidth = 96,
+): Anchor | null => {
+  const right = card ? card.left - CARD_MARGIN : viewport.left + viewport.width;
+  const width = right - viewport.left;
+  if (width < minWidth) return null;
+  return {
+    x: viewport.left + Math.min(32, width * 0.18),
+    y: viewport.top + viewport.height / 2,
+  };
+};
+
+/**
+ * The bottom-right corner, lifted above the card if the card reaches into it —
+ * on a phone the card runs the full width, so the corner alone is not enough.
+ */
+export const bottomRightAnchor = (
+  viewport: Box,
+  card: Box | null,
+  inset = 32,
+): Anchor => {
+  const x = viewport.left + viewport.width - inset;
+  const bottom = viewport.top + viewport.height - inset;
+  if (!isBehindCard({ x, y: bottom }, card) || !card) return { x, y: bottom };
+
+  const below = viewport.top + viewport.height - (card.top + card.height + CARD_MARGIN);
+  // Below the card if there is room down there, otherwise just above it.
+  return below >= inset
+    ? { x, y: card.top + card.height + CARD_MARGIN + inset / 2 }
+    : { x, y: card.top - CARD_MARGIN - inset / 2 };
+};

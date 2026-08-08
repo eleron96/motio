@@ -2,7 +2,12 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './AnniversaryBlueprintBrief.module.css';
 import { useBriefCardBounds, viewportBox } from '../useBriefCardBounds';
-import { placeBesideCard, CARD_MARGIN } from '../lib/briefLayout';
+import {
+  bottomRightAnchor,
+  leftMarginAnchor,
+  placeBesideCard,
+  CARD_MARGIN,
+} from '../lib/briefLayout';
 
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -17,6 +22,11 @@ const pen = (length: number, delay: string, duration: string): CSSProperties => 
   '--delay': delay,
   '--duration': duration,
 } as CSSProperties);
+
+/** The sheet's title block: who, and the span the anniversary covers. */
+const PRACTICE = 'СПИЧ';
+const YEAR_FROM = '2006';
+const YEAR_TO = '2026';
 
 /** "20" drawn in its own coordinates, then placed wherever there is room. */
 const NUMERAL = { width: 120, height: 92 } as const;
@@ -36,7 +46,9 @@ const SPARK_CONFIG = {
  * Anniversary easter egg: the brief is drawn on, the way a sheet is. The card
  * itself becomes the part on the drawing — an outline is traced around it,
  * dimension lines go down along its edges, and a gold "20" is drawn stroke by
- * stroke in whichever margin has room, then hatched and sparked.
+ * stroke in whichever margin has room, then hatched and sparked. The margins
+ * carry the title block: the practice and its founding year down the left, the
+ * current year in the bottom-right corner, the way a sheet is signed off.
  *
  * Everything is laid out *around* the card rather than behind it: the card is
  * measured at runtime (see useBriefCardBounds), so nothing important ends up
@@ -56,6 +68,8 @@ export const AnniversaryBlueprintBrief = () => {
   // the numeral under it for a frame and then jump it aside.
   const measured = card !== undefined;
   const numeral = measured ? placeBesideCard(viewport, card ?? null, NUMERAL) : null;
+  const titleBlock = measured ? leftMarginAnchor(viewport, card ?? null) : null;
+  const signOff = measured ? bottomRightAnchor(viewport, card ?? null) : null;
   // Primitives, so the scatter re-runs when the numeral moves and not when a
   // fresh object with the same values comes back from a re-render.
   const sparkX = numeral ? numeral.left + numeral.width / 2 : null;
@@ -176,6 +190,24 @@ export const AnniversaryBlueprintBrief = () => {
                 + ` M${dimensionX - 6} ${outline.top + outline.height} H${dimensionX + 6}`}
             />
           </>
+        )}
+
+        {titleBlock && (
+          <g className={styles.caption}>
+            <text x={titleBlock.x} y={titleBlock.y} className={styles.practice}>{PRACTICE}</text>
+            <text x={titleBlock.x} y={titleBlock.y + 26} className={styles.year}>{YEAR_FROM}</text>
+          </g>
+        )}
+
+        {signOff && (
+          <text
+            x={signOff.x}
+            y={signOff.y}
+            textAnchor="end"
+            className={`${styles.caption} ${styles.year}`}
+          >
+            {YEAR_TO}
+          </text>
         )}
 
         {numeral && (

@@ -131,3 +131,31 @@
     display: none;
   }
 }
+
+/* Title block: fades in once the linework stands, and stays put. */
+.caption {
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out 1.9s forwards;
+}
+
+.practice {
+  fill: currentColor;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  opacity: 0.75;
+}
+
+.year {
+  fill: #f5c96b;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caption {
+    opacity: 1;
+    animation: none;
+  }
+}
