@@ -123,14 +123,23 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_SAVE),
     id: z.string().uuid().optional(),
-    userId: z.string().uuid(),
+    audienceKind: z.enum(["user", "domain", "workspace", "all_active"]),
+    userId: z.string().uuid().optional(),
+    audienceValue: z.string().max(255).optional(),
     eggKey: z.string().min(1).max(64),
     enabled: z.boolean(),
     note: z.string().max(500).optional(),
+    startsAt: z.string().datetime().nullable().optional(),
+    endsAt: z.string().datetime().nullable().optional(),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_DELETE),
     id: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_AUDIENCE),
+    audienceKind: z.enum(["user", "domain", "workspace", "all_active"]),
+    audienceValue: z.string().max(255).optional(),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.BROADCASTS_AUDIENCE),
@@ -1006,36 +1015,104 @@ const handleSuperAdminsDelete = async () => {
   return jsonResponse({ error: "Super admin assignment is managed in Keycloak." }, 400);
 };
 
-// ── Easter eggs: daily-brief overlays assigned per user. Effects live in the
-// frontend catalog; these handlers only manage WHO gets WHICH key. The table
-// enforces at most one ACTIVE egg per user (partial unique index), so enabling
-// one first switches off the user's other active rows.
+// ── Easter eggs: daily-brief overlays. Effects live in the frontend catalog;
+// these handlers only manage WHO gets WHICH key. An assignment addresses either
+// one person or a whole audience — a mail domain, a workspace, or everyone —
+// and may carry a window. The resolver (get_my_daily_brief_egg) prefers the most
+// specific audience, so a company-wide egg never overrides a personal one.
+type EasterEggAudienceKind = "user" | "domain" | "workspace" | "all_active";
+
+/** How many people an audience currently covers, for the admin's benefit. */
+const countEasterEggAudience = async (
+  kind: EasterEggAudienceKind,
+  value?: string | null,
+): Promise<{ count: number } | { error: string }> => {
+  if (kind === "user") return { count: 1 };
+
+  if (kind === "workspace") {
+    if (!value) return { error: "Workspace is required." };
+    const { count, error } = await supabaseAdmin
+      .from("workspace_members")
+      .select("user_id", { count: "exact", head: true })
+      .eq("workspace_id", value);
+    if (error) return { error: error.message };
+    return { count: count ?? 0 };
+  }
+
+  // Domain and all_active both come down to counting profiles.
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .select("email")
+    .eq("status", "ACTIVE");
+  if (error) return { error: error.message };
+
+  const rows = data ?? [];
+  if (kind === "all_active") return { count: rows.length };
+
+  if (!value) return { error: "Domain is required." };
+  const domain = value.trim().toLowerCase();
+  const matching = rows.filter((row) => (
+    String(row.email ?? "").toLowerCase().split("@")[1] === domain
+  ));
+  return { count: matching.length };
+};
+
 const handleEasterEggsList = async () => {
   const { data: rows, error } = await supabaseAdmin
     .from("easter_egg_targets")
-    .select("id, egg_key, user_id, enabled, note, created_at")
+    .select(
+      "id, egg_key, user_id, audience_kind, audience_value, enabled, note, starts_at, ends_at, created_at",
+    )
     .order("created_at", { ascending: false });
 
   if (error) {
     return jsonResponse({ error: error.message }, 400);
   }
 
-  const userIds = Array.from(new Set((rows ?? []).map((row) => row.user_id)));
+  const allRows = rows ?? [];
+  const userIds = Array.from(new Set(
+    allRows.map((row) => row.user_id).filter((id): id is string => Boolean(id)),
+  ));
   const profileResult = await getProfileMap(supabaseAdmin, userIds);
   if ("error" in profileResult) {
     return jsonResponse({ error: profileResult.error }, 400);
   }
 
-  const targets = (rows ?? []).map((row) => {
-    const profile = profileResult.profiles.get(row.user_id);
+  // Workspace rows show the workspace's name rather than its id.
+  const workspaceIds = Array.from(new Set(
+    allRows
+      .filter((row) => row.audience_kind === "workspace")
+      .map((row) => row.audience_value)
+      .filter((id): id is string => Boolean(id)),
+  ));
+  const workspaceNames = new Map<string, string>();
+  if (workspaceIds.length > 0) {
+    const { data: workspaces } = await supabaseAdmin
+      .from("workspaces")
+      .select("id, name")
+      .in("id", workspaceIds);
+    for (const workspace of workspaces ?? []) {
+      workspaceNames.set(workspace.id as string, workspace.name as string);
+    }
+  }
+
+  const targets = allRows.map((row) => {
+    const profile = row.user_id ? profileResult.profiles.get(row.user_id) : undefined;
     return {
       id: row.id,
       eggKey: row.egg_key,
+      audienceKind: row.audience_kind,
+      audienceValue: row.audience_value,
+      audienceLabel: row.audience_kind === "workspace"
+        ? workspaceNames.get(String(row.audience_value)) ?? row.audience_value
+        : row.audience_value,
       userId: row.user_id,
       userEmail: profile?.email ?? null,
       userDisplayName: profile?.displayName ?? null,
       enabled: row.enabled,
       note: row.note,
+      startsAt: row.starts_at,
+      endsAt: row.ends_at,
       createdAt: row.created_at,
     };
   });
@@ -1043,14 +1120,45 @@ const handleEasterEggsList = async () => {
   return jsonResponse({ targets });
 };
 
-const handleEasterEggsSave = async (
-  payload: { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string },
+const handleEasterEggsAudience = async (
+  payload: { audienceKind: EasterEggAudienceKind; audienceValue?: string },
 ) => {
-  if (payload.enabled) {
+  const result = await countEasterEggAudience(payload.audienceKind, payload.audienceValue);
+  if ("error" in result) return jsonResponse({ error: result.error }, 400);
+  return jsonResponse({ count: result.count });
+};
+
+const handleEasterEggsSave = async (
+  payload: {
+    id?: string;
+    audienceKind: EasterEggAudienceKind;
+    userId?: string;
+    audienceValue?: string;
+    eggKey: string;
+    enabled: boolean;
+    note?: string;
+    startsAt?: string | null;
+    endsAt?: string | null;
+  },
+) => {
+  if (payload.audienceKind === "user" && !payload.userId) {
+    return jsonResponse({ error: "Pick a person for a personal assignment." }, 400);
+  }
+  if (
+    (payload.audienceKind === "domain" || payload.audienceKind === "workspace")
+    && !payload.audienceValue?.trim()
+  ) {
+    return jsonResponse({ error: "Audience value is required." }, 400);
+  }
+
+  // "One active egg per person" only ever applied to personal rows; an audience
+  // row sits alongside them, and the resolver prefers the more specific one.
+  if (payload.enabled && payload.audienceKind === "user" && payload.userId) {
     let disableOthers = supabaseAdmin
       .from("easter_egg_targets")
       .update({ enabled: false })
       .eq("user_id", payload.userId)
+      .eq("audience_kind", "user")
       .eq("enabled", true);
     if (payload.id) {
       disableOthers = disableOthers.neq("id", payload.id);
@@ -1061,30 +1169,25 @@ const handleEasterEggsSave = async (
     }
   }
 
-  if (payload.id) {
-    const { error } = await supabaseAdmin
-      .from("easter_egg_targets")
-      .update({
-        egg_key: payload.eggKey,
-        enabled: payload.enabled,
-        note: payload.note ?? null,
-      })
-      .eq("id", payload.id);
-    if (error) {
-      return jsonResponse({ error: error.message }, 400);
-    }
-  } else {
-    const { error } = await supabaseAdmin
-      .from("easter_egg_targets")
-      .insert({
-        user_id: payload.userId,
-        egg_key: payload.eggKey,
-        enabled: payload.enabled,
-        note: payload.note ?? null,
-      });
-    if (error) {
-      return jsonResponse({ error: error.message }, 400);
-    }
+  const row = {
+    egg_key: payload.eggKey,
+    audience_kind: payload.audienceKind,
+    user_id: payload.audienceKind === "user" ? payload.userId ?? null : null,
+    audience_value: payload.audienceKind === "user" || payload.audienceKind === "all_active"
+      ? null
+      : payload.audienceValue?.trim() ?? null,
+    enabled: payload.enabled,
+    note: payload.note ?? null,
+    starts_at: payload.startsAt ?? null,
+    ends_at: payload.endsAt ?? null,
+  };
+
+  const { error } = payload.id
+    ? await supabaseAdmin.from("easter_egg_targets").update(row).eq("id", payload.id)
+    : await supabaseAdmin.from("easter_egg_targets").insert(row);
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
   }
 
   return jsonResponse({ success: true });
@@ -1814,9 +1917,24 @@ export const handler = async (req: Request) => {
     case ADMIN_ACTIONS.EASTER_EGGS_LIST:
       return handleEasterEggsList();
     case ADMIN_ACTIONS.EASTER_EGGS_SAVE:
-      return handleEasterEggsSave(payload as { id?: string; userId: string; eggKey: string; enabled: boolean; note?: string });
+      return handleEasterEggsSave(payload as {
+        id?: string;
+        audienceKind: EasterEggAudienceKind;
+        userId?: string;
+        audienceValue?: string;
+        eggKey: string;
+        enabled: boolean;
+        note?: string;
+        startsAt?: string | null;
+        endsAt?: string | null;
+      });
     case ADMIN_ACTIONS.EASTER_EGGS_DELETE:
       return handleEasterEggsDelete(payload as { id: string });
+    case ADMIN_ACTIONS.EASTER_EGGS_AUDIENCE:
+      return handleEasterEggsAudience(payload as {
+        audienceKind: EasterEggAudienceKind;
+        audienceValue?: string;
+      });
     case ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH:
       return handleAnnouncementsPublish(
         payload as {

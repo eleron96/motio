@@ -572,6 +572,10 @@ msgstr "Все подписчики"
 msgid "All tasks"
 msgstr "Все задачи"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Always"
+msgstr "Всегда"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Analytics"
 msgstr "Аналитика"
@@ -677,6 +681,8 @@ msgstr "Исполнители"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Audience"
 msgstr "Аудитория"
 
@@ -1308,8 +1314,8 @@ msgid "Create your account"
 msgstr "Создание аккаунта"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
-msgid "Created"
-msgstr "Создано"
+#~ msgid "Created"
+#~ msgstr "Создано"
 
 #. placeholder {0}: result.created ?? 0
 #: src/features/planner/components/TaskDetailPanel.tsx
@@ -1991,6 +1997,8 @@ msgid "Email"
 msgstr "Email"
 
 #: src/features/admin/components/AnnouncementFields.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Email domain"
 msgstr "Домен почты"
 
@@ -2090,6 +2098,16 @@ msgstr "Каждые 4 недели"
 #: src/shared/lib/repeatLabels.ts
 msgid "Every 4 weeks recurring"
 msgstr "Повторение каждые 4 недели"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Every active account, including people who join later."
+msgstr "Все активные аккаунты, включая тех, кто придёт позже."
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Everyone"
+msgstr "Все"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Everyone sees the same picture. Plan together, ship together."
@@ -2331,6 +2349,7 @@ msgid "Finish"
 msgstr "Завершить"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Finished"
 msgstr "Завершено"
 
@@ -2712,6 +2731,10 @@ msgstr "Покинуть"
 msgid "Leave empty to reuse the Russian text"
 msgstr "Пусто — покажем русский текст"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Leave the dates empty to switch it on now and off by hand. A personal assignment wins over a workspace one, which wins over a domain, which wins over everyone."
+msgstr "Оставьте даты пустыми, чтобы включить сейчас и выключить вручную. Личное назначение сильнее назначения на пространство, оно — сильнее домена, а домен — сильнее «всех»."
+
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Leave workspace"
@@ -2744,6 +2767,7 @@ msgid "List"
 msgstr "Список"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Live"
 msgstr "Показывается"
 
@@ -3763,6 +3787,10 @@ msgstr "Количество"
 msgid "of"
 msgstr "из"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Off"
+msgstr "Выключено"
+
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "OK"
 msgstr "ОК"
@@ -3784,6 +3812,10 @@ msgstr "Один <0>понятный таймлайн</0><1/> для всей к
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "One of my tasks changes"
 msgstr "Изменилась моя задача"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "One person"
+msgstr "Один человек"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
@@ -4014,8 +4046,12 @@ msgid "Phone"
 msgstr "Телефон"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
-msgid "Pick a user and an egg."
-msgstr "Выберите пользователя и пасхалку."
+#~ msgid "Pick a user and an egg."
+#~ msgstr "Выберите пользователя и пасхалку."
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Pick an egg and who it is for."
+msgstr "Выберите пасхалку и кому она достанется."
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Pick both dates."
@@ -4221,6 +4257,10 @@ msgstr "purge_after"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Push notifications aren't available right now."
 msgstr "Push-уведомления сейчас недоступны."
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Reaches {reach} people"
+msgstr "Охват: {reach} чел."
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -4528,6 +4568,7 @@ msgstr "Запланировать рассылку?"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Scheduled"
 msgstr "Запланирована"
 
@@ -4760,6 +4801,7 @@ msgid "Select value"
 msgstr "Выберите значение"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Select workspace"
@@ -4892,6 +4934,7 @@ msgid "Show everyone"
 msgstr "Показать всех"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Show from"
 msgstr "Показывать с"
 
@@ -4929,6 +4972,7 @@ msgstr "Показывать без назначения"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Show until"
 msgstr "Показывать до"
 
@@ -5043,6 +5087,7 @@ msgstr "Начни сейчас →"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -5771,6 +5816,7 @@ msgstr "Неизвестный проект"
 msgid "unknown role"
 msgstr "неизвестная роль"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/auth/components/AccountBadgeButton.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InboxPanel.tsx
@@ -5783,6 +5829,10 @@ msgstr "неизвестная роль"
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "Unknown user"
 msgstr "Неизвестный пользователь"
+
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Unknown workspace"
+msgstr "Неизвестное пространство"
 
 #: src/shared/lib/workspaceMemberActivity.ts
 #: src/shared/lib/workspaceMemberActivity.ts
@@ -5892,8 +5942,6 @@ msgstr "Используйте кнопку «Виджет», чтобы доб�
 msgid "Use this button to add KPI, chart and milestone widgets to the dashboard."
 msgstr "Используйте эту кнопку, чтобы добавить на дашборд KPI, графики и виджеты вех."
 
-#: src/features/admin/pages/AdminEasterEggsPage.tsx
-#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "User"
@@ -5988,6 +6036,10 @@ msgstr "Еженедельный повтор"
 msgid "Welcome to Motio!"
 msgstr "Добро пожаловать в Motio!"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Who"
+msgstr "Кому"
+
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Who changed roles, groups and access, and when."
 msgstr "Кто и когда менял роли, группы и доступ."
@@ -6012,6 +6064,10 @@ msgstr "Виджет"
 msgid "Widgets"
 msgstr "Виджеты"
 
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+msgid "Window"
+msgstr "Окно"
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "Without this, only people who have not seen it yet will get it."
 msgstr "Без этого объявление увидят только те, кто его ещё не видел."
@@ -6025,6 +6081,8 @@ msgid "Workload heatmap"
 msgstr "Тепловая карта загрузки"
 
 #: src/features/admin/components/AnnouncementFields.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Workspace"

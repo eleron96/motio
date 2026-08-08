@@ -16,6 +16,7 @@ export const ADMIN_ACTIONS = {
   EASTER_EGGS_LIST: 'easterEggs.list',
   EASTER_EGGS_SAVE: 'easterEggs.save',
   EASTER_EGGS_DELETE: 'easterEggs.delete',
+  EASTER_EGGS_AUDIENCE: 'easterEggs.audience',
   BROADCASTS_AUDIENCE: 'broadcasts.audience',
   BROADCASTS_SEND: 'broadcasts.send',
   BROADCASTS_PROCESS: 'broadcasts.process',
