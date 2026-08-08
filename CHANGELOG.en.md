@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Every row in the announcement history now has a menu: edit, duplicate, publish again over new dates, unpublish and delete. The row also shows where the announcement stands — draft, scheduled, live or finished.
+- Publishing again can bring the announcement back to people who already closed it, or leave it only for those who have not seen it.
+- An announcement can be saved as a draft and published later.
 
 ## [0.9.57] - 2026-08-08
 ### Fixed
