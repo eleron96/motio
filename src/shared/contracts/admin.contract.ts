@@ -86,13 +86,27 @@ const adminEasterEggsListRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_LIST),
 }).strict();
 
+const easterEggAudienceKindSchema = z.enum(['user', 'domain', 'workspace', 'all_active']);
+
 const adminEasterEggsSaveRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_SAVE),
   id: z.string().uuid().optional(),
-  userId: z.string().uuid(),
+  audienceKind: easterEggAudienceKindSchema,
+  // Set for a personal assignment; every other audience carries its value in
+  // `audienceValue` instead.
+  userId: z.string().uuid().optional(),
+  audienceValue: z.string().max(255).optional(),
   eggKey: z.string().min(1).max(64),
   enabled: z.boolean(),
   note: z.string().max(500).optional(),
+  startsAt: z.string().datetime().nullable().optional(),
+  endsAt: z.string().datetime().nullable().optional(),
+}).strict();
+
+const adminEasterEggsAudienceRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_AUDIENCE),
+  audienceKind: easterEggAudienceKindSchema,
+  audienceValue: z.string().max(255).optional(),
 }).strict();
 
 const adminEasterEggsDeleteRequestSchema = z.object({
@@ -207,6 +221,7 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminEasterEggsListRequestSchema,
   adminEasterEggsSaveRequestSchema,
   adminEasterEggsDeleteRequestSchema,
+  adminEasterEggsAudienceRequestSchema,
   adminBroadcastsAudienceRequestSchema,
   adminBroadcastsSendRequestSchema,
   adminBroadcastsProcessRequestSchema,

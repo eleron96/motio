@@ -11,6 +11,8 @@ const { invokeAdminFunctionMock, adminState } = vi.hoisted(() => ({
       { id: 'u2', email: 'bob@example.com' },
     ],
     fetchAdminUsers: vi.fn(),
+    adminWorkspaces: [{ id: 'w1', name: 'Studio' }],
+    fetchAdminWorkspaces: vi.fn(),
   },
 }));
 
@@ -49,11 +51,16 @@ import AdminEasterEggsPage from '@/features/admin/pages/AdminEasterEggsPage';
 const target = {
   id: '11111111-1111-1111-1111-111111111111',
   eggKey: 'shabbat',
+  audienceKind: 'user' as const,
+  audienceValue: null,
+  audienceLabel: null,
   userId: 'u1',
   userEmail: 'alice@example.com',
   userDisplayName: 'Alice',
   enabled: true,
   note: null,
+  startsAt: null,
+  endsAt: null,
   createdAt: '2026-07-01T00:00:00Z',
 };
 
@@ -84,7 +91,56 @@ describe('AdminEasterEggsPage', () => {
         action: 'easterEggs.save',
         id: target.id,
         eggKey: 'six-seven',
+        audienceKind: 'user',
+        userId: 'u1',
         enabled: true,
+      }));
+    });
+  });
+
+  it('assigns an egg to a whole mail domain in one row', async () => {
+    render(<AdminEasterEggsPage />);
+    await screen.findByText('Alice');
+
+    // Audience: email domain.
+    fireEvent.click(screen.getAllByRole('combobox')[1]!);
+    fireEvent.click(await screen.findByRole('option', { name: 'Email domain' }));
+    fireEvent.change(screen.getByPlaceholderText('example.com'), { target: { value: 'speech.ru' } });
+
+    // The window is optional; set an end date to prove it travels.
+    fireEvent.change(document.getElementById('egg-ends-at') as HTMLInputElement, {
+      target: { value: '2026-08-31' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Assign' }));
+
+    await waitFor(() => {
+      expect(invokeAdminFunctionMock).toHaveBeenCalledWith(expect.objectContaining({
+        action: 'easterEggs.save',
+        audienceKind: 'domain',
+        audienceValue: 'speech.ru',
+        enabled: true,
+        endsAt: new Date('2026-08-31T23:59:59').toISOString(),
+      }));
+    });
+    // A domain row addresses nobody in particular.
+    const call = invokeAdminFunctionMock.mock.calls
+      .map(([payload]) => payload as Record<string, unknown>)
+      .find((payload) => payload.audienceKind === 'domain')!;
+    expect(call.userId).toBeUndefined();
+  });
+
+  it('asks how many people an audience covers before it is saved', async () => {
+    render(<AdminEasterEggsPage />);
+    await screen.findByText('Alice');
+
+    fireEvent.click(screen.getAllByRole('combobox')[1]!);
+    fireEvent.click(await screen.findByRole('option', { name: 'Everyone' }));
+
+    await waitFor(() => {
+      expect(invokeAdminFunctionMock).toHaveBeenCalledWith(expect.objectContaining({
+        action: 'easterEggs.audience',
+        audienceKind: 'all_active',
       }));
     });
   });
