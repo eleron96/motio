@@ -16,6 +16,8 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { useTablePagination } from '@/features/admin/hooks/useTablePagination';
+import { AdminTablePagination } from '@/features/admin/components/AdminTablePagination';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -66,6 +68,8 @@ const AdminWorkspacesPage: React.FC = () => {
       || (item.ownerDisplayName ?? '').toLowerCase().includes(query)
     ));
   }, [adminWorkspaces, workspaceSearch]);
+
+  const pagination = useTablePagination(filteredWorkspaces, 'workspaces', workspaceSearch);
 
   const openWorkspaceEdit = (workspace: AdminWorkspace) => {
     setWorkspaceEditTarget(workspace);
@@ -140,89 +144,101 @@ const AdminWorkspacesPage: React.FC = () => {
         {adminWorkspacesLoading ? (
           <div className="py-6 text-sm text-muted-foreground">{t`Loading workspaces...`}</div>
         ) : (
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Members</TableHead>
-                  <TableHead>Tasks</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredWorkspaces.length === 0 ? (
+          <div className="space-y-3">
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={6} className="text-sm text-muted-foreground">
-                      No workspaces.
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Owner</TableHead>
+                    <TableHead>Members</TableHead>
+                    <TableHead>Tasks</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredWorkspaces.map((workspace) => (
-                    <TableRow key={workspace.id}>
-                      <TableCell className="font-medium">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="cursor-default">
-                              <div className="max-w-[220px] truncate">{workspace.name}</div>
-                              <div className="text-xs text-muted-foreground">{shortId(workspace.id)}</div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="space-y-1">
-                              <div>{workspace.name}</div>
-                              <div className="text-xs">{workspace.id}</div>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="inline-block max-w-[220px] truncate cursor-default align-bottom">
-                              {workspace.ownerDisplayName ?? workspace.ownerEmail ?? shortId(workspace.ownerId)}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {workspace.ownerDisplayName ?? workspace.ownerEmail ?? workspace.ownerId}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-sm">{workspace.membersCount}</TableCell>
-                      <TableCell className="text-sm">{workspace.tasksCount}</TableCell>
-                      <TableCell className="text-xs">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{formatDateCompact(workspace.createdAt, locale)}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>{formatDate(workspace.createdAt, locale)}</TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openWorkspaceEdit(workspace)}
-                          >
-                            Rename
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => openWorkspaceDelete(workspace)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {pagination.pageRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-sm text-muted-foreground">
+                        No workspaces.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    pagination.pageRows.map((workspace) => (
+                      <TableRow key={workspace.id}>
+                        <TableCell className="font-medium">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="cursor-default">
+                                <div className="max-w-[220px] truncate">{workspace.name}</div>
+                                <div className="text-xs text-muted-foreground">{shortId(workspace.id)}</div>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="space-y-1">
+                                <div>{workspace.name}</div>
+                                <div className="text-xs">{workspace.id}</div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-block max-w-[220px] truncate cursor-default align-bottom">
+                                {workspace.ownerDisplayName ?? workspace.ownerEmail ?? shortId(workspace.ownerId)}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {workspace.ownerDisplayName ?? workspace.ownerEmail ?? workspace.ownerId}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-sm">{workspace.membersCount}</TableCell>
+                        <TableCell className="text-sm">{workspace.tasksCount}</TableCell>
+                        <TableCell className="text-xs">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{formatDateCompact(workspace.createdAt, locale)}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{formatDate(workspace.createdAt, locale)}</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openWorkspaceEdit(workspace)}
+                            >
+                              Rename
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => openWorkspaceDelete(workspace)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <AdminTablePagination
+              page={pagination.page}
+              pageCount={pagination.pageCount}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              firstRow={pagination.firstRow}
+              lastRow={pagination.lastRow}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+            />
           </div>
         )}
 

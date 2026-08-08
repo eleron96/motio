@@ -171,6 +171,10 @@ msgstr "Клиентов: {customersCount}"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# день} few {# дня} many {# дней} other {# дня}}"
 
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "{firstRow}–{lastRow} of {total}"
+msgstr "{firstRow}–{lastRow} из {total}"
+
 #: src/features/daily-brief/components/DailyBriefTaskList.tsx
 msgid "{hiddenCount, plural, one {and # more} other {and # more}}"
 msgstr "{hiddenCount, plural, one {и ещё #} few {и ещё #} many {и ещё #} other {и ещё #}}"
@@ -194,6 +198,10 @@ msgstr "{minutes} мин."
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "{months} mo in Motio"
 msgstr "В Motio {months} мес"
+
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "{page} of {pageCount}"
+msgstr "{page} из {pageCount}"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "{projectCount} projects"
@@ -3198,6 +3206,10 @@ msgstr "Новый виджет"
 msgid "Next"
 msgstr "Далее"
 
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Next page"
+msgstr "Следующая страница"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Next, we'll open Projects to show where project details, tasks and assignees are visible."
 msgstr "Дальше откроем Projects и покажем, где видны детали проекта, задачи и исполнители."
@@ -3716,6 +3728,10 @@ msgstr "Просрочек нет. Отлично!"
 msgid "Nothing to filter by yet."
 msgstr "Пока нечего фильтровать."
 
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Nothing to show"
+msgstr "Показывать нечего"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
@@ -4053,6 +4069,10 @@ msgstr "Назад"
 #: src/features/planner/components/timeline/TimelineControls.tsx
 msgid "Previous"
 msgstr "Назад"
+
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Previous page"
+msgstr "Предыдущая страница"
 
 #: src/features/projects/components/projectCard/PersonSuggestField.tsx
 msgid "Previously entered"
@@ -4436,6 +4456,10 @@ msgstr "Роль"
 #: src/shared/lib/accentColor.ts
 msgid "Rose"
 msgstr "Розовый"
+
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Rows per page"
+msgstr "Строк на странице"
 
 #: src/shared/lib/accentColor.ts
 msgid "Sage"

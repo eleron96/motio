@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- The admin lists — users, workspaces, easter eggs and backups — no longer render in one endless run: they page in tens, fifties or hundreds, and each section remembers the size you picked.
 
 ## [0.9.58] - 2026-08-08
 ### Fixed

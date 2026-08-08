@@ -171,6 +171,10 @@ msgstr "{customersCount} customers"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# day} other {# days}}"
 
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "{firstRow}–{lastRow} of {total}"
+msgstr "{firstRow}–{lastRow} of {total}"
+
 #: src/features/daily-brief/components/DailyBriefTaskList.tsx
 msgid "{hiddenCount, plural, one {and # more} other {and # more}}"
 msgstr "{hiddenCount, plural, one {and # more} other {and # more}}"
@@ -194,6 +198,10 @@ msgstr "{minutes} minutes"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "{months} mo in Motio"
 msgstr "{months} mo in Motio"
+
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "{page} of {pageCount}"
+msgstr "{page} of {pageCount}"
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "{projectCount} projects"
@@ -3198,6 +3206,10 @@ msgstr "New widget"
 msgid "Next"
 msgstr "Next"
 
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Next page"
+msgstr "Next page"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Next, we'll open Projects to show where project details, tasks and assignees are visible."
 msgstr "Next, we'll open Projects to show where project details, tasks and assignees are visible."
@@ -3716,6 +3728,10 @@ msgstr "Nothing overdue. Great job!"
 msgid "Nothing to filter by yet."
 msgstr "Nothing to filter by yet."
 
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Nothing to show"
+msgstr "Nothing to show"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/InviteNotifications.tsx
@@ -4053,6 +4069,10 @@ msgstr "Prev"
 #: src/features/planner/components/timeline/TimelineControls.tsx
 msgid "Previous"
 msgstr "Previous"
+
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Previous page"
+msgstr "Previous page"
 
 #: src/features/projects/components/projectCard/PersonSuggestField.tsx
 msgid "Previously entered"
@@ -4436,6 +4456,10 @@ msgstr "Role / job title"
 #: src/shared/lib/accentColor.ts
 msgid "Rose"
 msgstr "Rose"
+
+#: src/features/admin/components/AdminTablePagination.tsx
+msgid "Rows per page"
+msgstr "Rows per page"
 
 #: src/shared/lib/accentColor.ts
 msgid "Sage"
