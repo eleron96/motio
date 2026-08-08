@@ -16,6 +16,8 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
+import { useTablePagination } from '@/features/admin/hooks/useTablePagination';
+import { AdminTablePagination } from '@/features/admin/components/AdminTablePagination';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -75,6 +77,8 @@ const AdminBackupsPage: React.FC = () => {
   useEffect(() => {
     fetchBackups();
   }, [fetchBackups]);
+
+  const pagination = useTablePagination(backups, 'backups');
 
   const handleCreateBackup = async () => {
     setBackupCreateSubmitting(true);
@@ -250,99 +254,111 @@ const AdminBackupsPage: React.FC = () => {
         {backupsLoading ? (
           <div className="py-6 text-sm text-muted-foreground">{t`Loading backups...`}</div>
         ) : (
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {backups.length === 0 ? (
+          <div className="space-y-3">
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-sm text-muted-foreground">
-                      No backups.
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  backups.map((item) => (
-                    <TableRow key={item.name}>
-                      <TableCell className="font-medium">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="inline-block max-w-[260px] truncate cursor-default align-bottom">
-                              {item.name}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>{item.name}</TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatBackupType(item.type)}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{formatStorageMain(item.size)}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Exact size: {formatStorageExactBytes(item.size)}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{formatDateCompact(item.createdAt, locale)}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>{formatDate(item.createdAt, locale)}</TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => void handleDownloadBackup(item)}
-                            disabled={backupActionSubmitting}
-                          >
-                            Download
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openBackupRename(item)}
-                            disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
-                          >
-                            Rename
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openBackupDelete(item)}
-                            disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
-                          >
-                            Delete
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => openBackupRestore(item)}
-                            disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
-                          >
-                            Restore
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {pagination.pageRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                        No backups.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    pagination.pageRows.map((item) => (
+                      <TableRow key={item.name}>
+                        <TableCell className="font-medium">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-block max-w-[260px] truncate cursor-default align-bottom">
+                                {item.name}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>{item.name}</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatBackupType(item.type)}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{formatStorageMain(item.size)}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Exact size: {formatStorageExactBytes(item.size)}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{formatDateCompact(item.createdAt, locale)}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{formatDate(item.createdAt, locale)}</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void handleDownloadBackup(item)}
+                              disabled={backupActionSubmitting}
+                            >
+                              Download
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openBackupRename(item)}
+                              disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
+                            >
+                              Rename
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openBackupDelete(item)}
+                              disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
+                            >
+                              Delete
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => openBackupRestore(item)}
+                              disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
+                            >
+                              Restore
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <AdminTablePagination
+              page={pagination.page}
+              pageCount={pagination.pageCount}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              firstRow={pagination.firstRow}
+              lastRow={pagination.lastRow}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+            />
           </div>
         )}
 

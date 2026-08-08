@@ -7,6 +7,8 @@ import { Switch } from '@/shared/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
+import { useTablePagination } from '@/features/admin/hooks/useTablePagination';
+import { AdminTablePagination } from '@/features/admin/components/AdminTablePagination';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -69,6 +71,8 @@ const AdminEasterEggsPage: React.FC = () => {
     loadTargets();
     fetchAdminUsers();
   }, [loadTargets, fetchAdminUsers]);
+
+  const pagination = useTablePagination(targets, 'easter-eggs');
 
   const sortedUsers = useMemo(
     () => [...adminUsers].sort((left, right) => (left.email ?? '').localeCompare(right.email ?? '')),
@@ -211,81 +215,93 @@ const AdminEasterEggsPage: React.FC = () => {
       {loading ? (
         <div className="py-6 text-sm text-muted-foreground">{t`Loading easter eggs...`}</div>
       ) : (
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t`User`}</TableHead>
-                <TableHead>{t`Egg`}</TableHead>
-                <TableHead>{t`Note`}</TableHead>
-                <TableHead>{t`Created`}</TableHead>
-                <TableHead>{t`Active`}</TableHead>
-                <TableHead className="text-right">{t`Actions`}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {targets.length === 0 ? (
+        <div className="space-y-3">
+          <div className="overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-sm text-muted-foreground">
-                    {t`No easter eggs assigned.`}
-                  </TableCell>
+                  <TableHead>{t`User`}</TableHead>
+                  <TableHead>{t`Egg`}</TableHead>
+                  <TableHead>{t`Note`}</TableHead>
+                  <TableHead>{t`Created`}</TableHead>
+                  <TableHead>{t`Active`}</TableHead>
+                  <TableHead className="text-right">{t`Actions`}</TableHead>
                 </TableRow>
-              ) : (
-                targets.map((target) => (
-                  <TableRow key={target.id}>
-                    <TableCell className="font-medium">
-                      <div className="max-w-[220px] truncate">
-                        {target.userDisplayName ?? target.userEmail ?? shortId(target.userId)}
-                      </div>
-                      {target.userEmail && target.userDisplayName && (
-                        <div className="max-w-[220px] truncate text-xs text-muted-foreground">
-                          {target.userEmail}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <Select
-                        value={target.eggKey}
-                        onValueChange={(key) => void handleChangeKey(target, key)}
-                        disabled={rowActionId === target.id}
-                      >
-                        <SelectTrigger className="h-8 w-[150px]" aria-label={t`Change easter egg`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {EGG_KEYS.map((key) => (
-                            <SelectItem key={key} value={key}>{key}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
-                      {target.note ?? '—'}
-                    </TableCell>
-                    <TableCell className="text-xs">{formatDateCompact(target.createdAt, locale)}</TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={target.enabled}
-                        disabled={rowActionId === target.id}
-                        onCheckedChange={(checked) => void handleToggle(target, checked)}
-                        aria-label={t`Toggle easter egg`}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => void handleDelete(target)}
-                        disabled={rowActionId === target.id}
-                      >
-                        {t`Delete`}
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {pagination.pageRows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-sm text-muted-foreground">
+                      {t`No easter eggs assigned.`}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  pagination.pageRows.map((target) => (
+                    <TableRow key={target.id}>
+                      <TableCell className="font-medium">
+                        <div className="max-w-[220px] truncate">
+                          {target.userDisplayName ?? target.userEmail ?? shortId(target.userId)}
+                        </div>
+                        {target.userEmail && target.userDisplayName && (
+                          <div className="max-w-[220px] truncate text-xs text-muted-foreground">
+                            {target.userEmail}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <Select
+                          value={target.eggKey}
+                          onValueChange={(key) => void handleChangeKey(target, key)}
+                          disabled={rowActionId === target.id}
+                        >
+                          <SelectTrigger className="h-8 w-[150px]" aria-label={t`Change easter egg`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {EGG_KEYS.map((key) => (
+                              <SelectItem key={key} value={key}>{key}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                        {target.note ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-xs">{formatDateCompact(target.createdAt, locale)}</TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={target.enabled}
+                          disabled={rowActionId === target.id}
+                          onCheckedChange={(checked) => void handleToggle(target, checked)}
+                          aria-label={t`Toggle easter egg`}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => void handleDelete(target)}
+                          disabled={rowActionId === target.id}
+                        >
+                          {t`Delete`}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <AdminTablePagination
+            page={pagination.page}
+            pageCount={pagination.pageCount}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            firstRow={pagination.firstRow}
+            lastRow={pagination.lastRow}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
         </div>
       )}
     </div>
