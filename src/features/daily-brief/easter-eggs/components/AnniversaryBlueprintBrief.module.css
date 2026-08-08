@@ -5,7 +5,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--foreground));
   /* Sits above the dialog dimming (z-50) but below the brief card (z-60),
      so the drawing happens behind the report. See DailyBriefModal. */
   z-index: 55;
@@ -24,11 +24,12 @@
   color: currentColor;
 }
 
-/* Traces the card so it reads as the part on the sheet. */
+/* Traces the card so it reads as the part on the sheet. Gold at half strength:
+   visible against the dialog's dimming without competing with the numeral. */
 .outline {
-  stroke: currentColor;
-  stroke-width: 1;
-  opacity: 0.45;
+  stroke: #f5c96b;
+  stroke-width: 1.5;
+  opacity: 0.55;
   stroke-dasharray: var(--len);
 }
 
@@ -46,13 +47,13 @@
 .axis {
   stroke: currentColor;
   stroke-width: 1;
-  opacity: 0.35;
+  opacity: 0.55;
 }
 
 .dimension {
   stroke: currentColor;
-  stroke-width: 1;
-  opacity: 0.5;
+  stroke-width: 1.5;
+  opacity: 0.7;
 }
 
 .numeral {
@@ -140,17 +141,17 @@
 
 .practice {
   fill: currentColor;
-  font-size: 17px;
+  font-size: 22px;
   font-weight: 600;
-  letter-spacing: 0.34em;
-  opacity: 0.75;
+  letter-spacing: 0.36em;
+  opacity: 0.95;
 }
 
 .year {
   fill: #f5c96b;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.24em;
 }
 
 @media (prefers-reduced-motion: reduce) {

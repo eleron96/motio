@@ -67,9 +67,13 @@ export const AnniversaryBlueprintBrief = () => {
   // Undefined means the card has not been measured yet: drawing now would put
   // the numeral under it for a frame and then jump it aside.
   const measured = card !== undefined;
-  const numeral = measured ? placeBesideCard(viewport, card ?? null, NUMERAL) : null;
   const titleBlock = measured ? leftMarginAnchor(viewport, card ?? null) : null;
   const signOff = measured ? bottomRightAnchor(viewport, card ?? null) : null;
+  // The left margin is the title block's; the numeral goes elsewhere unless
+  // there is nowhere else at all.
+  const numeral = measured
+    ? placeBesideCard(viewport, card ?? null, NUMERAL, { avoid: titleBlock ? ['left'] : [] })
+    : null;
   // Primitives, so the scatter re-runs when the numeral moves and not when a
   // fresh object with the same values comes back from a re-render.
   const sparkX = numeral ? numeral.left + numeral.width / 2 : null;
@@ -195,7 +199,7 @@ export const AnniversaryBlueprintBrief = () => {
         {titleBlock && (
           <g className={styles.caption}>
             <text x={titleBlock.x} y={titleBlock.y} className={styles.practice}>{PRACTICE}</text>
-            <text x={titleBlock.x} y={titleBlock.y + 26} className={styles.year}>{YEAR_FROM}</text>
+            <text x={titleBlock.x} y={titleBlock.y + 34} className={styles.year}>{YEAR_FROM}</text>
           </g>
         )}
 

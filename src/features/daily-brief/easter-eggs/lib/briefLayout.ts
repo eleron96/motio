@@ -5,11 +5,18 @@ export interface Box {
   height: number;
 }
 
+export type Side = 'top' | 'bottom' | 'left' | 'right';
+
+export interface Zone extends Box {
+  side: Side;
+}
+
 export interface Placement {
   left: number;
   top: number;
   width: number;
   height: number;
+  side: Side;
 }
 
 /** Kept clear of the card so nothing crowds its edge. */
@@ -18,30 +25,32 @@ export const CARD_MARGIN = 24;
 const MIN_SCALE = 0.45;
 const MAX_SCALE = 1.6;
 
-const box = (left: number, top: number, width: number, height: number): Box => ({
-  left, top, width, height,
+const zone = (side: Side, left: number, top: number, width: number, height: number): Zone => ({
+  side, left, top, width, height,
 });
 
 /**
  * The four strips of screen the card leaves free. A strip with no room at all
  * comes back with a negative dimension and is discarded by the caller.
  */
-export const freeZones = (viewport: Box, card: Box, margin = CARD_MARGIN): Box[] => [
-  box(viewport.left, viewport.top, viewport.width, card.top - margin - viewport.top),
-  box(
+export const freeZones = (viewport: Box, card: Box, margin = CARD_MARGIN): Zone[] => [
+  zone('top', viewport.left, viewport.top, viewport.width, card.top - margin - viewport.top),
+  zone(
+    'bottom',
     viewport.left,
     card.top + card.height + margin,
     viewport.width,
     viewport.top + viewport.height - (card.top + card.height + margin),
   ),
-  box(viewport.left, viewport.top, card.left - margin - viewport.left, viewport.height),
-  box(
+  zone('left', viewport.left, viewport.top, card.left - margin - viewport.left, viewport.height),
+  zone(
+    'right',
     card.left + card.width + margin,
     viewport.top,
     viewport.left + viewport.width - (card.left + card.width + margin),
     viewport.height,
   ),
-].filter((zone) => zone.width > 0 && zone.height > 0);
+].filter((candidate) => candidate.width > 0 && candidate.height > 0);
 
 /**
  * Where to draw something of a given aspect ratio so the brief card never
@@ -56,11 +65,13 @@ export const placeBesideCard = (
   viewport: Box,
   card: Box | null,
   content: { width: number; height: number },
-  padding = 16,
+  options: { padding?: number; avoid?: Side[] } = {},
 ): Placement | null => {
-  const fit = (zone: Box): Placement | null => {
-    const availableWidth = zone.width - padding * 2;
-    const availableHeight = zone.height - padding * 2;
+  const { padding = 16, avoid = [] } = options;
+
+  const fit = (candidate: Zone): Placement | null => {
+    const availableWidth = candidate.width - padding * 2;
+    const availableHeight = candidate.height - padding * 2;
     if (availableWidth <= 0 || availableHeight <= 0) return null;
 
     const scale = Math.min(
@@ -73,29 +84,32 @@ export const placeBesideCard = (
     const width = content.width * scale;
     const height = content.height * scale;
     return {
-      left: zone.left + (zone.width - width) / 2,
-      top: zone.top + (zone.height - height) / 2,
+      left: candidate.left + (candidate.width - width) / 2,
+      top: candidate.top + (candidate.height - height) / 2,
       width,
       height,
+      side: candidate.side,
     };
   };
 
   // Without a card the whole viewport is free.
-  if (!card) return fit(viewport);
+  if (!card) return fit({ ...viewport, side: 'right' });
 
-  const candidates = freeZones(viewport, card)
-    .map((zone) => ({ zone, placement: fit(zone) }))
-    .filter((candidate): candidate is { zone: Box; placement: Placement } => candidate.placement !== null);
+  const placements = freeZones(viewport, card)
+    .map(fit)
+    .filter((placement): placement is Placement => placement !== null);
 
-  if (candidates.length === 0) return null;
+  if (placements.length === 0) return null;
 
-  // Biggest drawing wins; area breaks ties so it leans towards open space.
-  return candidates.reduce((best, candidate) => (
-    candidate.placement.width * candidate.placement.height
-      > best.placement.width * best.placement.height
-      ? candidate
-      : best
-  )).placement;
+  // Biggest drawing wins. Sides the caller has spoken for — the title block's
+  // margin, say — are only used when nothing else fits, since a cramped numeral
+  // still beats no numeral.
+  const biggest = (list: Placement[]) => list.reduce((best, placement) => (
+    placement.width * placement.height > best.width * best.height ? placement : best
+  ));
+
+  const preferred = placements.filter((placement) => !avoid.includes(placement.side));
+  return biggest(preferred.length > 0 ? preferred : placements);
 };
 
 /** True when a point falls on the card (plus its margin) and would be hidden. */
@@ -163,7 +177,7 @@ export const leftMarginAnchor = (
 export const bottomRightAnchor = (
   viewport: Box,
   card: Box | null,
-  inset = 32,
+  inset = 46,
 ): Anchor => {
   const x = viewport.left + viewport.width - inset;
   const bottom = viewport.top + viewport.height - inset;
