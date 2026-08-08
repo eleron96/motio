@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.57] - 2026-08-08
 ### Fixed
 - The broadcast history in the admin console answered "permission denied" on the testing stand — the table was missing its grants. A migration now grants them, the same way on every stand.
 
