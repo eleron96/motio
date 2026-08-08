@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.60] - 2026-08-08
+### Changed
+- No documented changes.
+
 ## [0.9.59] - 2026-08-08
 ### Changed
 - The admin lists — users, workspaces, easter eggs and backups — no longer render in one endless run: they page in tens, fifties or hundreds, and each section remembers the size you picked.
