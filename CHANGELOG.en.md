@@ -10,6 +10,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - The admin console no longer answers "Access denied" when the access check could not reach the server — during a deploy, for instance. It now says the check failed, retries on its own and offers a "Try again" button.
 
 ### Added
+- Editing an announcement now opens in its own dialog — the form above always means "new announcement", so the two can no longer be confused.
+- The admin overview gained a Messaging summary: what people are seeing right now, how much is scheduled or still a draft, and where the last email broadcast got to.
 - Every row in the announcement history now has a menu: edit, duplicate, publish again over new dates, unpublish and delete. The row also shows where the announcement stands — draft, scheduled, live or finished.
 - Publishing again can bring the announcement back to people who already closed it, or leave it only for those who have not seen it.
 - An announcement can be saved as a draft and published later.

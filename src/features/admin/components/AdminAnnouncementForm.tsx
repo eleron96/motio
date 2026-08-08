@@ -1,15 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { t } from '@lingui/macro';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { Textarea } from '@/shared/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Badge } from '@/shared/ui/badge';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import {
   DropdownMenu,
@@ -24,6 +21,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogScrollContent,
   DialogTitle,
 } from '@/shared/ui/dialog';
 import {
@@ -40,49 +38,26 @@ import { invokeAdminFunction } from '@/infrastructure/auth/functionsGateway';
 import { ADMIN_ACTIONS } from '@/shared/contracts/actions';
 import { formatDate } from '@/features/admin/lib/format';
 import { useLocaleStore } from '@/shared/store/localeStore';
-
-type Level = 'info' | 'critical';
-type AudienceKind = 'all_active' | 'domain' | 'workspace';
-
-interface AnnouncementRow {
-  id: string;
-  title: string;
-  titleEn: string | null;
-  bodyRu: string | null;
-  bodyEn: string | null;
-  level: Level;
-  audienceKind: AudienceKind;
-  audienceValue: string | null;
-  published: boolean;
-  startsAt: string;
-  endsAt: string | null;
-  createdAt: string;
-  dismissedCount: number;
-}
+import { AnnouncementFields } from '@/features/admin/components/AnnouncementFields';
+import { useAnnouncementHistory } from '@/features/admin/hooks/useAnnouncementHistory';
+import {
+  announcementStatus,
+  draftAudienceValue,
+  draftFromRow,
+  emptyAnnouncementDraft,
+  endOfDay,
+  isAnnouncementDraftReady,
+  startOfDay,
+  toDateInput,
+  todayInput,
+  type AnnouncementDraft,
+  type AnnouncementRow,
+  type AnnouncementStatus,
+} from '@/features/admin/lib/announcements';
 
 interface AdminAnnouncementFormProps {
   workspaces: Array<{ id: string; name: string }>;
 }
-
-/** A `date` input speaks days; the window itself is stored to the second. */
-const toDateInput = (value: string | null): string => (value ? value.slice(0, 10) : '');
-const startOfDay = (day: string): string => new Date(`${day}T00:00:00`).toISOString();
-const endOfDay = (day: string): string => new Date(`${day}T23:59:59`).toISOString();
-const todayInput = (): string => {
-  const now = new Date();
-  const offset = now.getTimezoneOffset() * 60_000;
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
-};
-
-type RowStatus = 'draft' | 'scheduled' | 'live' | 'expired';
-
-const rowStatus = (row: AnnouncementRow): RowStatus => {
-  if (!row.published) return 'draft';
-  const now = Date.now();
-  if (new Date(row.startsAt).getTime() > now) return 'scheduled';
-  if (row.endsAt && new Date(row.endsAt).getTime() < now) return 'expired';
-  return 'live';
-};
 
 /**
  * The in-app half of the broadcast page: an announcement shown inside the
@@ -92,25 +67,22 @@ const rowStatus = (row: AnnouncementRow): RowStatus => {
  * only delivery signal worth showing here is how many people closed it. That
  * same record is why re-publishing offers to clear the dismissals: without it a
  * corrected announcement stays invisible to everyone who closed the old one.
+ *
+ * Editing happens in a dialog rather than in the form above, so there is never
+ * a doubt about whether the fields on screen are a new announcement or an old
+ * one being changed.
  */
 export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ workspaces }) => {
   const locale = useLocaleStore((state) => state.locale);
+  const { rows, error: historyError, reload, setError: setHistoryError } = useAnnouncementHistory();
 
-  const [level, setLevel] = useState<Level>('info');
-  const [audienceKind, setAudienceKind] = useState<AudienceKind>('all_active');
-  const [domain, setDomain] = useState('');
-  const [workspaceId, setWorkspaceId] = useState('');
-  const [titleRu, setTitleRu] = useState('');
-  const [titleEn, setTitleEn] = useState('');
-  const [bodyRu, setBodyRu] = useState('');
-  const [bodyEn, setBodyEn] = useState('');
-  const [endsAt, setEndsAt] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-
+  const [draft, setDraft] = useState<AnnouncementDraft>(emptyAnnouncementDraft);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState('');
-  const [rows, setRows] = useState<AnnouncementRow[]>([]);
-  const [historyError, setHistoryError] = useState('');
+
+  const [editing, setEditing] = useState<{ row: AnnouncementRow; draft: AnnouncementDraft } | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const [republishRow, setRepublishRow] = useState<AnnouncementRow | null>(null);
   const [republishFrom, setRepublishFrom] = useState('');
@@ -118,111 +90,65 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
   const [republishResetReads, setRepublishResetReads] = useState(true);
   const [confirming, setConfirming] = useState<{ kind: 'delete' | 'resetReads'; row: AnnouncementRow } | null>(null);
 
-  const formRef = useRef<HTMLDivElement | null>(null);
+  const patchDraft = (patch: Partial<AnnouncementDraft>) => setDraft((current) => ({ ...current, ...patch }));
+  const patchEditDraft = (patch: Partial<AnnouncementDraft>) => setEditing((current) => (
+    current ? { ...current, draft: { ...current.draft, ...patch } } : current
+  ));
 
-  const loadHistory = useCallback(async () => {
-    const { data, error: listError } = await invokeAdminFunction<{ announcements?: AnnouncementRow[] }>({
-      action: ADMIN_ACTIONS.ANNOUNCEMENTS_LIST,
-    });
-    if (listError) {
-      setHistoryError(listError);
-      return;
-    }
-    setHistoryError('');
-    setRows(data?.announcements ?? []);
-  }, []);
-
-  useEffect(() => {
-    void loadHistory();
-  }, [loadHistory]);
-
-  const audienceReady = audienceKind === 'all_active'
-    || (audienceKind === 'domain' ? domain.trim().length > 0 : workspaceId.length > 0);
-
-  const resetForm = () => {
-    setEditingId(null);
-    setLevel('info');
-    setAudienceKind('all_active');
-    setDomain('');
-    setWorkspaceId('');
-    setTitleRu('');
-    setTitleEn('');
-    setBodyRu('');
-    setBodyEn('');
-    setEndsAt('');
-    setError('');
-  };
-
-  const fillForm = (row: AnnouncementRow) => {
-    setLevel(row.level);
-    setAudienceKind(row.audienceKind);
-    setDomain(row.audienceKind === 'domain' ? row.audienceValue ?? '' : '');
-    setWorkspaceId(row.audienceKind === 'workspace' ? row.audienceValue ?? '' : '');
-    setTitleRu(row.title);
-    setTitleEn(row.titleEn ?? '');
-    setBodyRu(row.bodyRu ?? '');
-    setBodyEn(row.bodyEn ?? '');
-    setEndsAt(toDateInput(row.endsAt));
-    setError('');
-    formRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  };
-
-  const startEditing = (row: AnnouncementRow) => {
-    setEditingId(row.id);
-    fillForm(row);
-  };
-
-  /** Duplicating keeps the wording but leaves the original untouched. */
-  const startDuplicate = (row: AnnouncementRow) => {
-    setEditingId(null);
-    fillForm(row);
-  };
-
-  const audienceValue = () => {
-    if (audienceKind === 'domain') return domain.trim();
-    if (audienceKind === 'workspace') return workspaceId;
-    return null;
-  };
-
-  const submit = async (published: boolean) => {
-    if (!titleRu.trim() || !audienceReady) return;
+  const create = async (published: boolean) => {
+    if (!isAnnouncementDraftReady(draft)) return;
     setPublishing(true);
     setError('');
 
-    const { error: submitError } = editingId
-      ? await invokeAdminFunction({
-        action: ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE,
-        announcementId: editingId,
-        titleRu: titleRu.trim(),
-        titleEn: titleEn.trim(),
-        bodyRu: bodyRu.trim(),
-        bodyEn: bodyEn.trim(),
-        level,
-        audienceKind,
-        audienceValue: audienceValue(),
-        endsAt: endsAt ? endOfDay(endsAt) : null,
-      })
-      : await invokeAdminFunction({
-        action: ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH,
-        titleRu: titleRu.trim(),
-        ...(titleEn.trim() ? { titleEn: titleEn.trim() } : {}),
-        ...(bodyRu.trim() ? { bodyRu: bodyRu.trim() } : {}),
-        ...(bodyEn.trim() ? { bodyEn: bodyEn.trim() } : {}),
-        level,
-        audienceKind,
-        ...(audienceKind === 'all_active' ? {} : { audienceValue: audienceValue() as string }),
-        ...(endsAt ? { endsAt: endOfDay(endsAt) } : {}),
-        published,
-      });
+    const audienceValue = draftAudienceValue(draft);
+    const { error: createError } = await invokeAdminFunction({
+      action: ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH,
+      titleRu: draft.titleRu.trim(),
+      ...(draft.titleEn.trim() ? { titleEn: draft.titleEn.trim() } : {}),
+      ...(draft.bodyRu.trim() ? { bodyRu: draft.bodyRu.trim() } : {}),
+      ...(draft.bodyEn.trim() ? { bodyEn: draft.bodyEn.trim() } : {}),
+      level: draft.level,
+      audienceKind: draft.audienceKind,
+      ...(audienceValue ? { audienceValue } : {}),
+      ...(draft.endsAt ? { endsAt: endOfDay(draft.endsAt) } : {}),
+      published,
+    });
 
     setPublishing(false);
-    if (submitError) {
-      setError(submitError);
+    if (createError) {
+      setError(createError);
       return;
     }
+    setDraft(emptyAnnouncementDraft());
+    await reload();
+  };
 
-    resetForm();
-    await loadHistory();
+  const saveEdit = async () => {
+    if (!editing || !isAnnouncementDraftReady(editing.draft)) return;
+    setSavingEdit(true);
+    setEditError('');
+
+    const { draft: edited, row } = editing;
+    const { error: updateError } = await invokeAdminFunction({
+      action: ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE,
+      announcementId: row.id,
+      titleRu: edited.titleRu.trim(),
+      titleEn: edited.titleEn.trim(),
+      bodyRu: edited.bodyRu.trim(),
+      bodyEn: edited.bodyEn.trim(),
+      level: edited.level,
+      audienceKind: edited.audienceKind,
+      audienceValue: draftAudienceValue(edited),
+      endsAt: edited.endsAt ? endOfDay(edited.endsAt) : null,
+    });
+
+    setSavingEdit(false);
+    if (updateError) {
+      setEditError(updateError);
+      return;
+    }
+    setEditing(null);
+    await reload();
   };
 
   const setPublished = async (row: AnnouncementRow, published: boolean) => {
@@ -235,7 +161,7 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
       setHistoryError(updateError);
       return;
     }
-    await loadHistory();
+    await reload();
   };
 
   const openRepublish = (row: AnnouncementRow) => {
@@ -272,7 +198,7 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
       }
     }
     setHistoryError('');
-    await loadHistory();
+    await reload();
   };
 
   const confirmDestructive = async () => {
@@ -288,9 +214,9 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
       setHistoryError(actionError);
       return;
     }
-    if (kind === 'delete' && editingId === row.id) resetForm();
+    if (kind === 'delete' && editing?.row.id === row.id) setEditing(null);
     setHistoryError('');
-    await loadHistory();
+    await reload();
   };
 
   const audienceLabel = (row: AnnouncementRow) => {
@@ -301,105 +227,26 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
       ?? '';
   };
 
-  const statusLabels: Record<RowStatus, string> = {
+  const statusLabels: Record<AnnouncementStatus, string> = {
     draft: t`Draft`,
     scheduled: t`Scheduled`,
     live: t`Live`,
     expired: t`Finished`,
   };
 
-  const editing = editingId !== null;
+  const createReady = isAnnouncementDraftReady(draft);
 
   return (
     <div className="space-y-4">
-      <div ref={formRef} className="rounded-md border p-4 space-y-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-sm font-semibold">
-            {editing ? t`Edit announcement` : t`New announcement`}
-          </div>
-          {editing && (
-            <Button size="sm" variant="ghost" onClick={resetForm}>{t`Cancel`}</Button>
-          )}
-        </div>
+      <div className="rounded-md border p-4 space-y-4">
+        <div className="text-sm font-semibold">{t`New announcement`}</div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>{t`Level`}</Label>
-            <SegmentedControl>
-              <SegmentedControlItem active={level === 'info'} onClick={() => setLevel('info')}>
-                {t`Banner`}
-              </SegmentedControlItem>
-              <SegmentedControlItem active={level === 'critical'} onClick={() => setLevel('critical')}>
-                {t`Important`}
-              </SegmentedControlItem>
-            </SegmentedControl>
-            <p className="text-xs text-muted-foreground">
-              {level === 'info'
-                ? t`A strip above the workspace that can be dismissed.`
-                : t`Interrupts once with a dialog. Use for maintenance and outages.`}
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Audience`}</Label>
-            <Select value={audienceKind} onValueChange={(value) => setAudienceKind(value as AudienceKind)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all_active">{t`All active users`}</SelectItem>
-                <SelectItem value="domain">{t`Email domain`}</SelectItem>
-                <SelectItem value="workspace">{t`Workspace`}</SelectItem>
-              </SelectContent>
-            </Select>
-            {audienceKind === 'domain' && (
-              <Input
-                placeholder="example.com"
-                value={domain}
-                onChange={(event) => setDomain(event.target.value)}
-              />
-            )}
-            {audienceKind === 'workspace' && (
-              <Select value={workspaceId} onValueChange={setWorkspaceId}>
-                <SelectTrigger><SelectValue placeholder={t`Select a workspace`} /></SelectTrigger>
-                <SelectContent>
-                  {workspaces.map((workspace) => (
-                    <SelectItem key={workspace.id} value={workspace.id}>{workspace.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>{t`Title (RU)`}</Label>
-            <Input value={titleRu} onChange={(event) => setTitleRu(event.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t`Title (EN)`}</Label>
-            <Input
-              value={titleEn}
-              onChange={(event) => setTitleEn(event.target.value)}
-              placeholder={t`Leave empty to reuse the Russian text`}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t`Text (RU)`}</Label>
-            <Textarea rows={4} value={bodyRu} onChange={(event) => setBodyRu(event.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t`Text (EN)`}</Label>
-            <Textarea rows={4} value={bodyEn} onChange={(event) => setBodyEn(event.target.value)} />
-          </div>
-        </div>
-
-        <div className="space-y-1.5 sm:max-w-[220px]">
-          <Label>{t`Show until`}</Label>
-          <Input type="date" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} />
-          <p className="text-xs text-muted-foreground">
-            {t`Empty means it stays until each person dismisses it.`}
-          </p>
-        </div>
+        <AnnouncementFields
+          draft={draft}
+          onChange={patchDraft}
+          workspaces={workspaces}
+          idPrefix="announcement-new"
+        />
 
         {error && (
           <Alert variant="destructive">
@@ -409,27 +256,13 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
         )}
 
         <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => void submit(true)}
-            disabled={publishing || !titleRu.trim() || !audienceReady}
-          >
-            {editing ? t`Save` : t`Publish`}
+          <Button onClick={() => void create(true)} disabled={publishing || !createReady}>
+            {t`Publish`}
           </Button>
-          {!editing && (
-            <Button
-              variant="outline"
-              onClick={() => void submit(false)}
-              disabled={publishing || !titleRu.trim() || !audienceReady}
-            >
-              {t`Save as draft`}
-            </Button>
-          )}
+          <Button variant="outline" onClick={() => void create(false)} disabled={publishing || !createReady}>
+            {t`Save as draft`}
+          </Button>
         </div>
-        {editing && (
-          <p className="text-xs text-muted-foreground">
-            {t`Editing does not bring the announcement back to people who already closed it — use "Show again to everyone" for that.`}
-          </p>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -440,7 +273,7 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
             <AlertDescription>{historyError}</AlertDescription>
           </Alert>
         )}
-        <div className="rounded-md border">
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -462,9 +295,9 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
                 </TableRow>
               )}
               {rows.map((row) => {
-                const status = rowStatus(row);
+                const status = announcementStatus(row);
                 return (
-                  <TableRow key={row.id} className={editingId === row.id ? 'bg-muted/50' : undefined}>
+                  <TableRow key={row.id}>
                     <TableCell className="max-w-[280px] truncate">{row.title}</TableCell>
                     <TableCell>
                       <Badge variant={status === 'live' ? 'default' : 'secondary'}>
@@ -483,10 +316,15 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => startEditing(row)}>
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              setEditError('');
+                              setEditing({ row, draft: draftFromRow(row) });
+                            }}
+                          >
                             {t`Edit`}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => startDuplicate(row)}>
+                          <DropdownMenuItem onSelect={() => setDraft(draftFromRow(row))}>
                             {t`Duplicate`}
                           </DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => openRepublish(row)}>
@@ -525,6 +363,40 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
         </div>
       </div>
 
+      <Dialog open={editing !== null} onOpenChange={(open) => { if (!open) setEditing(null); }}>
+        <DialogScrollContent className="space-y-4 p-6 sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t`Edit announcement`}</DialogTitle>
+            <DialogDescription>
+              {t`Editing does not bring the announcement back to people who already closed it — use "Show again to everyone" for that.`}
+            </DialogDescription>
+          </DialogHeader>
+          {editing && (
+            <AnnouncementFields
+              draft={editing.draft}
+              onChange={patchEditDraft}
+              workspaces={workspaces}
+              idPrefix="announcement-edit"
+            />
+          )}
+          {editError && (
+            <Alert variant="destructive">
+              <AlertTitle>{t`Error`}</AlertTitle>
+              <AlertDescription>{editError}</AlertDescription>
+            </Alert>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditing(null)}>{t`Cancel`}</Button>
+            <Button
+              onClick={() => void saveEdit()}
+              disabled={savingEdit || !editing || !isAnnouncementDraftReady(editing.draft)}
+            >
+              {t`Save`}
+            </Button>
+          </DialogFooter>
+        </DialogScrollContent>
+      </Dialog>
+
       <Dialog open={republishRow !== null} onOpenChange={(open) => { if (!open) setRepublishRow(null); }}>
         <DialogContent>
           <DialogHeader>
@@ -533,19 +405,19 @@ export const AdminAnnouncementForm: React.FC<AdminAnnouncementFormProps> = ({ wo
           </DialogHeader>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>{t`Show from`}</Label>
+              <Label htmlFor="announcement-republish-from">{t`Show from`}</Label>
               <Input
+                id="announcement-republish-from"
                 type="date"
                 value={republishFrom}
                 onChange={(event) => setRepublishFrom(event.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                {t`A future date schedules it.`}
-              </p>
+              <p className="text-xs text-muted-foreground">{t`A future date schedules it.`}</p>
             </div>
             <div className="space-y-1.5">
-              <Label>{t`Show until`}</Label>
+              <Label htmlFor="announcement-republish-until">{t`Show until`}</Label>
               <Input
+                id="announcement-republish-until"
                 type="date"
                 value={republishUntil}
                 onChange={(event) => setRepublishUntil(event.target.value)}
