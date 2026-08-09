@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import ProjectsPage from '@/features/projects/pages/ProjectsPage';
@@ -48,19 +48,6 @@ vi.mock('@/features/projects/components/ProjectsDialogs', () => ({
   ProjectsDialogs: () => null,
 }));
 
-vi.mock('@/features/projects/hooks/useProjectsViewPreferences', () => ({
-  useProjectsViewPreferences: () => ({
-    nameSort: 'asc',
-    setNameSort: vi.fn(),
-    groupByCustomer: false,
-    setGroupByCustomer: vi.fn(),
-    milestoneTab: 'active',
-    setMilestoneTab: vi.fn(),
-    milestoneGroupBy: 'month',
-    setMilestoneGroupBy: vi.fn(),
-  }),
-}));
-
 vi.mock('@/features/projects/hooks/useProjectsPageEffects', () => ({
   useProjectsPageEffects: vi.fn(),
 }));
@@ -78,7 +65,9 @@ vi.mock('@/features/projects/hooks/useProjectTasksQuery', () => ({
 
 const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
-    projects: [],
+    projects: [
+      { id: 'p1', name: 'Website redesign', code: 'WEB', color: '#3b82f6', archived: false, customerId: null },
+    ],
     milestones: [],
     trackedProjectIds: [],
     customers: [],
@@ -138,7 +127,7 @@ describe('ProjectsPage mobile layout', () => {
     useIsMobileMock.mockReset();
   });
 
-  it('uses a sheet-based sidebar on mobile', async () => {
+  it('puts the project list in the deck and walks into a project', async () => {
     useIsMobileMock.mockReturnValue(true);
     const user = userEvent.setup();
 
@@ -148,12 +137,54 @@ describe('ProjectsPage mobile layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Projects main panel')).toBeInTheDocument();
-    expect(screen.getByText('Select a project')).toBeInTheDocument();
+    // Level one is the list itself, not a button that opens a drawer.
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    expect(within(deck).getByPlaceholderText('Search projects...')).toBeInTheDocument();
+    expect(screen.queryByText('Projects sidebar')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Projects' }));
+    await user.click(within(deck).getByText('[WEB] Website redesign'));
 
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Projects sidebar')).toBeInTheDocument();
+    // Level two: the project's own screen, with a way back.
+    const detail = await screen.findByRole('dialog');
+    expect(within(detail).getByText('Projects main panel')).toBeInTheDocument();
+    expect(within(detail).getByRole('button', { name: 'Back' })).toBeInTheDocument();
+  });
+
+  it('swipes through all four sections', () => {
+    useIsMobileMock.mockReturnValue(true);
+
+    render(
+      <MemoryRouter>
+        <ProjectsPage />
+      </MemoryRouter>,
+    );
+
+    const strip = screen.getByRole('navigation', { name: 'Project sections' });
+    ['Projects', 'Milestones', 'Customers', 'Contacts'].forEach((label) => {
+      expect(within(strip).getByRole('button', { name: label })).toBeInTheDocument();
+    });
+
+    // Every section is mounted in the deck, so a swipe has somewhere to go.
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    expect(within(deck).getByPlaceholderText('Search projects...')).toBeInTheDocument();
+    expect(within(deck).getByPlaceholderText('Search milestones...')).toBeInTheDocument();
+    expect(within(deck).getByPlaceholderText('Search customers...')).toBeInTheDocument();
+  });
+
+  it('opens the project filters as a screen', async () => {
+    useIsMobileMock.mockReturnValue(true);
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <ProjectsPage />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Filters/ }));
+
+    const filters = await screen.findByRole('dialog', { name: 'Filters' });
+    expect(within(filters).getByText('Customers')).toBeInTheDocument();
+    expect(within(filters).getByRole('switch', { name: 'Show archived' })).toBeInTheDocument();
   });
 });

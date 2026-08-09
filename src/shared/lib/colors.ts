@@ -18,6 +18,45 @@ export const PROJECT_PRESET_COLORS = [
   '#84cc16',
 ] as const;
 
+/**
+ * Colours a person can be given in workspace settings, and the automatic
+ * fallback the calendar hands out by position (see
+ * features/planner/lib/timeOffPalette) — one list, so a hand-picked colour and
+ * an auto-assigned one are the same kind of colour.
+ *
+ * Twenty hues, 18° apart, each with its own saturation and lightness picked to
+ * push the colours apart: the closest pair is ΔE(Lab) ≈ 20, where the previous
+ * twelve-colour list had pairs down to 7.7 — "violet" and "periwinkle" were
+ * effectively the same swatch. src/test/shared/personPalette.test.ts enforces
+ * that floor so a future edit cannot quietly reintroduce a lookalike.
+ *
+ * Staying light is a requirement, not a taste: the colour becomes the background
+ * of a 28px day circle in the calendar with the day number drawn on top, and the
+ * avatar monogram derives a darker shade of the same hue for white initials.
+ */
+export const PERSON_PRESET_COLORS = [
+  '#e7cfcf', // rose mist — hue 0
+  '#cea08d', // clay — hue 18
+  '#deb373', // amber — hue 36
+  '#e5d96c', // butter — hue 54
+  '#bac68b', // olive — hue 72
+  '#a8d779', // apple — hue 90
+  '#84e56c', // lawn — hue 108
+  '#bcf0c1', // mint cream — hue 126
+  '#76db9e', // jade — hue 144
+  '#89c8b5', // eucalyptus — hue 162
+  '#c4f3f3', // ice — hue 180
+  '#6fbfe2', // sky — hue 198
+  '#c2d6f4', // powder blue — hue 216
+  '#8088d0', // denim — hue 234
+  '#afa6d3', // lavender — hue 252
+  '#a86ce5', // amethyst — hue 270
+  '#c27dd4', // orchid — hue 288
+  '#e2a2db', // lilac — hue 306
+  '#de73b3', // fuchsia — hue 324
+  '#ce8da0', // dusty rose — hue 342
+] as const;
+
 export const DASHBOARD_PASTEL_SKY_COLORS = [
   '#aec6cf',
   '#ffb7c5',

@@ -39,6 +39,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/shared/ui/c
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import {
   DashboardStatusFilter,
+  DashboardAssigneeOption,
+  DashboardStatus,
   DashboardMilestone,
   DashboardOption,
   DashboardWidget,
@@ -58,6 +60,7 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { CHART_GRID_STROKE_COLOR, DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
+import { buildPersonColorMap } from '@/features/planner/lib/timeOffPalette';
 
 const filterLabels: Record<DashboardStatusFilter, string> = {
   all: t`All statuses`,
@@ -83,6 +86,10 @@ interface DashboardWidgetCardProps {
   editing: boolean;
   milestones?: DashboardMilestone[];
   projects?: DashboardOption[];
+  /** Only the colours are read: a person grouped series is painted in their own. */
+  assignees?: DashboardAssigneeOption[];
+  /** Same, for a status grouped series. */
+  statuses?: DashboardStatus[];
   breakpoint?: DashboardBreakpoint;
   viewportProfile?: DashboardViewportProfile;
   touchInteractionMode?: boolean;
@@ -102,6 +109,8 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   editing,
   milestones = [],
   projects = [],
+  assignees = [],
+  statuses = [],
   breakpoint = 'lg',
   viewportProfile = 'desktop',
   touchInteractionMode = false,
@@ -487,10 +496,69 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     });
     return map;
   }, [hasSourceTimeSeries, isTimeSeriesChart, sourceSeries, sourceSeriesKeys]);
+  // Each grouping can be drawn in the colours its own entities carry rather than
+  // in palette slots: people get the colour from workspace settings (or the
+  // automatic one the calendar hands them — buildPersonColorMap is the calendar's
+  // own function, so both views agree), projects and statuses get theirs from
+  // their settings. Turn the matching toggle off and the widget palette paints
+  // everything, as it did before.
+  const entityColorByGroupId = React.useMemo(() => {
+    const groupBy = widget.groupBy;
+    if (groupBy === 'assignee' && widget.useAssigneeColors !== false) {
+      return buildPersonColorMap(assignees);
+    }
+    if (groupBy === 'project' && widget.useProjectColors !== false) {
+      const map = new Map<string, string>(
+        projects
+          .filter((project) => project.color)
+          .map((project) => [project.id, project.color as string]),
+      );
+      // "No project" is an absence, not a project — grey says so.
+      map.set('no-project', DEFAULT_NEUTRAL_COLOR);
+      return map;
+    }
+    if (groupBy === 'status' && widget.useStatusColors !== false) {
+      return new Map<string, string>(
+        statuses
+          .filter((status) => status.color)
+          .map((status) => [status.id, status.color]),
+      );
+    }
+    return new Map<string, string>();
+  }, [
+    assignees,
+    projects,
+    statuses,
+    widget.groupBy,
+    widget.useAssigneeColors,
+    widget.useProjectColors,
+    widget.useStatusColors,
+  ]);
+  const entityColorBySeries = React.useMemo(() => {
+    const map = new Map<string, string>();
+    if (entityColorByGroupId.size === 0) return map;
+
+    // Both spellings a chart may pass in: the label (bar/pie cells) and the
+    // sanitized series key (line/area).
+    sourceSeries.forEach((item) => {
+      const color = item.groupId ? entityColorByGroupId.get(item.groupId) : undefined;
+      if (color) map.set(item.name, color);
+    });
+    sourceSeriesKeys.forEach((seriesKey) => {
+      const color = seriesKey.groupId ? entityColorByGroupId.get(seriesKey.groupId) : undefined;
+      if (color) {
+        map.set(seriesKey.key, color);
+        map.set(seriesKey.label, color);
+      }
+    });
+    return map;
+  }, [entityColorByGroupId, sourceSeries, sourceSeriesKeys]);
   const getSeriesColor = React.useCallback((seriesNameOrKey: string, index: number) => {
+    const entityColor = entityColorBySeries.get(seriesNameOrKey);
+    if (entityColor) return entityColor;
     const resolvedIndex = colorIndexBySeries.get(seriesNameOrKey) ?? index;
     return paletteColors[resolvedIndex % paletteColors.length];
-  }, [colorIndexBySeries, paletteColors]);
+  }, [colorIndexBySeries, entityColorBySeries, paletteColors]);
   const chartLabelDataKey = getDashboardChartLabelDataKey(widget.type);
   const formatTooltipLabel = React.useCallback((value: string | number | undefined) => (
     formatDashboardChartTooltipLabel(widget.type, value, dateLocale)

@@ -1,16 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import {
   autoCapacityPerPerson,
+  availableHeadcount,
+  awayCountByDate,
   colorForLevel,
   dayPercent,
   DEFAULT_CAPACITY_PER_PERSON,
+  historyLoadPerPerson,
   levelForPercent,
   milestoneKernelSum,
   MILESTONE_CREW,
   resolveCapacity,
   workloadMilestones,
 } from '@/features/dashboard/lib/workloadHeatmap';
-import type { DashboardMilestone } from '@/features/dashboard/types/dashboard';
+import type { DashboardMilestone, DashboardTimeOff } from '@/features/dashboard/types/dashboard';
 
 const milestone = (
   date: string,
@@ -163,6 +166,104 @@ describe('capacity resolution', () => {
     expect(auto).not.toBeNull();
     expect(auto as number).toBeGreaterThan(10);
     expect(auto as number).toBeLessThanOrEqual(20);
+  });
+});
+
+describe('absences', () => {
+  const WINDOW = { startIso: '2026-07-01', endIso: '2026-07-31' };
+  const ACTIVE = new Set(['a1', 'a2', 'a3']);
+  const record = (
+    assigneeId: string,
+    startDate: string,
+    endDate: string,
+  ): DashboardTimeOff => ({ id: `${assigneeId}-${startDate}`, assigneeId, startDate, endDate });
+
+  it('covers both ends of the period', () => {
+    const away = awayCountByDate([record('a1', '2026-07-10', '2026-07-12')], ACTIVE, WINDOW);
+    expect(away.get('2026-07-09')).toBeUndefined();
+    expect(away.get('2026-07-10')).toBe(1);
+    expect(away.get('2026-07-11')).toBe(1);
+    expect(away.get('2026-07-12')).toBe(1);
+    expect(away.get('2026-07-13')).toBeUndefined();
+  });
+
+  it('clips a period that starts before or ends after the window', () => {
+    const away = awayCountByDate([record('a1', '2026-06-20', '2026-08-10')], ACTIVE, WINDOW);
+    expect(away.get('2026-07-01')).toBe(1);
+    expect(away.get('2026-07-31')).toBe(1);
+    expect(away.size).toBe(31);
+    expect(away.get('2026-06-30')).toBeUndefined();
+    expect(away.get('2026-08-01')).toBeUndefined();
+  });
+
+  it('drops a period that misses the window entirely', () => {
+    const away = awayCountByDate([record('a1', '2026-05-01', '2026-05-05')], ACTIVE, WINDOW);
+    expect(away.size).toBe(0);
+  });
+
+  it('adds up different people on the same day', () => {
+    const away = awayCountByDate(
+      [record('a1', '2026-07-10', '2026-07-10'), record('a2', '2026-07-10', '2026-07-11')],
+      ACTIVE,
+      WINDOW,
+    );
+    expect(away.get('2026-07-10')).toBe(2);
+    expect(away.get('2026-07-11')).toBe(1);
+  });
+
+  it('counts one person once even if two records cover the same day', () => {
+    const away = awayCountByDate(
+      [record('a1', '2026-07-10', '2026-07-12'), record('a1', '2026-07-11', '2026-07-13')],
+      ACTIVE,
+      WINDOW,
+    );
+    expect(away.get('2026-07-11')).toBe(1);
+    expect(away.get('2026-07-13')).toBe(1);
+  });
+
+  it('ignores absences of people who are not in the headcount', () => {
+    const away = awayCountByDate([record('gone', '2026-07-10', '2026-07-10')], ACTIVE, WINDOW);
+    expect(away.size).toBe(0);
+  });
+
+  it('is empty without records or without an active team', () => {
+    expect(awayCountByDate([], ACTIVE, WINDOW).size).toBe(0);
+    expect(awayCountByDate([record('a1', '2026-07-10', '2026-07-10')], new Set(), WINDOW).size).toBe(0);
+  });
+
+  it('never reports a negative availability', () => {
+    expect(availableHeadcount(6, 2)).toBe(4);
+    expect(availableHeadcount(6, 6)).toBe(0);
+    expect(availableHeadcount(2, 5)).toBe(0);
+  });
+
+  it('skips a day with nobody available when calibrating capacity', () => {
+    expect(historyLoadPerPerson(12, 4)).toBe(3);
+    expect(historyLoadPerPerson(12, 0)).toBeNull();
+  });
+});
+
+describe('dayPercent with absences', () => {
+  it('reads hotter when the same tasks land on fewer people', () => {
+    // 20 tasks, capacity 5: a full team of 8 is at 50%...
+    expect(dayPercent(20, 8, 5, 0)).toBe(50);
+    // ...and with two of them away the same work is 67% of a day.
+    expect(dayPercent(20, 6, 5, 0)).toBe(67);
+  });
+
+  it('caps the milestone crew at the people who are actually there', () => {
+    // Three deliveries would pin 4.2 people; only 2 are available → 100%, no more.
+    expect(dayPercent(0, 2, 5, 3)).toBe(100);
+    // One delivery pins its crew out of 2 available instead of out of 4.
+    expect(dayPercent(0, 2, 5, 1)).toBe(Math.round((MILESTONE_CREW / 2) * 100));
+  });
+
+  it('matches the pre-absence numbers when nobody is away', () => {
+    // Regression guard: availableHeadcount(headcount, 0) === headcount, so every
+    // number a workspace without time off sees must stay exactly as it was.
+    expect(dayPercent(20, availableHeadcount(8, 0), 5, 0)).toBe(50);
+    expect(dayPercent(0, availableHeadcount(4, 0), 5, 1)).toBe(35);
+    expect(dayPercent(16, availableHeadcount(4, 0), 5, 4)).toBe(180);
   });
 });
 

@@ -73,3 +73,49 @@ if (typeof htmlElementProto.releasePointerCapture !== "function") {
 if (typeof htmlElementProto.scrollIntoView !== "function") {
   htmlElementProto.scrollIntoView = () => {};
 }
+
+// jsdom has no ResizeObserver, and Radix's scroll area subscribes to one the
+// moment it mounts — without this, any test that renders a scrollable panel
+// dies in a layout effect rather than on an assertion. Nothing is ever
+// observed in jsdom, so a no-op is the honest stand-in.
+if (typeof (window as Window & { ResizeObserver?: unknown }).ResizeObserver !== "function") {
+  class ResizeObserverStub {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+
+  Object.defineProperty(window, "ResizeObserver", {
+    writable: true,
+    configurable: true,
+    value: ResizeObserverStub,
+  });
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    writable: true,
+    configurable: true,
+    value: ResizeObserverStub,
+  });
+}
+
+// jsdom ships no PointerEvent, and Testing Library then falls back to a plain
+// Event — which drops clientX/clientY, so pointer-driven gestures (the mobile
+// swipe deck, the menu sheet's drag-to-dismiss) look like zero-distance moves.
+// MouseEvent already carries the coordinates; only pointerId has to be added.
+if (typeof (window as Window & { PointerEvent?: unknown }).PointerEvent !== "function") {
+  class PointerEventPolyfill extends MouseEvent {
+    readonly pointerId: number;
+    readonly pointerType: string;
+
+    constructor(type: string, params: PointerEventInit = {}) {
+      super(type, params);
+      this.pointerId = params.pointerId ?? 0;
+      this.pointerType = params.pointerType ?? "touch";
+    }
+  }
+
+  Object.defineProperty(window, "PointerEvent", {
+    writable: true,
+    configurable: true,
+    value: PointerEventPolyfill,
+  });
+}

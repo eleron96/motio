@@ -51,6 +51,16 @@ export type DashboardWidget = {
   groupBy?: DashboardGroupBy;
   size?: DashboardWidgetSize;
   barPalette?: DashboardBarPalette;
+  /**
+   * Paint each person in their own colour instead of the widget palette. Only
+   * meaningful when grouping by assignee; defaults to on, which is how charts
+   * behaved when person colours shipped.
+   */
+  useAssigneeColors?: boolean;
+  /** Same for projects, which carry a colour of their own. Defaults to on. */
+  useProjectColors?: boolean;
+  /** Same for statuses. Defaults to on. */
+  useStatusColors?: boolean;
   showLegend?: boolean;
   milestoneView?: DashboardMilestoneView;
   milestoneCalendarMode?: DashboardMilestoneCalendarMode;
@@ -110,6 +120,18 @@ export type DashboardMilestone = {
   includeInWorkload: boolean;
 };
 
+/**
+ * A person's days off inside the heatmap window. Only what the workload math
+ * needs — the note stays on the timeline, where the record is edited.
+ */
+export type DashboardTimeOff = {
+  id: string;
+  assigneeId: string;
+  /** Inclusive on both ends, mirroring the time_off table (migration 0131). */
+  startDate: string;
+  endDate: string;
+};
+
 export type DashboardStatsRow = {
   assignee_id: string | null;
   assignee_name: string | null;
@@ -127,6 +149,13 @@ export type DashboardStatsRow = {
 export type DashboardSeriesItem = {
   name: string;
   value: number;
+  /**
+   * Id of the entity the series stands for — an assignee, project, status or
+   * task type — or a sentinel like 'unassigned'. Carried so a series can be
+   * painted in that entity's own colour instead of a palette slot; a label is
+   * not enough, two people can share a name.
+   */
+  groupId?: string;
 };
 
 export type DashboardSeriesRow = {
@@ -152,6 +181,8 @@ export type DashboardTimeSeriesPoint = {
 export type DashboardSeriesKey = {
   key: string;
   label: string;
+  /** See DashboardSeriesItem.groupId — same id, for time-series charts. */
+  groupId?: string;
 };
 
 export type DashboardWidgetData = {

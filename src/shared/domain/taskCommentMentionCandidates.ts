@@ -2,12 +2,15 @@ export type WorkspaceMentionMember = {
   userId: string | null | undefined;
   email: string | null | undefined;
   displayName: string | null | undefined;
+  avatarUrl?: string | null;
 };
 
 export type TaskCommentMentionCandidate = {
   id: string;
   userId: string;
   name: string;
+  /** The person's photo, so the suggestion list shows a face, not initials. */
+  avatarUrl: string | null;
 };
 
 export const buildTaskCommentMentionCandidates = (
@@ -28,6 +31,7 @@ export const buildTaskCommentMentionCandidates = (
       id: userId,
       userId,
       name,
+      avatarUrl: member.avatarUrl ?? null,
     });
   });
 

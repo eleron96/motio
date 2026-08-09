@@ -160,7 +160,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
       </div>
 
       {/* Comment list */}
-      <ScrollArea className="max-h-[50vh]">
+      <ScrollArea className="max-h-[45svh] md:max-h-[50vh]">
         <div className="pr-2">
           {/* Load more (older) */}
           {nextCursor && (

@@ -4,7 +4,7 @@ import { MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
-import { Textarea } from '@/shared/ui/textarea';
+import { AutoGrowTextarea } from '@/shared/ui/auto-grow-textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,11 @@ interface SubtasksSectionProps {
    * parent (task panel) can warn before closing and losing them.
    */
   onEditingDirtyChange?: (dirty: boolean) => void;
+  /**
+   * Fires while an inline subtask edit is open at all, so the parent can keep
+   * Escape from closing the panel instead of just cancelling that edit.
+   */
+  onEditingActiveChange?: (active: boolean) => void;
 }
 
 export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
@@ -64,6 +69,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onToggle,
   onDelete,
   onEditingDirtyChange,
+  onEditingActiveChange,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -82,6 +88,13 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
     onEditingDirtyChange?.(isEditingDirty);
     return () => onEditingDirtyChange?.(false);
   }, [isEditingDirty, onEditingDirtyChange]);
+
+  const isEditingActive = editingId !== null;
+
+  useEffect(() => {
+    onEditingActiveChange?.(isEditingActive);
+    return () => onEditingActiveChange?.(false);
+  }, [isEditingActive, onEditingActiveChange]);
 
   const startEditing = (subtaskId: string, title: string) => {
     setEditingId(subtaskId);
@@ -147,7 +160,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                 disabled={isReadOnly || editingId === subtask.id}
               />
               {editingId === subtask.id ? (
-                <Textarea
+                <AutoGrowTextarea
                   autoFocus
                   value={editingTitle}
                   onChange={(event) => setEditingTitle(event.target.value)}
@@ -164,7 +177,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   onBlur={() => void commitEditing(subtask.id)}
                   disabled={isReadOnly}
                   rows={2}
-                  className="min-h-[56px] flex-1 resize-y text-sm"
+                  className="min-h-[56px] flex-1 text-sm"
                 />
               ) : (
                 <button
@@ -221,20 +234,33 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
 
       {!isReadOnly && (
         <div className="flex items-start gap-2 pt-0.5">
-          <Textarea
+          <AutoGrowTextarea
             ref={subtaskInputRef}
             value={newSubtaskTitle}
             onChange={(event) => onNewTitleChange(event.target.value)}
             onKeyDown={(event) => {
+              // Escape drops the draft; the task panel keeps that key from
+              // closing the whole task while a draft is unsent.
+              if (event.key === 'Escape' && newSubtaskTitle !== '') {
+                event.preventDefault();
+                onNewTitleChange('');
+                return;
+              }
               // Enter adds the subtask; Shift+Enter inserts a newline.
               if (event.key !== 'Enter' || event.shiftKey) return;
               event.preventDefault();
               onAdd();
             }}
+            onBlur={() => {
+              // Trailing blank lines never reach the saved subtask, so drop them
+              // here instead of leaving the field stretched over empty rows.
+              const trimmed = newSubtaskTitle.trim();
+              if (trimmed !== newSubtaskTitle) onNewTitleChange(trimmed);
+            }}
             rows={1}
             placeholder={t`Subtask title`}
             disabled={subtasksSaving}
-            className="min-h-[36px] flex-1 resize-y text-sm"
+            className="min-h-[36px] flex-1 text-sm"
           />
           <Button
             type="button"

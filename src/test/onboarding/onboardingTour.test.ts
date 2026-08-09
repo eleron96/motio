@@ -132,33 +132,45 @@ describe('createOnboardingTour', () => {
     expect(onAdvance).toHaveBeenCalledWith('dashboard');
   });
 
-  it('opens Team access before moving to the add member step', () => {
-    vi.useFakeTimers();
-    const prepareMembersAccess = vi.fn();
-    document.body.innerHTML = '<button data-tour="members-add-member">Add member</button>';
-
+  it('points an admin at workspace settings for team access', () => {
     createOnboardingTour({
       pageId: 'members',
       isAdmin: true,
-      prepareMembersAccess,
       onAdvance: vi.fn(),
       onDismiss: vi.fn(),
       onComplete: vi.fn(),
     });
 
+    const steps = capturedConfig.steps as Array<{ element?: string }>;
+
+    // Access no longer lives on this page, so the tour hands people the door to
+    // it — the settings button — instead of a tab that is gone.
+    expect(steps.map((step) => step.element)).toEqual([
+      '[data-tour="members-people-tab"]',
+      '[data-tour="settings-btn"]',
+      undefined,
+    ]);
+  });
+
+  it('completes the tour on the last members step', () => {
+    const onComplete = vi.fn();
+
+    createOnboardingTour({
+      pageId: 'members',
+      isAdmin: true,
+      onAdvance: vi.fn(),
+      onDismiss: vi.fn(),
+      onComplete,
+    });
+
     const steps = capturedConfig.steps as Array<{
       popover?: { onNextClick?: (...args: unknown[]) => void };
     }>;
-    const firstStep = steps[0];
 
-    firstStep.popover?.onNextClick?.(
-      undefined,
-      undefined,
-      { driver: driverDouble },
-    );
+    steps.at(-1)?.popover?.onNextClick?.();
+    expect(driverDouble.destroy).toHaveBeenCalledTimes(1);
 
-    expect(prepareMembersAccess).toHaveBeenCalledTimes(1);
-    vi.advanceTimersByTime(100);
-    expect(driverDouble.moveNext).toHaveBeenCalledTimes(1);
+    (capturedConfig.onDestroyed as (() => void) | undefined)?.();
+    expect(onComplete).toHaveBeenCalledTimes(1);
   });
 });

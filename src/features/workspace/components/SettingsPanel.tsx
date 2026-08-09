@@ -29,10 +29,9 @@ import {
   Ban,
   Check,
   ChevronsUpDown,
-  ChevronLeft,
-  ChevronRight,
   Building2,
   Eye,
+  Users,
   Workflow,
   LayoutTemplate,
   AlertTriangle,
@@ -46,8 +45,13 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobileStackScreen, type MobileStackSection } from '@/shared/ui/mobile-stack-screen';
+import { MobileStepper } from '@/shared/ui/mobile-stepper';
+import { useMobileMenu } from '@/features/workspace/components/MobileMenuContext';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
+import { Block, SettingRow } from '@/features/workspace/components/settingsBlocks';
+import { WorkspaceMembersSection } from '@/features/workspace/components/WorkspaceMembersSection';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsPanelProps {
@@ -57,40 +61,7 @@ interface SettingsPanelProps {
 
 import { fetchHolidayCountries, type HolidayCountryOption } from '@/infrastructure/holidays/holidayApi';
 
-type SectionId = 'general' | 'display' | 'workflow' | 'template' | 'danger';
-
-// A settings sub-block: a heading (and optional description) above its controls.
-const Block: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({
-  title,
-  description,
-  children,
-}) => (
-  <section className="space-y-3 border-t border-border pt-5 first:border-t-0 first:pt-0">
-    <div className="space-y-1">
-      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      {description && <p className="text-xs text-muted-foreground">{description}</p>}
-    </div>
-    {children}
-  </section>
-);
-
-// Reference-style row: label + description on the left, control on the right.
-const SettingRow: React.FC<{ title: React.ReactNode; description?: string; htmlFor?: string; children: React.ReactNode }> = ({
-  title,
-  description,
-  htmlFor,
-  children,
-}) => (
-  <div className="flex items-center justify-between gap-4">
-    <div className="min-w-0 space-y-0.5">
-      <Label htmlFor={htmlFor} className="block text-sm font-medium text-foreground">
-        {title}
-      </Label>
-      {description && <p className="text-xs text-muted-foreground">{description}</p>}
-    </div>
-    <div className="shrink-0">{children}</div>
-  </div>
-);
+type SectionId = 'general' | 'display' | 'people' | 'workflow' | 'template' | 'danger';
 
 const autoResize = (element: HTMLTextAreaElement | null) => {
   if (!element) return;
@@ -194,6 +165,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const [heatmapSaving, setHeatmapSaving] = useState(false);
   const [heatmapCapacityInput, setHeatmapCapacityInput] = useState('');
   const [heatmapCapacitySaving, setHeatmapCapacitySaving] = useState(false);
+  // The mobile stepper works on a number; an empty field means "auto".
+  const heatmapCapacityValue = useMemo(() => {
+    const parsed = Number(heatmapCapacityInput.trim().replace(',', '.'));
+    return heatmapCapacityInput.trim() !== '' && Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [heatmapCapacityInput]);
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
@@ -203,9 +179,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   );
 
   const [activeSection, setActiveSection] = useState<SectionId>('general');
-  // Mobile drill-in: the section list and the section content are separate
-  // screens (like the reference). On desktop both columns are always visible.
-  const [mobileSectionOpen, setMobileSectionOpen] = useState(false);
+  // On mobile the panel is a full-screen stack whose sections are swipeable, so
+  // going "back" hands control to the menu sheet it was opened from.
+  const { openMenu } = useMobileMenu();
 
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceHolidayCountry, setWorkspaceHolidayCountry] = useState('RU');
@@ -229,7 +205,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   useEffect(() => {
     if (!open) return;
     setActiveSection('general');
-    setMobileSectionOpen(false);
     setWorkspaceName(currentWorkspace?.name ?? '');
     setWorkspaceHolidayCountry((currentWorkspace?.holidayCountry ?? 'RU').toUpperCase());
     setHolidayCountryOpen(false);
@@ -456,6 +431,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const sections: Array<{ id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
     { id: 'general', label: t`General`, icon: Building2 },
     { id: 'display', label: t`Display`, icon: Eye },
+    { id: 'people', label: t`Members and access`, icon: Users },
     { id: 'workflow', label: t`Workflow`, icon: Workflow },
     { id: 'template', label: t`Template`, icon: LayoutTemplate },
     { id: 'danger', label: t`Danger zone`, icon: AlertTriangle },
@@ -585,6 +561,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
         >
           <Switch
             id="settings-show-unassigned"
+            size={isMobile ? 'touch' : 'default'}
             checked={showUnassigned}
             onCheckedChange={handleToggleShowUnassigned}
             aria-label={t`Show unassigned`}
@@ -607,6 +584,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           >
             <Switch
               id="settings-heatmap-enabled"
+              size={isMobile ? 'touch' : 'default'}
               checked={currentWorkspace?.heatmapEnabled ?? false}
               onCheckedChange={handleToggleHeatmap}
               disabled={!isAdmin || !currentWorkspaceId || heatmapSaving}
@@ -619,19 +597,36 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
                 {t`Full working day (tasks per person)`}
               </Label>
               <div className="flex items-center gap-2">
-                <Input
-                  id="settings-heatmap-capacity"
-                  type="number"
-                  min="1"
-                  step="0.5"
-                  inputMode="decimal"
-                  placeholder={heatmapCapacityPlaceholder}
-                  value={heatmapCapacityInput}
-                  onChange={(event) => setHeatmapCapacityInput(event.target.value)}
-                  disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
-                  className="w-32"
-                />
+                {isMobile ? (
+                  // A number field would summon the keyboard over half the
+                  // screen for a value that only ever moves in half steps.
+                  <MobileStepper
+                    value={heatmapCapacityValue}
+                    onChange={(next) => setHeatmapCapacityInput(String(next))}
+                    fallback={Math.max(1, Math.round(heatmapAutoCapacity ?? 5))}
+                    min={1}
+                    max={20}
+                    step={0.5}
+                    placeholder={heatmapCapacityPlaceholder}
+                    disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
+                    aria-label={t`Full working day (tasks per person)`}
+                  />
+                ) : (
+                  <Input
+                    id="settings-heatmap-capacity"
+                    type="number"
+                    min="1"
+                    step="0.5"
+                    inputMode="decimal"
+                    placeholder={heatmapCapacityPlaceholder}
+                    value={heatmapCapacityInput}
+                    onChange={(event) => setHeatmapCapacityInput(event.target.value)}
+                    disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
+                    className="w-32"
+                  />
+                )}
                 <Button
+                  className={isMobile ? 'h-11 flex-1' : undefined}
                   onClick={handleSaveHeatmapCapacity}
                   disabled={
                     !isAdmin
@@ -656,6 +651,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
       )}
     </div>
   );
+
+  const peopleContent = <WorkspaceMembersSection />;
 
   const workflowContent = (
     <div className="space-y-5">
@@ -936,6 +933,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const sectionContent: Record<SectionId, React.ReactNode> = {
     general: generalContent,
     display: displayContent,
+    people: peopleContent,
     workflow: workflowContent,
     template: templateContent,
     danger: dangerContent,
@@ -943,7 +941,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const activeLabel = sections.find((section) => section.id === activeSection)?.label ?? '';
 
-  const renderNav = (onPick?: () => void) => (
+  const renderNav = () => (
     <nav className="flex flex-col gap-1">
       {sections.map((section) => {
         const Icon = section.icon;
@@ -953,10 +951,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           <button
             key={section.id}
             type="button"
-            onClick={() => {
-              setActiveSection(section.id);
-              onPick?.();
-            }}
+            onClick={() => setActiveSection(section.id)}
             aria-current={active ? 'page' : undefined}
             className={cn(
               'flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors',
@@ -968,17 +963,42 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           >
             <Icon className="h-4 w-4 shrink-0" />
             <span className="flex-1 truncate">{section.label}</span>
-            {isMobile && <ChevronRight className="h-4 w-4 shrink-0 opacity-50" />}
           </button>
         );
       })}
     </nav>
   );
 
+  const mobileSections: MobileStackSection[] = sections.map((section) => ({
+    id: section.id,
+    label: section.label,
+    tone: section.id === 'danger' ? 'danger' : undefined,
+    content: sectionContent[section.id],
+  }));
+
+  const handleMobileBack = () => {
+    onOpenChange(false);
+    openMenu();
+  };
+
   return (
     <>
+      {isMobile ? (
+        <MobileStackScreen
+          open={open}
+          onOpenChange={onOpenChange}
+          title={t`Workspace settings`}
+          description={t`Choose how your workspace looks and behaves`}
+          onBack={handleMobileBack}
+          sections={mobileSections}
+          activeId={activeSection}
+          onActiveChange={(id) => setActiveSection(id as SectionId)}
+        />
+      ) : (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[980px] w-[90vw] sm:w-[840px] md:w-[980px] h-[90vh] overflow-hidden flex flex-col">
+        {/* Wide enough for the member rows (role, group, status and actions all
+            sit on one line) without the settings forms looking stranded. */}
+        <DialogContent className="max-w-[1120px] w-[92vw] sm:w-[840px] md:w-[980px] lg:w-[1120px] h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings2 className="w-5 h-5" />
@@ -989,42 +1009,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
             </DialogDescription>
           </DialogHeader>
 
-          {isMobile ? (
-            <div className="mt-2 flex-1 min-h-0 overflow-y-auto">
-              {mobileSectionOpen ? (
-                <div className="space-y-4">
-                  <button
-                    type="button"
-                    onClick={() => setMobileSectionOpen(false)}
-                    className="-ml-1 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    {t`All settings`}
-                  </button>
-                  <h2 className={cn('text-base font-semibold', activeSection === 'danger' && 'text-destructive')}>
-                    {activeLabel}
-                  </h2>
-                  {sectionContent[activeSection]}
-                </div>
-              ) : (
-                renderNav(() => setMobileSectionOpen(true))
-              )}
+          <div className="mt-2 grid flex-1 min-h-0 grid-cols-[200px_1fr] gap-6">
+            <div className="border-r border-border pr-3">
+              {renderNav()}
             </div>
-          ) : (
-            <div className="mt-2 grid flex-1 min-h-0 grid-cols-[200px_1fr] gap-6">
-              <div className="border-r border-border pr-3">
-                {renderNav()}
-              </div>
-              <div className="min-w-0 overflow-y-auto pr-1">
-                <h2 className={cn('mb-4 text-base font-semibold', activeSection === 'danger' && 'text-destructive')}>
-                  {activeLabel}
-                </h2>
-                {sectionContent[activeSection]}
-              </div>
+            <div className="min-w-0 overflow-y-auto pr-1">
+              <h2 className={cn('mb-4 text-base font-semibold', activeSection === 'danger' && 'text-destructive')}>
+                {activeLabel}
+              </h2>
+              {sectionContent[activeSection]}
             </div>
-          )}
+          </div>
         </DialogContent>
       </Dialog>
+      )}
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>

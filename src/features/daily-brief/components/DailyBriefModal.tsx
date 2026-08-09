@@ -68,7 +68,12 @@ export const DailyBriefModal = ({ open, onDismiss, workspaceId, assigneeId }: Pr
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onDismiss(); }}>
-      <DialogContent className="sm:max-w-[480px] z-[60]" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent
+        className="sm:max-w-[480px] z-[60]"
+        onInteractOutside={(e) => e.preventDefault()}
+        /* easter egg — lets an egg lay itself out around the card instead of behind it */
+        data-daily-brief-card=""
+      >
         <EasterEggSlot active={open} /> {/* easter egg — safe to delete */}
         <DialogHeader className="space-y-1">
           <DialogTitle {...reveal(REVEAL_DELAY.title, 'text-primary text-xl')}>

@@ -77,6 +77,7 @@ export type AssigneeRow = {
   is_active: boolean;
   email: string | null;
   phone: string | null;
+  color?: string | null;
 };
 
 export type ProjectMemberRow = {
@@ -286,6 +287,7 @@ export const mapAssigneeRow = (row: AssigneeRow): Assignee => ({
   isActive: row.is_active ?? true,
   email: row.email ?? null,
   phone: row.phone ?? null,
+  color: row.color ?? null,
 });
 
 export const mapProjectMemberRow = (row: ProjectMemberRow): ProjectMember => ({

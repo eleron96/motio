@@ -18,6 +18,9 @@ const adminUsersListRequestSchema = z.object({
   page: z.number().int().positive().optional(),
   perPage: z.number().int().positive().optional(),
   loadAll: z.boolean().optional(),
+  // The user list hides super admins, which is right for the users page and
+  // wrong when picking somebody to give an easter egg to — including yourself.
+  includeSuperAdmins: z.boolean().optional(),
 }).strict();
 
 const adminUsersCreateRequestSchema = z.object({
@@ -86,13 +89,27 @@ const adminEasterEggsListRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_LIST),
 }).strict();
 
+const easterEggAudienceKindSchema = z.enum(['user', 'domain', 'workspace', 'all_active']);
+
 const adminEasterEggsSaveRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_SAVE),
   id: z.string().uuid().optional(),
-  userId: z.string().uuid(),
+  audienceKind: easterEggAudienceKindSchema,
+  // Set for a personal assignment; every other audience carries its value in
+  // `audienceValue` instead.
+  userId: z.string().uuid().optional(),
+  audienceValue: z.string().max(255).optional(),
   eggKey: z.string().min(1).max(64),
   enabled: z.boolean(),
   note: z.string().max(500).optional(),
+  startsAt: z.string().datetime().nullable().optional(),
+  endsAt: z.string().datetime().nullable().optional(),
+}).strict();
+
+const adminEasterEggsAudienceRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_AUDIENCE),
+  audienceKind: easterEggAudienceKindSchema,
+  audienceValue: z.string().max(255).optional(),
 }).strict();
 
 const adminEasterEggsDeleteRequestSchema = z.object({
@@ -139,6 +156,56 @@ const adminBroadcastsTickRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.BROADCASTS_TICK),
 }).strict();
 
+const announcementLevelSchema = z.enum(['info', 'critical']);
+const announcementAudienceKindSchema = z.enum(['all_active', 'domain', 'workspace']);
+
+const adminAnnouncementsPublishRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH),
+  titleRu: z.string().min(1).max(200),
+  titleEn: z.string().max(200).optional(),
+  bodyRu: z.string().max(2000).optional(),
+  bodyEn: z.string().max(2000).optional(),
+  level: announcementLevelSchema,
+  audienceKind: announcementAudienceKindSchema,
+  audienceValue: z.string().max(255).optional(),
+  endsAt: z.string().datetime().optional(),
+  published: z.boolean().optional(),
+}).strict();
+
+const adminAnnouncementsListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_LIST),
+}).strict();
+
+const adminAnnouncementsUnpublishRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UNPUBLISH),
+  announcementId: z.string().uuid(),
+}).strict();
+
+const adminAnnouncementsUpdateRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE),
+  announcementId: z.string().uuid(),
+  titleRu: z.string().min(1).max(200).optional(),
+  titleEn: z.string().max(200).optional(),
+  bodyRu: z.string().max(2000).optional(),
+  bodyEn: z.string().max(2000).optional(),
+  level: announcementLevelSchema.optional(),
+  audienceKind: announcementAudienceKindSchema.optional(),
+  audienceValue: z.string().max(255).nullable().optional(),
+  startsAt: z.string().datetime().optional(),
+  endsAt: z.string().datetime().nullable().optional(),
+  published: z.boolean().optional(),
+}).strict();
+
+const adminAnnouncementsDeleteRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_DELETE),
+  announcementId: z.string().uuid(),
+}).strict();
+
+const adminAnnouncementsResetReadsRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_RESET_READS),
+  announcementId: z.string().uuid(),
+}).strict();
+
 export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBootstrapSyncRequestSchema,
   adminUsersListRequestSchema,
@@ -157,12 +224,19 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminEasterEggsListRequestSchema,
   adminEasterEggsSaveRequestSchema,
   adminEasterEggsDeleteRequestSchema,
+  adminEasterEggsAudienceRequestSchema,
   adminBroadcastsAudienceRequestSchema,
   adminBroadcastsSendRequestSchema,
   adminBroadcastsProcessRequestSchema,
   adminBroadcastsListRequestSchema,
   adminBroadcastsCancelRequestSchema,
   adminBroadcastsTickRequestSchema,
+  adminAnnouncementsPublishRequestSchema,
+  adminAnnouncementsListRequestSchema,
+  adminAnnouncementsUnpublishRequestSchema,
+  adminAnnouncementsUpdateRequestSchema,
+  adminAnnouncementsDeleteRequestSchema,
+  adminAnnouncementsResetReadsRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;

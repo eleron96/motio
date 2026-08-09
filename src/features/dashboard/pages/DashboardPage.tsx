@@ -39,6 +39,8 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MOBILE_FAB_BUTTON_CLASS } from '@/shared/ui/mobile-fab';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { cn } from '@/shared/lib/classNames';
 import {
@@ -208,6 +210,7 @@ const DashboardPage = () => {
   const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
   const workspacesLoaded = useAuthStore((state) => state.workspacesLoaded);
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
+  const isMobile = useIsMobile();
   const currentWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === currentWorkspaceId) ?? null,
     [workspaces, currentWorkspaceId],
@@ -618,8 +621,8 @@ const DashboardPage = () => {
       primaryAction: canEdit && !isHeatmapView ? (
         <Button
           data-tour="dashboard-add-widget"
-          size="sm"
-          className="gap-2"
+          size={isMobile ? 'default' : 'sm'}
+          className={isMobile ? MOBILE_FAB_BUTTON_CLASS : 'gap-2'}
           onClick={() => {
             setEditingWidget(null);
             setEditorOpen(true);
@@ -633,7 +636,7 @@ const DashboardPage = () => {
       onOpenSettings: () => setShowSettings(true),
       onOpenAccountSettings: () => setShowAccountSettings(true),
     },
-    [canEdit, canAddWidget, isHeatmapView],
+    [canEdit, canAddWidget, isHeatmapView, isMobile],
   );
 
   if (isSuperAdmin && workspacesLoaded && workspaces.length === 0) {
@@ -798,6 +801,8 @@ const DashboardPage = () => {
           editing={canEdit}
           milestones={milestones}
           projects={projects}
+          assignees={assignees}
+          statuses={statuses}
           breakpoint={currentBreakpoint}
           viewportProfile={currentViewportProfile}
           touchInteractionMode={isTouchReorderMode}

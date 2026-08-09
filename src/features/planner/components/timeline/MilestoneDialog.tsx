@@ -204,7 +204,9 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-10 top-2.5 h-7 w-7 text-muted-foreground hover:text-foreground"
+                // Same trick as the close button beside it: the glyph keeps its
+                // place, the target grows to 36px.
+                className="absolute right-9 top-1.5 h-9 w-9 text-muted-foreground hover:text-foreground"
                 aria-label={t`More actions`}
               >
                 <MoreVertical className="h-4 w-4" />

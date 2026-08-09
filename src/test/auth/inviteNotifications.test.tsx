@@ -191,4 +191,77 @@ describe('InviteNotifications', () => {
 
     expect(screen.getByText('No notifications.')).toBeInTheDocument();
   });
+
+  it('accents unread rows and leaves read ones plain', async () => {
+    const user = userEvent.setup();
+    mocks.invoke.mockImplementation(async (name: string) => {
+      if (name === 'inbox') {
+        return {
+          data: {
+            invites: [],
+            sentInvites: [],
+            notifications: [
+              {
+                id: 'n-unread',
+                type: 'task_assigned',
+                workspaceId: 'workspace-1',
+                workspaceName: 'Workspace',
+                actorUserId: 'user-2',
+                actorDisplayName: 'Anna',
+                actorEmail: 'anna@example.com',
+                taskId: 'task-1',
+                taskTitle: 'Fresh task',
+                taskStartDate: '2026-03-11',
+                taskExists: true,
+                commentId: null,
+                commentPreview: null,
+                createdAt: '2026-03-11T10:00:00.000Z',
+                readAt: null,
+              },
+              {
+                id: 'n-read',
+                type: 'task_assigned',
+                workspaceId: 'workspace-1',
+                workspaceName: 'Workspace',
+                actorUserId: 'user-2',
+                actorDisplayName: 'Anna',
+                actorEmail: 'anna@example.com',
+                taskId: 'task-2',
+                taskTitle: 'Seen task',
+                taskStartDate: '2026-03-11',
+                taskExists: true,
+                commentId: null,
+                commentPreview: null,
+                createdAt: '2026-03-10T10:00:00.000Z',
+                readAt: '2026-03-10T12:00:00.000Z',
+              },
+            ],
+          },
+          error: null,
+          response: new Response(),
+        };
+      }
+      return { data: { success: true }, error: null, response: new Response() };
+    });
+
+    const { InviteNotifications } = await import('@/features/auth/components/InviteNotifications');
+
+    render(
+      <TooltipProvider>
+        <MemoryRouter>
+          <InviteNotifications />
+        </MemoryRouter>
+      </TooltipProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+
+    const unreadCard = (await screen.findByText('Fresh task')).closest('[role="button"]');
+    const readCard = screen.getByText('Seen task').closest('[role="button"]');
+
+    expect(unreadCard?.className).toContain('bg-primary/10');
+    expect(unreadCard?.textContent).toContain('Unread');
+    expect(readCard?.className).not.toContain('bg-primary/10');
+    expect(readCard?.textContent).not.toContain('Unread');
+  });
 });

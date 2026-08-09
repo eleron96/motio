@@ -13,9 +13,11 @@ import {
   DashboardMilestone,
   DashboardSeriesRow,
   DashboardStatsRow,
+  DashboardTimeOff,
   DashboardWidget,
   DashboardWidgetSize,
 } from '@/features/dashboard/types/dashboard';
+import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { createWidgetId, getPeriodRange, DEFAULT_BAR_PALETTE } from '@/features/dashboard/lib/dashboardUtils';
 import type { WorkloadDay } from '@/features/dashboard/lib/workloadHeatmap';
 import {
@@ -53,6 +55,23 @@ const EMPTY_HEATMAP: HeatmapState = {
   error: null,
 };
 
+// Absences inside the heatmap window — they shrink the day's denominator. Loaded
+// separately from the heatmap RPC (which stays a dumb per-day task count) so the
+// whole workload math keeps living on the client.
+type TimeOffState = {
+  records: DashboardTimeOff[];
+  rangeKey: string | null;
+  loading: boolean;
+  error: string | null;
+};
+
+const EMPTY_TIME_OFF: TimeOffState = {
+  records: [],
+  rangeKey: null,
+  loading: false,
+  error: null,
+};
+
 type DashboardState = {
   dashboards: DashboardSummary[];
   dashboardsWorkspaceId: string | null;
@@ -67,6 +86,7 @@ type DashboardState = {
   milestones: DashboardMilestone[];
   heatmap: HeatmapState;
   heatmapAutoCapacity: number | null;
+  timeOff: TimeOffState;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -87,6 +107,7 @@ type DashboardState = {
   loadFilterOptions: (workspaceId: string) => Promise<void>;
   loadMilestones: (workspaceId: string) => Promise<void>;
   loadHeatmap: (workspaceId: string, startDate: string, endDate: string) => Promise<void>;
+  loadTimeOff: (workspaceId: string, startDate: string, endDate: string) => Promise<void>;
   setHeatmapAutoCapacity: (value: number | null) => void;
   loadStats: (
     workspaceId: string,
@@ -337,6 +358,11 @@ const normalizeWidget = (widget: Partial<DashboardWidget>): DashboardWidget => {
     groupBy: widget.groupBy ?? 'none',
     size: normalizeWidgetSize(type, widget.size),
     barPalette: hasPalette ? (widget.barPalette ?? DEFAULT_BAR_PALETTE) : undefined,
+    // Widgets saved before a toggle existed carry no flag. Defaulting to on is
+    // what makes an entity's own colour the norm rather than an opt-in.
+    useAssigneeColors: hasPalette ? (widget.useAssigneeColors ?? true) : undefined,
+    useProjectColors: hasPalette ? (widget.useProjectColors ?? true) : undefined,
+    useStatusColors: hasPalette ? (widget.useStatusColors ?? true) : undefined,
     showLegend: hasPalette ? (widget.showLegend ?? true) : undefined,
     milestoneView,
     milestoneCalendarMode,
@@ -588,6 +614,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   milestones: [],
   heatmap: EMPTY_HEATMAP,
   heatmapAutoCapacity: null,
+  timeOff: EMPTY_TIME_OFF,
   loading: false,
   saving: false,
   error: null,
@@ -771,6 +798,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     milestones: [],
     heatmap: EMPTY_HEATMAP,
     heatmapAutoCapacity: null,
+    timeOff: EMPTY_TIME_OFF,
     loading: false,
     saving: false,
     error: null,
@@ -837,7 +865,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         .order('created_at', { ascending: true }),
       supabase
         .from('assignees')
-        .select('id, name, user_id, is_active')
+        .select('id, name, user_id, is_active, color')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: true }),
       supabase
@@ -893,6 +921,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         id: row.id as string,
         name: row.name as string,
         isActive: row.is_active ?? true,
+        color: (row as { color?: string | null }).color ?? undefined,
       }));
 
     const groups = (groupsRes.data ?? []).map((row) => ({
@@ -958,6 +987,50 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       .map((row) => ({ date: row.bucket_date, taskCount: Number(row.task_count) || 0 }));
 
     set({ heatmap: { days, rangeKey, loading: false, error: null } });
+  },
+  loadTimeOff: async (workspaceId, startDate, endDate) => {
+    // Absences are only ever read here to shrink the heatmap denominator, so the
+    // whole fetch sits behind the same flag that gates the feature on the timeline.
+    if (!isTimeOffEnabled()) return;
+
+    const rangeKey = `${workspaceId}:${startDate}:${endDate}`;
+    const current = get().timeOff;
+    if (current.loading) return;
+    if (current.rangeKey === rangeKey && current.error === null) return;
+
+    set({ timeOff: { ...current, loading: true, error: null, rangeKey } });
+
+    // Windowed like the timeline query (plannerStore.workspaceActions): a record
+    // that merely overlaps the window comes back whole and is clipped client-side.
+    const { data, error } = await supabase
+      .from('time_off')
+      .select('id, assignee_id, start_date, end_date')
+      .eq('workspace_id', workspaceId)
+      .gte('end_date', startDate)
+      .lte('start_date', endDate);
+
+    if (get().timeOff.rangeKey !== rangeKey) return;
+
+    if (error) {
+      // A failed absence load must not blank out the board: the heat still means
+      // something without it, so keep the error and fall back to no absences.
+      set({ timeOff: { records: [], rangeKey, loading: false, error: error.message } });
+      return;
+    }
+
+    const records: DashboardTimeOff[] = ((data ?? []) as Array<{
+      id: string;
+      assignee_id: string;
+      start_date: string;
+      end_date: string;
+    }>).map((row) => ({
+      id: row.id,
+      assigneeId: row.assignee_id,
+      startDate: row.start_date,
+      endDate: row.end_date,
+    }));
+
+    set({ timeOff: { records, rangeKey, loading: false, error: null } });
   },
   setHeatmapAutoCapacity: (value) => {
     if (get().heatmapAutoCapacity === value) return;

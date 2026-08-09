@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 
@@ -19,10 +20,7 @@ describe('MemberTasksPanel mobile', () => {
     useIsMobileMock.mockReset();
   });
 
-  it('renders member task cards instead of a table on mobile', () => {
-    useIsMobileMock.mockReturnValue(true);
-
-    render(
+  const renderPanel = (overrides: Record<string, unknown> = {}) => render(
       <MemberTasksPanel
         selectedAssignee={{ id: 'a1', name: 'Ivan Petrov', isActive: true } as never}
         taskScope="current"
@@ -81,13 +79,41 @@ describe('MemberTasksPanel mobile', () => {
         totalPages={1}
         onPrevPage={vi.fn()}
         onNextPage={vi.fn()}
+        {...overrides}
       />,
-    );
+  );
+
+  it('renders member task cards instead of a table on mobile', () => {
+    useIsMobileMock.mockReturnValue(true);
+
+    renderPanel();
 
     expect(screen.queryByRole('columnheader', { name: 'Task' })).not.toBeInTheDocument();
     expect(screen.getByText('Prepare project brief')).toBeInTheDocument();
     expect(screen.getByText('Done')).toBeInTheDocument();
     expect(screen.getByText('[WEB] Website redesign')).toBeInTheDocument();
     expect(screen.getByText('10 Mar 2026 – 11 Mar 2026')).toBeInTheDocument();
+  });
+
+  it('puts the filters on their own screen and counts what is applied', async () => {
+    useIsMobileMock.mockReturnValue(true);
+    const user = userEvent.setup();
+
+    renderPanel({ search: 'brief', statusFilterIds: ['s1'] });
+
+    // The accordion of popovers is gone; one button carries the count.
+    expect(screen.queryByText('Search & filters')).not.toBeInTheDocument();
+    const filtersButton = screen.getByRole('button', { name: /Filters/ });
+    expect(filtersButton).toHaveTextContent('2');
+
+    await user.click(filtersButton);
+
+    const filtersScreen = await screen.findByRole('dialog');
+    // Statuses and projects are plain rows now, not a floating scroller. The
+    // chosen status reports itself as pressed, which also tells the preset
+    // button of the same name apart from the status row.
+    expect(within(filtersScreen).getByRole('button', { name: 'Done', pressed: true })).toBeInTheDocument();
+    expect(within(filtersScreen).getByText('[WEB] Website redesign')).toBeInTheDocument();
+    expect(within(filtersScreen).getByDisplayValue('brief')).toBeInTheDocument();
   });
 });

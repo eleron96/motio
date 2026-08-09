@@ -5,6 +5,8 @@ describe('easter-egg catalog', () => {
   it('isEggKey accepts every known catalog key', () => {
     expect(isEggKey('shabbat')).toBe(true);
     expect(isEggKey('six-seven')).toBe(true);
+    expect(isEggKey('anniversary-blueprint')).toBe(true);
+    expect(isEggKey('anniversary-salute')).toBe(true);
     for (const key of Object.keys(EGG_CATALOG)) {
       expect(isEggKey(key)).toBe(true);
     }

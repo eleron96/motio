@@ -1,7 +1,7 @@
 import React from 'react';
 import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
-import { ChevronDown, RefreshCcw, Search } from 'lucide-react';
+import { RefreshCcw, SlidersHorizontal } from 'lucide-react';
 import { Assignee, Project, Status, Task } from '@/features/planner/types/planner';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
@@ -15,10 +15,11 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MemberTasksFiltersScreen } from '@/features/members/components/MemberTasksFiltersScreen';
 
 type DisplayTaskRow = {
   key: string;
@@ -125,10 +126,13 @@ export const MemberTasksPanel = ({
   const isMobile = useIsMobile();
   const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
-  const hasActiveFilters = search.trim().length > 0
-    || statusFilterIds.length > 0
-    || projectFilterIds.length > 0
-    || (taskScope === 'past' && (pastFromDate.length > 0 || pastToDate.length > 0));
+  // Counted, not just flagged: the button carries the number so you can see
+  // how much is filtering the list without opening the screen.
+  const activeFilterCount = (search.trim().length > 0 ? 1 : 0)
+    + statusFilterIds.length
+    + projectFilterIds.length
+    + (taskScope === 'past' && pastFromDate.length > 0 ? 1 : 0)
+    + (taskScope === 'past' && pastToDate.length > 0 ? 1 : 0);
 
   return (
     <>
@@ -141,29 +145,45 @@ export const MemberTasksPanel = ({
       {selectedAssignee && (
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className={`border-b border-border ${sectionPadding}`}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <UserAvatar
-                    name={selectedAssignee.name}
-                    avatarUrl={selectedAssignee.avatar}
-                    colorSeed={selectedAssignee.userId ?? selectedAssignee.id}
-                    size="xl"
-                    className="shrink-0"
-                  />
-                  <div className="text-lg font-semibold">{selectedAssignee.name}</div>
-                  {!selectedAssignee.isActive && (
+            <div className={`flex flex-wrap items-center justify-between gap-3 ${isMobile ? 'gap-2' : ''}`}>
+              <div className={isMobile ? 'w-full space-y-2' : 'space-y-2'}>
+                {/* On a phone the name is already the screen's title; only the
+                    "disabled" mark still has to be said. */}
+                {isMobile ? (
+                  !selectedAssignee.isActive && (
                     <Badge variant="secondary">{t`Disabled`}</Badge>
-                  )}
-                </div>
-                <SegmentedControl surface="filled">
+                  )
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <PersonAvatar
+                      assigneeId={selectedAssignee.id}
+                      userId={selectedAssignee.userId}
+                      name={selectedAssignee.name}
+                      avatarUrl={selectedAssignee.avatar}
+                      colorSeed={selectedAssignee.userId ?? selectedAssignee.id}
+                      size="xl"
+                      className="shrink-0"
+                    />
+                    <div className="min-w-0 flex-1 truncate text-lg font-semibold">
+                      {selectedAssignee.name}
+                    </div>
+                    {!selectedAssignee.isActive && (
+                      <Badge variant="secondary">{t`Disabled`}</Badge>
+                    )}
+                  </div>
+                )}
+                <SegmentedControl surface="filled" className={isMobile ? 'w-full' : undefined}>
                   <SegmentedControlItem
+                    size={isMobile ? 'touch' : undefined}
+                    fullWidth={isMobile}
                     active={taskScope === 'current'}
                     onClick={() => onChangeTaskScope('current')}
                   >
                     {t`Current`}
                   </SegmentedControlItem>
                   <SegmentedControlItem
+                    size={isMobile ? 'touch' : undefined}
+                    fullWidth={isMobile}
                     active={taskScope === 'past'}
                     onClick={() => onChangeTaskScope('past')}
                   >
@@ -179,32 +199,48 @@ export const MemberTasksPanel = ({
 
           <div className={`border-b border-border ${sectionPadding}`}>
             {isMobile ? (
-              <button
-                type="button"
-                onClick={() => setMobileFiltersOpen((open) => !open)}
-                aria-expanded={mobileFiltersOpen}
-                className="flex w-full items-center justify-between text-xs font-medium text-muted-foreground"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Search className="h-3.5 w-3.5" />
-                  {t`Search & filters`}
-                  {hasActiveFilters && !mobileFiltersOpen ? (
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-                  ) : null}
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`}
-                />
-              </button>
+              // One button instead of an accordion of popovers: everything that
+              // used to hide in floating layers now lives on its own screen.
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 flex-1 justify-between"
+                  onClick={() => setMobileFiltersOpen(true)}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {t`Filters`}
+                  </span>
+                  {activeFilterCount > 0 && (
+                    <Badge variant="secondary" className="tabular-nums">{activeFilterCount}</Badge>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-11 w-11 shrink-0"
+                  onClick={onRefresh}
+                  disabled={!selectedAssigneeId || tasksLoading}
+                  aria-label={t`Refresh`}
+                >
+                  <RefreshCcw className="h-4 w-4" />
+                </Button>
+              </div>
             ) : null}
+            {selectedCount > 0 && isMobile && (
+              <Button
+                variant="destructive"
+                className="mt-2 h-11 w-full justify-center"
+                onClick={onDeleteSelected}
+                disabled={tasksLoading}
+              >
+                {t`Delete selected (${selectedCount})`}
+              </Button>
+            )}
             <div
-              className={
-                isMobile
-                  ? mobileFiltersOpen
-                    ? 'mt-3 flex flex-col items-stretch gap-2'
-                    : 'hidden'
-                  : 'flex flex-wrap items-center gap-3'
-              }
+              className={isMobile ? 'hidden' : 'flex flex-wrap items-center gap-3'}
             >
               <Input
                 className="w-full sm:w-[220px]"
@@ -214,7 +250,7 @@ export const MemberTasksPanel = ({
               />
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
+                  <Button variant="outline">
                     {statusFilterLabel}
                   </Button>
                 </PopoverTrigger>
@@ -242,7 +278,7 @@ export const MemberTasksPanel = ({
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
+                  <Button variant="outline">
                     {projectFilterLabel}
                   </Button>
                 </PopoverTrigger>
@@ -299,13 +335,13 @@ export const MemberTasksPanel = ({
                 </>
               )}
 
-              <Button variant="ghost" className={isMobile ? 'w-full justify-center' : undefined} onClick={onClearFilters}>
+              <Button variant="ghost" onClick={onClearFilters}>
                 {t`Clear filters`}
               </Button>
 
               <Button
                 variant="ghost"
-                className={isMobile ? 'w-full justify-center' : 'ml-auto'}
+                className="ml-auto"
                 onClick={onRefresh}
                 disabled={!selectedAssigneeId || tasksLoading}
               >
@@ -315,7 +351,6 @@ export const MemberTasksPanel = ({
               {selectedCount > 0 && (
                 <Button
                   variant="destructive"
-                  className={isMobile ? 'w-full justify-center' : undefined}
                   onClick={onDeleteSelected}
                   disabled={tasksLoading}
                 >
@@ -357,11 +392,15 @@ export const MemberTasksPanel = ({
                           className="rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted/40"
                         >
                           <div className="flex items-start gap-3">
-                            <div onClick={(event) => event.stopPropagation()}>
+                            <div
+                              className="-ml-1.5 -mt-1.5 flex h-11 w-11 shrink-0 items-center justify-center"
+                              onClick={(event) => event.stopPropagation()}
+                            >
                               <Checkbox
                                 checked={rowChecked}
                                 onCheckedChange={(value) => onToggleTask(row.taskIds, value as boolean | 'indeterminate')}
                                 aria-label={t`Select task ${task.title}`}
+                                className="h-5 w-5"
                               />
                             </div>
                             <button
@@ -515,6 +554,7 @@ export const MemberTasksPanel = ({
                       <Button
                         variant="outline"
                         size="sm"
+                        className={isMobile ? 'h-11 px-5' : undefined}
                         onClick={onPrevPage}
                         disabled={pageIndex === 1}
                       >
@@ -526,6 +566,7 @@ export const MemberTasksPanel = ({
                       <Button
                         variant="outline"
                         size="sm"
+                        className={isMobile ? 'h-11 px-5' : undefined}
                         onClick={onNextPage}
                         disabled={pageIndex >= totalPages}
                       >
@@ -538,6 +579,30 @@ export const MemberTasksPanel = ({
             )}
           </div>
         </div>
+      )}
+
+      {isMobile && (
+        <MemberTasksFiltersScreen
+          open={mobileFiltersOpen}
+          onOpenChange={setMobileFiltersOpen}
+          search={search}
+          onSearchChange={onSearchChange}
+          statuses={statuses}
+          statusFilterIds={statusFilterIds}
+          onToggleStatus={onToggleStatus}
+          setStatusPreset={setStatusPreset}
+          projectOptions={projectOptions}
+          projectFilterIds={projectFilterIds}
+          onToggleProject={onToggleProject}
+          taskScope={taskScope}
+          pastFromDate={pastFromDate}
+          onPastFromDateChange={onPastFromDateChange}
+          pastToDate={pastToDate}
+          onPastToDateChange={onPastToDateChange}
+          pastSort={pastSort}
+          onPastSortChange={onPastSortChange}
+          onClearFilters={onClearFilters}
+        />
       )}
     </>
   );

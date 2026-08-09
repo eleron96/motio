@@ -2,7 +2,6 @@ export type InboxNotificationType =
   | "task_assigned"
   | "comment_mention"
   | "task_updated"
-  | "deadline_approaching"
   | "export_ready"
   | "export_failed";
 
@@ -50,11 +49,13 @@ export interface InboxTaskNotification {
   readAt: string | null;
 }
 
+// 'deadline_approaching' is deliberately missing: deadline reminders were retired,
+// so any row of that type left in the table is dropped here (0133 soft-deletes
+// them as well, this is the belt to that migration's braces).
 const KNOWN_TYPES: ReadonlySet<InboxNotificationType> = new Set([
   "task_assigned",
   "comment_mention",
   "task_updated",
-  "deadline_approaching",
   "export_ready",
   "export_failed",
 ]);

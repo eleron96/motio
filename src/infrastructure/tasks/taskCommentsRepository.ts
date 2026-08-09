@@ -62,6 +62,7 @@ interface CommentRow {
   task_id: string;
   author_id: string;
   author_display_name: string | null;
+  author_avatar_url: string | null;
   author_status: CommentAuthorStatus | null;
   author_display_name_snapshot: string;
   content: string;
@@ -74,6 +75,7 @@ interface CommentRow {
 interface CommentAuthorProfileRow {
   id: string;
   display_name: string | null;
+  avatar_url: string | null;
   status: CommentAuthorStatus | null;
 }
 
@@ -93,6 +95,7 @@ const mapCommentRow = (row: CommentRow): TaskComment => {
     // the user's account has been deleted.
     authorDisplayName:
       row.author_display_name ?? row.author_display_name_snapshot,
+    authorAvatarUrl: row.author_avatar_url,
     authorStatus: normalizeAuthorStatus(row.author_status),
     content: row.content,
     mentionedUserIds: row.mentioned_user_ids ?? [],
@@ -104,6 +107,7 @@ const mapCommentRow = (row: CommentRow): TaskComment => {
 
 interface CommentAuthorMeta {
   displayName: string | null;
+  avatarUrl: string | null;
   status: CommentAuthorStatus;
 }
 
@@ -117,7 +121,7 @@ const loadCommentAuthorMeta = async (
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, display_name, status')
+    .select('id, display_name, avatar_url, status')
     .in('id', uniqueAuthorIds);
 
   if (error) {
@@ -129,6 +133,7 @@ const loadCommentAuthorMeta = async (
       row.id,
       {
         displayName: row.display_name ?? null,
+        avatarUrl: row.avatar_url ?? null,
         status: normalizeAuthorStatus(row.status),
       },
     ]),
@@ -143,6 +148,7 @@ const mapCommentRows = async (rows: CommentRow[]): Promise<TaskComment[]> => {
     return mapCommentRow({
       ...row,
       author_display_name: meta?.displayName ?? null,
+      author_avatar_url: meta?.avatarUrl ?? null,
       author_status: meta?.status ?? 'ACTIVE',
     });
   });

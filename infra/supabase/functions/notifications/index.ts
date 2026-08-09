@@ -16,7 +16,6 @@ type NotificationType =
   | "task_assigned"
   | "comment_mention"
   | "task_updated"
-  | "deadline_approaching"
   | "export_ready"
   | "export_failed";
 

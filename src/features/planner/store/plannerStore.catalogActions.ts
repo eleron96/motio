@@ -64,6 +64,7 @@ type CatalogActions = Pick<
   | 'setProjectActivityPinned'
   | 'addAssignee'
   | 'updateAssignee'
+  | 'setAssigneeColor'
   | 'deleteAssignee'
   | 'addStatus'
   | 'updateStatus'
@@ -693,6 +694,30 @@ export const createCatalogActions = (
         console.error(logResult.error);
       }
     }
+
+    return emptyMutationResult;
+  },
+
+  setAssigneeColor: async (id, color) => {
+    // Not part of updateAssignee: the colour goes through set_assignee_color()
+    // (0135) so that a member without UPDATE on assignees — a viewer, or any
+    // non-admin recolouring themselves — can still change their own colour
+    // without gaining the right to rename or disable anybody.
+    const { error } = await supabase.rpc('set_assignee_color', {
+      p_assignee_id: id,
+      p_color: color,
+    });
+
+    if (error) {
+      console.error(error);
+      return { error: error.message };
+    }
+
+    set((state) => ({
+      assignees: state.assignees.map((assignee) => (
+        assignee.id === id ? { ...assignee, color } : assignee
+      )),
+    }));
 
     return emptyMutationResult;
   },

@@ -16,18 +16,25 @@ export const ADMIN_ACTIONS = {
   EASTER_EGGS_LIST: 'easterEggs.list',
   EASTER_EGGS_SAVE: 'easterEggs.save',
   EASTER_EGGS_DELETE: 'easterEggs.delete',
+  EASTER_EGGS_AUDIENCE: 'easterEggs.audience',
   BROADCASTS_AUDIENCE: 'broadcasts.audience',
   BROADCASTS_SEND: 'broadcasts.send',
   BROADCASTS_PROCESS: 'broadcasts.process',
   BROADCASTS_LIST: 'broadcasts.list',
   BROADCASTS_CANCEL: 'broadcasts.cancel',
   BROADCASTS_TICK: 'broadcasts.tick',
+  // In-app announcements: the second channel next to email.
+  ANNOUNCEMENTS_PUBLISH: 'announcements.publish',
+  ANNOUNCEMENTS_LIST: 'announcements.list',
+  ANNOUNCEMENTS_UNPUBLISH: 'announcements.unpublish',
+  ANNOUNCEMENTS_UPDATE: 'announcements.update',
+  ANNOUNCEMENTS_DELETE: 'announcements.delete',
+  ANNOUNCEMENTS_RESET_READS: 'announcements.resetReads',
 } as const;
 
 export const PUSH_ACTIONS = {
   TEST: 'push.test',
   FLUSH: 'push.flush',
-  DEADLINES_SCAN: 'push.deadlines.scan',
 } as const;
 
 export const INVITE_ACTIONS = {

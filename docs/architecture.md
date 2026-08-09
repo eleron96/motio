@@ -57,7 +57,8 @@ Logout  : /oauth2/sign_out → oauth2-proxy backend logout → Keycloak end-sess
 
 Realm settings are applied automatically on every production deploy by the
 `infra/scripts/keycloak-ensure-*.sh` scripts (client secret, client URLs,
-SSL-required, branding, frontend URL, session policy, brute-force protection).
+SSL-required, branding, frontend URL, session policy, brute-force protection,
+password policy, user profile — first/last name stay optional on sign-up).
 The realm JSON import is used only for the initial realm bootstrap.
 
 Baseline export of the current production realm:
