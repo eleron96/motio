@@ -140,6 +140,13 @@ describe('sheetLayout', () => {
     expect(beside.title!.x).toBeLessThan(card.left);
   });
 
+  it('marks the phone layout as stacked, so the vertical axis can be dropped', () => {
+    // A line down the middle of a phone reads as a stray mark, not a drawing.
+    expect(sheetLayout(phone, phoneCard).stacked).toBe(true);
+    expect(sheetLayout(desktop, card).stacked).toBe(false);
+    expect(sheetLayout(laptop, laptopCard).stacked).toBe(false);
+  });
+
   it('still fits on a small phone', () => {
     const small: Box = { left: 0, top: 0, width: 360, height: 640 };
     const smallCard: Box = { left: 12, top: 180, width: 336, height: 330 };
