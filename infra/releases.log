@@ -407,3 +407,4 @@
 2026-08-08T13:37:48Z | 0.9.58 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260808-133705.dump | Comments show faces again: both the list that opens on "@" and the avatar beside a comment fell back to initials instead of the person's uploaded photo.
 2026-08-08T16:05:15Z | 0.9.59 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260808-160433.dump | The admin lists — users, workspaces, easter eggs and backups — no longer render in one endless run: they page in tens, fifties or hundreds, and each section remembers the size you picked.
 2026-08-08T17:18:06Z | 0.9.60 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260808-171721.dump | No documented changes.
+2026-08-09T07:31:18Z | 0.9.61 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260809-073035.dump | No documented changes.
