@@ -32,6 +32,14 @@ const NUMERAL = { width: 120, height: 92 } as const;
 const TWO_PATH = 'M4 26 a24 24 0 0 1 48 0 c0 24 -48 34 -48 62 h50';
 const ZERO = { cx: 88, cy: 48, rx: 30, ry: 42 } as const;
 
+/**
+ * Letter-spacing adds a gap after the last letter too, so centred tracked text
+ * sits visibly left of the axis. Nudging by half the tracking puts it back.
+ */
+const PRACTICE_TRACKING = 0.42;
+const YEAR_TRACKING = 0.28;
+const centred = (x: number, fontSize: number, tracking: number) => x + (fontSize * tracking) / 2;
+
 const SPARK_CONFIG = {
   count: 24,
   minDistance: 60,
@@ -206,16 +214,22 @@ export const AnniversaryBlueprintBrief = () => {
         {titleBlock && layout && (
           <g className={styles.caption}>
             <text
-              x={titleBlock.x}
+              x={titleBlock.align === 'middle'
+                ? centred(titleBlock.x, layout.type.practice, PRACTICE_TRACKING)
+                : titleBlock.x}
               y={titleBlock.y}
+              textAnchor={titleBlock.align}
               className={styles.practice}
               style={{ fontSize: layout.type.practice }}
             >
               {PRACTICE}
             </text>
             <text
-              x={titleBlock.x}
+              x={titleBlock.align === 'middle'
+                ? centred(titleBlock.x, layout.type.year, YEAR_TRACKING)
+                : titleBlock.x}
               y={titleBlock.y + layout.type.practice * 1.15}
+              textAnchor={titleBlock.align}
               className={styles.year}
               style={{ fontSize: layout.type.year }}
             >
@@ -242,7 +256,7 @@ export const AnniversaryBlueprintBrief = () => {
 
         {signOff && (
           <text
-            x={signOff.x}
+            x={centred(signOff.x, signOff.size, YEAR_TRACKING)}
             y={signOff.y}
             textAnchor="middle"
             className={`${styles.caption} ${styles.year}`}

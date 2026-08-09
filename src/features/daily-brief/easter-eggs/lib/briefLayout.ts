@@ -170,13 +170,22 @@ export interface SheetType {
   year: number;
 }
 
+/**
+ * Where the title block starts, and how it is aligned there: a margin of its
+ * own reads as a drawing's title block, left-aligned; a band across the screen
+ * reads as a heading and wants to be centred.
+ */
+export interface TitleAnchor extends Anchor {
+  align: 'start' | 'middle';
+}
+
 export interface SheetLayout {
   /** Box the "20" is drawn into, or null when the screen has no room for it. */
   numeral: Placement | null;
   /** Centre of the anniversary year, under the numeral. */
   numeralYear: (Anchor & { size: number }) | null;
-  /** Baseline of the practice name; the founding year follows below it. */
-  title: Anchor | null;
+  /** Anchor for the practice name; the founding year follows below it. */
+  title: TitleAnchor | null;
   type: SheetType;
 }
 
@@ -240,12 +249,18 @@ export const sheetLayout = (viewport: Box, card: Box | null, padding = 16): Shee
 
   const zoneOn = (side: Side) => zones.find((candidate) => candidate.side === side);
 
-  const titleAnchor = (band: Zone): Anchor => ({
-    x: band.side === 'left' || band.side === 'right'
-      ? band.left + Math.min(32, Math.max(padding, (band.width - title.width) / 2))
-      : band.left + Math.max(padding, (band.width - title.width) / 2),
-    y: band.top + band.height / 2 - type.year * 0.5,
-  });
+  const titleAnchor = (band: Zone): TitleAnchor => {
+    const sideMargin = band.side === 'left' || band.side === 'right';
+    return {
+      // In a side margin the block hangs off its left edge, the way a title
+      // block does; across a band both lines centre on the same axis.
+      x: sideMargin
+        ? band.left + Math.min(32, Math.max(padding, (band.width - title.width) / 2))
+        : band.left + band.width / 2,
+      y: band.top + band.height / 2 - type.year * 0.5,
+      align: sideMargin ? 'start' : 'middle',
+    };
+  };
 
   const withYear = (placed: Placement) => {
     const size = clamp(12, placed.width * 0.17, 26);
@@ -289,7 +304,11 @@ export const sheetLayout = (viewport: Box, card: Box | null, padding = 16): Shee
       return {
         numeral: shared,
         numeralYear: withYear(shared),
-        title: { x: numeralZone.left + padding, y: numeralZone.top + numeralZone.height / 2 },
+        title: {
+          x: numeralZone.left + padding,
+          y: numeralZone.top + numeralZone.height / 2,
+          align: 'start',
+        },
         type,
       };
     }
