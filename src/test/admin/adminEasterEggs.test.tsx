@@ -71,6 +71,16 @@ describe('AdminEasterEggsPage', () => {
       if (payload.action === 'easterEggs.list') {
         return { data: { targets: [target] } };
       }
+      if (payload.action === 'users.list') {
+        return {
+          data: {
+            users: [
+              { id: 'u1', email: 'alice@example.com', displayName: 'Alice' },
+              { id: 'admin', email: 'owner@example.com', displayName: 'Нико' },
+            ],
+          },
+        };
+      }
       return { data: { success: true } };
     });
   });
@@ -95,6 +105,43 @@ describe('AdminEasterEggsPage', () => {
         userId: 'u1',
         enabled: true,
       }));
+    });
+  });
+
+  it('asks for the roster with super admins, so an admin can pick themselves', async () => {
+    render(<AdminEasterEggsPage />);
+    await screen.findByText('Alice');
+
+    await waitFor(() => {
+      expect(invokeAdminFunctionMock).toHaveBeenCalledWith(expect.objectContaining({
+        action: 'users.list',
+        includeSuperAdmins: true,
+      }));
+    });
+  });
+
+  it('finds a person by typing instead of scrolling a long list', async () => {
+    render(<AdminEasterEggsPage />);
+    await screen.findByText('Alice');
+
+    // Third combobox in the form: egg, audience, then the person picker.
+    fireEvent.click(screen.getAllByRole('combobox')[2]!);
+    const search = await screen.findByPlaceholderText('Search by name or email');
+
+    // Look at the picker's own options: the table below mentions the same
+    // people, so a page-wide text query would prove nothing.
+    const options = () => screen.getAllByRole('option').map((option) => option.textContent ?? '');
+
+    fireEvent.change(search, { target: { value: 'owner@' } });
+    await waitFor(() => {
+      expect(options().join(' ')).toContain('owner@example.com');
+    });
+    expect(options().join(' ')).not.toContain('alice@example.com');
+
+    // Matching runs over display names too.
+    fireEvent.change(search, { target: { value: 'Alice' } });
+    await waitFor(() => {
+      expect(options().join(' ')).toContain('alice@example.com');
     });
   });
 

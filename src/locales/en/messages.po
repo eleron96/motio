@@ -336,6 +336,7 @@ msgstr "Account deletion scheduled."
 #: src/features/auth/components/AccountBadgeButton.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Account settings"
 msgstr "Account settings"
@@ -2888,6 +2889,10 @@ msgstr "Manage team invites, roles, and access."
 msgid "Manage team roles, groups, and status."
 msgstr "Manage team roles, groups, and status."
 
+#: src/features/workspace/components/WorkspaceMembersSheet.tsx
+msgid "Manage workspace members, roles, and invitations."
+msgstr "Manage workspace members, roles, and invitations."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Manage your profile and account preferences."
@@ -2974,6 +2979,7 @@ msgstr "Mention a person"
 msgid "mentioned you in a comment"
 msgstr "mentioned you in a comment"
 
+#: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Menu"
 msgstr "Menu"
@@ -3659,6 +3665,10 @@ msgstr "No template saved yet."
 msgid "No upcoming milestones in the next 7 days."
 msgstr "No upcoming milestones in the next 7 days."
 
+#: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
+msgid "No urgent tasks. Great job!"
+msgstr "No urgent tasks. Great job!"
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "No widgets yet."
 msgstr "No widgets yet."
@@ -3671,6 +3681,7 @@ msgstr "No workspaces need your attention — you can continue."
 msgid "No workspaces."
 msgstr "No workspaces."
 
+#: src/features/admin/components/AdminUserPicker.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Nobody found"
@@ -3761,6 +3772,7 @@ msgstr "Nothing to show"
 #: src/features/auth/components/InviteNotifications.tsx
 #: src/features/auth/components/MobileNotificationsScreen.tsx
 #: src/features/auth/components/MobileNotificationsScreen.tsx
+#: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Notifications"
 msgstr "Notifications"
@@ -3863,6 +3875,7 @@ msgid "Open fullscreen"
 msgstr "Open fullscreen"
 
 #: src/features/auth/components/MobileNotificationsScreen.tsx
+#: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Open invites and task updates."
 msgstr "Open invites and task updates."
@@ -3919,6 +3932,10 @@ msgstr "overdue"
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "Overdue"
 msgstr "Overdue"
+
+#: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
+msgid "Overdue by {diff}d"
+msgstr "Overdue by {diff}d"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "overloaded"
@@ -4592,6 +4609,10 @@ msgstr "Search"
 msgid "Search & filters"
 msgstr "Search & filters"
 
+#: src/features/admin/components/AdminUserPicker.tsx
+msgid "Search by name or email"
+msgstr "Search by name or email"
+
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 msgid "Search companies..."
 msgstr "Search companies..."
@@ -4792,7 +4813,7 @@ msgstr "Select task {0}"
 msgid "Select type"
 msgstr "Select type"
 
-#: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/components/AdminUserPicker.tsx
 msgid "Select user"
 msgstr "Select user"
 
@@ -5621,6 +5642,7 @@ msgstr "today"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 #: src/features/daily-brief/components/DailyBriefModal.tsx
+#: src/features/daily-brief/components/DailyBriefUrgentTasks.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineGrid.tsx
@@ -5639,6 +5661,7 @@ msgstr "Toggle workload heatmap"
 msgid "Tomorrow"
 msgstr "Tomorrow"
 
+#: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Tools"
 msgstr "Tools"
@@ -6083,6 +6106,7 @@ msgstr "Workload heatmap"
 #: src/features/admin/components/AnnouncementFields.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Workspace"
@@ -6097,6 +6121,10 @@ msgstr "Workspace joined"
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 msgid "Workspace limit reached (5)."
 msgstr "Workspace limit reached (5)."
+
+#: src/features/workspace/components/WorkspaceMembersSheet.tsx
+msgid "Workspace members"
+msgstr "Workspace members"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -6118,6 +6146,7 @@ msgstr "Workspace sections"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceMobileDrawer.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Workspace settings"
 msgstr "Workspace settings"
