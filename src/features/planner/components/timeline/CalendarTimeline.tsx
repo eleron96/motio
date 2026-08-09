@@ -18,6 +18,8 @@ import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { buildCalendarMonths } from '@/features/planner/lib/calendarMonths';
 import { formatDateRange } from '@/features/planner/lib/dateUtils';
 import { CalendarLegendPanel } from '@/features/planner/components/timeline/CalendarLegendPanel';
+import { MobileCalendarLegendScreen } from '@/features/planner/components/timeline/MobileCalendarLegendScreen';
+import { MobileDaySheet } from '@/features/planner/components/timeline/MobileDaySheet';
 import {
   buildTimeOffByDate,
   selectCalendarTimeOff,
@@ -41,11 +43,12 @@ import {
   type CalendarLegendState,
 } from '@/features/planner/lib/calendarLegendStorage';
 import { Milestone, TimeOff } from '@/features/planner/types/planner';
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDown, ArrowUp, Layers } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { buildAssigneeGroupMap, selectFilteredTasks } from '@/features/planner/lib/timelineSelectors';
@@ -106,6 +109,12 @@ export const CalendarTimeline: React.FC = () => {
   const [legendState, setLegendState] = useState<CalendarLegendState>(DEFAULT_CALENDAR_LEGEND_STATE);
   const legend = legendState.visibility;
   const legendHydratedRef = useRef(false);
+  // The legend is a column beside the grid on a desktop and a screen of its own
+  // on a phone; both read and write the same `legendState`.
+  const isMobile = useIsMobile();
+  const [mobileLegendOpen, setMobileLegendOpen] = useState(false);
+  /** The day whose sheet is open on a phone; null when nothing is open. */
+  const [daySheetDate, setDaySheetDate] = useState<Date | null>(null);
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
@@ -431,6 +440,31 @@ export const CalendarTimeline: React.FC = () => {
     setMilestoneDialogOpen(true);
   }, [canEdit]);
 
+  // Everything the day sheet shows, looked up once for the open day. The cell
+  // loop cannot hand it over — the sheet lives outside the grid so that closing
+  // it does not depend on which month is still mounted.
+  const daySheetKey = daySheetDate ? format(daySheetDate, 'yyyy-MM-dd') : null;
+  const daySheetData = daySheetKey
+    ? {
+      counts: taskCounts.get(daySheetKey) ?? { total: 0, mine: 0 },
+      milestones: milestonesByDate.get(daySheetKey) ?? [],
+      timeOff: timeOffByDate.get(daySheetKey) ?? [],
+      holidayNames: holidayMap[daySheetKey] ?? [],
+    }
+    : { counts: { total: 0, mine: 0 }, milestones: [], timeOff: [], holidayNames: [] };
+
+  const closeDaySheet = useCallback(() => setDaySheetDate(null), []);
+
+  // Rotating a phone into landscape brings the desktop layout back and takes
+  // away both affordances that opened these — so neither may outlive it. Clear
+  // the state rather than just hiding: a hidden-but-still-set layer springs back
+  // the moment the phone is turned upright again.
+  useEffect(() => {
+    if (isMobile) return;
+    setDaySheetDate(null);
+    setMobileLegendOpen(false);
+  }, [isMobile]);
+
   return (
     <div className="flex h-full flex-1 min-h-0 overflow-hidden">
         <div className="relative flex-1 min-h-0">
@@ -499,7 +533,12 @@ export const CalendarTimeline: React.FC = () => {
                               <div
                                 key={key}
                                 className="relative flex h-11 w-9 flex-col items-center justify-start pt-0.5"
-                                onDoubleClick={inMonth ? () => handleDateClick(day) : undefined}
+                                // A phone gets a plain tap that opens the day sheet, and no
+                                // double-tap: the first tap already switches the view, so the
+                                // second one would land on a calendar that is no longer there —
+                                // and iOS reads a double-tap as zoom before anything else.
+                                onClick={isMobile && inMonth ? () => setDaySheetDate(day) : undefined}
+                                onDoubleClick={!isMobile && inMonth ? () => handleDateClick(day) : undefined}
                               >
                                 {legend.holidays && isHoliday && (
                                   <div
@@ -689,7 +728,13 @@ export const CalendarTimeline: React.FC = () => {
           variant="secondary"
           size="icon"
           className={cn(
-            'absolute bottom-4 right-4 shadow-md transition-all duration-200 ease-out',
+            // z-20: the day cells inside the scroller are `relative z-10`, and a
+            // floating button left on z-auto is painted — and click-blocked —
+            // by whichever week row happens to scroll under it.
+            'absolute right-4 z-20 shadow-md transition-all duration-200 ease-out',
+            // Lifted out of the phone's rounded corner, like the legend button
+            // in the opposite one; the desktop keeps its old 16px.
+            'bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] md:bottom-4',
             showTodayButton
               ? 'opacity-100 translate-y-0 pointer-events-auto'
               : 'opacity-0 translate-y-2 pointer-events-none'
@@ -711,7 +756,59 @@ export const CalendarTimeline: React.FC = () => {
             <ArrowDown className="h-4 w-4" />
           )}
         </Button>
+
+        {/* The way into the legend on a phone, where the side panel is hidden.
+            Same round card button as "filters" on the timeline, in the same
+            bottom-left corner: on this view that corner is free (the filter and
+            add buttons are hidden), so the two never collide and the thumb keeps
+            one habit across views. It stays put rather than fading with the
+            scroll — nothing else on the calendar says what the marks mean. */}
+        <button
+          type="button"
+          onClick={() => setMobileLegendOpen(true)}
+          aria-label={t`On the calendar`}
+          className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] left-6 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent md:hidden"
+        >
+          <Layers className="h-6 w-6 text-muted-foreground" />
+        </button>
         </div>
+
+        <MobileDaySheet
+          day={daySheetDate}
+          onOpenChange={(open) => { if (!open) closeDaySheet(); }}
+          counts={daySheetData.counts}
+          milestones={daySheetData.milestones}
+          showMilestones={legend.milestones}
+          timeOff={daySheetData.timeOff}
+          holidayNames={daySheetData.holidayNames}
+          showHolidays={legend.holidays}
+          projectById={projectById}
+          assigneeById={assigneeById}
+          timeOffColors={timeOffColors}
+          dateLocale={dateLocale}
+          canEdit={canEdit}
+          onOpenDay={(day) => { closeDaySheet(); handleDateClick(day); }}
+          onEditMilestone={(milestone) => { closeDaySheet(); handleEditMilestone(milestone); }}
+          onCreateMilestone={(day) => { closeDaySheet(); handleCreateMilestoneOnDate(day); }}
+        />
+
+        <MobileCalendarLegendScreen
+          open={mobileLegendOpen}
+          onOpenChange={setMobileLegendOpen}
+          visibility={legend}
+          onToggle={handleLegendToggle}
+          showTimeOffRow={timeOffEnabled}
+          people={calendarPeople}
+          peopleColors={timeOffColors}
+          selectedPeople={legendState.people}
+          onTogglePerson={handleTogglePerson}
+          unknownPeopleIds={unknownPeopleIds}
+          onToggleUnknownPeople={handleToggleUnknownPeople}
+          hiddenPeopleCount={peopleWithoutTimeOff}
+          onShowAllPeople={handleShowAllPeople}
+          onShowOnlyMe={handleShowOnlyMe}
+          myAssigneeId={myAssigneeId}
+        />
 
         <CalendarLegendPanel
           visibility={legend}

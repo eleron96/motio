@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import MembersPage from '@/features/members/pages/MembersPage';
@@ -28,6 +28,8 @@ vi.mock('@/features/workspace/components/WorkspacePageHeader', () => ({
   ),
 }));
 
+// Rendered on desktop only — its absence on a phone is part of what this
+// checks, so it stays mocked rather than dropped.
 vi.mock('@/features/members/components/MembersSidebar', () => ({
   MembersSidebar: () => <div>Members sidebar</div>,
 }));
@@ -50,7 +52,9 @@ vi.mock('@/infrastructure/members/memberTasksRepository', () => ({
 
 const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
-    assignees: [],
+    assignees: [
+      { id: 'a1', userId: 'u1', name: 'Anna Active', isActive: true },
+    ],
     memberGroupAssignments: [],
     projects: [],
     statuses: [],
@@ -74,7 +78,9 @@ const { plannerState, authState } = vi.hoisted(() => ({
   },
   authState: {
     user: { id: 'u1' },
-    members: [],
+    members: [
+      { userId: 'u1', role: 'admin', email: 'anna@example.com', displayName: 'Anna', groupId: null, avatarUrl: null },
+    ],
     currentWorkspaceId: 'w1',
     currentWorkspaceRole: 'admin',
     isSuperAdmin: false,
@@ -98,7 +104,7 @@ describe('MembersPage mobile layout', () => {
     useIsMobileMock.mockReset();
   });
 
-  it('uses a sheet-based selector on mobile', async () => {
+  it('puts the list itself in the deck and walks into a person', async () => {
     useIsMobileMock.mockReturnValue(true);
     const user = userEvent.setup();
 
@@ -108,20 +114,32 @@ describe('MembersPage mobile layout', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Member tasks panel')).toBeInTheDocument();
-    expect(screen.getByText('Select a person')).toBeInTheDocument();
+    // Level one is the list, not a button that opens one.
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    expect(within(deck).getAllByPlaceholderText('Search people...').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Members sidebar')).not.toBeInTheDocument();
+    expect(screen.queryByText('Member tasks panel')).not.toBeInTheDocument();
 
-    // Two controls are labelled "People": the section pill (inside the subnav)
-    // and the sheet "browse" trigger. Target the browse trigger that opens the
-    // sidebar sheet.
-    const subnav = screen.getByRole('navigation', { name: 'People sections' });
-    const browseButton = screen
-      .getAllByRole('button', { name: 'People' })
-      .find((button) => !subnav.contains(button));
-    expect(browseButton).toBeDefined();
-    await user.click(browseButton as HTMLElement);
+    await user.click(within(deck).getByText('Anna Active'));
 
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Members sidebar')).toBeInTheDocument();
+    // Level two: the person's own screen, with a way back.
+    const detail = await screen.findByRole('dialog');
+    expect(within(detail).getByText('Member tasks panel')).toBeInTheDocument();
+    expect(within(detail).getByRole('button', { name: 'Back' })).toBeInTheDocument();
+  });
+
+  it('keeps both sections mounted so they can be swiped', () => {
+    useIsMobileMock.mockReturnValue(true);
+
+    render(
+      <MemoryRouter>
+        <MembersPage />
+      </MemoryRouter>,
+    );
+
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    // People on one page, groups on the other.
+    expect(within(deck).getByPlaceholderText('Search people...')).toBeInTheDocument();
+    expect(within(deck).getByPlaceholderText('Search groups...')).toBeInTheDocument();
   });
 });

@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
+import { MobileMenuProvider } from '@/features/workspace/components/MobileMenuContext';
+import { AnnouncementsHost } from '@/features/announcements/components/AnnouncementsHost';
 import { PendingDeletionBanner } from '@/shared/components/PendingDeletionBanner';
 
 /**
@@ -45,20 +47,34 @@ export function useWorkspaceHeader(config: WorkspaceHeaderConfig, deps: React.De
  */
 export const WorkspaceLayout: React.FC = () => {
   const [config, setConfig] = useState<WorkspaceHeaderConfig | null>(null);
+  // The mobile menu sheet is opened from the header but its screens are mounted
+  // by the pages (settings dialogs), so the state lives here — above both.
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const openMenu = useCallback(() => setMobileMenuOpen(true), []);
+  const closeMenu = useCallback(() => setMobileMenuOpen(false), []);
+  const mobileMenu = useMemo(
+    () => ({ open: mobileMenuOpen, openMenu, closeMenu }),
+    [mobileMenuOpen, openMenu, closeMenu],
+  );
 
   return (
     <HeaderConfigContext.Provider value={setConfig}>
-      <div className="flex flex-col h-screen overflow-hidden bg-background">
-        <PendingDeletionBanner />
-        <WorkspacePageHeader
-          primaryAction={config?.primaryAction}
-          onOpenSettings={config?.onOpenSettings ?? (() => {})}
-          onOpenAccountSettings={config?.onOpenAccountSettings ?? (() => {})}
-          settingsDisabled={config?.settingsDisabled ?? false}
-          showSettingsButton={config?.showSettingsButton ?? true}
-        />
-        <Outlet />
-      </div>
+      <MobileMenuProvider value={mobileMenu}>
+        <div className="flex flex-col h-screen overflow-hidden bg-background">
+          <PendingDeletionBanner />
+          <WorkspacePageHeader
+            primaryAction={config?.primaryAction}
+            onOpenSettings={config?.onOpenSettings ?? (() => {})}
+            onOpenAccountSettings={config?.onOpenAccountSettings ?? (() => {})}
+            settingsDisabled={config?.settingsDisabled ?? false}
+            showSettingsButton={config?.showSettingsButton ?? true}
+          />
+          {/* Below the header so the product's own chrome stays put, above the
+              page so an announcement cannot be scrolled past unseen. */}
+          <AnnouncementsHost />
+          <Outlet />
+        </div>
+      </MobileMenuProvider>
     </HeaderConfigContext.Provider>
   );
 };

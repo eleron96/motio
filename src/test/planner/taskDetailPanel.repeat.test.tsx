@@ -137,17 +137,20 @@ vi.mock('@/features/planner/components/TaskCommentSection', () => ({
 
 vi.mock('@/features/planner/components/TaskDetailDialogs', () => ({
   TaskDetailAlerts: ({
+    confirmOpen,
     onApplyPendingRepeatUpdate,
     onSaveAndClose,
     repeatScopeOpen,
     repeatScopeOptions,
   }: {
+    confirmOpen: boolean;
     onApplyPendingRepeatUpdate: (scope: 'single' | 'following' | 'all') => Promise<void> | void;
     onSaveAndClose: () => Promise<void> | void;
     repeatScopeOpen: boolean;
     repeatScopeOptions?: Array<'single' | 'following' | 'all'>;
   }) => (
     <div>
+      {confirmOpen && <span data-testid="confirm-close" />}
       <button type="button" onClick={() => void onSaveAndClose()}>
         Save
       </button>
@@ -265,5 +268,69 @@ describe('TaskDetailPanel repeat block', () => {
         'following',
       );
     });
+  });
+});
+
+describe('TaskDetailPanel subtask Escape', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask }];
+    mocks.plannerState.fetchTaskSubtasks = vi.fn(async () => ({
+      subtasks: [
+        {
+          id: 'subtask-1',
+          taskId: 'task-1',
+          title: 'Check the invoice',
+          isDone: false,
+          doneAt: null,
+          position: 0,
+        },
+      ],
+    }));
+  });
+
+  it('keeps the panel open when Escape cancels an inline subtask edit', async () => {
+    const user = userEvent.setup();
+
+    render(<TaskDetailPanel />);
+
+    await user.click(await screen.findByRole('button', { name: 'Check the invoice' }));
+    await user.type(screen.getByDisplayValue('Check the invoice'), ' twice');
+    await user.keyboard('{Escape}');
+
+    // Edit rolled back, task still open: neither the close nor its unsaved-work
+    // confirmation fired.
+    expect(screen.queryByDisplayValue('Check the invoice twice')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Check the invoice' })).toBeInTheDocument();
+    expect(mocks.plannerState.setSelectedTaskId).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('confirm-close')).not.toBeInTheDocument();
+  });
+
+  it('keeps the panel open when Escape clears an unsent subtask draft', async () => {
+    const user = userEvent.setup();
+
+    render(<TaskDetailPanel />);
+
+    const composer = await screen.findByPlaceholderText('Subtask title');
+    await user.type(composer, 'New subtask');
+    await user.keyboard('{Escape}');
+
+    expect(composer).toHaveValue('');
+    expect(mocks.plannerState.setSelectedTaskId).not.toHaveBeenCalled();
+    // A draft counts as unsaved work, so an unguarded Escape would pop the
+    // close confirmation instead of just emptying the field.
+    expect(screen.queryByTestId('confirm-close')).not.toBeInTheDocument();
+  });
+
+  it('still closes the panel on Escape when no subtask text is pending', async () => {
+    const user = userEvent.setup();
+
+    render(<TaskDetailPanel />);
+
+    await screen.findByRole('button', { name: 'Check the invoice' });
+    await user.keyboard('{Escape}');
+
+    expect(mocks.plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
   });
 });

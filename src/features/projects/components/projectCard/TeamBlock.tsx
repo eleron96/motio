@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
 import type { KnownPerson } from '@/features/projects/lib/knownPeople';
@@ -373,7 +374,9 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
       <li key={member.memberRowId ?? member.assignee?.id ?? displayName} className="rounded-md hover:bg-muted/40">
         <div className="group flex items-center gap-2 px-1.5 py-1">
           <div className="relative h-6 w-6 flex-shrink-0">
-            <UserAvatar
+            <PersonAvatar
+              assigneeId={member.assignee?.id}
+              userId={member.assignee?.userId}
               avatarUrl={member.assignee?.avatar}
               initials={initials}
               colorSeed={colorSeed}

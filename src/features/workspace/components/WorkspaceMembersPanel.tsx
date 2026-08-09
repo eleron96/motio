@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
+import { SearchInput } from '@/shared/ui/SearchInput';
 import { Switch } from '@/shared/ui/switch';
 import { Badge } from '@/shared/ui/badge';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
@@ -41,6 +42,7 @@ import { t } from '@lingui/macro';
 import { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberActivity';
 import { formatWorkspaceMemberActivity } from '@/shared/lib/workspaceMemberActivity';
 import { matchesWorkspaceMemberSearch } from '@/shared/domain/workspaceMemberSearch';
+import { splitMembersByAccess } from '@/shared/domain/workspaceMemberAccess';
 import { RenamePurgedDialog } from './RenamePurgedDialog';
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { useDemoConversion } from '@/features/demo/providers/DemoConversionProvider';
@@ -50,7 +52,6 @@ interface WorkspaceMembersPanelProps {
   showTitle?: boolean;
   className?: string;
   accessTab?: 'active' | 'disabled' | 'history';
-  accessSearch?: string;
 }
 
 type MemberGroup = {
@@ -75,7 +76,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   showTitle = true,
   className,
   accessTab = 'active',
-  accessSearch = '',
 }) => {
   const {
     user,
@@ -128,6 +128,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     fetchMemberGroups: state.fetchMemberGroups,
   })));
 
+  const [search, setSearch] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('viewer');
   const [error, setError] = useState('');
@@ -318,13 +319,11 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     return list;
   }, [assigneeByUserId, groupNameById, memberSortDirection, memberSortKey, members]);
 
-  const activeSortedMembers = useMemo(
-    () => sortedMembers.filter((member) => (assigneeByUserId.get(member.userId)?.isActive ?? true)),
-    [assigneeByUserId, sortedMembers],
-  );
-
-  const disabledSortedMembers = useMemo(
-    () => sortedMembers.filter((member) => !(assigneeByUserId.get(member.userId)?.isActive ?? true)),
+  const {
+    active: activeSortedMembers,
+    disabled: disabledSortedMembers,
+  } = useMemo(
+    () => splitMembersByAccess(sortedMembers, assigneeByUserId),
     [assigneeByUserId, sortedMembers],
   );
 
@@ -334,8 +333,8 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       displayName: member.displayName,
       role: member.role,
       groupName: member.groupId ? (groupNameById.get(member.groupId) ?? null) : null,
-    }, accessSearch)),
-    [accessSearch, activeSortedMembers, groupNameById],
+    }, search)),
+    [search, activeSortedMembers, groupNameById],
   );
 
   const filteredDisabledMembers = useMemo(
@@ -344,8 +343,8 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       displayName: member.displayName,
       role: member.role,
       groupName: member.groupId ? (groupNameById.get(member.groupId) ?? null) : null,
-    }, accessSearch)),
-    [accessSearch, disabledSortedMembers, groupNameById],
+    }, search)),
+    [search, disabledSortedMembers, groupNameById],
   );
 
   const renderSortIcon = (key: MemberSortKey) => {
@@ -551,6 +550,19 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     return {};
   }, [renamePurgedProfile]);
 
+  // Each list says what it is: the same "manage roles and status" caption over
+  // the history log would describe something the log cannot do.
+  const listTitle = accessTab === 'history'
+    ? t`Access history`
+    : accessTab === 'disabled'
+      ? t`Disabled people`
+      : t`People access`;
+  const listDescription = accessTab === 'history'
+    ? t`Who changed roles, groups and access, and when.`
+    : accessTab === 'disabled'
+      ? t`They keep their tasks and history but cannot open the workspace.`
+      : t`Manage team roles, groups, and status.`;
+
   const renderMemberRow = (member: typeof members[number]) => {
     const isSelf = Boolean(currentUserId && member.userId === currentUserId);
     const isOwner = Boolean(ownerId && member.userId === ownerId);
@@ -562,7 +574,8 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     return (
       <div key={member.userId} className="grid items-center gap-3 rounded-md border px-3 py-3 md:grid-cols-[1fr,140px,180px,120px,90px]">
         <div className="flex items-center gap-3 min-w-0">
-          <UserAvatar
+          <PersonAvatar
+            userId={member.userId}
             name={member.displayName ?? member.email}
             avatarUrl={member.avatarUrl}
             colorSeed={member.userId}
@@ -715,6 +728,18 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
         </Alert>
       )}
 
+      {/* Lives above the cards: a failed role or status change has to be
+          visible on whichever list it happened on, not only where invites are. */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>{t`Action failed`}</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Inviting belongs to the people who are in: it would read as a stray
+          control above the disabled list or the history log. */}
+      {accessTab === 'active' && (
       <div className="rounded-lg border bg-background p-4 space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -787,32 +812,21 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
           </Popover>
         </div>
 
-        {(error || inviteResult) && (
-          <div className="space-y-2">
-            {inviteResult && (
-              <Alert>
-                <AlertTitle>{t`Invite created`}</AlertTitle>
-                <AlertDescription>
-                  <div>{t`Check your inbox`}</div>
-                  <div className="mt-1 text-xs">
-                    {inviteResult.email} - {inviteResult.status}
-                  </div>
-                  {inviteResult.warning && (
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      {inviteResult.warning}
-                    </div>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertTitle>{t`Action failed`}</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-          </div>
+        {inviteResult && (
+          <Alert>
+            <AlertTitle>{t`Invite created`}</AlertTitle>
+            <AlertDescription>
+              <div>{t`Check your inbox`}</div>
+              <div className="mt-1 text-xs">
+                {inviteResult.email} - {inviteResult.status}
+              </div>
+              {inviteResult.warning && (
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {inviteResult.warning}
+                </div>
+              )}
+            </AlertDescription>
+          </Alert>
         )}
 
         {isAdmin && (
@@ -857,13 +871,24 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
           </div>
         )}
       </div>
+      )}
 
       <div className="rounded-lg border bg-background p-4 space-y-3">
-        <div>
-          <div className="text-sm font-semibold">{t`People access`}</div>
-          <div className="text-xs text-muted-foreground">
-            {t`Manage team roles, groups, and status.`}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold">{listTitle}</div>
+            <div className="text-xs text-muted-foreground">{listDescription}</div>
           </div>
+          {accessTab !== 'history' && (
+            <SearchInput
+              className="w-full sm:w-[260px]"
+              inputClassName="h-9"
+              placeholder={t`Search people...`}
+              value={search}
+              onValueChange={setSearch}
+              clearLabel={t`Clear search`}
+            />
+          )}
         </div>
 
         <div className="min-w-0">
@@ -910,10 +935,10 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
               {membersLoading && (
                 <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
               )}
-              {!membersLoading && filteredActiveMembers.length === 0 && !accessSearch.trim() && (
+              {!membersLoading && filteredActiveMembers.length === 0 && !search.trim() && (
                 <div className="text-sm text-muted-foreground">{t`No active members.`}</div>
               )}
-              {!membersLoading && filteredActiveMembers.length === 0 && accessSearch.trim() && (
+              {!membersLoading && filteredActiveMembers.length === 0 && search.trim() && (
                 <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
               )}
               {!membersLoading && filteredActiveMembers.length > 0 && (
@@ -929,10 +954,10 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
               {membersLoading && (
                 <div className="text-sm text-muted-foreground">{t`Loading members...`}</div>
               )}
-              {!membersLoading && filteredDisabledMembers.length === 0 && !accessSearch.trim() && (
+              {!membersLoading && filteredDisabledMembers.length === 0 && !search.trim() && (
                 <div className="text-sm text-muted-foreground">{t`No disabled members.`}</div>
               )}
-              {!membersLoading && filteredDisabledMembers.length === 0 && accessSearch.trim() && (
+              {!membersLoading && filteredDisabledMembers.length === 0 && search.trim() && (
                 <div className="text-sm text-muted-foreground">{t`No matches.`}</div>
               )}
               {!membersLoading && filteredDisabledMembers.length > 0 && (

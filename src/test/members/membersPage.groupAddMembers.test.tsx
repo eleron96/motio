@@ -4,6 +4,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import MembersPage from '@/features/members/pages/MembersPage';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) => (
@@ -12,7 +13,7 @@ vi.mock('@lingui/macro', () => ({
 }));
 
 vi.mock('@/shared/hooks/use-mobile', () => ({
-  useIsMobile: () => false,
+  useIsMobile: vi.fn(() => false),
 }));
 
 vi.mock('@/shared/lib/seo/usePageSeo', () => ({
@@ -138,9 +139,12 @@ const renderPage = () => render(
   </MemoryRouter>,
 );
 
+const useIsMobileMock = vi.mocked(useIsMobile);
+
 describe('MembersPage group add-member popover', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useIsMobileMock.mockReturnValue(false);
     window.localStorage.clear();
     window.localStorage.setItem('members-mode-workspace-1', 'groups');
   });
@@ -167,6 +171,30 @@ describe('MembersPage group add-member popover', () => {
       expect(within(screen.getByRole('dialog')).getByText('Boris Disabled')).toBeInTheDocument();
     });
     expect(within(screen.getByRole('dialog')).getByText('Disabled')).toBeInTheDocument();
+  });
+
+  it('adds a member from inside the group screen on a phone', async () => {
+    useIsMobileMock.mockReturnValue(true);
+    const user = userEvent.setup();
+
+    renderPage();
+
+    // Level one lists the groups; walking into one opens its own screen.
+    await user.click(await screen.findByText('Backend'));
+
+    const groupScreen = await screen.findByRole('dialog');
+    await user.click(within(groupScreen).getByRole('button', { name: 'Add member' }));
+
+    const addScreen = await screen.findByRole('dialog', { name: 'Add member' });
+    // The list is plain rows on a scrolling screen, with the disabled-people
+    // toggle as a row of its own instead of an icon button.
+    expect(within(addScreen).getByRole('switch', { name: 'Show disabled people' })).toBeInTheDocument();
+    expect(within(addScreen).getByText('Anna Active')).toBeInTheDocument();
+    expect(within(addScreen).queryByText('Boris Disabled')).not.toBeInTheDocument();
+
+    await user.click(within(addScreen).getByText('Anna Active'));
+
+    expect(authState.updateMemberGroup).toHaveBeenCalledWith('u1', 'g1');
   });
 
   it('shows a readable empty state when no members match the search', async () => {

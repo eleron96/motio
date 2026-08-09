@@ -125,27 +125,16 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
       className="rounded-2xl border border-border bg-card p-6 shadow-sm"
       style={buildProjectAccentVars(project.color)}
     >
+      {/* The breadcrumb shares its line with the actions; the name gets a line
+          of its own. Keeping the name in a column next to the status chip, the
+          star and the kebab left it about 140px on a phone — narrow enough that
+          "Вернадского, 12Б" broke in the middle of a word. */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-ui-xs text-muted-foreground">
             <span>{t`Projects`}</span>
             <span className="text-muted-foreground/60">/</span>
             <span className="truncate">{customerLabel}</span>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-3">
-            {project.code && (
-              <span
-                className={`${styles.codePill} rounded-md px-2 py-1 text-[11px] font-semibold text-foreground`}
-              >
-                [{project.code}]
-              </span>
-            )}
-            <h1 className="break-words text-ui-2xl font-semibold tracking-tight [overflow-wrap:anywhere]">
-              {project.name}
-            </h1>
-            {project.archived && (
-              <Badge variant="secondary">{t`Archived`}</Badge>
-            )}
           </div>
         </div>
 
@@ -278,6 +267,24 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
             </DropdownMenu>
           )}
         </div>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+        {project.code && (
+          <span
+            className={`${styles.codePill} shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-foreground`}
+          >
+            [{project.code}]
+          </span>
+        )}
+        {/* break-words, not overflow-wrap:anywhere: a word breaks only when it
+            cannot fit a line of its own, so a name wraps between words. */}
+        <h1 className="min-w-0 break-words text-ui-2xl font-semibold tracking-tight">
+          {project.name}
+        </h1>
+        {project.archived && (
+          <Badge variant="secondary" className="shrink-0">{t`Archived`}</Badge>
+        )}
       </div>
 
       <MobileTextSheet

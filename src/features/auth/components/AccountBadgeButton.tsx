@@ -5,6 +5,7 @@ import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accoun
 import { cn } from '@/shared/lib/classNames';
 import { Button } from '@/shared/ui/button';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 
 interface AccountBadgeButtonProps {
   onClick: () => void;
@@ -27,7 +28,8 @@ export const AccountBadgeButton: React.FC<AccountBadgeButtonProps> = ({ onClick,
       aria-label={t`Account settings`}
       title={signedInLabel}
     >
-      <UserAvatar
+      <PersonAvatar
+        userId={user?.id}
         avatarUrl={profileAvatarUrl}
         initials={initials}
         colorSeed={user?.id}

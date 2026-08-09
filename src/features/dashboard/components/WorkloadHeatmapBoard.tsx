@@ -28,8 +28,11 @@ import { useDashboardStore } from '@/features/dashboard/store/dashboardStore';
 import type { DashboardMilestone } from '@/features/dashboard/types/dashboard';
 import {
   autoCapacityPerPerson,
+  availableHeadcount,
+  awayCountByDate,
   colorForLevel,
   dayPercent,
+  historyLoadPerPerson,
   levelForPercent,
   milestoneKernelSum,
   parseIsoDate,
@@ -67,6 +70,11 @@ type DayCellData = {
   level: HeatmapLevel;
   percent: number;
   taskCount: number;
+  /** Active people away that day, and the whole team for the "N of M" reading. */
+  awayCount: number;
+  headcount: number;
+  /** Nobody left to work: the day is shown as non-working, not as an overload. */
+  isTeamAway: boolean;
   milestones: DashboardMilestone[];
 };
 
@@ -75,6 +83,8 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   const workspaces = useAuthStore((state) => state.workspaces);
   const heatmap = useDashboardStore((state) => state.heatmap);
   const loadHeatmap = useDashboardStore((state) => state.loadHeatmap);
+  const timeOff = useDashboardStore((state) => state.timeOff);
+  const loadTimeOff = useDashboardStore((state) => state.loadTimeOff);
   const setHeatmapAutoCapacity = useDashboardStore((state) => state.setHeatmapAutoCapacity);
   const milestones = useDashboardStore((state) => state.milestones);
   const assignees = useDashboardStore((state) => state.assignees);
@@ -116,15 +126,27 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   useEffect(() => {
     if (!currentWorkspaceId) return;
     void loadHeatmap(currentWorkspaceId, startIso, endIso);
-  }, [currentWorkspaceId, startIso, endIso, loadHeatmap]);
+    void loadTimeOff(currentWorkspaceId, startIso, endIso);
+  }, [currentWorkspaceId, startIso, endIso, loadHeatmap, loadTimeOff]);
 
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const workspace = useMemo(
     () => workspaces.find((item) => item.id === currentWorkspaceId) ?? null,
     [workspaces, currentWorkspaceId],
   );
-  const headcount = useMemo(() => assignees.filter((a) => a.isActive).length, [assignees]);
+  const activeAssigneeIds = useMemo(
+    () => new Set(assignees.filter((a) => a.isActive).map((a) => a.id)),
+    [assignees],
+  );
+  const headcount = activeAssigneeIds.size;
   const showHeat = headcount > 0;
+
+  // People away per day. Absences of disabled assignees are ignored — they are not
+  // in the headcount either, so counting them would shrink the denominator twice.
+  const awayByDate = useMemo(
+    () => awayCountByDate(timeOff.records, activeAssigneeIds, { startIso, endIso }),
+    [timeOff.records, activeAssigneeIds, startIso, endIso],
+  );
 
   const holidayCountryCode = useMemo(
     () => normalizeHolidayCountryCode(workspace?.holidayCountry),
@@ -178,10 +200,16 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     heatmap.days.forEach((day) => {
       if (day.date >= todayIso) return;
       if (isWeekend(parseIsoDate(day.date)) || holidayMap[day.date]) return;
-      loads.push(day.taskCount / Math.max(headcount, 1));
+      // Past days count against who actually worked them, so a stretch of holidays
+      // doesn't drag the team's "normal day" down and make every other day look hot.
+      const load = historyLoadPerPerson(
+        day.taskCount,
+        availableHeadcount(headcount, awayByDate.get(day.date) ?? 0),
+      );
+      if (load !== null) loads.push(load);
     });
     return loads;
-  }, [heatmap.days, todayIso, holidayMap, headcount]);
+  }, [heatmap.days, todayIso, holidayMap, headcount, awayByDate]);
   const autoCapacity = useMemo(() => autoCapacityPerPerson(historyLoads), [historyLoads]);
   useEffect(() => {
     setHeatmapAutoCapacity(autoCapacity);
@@ -386,9 +414,14 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     const taskCount = countsByDate.get(iso) ?? 0;
     const weekend = isWeekend(date);
     const holidayNames = holidayMap[iso] ?? null;
-    const isWorkday = !weekend && !holidayNames;
-    const percent = showHeat
-      ? dayPercent(taskCount, headcount, capacity, milestoneKernelSum(iso, loadBearingMilestones))
+    const awayCount = awayByDate.get(iso) ?? 0;
+    const available = availableHeadcount(headcount, awayCount);
+    // Nobody available is not a hot day, it's a day the team doesn't work: colouring
+    // it bordeaux would confuse "no one to do it" with "too much to do".
+    const isTeamAway = showHeat && available === 0;
+    const isWorkday = !weekend && !holidayNames && !isTeamAway;
+    const percent = showHeat && !isTeamAway
+      ? dayPercent(taskCount, available, capacity, milestoneKernelSum(iso, loadBearingMilestones))
       : 0;
     return {
       date,
@@ -401,6 +434,9 @@ export const WorkloadHeatmapBoard: React.FC = () => {
       level: showHeat && isWorkday ? levelForPercent(percent) : 0,
       percent,
       taskCount,
+      awayCount,
+      headcount,
+      isTeamAway,
       milestones: milestonesByDate.get(iso) ?? [],
     };
   };
@@ -599,6 +635,10 @@ const HeatmapDayCell: React.FC<HeatmapDayCellProps> = ({
     cellStyle = HOLIDAY_HATCH;
   } else if (day.isWeekend) {
     cellStyle = { backgroundColor: WEEKEND_BG };
+  } else if (day.isTeamAway) {
+    // Reuses the holiday hatch on purpose: to the board this day is the same kind
+    // of thing — nobody works it. The popover says which of the two it is.
+    cellStyle = HOLIDAY_HATCH;
   }
 
   const neutralText = !colored;
@@ -641,11 +681,15 @@ const HeatmapDayCell: React.FC<HeatmapDayCellProps> = ({
           <p className="mt-1 text-xs text-muted-foreground">
             <Trans>Day off</Trans>
           </p>
+        ) : day.isTeamAway ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            <Trans>The whole team is away</Trans>
+          </p>
         ) : null}
         <p className="mt-1 text-xs text-muted-foreground">
           <Trans>Tasks</Trans>
           {`: ${day.taskCount}`}
-          {showHeat && (
+          {showHeat && !day.isTeamAway && (
             <>
               {' · '}
               <Trans>Load</Trans>
@@ -659,6 +703,12 @@ const HeatmapDayCell: React.FC<HeatmapDayCellProps> = ({
             </>
           )}
         </p>
+        {/* Explains why a day reads hotter than its task count suggests. */}
+        {showHeat && !day.isTeamAway && day.awayCount > 0 && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            <Trans>Away: {day.awayCount} of {day.headcount}</Trans>
+          </p>
+        )}
         <div className="mt-3 border-t border-border pt-2">
           <p className="mb-1 text-xs font-medium">
             <Trans>Milestones</Trans>

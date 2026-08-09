@@ -19,6 +19,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shar
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
+import { useTablePagination } from '@/features/admin/hooks/useTablePagination';
+import { AdminTablePagination } from '@/features/admin/components/AdminTablePagination';
 import {
   formatDate,
   formatDateCompact,
@@ -75,6 +77,8 @@ const AdminUsersPage: React.FC = () => {
       );
     });
   }, [adminUsers, userSearch]);
+
+  const pagination = useTablePagination(filteredUsers, 'users', userSearch);
 
   const openWorkspacesDialog = (target: AdminUser) => {
     setWorkspacesTarget(target);
@@ -139,156 +143,168 @@ const AdminUsersPage: React.FC = () => {
         {adminUsersLoading ? (
           <div className="py-6 text-sm text-muted-foreground">{t`Loading users...`}</div>
         ) : (
-          <div className="overflow-x-auto rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Display name</TableHead>
-                  <TableHead>Workspaces</TableHead>
-                  <TableHead>Owned</TableHead>
-                  <TableHead>Managed</TableHead>
-                  <TableHead>Storage</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Last sign in</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.length === 0 ? (
+          <div className="space-y-3">
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={9} className="text-sm text-muted-foreground">
-                      No users.
-                    </TableCell>
+                    <TableHead>Email</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Display name</TableHead>
+                    <TableHead>Workspaces</TableHead>
+                    <TableHead>Owned</TableHead>
+                    <TableHead>Managed</TableHead>
+                    <TableHead>Storage</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Last sign in</TableHead>
                   </TableRow>
-                ) : (
-                  filteredUsers.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {item.email ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-block max-w-[220px] truncate align-bottom">
-                                {item.email}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>{item.email}</TooltipContent>
-                          </Tooltip>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{shortId(item.id)}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>{item.id}</TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {item.displayName ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-block max-w-[180px] truncate align-bottom">
-                                {item.displayName}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>{item.displayName}</TooltipContent>
-                          </Tooltip>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="cursor-default">
-                              <div className="text-sm text-foreground">{item.workspaceCount}</div>
-                              <div className="max-w-[220px] truncate">{formatWorkspaceSummary(item.workspaces)}</div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <div className="space-y-1">
-                              <div>Total: {item.workspaceCount}</div>
-                              {item.workspaces.slice(0, 6).map((workspace) => (
-                                <div key={`${item.id}-${workspace.id}`} className="text-xs">
-                                  {workspace.name} ({workspace.role})
-                                </div>
-                              ))}
-                              {item.workspaces.length > 6 && (
-                                <div className="text-xs text-muted-foreground">
-                                  +{item.workspaces.length - 6} more
-                                </div>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                        {item.workspaces.length > 0 && (
-                          <Button
-                            type="button"
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 text-xs"
-                            onClick={() => openWorkspacesDialog(item)}
-                          >
-                            {t`Details`}
-                          </Button>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{item.ownedWorkspaceCount}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>Workspaces where user is owner</TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{item.managedWorkspaceCount}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>Owner or admin workspaces</TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="cursor-default">
-                              <div className="text-sm text-foreground">{formatStorageMain(item.storageUsedBytes)}</div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <div className="space-y-1">
-                              <div>Exact size: {formatStorageExactBytes(item.storageUsedBytes)}</div>
-                              <div>Objects: {item.storageObjectsCount}</div>
-                              {item.storageObjectsCount > 0 && (
-                                <div>
-                                  Avg/object: {formatStorageMain(item.storageUsedBytes / item.storageObjectsCount)}
-                                </div>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{formatDateCompact(item.createdAt, locale)}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>{formatDate(item.createdAt, locale)}</TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="cursor-default">{formatDateCompact(item.lastSignInAt, locale)}</span>
-                          </TooltipTrigger>
-                          <TooltipContent>{formatDate(item.lastSignInAt, locale)}</TooltipContent>
-                        </Tooltip>
+                </TableHeader>
+                <TableBody>
+                  {pagination.pageRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-sm text-muted-foreground">
+                        No users.
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    pagination.pageRows.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">
+                          {item.email ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-block max-w-[220px] truncate align-bottom">
+                                  {item.email}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>{item.email}</TooltipContent>
+                            </Tooltip>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{shortId(item.id)}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{item.id}</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {item.displayName ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-block max-w-[180px] truncate align-bottom">
+                                  {item.displayName}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>{item.displayName}</TooltipContent>
+                            </Tooltip>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="cursor-default">
+                                <div className="text-sm text-foreground">{item.workspaceCount}</div>
+                                <div className="max-w-[220px] truncate">{formatWorkspaceSummary(item.workspaces)}</div>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <div className="space-y-1">
+                                <div>Total: {item.workspaceCount}</div>
+                                {item.workspaces.slice(0, 6).map((workspace) => (
+                                  <div key={`${item.id}-${workspace.id}`} className="text-xs">
+                                    {workspace.name} ({workspace.role})
+                                  </div>
+                                ))}
+                                {item.workspaces.length > 6 && (
+                                  <div className="text-xs text-muted-foreground">
+                                    +{item.workspaces.length - 6} more
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                          {item.workspaces.length > 0 && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 text-xs"
+                              onClick={() => openWorkspacesDialog(item)}
+                            >
+                              {t`Details`}
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{item.ownedWorkspaceCount}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>Workspaces where user is owner</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{item.managedWorkspaceCount}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>Owner or admin workspaces</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="cursor-default">
+                                <div className="text-sm text-foreground">{formatStorageMain(item.storageUsedBytes)}</div>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <div className="space-y-1">
+                                <div>Exact size: {formatStorageExactBytes(item.storageUsedBytes)}</div>
+                                <div>Objects: {item.storageObjectsCount}</div>
+                                {item.storageObjectsCount > 0 && (
+                                  <div>
+                                    Avg/object: {formatStorageMain(item.storageUsedBytes / item.storageObjectsCount)}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{formatDateCompact(item.createdAt, locale)}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{formatDate(item.createdAt, locale)}</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-default">{formatDateCompact(item.lastSignInAt, locale)}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>{formatDate(item.lastSignInAt, locale)}</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <AdminTablePagination
+              page={pagination.page}
+              pageCount={pagination.pageCount}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              firstRow={pagination.firstRow}
+              lastRow={pagination.lastRow}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+            />
           </div>
         )}
 

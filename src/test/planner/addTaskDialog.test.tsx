@@ -158,3 +158,93 @@ describe('AddTaskDialog project defaults', () => {
     });
   });
 });
+
+describe('AddTaskDialog draft subtasks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('keeps a line break inside the draft subtask instead of starting a new one', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AddTaskDialog
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    await screen.findByLabelText('Title *');
+    await user.type(screen.getByLabelText('Title *'), 'Task with a multiline subtask');
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+
+    const subtaskField = screen.getByPlaceholderText('Subtask title');
+    await user.type(subtaskField, 'first line{enter}second line');
+
+    expect(screen.getAllByPlaceholderText('Subtask title')).toHaveLength(1);
+    expect(subtaskField).toHaveValue('first line\nsecond line');
+
+    await user.click(screen.getByRole('button', { name: 'Create task' }));
+
+    await waitFor(() => {
+      expect(mocks.plannerState.createTaskSubtasks).toHaveBeenCalledWith(
+        'workspace-1',
+        'task-1',
+        ['first line\nsecond line'],
+      );
+    });
+  });
+
+  it('sheds trailing blank lines once the draft subtask loses focus', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AddTaskDialog
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    await screen.findByLabelText('Title *');
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+
+    const subtaskField = screen.getByPlaceholderText('Subtask title');
+    await user.type(subtaskField, 'first line{enter}second line{enter}{enter}{enter}');
+    expect(subtaskField).toHaveValue('first line\nsecond line\n\n\n');
+
+    await user.click(screen.getByLabelText('Title *'));
+
+    // Only the trailing emptiness goes; the line break inside stays.
+    expect(subtaskField).toHaveValue('first line\nsecond line');
+  });
+
+  it('adds another draft subtask from the button and drops the empty ones', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AddTaskDialog
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    await screen.findByLabelText('Title *');
+    await user.type(screen.getByLabelText('Title *'), 'Task with two subtasks');
+
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+    await user.type(screen.getByPlaceholderText('Subtask title'), 'Filled');
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+
+    expect(screen.getAllByPlaceholderText('Subtask title')).toHaveLength(2);
+
+    await user.click(screen.getByRole('button', { name: 'Create task' }));
+
+    await waitFor(() => {
+      expect(mocks.plannerState.createTaskSubtasks).toHaveBeenCalledWith(
+        'workspace-1',
+        'task-1',
+        ['Filled'],
+      );
+    });
+  });
+});

@@ -1,0 +1,233 @@
+/* Daily-brief easter egg styling. Class names are consumed via the CSS-module
+   `styles` object (including for imperatively-created sparks), so they stay
+   scoped to this feature.
+
+   The whole drawing runs on one loop: every element shares the same duration
+   and only differs in which slice of the cycle it uses, so the sheet draws
+   itself, holds, fades and starts over in step. `--cycle` is set by the
+   component so the timing lives in one place. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  /* Sits above the dialog dimming (z-50) but below the brief card (z-60),
+     so the drawing happens behind the report. See DailyBriefModal. */
+  z-index: 55;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+  /* The dialog dims the page to black/80 in every theme, so the sheet is
+     always drawn on a dark ground — theme ink would read as a stray dark
+     line on it. */
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Spans the viewport: the drawing is positioned against the card, not centred. */
+.sheet {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.95;
+}
+
+.stroke {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation-duration: var(--cycle);
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+
+/* Construction lines: present, never the thing you notice. */
+.axis {
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.16;
+}
+
+/* Traces the card so it reads as the part on the sheet. Gold at half strength:
+   visible against the dialog's dimming without competing with the numeral. */
+.outline {
+  stroke: #f5c96b;
+  stroke-width: 1.5;
+  opacity: 0.65;
+}
+
+.dimension {
+  stroke: #f5c96b;
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+.numeral {
+  stroke: #f5c96b;
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 10px rgba(245, 201, 107, 0.45));
+}
+
+.hatch {
+  fill: url(#anniversaryHatch);
+  opacity: 0;
+  animation: hatchIn var(--cycle) linear infinite;
+}
+
+/* Title block: joins once the linework stands, leaves with it. */
+.caption {
+  opacity: 0;
+  animation: captionIn var(--cycle) linear infinite;
+}
+
+/* Sizes come from the layout: they scale with the screen, so they are set
+   inline rather than fixed here. */
+.practice {
+  fill: currentColor;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  opacity: 1;
+}
+
+.year {
+  fill: #f5c96b;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+}
+
+.sparks {
+  position: absolute;
+  inset: 0;
+}
+
+.spark {
+  position: absolute;
+  /* left/top are set per spark: they start wherever the numeral landed. */
+  transform: translate3d(-50%, -50%, 0);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #f5c96b;
+  box-shadow: 0 0 10px rgba(245, 201, 107, 0.6);
+  opacity: 0;
+  animation: spark var(--duration) ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* Each stroke walks its own slice of the cycle: the pen moves from the axes
+   through the outline and dimensions to the numeral, then everything holds
+   before fading out together. */
+.drawAxisX {
+  animation-name: drawAxisX;
+}
+
+.drawAxisY {
+  animation-name: drawAxisY;
+}
+
+.drawOutline {
+  animation-name: drawOutline;
+}
+
+.drawDimX {
+  animation-name: drawDimX;
+}
+
+.drawDimY {
+  animation-name: drawDimY;
+}
+
+.drawTwo {
+  animation-name: drawTwo;
+}
+
+.drawZero {
+  animation-name: drawZero;
+}
+
+@keyframes drawAxisX {
+  0% { stroke-dashoffset: var(--len); opacity: 1; }
+  8%, 84% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawAxisY {
+  0%, 2% { stroke-dashoffset: var(--len); opacity: 1; }
+  9%, 84% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawOutline {
+  0%, 4% { stroke-dashoffset: var(--len); opacity: 1; }
+  17%, 84% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawDimX {
+  0%, 10% { stroke-dashoffset: var(--len); opacity: 1; }
+  18%, 84% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawDimY {
+  0%, 12% { stroke-dashoffset: var(--len); opacity: 1; }
+  20%, 84% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawTwo {
+  0%, 16% { stroke-dashoffset: var(--len); opacity: 1; }
+  26%, 84% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes drawZero {
+  0%, 20% { stroke-dashoffset: var(--len); opacity: 1; }
+  31%, 84% { stroke-dashoffset: 0; opacity: 1; }
+  92%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes hatchIn {
+  0%, 33% { opacity: 0; }
+  41%, 84% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+
+@keyframes captionIn {
+  0%, 22% { opacity: 0; }
+  30%, 84% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+
+@keyframes spark {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-50% + var(--dx)), calc(-50% + var(--dy)), 0) scale(1);
+  }
+}
+
+/* Reduced motion keeps the drawing — it just stands still, finished. */
+@media (prefers-reduced-motion: reduce) {
+  .stroke {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .hatch,
+  .caption {
+    opacity: 1;
+    animation: none;
+  }
+
+  .spark {
+    display: none;
+  }
+}

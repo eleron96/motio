@@ -9,6 +9,9 @@ import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
 import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle } from '@/shared/ui/dialog';
 import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobileFormScreen } from '@/shared/ui/mobile-form-screen';
+import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Input } from '@/shared/ui/input';
@@ -25,7 +28,7 @@ import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { ResponsiveSelect } from '@/shared/ui/responsive-select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Copy, MoreVertical, RotateCw, Trash2 } from 'lucide-react';
 import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
@@ -148,6 +152,7 @@ export const TaskDetailPanel: React.FC = () => {
   })));
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
+  const isMobile = useIsMobile();
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const isReadOnly = !canEdit;
   const filteredAssignees = useFilteredAssignees(assignees);
@@ -166,6 +171,7 @@ export const TaskDetailPanel: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subtaskEditingDirty, setSubtaskEditingDirty] = useState(false);
+  const [subtaskEditingActive, setSubtaskEditingActive] = useState(false);
 
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
@@ -507,6 +513,25 @@ export const TaskDetailPanel: React.FC = () => {
     requestTaskUpdate({ endDate: clampTaskDates(task.startDate, value).endDate });
   };
 
+  /**
+   * The mobile picker hands back the whole selection rather than one toggle, so
+   * it goes through the same guards (read-only, disabled people) and the same
+   * canonical ordering as toggling one by one.
+   */
+  const handleAssigneesChange = (nextIds: string[]) => {
+    if (!canEdit) return;
+    const allowed = nextIds.filter((id) => {
+      const assignee = assignees.find((candidate) => candidate.id === id);
+      if (!assignee) return false;
+      return assignee.isActive || task.assigneeIds.includes(id);
+    });
+    const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
+    const sorted = [...new Set(allowed)].sort((left, right) => (
+      (order.get(left) ?? 0) - (order.get(right) ?? 0)
+    ));
+    requestTaskUpdate({ assigneeIds: sorted });
+  };
+
   const handleAssigneeToggle = (assigneeId: string) => {
     if (!canEdit) return;
     const targetAssignee = assignees.find((assignee) => assignee.id === assigneeId);
@@ -547,6 +572,449 @@ export const TaskDetailPanel: React.FC = () => {
     setDeleteOpen(false);
   };
 
+  const panelBody = (
+    <>
+      {/* Full-height tint behind the parameters column, header and footer included. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 lg:block"
+      />
+
+      {/* ── Header: project crumb, large title, actions.
+          On wide screens the header block stops where the tinted
+          parameters panel begins, so the title never crosses into it.
+          The wrapper is positioned so the actions button below anchors to this
+          header rather than to the phone screen, where it would paint over the
+          back arrow. */}
+      <div className="relative">
+      <div className="relative px-6 pb-3 pr-20 pt-5 lg:mr-[340px] lg:pr-6">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {currentProject ? (
+            <>
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ backgroundColor: currentProject.color }}
+                aria-hidden="true"
+              />
+              <span className="font-medium text-foreground">
+                {formatProjectLabel(currentProject.name, currentProject.code)}
+              </span>
+              {currentProject.archived && (
+                <span className="text-[10px] text-muted-foreground">({t`Archived`})</span>
+              )}
+              <span aria-hidden="true">·</span>
+              <span>
+                {currentProjectCustomer
+                  ? `${t`Customer`}: ${currentProjectCustomer.name}`
+                  : t`No customer`}
+              </span>
+            </>
+          ) : (
+            <span>{t`No project`}</span>
+          )}
+          {isRepeating && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="inline-flex items-center gap-1">
+                <RotateCw className="h-3 w-3" aria-hidden="true" />
+                {t`Repeat`}
+              </span>
+            </>
+          )}
+        </div>
+        <Input
+          id="title"
+          value={draftTitle}
+          onChange={(e) => {
+            const nextTitle = e.target.value;
+            titleDraftRef.current = nextTitle;
+            setDraftTitle(nextTitle);
+          }}
+          onBlur={() => {
+            requestTaskUpdate({ title: titleDraftRef.current }, true);
+          }}
+          placeholder={t`Task title`}
+          aria-label={t`Title`}
+          className="-mx-2 mt-1 h-auto rounded-md border-0 bg-transparent px-2 py-1 text-2xl font-bold tracking-tight shadow-none hover:bg-muted/60 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 md:text-2xl"
+          disabled={isReadOnly}
+        />
+      </div>
+
+      {!isReadOnly && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-3 h-8 w-8 text-muted-foreground lg:right-10 lg:top-2.5"
+              aria-label={t`Task actions`}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onSelect={() => duplicateTask(task.id)}>
+              <Copy className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+              {t`Duplicate task`}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onSelect={handleDelete}
+            >
+              <Trash2 className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+              {t`Delete task`}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+      </div>
+
+      <div className="relative grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* ── Left column: description, subtasks, comments */}
+        <div className="min-w-0 space-y-5 px-6 pb-6 pt-1">
+          <div className="space-y-2">
+            <ComposerEyebrow>{t`Description`}</ComposerEyebrow>
+            {descriptionLoading ? (
+              <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground animate-pulse" />
+            ) : (
+              <Suspense fallback={
+                <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                  {t`Loading editor...`}
+                </div>
+              }>
+                <LazyRichTextEditor
+                  id="description"
+                  framed
+                  value={draftDescription}
+                  workspaceId={currentWorkspaceId}
+                  onChange={(value) => {
+                    const nextDescription = value || '';
+                    descriptionDraftRef.current = nextDescription;
+                    setDraftDescription(nextDescription);
+                  }}
+                  onBlur={() => {
+                    requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
+                  }}
+                  placeholder={t`Add a description...`}
+                  disabled={isReadOnly}
+                />
+              </Suspense>
+            )}
+          </div>
+
+          <SubtasksSection
+            isReadOnly={isReadOnly}
+            subtasksOpen={subtasksOpen}
+            subtasksLoading={subtasksLoading}
+            subtasksSaving={subtasksSaving}
+            subtasksError={subtasksError}
+            subtasks={subtasks}
+            newSubtaskTitle={newSubtaskTitle}
+            completedSubtasksCount={completedSubtasksCount}
+            subtaskInputRef={subtaskInputRef}
+            onOpen={handleOpenSubtasks}
+            onNewTitleChange={setNewSubtaskTitle}
+            onAdd={() => void handleAddSubtask()}
+            onEdit={handleEditSubtask}
+            onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
+            onDelete={(id) => void handleDeleteSubtask(id)}
+            onEditingDirtyChange={setSubtaskEditingDirty}
+            onEditingActiveChange={setSubtaskEditingActive}
+          />
+
+          {/* ── Comments section */}
+          {currentWorkspaceId && (
+            <div className="border-t border-border pt-4">
+              <Suspense fallback={
+                <div className="h-16 rounded-md bg-muted/30 animate-pulse" />
+              }>
+                <LazyTaskCommentSection
+                  taskId={task.id}
+                  workspaceId={currentWorkspaceId}
+                  canEdit={canEdit}
+                />
+              </Suspense>
+            </div>
+          )}
+        </div>
+
+        {/* ── Right column: parameters panel */}
+        <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 lg:border-0 lg:bg-transparent lg:pt-1">
+          <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
+
+          <div className="space-y-1.5">
+            <Label>{t`Project`}</Label>
+            <TaskProjectSelect
+              value={task.projectId || 'none'}
+              projects={projectOptions}
+              disabled={isReadOnly}
+              noProjectDisabled={noProjectDisabled}
+              showArchivedBadge
+              triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
+              onValueChange={(v) => {
+                if (noProjectDisabled && v === 'none') return;
+                handleUpdate('projectId', v === 'none' ? null : v);
+              }}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Assignees`}</Label>
+            {isMobile ? (
+              <MobileAssigneeField
+                label={assigneeLabel}
+                assignees={selectableAssignees}
+                selectedIds={task.assigneeIds}
+                disabled={isReadOnly}
+                onChange={handleAssigneesChange}
+                emptyLabel={t`No assignees available.`}
+              />
+            ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between bg-background font-normal"
+                  disabled={isReadOnly}
+                >
+                  <span className="truncate">{assigneeLabel}</span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="start">
+                {selectableAssignees.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">{t`No assignees available.`}</div>
+                ) : (
+                  <div
+                    className="max-h-48 overflow-y-auto overscroll-contain pr-2"
+                    onWheelCapture={(event) => event.stopPropagation()}
+                  >
+                    <div className="space-y-1">
+                      {selectableAssignees.map((assignee) => {
+                        const isAssigned = task.assigneeIds.includes(assignee.id);
+                        const isDisabled = isReadOnly || (!assignee.isActive && !isAssigned);
+                        return (
+                          <label key={assignee.id} className="flex items-center gap-2 py-1 cursor-pointer">
+                            <Checkbox
+                              checked={isAssigned}
+                              onCheckedChange={() => handleAssigneeToggle(assignee.id)}
+                              disabled={isDisabled}
+                            />
+                            <PersonAvatar
+                              assigneeId={assignee.id}
+                              userId={assignee.userId}
+                              avatarUrl={assignee.avatar}
+                              initials={getPersonMonogram(assignee.name, 'U')}
+                              colorSeed={assignee.userId ?? assignee.id}
+                              size="xs"
+                            />
+                            <span className="text-sm truncate">
+                              {assignee.name}
+                              {!assignee.isActive && (
+                                <span className="ml-1 text-[10px] text-muted-foreground">({t`disabled`})</span>
+                              )}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+            )}
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1.5 min-w-0">
+              <Label>{t`Status`}</Label>
+              <ResponsiveSelect
+                value={task.statusId}
+                onValueChange={(v) => handleUpdate('statusId', v)}
+                disabled={isReadOnly}
+                title={t`Status`}
+                placeholder={t`Select status`}
+                triggerClassName="min-w-0 overflow-hidden whitespace-nowrap bg-background text-left"
+                valueClassName="truncate text-left"
+                itemLabelClassName="truncate"
+                options={statuses.map((s) => ({
+                  value: s.id,
+                  label: formatStatusLabel(s.name, s.emoji),
+                }))}
+              />
+            </div>
+
+            <div className="space-y-1.5 min-w-0">
+              <Label>{t`Priority`}</Label>
+              <ResponsiveSelect
+                value={task.priority ?? 'none'}
+                onValueChange={(value) => handleUpdate('priority', value === 'none' ? null : (value as TaskPriority))}
+                disabled={isReadOnly}
+                title={t`Priority`}
+                placeholder={t`Select priority`}
+                triggerClassName="bg-background text-left"
+                valueClassName="truncate text-left"
+                options={[
+                  { value: 'none', label: t`No priority` },
+                  { value: 'low', label: t`Low` },
+                  { value: 'medium', label: t`Medium` },
+                  { value: 'high', label: t`High` },
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Type`}</Label>
+            <ResponsiveSelect
+              value={task.typeId}
+              onValueChange={(v) => handleUpdate('typeId', v)}
+              disabled={isReadOnly}
+              title={t`Type`}
+              placeholder={t`Select type`}
+              triggerClassName="bg-background text-left"
+              valueClassName="truncate text-left"
+              options={taskTypes.map((type) => ({ value: type.id, label: type.name }))}
+            />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1.5 min-w-0">
+              <Label htmlFor="startDate">{t`Start Date`}</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={task.startDate}
+                onChange={(e) => handleStartDateChange(e.target.value)}
+                disabled={isReadOnly}
+                className="bg-background px-2 text-sm tabular-nums"
+              />
+            </div>
+            <div className="space-y-1.5 min-w-0">
+              <Label htmlFor="endDate">{t`End Date`}</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={task.endDate}
+                min={getMinEndDate(task.startDate)}
+                onChange={(e) => handleEndDateChange(e.target.value)}
+                disabled={isReadOnly}
+                className="bg-background px-2 text-sm tabular-nums"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Repeat`}</Label>
+            <RepeatPopoverField
+              count={repeatCount}
+              disabled={isReadOnly}
+              ends={repeatEnds}
+              error={repeatError}
+              frequency={repeatFrequency}
+              idPrefix="detail"
+              notice={repeatNotice}
+              onCountInputChange={handleRepeatCountInputChange}
+              onEndsChange={handleRepeatEndsChange}
+              onFrequencyChange={handleRepeatFrequencyChange}
+              onUntilChange={handleRepeatUntilChange}
+              projectedEnd={getRepeatOccurrenceDate(task.startDate, repeatFrequency, Math.max(0, repeatCount - 1))}
+              showNeverHint
+              until={repeatUntil}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Tags`}</Label>
+            <TagMultiSelect
+              tags={tags}
+              selectedTagIds={task.tagIds}
+              onToggleTag={handleTagToggle}
+              disabled={isReadOnly}
+            />
+          </div>
+        </div>
+      </div>
+
+    </>
+  );
+
+  const alerts = (
+    <TaskDetailAlerts
+      confirmOpen={confirmOpen}
+      setConfirmOpen={setConfirmOpen}
+      onDiscardAndClose={handleDiscardAndClose}
+      onSaveAndClose={handleSaveAndClose}
+      repeatCreating={repeatCreating}
+      repeatScopeOpen={repeatScopeOpen}
+      setRepeatScopeOpen={setRepeatScopeOpen}
+      repeatScopeOptions={pendingRepeatUpdate?.scopes}
+      onCancelPendingRepeatUpdate={cancelPendingRepeatUpdate}
+      onApplyPendingRepeatUpdate={applyPendingRepeatUpdate}
+      deleteOpen={deleteOpen}
+      setDeleteOpen={setDeleteOpen}
+      isRepeating={isRepeating}
+      hasFutureRepeats={hasFutureRepeats}
+      taskTitle={task.title}
+      canEdit={canEdit}
+      onDeleteTask={handleDeleteTask}
+      onDeleteTaskAndFollowing={handleDeleteTaskAndFollowing}
+    />
+  );
+
+  const cancelButton = (
+    <Button variant="outline" onClick={handleCancelClose} className={isMobile ? 'h-11 flex-1' : undefined}>
+      {t`Cancel`}
+    </Button>
+  );
+
+  const doneButton = (
+    <Button
+      onClick={() => {
+        void handleSaveAndClose();
+      }}
+      disabled={repeatCreating}
+      className={isMobile ? 'h-11 flex-1' : undefined}
+    >
+      {/* Distinct id: the bare "Done" msgid is a task status («Завершено»). */}
+      {t({ id: 'taskDetail.footer.done', message: 'Done' })}
+    </Button>
+  );
+
+  if (isMobile) {
+    // Same shape as creating a task: a full-screen form with a back arrow and
+    // pinned actions, rather than a card that the keyboard pushes off-screen.
+    return (
+      <>
+        <MobileFormScreen
+          open={!!selectedTaskId}
+          onOpenChange={(next) => { if (!next) requestClose(); }}
+          title={t`Task details`}
+          description={t`View and edit task details.`}
+          footer={(
+            <div className="flex flex-col gap-2">
+              {/* The created/updated line reads above the actions here — on a
+                  phone there is no room for it beside them. */}
+              {timestampsMeta && (
+                <span className="truncate text-center text-xs text-muted-foreground">
+                  {timestampsMeta}
+                </span>
+              )}
+              <div className="flex items-center gap-2">
+                {cancelButton}
+                {doneButton}
+              </div>
+            </div>
+          )}
+        >
+          {panelBody}
+        </MobileFormScreen>
+        {alerts}
+      </>
+    );
+  }
+
   return (
     <>
       <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
@@ -554,6 +1022,14 @@ export const TaskDetailPanel: React.FC = () => {
           className="flex w-full max-w-[940px] flex-col gap-0 p-0"
           // Don't auto-focus (and select) the title input when the panel opens.
           onOpenAutoFocus={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => {
+            // While a subtask is being edited or a draft is typed, Escape
+            // belongs to that field — it cancels the text, not the whole task.
+            // The field's own handler still sees the key and clears itself.
+            if (subtaskEditingActive || newSubtaskTitle !== '') {
+              e.preventDefault();
+            }
+          }}
           onInteractOutside={(e) => {
             if (shouldIgnoreOutsideInteraction(e.target)) {
               e.preventDefault();
@@ -570,396 +1046,19 @@ export const TaskDetailPanel: React.FC = () => {
             <DialogDescription>{t`View and edit task details.`}</DialogDescription>
           </DialogHeader>
 
-          {/* Full-height tint behind the parameters column, header and footer included. */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 lg:block"
-          />
-
-          {/* ── Header: project crumb, large title, actions.
-              On wide screens the header block stops where the tinted
-              parameters panel begins, so the title never crosses into it. */}
-          <div className="relative px-6 pb-3 pr-20 pt-5 lg:mr-[340px] lg:pr-6">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              {currentProject ? (
-                <>
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: currentProject.color }}
-                    aria-hidden="true"
-                  />
-                  <span className="font-medium text-foreground">
-                    {formatProjectLabel(currentProject.name, currentProject.code)}
-                  </span>
-                  {currentProject.archived && (
-                    <span className="text-[10px] text-muted-foreground">({t`Archived`})</span>
-                  )}
-                  <span aria-hidden="true">·</span>
-                  <span>
-                    {currentProjectCustomer
-                      ? `${t`Customer`}: ${currentProjectCustomer.name}`
-                      : t`No customer`}
-                  </span>
-                </>
-              ) : (
-                <span>{t`No project`}</span>
-              )}
-              {isRepeating && (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span className="inline-flex items-center gap-1">
-                    <RotateCw className="h-3 w-3" aria-hidden="true" />
-                    {t`Repeat`}
-                  </span>
-                </>
-              )}
-            </div>
-            <Input
-              id="title"
-              value={draftTitle}
-              onChange={(e) => {
-                const nextTitle = e.target.value;
-                titleDraftRef.current = nextTitle;
-                setDraftTitle(nextTitle);
-              }}
-              onBlur={() => {
-                requestTaskUpdate({ title: titleDraftRef.current }, true);
-              }}
-              placeholder={t`Task title`}
-              aria-label={t`Title`}
-              className="-mx-2 mt-1 h-auto rounded-md border-0 bg-transparent px-2 py-1 text-2xl font-bold tracking-tight shadow-none hover:bg-muted/60 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 md:text-2xl"
-              disabled={isReadOnly}
-            />
-          </div>
-
-          {!isReadOnly && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-10 top-2.5 h-8 w-8 text-muted-foreground"
-                  aria-label={t`Task actions`}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onSelect={() => duplicateTask(task.id)}>
-                  <Copy className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-                  {t`Duplicate task`}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onSelect={handleDelete}
-                >
-                  <Trash2 className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-                  {t`Delete task`}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
-          <div className="relative grid lg:grid-cols-[minmax(0,1fr)_340px]">
-            {/* ── Left column: description, subtasks, comments */}
-            <div className="space-y-5 px-6 pb-6 pt-1">
-              <div className="space-y-2">
-                <ComposerEyebrow>{t`Description`}</ComposerEyebrow>
-                {descriptionLoading ? (
-                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground animate-pulse" />
-                ) : (
-                  <Suspense fallback={
-                    <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                      {t`Loading editor...`}
-                    </div>
-                  }>
-                    <LazyRichTextEditor
-                      id="description"
-                      framed
-                      value={draftDescription}
-                      workspaceId={currentWorkspaceId}
-                      onChange={(value) => {
-                        const nextDescription = value || '';
-                        descriptionDraftRef.current = nextDescription;
-                        setDraftDescription(nextDescription);
-                      }}
-                      onBlur={() => {
-                        requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
-                      }}
-                      placeholder={t`Add a description...`}
-                      disabled={isReadOnly}
-                    />
-                  </Suspense>
-                )}
-              </div>
-
-              <SubtasksSection
-                isReadOnly={isReadOnly}
-                subtasksOpen={subtasksOpen}
-                subtasksLoading={subtasksLoading}
-                subtasksSaving={subtasksSaving}
-                subtasksError={subtasksError}
-                subtasks={subtasks}
-                newSubtaskTitle={newSubtaskTitle}
-                completedSubtasksCount={completedSubtasksCount}
-                subtaskInputRef={subtaskInputRef}
-                onOpen={handleOpenSubtasks}
-                onNewTitleChange={setNewSubtaskTitle}
-                onAdd={() => void handleAddSubtask()}
-                onEdit={handleEditSubtask}
-                onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
-                onDelete={(id) => void handleDeleteSubtask(id)}
-                onEditingDirtyChange={setSubtaskEditingDirty}
-              />
-
-              {/* ── Comments section */}
-              {currentWorkspaceId && (
-                <div className="border-t border-border pt-4">
-                  <Suspense fallback={
-                    <div className="h-16 rounded-md bg-muted/30 animate-pulse" />
-                  }>
-                    <LazyTaskCommentSection
-                      taskId={task.id}
-                      workspaceId={currentWorkspaceId}
-                      canEdit={canEdit}
-                    />
-                  </Suspense>
-                </div>
-              )}
-            </div>
-
-            {/* ── Right column: parameters panel */}
-            <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 lg:border-0 lg:bg-transparent lg:pt-1">
-              <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
-
-              <div className="space-y-1.5">
-                <Label>{t`Project`}</Label>
-                <TaskProjectSelect
-                  value={task.projectId || 'none'}
-                  projects={projectOptions}
-                  disabled={isReadOnly}
-                  noProjectDisabled={noProjectDisabled}
-                  showArchivedBadge
-                  triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
-                  onValueChange={(v) => {
-                    if (noProjectDisabled && v === 'none') return;
-                    handleUpdate('projectId', v === 'none' ? null : v);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Assignees`}</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between bg-background font-normal"
-                      disabled={isReadOnly}
-                    >
-                      <span className="truncate">{assigneeLabel}</span>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-2" align="start">
-                    {selectableAssignees.length === 0 ? (
-                      <div className="text-xs text-muted-foreground">{t`No assignees available.`}</div>
-                    ) : (
-                      <div
-                        className="max-h-48 overflow-y-auto overscroll-contain pr-2"
-                        onWheelCapture={(event) => event.stopPropagation()}
-                      >
-                        <div className="space-y-1">
-                          {selectableAssignees.map((assignee) => {
-                            const isAssigned = task.assigneeIds.includes(assignee.id);
-                            const isDisabled = isReadOnly || (!assignee.isActive && !isAssigned);
-                            return (
-                              <label key={assignee.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                                <Checkbox
-                                  checked={isAssigned}
-                                  onCheckedChange={() => handleAssigneeToggle(assignee.id)}
-                                  disabled={isDisabled}
-                                />
-                                <UserAvatar
-                                  avatarUrl={assignee.avatar}
-                                  initials={getPersonMonogram(assignee.name, 'U')}
-                                  colorSeed={assignee.userId ?? assignee.id}
-                                  size="xs"
-                                />
-                                <span className="text-sm truncate">
-                                  {assignee.name}
-                                  {!assignee.isActive && (
-                                    <span className="ml-1 text-[10px] text-muted-foreground">({t`disabled`})</span>
-                                  )}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5 min-w-0">
-                  <Label>{t`Status`}</Label>
-                  <Select
-                    value={task.statusId}
-                    onValueChange={(v) => handleUpdate('statusId', v)}
-                    disabled={isReadOnly}
-                  >
-                    <SelectTrigger className="min-w-0 overflow-hidden whitespace-nowrap bg-background text-left">
-                      <SelectValue placeholder={t`Select status`} className="truncate text-left" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statuses.map(s => (
-                        <SelectItem key={s.id} value={s.id}>
-                          <span className="truncate">{formatStatusLabel(s.name, s.emoji)}</span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5 min-w-0">
-                  <Label>{t`Priority`}</Label>
-                  <Select
-                    value={task.priority ?? 'none'}
-                    onValueChange={(value) => handleUpdate('priority', value === 'none' ? null : (value as TaskPriority))}
-                    disabled={isReadOnly}
-                  >
-                    <SelectTrigger className="bg-background text-left">
-                      <SelectValue placeholder={t`Select priority`} className="truncate text-left" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t`No priority`}</SelectItem>
-                      <SelectItem value="low">{t`Low`}</SelectItem>
-                      <SelectItem value="medium">{t`Medium`}</SelectItem>
-                      <SelectItem value="high">{t`High`}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Type`}</Label>
-                <Select
-                  value={task.typeId}
-                  onValueChange={(v) => handleUpdate('typeId', v)}
-                  disabled={isReadOnly}
-                >
-                  <SelectTrigger className="bg-background text-left">
-                    <SelectValue placeholder={t`Select type`} className="truncate text-left" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {taskTypes.map(t => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5 min-w-0">
-                  <Label htmlFor="startDate">{t`Start Date`}</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={task.startDate}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                    disabled={isReadOnly}
-                    className="bg-background px-2 text-sm tabular-nums"
-                  />
-                </div>
-                <div className="space-y-1.5 min-w-0">
-                  <Label htmlFor="endDate">{t`End Date`}</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={task.endDate}
-                    min={getMinEndDate(task.startDate)}
-                    onChange={(e) => handleEndDateChange(e.target.value)}
-                    disabled={isReadOnly}
-                    className="bg-background px-2 text-sm tabular-nums"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Repeat`}</Label>
-                <RepeatPopoverField
-                  count={repeatCount}
-                  disabled={isReadOnly}
-                  ends={repeatEnds}
-                  error={repeatError}
-                  frequency={repeatFrequency}
-                  idPrefix="detail"
-                  notice={repeatNotice}
-                  onCountInputChange={handleRepeatCountInputChange}
-                  onEndsChange={handleRepeatEndsChange}
-                  onFrequencyChange={handleRepeatFrequencyChange}
-                  onUntilChange={handleRepeatUntilChange}
-                  projectedEnd={getRepeatOccurrenceDate(task.startDate, repeatFrequency, Math.max(0, repeatCount - 1))}
-                  showNeverHint
-                  until={repeatUntil}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Tags`}</Label>
-                <TagMultiSelect
-                  tags={tags}
-                  selectedTagIds={task.tagIds}
-                  onToggleTag={handleTagToggle}
-                  disabled={isReadOnly}
-                />
-              </div>
-            </div>
-          </div>
+          {panelBody}
 
           {/* ── Footer */}
           <div className="relative flex items-center justify-between gap-3 px-6 py-3.5">
             <span className="min-w-0 truncate text-xs text-muted-foreground">{timestampsMeta}</span>
             <div className="flex shrink-0 gap-2">
-            <Button variant="outline" onClick={handleCancelClose}>
-              {t`Cancel`}
-            </Button>
-            <Button
-              onClick={() => {
-                void handleSaveAndClose();
-              }}
-              disabled={repeatCreating}
-            >
-              {/* Distinct id: the bare "Done" msgid is a task status («Завершено»). */}
-              {t({ id: 'taskDetail.footer.done', message: 'Done' })}
-            </Button>
+              {cancelButton}
+              {doneButton}
             </div>
           </div>
         </DialogScrollContent>
       </Dialog>
-      <TaskDetailAlerts
-        confirmOpen={confirmOpen}
-        setConfirmOpen={setConfirmOpen}
-        onDiscardAndClose={handleDiscardAndClose}
-        onSaveAndClose={handleSaveAndClose}
-        repeatCreating={repeatCreating}
-        repeatScopeOpen={repeatScopeOpen}
-        setRepeatScopeOpen={setRepeatScopeOpen}
-        repeatScopeOptions={pendingRepeatUpdate?.scopes}
-        onCancelPendingRepeatUpdate={cancelPendingRepeatUpdate}
-        onApplyPendingRepeatUpdate={applyPendingRepeatUpdate}
-        deleteOpen={deleteOpen}
-        setDeleteOpen={setDeleteOpen}
-        isRepeating={isRepeating}
-        hasFutureRepeats={hasFutureRepeats}
-        taskTitle={task.title}
-        canEdit={canEdit}
-        onDeleteTask={handleDeleteTask}
-        onDeleteTaskAndFollowing={handleDeleteTaskAndFollowing}
-      />
+      {alerts}
     </>
   );
 };

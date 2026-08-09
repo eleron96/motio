@@ -31,7 +31,6 @@ type UseOnboardingTourOptions = {
   canEdit?: boolean;
   hasProjectAssigneeTarget?: boolean;
   isAdmin?: boolean;
-  prepareMembersAccess?: () => void;
 };
 
 const readPendingPage = (): OnboardingPageId | null => {
@@ -55,7 +54,6 @@ export const useOnboardingTour = ({
   canEdit = false,
   hasProjectAssigneeTarget = false,
   isAdmin = false,
-  prepareMembersAccess,
 }: UseOnboardingTourOptions) => {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
@@ -64,12 +62,10 @@ export const useOnboardingTour = ({
   const canEditRef = useRef(canEdit);
   const hasProjectAssigneeTargetRef = useRef(hasProjectAssigneeTarget);
   const isAdminRef = useRef(isAdmin);
-  const prepareMembersAccessRef = useRef(prepareMembersAccess);
 
   canEditRef.current = canEdit;
   hasProjectAssigneeTargetRef.current = hasProjectAssigneeTarget;
   isAdminRef.current = isAdmin;
-  prepareMembersAccessRef.current = prepareMembersAccess;
 
   useEffect(() => {
     if (!user || started.current) return;
@@ -84,10 +80,6 @@ export const useOnboardingTour = ({
 
       const pendingPage = readPendingPage();
       if (pendingPage && pendingPage !== pageId) return;
-
-      if (pageId === 'members' && isAdminRef.current) {
-        prepareMembersAccessRef.current?.();
-      }
 
       const markCompleted = async () => {
         clearPendingPage();
@@ -121,7 +113,6 @@ export const useOnboardingTour = ({
             onComplete: () => {
               void markCompleted();
             },
-            prepareMembersAccess: prepareMembersAccessRef.current,
           });
 
           activeTour.current.drive();

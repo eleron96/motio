@@ -5,33 +5,23 @@
 // linear in the tail of the string, so real workspaces get hues one degree
 // apart — a pie split between such people reads as one solid circle.
 //
-// Assignment is by POSITION in the workspace's own list of people, sorted by id.
-// A new teammate lands at the end and never shifts anyone else's colour, which
-// is what makes the mapping stable across sessions and devices. (A colour
-// column on the assignee would be stabler still — worth doing only if a
-// workspace ever outgrows the palette and the wrap-around becomes visible.)
+// Since 0135 a person can be given an explicit colour in workspace settings, and
+// that one wins. Everyone else is served from the colours nobody claimed, by
+// POSITION in the workspace's own list of people sorted by id: a new teammate
+// lands at the end and never shifts anyone else's colour, which is what keeps the
+// fallback stable across sessions and devices. Handing somebody a colour does
+// reshuffle the automatic ones — the alternative is two people sharing a colour.
 
+import { PERSON_PRESET_COLORS } from '@/shared/lib/colors';
+import { isPersonColor } from '@/shared/lib/personColor';
 import type { Assignee, TimeOff } from '@/features/planner/types/planner';
 
 /**
- * Twelve pastel hues, evenly spread around the wheel, light enough for the day
- * number to stay readable on top and distinct enough to tell apart as adjacent
- * slices of a 28px circle.
+ * The twenty colours from workspace settings, reused verbatim — one source, so an
+ * automatic colour and a hand-picked one cannot drift apart. See
+ * PERSON_PRESET_COLORS for why they are light and how far apart they sit.
  */
-export const TIME_OFF_PALETTE: string[] = [
-  'hsl(210, 72%, 80%)', // blue
-  'hsl(150, 55%, 76%)', // green
-  'hsl(28, 85%, 80%)', // orange
-  'hsl(280, 55%, 82%)', // violet
-  'hsl(340, 72%, 84%)', // pink
-  'hsl(190, 60%, 76%)', // teal
-  'hsl(50, 80%, 76%)', // yellow
-  'hsl(255, 60%, 84%)', // periwinkle
-  'hsl(10, 70%, 82%)', // coral
-  'hsl(120, 40%, 78%)', // sage
-  'hsl(320, 45%, 82%)', // mauve
-  'hsl(85, 50%, 76%)', // lime
-];
+export const TIME_OFF_PALETTE: string[] = [...PERSON_PRESET_COLORS];
 
 /**
  * A record can point at somebody the client does not hold: the assignee list is
@@ -49,17 +39,49 @@ const hashToPaletteIndex = (value: string): number => {
 };
 
 /**
- * Stable colour per person: position in the id-sorted list of people, wrapping
- * around the palette if a workspace ever has more than twelve.
+ * Colour per person: the one picked in workspace settings if there is one,
+ * otherwise the next unclaimed colour by position in the id-sorted list of
+ * people, wrapping around once a workspace outgrows the palette.
  */
-export const buildTimeOffColorMap = (assignees: Assignee[]): Map<string, string> => {
-  const ordered = [...assignees].sort((left, right) => left.id.localeCompare(right.id));
+export const buildPersonColorMap = (
+  people: Array<{ id: string; color?: string | null }>,
+): Map<string, string> => {
+  const ordered = [...people].sort((left, right) => left.id.localeCompare(right.id));
+
+  // Colours somebody chose are off the table for the automatic hand-out —
+  // otherwise a teammate could be handed the exact colour another person picked,
+  // and the two would be indistinguishable everywhere. If a workspace picked all
+  // of them, the pool falls back to the full palette rather than running dry.
+  const taken = new Set(
+    ordered
+      .map((person) => (isPersonColor(person.color) ? person.color.toLowerCase() : null))
+      .filter((color): color is string => color !== null),
+  );
+  const available = TIME_OFF_PALETTE.filter((color) => !taken.has(color.toLowerCase()));
+  const pool = available.length > 0 ? available : TIME_OFF_PALETTE;
+
   const colors = new Map<string, string>();
-  ordered.forEach((assignee, index) => {
-    colors.set(assignee.id, TIME_OFF_PALETTE[index % TIME_OFF_PALETTE.length]);
+  let autoIndex = 0;
+  ordered.forEach((person) => {
+    if (isPersonColor(person.color)) {
+      colors.set(person.id, person.color);
+      return;
+    }
+    colors.set(person.id, pool[autoIndex % pool.length]);
+    autoIndex += 1;
   });
   return colors;
 };
+
+/**
+ * The calendar's view of the same mapping. Dashboard charts call
+ * buildPersonColorMap directly with their own list of people — same function, so
+ * a person reads the same in both places as long as both lists hold the same
+ * people (the position fallback is what makes that a condition).
+ */
+export const buildTimeOffColorMap = (assignees: Assignee[]): Map<string, string> => (
+  buildPersonColorMap(assignees)
+);
 
 export const resolveTimeOffColor = (
   colors: Map<string, string>,

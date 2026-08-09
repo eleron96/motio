@@ -7,6 +7,178 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.64] - 2026-08-09
+### Changed
+- No documented changes.
+
+## [0.9.63] - 2026-08-09
+### Changed
+- No documented changes.
+
+## [0.9.62] - 2026-08-09
+### Changed
+- No documented changes.
+
+## [0.9.61] - 2026-08-09
+### Changed
+- No documented changes.
+
+## [0.9.60] - 2026-08-08
+### Changed
+- No documented changes.
+
+## [0.9.59] - 2026-08-08
+### Changed
+- The admin lists — users, workspaces, easter eggs and backups — no longer render in one endless run: they page in tens, fifties or hundreds, and each section remembers the size you picked.
+
+## [0.9.58] - 2026-08-08
+### Fixed
+- Comments show faces again: both the list that opens on "@" and the avatar beside a comment fell back to initials instead of the person's uploaded photo.
+- The admin console no longer answers "Access denied" when the access check could not reach the server — during a deploy, for instance. It now says the check failed, retries on its own and offers a "Try again" button.
+
+### Added
+- Editing an announcement now opens in its own dialog — the form above always means "new announcement", so the two can no longer be confused.
+- The admin overview gained a Messaging summary: what people are seeing right now, how much is scheduled or still a draft, and where the last email broadcast got to.
+- Every row in the announcement history now has a menu: edit, duplicate, publish again over new dates, unpublish and delete. The row also shows where the announcement stands — draft, scheduled, live or finished.
+- Publishing again can bring the announcement back to people who already closed it, or leave it only for those who have not seen it.
+- An announcement can be saved as a draft and published later.
+
+## [0.9.57] - 2026-08-08
+### Fixed
+- The broadcast history in the admin console answered "permission denied" on the testing stand — the table was missing its grants. A migration now grants them, the same way on every stand.
+
+### Added
+- In-app announcements: the admin broadcast page now asks which channel to use — email or a banner inside the app. A banner sits above the workspace; something urgent interrupts with a "Got it" dialog. Each person sees it once — dismissed on the desktop means dismissed on the phone. The history shows how many people closed it, and an announcement can be pulled back.
+
+## [0.9.56] - 2026-08-07
+### Changed
+- Invites, roles and workspace access moved from the Team page into workspace settings, under "Members and access". Active people, disabled people, history and everyone's colours are now tabs in one place.
+- Inviting shows up on the active list only — it is gone from above the disabled list and the history log. Search now sits with the list it filters, and each tab carries its own heading.
+- The Team page keeps people and groups.
+
+### Changed
+- Projects on a phone: the side drawer is gone. Projects, Milestones, Customers and Contacts swipe left and right, the list is right there, and tapping a row opens it full-screen with back by arrow or swipe.
+- Milestones on a phone are one timeline: the list opens at the nearest milestone, scrolling up goes back in time and down goes forward, with months labelled. The current/past switch is gone. Tapping a milestone opens its screen with the date, status, project and note; "Open project" sits there, and "Edit" and "Delete" live under "..." in the header.
+- Contacts on a phone: company, tag and role filters each get their own screen with a search box, so the right one is findable however many there are.
+- The create buttons look the same everywhere on a phone: New project, New milestone, New customer, New contact, New group and Add widget are now one pill-shaped button in one place.
+- Contacts on a phone put search and "Filters" above the list, the way projects do, and "New contact" became the floating button every other list has. Until now there was no contact search on a phone at all.
+- A contact opens as a card on a phone: name, email and phone copy with a single tap, mail and call sit beside them, and Edit and Delete live under "..." in the header.
+- Project filters (customer, owner team, archived, sorting, grouping) are gathered on one screen with a count of what is applied — instead of four popovers a finger could not scroll.
+- The task filters inside a project became a screen too: statuses and assignees are a plain list.
+- "Members and access" in settings is rebuilt for phones: instead of a strip of tabs there is a menu — Members / Invites / Access history / Colours — and each opens its own screen. A member's row is a name again; role, group, access and removal moved to that person's screen, where they used to take half a screen each behind two dropdowns a finger could not scroll.
+- Inviting someone from a phone happens on its own screen rather than in a popover over the keyboard.
+- The member list can now be sorted on a phone — by name, role, group or status. There was no sorting there at all before.
+- Team on a phone: the People and Groups sections swipe left and right, and each one is the list itself. Tapping a person opens their tasks, tapping a group opens its members; back is the arrow or a swipe right. The side drawer and its browse button are gone.
+- A member's task filters open as their own screen on a phone: statuses and projects are now a list a finger can actually reach, and the button shows how many filters are on.
+- Renaming and deleting a group are reachable from a phone — until now they lived only in the right-click menu.
+- Deleting a group asks for confirmation inside the app instead of a browser system dialog.
+- A member's task opens full-screen on a phone: the fields read as a list, the description fits, and "Go to task" is a full-width button at the bottom.
+- Adding someone to a group opens its own screen on a phone, with search and a "Show disabled people" row — instead of a floating list a finger could not scroll.
+
+### Added
+- A person's group is now visible and changeable straight from the people list: the group is named under their name, and the "..." next to it assigns a group or takes them out of one.
+- Inside a group every member got a "..." menu: move them to another group or remove them. Removing now asks for confirmation.
+
+## [0.9.55] - 2026-08-06
+### Fixed
+- Dialogs on a phone got rounded corners, and the close and overflow buttons in their corner got a proper tap target.
+- On a phone the project name no longer breaks in the middle of a word — it takes a line of its own, the full width of the card.
+
+
+### Added
+- Tapping a day in the calendar on a phone opens what happens that day: milestones, who is away, the holiday, and how many tasks land there — all of them and yours. From there you can open the day or create a milestone; pull the sheet down to close it.
+
+
+### Changed
+- Filters open as a screen of their own on a phone: bigger rows and search fields, a count on every section, and sections with a selection already open.
+
+## [0.9.54] - 2026-08-06
+### Changed
+- The floating buttons on a phone — add task, filters and legend — are now the same size and sit higher above the bottom edge, clear of the screen's rounded corner.
+- Status, priority, type, tags, repeat and assignees are picked on a full-screen list you can scroll with a finger, instead of dropdowns you could not scroll past.
+- On a phone the menu now opens from your own avatar in the top bar, which also carries the unread count. Instead of a side drawer, a panel slides up from the bottom with large rows: workspace, workspace settings, notifications, account settings.
+- Settings open full screen on a phone: switch sections from the strip at the top or by swiping left and right, dots at the bottom show where you are, and swiping right on the first section takes you back to the menu.
+- Toggles, steppers and the language picker are bigger on a phone — sized for a thumb.
+- Notifications and workspace switching open as their own screens instead of cramped popups.
+- The phone menu closes with a flick down anywhere on the panel, not just on the grabber, so the corner close button is gone. Swiping up expands the menu to full screen, with the app version and author now shown at its bottom — the version left account settings. Tapping the version opens the latest changes.
+- "Sign out" in profile settings moved to the very bottom, became a compact button and now asks for confirmation — no more accidental taps.
+- The section dots sit higher, clear of the iPhone home indicator.
+- On a phone, swipe the top bar left or right to move between sections (Timeline, Dashboard, Projects, Team).
+### Fixed
+- The @-mention suggestions in comments no longer open underneath the keyboard — the list moves above the line you are typing on.
+- Task fields no longer run off the right edge on a phone — the iPhone stopped zooming the page in when you start typing. The description and comments fit the screen, and the keyboard no longer covers them: the form scrolls to the field you are in.
+- Picking a project when creating a task works again on a phone: the list opens as its own screen and scrolls normally, with a search box when there are many projects.
+- The create-task form no longer slides off the top of the screen when the keyboard opens — it fills the screen, and the Back arrow and the action buttons stay put.
+- Settings screens on a phone stopped drifting under the keyboard while typing.
+- The project picker also closes with a swipe to the right, not just the back arrow.
+- The Cancel and Create task buttons sit higher above the bottom edge, clear of the screen's rounded corners.
+- The task card on a phone now opens like the create form: full screen, with a back arrow, scrolling body and pinned Cancel/Done; the created/updated line moved above them.
+
+
+### Added
+- The calendar on a phone got its legend: a button in the corner opens what each mark on a day means, with switches for holidays, milestones and team time off, and a picker for whose time off to show.
+
+## [0.9.53] - 2026-07-30
+### Added
+- Dashboard widgets grouped by project or by status are now drawn in those entities' own colours, the ones set in settings. The "No project" column stays grey. Widget settings carry toggles to go back to the plain palette.
+
+## [0.9.52] - 2026-07-30
+### Added
+- Workspace settings now offer 20 colours instead of 12, and they are noticeably easier to tell apart.
+- A person's colour now also fills the circle with their initials, everywhere it appears: the timeline, tasks, comments, the member list. That circle used to be coloured at random and did not match their day-off circles or chart series.
+- Dashboard widgets grouped by people gained a "People's colours" toggle: on by default, turn it off to go back to the widget's own palette.
+
+## [0.9.51] - 2026-07-30
+### Added
+- Workspace settings now have a People section where everyone can be given a colour from a palette. An admin sets it for anyone, everybody else for themselves. The colour shows up on dashboard charts, on day-off circles in the calendar and behind the initials in an avatar.
+
+## [0.9.50] - 2026-07-30
+### Changed
+- Subtasks in the create-task dialog now look the same as inside an open task: the same bordered, highlighted fields. Trailing blank lines are dropped as soon as you leave the field, so it no longer stays stretched.
+
+## [0.9.49] - 2026-07-30
+### Fixed
+- A subtask can now be written across several lines while you create the task: the text wraps and stays fully visible, and the field grows as you type — just like editing a subtask inside an open task.
+- Escape while editing a subtask no longer closes the whole task: the key clears the text in that field and leaves the task open.
+
+## [0.9.48] - 2026-07-30
+### Changed
+- The assignee photo in the timeline profile card is now noticeably larger, scaling to the screen and to the photo's own quality.
+
+## [0.9.47] - 2026-07-29
+### Fixed
+- Pasting text from another app now brings over only the text, lists and images — the source app's styling no longer breaks the task description.
+
+## [0.9.46] - 2026-07-29
+### Fixed
+- Editing a recurring task no longer floods its assignee: the whole series produces a single notification instead of one per occurrence.
+
+## [0.9.45] - 2026-07-29
+### Changed
+- Sign-up no longer asks for a first and last name — an email and a password are enough. The name can be filled in later in account settings.
+
+## [0.9.44] - 2026-07-28
+### Changed
+- The workload heatmap now accounts for time off: a day's tasks are divided among the people actually there, so days with absences read hotter. The day popover shows how many are away, and a day with the whole team off is shown as non-working.
+
+## [0.9.43] - 2026-07-28
+### Changed
+- Unread notifications now stand out at a glance: a coloured bar on the left, a tinted card and a bold title.
+
+### Removed
+- Deadline reminders are gone — no new ones arrive, and the old ones disappeared from the list.
+
+## [0.9.42] - 2026-07-27
+### Added
+- Eight patterns for days off now: a beer and a star join the set.
+
+### Changed
+- The wave pattern is a real breaking wave, and the umbrella became a beach parasol.
+
+## [0.9.41] - 2026-07-27
+### Added
+- Six patterns for days off now: mountains, waves, an umbrella and a tent join the palm and the sun. Pick yours in account settings.
+
 ## [0.9.40] - 2026-07-27
 ### Added
 - Days off are now marked with a pattern instead of plain grey shading, so they can no longer be mistaken for an ordinary weekend. Pick yours in settings — palms or sun. Your teammates see it too.

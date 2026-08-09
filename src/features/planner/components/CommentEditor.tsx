@@ -20,9 +20,11 @@ import {
 } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
+import { normalizePastedCommentHtml } from '@/shared/lib/pastedRichText';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import {
   hasTaskCommentRichTags,
   normalizeTaskCommentEditorHtml,
@@ -431,23 +433,44 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     }
 
     const popoverElement = mentionListRef.current;
+    // Measure the height the list WANTS, with the previous cap lifted. Reading
+    // it capped would make "does it fit below?" true by construction, and the
+    // popover would latch onto the cramped side and stay cropped there even
+    // after the room came back. This runs inside a layout effect, so the clear
+    // and restore both happen before the next paint.
+    let naturalHeight = 224;
+    if (popoverElement) {
+      const cappedMaxHeight = popoverElement.style.maxHeight;
+      popoverElement.style.maxHeight = 'none';
+      naturalHeight = popoverElement.offsetHeight || naturalHeight;
+      popoverElement.style.maxHeight = cappedMaxHeight;
+    }
+    // The visible band, not the whole layout viewport. iOS does not shrink the
+    // layout viewport for the keyboard, so `window.innerHeight` still counts the
+    // strip the keyboard covers — measured against it, the popover looks like it
+    // has plenty of room below the caret and gets placed under the keyboard.
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
     const nextPosition = getCommentMentionPopoverPosition({
       anchorRect: mentionAnchorRect,
       popoverSize: {
         width: popoverElement?.offsetWidth || 256,
-        height: popoverElement?.offsetHeight || 224,
+        height: naturalHeight,
       },
       viewportSize: {
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: vv?.width ?? window.innerWidth,
+        height: vv?.height ?? window.innerHeight,
       },
+      // Both the anchor rect and a `position: fixed` popover live in client
+      // coordinates, so the offsets are the whole conversion — no scaling.
+      viewportOrigin: { top: vv?.offsetTop ?? 0, left: vv?.offsetLeft ?? 0 },
     });
 
     setMentionPopoverPosition((current) => (
       current &&
       current.top === nextPosition.top &&
       current.left === nextPosition.left &&
-      current.placement === nextPosition.placement
+      current.placement === nextPosition.placement &&
+      current.maxHeight === nextPosition.maxHeight
         ? current
         : nextPosition
     ));
@@ -475,9 +498,17 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, true);
+    // Opening the keyboard fires neither of the two above — the layout viewport
+    // never changes and the page never scrolls. Only the visual viewport moves,
+    // so without these the popover would keep its stale, buried position.
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', handleResize);
+    vv?.addEventListener('scroll', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll, true);
+      vv?.removeEventListener('resize', handleResize);
+      vv?.removeEventListener('scroll', handleResize);
     };
   }, [mentionOpen, refreshMentionAnchor, syncMentionPopoverPosition]);
 
@@ -660,7 +691,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
         className={cn(
           // ! needed: .rich-text-editor lives in @layer utilities too and wins
           // the source-order tie against plain utility overrides.
-          'rich-text-editor comment-editor-input !rounded-none !border-0 !ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 max-h-[40vh] overflow-y-auto leading-5',
+          'rich-text-editor comment-editor-input !rounded-none !border-0 !ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 max-h-[35svh] md:max-h-[40vh] overflow-y-auto leading-5',
           isFileDragOver && 'bg-primary/5',
           disabled && 'opacity-60 cursor-not-allowed',
         )}
@@ -740,7 +771,21 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
           if (file) {
             e.preventDefault();
             void handleImageFile(file);
+            return;
           }
+          // Same normalisation as the description editor: strip the source
+          // app's layout instead of pasting its markup verbatim.
+          const html = e.clipboardData?.getData('text/html') ?? '';
+          if (!html) return;
+          e.preventDefault();
+          const normalized = normalizePastedCommentHtml(html);
+          if (normalized.trim()) {
+            document.execCommand('insertHTML', false, normalized);
+          } else {
+            const text = e.clipboardData?.getData('text/plain') ?? '';
+            if (text) document.execCommand('insertText', false, text);
+          }
+          syncFromEditor();
         }}
         onMouseDown={(e) => {
           // Resize handle interaction (mirrors RichTextEditor)
@@ -768,12 +813,15 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
         >
           <div
             data-mention-popover="true"
-            className="fixed z-[60] w-64 rounded-md border bg-popover shadow-md pointer-events-auto"
+            className="fixed z-[60] flex w-64 flex-col overflow-hidden rounded-md border bg-popover shadow-md pointer-events-auto"
             style={
               mentionPopoverPosition
                 ? {
                     top: mentionPopoverPosition.top,
                     left: mentionPopoverPosition.left,
+                    // Never taller than the room actually left on screen, so a
+                    // cramped viewport crops the list instead of hiding it.
+                    maxHeight: mentionPopoverPosition.maxHeight,
                     pointerEvents: 'auto',
                   }
                 : {
@@ -785,7 +833,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
             data-placement={mentionPopoverPosition?.placement}
             onWheel={(e) => e.stopPropagation()}
           >
-            <div className="border-b px-3 py-1.5">
+            <div className="shrink-0 border-b px-3 py-1.5">
               <span className="text-xs text-muted-foreground">
                 {mentionsLoading
                   ? t`Loading members...`
@@ -796,7 +844,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
             </div>
             <div
               data-mention-options="true"
-              className="max-h-48 overflow-y-auto overscroll-contain py-1"
+              className="min-h-0 max-h-48 flex-1 overflow-y-auto overscroll-contain py-1"
               onWheel={(e) => e.stopPropagation()}
             >
               {filteredMentionCandidates.map((candidate, idx) => (
@@ -816,9 +864,11 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
                   }}
                   onMouseEnter={() => setMentionHighlight(idx)}
                 >
-                  {/* Avatar / monogram */}
-                  <UserAvatar
+                  {/* Photo when the person has one, monogram otherwise */}
+                  <PersonAvatar
+                    userId={candidate.userId}
                     name={candidate.name}
+                    avatarUrl={candidate.avatarUrl}
                     colorSeed={candidate.userId}
                     size="xs"
                     className="shrink-0"

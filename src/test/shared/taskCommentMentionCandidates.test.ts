@@ -6,11 +6,12 @@ import {
 describe('taskCommentMentionCandidates', () => {
   it('maps workspace members to mention candidates using display name or email', () => {
     expect(buildTaskCommentMentionCandidates([
-      { userId: 'user-2', email: 'ivan@example.com', displayName: 'Ivan' },
+      { userId: 'user-2', email: 'ivan@example.com', displayName: 'Ivan', avatarUrl: 'https://cdn.example/ivan.png' },
       { userId: 'user-1', email: 'anna@example.com', displayName: null },
     ])).toEqual([
-      { id: 'user-1', userId: 'user-1', name: 'anna@example.com' },
-      { id: 'user-2', userId: 'user-2', name: 'Ivan' },
+      { id: 'user-1', userId: 'user-1', name: 'anna@example.com', avatarUrl: null },
+      // Carried through so the suggestion list can show the photo.
+      { id: 'user-2', userId: 'user-2', name: 'Ivan', avatarUrl: 'https://cdn.example/ivan.png' },
     ]);
   });
 
@@ -21,7 +22,7 @@ describe('taskCommentMentionCandidates', () => {
       { userId: 'user-2', email: 'ivan@example.com', displayName: 'Ivan' },
       { userId: 'user-2', email: 'other@example.com', displayName: 'Other Ivan' },
     ])).toEqual([
-      { id: 'user-2', userId: 'user-2', name: 'Ivan' },
+      { id: 'user-2', userId: 'user-2', name: 'Ivan', avatarUrl: null },
     ]);
   });
 });

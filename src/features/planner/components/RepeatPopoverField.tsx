@@ -7,6 +7,8 @@ import { Input } from '@/shared/ui/input';
 import { Switch } from '@/shared/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { cn } from '@/shared/lib/classNames';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobileRepeatScreen } from '@/features/planner/components/MobileRepeatScreen';
 
 type RepeatPopoverFieldProps = {
   count: number;
@@ -145,6 +147,8 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
   showNeverHint = false,
   until,
 }) => {
+  const isMobile = useIsMobile();
+  const [screenOpen, setScreenOpen] = React.useState(false);
   const summary = buildRepeatSummary({ count, ends, frequency, until });
   const isOff = frequency === 'none';
   // For a count-limited repeat, surface the date the last occurrence lands on
@@ -164,6 +168,71 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
         ? t`Creates repeats for the next 12 months.`
         : '';
 
+  const triggerClassName = cn(
+    'flex w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background',
+    'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+    isMobile ? 'h-11' : 'h-10',
+  );
+
+  const triggerContent = (
+    <>
+      {!isOff && <RotateCw className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />}
+      <span className={cn('flex-1 truncate text-left', isOff && 'text-muted-foreground')}>
+        {summary}
+        {endHint && <span className="text-muted-foreground"> · {endHint}</span>}
+      </span>
+      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+    </>
+  );
+
+  const messages = (
+    <>
+      {error && <div className="text-xs text-destructive">{error}</div>}
+      {notice && <div className="text-xs text-emerald-600">{notice}</div>}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <div className="space-y-1">
+        <button
+          type="button"
+          disabled={disabled}
+          aria-label={t`Repeat settings`}
+          onClick={() => setScreenOpen(true)}
+          className={triggerClassName}
+        >
+          {triggerContent}
+        </button>
+        <MobileRepeatScreen
+          open={screenOpen}
+          onOpenChange={setScreenOpen}
+          count={count}
+          disabled={disabled}
+          ends={ends}
+          frequency={frequency}
+          idPrefix={idPrefix}
+          hint={hint}
+          frequencyOptions={FREQUENCY_OPTIONS.map((option) => ({
+            value: option,
+            label: frequencyLabel(option),
+          }))}
+          endsOptions={[
+            { value: 'never', label: t`Never` },
+            { value: 'on', label: t`Until date` },
+            { value: 'after', label: t`Count` },
+          ]}
+          onCountInputChange={onCountInputChange}
+          onEndsChange={onEndsChange}
+          onFrequencyChange={onFrequencyChange}
+          onUntilChange={onUntilChange}
+          until={until}
+        />
+        {messages}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1">
       <Popover>
@@ -172,17 +241,9 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
             type="button"
             disabled={disabled}
             aria-label={t`Repeat settings`}
-            className={cn(
-              'flex h-10 w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background',
-              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-            )}
+            className={triggerClassName}
           >
-            {!isOff && <RotateCw className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />}
-            <span className={cn('flex-1 truncate text-left', isOff && 'text-muted-foreground')}>
-              {summary}
-              {endHint && <span className="text-muted-foreground"> · {endHint}</span>}
-            </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            {triggerContent}
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-1.5" align="start">
@@ -265,8 +326,7 @@ export const RepeatPopoverField: React.FC<RepeatPopoverFieldProps> = ({
           )}
         </PopoverContent>
       </Popover>
-      {error && <div className="text-xs text-destructive">{error}</div>}
-      {notice && <div className="text-xs text-emerald-600">{notice}</div>}
+      {messages}
     </div>
   );
 };

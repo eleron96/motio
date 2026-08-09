@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { getMonogramColor } from '@/shared/lib/monogramColor';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
-import { deriveMilestonesWithStatus } from '@/features/projects/lib/projectCard/deriveMilestoneStatus';
+import { countUpcomingMilestones } from '@/features/projects/lib/projectCard/countUpcomingMilestones';
 import styles from './projectCard.module.css';
 
 export interface ProjectCardSidebarGroup {
@@ -107,33 +107,12 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
   trackedProjectIdSet,
   onToggleTrackedProject,
 }) => {
-  // Counts only milestones that are still ahead of today (status `current` or
-  // `upcoming`). Past/done milestones are skipped — they're already history,
-  // and the sidebar wants to communicate "what's left" at a glance, not a
-  // lifetime total. We bucket by projectId first, then derive status per
-  // bucket so the explicit `statusOverride` is respected per project.
-  const milestoneCountByProject = React.useMemo(() => {
-    const today = new Date();
-    const buckets = new Map<string, Milestone[]>();
-    for (const milestone of milestones) {
-      const list = buckets.get(milestone.projectId);
-      if (list) {
-        list.push(milestone);
-      } else {
-        buckets.set(milestone.projectId, [milestone]);
-      }
-    }
-    const map = new Map<string, number>();
-    for (const [projectId, list] of buckets) {
-      const ahead = deriveMilestonesWithStatus(list, today)
-        .filter((m) => m.status !== 'done')
-        .length;
-      if (ahead > 0) {
-        map.set(projectId, ahead);
-      }
-    }
-    return map;
-  }, [milestones]);
+  // Shared with the phone list, so the two cannot disagree about how many
+  // milestones a project still has ahead of it.
+  const milestoneCountByProject = React.useMemo(
+    () => countUpcomingMilestones(milestones, new Date()),
+    [milestones],
+  );
 
   return (
     <aside className="flex h-full min-h-0 flex-col bg-card">

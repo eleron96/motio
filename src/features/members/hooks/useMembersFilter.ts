@@ -137,5 +137,9 @@ export function useMembersFilter({
     disabledMemberGroups,
     activeVisibleAssignees,
     disabledVisibleAssignees,
+    // Shared with the member rows and the assign dialog so "which group is this
+    // person in" is answered from one place.
+    groupIdByUserId,
+    groupNameById,
   };
 }

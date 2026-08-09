@@ -10,6 +10,7 @@ import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { Input } from '@/shared/ui/input';
+import { AutoGrowTextarea } from '@/shared/ui/auto-grow-textarea';
 import { Label } from '@/shared/ui/label';
 import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
@@ -23,10 +24,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { ResponsiveSelect } from '@/shared/ui/responsive-select';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Plus, X } from 'lucide-react';
 import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';
@@ -35,6 +36,9 @@ import { TimeOffFields } from '@/features/planner/components/TimeOffFields';
 import { findTimeOffConflict, NO_TIME_OFF } from '@/features/planner/lib/timeOff';
 import { resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSelectors';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobileFormScreen } from '@/shared/ui/mobile-form-screen';
+import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { orderAssigneesForPopover } from '@/features/planner/lib/assigneePopoverOrder';
@@ -104,6 +108,9 @@ const LazyRichTextEditor = lazyNamed(
   'RichTextEditor'
 );
 
+/** The mobile footer sits outside the <form>, so its submit button targets it by id. */
+const MOBILE_FORM_ID = 'add-task-mobile-form';
+
 type DraftSubtask = {
   id: string;
   title: string;
@@ -152,6 +159,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     timeOff: state.timeOff ?? NO_TIME_OFF,
     addTimeOff: state.addTimeOff,
   })));
+  const isMobile = useIsMobile();
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const currentUser = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
@@ -623,11 +631,497 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     });
   }, [assigneeIds, assigneePopoverFrozenOrderIds, assigneePopoverOpen, selectableAssignees]);
 
+  const formBody = (
+    <>
+      {mode === 'time_off' && (
+        <div className="px-6 pb-6 pt-1">
+          <TimeOffFields
+            assignees={selectableAssignees}
+            assigneeId={timeOffAssigneeId}
+            onAssigneeChange={(id) => {
+              markChanged();
+              setTimeOffError('');
+              setTimeOffAssigneeId(id);
+            }}
+            canPickAssignee={canPickTimeOffAssignee}
+            startDate={timeOffStart}
+            endDate={timeOffEnd}
+            note={timeOffNote}
+            onStartDateChange={(value) => {
+              markChanged();
+              setTimeOffError('');
+              setTimeOffStart(value);
+              setTimeOffEnd((previous) => (
+                value && previous ? clampTaskDates(value, previous).endDate : previous
+              ));
+            }}
+            onEndDateChange={(value) => {
+              markChanged();
+              setTimeOffError('');
+              setTimeOffEnd(
+                value && timeOffStart ? clampTaskDates(timeOffStart, value).endDate : value,
+              );
+            }}
+            onNoteChange={(value) => {
+              markChanged();
+              setTimeOffNote(value);
+            }}
+            conflictMessage={timeOffError || (timeOffConflict ? t`These days are already marked as time off.` : null)}
+          />
+        </div>
+      )}
+      <div className={cn(
+        // grid-cols-1 is not cosmetic: without a template the implicit track sizes
+            // to min-content, so one unbreakable word in the description would widen
+            // the whole column and push every field off the right edge.
+            'grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_340px]',
+        mode === 'time_off' && 'hidden',
+      )}>
+        {/* ── Left column: content */}
+        <div className="min-w-0 space-y-4 px-6 pb-6">
+          <ComposerEyebrow>{t`Information`}</ComposerEyebrow>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="new-title">{t`Title`} *</Label>
+            <Input
+              id="new-title"
+              ref={titleInputRef}
+              value={title}
+              onChange={(e) => {
+                markChanged();
+                setTitle(e.target.value);
+              }}
+              placeholder={t`Enter task title...`}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="new-description">{t`Description`}</Label>
+            {open && (
+              <Suspense
+                fallback={(
+                  <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                    {t`Loading editor...`}
+                  </div>
+                )}
+              >
+                <LazyRichTextEditor
+                  id="new-description"
+                  framed
+                  value={description}
+                  workspaceId={currentWorkspaceId}
+                  onChange={(value) => {
+                    markChanged();
+                    setDescription(value);
+                  }}
+                  placeholder={t`Add a description...`}
+                />
+              </Suspense>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {t`Drag and drop image files into the description area.`}
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="block">{t`Subtasks`}</Label>
+            {subtasks.length > 0 && (
+              <div className="space-y-1">
+                {subtasks.map((subtask) => (
+                  <div
+                    key={subtask.id}
+                    className="group flex items-start gap-2.5"
+                  >
+                    <span
+                      className="mt-2.5 h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
+                      aria-hidden="true"
+                    />
+                    <AutoGrowTextarea
+                      ref={(element) => {
+                        if (element && focusSubtaskIdRef.current === subtask.id) {
+                          element.focus();
+                          focusSubtaskIdRef.current = null;
+                        }
+                      }}
+                      value={subtask.title}
+                      onChange={(event) => handleDraftSubtaskTitleChange(subtask.id, event.target.value)}
+                      onKeyDown={(event) => {
+                        // Enter breaks the line; a new subtask comes from the button below.
+                        if (event.key === 'Backspace' && subtask.title === '') {
+                          event.preventDefault();
+                          handleRemoveSubtask(subtask.id);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Trailing blank lines are dropped on save anyway; shed
+                        // them here so the field stops showing phantom height.
+                        const trimmed = subtask.title.trim();
+                        if (trimmed !== subtask.title) {
+                          handleDraftSubtaskTitleChange(subtask.id, trimmed);
+                        }
+                      }}
+                      rows={1}
+                      placeholder={t`Subtask title`}
+                      className="min-h-[36px] min-w-0 flex-1 text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="mt-1.5 h-6 w-6 shrink-0 opacity-100 md:opacity-0 md:focus-visible:opacity-100 md:group-hover:opacity-100"
+                      onClick={() => handleRemoveSubtask(subtask.id)}
+                      aria-label={t`Remove subtask`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              onClick={handleAddDraftSubtask}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t`Add subtask`}
+            </Button>
+          </div>
+        </div>
+
+        {/* ── Right column: parameters panel */}
+        <div className="min-w-0 space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
+          <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
+
+          <div className="space-y-1.5">
+            <Label>{t`Project`}</Label>
+            <TaskProjectSelect
+              value={projectId}
+              projects={activeProjects}
+              noProjectDisabled={noProjectDisabled}
+              disabled={lockProject}
+              triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
+              onValueChange={(value) => {
+                markChanged();
+                setProjectId(value);
+              }}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Assignees`}</Label>
+            {isMobile ? (
+              <MobileAssigneeField
+                label={assigneeLabel}
+                assignees={orderedSelectableAssignees}
+                selectedIds={assigneeIds}
+                onChange={(ids) => {
+                  markChanged();
+                  setAssigneeIds(ids);
+                }}
+              />
+            ) : (
+            <Popover open={assigneePopoverOpen} onOpenChange={handleAssigneePopoverOpenChange}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between bg-background font-normal">
+                  <span className="truncate">{assigneeLabel}</span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="start">
+                {selectableAssignees.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">{t`No assignees yet.`}</div>
+                ) : (
+                  <div
+                    className="max-h-48 overflow-y-auto overscroll-contain pr-2"
+                    onWheelCapture={(e) => e.stopPropagation()}
+                  >
+                    <div className="space-y-1">
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
+                        onClick={() => {
+                          markChanged();
+                          setAssigneeIds([]);
+                        }}
+                      >
+                        <Checkbox
+                          checked={assigneeIds.length === 0}
+                          onClick={(event) => event.stopPropagation()}
+                          onCheckedChange={(checked) => {
+                            if (checked !== true) return;
+                            markChanged();
+                            setAssigneeIds([]);
+                          }}
+                        />
+                        <span className="text-sm truncate">{t`Unassigned`}</span>
+                      </button>
+                      {orderedSelectableAssignees.map((assignee) => (
+                        <button
+                          key={assignee.id}
+                          type="button"
+                          className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
+                          onClick={() => setAssigneeChecked(assignee.id, !assigneeIds.includes(assignee.id))}
+                        >
+                          <Checkbox
+                            checked={assigneeIds.includes(assignee.id)}
+                            onClick={(event) => event.stopPropagation()}
+                            onCheckedChange={(checked) => setAssigneeChecked(assignee.id, checked === true)}
+                          />
+                          <PersonAvatar
+                            assigneeId={assignee.id}
+                            userId={assignee.userId}
+                            avatarUrl={assignee.avatar}
+                            initials={getPersonMonogram(assignee.name, 'U')}
+                            colorSeed={assignee.userId ?? assignee.id}
+                            size="xs"
+                          />
+                          <span className="text-sm truncate">{assignee.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+            )}
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1.5 min-w-0">
+              <Label>{t`Status`}</Label>
+              <ResponsiveSelect
+                value={statusId}
+                onValueChange={(value) => {
+                  markChanged();
+                  setStatusId(value);
+                }}
+                title={t`Status`}
+                placeholder={t`Select status`}
+                triggerClassName="bg-background"
+                options={statuses.map((s) => ({
+                  value: s.id,
+                  label: formatStatusLabel(s.name, s.emoji),
+                }))}
+              />
+            </div>
+
+            <div className="space-y-1.5 min-w-0">
+              <Label>{t`Priority`}</Label>
+              <ResponsiveSelect
+                value={priority}
+                onValueChange={(value) => {
+                  markChanged();
+                  setPriority(value as TaskPriority | 'none');
+                }}
+                title={t`Priority`}
+                placeholder={t`Select priority`}
+                triggerClassName="bg-background"
+                options={[
+                  { value: 'none', label: t`No priority` },
+                  { value: 'low', label: t`Low` },
+                  { value: 'medium', label: t`Medium` },
+                  { value: 'high', label: t`High` },
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Type`}</Label>
+            <ResponsiveSelect
+              value={typeId}
+              onValueChange={(value) => {
+                markChanged();
+                setTypeId(value);
+              }}
+              title={t`Type`}
+              placeholder={t`Select type`}
+              triggerClassName="bg-background"
+              options={taskTypes.map((type) => ({ value: type.id, label: type.name }))}
+            />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-1.5 min-w-0">
+              <Label htmlFor="new-start">{t`Start date`}</Label>
+              <Input
+                id="new-start"
+                type="date"
+                className="bg-background px-2 text-sm tabular-nums"
+                value={startDate}
+                onChange={(e) => handleStartDateChange(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5 min-w-0">
+              <Label htmlFor="new-end">{t`End date`}</Label>
+              <Input
+                id="new-end"
+                type="date"
+                className="bg-background px-2 text-sm tabular-nums"
+                value={endDate}
+                min={getMinEndDate(startDate)}
+                onChange={(e) => {
+                  markChanged();
+                  setEndDate(clampTaskDates(startDate, e.target.value).endDate);
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Repeat`}</Label>
+            <RepeatPopoverField
+              count={repeatCount}
+              ends={repeatEnds}
+              error={repeatError}
+              frequency={repeatFrequency}
+              idPrefix="new"
+              onCountInputChange={handleRepeatCountInputChange}
+              onEndsChange={handleRepeatEndsChange}
+              onFrequencyChange={handleRepeatFrequencyChange}
+              onUntilChange={handleRepeatUntilChange}
+              projectedEnd={getRepeatOccurrenceDate(startDate, repeatFrequency, repeatCount)}
+              until={repeatUntil}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{t`Tags`}</Label>
+            <TagMultiSelect
+              tags={tags}
+              selectedTagIds={tagIds}
+              onToggleTag={handleTagToggle}
+            />
+          </div>
+        </div>
+      </div>
+
+    </>
+  );
+
+  const screenTitle = mode === 'time_off' ? t`Mark time off` : t`Create new task`;
+  const screenDescription = mode === 'time_off'
+    ? t`Pick the days you will be away.`
+    : t`Fill out task fields and create a new task.`;
+
+  const modeSwitch = timeOffAvailable && !timeOffOnly ? (
+    <SegmentedControl surface="compact" className="w-fit">
+      <SegmentedControlItem
+        type="button"
+        size={isMobile ? 'touch' : 'sm'}
+        active={mode === 'task'}
+        onClick={() => setMode('task')}
+      >
+        {t`Task`}
+      </SegmentedControlItem>
+      <SegmentedControlItem
+        type="button"
+        size={isMobile ? 'touch' : 'sm'}
+        active={mode === 'time_off'}
+        onClick={() => setMode('time_off')}
+      >
+        {t`Mark time off`}
+      </SegmentedControlItem>
+    </SegmentedControl>
+  ) : null;
+
+  const cancelButton = (
+    <Button type="button" variant="outline" onClick={requestClose} className={isMobile ? 'h-11 flex-1' : undefined}>
+      {t`Cancel`}
+    </Button>
+  );
+
+  const submitButton = mode === 'time_off' ? (
+    <Button
+      type="submit"
+      form={isMobile ? MOBILE_FORM_ID : undefined}
+      className={isMobile ? 'h-11 flex-1' : undefined}
+      disabled={!timeOffAssigneeId || !timeOffDatesFilled || Boolean(timeOffConflict) || timeOffSaving}
+    >
+      <Plus className="w-4 h-4 mr-2" />
+      {t`Mark time off`}
+    </Button>
+  ) : (
+    <Button
+      type="submit"
+      form={isMobile ? MOBILE_FORM_ID : undefined}
+      className={isMobile ? 'h-11 flex-1' : undefined}
+      disabled={!title.trim() || !statusId || !typeId || repeatCreating}
+    >
+      <Plus className="w-4 h-4 mr-2" />
+      {t`Create task`}
+    </Button>
+  );
+
+  const confirmCloseDialog = (
+    <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
+      <AlertDialogContent className={isMobile ? 'w-[calc(100%-3rem)] max-w-[340px] rounded-2xl p-5' : undefined}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {mode === 'time_off' ? t`Discard time off?` : t`Discard task?`}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {mode === 'time_off'
+              ? t`You have unsaved changes. Close without marking the time off?`
+              : t`You have unsaved changes. Close without creating the task?`}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className={isMobile ? 'h-11 rounded-xl' : undefined}>
+            {t`Keep editing`}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            className={cn(
+              'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+              isMobile && 'h-11 rounded-xl',
+            )}
+            onClick={() => {
+              setConfirmCloseOpen(false);
+              setHasChanges(false);
+              onOpenChange(false);
+            }}
+          >
+            {t`Discard`}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  if (isMobile) {
+    // A centred card drifts out of reach the moment iOS opens the keyboard —
+    // the title (and the way out) scroll off the top. A full-screen screen
+    // sized to the visual viewport keeps the header and the actions put.
+    return (
+      <>
+        <MobileFormScreen
+          open={open}
+          onOpenChange={handleDialogOpenChange}
+          title={screenTitle}
+          description={screenDescription}
+          toolbar={modeSwitch}
+          footer={<div className="flex items-center gap-2">{cancelButton}{submitButton}</div>}
+        >
+          <form
+            id={MOBILE_FORM_ID}
+            onSubmit={mode === 'time_off' ? handleSubmitTimeOff : handleSubmit}
+            className="relative flex flex-col"
+          >
+            {formBody}
+          </form>
+        </MobileFormScreen>
+        {confirmCloseDialog}
+      </>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogScrollContent
         className={cn(
-          'flex w-full flex-col gap-0 p-0 max-md:max-h-[85dvh] max-md:w-[calc(100%-1.5rem)] max-md:rounded-2xl',
+          'flex w-full flex-col gap-0 p-0',
           mode === 'time_off' ? 'max-w-[460px]' : 'max-w-[880px]',
         )}
         onOpenAutoFocus={(event) => {
@@ -648,435 +1142,24 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
           />
         )}
         <DialogHeader className="relative px-6 pb-4 pr-12 pt-5">
-          {timeOffAvailable && !timeOffOnly && (
-            <SegmentedControl surface="compact" className="mb-3 w-fit">
-              <SegmentedControlItem
-                type="button"
-                size="sm"
-                active={mode === 'task'}
-                onClick={() => setMode('task')}
-              >
-                {t`Task`}
-              </SegmentedControlItem>
-              <SegmentedControlItem
-                type="button"
-                size="sm"
-                active={mode === 'time_off'}
-                onClick={() => setMode('time_off')}
-              >
-                {t`Mark time off`}
-              </SegmentedControlItem>
-            </SegmentedControl>
-          )}
+          {modeSwitch && <div className="mb-3">{modeSwitch}</div>}
           <DialogTitle className="text-lg font-semibold tracking-tight">
-            {mode === 'time_off' ? t`Mark time off` : t`Create new task`}
+            {screenTitle}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {mode === 'time_off'
-              ? t`Pick the days you will be away.`
-              : t`Fill out task fields and create a new task.`}
+            {screenDescription}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={mode === 'time_off' ? handleSubmitTimeOff : handleSubmit} className="relative flex flex-col max-md:min-h-0 max-md:flex-1">
-          {mode === 'time_off' && (
-            <div className="px-6 pb-6 pt-1 max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto">
-              <TimeOffFields
-                assignees={selectableAssignees}
-                assigneeId={timeOffAssigneeId}
-                onAssigneeChange={(id) => {
-                  markChanged();
-                  setTimeOffError('');
-                  setTimeOffAssigneeId(id);
-                }}
-                canPickAssignee={canPickTimeOffAssignee}
-                startDate={timeOffStart}
-                endDate={timeOffEnd}
-                note={timeOffNote}
-                onStartDateChange={(value) => {
-                  markChanged();
-                  setTimeOffError('');
-                  setTimeOffStart(value);
-                  setTimeOffEnd((previous) => (
-                    value && previous ? clampTaskDates(value, previous).endDate : previous
-                  ));
-                }}
-                onEndDateChange={(value) => {
-                  markChanged();
-                  setTimeOffError('');
-                  setTimeOffEnd(
-                    value && timeOffStart ? clampTaskDates(timeOffStart, value).endDate : value,
-                  );
-                }}
-                onNoteChange={(value) => {
-                  markChanged();
-                  setTimeOffNote(value);
-                }}
-                conflictMessage={timeOffError || (timeOffConflict ? t`These days are already marked as time off.` : null)}
-              />
-            </div>
-          )}
-          <div className={cn(
-            'grid md:grid-cols-[minmax(0,1fr)_340px] max-md:min-h-0 max-md:flex-1 max-md:overflow-y-auto',
-            mode === 'time_off' && 'hidden',
-          )}>
-            {/* ── Left column: content */}
-            <div className="space-y-4 px-6 pb-6">
-              <ComposerEyebrow>{t`Information`}</ComposerEyebrow>
+        <form onSubmit={mode === 'time_off' ? handleSubmitTimeOff : handleSubmit} className="relative flex flex-col">
+          {formBody}
 
-              <div className="space-y-1.5">
-                <Label htmlFor="new-title">{t`Title`} *</Label>
-                <Input
-                  id="new-title"
-                  ref={titleInputRef}
-                  value={title}
-                  onChange={(e) => {
-                    markChanged();
-                    setTitle(e.target.value);
-                  }}
-                  placeholder={t`Enter task title...`}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="new-description">{t`Description`}</Label>
-                {open && (
-                  <Suspense
-                    fallback={(
-                      <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                        {t`Loading editor...`}
-                      </div>
-                    )}
-                  >
-                    <LazyRichTextEditor
-                      id="new-description"
-                      framed
-                      value={description}
-                      workspaceId={currentWorkspaceId}
-                      onChange={(value) => {
-                        markChanged();
-                        setDescription(value);
-                      }}
-                      placeholder={t`Add a description...`}
-                    />
-                  </Suspense>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {t`Drag and drop image files into the description area.`}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="block">{t`Subtasks`}</Label>
-                {subtasks.length > 0 && (
-                  <div className="space-y-0.5">
-                    {subtasks.map((subtask) => (
-                      <div
-                        key={subtask.id}
-                        className="group flex items-center gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
-                      >
-                        <span
-                          className="h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
-                          aria-hidden="true"
-                        />
-                        <input
-                          ref={(element) => {
-                            if (element && focusSubtaskIdRef.current === subtask.id) {
-                              element.focus();
-                              focusSubtaskIdRef.current = null;
-                            }
-                          }}
-                          value={subtask.title}
-                          onChange={(event) => handleDraftSubtaskTitleChange(subtask.id, event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                              event.preventDefault();
-                              handleAddDraftSubtask();
-                              return;
-                            }
-                            if (event.key === 'Backspace' && subtask.title === '') {
-                              event.preventDefault();
-                              handleRemoveSubtask(subtask.id);
-                            }
-                          }}
-                          placeholder={t`Subtask title`}
-                          className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
-                          onClick={() => handleRemoveSubtask(subtask.id)}
-                          aria-label={t`Remove subtask`}
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-8 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
-                  onClick={handleAddDraftSubtask}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  {t`Add subtask`}
-                </Button>
-              </div>
-            </div>
-
-            {/* ── Right column: parameters panel */}
-            <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
-              <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
-
-              <div className="space-y-1.5">
-                <Label>{t`Project`}</Label>
-                <TaskProjectSelect
-                  value={projectId}
-                  projects={activeProjects}
-                  noProjectDisabled={noProjectDisabled}
-                  disabled={lockProject}
-                  triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
-                  onValueChange={(value) => {
-                    markChanged();
-                    setProjectId(value);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Assignees`}</Label>
-                <Popover open={assigneePopoverOpen} onOpenChange={handleAssigneePopoverOpenChange}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between bg-background font-normal">
-                      <span className="truncate">{assigneeLabel}</span>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-2" align="start">
-                    {selectableAssignees.length === 0 ? (
-                      <div className="text-xs text-muted-foreground">{t`No assignees yet.`}</div>
-                    ) : (
-                      <div
-                        className="max-h-48 overflow-y-auto overscroll-contain pr-2"
-                        onWheelCapture={(e) => e.stopPropagation()}
-                      >
-                        <div className="space-y-1">
-                          <button
-                            type="button"
-                            className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
-                            onClick={() => {
-                              markChanged();
-                              setAssigneeIds([]);
-                            }}
-                          >
-                            <Checkbox
-                              checked={assigneeIds.length === 0}
-                              onClick={(event) => event.stopPropagation()}
-                              onCheckedChange={(checked) => {
-                                if (checked !== true) return;
-                                markChanged();
-                                setAssigneeIds([]);
-                              }}
-                            />
-                            <span className="text-sm truncate">{t`Unassigned`}</span>
-                          </button>
-                          {orderedSelectableAssignees.map((assignee) => (
-                            <button
-                              key={assignee.id}
-                              type="button"
-                              className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
-                              onClick={() => setAssigneeChecked(assignee.id, !assigneeIds.includes(assignee.id))}
-                            >
-                              <Checkbox
-                                checked={assigneeIds.includes(assignee.id)}
-                                onClick={(event) => event.stopPropagation()}
-                                onCheckedChange={(checked) => setAssigneeChecked(assignee.id, checked === true)}
-                              />
-                              <UserAvatar
-                                avatarUrl={assignee.avatar}
-                                initials={getPersonMonogram(assignee.name, 'U')}
-                                colorSeed={assignee.userId ?? assignee.id}
-                                size="xs"
-                              />
-                              <span className="text-sm truncate">{assignee.name}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5 min-w-0">
-                  <Label>{t`Status`}</Label>
-                  <Select
-                    value={statusId}
-                    onValueChange={(value) => {
-                      markChanged();
-                      setStatusId(value);
-                    }}
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder={t`Select status`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statuses.map(s => (
-                        <SelectItem key={s.id} value={s.id}>{formatStatusLabel(s.name, s.emoji)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5 min-w-0">
-                  <Label>{t`Priority`}</Label>
-                  <Select
-                    value={priority}
-                    onValueChange={(value) => {
-                      markChanged();
-                      setPriority(value as TaskPriority | 'none');
-                    }}
-                  >
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder={t`Select priority`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t`No priority`}</SelectItem>
-                      <SelectItem value="low">{t`Low`}</SelectItem>
-                      <SelectItem value="medium">{t`Medium`}</SelectItem>
-                      <SelectItem value="high">{t`High`}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Type`}</Label>
-                <Select
-                  value={typeId}
-                  onValueChange={(value) => {
-                    markChanged();
-                    setTypeId(value);
-                  }}
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder={t`Select type`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {taskTypes.map(t => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5 min-w-0">
-                  <Label htmlFor="new-start">{t`Start date`}</Label>
-                  <Input
-                    id="new-start"
-                    type="date"
-                    className="bg-background px-2 text-sm tabular-nums"
-                    value={startDate}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5 min-w-0">
-                  <Label htmlFor="new-end">{t`End date`}</Label>
-                  <Input
-                    id="new-end"
-                    type="date"
-                    className="bg-background px-2 text-sm tabular-nums"
-                    value={endDate}
-                    min={getMinEndDate(startDate)}
-                    onChange={(e) => {
-                      markChanged();
-                      setEndDate(clampTaskDates(startDate, e.target.value).endDate);
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Repeat`}</Label>
-                <RepeatPopoverField
-                  count={repeatCount}
-                  ends={repeatEnds}
-                  error={repeatError}
-                  frequency={repeatFrequency}
-                  idPrefix="new"
-                  onCountInputChange={handleRepeatCountInputChange}
-                  onEndsChange={handleRepeatEndsChange}
-                  onFrequencyChange={handleRepeatFrequencyChange}
-                  onUntilChange={handleRepeatUntilChange}
-                  projectedEnd={getRepeatOccurrenceDate(startDate, repeatFrequency, repeatCount)}
-                  until={repeatUntil}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>{t`Tags`}</Label>
-                <TagMultiSelect
-                  tags={tags}
-                  selectedTagIds={tagIds}
-                  onToggleTag={handleTagToggle}
-                />
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2 px-6 py-3.5 max-md:shrink-0 max-md:border-t max-md:border-border max-md:bg-background">
-            <Button type="button" variant="outline" onClick={requestClose}>
-              {t`Cancel`}
-            </Button>
-            {mode === 'time_off' ? (
-              <Button
-                type="submit"
-                disabled={!timeOffAssigneeId || !timeOffDatesFilled || Boolean(timeOffConflict) || timeOffSaving}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                {t`Mark time off`}
-              </Button>
-            ) : (
-              <Button type="submit" disabled={!title.trim() || !statusId || !typeId || repeatCreating}>
-                <Plus className="w-4 h-4 mr-2" />
-                {t`Create task`}
-              </Button>
-            )}
+          <DialogFooter className="gap-2 px-6 py-3.5">
+            {cancelButton}
+            {submitButton}
           </DialogFooter>
         </form>
-        <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                {mode === 'time_off' ? t`Discard time off?` : t`Discard task?`}
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                {mode === 'time_off'
-                  ? t`You have unsaved changes. Close without marking the time off?`
-                  : t`You have unsaved changes. Close without creating the task?`}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t`Keep editing`}</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => {
-                  setConfirmCloseOpen(false);
-                  setHasChanges(false);
-                  onOpenChange(false);
-                }}
-              >
-                {t`Discard`}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {confirmCloseDialog}
       </DialogScrollContent>
     </Dialog>
   );
