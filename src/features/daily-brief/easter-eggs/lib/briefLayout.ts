@@ -153,39 +153,148 @@ export interface Anchor {
 }
 
 /**
- * A caption's spot in the left margin, and null when the card leaves no margin
- * worth writing in — better nothing than a word sliced by the card's edge.
+ * The numeral and the year beneath it, in the numeral's own coordinates. The
+ * band under the glyphs is what guarantees the year has somewhere to sit, on
+ * any screen, instead of being placed and hoped for.
  */
-export const leftMarginAnchor = (
-  viewport: Box,
-  card: Box | null,
-  minWidth = 96,
-): Anchor | null => {
-  const right = card ? card.left - CARD_MARGIN : viewport.left + viewport.width;
-  const width = right - viewport.left;
-  if (width < minWidth) return null;
-  return {
-    x: viewport.left + Math.min(32, width * 0.18),
-    y: viewport.top + viewport.height / 2,
-  };
+const NUMERAL_BOX = { width: 120, height: 92 } as const;
+const YEAR_BAND = 34;
+const NUMERAL_BLOCK = { width: NUMERAL_BOX.width, height: NUMERAL_BOX.height + YEAR_BAND };
+
+const clamp = (min: number, value: number, max: number) => Math.min(Math.max(value, min), max);
+
+export interface SheetType {
+  /** Font size for the practice name, in px. */
+  practice: number;
+  /** Font size for the years, in px. */
+  year: number;
+}
+
+export interface SheetLayout {
+  /** Box the "20" is drawn into, or null when the screen has no room for it. */
+  numeral: Placement | null;
+  /** Centre of the anniversary year, under the numeral. */
+  numeralYear: (Anchor & { size: number }) | null;
+  /** Baseline of the practice name; the founding year follows below it. */
+  title: Anchor | null;
+  type: SheetType;
+}
+
+/** Type scales with the screen: 38px reads well on a desktop and shouts on a phone. */
+export const sheetType = (viewport: Box): SheetType => {
+  const practice = clamp(17, Math.min(viewport.width, viewport.height) * 0.045, 38);
+  return { practice, year: clamp(12, practice * 0.62, 24) };
 };
 
-/**
- * The bottom-right corner, lifted above the card if the card reaches into it —
- * on a phone the card runs the full width, so the corner alone is not enough.
- */
-export const bottomRightAnchor = (
-  viewport: Box,
-  card: Box | null,
-  inset = 46,
-): Anchor => {
-  const x = viewport.left + viewport.width - inset;
-  const bottom = viewport.top + viewport.height - inset;
-  if (!isBehindCard({ x, y: bottom }, card) || !card) return { x, y: bottom };
+const titleBlockSize = (type: SheetType) => ({
+  // "СПИЧ" is four letters at 0.42em tracking; the year sits under it.
+  width: type.practice * 4.6,
+  height: type.practice * 1.2 + type.year * 1.7,
+});
 
-  const below = viewport.top + viewport.height - (card.top + card.height + CARD_MARGIN);
-  // Below the card if there is room down there, otherwise just above it.
-  return below >= inset
-    ? { x, y: card.top + card.height + CARD_MARGIN + inset / 2 }
-    : { x, y: card.top - CARD_MARGIN - inset / 2 };
+const area = (box: Box) => box.width * box.height;
+
+/**
+ * Lay the whole sheet out for this screen: the numeral with its year, and the
+ * title block, both clear of the card.
+ *
+ * The two blocks take separate margins when the screen has them. When it does
+ * not — a phone, where the card leaves only a strip above and below — they
+ * share one strip side by side, which is the difference between "everything
+ * fits" and "the title is missing".
+ */
+export const sheetLayout = (viewport: Box, card: Box | null, padding = 16): SheetLayout => {
+  const type = sheetType(viewport);
+  const title = titleBlockSize(type);
+
+  const zones: Zone[] = card
+    ? freeZones(viewport, card)
+    : [{ ...viewport, side: 'right' as Side }];
+
+  const fitNumeral = (candidate: Zone, reservedWidth = 0): Placement | null => {
+    const availableWidth = candidate.width - padding * 2 - reservedWidth;
+    const availableHeight = candidate.height - padding * 2;
+    if (availableWidth <= 0 || availableHeight <= 0) return null;
+
+    const scale = Math.min(
+      availableWidth / NUMERAL_BLOCK.width,
+      availableHeight / NUMERAL_BLOCK.height,
+      MAX_SCALE,
+    );
+    if (scale < MIN_SCALE) return null;
+
+    const width = NUMERAL_BLOCK.width * scale;
+    const blockHeight = NUMERAL_BLOCK.height * scale;
+    return {
+      // Right-hand end of the zone when something shares it, centred otherwise.
+      left: candidate.left + reservedWidth + (candidate.width - reservedWidth - width) / 2,
+      top: candidate.top + (candidate.height - blockHeight) / 2,
+      width,
+      height: NUMERAL_BOX.height * scale,
+      side: candidate.side,
+    };
+  };
+
+  const holdsTitle = (candidate: Zone) => candidate.width - padding * 2 >= title.width
+    && candidate.height - padding * 2 >= title.height;
+
+  const zoneOn = (side: Side) => zones.find((candidate) => candidate.side === side);
+
+  const titleAnchor = (band: Zone): Anchor => ({
+    x: band.side === 'left' || band.side === 'right'
+      ? band.left + Math.min(32, Math.max(padding, (band.width - title.width) / 2))
+      : band.left + Math.max(padding, (band.width - title.width) / 2),
+    y: band.top + band.height / 2 - type.year * 0.5,
+  });
+
+  const withYear = (placed: Placement) => {
+    const size = clamp(12, placed.width * 0.17, 26);
+    return {
+      x: placed.left + placed.width / 2,
+      y: placed.top + placed.height + size * 1.5,
+      size,
+    };
+  };
+
+  // The sheet reads the same way on every screen: the practice on the left or
+  // above, the numeral on the right or below. Only when neither pairing fits
+  // does it fall back to whatever margin is roomiest.
+  const pairings: Array<[Side, Side]> = [['left', 'right'], ['top', 'bottom']];
+  for (const [titleSide, numeralSide] of pairings) {
+    const titleBand = zoneOn(titleSide);
+    const numeralBand = zoneOn(numeralSide);
+    if (!titleBand || !numeralBand || !holdsTitle(titleBand)) continue;
+    const placed = fitNumeral(numeralBand);
+    if (!placed) continue;
+    return { numeral: placed, numeralYear: withYear(placed), title: titleAnchor(titleBand), type };
+  }
+
+  const byArea = [...zones].sort((left, right) => area(right) - area(left));
+  const numeralZone = byArea.find((candidate) => fitNumeral(candidate) !== null) ?? null;
+  const numeral = numeralZone ? fitNumeral(numeralZone) : null;
+  const numeralYear = numeral ? withYear(numeral) : null;
+
+  // A margin of its own first: the title block belongs beside the card, not
+  // wedged next to the numeral, whenever the screen is wide enough for both.
+  const titleZone = byArea.find((candidate) => candidate !== numeralZone && holdsTitle(candidate));
+  if (titleZone) {
+    return { numeral, numeralYear, title: titleAnchor(titleZone), type };
+  }
+
+  // Otherwise share the numeral's strip, if what is left of it is enough.
+  if (numeral && numeralZone) {
+    const shared = fitNumeral(numeralZone, title.width + padding);
+    const roomBeside = numeralZone.width - padding * 2 - title.width;
+    if (shared && roomBeside > 0 && numeralZone.height - padding * 2 >= title.height) {
+      return {
+        numeral: shared,
+        numeralYear: withYear(shared),
+        title: { x: numeralZone.left + padding, y: numeralZone.top + numeralZone.height / 2 },
+        type,
+      };
+    }
+  }
+
+  // No room for the name: the numeral alone still says it.
+  return { numeral, numeralYear, title: null, type };
 };
