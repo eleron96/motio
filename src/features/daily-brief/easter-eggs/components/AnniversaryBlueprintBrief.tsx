@@ -2,12 +2,7 @@ import { useEffect, useRef, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './AnniversaryBlueprintBrief.module.css';
 import { useBriefCardBounds, viewportBox } from '../useBriefCardBounds';
-import {
-  bottomRightAnchor,
-  leftMarginAnchor,
-  placeBesideCard,
-  CARD_MARGIN,
-} from '../lib/briefLayout';
+import { sheetLayout, CARD_MARGIN } from '../lib/briefLayout';
 
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -69,19 +64,13 @@ export const AnniversaryBlueprintBrief = () => {
   // Undefined means the card has not been measured yet: drawing now would put
   // the numeral under it for a frame and then jump it aside.
   const measured = card !== undefined;
-  const titleBlock = measured ? leftMarginAnchor(viewport, card ?? null) : null;
-  // The left margin is the title block's; the numeral goes elsewhere unless
-  // there is nowhere else at all.
-  const numeral = measured
-    ? placeBesideCard(viewport, card ?? null, NUMERAL, { avoid: titleBlock ? ['left'] : [] })
-    : null;
-  // The anniversary year belongs under the numeral. Without one — no room on a
-  // small screen — it falls back to signing off in the corner.
-  const signOff = numeral
-    ? { x: numeral.left + numeral.width / 2, y: numeral.top + numeral.height + 52, anchor: 'middle' as const }
-    : measured
-      ? { ...bottomRightAnchor(viewport, card ?? null), anchor: 'end' as const }
-      : null;
+  // One layout pass for the whole sheet: the numeral, the year under it and the
+  // title block are sized and placed against this screen together, so nothing
+  // lands half under the card or off the edge.
+  const layout = measured ? sheetLayout(viewport, card ?? null) : null;
+  const numeral = layout?.numeral ?? null;
+  const titleBlock = layout?.title ?? null;
+  const signOff = layout?.numeralYear ?? null;
 
   // Primitives, so the scatter re-runs when the numeral moves and not when a
   // fresh object with the same values comes back from a re-render.
@@ -214,10 +203,24 @@ export const AnniversaryBlueprintBrief = () => {
           </>
         )}
 
-        {titleBlock && (
+        {titleBlock && layout && (
           <g className={styles.caption}>
-            <text x={titleBlock.x} y={titleBlock.y} className={styles.practice}>{PRACTICE}</text>
-            <text x={titleBlock.x} y={titleBlock.y + 46} className={styles.year}>{YEAR_FROM}</text>
+            <text
+              x={titleBlock.x}
+              y={titleBlock.y}
+              className={styles.practice}
+              style={{ fontSize: layout.type.practice }}
+            >
+              {PRACTICE}
+            </text>
+            <text
+              x={titleBlock.x}
+              y={titleBlock.y + layout.type.practice * 1.15}
+              className={styles.year}
+              style={{ fontSize: layout.type.year }}
+            >
+              {YEAR_FROM}
+            </text>
           </g>
         )}
 
@@ -241,8 +244,9 @@ export const AnniversaryBlueprintBrief = () => {
           <text
             x={signOff.x}
             y={signOff.y}
-            textAnchor={signOff.anchor}
+            textAnchor="middle"
             className={`${styles.caption} ${styles.year}`}
+            style={{ fontSize: signOff.size }}
           >
             {YEAR_TO}
           </text>

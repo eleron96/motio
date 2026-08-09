@@ -81,9 +81,10 @@
   animation: captionIn var(--cycle) linear infinite;
 }
 
+/* Sizes come from the layout: they scale with the screen, so they are set
+   inline rather than fixed here. */
 .practice {
   fill: currentColor;
-  font-size: 38px;
   font-weight: 600;
   letter-spacing: 0.42em;
   opacity: 1;
@@ -91,7 +92,6 @@
 
 .year {
   fill: #f5c96b;
-  font-size: 24px;
   font-weight: 500;
   letter-spacing: 0.28em;
 }
