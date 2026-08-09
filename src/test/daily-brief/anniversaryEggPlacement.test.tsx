@@ -95,8 +95,10 @@ describe('anniversary eggs lay themselves out around the brief card', () => {
     expect(from).toBeDefined();
     expect(to).toBeDefined();
 
-    // The practice and its founding year sit together in the left margin.
+    // The practice and its founding year sit together in the left margin, on
+    // the same axis, the year below the name.
     expect(Number(practice!.getAttribute('x'))).toBeLessThan(CARD.left);
+    expect(practice!.getAttribute('text-anchor')).toBe('start');
     expect(Number(from!.getAttribute('x'))).toBe(Number(practice!.getAttribute('x')));
     expect(Number(from!.getAttribute('y'))).toBeGreaterThan(Number(practice!.getAttribute('y')));
 

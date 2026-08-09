@@ -128,6 +128,18 @@ describe('sheetLayout', () => {
     expect(layout.numeralYear!.y).toBeLessThanOrEqual(phone.height);
   });
 
+  it('centres the title block when it spans a band, and hangs it left in a margin', () => {
+    const stacked = sheetLayout(phone, phoneCard);
+    // Across the top of a phone both lines share one centred axis.
+    expect(stacked.title!.align).toBe('middle');
+    expect(stacked.title!.x).toBeCloseTo(phone.width / 2, 5);
+
+    const beside = sheetLayout(desktop, card);
+    // In a side margin it reads as a drawing's title block instead.
+    expect(beside.title!.align).toBe('start');
+    expect(beside.title!.x).toBeLessThan(card.left);
+  });
+
   it('still fits on a small phone', () => {
     const small: Box = { left: 0, top: 0, width: 360, height: 640 };
     const smallCard: Box = { left: 12, top: 180, width: 336, height: 330 };
