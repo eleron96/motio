@@ -177,12 +177,17 @@ export const AnniversaryBlueprintBrief = () => {
               x1="0" y1={card!.top + card!.height / 2}
               x2={viewport.width} y2={card!.top + card!.height / 2}
             />
-            <line
-              className={`${styles.stroke} ${styles.axis} ${styles.drawAxisY}`}
-              style={pen(viewport.height)}
-              x1={card!.left + card!.width / 2} y1="0"
-              x2={card!.left + card!.width / 2} y2={viewport.height}
-            />
+            {/* Dropped on a phone: with the card full width, a line down the
+                middle of the screen reads as a stray mark, not a construction
+                axis. */}
+            {!layout?.stacked && (
+              <line
+                className={`${styles.stroke} ${styles.axis} ${styles.drawAxisY}`}
+                style={pen(viewport.height)}
+                x1={card!.left + card!.width / 2} y1="0"
+                x2={card!.left + card!.width / 2} y2={viewport.height}
+              />
+            )}
 
             {/* The card, outlined the way a part is. */}
             <rect

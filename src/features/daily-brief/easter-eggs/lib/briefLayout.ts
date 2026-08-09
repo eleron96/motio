@@ -186,6 +186,13 @@ export interface SheetLayout {
   numeralYear: (Anchor & { size: number }) | null;
   /** Anchor for the practice name; the founding year follows below it. */
   title: TitleAnchor | null;
+  /**
+   * True when the sheet is laid out in bands above and below the card — a
+   * phone. The vertical construction axis is dropped there: with the card
+   * running the full width it reads as a stray line down the screen rather
+   * than as part of a drawing.
+   */
+  stacked: boolean;
   type: SheetType;
 }
 
@@ -281,7 +288,13 @@ export const sheetLayout = (viewport: Box, card: Box | null, padding = 16): Shee
     if (!titleBand || !numeralBand || !holdsTitle(titleBand)) continue;
     const placed = fitNumeral(numeralBand);
     if (!placed) continue;
-    return { numeral: placed, numeralYear: withYear(placed), title: titleAnchor(titleBand), type };
+    return {
+      numeral: placed,
+      numeralYear: withYear(placed),
+      title: titleAnchor(titleBand),
+      stacked: titleSide === 'top',
+      type,
+    };
   }
 
   const byArea = [...zones].sort((left, right) => area(right) - area(left));
@@ -293,7 +306,13 @@ export const sheetLayout = (viewport: Box, card: Box | null, padding = 16): Shee
   // wedged next to the numeral, whenever the screen is wide enough for both.
   const titleZone = byArea.find((candidate) => candidate !== numeralZone && holdsTitle(candidate));
   if (titleZone) {
-    return { numeral, numeralYear, title: titleAnchor(titleZone), type };
+    return {
+      numeral,
+      numeralYear,
+      title: titleAnchor(titleZone),
+      stacked: titleZone.side === 'top' || titleZone.side === 'bottom',
+      type,
+    };
   }
 
   // Otherwise share the numeral's strip, if what is left of it is enough.
@@ -309,11 +328,18 @@ export const sheetLayout = (viewport: Box, card: Box | null, padding = 16): Shee
           y: numeralZone.top + numeralZone.height / 2,
           align: 'start',
         },
+        stacked: numeralZone.side === 'top' || numeralZone.side === 'bottom',
         type,
       };
     }
   }
 
   // No room for the name: the numeral alone still says it.
-  return { numeral, numeralYear, title: null, type };
+  return {
+    numeral,
+    numeralYear,
+    title: null,
+    stacked: numeralZone?.side === 'top' || numeralZone?.side === 'bottom',
+    type,
+  };
 };
