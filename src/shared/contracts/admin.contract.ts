@@ -18,6 +18,9 @@ const adminUsersListRequestSchema = z.object({
   page: z.number().int().positive().optional(),
   perPage: z.number().int().positive().optional(),
   loadAll: z.boolean().optional(),
+  // The user list hides super admins, which is right for the users page and
+  // wrong when picking somebody to give an easter egg to — including yourself.
+  includeSuperAdmins: z.boolean().optional(),
 }).strict();
 
 const adminUsersCreateRequestSchema = z.object({

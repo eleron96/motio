@@ -66,6 +66,7 @@ const adminRequestSchema = z.discriminatedUnion("action", [
     page: z.number().int().positive().optional(),
     perPage: z.number().int().positive().optional(),
     loadAll: z.boolean().optional(),
+    includeSuperAdmins: z.boolean().optional(),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.USERS_CREATE),
@@ -685,7 +686,7 @@ const ensureKeycloakMigrationOnce = async () => {
   };
 };
 
-const handleUsersList = async (payload: { search?: string }) => {
+const handleUsersList = async (payload: { search?: string; includeSuperAdmins?: boolean }) => {
   const search = payload.search?.trim().toLowerCase() ?? "";
 
   const listed = await listAllAuthUsers(supabaseAdmin);
@@ -706,7 +707,11 @@ const handleUsersList = async (payload: { search?: string }) => {
     }
   }
 
-  const visibleUsers = listed.users.filter((user) => !superAdminSet.has(user.id));
+  // Super admins are hidden from the users page by design; callers that need a
+  // complete roster — the easter-egg picker — ask for them explicitly.
+  const visibleUsers = payload.includeSuperAdmins
+    ? listed.users
+    : listed.users.filter((user) => !superAdminSet.has(user.id));
   const userIds = visibleUsers.map((user) => user.id);
 
   if (userIds.length === 0) {
@@ -1891,7 +1896,7 @@ export const handler = async (req: Request) => {
 
   switch (action) {
     case ADMIN_ACTIONS.USERS_LIST:
-      return handleUsersList(payload as { search?: string });
+      return handleUsersList(payload as { search?: string; includeSuperAdmins?: boolean });
     case ADMIN_ACTIONS.USERS_CREATE:
       return handleUsersCreate(payload as { email?: string; displayName?: string });
     case ADMIN_ACTIONS.USERS_UPDATE:

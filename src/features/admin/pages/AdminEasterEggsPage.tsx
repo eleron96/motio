@@ -17,6 +17,7 @@ import { invokeAdminFunction } from '@/infrastructure/auth/functionsGateway';
 import { ADMIN_ACTIONS } from '@/shared/contracts/actions';
 import { EGG_CATALOG } from '@/features/daily-brief/easter-eggs/catalog';
 import { formatDateCompact, shortId } from '@/features/admin/lib/format';
+import { AdminUserPicker, type PickableUser } from '@/features/admin/components/AdminUserPicker';
 import {
   audienceSummary,
   draftAudienceValue,
@@ -39,14 +40,15 @@ import {
 const EGG_KEYS = Object.keys(EGG_CATALOG);
 
 const AdminEasterEggsPage: React.FC = () => {
-  const { adminUsers, fetchAdminUsers, adminWorkspaces, fetchAdminWorkspaces } = useAdminStore(
+  const { adminWorkspaces, fetchAdminWorkspaces } = useAdminStore(
     useShallow((state) => ({
-      adminUsers: state.adminUsers,
-      fetchAdminUsers: state.fetchAdminUsers,
       adminWorkspaces: state.adminWorkspaces,
       fetchAdminWorkspaces: state.fetchAdminWorkspaces,
     })),
   );
+  // Its own roster rather than the store's: the users page deliberately hides
+  // super admins, and here you have to be able to pick one — including yourself.
+  const [people, setPeople] = useState<PickableUser[]>([]);
   const locale = useLocaleStore((state) => state.locale);
 
   const [targets, setTargets] = useState<EasterEggTarget[]>([]);
@@ -79,9 +81,15 @@ const AdminEasterEggsPage: React.FC = () => {
 
   useEffect(() => {
     loadTargets();
-    fetchAdminUsers();
     fetchAdminWorkspaces();
-  }, [loadTargets, fetchAdminUsers, fetchAdminWorkspaces]);
+    void invokeAdminFunction<{ users?: PickableUser[] }>({
+      action: ADMIN_ACTIONS.USERS_LIST,
+      page: 1,
+      perPage: 1000,
+      loadAll: true,
+      includeSuperAdmins: true,
+    }).then(({ data }) => setPeople(data?.users ?? []));
+  }, [loadTargets, fetchAdminWorkspaces]);
 
   const ready = isEasterEggDraftReady(draft);
   const audienceValue = draftAudienceValue(draft);
@@ -107,8 +115,8 @@ const AdminEasterEggsPage: React.FC = () => {
   const pagination = useTablePagination(targets, 'easter-eggs');
 
   const sortedUsers = useMemo(
-    () => [...adminUsers].sort((left, right) => (left.email ?? '').localeCompare(right.email ?? '')),
-    [adminUsers],
+    () => [...people].sort((left, right) => (left.email ?? '').localeCompare(right.email ?? '')),
+    [people],
   );
 
   const handleAssign = async () => {
@@ -245,16 +253,11 @@ const AdminEasterEggsPage: React.FC = () => {
           <div className="space-y-1.5 lg:col-span-2">
             <Label>{t`Who`}</Label>
             {draft.audienceKind === 'user' && (
-              <Select value={draft.userId} onValueChange={(userId) => patchDraft({ userId })}>
-                <SelectTrigger><SelectValue placeholder={t`Select user`} /></SelectTrigger>
-                <SelectContent>
-                  {sortedUsers.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.email ?? shortId(user.id)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AdminUserPicker
+                users={sortedUsers}
+                value={draft.userId}
+                onChange={(userId) => patchDraft({ userId })}
+              />
             )}
             {draft.audienceKind === 'domain' && (
               <Input
