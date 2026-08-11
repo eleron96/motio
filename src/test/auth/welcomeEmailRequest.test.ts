@@ -69,9 +69,9 @@ const baseProfile = {
 
 // The module-level "already requested" latch lives in authStore, so each test
 // re-imports a fresh module instance via resetModules.
-const fetchProfileAs = async (welcomeEmailSentAt: unknown) => {
+const fetchProfileAs = async (welcomeEmailSentAt: unknown, overrides: Record<string, unknown> = {}) => {
   profileSingle.mockResolvedValue({
-    data: { ...baseProfile, welcome_email_sent_at: welcomeEmailSentAt },
+    data: { ...baseProfile, ...overrides, welcome_email_sent_at: welcomeEmailSentAt },
     error: null,
   });
   const { useAuthStore } = await import('@/features/auth/store/authStore');
@@ -114,5 +114,27 @@ describe('welcome email request on first sign-in', () => {
     await fetchProfileAs(null);
 
     expect(callOrder).toEqual(['locale-update', 'welcome-invoke']);
+  });
+
+  it('claims the detected language for a brand-new profile, before the welcome email', async () => {
+    // Профиль рождается без языка (миграция 0141), поэтому за аккаунтом
+    // закрепляется тот, что угадан по браузеру, — и письмо уходит на нём же.
+    const { useLocaleStore } = await import('@/shared/store/localeStore');
+    vi.mocked(useLocaleStore.getState).mockReturnValue({
+      locale: 'ru',
+      setLocale: vi.fn(),
+      setLocaleFromProfile: vi.fn(),
+    } as never);
+
+    await fetchProfileAs(null, { locale: null });
+
+    expect(callOrder).toEqual(['locale-update', 'welcome-invoke']);
+    expect(profileUpdateEq).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves an existing choice alone — no rewrite for a profile that already has a language', async () => {
+    await fetchProfileAs('2026-07-01T00:00:00Z', { locale: 'en' });
+
+    expect(profileUpdateEq).not.toHaveBeenCalled();
   });
 });

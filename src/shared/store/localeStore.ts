@@ -9,18 +9,26 @@ interface LocaleState {
   setLocaleFromProfile: (locale: unknown) => void;
 }
 
-const applyLocale = (locale: Locale) => {
+/** Shows the language without claiming the user picked it. */
+const activateLocale = (locale: Locale) => {
   i18n.activate(locale);
-  setStoredLocale(locale);
   if (typeof document !== "undefined") {
     document.documentElement.lang = locale;
   }
 };
 
+/** Shows the language AND records it as the user's own choice. */
+const applyLocale = (locale: Locale) => {
+  activateLocale(locale);
+  setStoredLocale(locale);
+};
+
 const resolveInitialLocale = () => getStoredLocale() ?? DEFAULT_LOCALE;
 
 const initialLocale = resolveInitialLocale();
-applyLocale(initialLocale);
+// Стартовая локаль может быть просто догадкой по браузеру — записывать её как
+// выбор нельзя, иначе догадка навсегда подменит собой реальные предпочтения.
+activateLocale(initialLocale);
 
 export const useLocaleStore = create<LocaleState>((set, get) => ({
   locale: initialLocale,

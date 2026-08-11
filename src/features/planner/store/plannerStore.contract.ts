@@ -128,6 +128,15 @@ export interface PlannerStore extends PlannerState {
   pendingRevealTaskId: string | null;
   setPendingRevealTaskId: (taskId: string | null) => void;
 
+  /**
+   * Whether the workspace still holds the example project/tasks a brand-new
+   * workspace is seeded with. Drives the "keep or clear" choice after the tour
+   * and the same action in workspace settings.
+   */
+  hasSampleData: boolean;
+  refreshSampleDataFlag: (workspaceId: string) => Promise<void>;
+  clearSampleData: (workspaceId: string) => Promise<MutationResult>;
+
   taskUndoStack: TaskUndoEntry[];
   /**
    * Task ids hidden by a deferred delete whose window is still open. The rows

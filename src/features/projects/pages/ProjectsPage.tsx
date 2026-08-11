@@ -824,7 +824,6 @@ const ProjectsPage = () => {
   useOnboardingTour({
     pageId: 'projects',
     canEdit,
-    hasProjectAssigneeTarget: Boolean(selectedProject),
   });
 
   const navigate = useNavigate();

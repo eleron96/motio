@@ -5,7 +5,6 @@ import { getNextOnboardingPage, type OnboardingPageId } from '@/features/onboard
 type CreateOnboardingTourArgs = {
   pageId: OnboardingPageId;
   canEdit?: boolean;
-  hasProjectAssigneeTarget?: boolean;
   isAdmin?: boolean;
   onAdvance: (nextPage: OnboardingPageId) => void;
   onDismiss: () => void;
@@ -104,7 +103,6 @@ const buildDashboardSteps = (
 
 const buildProjectsSteps = (
   canEdit: boolean,
-  hasProjectAssigneeTarget: boolean,
   advanceToNextPage: (nextPage: OnboardingPageId) => void,
 ): DriveStep[] => [
   {
@@ -119,12 +117,13 @@ const buildProjectsSteps = (
     },
   },
   {
-    element: hasProjectAssigneeTarget ? '[data-tour="projects-assignee-filter"]' : '[data-tour="projects-main-panel"]',
+    // Раньше шаг целился в фильтр исполнителей внутри панели проекта. Новая
+    // карточка проекта его убрала, и подсказка повисала в пустоте. Сайдбар —
+    // единственный якорь этой страницы, который есть в любом её состоянии.
+    element: '[data-tour="projects-sidebar"]',
     popover: {
-      title: t`People on a project`,
-      description: hasProjectAssigneeTarget
-        ? t`This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks.`
-        : t`Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks.`,
+      title: t`Projects, milestones and clients`,
+      description: t`Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes.`,
       nextBtnText: t`Next`,
       prevBtnText: t`Back`,
     },
@@ -216,7 +215,6 @@ const createSkipButton = (popover: PopoverDOM, handleDismiss: () => void) => {
 
 const buildSteps = ({
   canEdit,
-  hasProjectAssigneeTarget,
   isAdmin,
   onAdvance,
   onComplete,
@@ -228,7 +226,7 @@ const buildSteps = ({
     case 'dashboard':
       return buildDashboardSteps(Boolean(canEdit), onAdvance);
     case 'projects':
-      return buildProjectsSteps(Boolean(canEdit), Boolean(hasProjectAssigneeTarget), onAdvance);
+      return buildProjectsSteps(Boolean(canEdit), onAdvance);
     case 'members':
       return buildMembersSteps(Boolean(isAdmin), onComplete);
     default:
@@ -239,7 +237,6 @@ const buildSteps = ({
 export const createOnboardingTour = ({
   pageId,
   canEdit = false,
-  hasProjectAssigneeTarget = false,
   isAdmin = false,
   onAdvance,
   onDismiss,
@@ -266,7 +263,6 @@ export const createOnboardingTour = ({
   const steps = buildSteps({
     pageId,
     canEdit,
-    hasProjectAssigneeTarget,
     isAdmin,
     onAdvance: advanceToNextPage,
     onComplete: completeTour,
@@ -277,7 +273,11 @@ export const createOnboardingTour = ({
     showButtons: ['next', 'previous', 'close'],
     animate: true,
     allowClose: true,
-    overlayClickBehavior: 'close',
+    // Клик по затемнению не делает ничего. Раньше он засчитывал весь тур
+    // пройденным навсегда; «листать вперёд» тоже не годится — несколько
+    // случайных промахов пролистывают страницу целиком и уносят человека на
+    // другой экран. Тур двигается и закрывается только кнопками.
+    overlayClickBehavior: () => {},
     overlayColor: 'rgba(0, 0, 0, 0.7)',
     stagePadding: 8,
     stageRadius: 8,
