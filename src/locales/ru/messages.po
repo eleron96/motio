@@ -64,6 +64,11 @@ msgstr "{0, plural, one {# проект} few {# проекта} many {# прое
 msgid "{0, plural, one {# task} other {# tasks}}"
 msgstr "{0, plural, one {# задача} few {# задачи} many {# задач} other {# задачи}}"
 
+#. placeholder {0}: entry.rows.length
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
+msgstr "{0, plural, one {Серия перенесена (# задача)} few {Серия перенесена (# задачи)} many {Серия перенесена (# задач)} other {Серия перенесена (# задачи)}}"
+
 #. placeholder {0}: assigneeIds.length
 #. placeholder {0}: task.assigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -572,6 +577,10 @@ msgstr "Все подписчики"
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "All tasks"
 msgstr "Все задачи"
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Already undone"
+msgstr "Уже отменено"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Always"
@@ -1214,6 +1223,14 @@ msgstr "Не удалось проверить доступ"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Couldn't enable notifications. Please try again."
 msgstr "Не удалось включить уведомления. Попробуйте ещё раз."
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Couldn't undo — the task was already changed"
+msgstr "Не удалось отменить: задачу уже изменили"
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Couldn't undo — try again"
+msgstr "Не удалось отменить — попробуйте ещё раз"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
@@ -4143,6 +4160,10 @@ msgstr "Вводили ранее"
 msgid "Priority"
 msgstr "Приоритет"
 
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Priority changed"
+msgstr "Приоритет изменён"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Privacy Policy"
 msgstr "Политика конфиденциальности"
@@ -4186,6 +4207,10 @@ msgstr "Проект"
 #: src/features/projects/components/ProjectsMobileList.tsx
 msgid "Project actions"
 msgstr "Действия с проектом"
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Project changed"
+msgstr "Проект изменён"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -5129,6 +5154,10 @@ msgstr "Начни сейчас →"
 msgid "Status"
 msgstr "Статус"
 
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Status changed"
+msgstr "Статус изменён"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Status colours"
@@ -5215,7 +5244,12 @@ msgstr "Задача"
 msgid "Task actions"
 msgstr "Действия с задачей"
 
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Task dates changed"
+msgstr "Сроки задачи изменены"
+
 #: src/features/auth/components/InboxPanel.tsx
+#: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task deleted"
 msgstr "Задача удалена"
 
@@ -5234,6 +5268,10 @@ msgstr "Детали задачи"
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Task media across all users"
 msgstr "Медиа задач по всем пользователям"
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Task moved"
+msgstr "Задача перенесена"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -5254,6 +5292,10 @@ msgstr "Типы задач"
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Task update"
 msgstr "Обновление по задаче"
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Task updated"
+msgstr "Задача изменена"
 
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Task updates"
@@ -5801,6 +5843,20 @@ msgstr "меньше минуты"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Understand who is overloaded before it becomes a problem. Balance work across the team."
 msgstr "Узнайте кто перегружен до того как это станет проблемой. Балансируйте работу в команде."
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Undo"
+msgstr "Отменить"
+
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Undone"
+msgstr "Отменено"
+
+#. placeholder {0}: outcome.restored
+#. placeholder {1}: outcome.total
+#: src/features/planner/hooks/useTaskUndoToasts.ts
+msgid "Undone partially ({0} of {1})"
+msgstr "Отменено частично ({0} из {1})"
 
 #: src/features/members/hooks/useMemberGroups.ts
 msgid "unknown"

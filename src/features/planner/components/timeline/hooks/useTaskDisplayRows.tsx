@@ -7,6 +7,7 @@ import {
   buildTimelineDisplayRows,
   calculateTimelineRowHeights,
   groupTasksByTimelineRow,
+  selectArchivedProjectIds,
   selectFilteredTasks,
   selectTimelineGroupItems,
   selectVisibleAssignees,
@@ -55,9 +56,19 @@ export const useTaskDisplayRows = ({
   canManageAnyTimeOff = false,
   onOpenTimeOff,
 }: UseTaskDisplayRowsParams) => {
+  // Архив прячется только на доске проектов: там у архивного проекта нет строки,
+  // поэтому и его задачам показываться негде. В группировке по участникам ничего
+  // не скрываем — там задача принадлежит человеку, а не проекту.
+  // Отдельный мемо, чтобы раскладка не пересчитывалась на правку цвета проекта.
+  const hiddenProjectIds = useMemo(() => {
+    if (groupMode !== 'project') return undefined;
+    const ids = selectArchivedProjectIds(projects);
+    return ids.size > 0 ? ids : undefined;
+  }, [groupMode, projects]);
+
   const filteredTasks = useMemo(
-    () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
-    [tasks, filters, assigneeGroupMap, assignees],
+    () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees, { hiddenProjectIds }),
+    [tasks, filters, assigneeGroupMap, assignees, hiddenProjectIds],
   );
 
   const visibleAssignees = useMemo(

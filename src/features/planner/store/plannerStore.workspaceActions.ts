@@ -125,7 +125,14 @@ export const createWorkspaceActions = (
     const previousWorkspaceId = get().workspaceId;
     const workspaceChanged = Boolean(previousWorkspaceId && previousWorkspaceId !== workspaceId);
     const workspaceResetPatch = workspaceChanged
-      ? { trackedProjectIds: [] as string[], timelineAttentionDate: null as string | null }
+      ? {
+        trackedProjectIds: [] as string[],
+        timelineAttentionDate: null as string | null,
+        // Стек отмены — контекст воркспейса: записи чужого пространства
+        // нельзя ни показывать, ни исполнять. Окна отложенного удаления
+        // (pendingDeleteTaskIds) не трогаем — их коммиты должны доехать.
+        taskUndoStack: [] as PlannerStore['taskUndoStack'],
+      }
       : {};
 
     set({

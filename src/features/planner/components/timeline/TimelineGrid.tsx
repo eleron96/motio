@@ -15,6 +15,7 @@ import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import {
   buildAssigneeGroupMap,
   resolveCurrentUserAssigneeId,
+  selectArchivedProjectIds,
 } from '@/features/planner/lib/timelineSelectors';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
@@ -166,6 +167,14 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     fallbackHolidayLabel: t`Non-working day`,
     holidayLabel: t`Holiday`,
   });
+  // На доске проектов вехи архивных уезжают вместе со своими строками; в
+  // группировке по участникам всё остаётся как было.
+  const hiddenArchivedProjectIds = useMemo(() => {
+    if (groupMode !== 'project') return undefined;
+    const ids = selectArchivedProjectIds(projects);
+    return ids.size > 0 ? ids : undefined;
+  }, [projects, groupMode]);
+
   // Time-off records of the visible window, grouped by row. Assignee grouping
   // only: project rows have no person, so there is nothing to shade there.
   const timeOffIndex = useMemo(
@@ -304,6 +313,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     visibleDays,
     projects,
     isMobile,
+    hiddenProjectIds: hiddenArchivedProjectIds,
   });
 
   // ─── Task display ──────────────────────────────────────────────────────────

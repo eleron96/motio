@@ -24,6 +24,7 @@ import {
 import { MutationResult, TimeOffMutationResult } from '@/features/planner/store/plannerStore.helpers';
 import { RepeatCreateOptions } from '@/features/planner/lib/taskFormRules';
 import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
+import { TaskUndoEntry, TaskUndoOutcome } from '@/shared/domain/taskUndo';
 
 export type PlannerGroup = {
   id: string;
@@ -83,12 +84,15 @@ export interface PlannerStore extends PlannerState {
 
   addTask: (task: Omit<Task, 'id'>) => Promise<Task | null>;
   updateTask: (id: string, updates: Partial<Task>, scope?: RepeatTaskUpdateScope) => Promise<void>;
+  /** Single-scope update that records an undo entry for status/priority/project changes. */
+  updateTaskWithUndo: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   deleteTasks: (ids: string[]) => Promise<{ error?: string }>;
   duplicateTask: (id: string) => Promise<void>;
   createRepeats: (id: string, options: RepeatCreateOptions) => Promise<{ error?: string; created?: number }>;
   updateRepeatSeries: (id: string, options: RepeatCreateOptions, scope?: Exclude<RepeatTaskUpdateScope, 'single'>) => Promise<{ error?: string; created?: number; deleted?: number; updated?: number }>;
   moveTask: (id: string, startDate: string, endDate: string, scope?: RepeatTaskUpdateScope) => Promise<void>;
+  moveTaskDetached: (id: string, startDate: string, endDate: string) => Promise<void>;
   reassignTask: (id: string, assigneeId: string | null, projectId?: string | null) => Promise<void>;
   deleteTaskSeries: (repeatId: string, fromDate: string) => Promise<void>;
   removeAssigneeFromTask: (id: string, assigneeId: string, mode: 'single' | 'following') => Promise<void>;
@@ -110,6 +114,37 @@ export interface PlannerStore extends PlannerState {
   ) => Promise<MutationResult>;
   deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
   fetchTaskDescription: (taskId: string) => Promise<void>;
+
+  /**
+   * Undo stack for timeline mutations (drag/resize/series moves). Newest
+   * first, capped, in-memory only — see `shared/domain/taskUndo.ts`.
+   */
+  /**
+   * Task a deep link is trying to show when its data isn't loaded yet (the bell
+   * knows only the id, and the task may sit outside the loaded date window).
+   * The planner page picks it up once the task arrives and switches grouping if
+   * the project board would hide it.
+   */
+  pendingRevealTaskId: string | null;
+  setPendingRevealTaskId: (taskId: string | null) => void;
+
+  taskUndoStack: TaskUndoEntry[];
+  /**
+   * Task ids hidden by a deferred delete whose window is still open. The rows
+   * still exist in the DB, so `upsertTasks` drops incoming updates for them —
+   * otherwise live-sync would resurrect a "deleted" task mid-window.
+   */
+  pendingDeleteTaskIds: string[];
+  pushTaskUndo: (entry: TaskUndoEntry) => void;
+  /** Undo a specific entry (cascading through newer same-task entries). */
+  undoTaskEntry: (entryId: string) => Promise<TaskUndoOutcome | null>;
+  /** Undo the most recent entry (Cmd/Ctrl+Z). */
+  undoLastTask: () => Promise<TaskUndoOutcome | null>;
+  /**
+   * Hide the task now, run the real DELETE after the undo window closes.
+   * Undo within the window is purely client-side (cancel timer + restore).
+   */
+  deleteTaskDeferred: (id: string) => Promise<void>;
 
   addProject: (project: Omit<Project, 'id'>) => Promise<Project | null>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<MutationResult>;
