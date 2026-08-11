@@ -605,8 +605,9 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
   describe("end-to-end purge flow via request_account_deletion + helper RPCs", () => {
     it("pick returns user only after purge_after elapses", async () => {
       await withFixture(async (client) => {
-        // Alice is created with default locale 'en' — переставляем на ru, чтобы явно
-        // проверить именно русскую фразу (и не быть хрупкими к default-локали).
+        // Alice is created with no locale at all (migration 0141) — переставляем
+        // на ru, чтобы явно проверить именно русскую фразу. Остальные тесты
+        // фикстуры при этом покрывают ветку «язык не выбран» (0142: NULL → en).
         await client.query(
           `update public.profiles set locale = 'ru' where id = $1`,
           [TEST_USER_IDS.alice],

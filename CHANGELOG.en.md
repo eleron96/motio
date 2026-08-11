@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- The interface language is now detected from the browser. A Russian-speaking person gets the sign-in page, the app and the first email in Russian without choosing anything. An explicit choice still wins and is remembered for the account.
+- A new workspace no longer greets you with emptiness: it comes with a few examples — projects, colleagues, tasks and milestones — so you can see what a working timeline looks like. At the end of the tour the app asks whether to keep them or start clean; you can also remove them later in workspace settings.
+- An empty timeline now says how the first task is created.
+
+### Changed
+- Starting statuses, task types and tags are created in the person's language, and the workspace is named "My workspace". Before, the list mixed two languages and came with four projects nobody had created.
+- The tour got honest: the projects step points at the right place again, a stray click next to a tooltip no longer closes or skips it, and the tour waits for the morning brief to close — and stays away on phones, where half of its tooltips have nothing to point at. You can take it again from account settings.
 
 ## [0.9.65] - 2026-08-11
 ### Changed

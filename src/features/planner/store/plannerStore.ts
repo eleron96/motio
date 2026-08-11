@@ -56,6 +56,7 @@ export const usePlannerStore = create<PlannerStore>()(
       taskUndoStack: [],
       pendingDeleteTaskIds: [],
       pendingRevealTaskId: null,
+      hasSampleData: false,
 
       setWorkspaceId: (id) => set({ workspaceId: id }),
       setPendingRevealTaskId: (taskId) => set({ pendingRevealTaskId: taskId }),
@@ -98,6 +99,7 @@ export const usePlannerStore = create<PlannerStore>()(
         taskUndoStack: [],
         pendingDeleteTaskIds: [],
         pendingRevealTaskId: null,
+        hasSampleData: false,
       }),
 
       markTimelineInteraction: (durationMs = 650) => set((state) => {

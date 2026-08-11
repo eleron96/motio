@@ -145,6 +145,8 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [pushOnMention, setPushOnMention] = useState(true);
   const [pushOnTaskChange, setPushOnTaskChange] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
+  const [tourRestarting, setTourRestarting] = useState(false);
+  const [tourRestarted, setTourRestarted] = useState(false);
   const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
   const [timeOffMotifId, setTimeOffMotifId] = useState<TimeOffMotifId>(DEFAULT_TIME_OFF_MOTIF_ID);
   const [currentPrefs, setCurrentPrefs] = useState<Record<string, unknown>>({});
@@ -359,6 +361,36 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setWeekViewEnabled(previousEnabled);
       setCurrentPrefs(previousPrefs);
       setError(updateError);
+    }
+  };
+
+  /**
+   * Снимает отметку «тур пройден», и он снова запустится на таймлайне. Раньше
+   * тур был одноразовым: закрыл — и больше никогда, даже случайно закрыл.
+   */
+  const handleRestartTour = async () => {
+    if (!user) return;
+    const previousPrefs = currentPrefs;
+    setTourRestarting(true);
+
+    const updatedPrefs = { ...currentPrefs, onboarding_completed: false };
+    setCurrentPrefs(updatedPrefs);
+    const { error: updateError } = await updateProfilePreferences(updatedPrefs);
+    setTourRestarting(false);
+
+    if (updateError) {
+      setCurrentPrefs(previousPrefs);
+      setError(updateError);
+      return;
+    }
+    setTourRestarted(true);
+
+    // Отметку в базе мы сняли, но открытая страница о ней уже не спросит:
+    // тур решает, показываться ли, один раз при своём монтировании. Поэтому
+    // уходим на таймлайн полной перезагрузкой — иначе кнопка выглядела бы
+    // нажатой, а тур бы не появился.
+    if (typeof window !== 'undefined') {
+      window.location.assign('/app');
     }
   };
 
@@ -711,6 +743,24 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
         </div>
         <p className="text-xs text-muted-foreground">
           {t`Add a "Week" button next to Day and Calendar`}
+        </p>
+      </div>
+
+      <div className="space-y-2 border-t pt-4 text-left">
+        <div className="flex items-center justify-between gap-3">
+          <Label className="cursor-default">{t`Product tour`}</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleRestartTour}
+            disabled={!user || loading || tourRestarting}
+          >
+            {tourRestarted ? t`Will start on the timeline` : t`Show again`}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {t`Walk through the timeline, dashboard, projects and team again`}
         </p>
       </div>
 

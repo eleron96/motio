@@ -173,6 +173,25 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
+  const hasSampleData = usePlannerStore((state) => state.hasSampleData);
+  const clearSampleData = usePlannerStore((state) => state.clearSampleData);
+  const [clearingSamples, setClearingSamples] = useState(false);
+
+  // Тот же выбор, что предлагается в конце тура, — на случай если тур закрыли
+  // или человек пришёл с телефона, где тур не запускается.
+  const handleClearSampleData = async () => {
+    if (!currentWorkspaceId) return;
+    setClearingSamples(true);
+    const result = await clearSampleData(currentWorkspaceId);
+    setClearingSamples(false);
+    if (result.error) return;
+
+    // Перезагружаем страницу, чтобы от примеров не осталось следов ни на одном
+    // из открытых экранов — человек ведь просил «начать с чистого листа».
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
   const isWorkspaceOwner = Boolean(user?.id && currentWorkspace?.ownerId === user.id);
   const transferCandidates = (members ?? []).filter(
     (member) => member.userId !== user?.id && member.status === 'ACTIVE',
@@ -553,6 +572,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const displayContent = (
     <div className="space-y-5">
+      {hasSampleData && (
+        <Block title={t`Example data`}>
+          <SettingRow
+            title={t`Examples on the timeline`}
+            description={t`Remove the sample projects, people and tasks this workspace started with`}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClearSampleData}
+              disabled={clearingSamples || !isAdmin}
+            >
+              {clearingSamples ? t`Clearing…` : t`Remove examples`}
+            </Button>
+          </SettingRow>
+        </Block>
+      )}
       <Block title={t`Tasks`}>
         <SettingRow
           title={t`Unassigned`}

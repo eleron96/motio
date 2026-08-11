@@ -1055,6 +1055,11 @@ msgstr "Clear photo"
 msgid "Clear search"
 msgstr "Clear search"
 
+#: src/features/onboarding/components/SampleDataChoiceDialog.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Clearing…"
+msgstr "Clearing…"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Click this button or double-click a date on the timeline to open the task form."
 msgstr "Click this button or double-click a date on the timeline to open the task form."
@@ -2139,6 +2144,14 @@ msgstr "Everyone who already closed this announcement will see it once more."
 msgid "Everything your team needs to stay aligned"
 msgstr "Everything your team needs to stay aligned"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Example data"
+msgstr "Example data"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Examples on the timeline"
+msgstr "Examples on the timeline"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/demo/components/DemoBanner.tsx
 msgid "Exit demo"
@@ -2704,6 +2717,10 @@ msgstr "Jump to date"
 msgid "Keep editing"
 msgstr "Keep editing"
 
+#: src/features/onboarding/components/SampleDataChoiceDialog.tsx
+msgid "Keep examples"
+msgstr "Keep examples"
+
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Keep exploring"
 msgstr "Keep exploring"
@@ -2711,6 +2728,10 @@ msgstr "Keep exploring"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Keep holding the widget header..."
 msgstr "Keep holding the widget header..."
+
+#: src/features/onboarding/components/SampleDataChoiceDialog.tsx
+msgid "Keep the example data?"
+msgstr "Keep the example data?"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
@@ -3656,6 +3677,14 @@ msgstr "No tags available yet."
 msgid "No tasks match the current filters."
 msgstr "No tasks match the current filters."
 
+#: src/features/planner/components/timeline/TimelineGrid.tsx
+msgid "No tasks yet."
+msgstr "No tasks yet."
+
+#: src/features/planner/components/timeline/TimelineGrid.tsx
+msgid "No tasks yet. Double-click any day to create one."
+msgstr "No tasks yet. Double-click any day to create one."
+
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -3876,8 +3905,8 @@ msgid "Open"
 msgstr "Open"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
-msgstr "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
+#~ msgid "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
+#~ msgstr "Open a project here to see its tasks and assignees. People appear on a project once they are assigned to its tasks."
 
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Open Account settings to download the file."
@@ -4044,8 +4073,8 @@ msgid "People and groups"
 msgstr "People and groups"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "People on a project"
-msgstr "People on a project"
+#~ msgid "People on a project"
+#~ msgstr "People on a project"
 
 #: src/features/members/pages/MembersPage.tsx
 msgid "People sections"
@@ -4173,6 +4202,10 @@ msgid "Product news by email"
 msgstr "Product news by email"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Product tour"
+msgstr "Product tour"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Profile"
 msgstr "Profile"
 
@@ -4268,6 +4301,10 @@ msgstr "Projects"
 msgid "Projects & milestones"
 msgstr "Projects & milestones"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Projects, milestones and clients"
+msgstr "Projects, milestones and clients"
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -4354,6 +4391,10 @@ msgstr "Remove \"{scopedAssigneeName}\" from this task or from this and followin
 msgid "Remove contact"
 msgstr "Remove contact"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Remove examples"
+msgstr "Remove examples"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -4390,6 +4431,10 @@ msgstr "Remove subtask"
 #: src/features/planner/components/TagMultiSelect.tsx
 msgid "Remove tag"
 msgstr "Remove tag"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Remove the sample projects, people and tasks this workspace started with"
+msgstr "Remove the sample projects, people and tasks this workspace started with"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Remove widget"
@@ -4937,6 +4982,7 @@ msgid "Show {overflowCount} more milestones"
 msgstr "Show {overflowCount} more milestones"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Show again"
 msgstr "Show again"
 
@@ -5102,6 +5148,10 @@ msgstr "Star"
 msgid "Start"
 msgstr "Start"
 
+#: src/features/onboarding/components/SampleDataChoiceDialog.tsx
+msgid "Start clean"
+msgstr "Start clean"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TimeOffFields.tsx
 msgid "Start date"
@@ -5205,6 +5255,10 @@ msgstr "Subtasks"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Sun"
 msgstr "Sun"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
+msgstr "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5513,8 +5567,8 @@ msgid "This comment will be permanently removed and cannot be recovered."
 msgstr "This comment will be permanently removed and cannot be recovered."
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks."
-msgstr "This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks."
+#~ msgid "This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks."
+#~ msgstr "This control shows assignees already involved in the selected project. Invite teammates on Team access, then assign them inside project tasks."
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this customer"
@@ -6086,6 +6140,10 @@ msgstr "Visible to the whole team."
 msgid "Visual timeline"
 msgstr "Visual timeline"
 
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Walk through the timeline, dashboard, projects and team again"
+msgstr "Walk through the timeline, dashboard, projects and team again"
+
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Waves"
 msgstr "Waves"
@@ -6142,6 +6200,10 @@ msgstr "Widget"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Widgets"
 msgstr "Widgets"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Will start on the timeline"
+msgstr "Will start on the timeline"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Window"
@@ -6386,6 +6448,10 @@ msgstr "Your timeline"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
 msgstr "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
+
+#: src/features/onboarding/components/SampleDataChoiceDialog.tsx
+msgid "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
+msgstr "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx

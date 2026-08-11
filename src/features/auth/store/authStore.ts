@@ -576,8 +576,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
         return;
       }
+      // Язык передаём явно: профиль дописывается параллельно этой загрузке,
+      // так что читать его на стороне БД было бы гонкой. Стартовые статусы,
+      // типы и теги создаются сразу на языке человека.
+      const seedLocale = useLocaleStore.getState().locale;
       const { error: ensureError } = await supabase.rpc('ensure_initial_workspace', {
-        default_workspace_name: 'My Workspace',
+        default_workspace_name: seedLocale === 'ru' ? 'Моё пространство' : 'My Workspace',
+        p_locale: seedLocale,
       });
       if (ensureError) {
         console.error(ensureError);
@@ -623,7 +628,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const displayName = data?.display_name?.trim();
     const profileLocale = isSupportedLocale(data?.locale) ? data.locale : null;
     const pendingLocale = getPendingLocale();
-    const nextLocale = pendingLocale ?? profileLocale;
+    // Профиль без языка = аккаунт, который ещё ни разу не высказывался. Тогда
+    // языком становится тот, на котором человек прямо сейчас смотрит
+    // приложение: угаданный по браузеру либо выбранный им до входа.
+    const currentUiLocale = useLocaleStore.getState().locale;
+    const nextLocale = pendingLocale ?? profileLocale ?? currentUiLocale;
     const rawStatus = (data?.status as string | null) ?? 'ACTIVE';
     const profileStatus: AccountStatus = (
       rawStatus === 'PENDING_DELETION' || rawStatus === 'PURGED' ? rawStatus : 'ACTIVE'
@@ -663,6 +672,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
+    if (!profileLocale) {
+      // Первый вход: закрепляем угаданный язык за аккаунтом, чтобы письма и
+      // другие устройства говорили на нём же. Запись идёт до запроса
+      // приветственного письма — иначе оно уйдёт на языке пустого профиля.
+      const { error: localeError } = await supabase
+        .from('profiles')
+        .update({ locale: currentUiLocale })
+        .eq('id', user.id);
+      if (localeError) {
+        console.error(localeError);
+      }
+      maybeRequestWelcomeEmail(data?.welcome_email_sent_at);
+      return;
+    }
+
     useLocaleStore.getState().setLocaleFromProfile(profileLocale);
     maybeRequestWelcomeEmail(data?.welcome_email_sent_at);
   },
@@ -686,7 +710,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }));
   },
   createWorkspace: async (name) => {
-    const { data, error } = await supabase.rpc('create_workspace', { workspace_name: name });
+    const { data, error } = await supabase.rpc('create_workspace', {
+      workspace_name: name,
+      p_locale: useLocaleStore.getState().locale,
+    });
     if (error) return { error: error.message };
     await get().fetchWorkspaces();
     const createdId = typeof data === 'string' ? data : null;
