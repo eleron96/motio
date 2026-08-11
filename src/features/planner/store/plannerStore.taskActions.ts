@@ -16,7 +16,18 @@ import {
   diffRemovedTaskMediaIds,
   extractTaskMediaIds,
 } from '@/shared/domain/taskMediaIds';
-import { deleteTaskMediaBatch } from '@/infrastructure/tasks/taskMediaRepository';
+import {
+  deleteTaskMediaBatch,
+  filterOrphanTaskMediaIds,
+} from '@/infrastructure/tasks/taskMediaRepository';
+import {
+  buildDateUndoRow,
+  buildDetachUndoRow,
+  buildFieldUndoRow,
+  classifyDateChange,
+  TaskUndoFieldValue,
+} from '@/shared/domain/taskUndo';
+import type { Task } from '@/features/planner/types/planner';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -35,12 +46,14 @@ type TaskActions = Pick<
   PlannerStore,
   | 'addTask'
   | 'updateTask'
+  | 'updateTaskWithUndo'
   | 'deleteTask'
   | 'deleteTasks'
   | 'duplicateTask'
   | 'createRepeats'
   | 'updateRepeatSeries'
   | 'moveTask'
+  | 'moveTaskDetached'
   | 'reassignTask'
   | 'deleteTaskSeries'
   | 'removeAssigneeFromTask'
@@ -101,16 +114,54 @@ export const createTaskActions = (
    * referenced by any task in the current state. Called after DB mutations
    * succeed. Never blocks the caller — media cleanup is best-effort GC.
    */
+  const makeUndoId = () => (
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  /**
+   * Push an undo entry for a single-task date change — but only if the update
+   * actually landed: `updateTask` swallows failures, so the store row must
+   * already show the requested dates before we promise an undo for them.
+   */
+  const recordSingleMoveUndo = (
+    workspaceId: string,
+    before: Task,
+    startDate: string,
+    endDate: string,
+  ) => {
+    if (before.startDate === startDate && before.endDate === endDate) return;
+    const current = get().tasks.find((task) => task.id === before.id);
+    if (!current || current.startDate !== startDate || current.endDate !== endDate) return;
+    get().pushTaskUndo({
+      id: makeUndoId(),
+      workspaceId,
+      kind: classifyDateChange(before, { startDate, endDate }),
+      rows: [buildDateUndoRow(before.id, before, { startDate, endDate })],
+    });
+  };
+
   const scheduleTaskMediaCleanup = (candidateMediaIds: string[]) => {
     if (candidateMediaIds.length === 0) return;
-    const orphanIds = candidateMediaIds.filter((mediaId) => (
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return;
+    // Стор — лишь видимый срез таймлайна, поэтому по нему делаем только
+    // дешёвый префильтр (попадание = точно используется). Финальное слово —
+    // за БД: дубликат задачи вне загруженного диапазона может ссылаться на
+    // тот же блоб, и клиент об этом не знает.
+    const locallyOrphaned = candidateMediaIds.filter((mediaId) => (
       !get().tasks.some((task) => (
         typeof task.description === 'string'
           && extractTaskMediaIds(task.description).includes(mediaId)
       ))
     ));
-    if (orphanIds.length === 0) return;
-    void deleteTaskMediaBatch(orphanIds);
+    if (locallyOrphaned.length === 0) return;
+    void filterOrphanTaskMediaIds(workspaceId, locallyOrphaned)
+      .then((orphanIds) => {
+        if (orphanIds.length > 0) void deleteTaskMediaBatch(orphanIds);
+      })
+      .catch(() => {});
   };
 
   /**
@@ -651,7 +702,9 @@ export const createTaskActions = (
     if (!workspaceId) return;
 
     if (scope === 'single') {
+      const before = get().tasks.find((task) => task.id === id) ?? null;
       await get().updateTask(id, { startDate, endDate }, 'single');
+      if (before) recordSingleMoveUndo(workspaceId, before, startDate, endDate);
       return;
     }
 
@@ -676,7 +729,9 @@ export const createTaskActions = (
     }
 
     if (!baseTask.repeatId) {
+      const before = baseTask;
       await get().updateTask(id, { startDate, endDate }, 'single');
+      recordSingleMoveUndo(workspaceId, before, startDate, endDate);
       return;
     }
 
@@ -748,6 +803,109 @@ export const createTaskActions = (
     }
 
     applyUpdatedRows(updatedRows);
+
+    // Все строки серии обновились — фиксируем обратный ход. При частичном
+    // сбое выше мы вышли через reconcile: состояние неоднозначно, и обещать
+    // отмену для него нельзя.
+    const seriesBeforeById = new Map(seriesRows.map((row) => [row.id, row]));
+    const seriesUndoRows = updatedRows.flatMap((row) => {
+      const beforeRow = seriesBeforeById.get(row.id);
+      if (!beforeRow) return [];
+      if (beforeRow.start_date === row.start_date && beforeRow.end_date === row.end_date) {
+        return [];
+      }
+      return [buildDateUndoRow(
+        row.id,
+        { startDate: beforeRow.start_date, endDate: beforeRow.end_date },
+        { startDate: row.start_date, endDate: row.end_date },
+      )];
+    });
+    if (seriesUndoRows.length > 0) {
+      get().pushTaskUndo({
+        id: makeUndoId(),
+        workspaceId,
+        kind: 'series-move',
+        rows: seriesUndoRows,
+      });
+    }
+  },
+
+  moveTaskDetached: async (id, startDate, endDate) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return;
+
+    const before = get().tasks.find((task) => task.id === id) ?? null;
+    if (!before?.repeatId) {
+      await get().moveTask(id, startDate, endDate, 'single');
+      return;
+    }
+
+    const beforeRepeatId = before.repeatId;
+    await get().updateTask(id, { startDate, endDate, repeatId: null }, 'single');
+
+    const current = get().tasks.find((task) => task.id === id);
+    if (
+      !current
+      || current.repeatId !== null
+      || current.startDate !== startDate
+      || current.endDate !== endDate
+    ) {
+      return;
+    }
+
+    get().pushTaskUndo({
+      id: makeUndoId(),
+      workspaceId,
+      kind: 'detach-move',
+      rows: [buildDetachUndoRow(
+        id,
+        { startDate: before.startDate, endDate: before.endDate, repeatId: beforeRepeatId },
+        { startDate, endDate },
+      )],
+    });
+  },
+
+  updateTaskWithUndo: async (id, updates) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) {
+      return;
+    }
+
+    const before = get().tasks.find((task) => task.id === id) ?? null;
+    await get().updateTask(id, updates, 'single');
+    if (!before) return;
+
+    const current = get().tasks.find((task) => task.id === id);
+    if (!current) return;
+
+    // Отменяемыми делаем только одиночные правки из контекстного меню; поле
+    // попадает в запись, лишь когда апдейт реально лёг (стор показывает
+    // запрошенное значение) и значение действительно менялось.
+    const trackedFields: Array<{ key: 'statusId' | 'priority' | 'projectId'; column: string }> = [
+      { key: 'statusId', column: 'status_id' },
+      { key: 'priority', column: 'priority' },
+      { key: 'projectId', column: 'project_id' },
+    ];
+
+    const columns: Record<string, { before: TaskUndoFieldValue; after: TaskUndoFieldValue }> = {};
+    for (const { key, column } of trackedFields) {
+      if (!Object.prototype.hasOwnProperty.call(updates, key)) continue;
+      const requested = (updates[key] ?? null) as TaskUndoFieldValue;
+      const beforeValue = (before[key] ?? null) as TaskUndoFieldValue;
+      const currentValue = (current[key] ?? null) as TaskUndoFieldValue;
+      if (currentValue !== requested) return;
+      if (beforeValue === requested) continue;
+      columns[column] = { before: beforeValue, after: requested };
+    }
+
+    if (Object.keys(columns).length === 0) return;
+
+    get().pushTaskUndo({
+      id: makeUndoId(),
+      workspaceId,
+      kind: 'quick-edit',
+      rows: [buildFieldUndoRow(id, columns)],
+    });
   },
 
   reassignTask: async (id, assigneeId, projectId) => {

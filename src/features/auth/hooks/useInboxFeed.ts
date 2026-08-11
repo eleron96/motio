@@ -593,6 +593,12 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
 
+    // Уведомление не несёт проект задачи, а сама задача часто ещё не загружена
+    // (архив — это, как правило, старая работа вне текущего окна дат). Поэтому
+    // не решаем здесь, а передаём намерение планировщику: он доведёт задачу до
+    // экрана, когда та приедет.
+    usePlannerStore.getState().setPendingRevealTaskId(notification.taskId);
+
     const scrollDate = notification.taskStartDate || getTodayIso();
     setViewMode('day');
     setCurrentDate(scrollDate);

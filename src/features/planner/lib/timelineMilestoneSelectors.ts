@@ -16,9 +16,18 @@ export type TimelineMilestoneTooltipCell = {
 export const filterMilestonesByProjects = (
   milestones: Milestone[],
   projectIds: string[],
+  /**
+   * Archived projects whose milestones must go too. Without this the timeline
+   * would drop an archived project's row and tasks yet keep drawing its
+   * milestone lines and labels over the header.
+   */
+  hiddenProjectIds?: ReadonlySet<string>,
 ) => {
-  if (projectIds.length === 0) return milestones;
-  return milestones.filter((milestone) => projectIds.includes(milestone.projectId));
+  const withoutHidden = hiddenProjectIds?.size
+    ? milestones.filter((milestone) => !hiddenProjectIds.has(milestone.projectId))
+    : milestones;
+  if (projectIds.length === 0) return withoutHidden;
+  return withoutHidden.filter((milestone) => projectIds.includes(milestone.projectId));
 };
 
 export const sortMilestonesByDateAndTitle = (milestones: Milestone[]) => (

@@ -16,6 +16,7 @@ const { plannerState, authState } = vi.hoisted(() => ({
     loading: false,
     error: null,
     loadedRange: null,
+    taskUndoStack: [],
     tasks: [],
     projects: [],
     assignees: [],

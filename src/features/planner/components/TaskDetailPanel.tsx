@@ -114,7 +114,7 @@ export const TaskDetailPanel: React.FC = () => {
     tags,
     groupMode,
     updateTask,
-    deleteTask,
+    deleteTaskDeferred,
     deleteTaskSeries,
     duplicateTask,
     createRepeats,
@@ -138,7 +138,7 @@ export const TaskDetailPanel: React.FC = () => {
     tags: state.tags,
     groupMode: state.groupMode,
     updateTask: state.updateTask,
-    deleteTask: state.deleteTask,
+    deleteTaskDeferred: state.deleteTaskDeferred,
     deleteTaskSeries: state.deleteTaskSeries,
     duplicateTask: state.duplicateTask,
     createRepeats: state.createRepeats,
@@ -562,7 +562,7 @@ export const TaskDetailPanel: React.FC = () => {
 
   const handleDeleteTask = async () => {
     if (!canEdit) return;
-    await deleteTask(task.id);
+    await deleteTaskDeferred(task.id);
     setDeleteOpen(false);
   };
 

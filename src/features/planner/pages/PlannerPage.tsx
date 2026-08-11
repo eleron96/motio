@@ -8,6 +8,8 @@ import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
+import { useTaskUndoToasts } from '@/features/planner/hooks/useTaskUndoToasts';
+import { useRevealPendingTask } from '@/features/planner/hooks/useRevealPendingTask';
 import { Button } from '@/shared/ui/button';
 import { Filter, Plus, SquarePen } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
@@ -203,6 +205,8 @@ const PlannerPage = () => {
   const showLoadingOverlay = plannerLoading && (!loadedRange || loadedRange.workspaceId !== currentWorkspaceId) && !hasInitialData;
 
   usePlannerLiveSync(currentWorkspaceId, loadedRange);
+  useTaskUndoToasts();
+  useRevealPendingTask();
 
   useEffect(() => {
     if (!currentWorkspaceId) return;
