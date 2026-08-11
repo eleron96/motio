@@ -411,3 +411,4 @@
 2026-08-09T07:50:16Z | 0.9.62 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260809-074933.dump | No documented changes.
 2026-08-09T08:18:45Z | 0.9.63 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260809-081800.dump | No documented changes.
 2026-08-09T08:23:53Z | 0.9.64 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260809-082309.dump | No documented changes.
+2026-08-11T08:54:28Z | 0.9.65 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260811-085344.dump | An archived project no longer takes up space on the timeline in the Projects view: its row, its tasks and its milestones all go. The People view is unchanged — it still shows everything a person is busy with, archived projects included.

@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.65] - 2026-08-11
 ### Changed
 - An archived project no longer takes up space on the timeline in the Projects view: its row, its tasks and its milestones all go. The People view is unchanged — it still shows everything a person is busy with, archived projects included.
 - Opening a task of an archived project from a link — a notification, a phone push, or a project card — now switches the timeline to the People view, where the task is visible. Previously the Projects view would land you on an empty screen.
