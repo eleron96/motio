@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useDashboardStore } from '@/features/dashboard/store/dashboardStore';
@@ -93,9 +93,9 @@ const StatusNameInput: React.FC<{
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange }) => {
   const {
-    statuses, addStatus, updateStatus, deleteStatus,
-    taskTypes, addTaskType, updateTaskType, deleteTaskType,
-    tags, addTag, updateTag, deleteTag,
+    statuses, addStatus: addStatusAction, updateStatus: updateStatusAction, deleteStatus: deleteStatusAction,
+    taskTypes, addTaskType: addTaskTypeAction, updateTaskType: updateTaskTypeAction, deleteTaskType: deleteTaskTypeAction,
+    tags, addTag: addTagAction, updateTag: updateTagAction, deleteTag: deleteTagAction,
     workspaceId,
     applyWorkspaceTemplate,
     filters,
@@ -173,6 +173,39 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const isAdmin = currentWorkspaceRole === 'admin';
+
+  // Правка справочника меняет только planner-стор, а у дашборда свой кэш имён
+  // и цифр. Настройки — диалог поверх страницы, дашборд не перемонтируется и
+  // сам о правке не узнает, поэтому сообщаем ему об этом при закрытии: во
+  // время редактирования дёргать нельзя — updateStatus летит на каждую букву.
+  const catalogTouched = useRef(false);
+  const refreshDashboardAfterCatalogChange = useDashboardStore(
+    (state) => state.refreshAfterCatalogChange,
+  );
+
+  useEffect(() => {
+    if (open || !catalogTouched.current) return;
+    catalogTouched.current = false;
+    if (!currentWorkspaceId) return;
+    void refreshDashboardAfterCatalogChange(currentWorkspaceId);
+  }, [open, currentWorkspaceId, refreshDashboardAfterCatalogChange]);
+
+  const markCatalogTouched = <TArgs extends unknown[], TResult>(
+    action: (...args: TArgs) => TResult,
+  ) => (...args: TArgs): TResult => {
+    catalogTouched.current = true;
+    return action(...args);
+  };
+
+  const addStatus = markCatalogTouched(addStatusAction);
+  const updateStatus = markCatalogTouched(updateStatusAction);
+  const deleteStatus = markCatalogTouched(deleteStatusAction);
+  const addTaskType = markCatalogTouched(addTaskTypeAction);
+  const updateTaskType = markCatalogTouched(updateTaskTypeAction);
+  const deleteTaskType = markCatalogTouched(deleteTaskTypeAction);
+  const addTag = markCatalogTouched(addTagAction);
+  const updateTag = markCatalogTouched(updateTagAction);
+  const deleteTag = markCatalogTouched(deleteTagAction);
   const hasSampleData = usePlannerStore((state) => state.hasSampleData);
   const clearSampleData = usePlannerStore((state) => state.clearSampleData);
   const [clearingSamples, setClearingSamples] = useState(false);

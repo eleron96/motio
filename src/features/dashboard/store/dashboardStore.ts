@@ -18,6 +18,7 @@ import {
   DashboardWidgetSize,
 } from '@/features/dashboard/types/dashboard';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
+import { resolveDashboardIncludeDisabledAssignees } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { createWidgetId, getPeriodRange, DEFAULT_BAR_PALETTE } from '@/features/dashboard/lib/dashboardUtils';
 import type { WorkloadDay } from '@/features/dashboard/lib/workloadHeatmap';
 import {
@@ -105,6 +106,12 @@ type DashboardState = {
   removeWidget: (id: string) => void;
   setLayouts: (layouts: DashboardLayouts) => void;
   loadFilterOptions: (workspaceId: string) => Promise<void>;
+  /**
+   * Справочники воркспейса изменились в настройках — перечитать их и цифры.
+   * Настройки открываются диалогом поверх дашборда, страница не
+   * перемонтируется, поэтому сам он о правке никогда не узнаёт.
+   */
+  refreshAfterCatalogChange: (workspaceId: string) => Promise<void>;
   loadMilestones: (workspaceId: string) => Promise<void>;
   loadHeatmap: (workspaceId: string, startDate: string, endDate: string) => Promise<void>;
   loadTimeOff: (workspaceId: string, startDate: string, endDate: string) => Promise<void>;
@@ -1036,6 +1043,48 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     if (get().heatmapAutoCapacity === value) return;
     set({ heatmapAutoCapacity: value });
   },
+  refreshAfterCatalogChange: async (workspaceId) => {
+    // Обнуляем отметки свежести: иначе loadStats увидит «данные моложе минуты»
+    // и молча выйдет, оставив на экране прежние подписи.
+    set((state) => {
+      const stale = (variants: DashboardStatsVariants): DashboardStatsVariants => ({
+        activeOnly: { ...variants.activeOnly, lastLoaded: null },
+        includeDisabled: { ...variants.includeDisabled, lastLoaded: null },
+      });
+      return {
+        statsByPeriod: {
+          day: stale(state.statsByPeriod.day),
+          week: stale(state.statsByPeriod.week),
+          month: stale(state.statsByPeriod.month),
+        },
+      };
+    });
+
+    await get().loadFilterOptions(workspaceId);
+
+    // Перезапрашиваем ровно те срезы, которые нужны текущим виджетам.
+    const widgets = get().widgets;
+    const wanted = new Map<string, { period: DashboardPeriod; series: boolean; disabled: boolean }>();
+    widgets.forEach((widget) => {
+      if (widget.type === 'milestone' || widget.type === 'milestone_calendar') return;
+      const disabled = resolveDashboardIncludeDisabledAssignees(widget);
+      const series = widget.type === 'line' || widget.type === 'area';
+      const key = `${widget.period}:${disabled}`;
+      const existing = wanted.get(key);
+      wanted.set(key, {
+        period: widget.period,
+        disabled,
+        series: series || Boolean(existing?.series),
+      });
+    });
+
+    await Promise.all(
+      Array.from(wanted.values()).map((item) => (
+        get().loadStats(workspaceId, item.period, item.series, item.disabled)
+      )),
+    );
+  },
+
   loadStats: async (workspaceId, period, includeSeries = false, includeDisabledAssignees = false) => {
     const variantKey = getStatsVariantKey(includeDisabledAssignees);
     const current = get().statsByPeriod[period][variantKey];
