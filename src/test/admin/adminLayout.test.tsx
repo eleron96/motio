@@ -47,6 +47,13 @@ vi.mock('@/shared/store/localeStore', () => ({
 vi.mock('@/shared/hooks/use-mobile', () => ({ useIsMobile: () => false }));
 vi.mock('@/shared/lib/seo/usePageSeo', () => ({ usePageSeo: vi.fn() }));
 
+// The overview renders the messaging summary, which asks the admin function for
+// the announcement history on mount. Unmocked, that is a real request racing the
+// end of the test — it answered after teardown and failed the whole run.
+vi.mock('@/infrastructure/auth/functionsGateway', () => ({
+  invokeAdminFunction: vi.fn(async () => ({ data: { announcements: [] }, error: '' })),
+}));
+
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) =>
     strings.reduce((acc, str, i) => acc + str + (values[i] ?? ''), ''),
@@ -79,7 +86,7 @@ describe('AdminLayout', () => {
     expect(screen.queryByText('Overview')).not.toBeInTheDocument();
   });
 
-  it('renders section navigation and the overview metrics', () => {
+  it('renders section navigation and the overview metrics', async () => {
     renderAdmin();
 
     for (const label of ['Overview', 'Users', 'Workspaces', 'Easter eggs', 'Backups']) {
@@ -87,8 +94,9 @@ describe('AdminLayout', () => {
     }
 
     // Metrics come straight from the mocked store: 2 backups total and the
-    // latest one is the July 15 manual dump.
-    expect(screen.getByText('Backups stored')).toBeInTheDocument();
+    // latest one is the July 15 manual dump. Awaited, so the announcement
+    // history the summary asks for settles inside the test rather than after it.
+    expect(await screen.findByText('Backups stored')).toBeInTheDocument();
     expect(screen.getByText('manual-2.dump')).toBeInTheDocument();
   });
 
