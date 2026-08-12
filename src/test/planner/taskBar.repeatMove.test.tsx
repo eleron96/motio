@@ -113,6 +113,7 @@ vi.mock('@/shared/ui/alert-dialog', () => ({
 }));
 
 const moveTask = vi.fn(async () => ({}));
+const moveTaskDetached = vi.fn(async () => ({}));
 
 const baseTask = {
   assigneeIds: ['assignee-1'],
@@ -138,6 +139,7 @@ const plannerState = {
   groupMode: 'assignee' as const,
   highlightedTaskId: null as string | null,
   moveTask,
+  moveTaskDetached,
   projects: [{ archived: false, code: 'AL', color: '#2563eb', id: 'project-1', name: 'Alpha' }],
   removeAssigneeFromTask: vi.fn(async () => ({})),
   selectedTaskId: null as string | null,
@@ -256,13 +258,9 @@ describe('TaskBar repeat move flow', () => {
     expect(await screen.findByText('Apply changes to repeating tasks?')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Only this task'));
 
-    // Detaching writes the move AND clears repeatId in one update, so the task
-    // is standalone afterwards and won't re-open the scope dialog on next edit.
-    expect(plannerState.updateTask).toHaveBeenCalledWith(
-      'task-1',
-      { startDate: '2026-02-02', endDate: '2026-02-02', repeatId: null },
-      'single',
-    );
+    // Detaching goes through the dedicated store action: it writes the move,
+    // clears repeatId and records the undo entry in one place.
+    expect(moveTaskDetached).toHaveBeenCalledWith('task-1', '2026-02-02', '2026-02-02');
     expect(moveTask).not.toHaveBeenCalled();
   });
 });

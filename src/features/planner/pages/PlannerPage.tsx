@@ -8,6 +8,8 @@ import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
+import { useTaskUndoToasts } from '@/features/planner/hooks/useTaskUndoToasts';
+import { useRevealPendingTask } from '@/features/planner/hooks/useRevealPendingTask';
 import { Button } from '@/shared/ui/button';
 import { Filter, Plus, SquarePen } from 'lucide-react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
@@ -124,6 +126,7 @@ const PlannerPage = () => {
   const [showAddTask, setShowAddTask] = useState(false);
   const [addTaskDefaults, setAddTaskDefaults] = useState<AddTaskDefaults | null>(null);
   const loadWorkspaceData = usePlannerStore((state) => state.loadWorkspaceData);
+  const refreshSampleDataFlag = usePlannerStore((state) => state.refreshSampleDataFlag);
   const plannerLoading = usePlannerStore((state) => state.loading);
   const plannerError = usePlannerStore((state) => state.error);
   const loadedRange = usePlannerStore((state) => state.loadedRange);
@@ -203,11 +206,20 @@ const PlannerPage = () => {
   const showLoadingOverlay = plannerLoading && (!loadedRange || loadedRange.workspaceId !== currentWorkspaceId) && !hasInitialData;
 
   usePlannerLiveSync(currentWorkspaceId, loadedRange);
+  useTaskUndoToasts();
+  useRevealPendingTask();
 
   useEffect(() => {
     if (!currentWorkspaceId) return;
     void loadWorkspaceData(currentWorkspaceId);
   }, [currentWorkspaceId, currentDate, viewMode, loadWorkspaceData]);
+
+  // Знаем ли мы, что в пространстве ещё лежат примеры: от этого зависит вопрос
+  // после тура и пункт «Убрать примеры» в настройках.
+  useEffect(() => {
+    if (!currentWorkspaceId) return;
+    void refreshSampleDataFlag(currentWorkspaceId);
+  }, [currentWorkspaceId, refreshSampleDataFlag]);
 
   // Load workspace members (with avatarUrl) as soon as the workspace is known.
   // Without this, member avatars on the timeline are only visible after opening

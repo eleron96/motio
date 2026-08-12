@@ -15,6 +15,7 @@ import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import {
   buildAssigneeGroupMap,
   resolveCurrentUserAssigneeId,
+  selectArchivedProjectIds,
 } from '@/features/planner/lib/timelineSelectors';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
@@ -87,6 +88,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const tasks = usePlannerStore((state) => state.tasks);
+  const plannerLoading = usePlannerStore((state) => state.loading);
   const milestones = usePlannerStore((state) => state.milestones);
   // NO_TIME_OFF (frozen constant), not `?? []`: partial store mocks in tests do
   // not carry the field, and a fresh array each render would defeat the row memo.
@@ -166,6 +168,21 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     fallbackHolidayLabel: t`Non-working day`,
     holidayLabel: t`Holiday`,
   });
+  // Подсказку показываем, только когда на таймлайне действительно нет ни одной
+  // задачи — не путать с «всё скрыто фильтрами», там пусто по воле человека.
+  const showEmptyHint = useMemo(
+    () => tasks.length === 0 && !plannerLoading,
+    [tasks.length, plannerLoading],
+  );
+
+  // На доске проектов вехи архивных уезжают вместе со своими строками; в
+  // группировке по участникам всё остаётся как было.
+  const hiddenArchivedProjectIds = useMemo(() => {
+    if (groupMode !== 'project') return undefined;
+    const ids = selectArchivedProjectIds(projects);
+    return ids.size > 0 ? ids : undefined;
+  }, [projects, groupMode]);
+
   // Time-off records of the visible window, grouped by row. Assignee grouping
   // only: project rows have no person, so there is nothing to shade there.
   const timeOffIndex = useMemo(
@@ -304,6 +321,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     visibleDays,
     projects,
     isMobile,
+    hiddenProjectIds: hiddenArchivedProjectIds,
   });
 
   // ─── Task display ──────────────────────────────────────────────────────────
@@ -563,6 +581,24 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 </div>
               </div>
             ))}
+
+            {/* Пустой таймлайн иначе молчит: одна строка со своим именем и
+                никакого намёка, что задача заводится двойным кликом по дню. */}
+            {showEmptyHint && (
+              <div
+                className="pointer-events-none flex"
+                data-testid="timeline-empty-hint"
+              >
+                <div className="flex-shrink-0" style={{ width: resolvedSidebarWidth }} />
+                <div className="flex-shrink-0 px-6 py-8" style={{ width: totalWidth }}>
+                  <div className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+                    {canEdit
+                      ? t`No tasks yet. Double-click any day to create one.`
+                      : t`No tasks yet.`}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

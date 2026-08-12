@@ -18,6 +18,8 @@ interface UseMilestoneDisplayParams {
   visibleDays: Date[];
   projects: Project[];
   isMobile?: boolean;
+  /** Milestones of these projects are hidden along with their rows and tasks. */
+  hiddenProjectIds?: ReadonlySet<string>;
 }
 
 export const useMilestoneDisplay = ({
@@ -26,6 +28,7 @@ export const useMilestoneDisplay = ({
   visibleDays,
   projects,
   isMobile = false,
+  hiddenProjectIds,
 }: UseMilestoneDisplayParams) => {
   const [milestoneDialogOpen, setMilestoneDialogOpen] = useState(false);
   const [milestoneDialogDate, setMilestoneDialogDate] = useState<string | null>(null);
@@ -44,8 +47,8 @@ export const useMilestoneDisplay = ({
   );
 
   const filteredMilestones = useMemo(
-    () => filterMilestonesByProjects(milestones, filterProjectIds),
-    [milestones, filterProjectIds],
+    () => filterMilestonesByProjects(milestones, filterProjectIds, hiddenProjectIds),
+    [milestones, filterProjectIds, hiddenProjectIds],
   );
 
   const sortedMilestones = useMemo(

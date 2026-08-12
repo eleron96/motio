@@ -118,6 +118,7 @@ const baseTask = {
 const plannerState = {
   assignees: [{ id: 'assignee-1', isActive: true, name: 'Alex' }],
   deleteTask: vi.fn(async () => ({})),
+  deleteTaskDeferred: vi.fn(async () => ({})),
   deleteTaskSeries: vi.fn(async () => ({})),
   duplicateTask: vi.fn(async () => ({})),
   groupMode: 'assignee' as const,
@@ -134,6 +135,7 @@ const plannerState = {
   tasks: [{ ...baseTask }],
   trackedProjectIds: [] as string[],
   updateTask: vi.fn(async () => ({})),
+  updateTaskWithUndo: vi.fn(async () => ({})),
 };
 
 import { TaskBar } from '@/features/planner/components/timeline/TaskBar';
@@ -181,7 +183,7 @@ describe('TaskBar context menu + delete dialog', () => {
 
     expect(await screen.findByText('Delete task?')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Delete', { selector: 'button' }));
-    expect(plannerState.deleteTask).toHaveBeenCalledWith('task-1');
+    expect(plannerState.deleteTaskDeferred).toHaveBeenCalledWith('task-1');
   });
 
   it('offers series deletion for a repeating task', async () => {

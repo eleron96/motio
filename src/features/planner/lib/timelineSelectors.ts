@@ -14,6 +14,17 @@ export type TimelineDisplayRow = TimelineGroupItem & {
   height: number;
 };
 
+/** Shared empty set so the default path allocates nothing per call. */
+const EMPTY_ID_SET: ReadonlySet<string> = new Set<string>();
+
+export const selectArchivedProjectIds = (projects: Project[]): Set<string> => {
+  const ids = new Set<string>();
+  projects.forEach((project) => {
+    if (project.archived) ids.add(project.id);
+  });
+  return ids;
+};
+
 export const buildAssigneeGroupMap = (
   assignees: Assignee[],
   memberGroupAssignments: MemberGroupAssignment[],
@@ -43,8 +54,17 @@ export const selectFilteredTasks = (
   filters: Filters,
   assigneeGroupMap: Map<string, string>,
   assignees: Assignee[],
+  options: {
+    /**
+     * Projects whose tasks must not be shown at all. Project grouping passes
+     * the archived ones here: an archived project has no row, so its tasks
+     * would otherwise be grouped under a row that never renders.
+     */
+    hiddenProjectIds?: ReadonlySet<string>;
+  } = {},
 ) => {
   const assigneeById = new Map(assignees.map((assignee) => [assignee.id, assignee]));
+  const hiddenProjectIds = options.hiddenProjectIds ?? EMPTY_ID_SET;
 
   return tasks.filter((task) => {
     if (task.assigneeIds.length > 0 && assigneeById.size > 0) {
@@ -56,6 +76,12 @@ export const selectFilteredTasks = (
       if (!hasVisibleAssignee) {
         return false;
       }
+    }
+
+    // Задачи без проекта это не касается — паттерн тот же, что у фильтра по
+    // проектам ниже: условие начинается с `task.projectId`.
+    if (task.projectId && hiddenProjectIds.has(task.projectId)) {
+      return false;
     }
 
     if (filters.projectIds.length > 0 && task.projectId && !filters.projectIds.includes(task.projectId)) {
@@ -139,7 +165,10 @@ export const selectTimelineGroupItems = ({
     return sorted.map((assignee) => ({ id: assignee.id, name: assignee.name, color: undefined }));
   }
 
-  return projects.map((project) => ({
+  // Архивный проект уезжает в архив на странице «Проекты» и на доске проектов
+  // строки не занимает. Задачи при этом никуда не деваются — они по-прежнему
+  // видны в группировке по участникам.
+  return projects.filter((project) => !project.archived).map((project) => ({
     id: project.id,
     name: formatProjectLabel(project.name, project.code),
     color: project.color,

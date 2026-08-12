@@ -13,9 +13,12 @@ vi.mock('@lingui/macro', () => ({
 const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
     loadWorkspaceData: vi.fn(),
+    refreshSampleDataFlag: vi.fn(),
+    hasSampleData: false,
     loading: false,
     error: null,
     loadedRange: null,
+    taskUndoStack: [],
     tasks: [],
     projects: [],
     assignees: [],

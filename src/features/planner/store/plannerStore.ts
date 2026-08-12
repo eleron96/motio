@@ -8,6 +8,7 @@ import { createWorkspaceActions } from '@/features/planner/store/plannerStore.wo
 import { createTaskActions } from '@/features/planner/store/plannerStore.taskActions';
 import { createCatalogActions } from '@/features/planner/store/plannerStore.catalogActions';
 import { createTimeOffActions } from '@/features/planner/store/plannerStore.timeOffActions';
+import { createUndoActions } from '@/features/planner/store/plannerStore.undoActions';
 import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
 import { applyTaskCommentCountDelta } from '@/shared/domain/taskCommentCount';
 
@@ -52,8 +53,13 @@ export const usePlannerStore = create<PlannerStore>()(
       visibleCenterDate: null,
       timelineInteractingUntil: 0,
       syncHealthy: true,
+      taskUndoStack: [],
+      pendingDeleteTaskIds: [],
+      pendingRevealTaskId: null,
+      hasSampleData: false,
 
       setWorkspaceId: (id) => set({ workspaceId: id }),
+      setPendingRevealTaskId: (taskId) => set({ pendingRevealTaskId: taskId }),
       setSyncHealthy: (healthy) => set({ syncHealthy: healthy }),
 
       reset: () => set({
@@ -90,6 +96,10 @@ export const usePlannerStore = create<PlannerStore>()(
         scrollTargetDate: null,
         timelineInteractingUntil: 0,
         syncHealthy: true,
+        taskUndoStack: [],
+        pendingDeleteTaskIds: [],
+        pendingRevealTaskId: null,
+        hasSampleData: false,
       }),
 
       markTimelineInteraction: (durationMs = 650) => set((state) => {
@@ -102,12 +112,20 @@ export const usePlannerStore = create<PlannerStore>()(
       }),
 
       upsertTasks: (tasks) => set((state) => {
-        if (tasks.length === 0) return state;
-        const incoming = new Map(tasks.map((task) => [task.id, task]));
+        // Задачи в окне отложенного удаления скрыты только локально и ещё
+        // живут в БД: любой CDC-флаш или reconcile может их «воскресить».
+        // Пока id числится в pendingDeleteTaskIds — входящие апдейты по нему
+        // отбрасываются; отмена удаления сначала снимает id из списка.
+        const blockedIds = new Set(state.pendingDeleteTaskIds);
+        const acceptedTasks = blockedIds.size > 0
+          ? tasks.filter((task) => !blockedIds.has(task.id))
+          : tasks;
+        if (acceptedTasks.length === 0) return state;
+        const incoming = new Map(acceptedTasks.map((task) => [task.id, task]));
         const existingIds = new Set(state.tasks.map((task) => task.id));
         const nextTasks = state.tasks.map((task) => incoming.get(task.id) ?? task);
 
-        tasks.forEach((task) => {
+        acceptedTasks.forEach((task) => {
           if (!existingIds.has(task.id)) {
             nextTasks.push(task);
           }
@@ -208,6 +226,7 @@ export const usePlannerStore = create<PlannerStore>()(
       ...createTaskActions(set, get),
       ...createCatalogActions(set, get),
       ...createTimeOffActions(set, get),
+      ...createUndoActions(set, get),
 
       setViewMode: (mode) => set({ viewMode: mode }),
       setGroupMode: (mode) => set({ groupMode: mode }),

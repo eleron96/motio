@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { needsAssigneeGroupingToRevealTask } from '@/shared/domain/timelineTaskReveal';
 import { toast } from '@/shared/ui/sonner';
 import { t } from '@lingui/macro';
 
@@ -35,6 +36,10 @@ export const PushDeepLink: React.FC = () => {
   const setCurrentWorkspaceId = useAuthStore((state) => state.setCurrentWorkspaceId);
 
   const tasks = usePlannerStore((state) => state.tasks);
+  const projects = usePlannerStore((state) => state.projects);
+  const assignees = usePlannerStore((state) => state.assignees);
+  const groupMode = usePlannerStore((state) => state.groupMode);
+  const setGroupMode = usePlannerStore((state) => state.setGroupMode);
   const setViewMode = usePlannerStore((state) => state.setViewMode);
   const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
   const requestScrollToDate = usePlannerStore((state) => state.requestScrollToDate);
@@ -92,6 +97,9 @@ export const PushDeepLink: React.FC = () => {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
     setHighlightedTaskId(task.id);
+    if (needsAssigneeGroupingToRevealTask({ task, projects, assignees, groupMode })) {
+      setGroupMode('assignee');
+    }
     setViewMode('day');
     setCurrentDate(task.startDate);
     requestScrollToDate(task.startDate);
@@ -103,11 +111,15 @@ export const PushDeepLink: React.FC = () => {
     workspacesLoaded,
     currentWorkspaceId,
     tasks,
+    projects,
+    assignees,
+    groupMode,
     user?.id,
     clearFilters,
     requestScrollToDate,
     setCurrentDate,
     setCurrentWorkspaceId,
+    setGroupMode,
     setHighlightedTaskId,
     setSelectedTaskId,
     setViewMode,

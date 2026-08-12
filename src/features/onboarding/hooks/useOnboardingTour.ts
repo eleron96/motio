@@ -1,6 +1,9 @@
 import { startTransition, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useSampleChoiceStore } from '@/features/onboarding/store/sampleChoiceStore';
 import {
   getOnboardingPagePath,
   isOnboardingPageId,
@@ -29,9 +32,15 @@ const loadTourModule = async () => {
 type UseOnboardingTourOptions = {
   pageId: OnboardingPageId;
   canEdit?: boolean;
-  hasProjectAssigneeTarget?: boolean;
   isAdmin?: boolean;
 };
+
+/** Даём странице отрисоваться, прежде чем подсвечивать её элементы. */
+const START_DELAY_MS = 800;
+/** Как часто проверяем, освободился ли экран от чужой модалки. */
+const MODAL_POLL_MS = 400;
+/** Дольше этого не ждём: молчаливый тур хуже, чем тур поверх забытой модалки. */
+const MODAL_WAIT_LIMIT_MS = 30000;
 
 const readPendingPage = (): OnboardingPageId | null => {
   if (typeof window === 'undefined') return null;
@@ -52,23 +61,26 @@ const clearPendingPage = () => {
 export const useOnboardingTour = ({
   pageId,
   canEdit = false,
-  hasProjectAssigneeTarget = false,
   isAdmin = false,
 }: UseOnboardingTourOptions) => {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
+  // Половина якорей тура живёт только в десктопной вёрстке: на телефоне
+  // навигация, настройки и вкладки «Команды» — другие компоненты. driver.js в
+  // таком случае не падает и не пропускает шаг, а вешает подсказку по центру
+  // пустого затемнённого экрана. Молчать честнее; флаг «пройден» не ставим,
+  // поэтому тур дождётся человека за компьютером.
+  const isMobile = useIsMobile();
   const started = useRef(false);
   const activeTour = useRef<Driver | null>(null);
   const canEditRef = useRef(canEdit);
-  const hasProjectAssigneeTargetRef = useRef(hasProjectAssigneeTarget);
   const isAdminRef = useRef(isAdmin);
 
   canEditRef.current = canEdit;
-  hasProjectAssigneeTargetRef.current = hasProjectAssigneeTarget;
   isAdminRef.current = isAdmin;
 
   useEffect(() => {
-    if (!user || started.current) return;
+    if (!user || started.current || isMobile) return;
 
     let cancelled = false;
     let startTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -89,8 +101,23 @@ export const useOnboardingTour = ({
         });
       };
 
-      startTimeout = setTimeout(() => {
+      // Утренний бриф встречает новичка ровно в тот же момент. Запуск тура
+      // под ним оставлял человека наедине с двумя наложенными затемнениями:
+      // подсказок не видно, а клики уходят в оверлей тура. Ждём, пока экран
+      // освободится, но не бесконечно — если модалку не закрывают, начинаем.
+      let waitedForModal = 0;
+      const startWhenScreenIsFree = () => {
         if (cancelled) return;
+
+        const modalOpen = typeof document !== 'undefined' && Boolean(document.querySelector(
+          '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]',
+        ));
+        if (modalOpen && waitedForModal < MODAL_WAIT_LIMIT_MS) {
+          waitedForModal += MODAL_POLL_MS;
+          startTimeout = setTimeout(startWhenScreenIsFree, MODAL_POLL_MS);
+          return;
+        }
+
         started.current = true;
 
         void loadTourModule().then(({ createOnboardingTour }) => {
@@ -99,7 +126,6 @@ export const useOnboardingTour = ({
           activeTour.current = createOnboardingTour({
             pageId,
             canEdit: canEditRef.current,
-            hasProjectAssigneeTarget: hasProjectAssigneeTargetRef.current,
             isAdmin: isAdminRef.current,
             onAdvance: (nextPage) => {
               writePendingPage(nextPage);
@@ -112,12 +138,19 @@ export const useOnboardingTour = ({
             },
             onComplete: () => {
               void markCompleted();
+              // Тур прошёл по таймлайну, собранному из примеров — теперь
+              // человек решает, оставить их или начать с чистого листа.
+              if (usePlannerStore.getState().hasSampleData) {
+                useSampleChoiceStore.getState().askSampleChoice();
+              }
             },
           });
 
           activeTour.current.drive();
         });
-      }, 800);
+      };
+
+      startTimeout = setTimeout(startWhenScreenIsFree, START_DELAY_MS);
     };
 
     void checkAndStart();
@@ -133,5 +166,5 @@ export const useOnboardingTour = ({
         currentTour.destroy();
       }
     };
-  }, [navigate, pageId, user]);
+  }, [navigate, pageId, user, isMobile]);
 };
