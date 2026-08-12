@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.66] - 2026-08-12
 ### Added
 - The interface language is now detected from the browser. A Russian-speaking person gets the sign-in page, the app and the first email in Russian without choosing anything. An explicit choice still wins and is remembered for the account.
 - A new workspace no longer greets you with emptiness: it comes with a few examples — projects, colleagues, tasks and milestones — so you can see what a working timeline looks like. At the end of the tour the app asks whether to keep them or start clean; you can also remove them later in workspace settings.
