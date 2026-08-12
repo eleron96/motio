@@ -175,6 +175,33 @@ const buildDateRange = (period: DashboardPeriod) => {
 
 const toSeriesKey = (value: string) => `series_${value.replace(/[^a-z0-9]/gi, '_')}`;
 
+/**
+ * Имя для легенды берём из ответа сервера: он джойнит справочники и всегда
+ * знает текущее название. Локальный список статусов подключается только за
+ * оформлением (эмодзи) и как запасной вариант — раньше он имел приоритет, и
+ * переименованный статус продолжал висеть в легенде под старым именем.
+ */
+const resolveStatusSeriesName = (
+  row: { status_id: string; status_name: string },
+  statusById: Map<string, DashboardStatus>,
+): string => {
+  const status = statusById.get(row.status_id);
+  const name = row.status_name || status?.name || '';
+  return formatStatusLabel(name, status?.emoji ?? null);
+};
+
+/** То же для проектов: имя — свежее, код проекта — из локального справочника. */
+const resolveProjectSeriesName = (
+  row: { project_id: string | null; project_name: string | null },
+  projectById: Map<string, DashboardOption>,
+): string => {
+  if (!row.project_id) return 'No project';
+  const project = projectById.get(row.project_id);
+  const name = row.project_name || project?.name;
+  if (!name) return 'No project';
+  return formatProjectLabel(name, project?.code);
+};
+
 export const buildWidgetData = (
   rows: DashboardStatsRow[],
   widget: DashboardWidget,
@@ -183,9 +210,7 @@ export const buildWidgetData = (
 ): DashboardWidgetData => {
   const groupBy = widget.groupBy ?? 'none';
   const statusById = new Map(statuses.map((status) => [status.id, status]));
-  const projectNameById = new Map(
-    projects.map((project) => [project.id, formatProjectLabel(project.name, project.code)]),
-  );
+  const projectById = new Map(projects.map((project) => [project.id, project]));
   const statusFilter = statuses.length > 0
     ? resolveStatusFilter(widget, statuses)
     : new Set(rows.map((row) => row.status_id));
@@ -208,10 +233,7 @@ export const buildWidgetData = (
   } else if (groupBy === 'status') {
     filtered.forEach((row) => {
       const key = row.status_id;
-      const status = statusById.get(key);
-      const name = status
-        ? formatStatusLabel(status.name, status.emoji)
-        : row.status_name;
+      const name = resolveStatusSeriesName(row, statusById);
       const existing = seriesMap.get(key) ?? { name, value: 0, groupId: key };
       existing.value += row.total;
       seriesMap.set(key, existing);
@@ -219,9 +241,7 @@ export const buildWidgetData = (
   } else if (groupBy === 'project') {
     filtered.forEach((row) => {
       const key = row.project_id ?? 'no-project';
-      const name = row.project_id
-        ? projectNameById.get(row.project_id) ?? row.project_name ?? 'No project'
-        : 'No project';
+      const name = resolveProjectSeriesName(row, projectById);
       const existing = seriesMap.get(key) ?? { name, value: 0, groupId: key };
       existing.value += row.total;
       seriesMap.set(key, existing);
@@ -252,9 +272,7 @@ export const buildTimeSeriesData = (
 ): DashboardWidgetData => {
   const groupBy = widget.groupBy ?? 'none';
   const statusById = new Map(statuses.map((status) => [status.id, status]));
-  const projectNameById = new Map(
-    projects.map((project) => [project.id, formatProjectLabel(project.name, project.code)]),
-  );
+  const projectById = new Map(projects.map((project) => [project.id, project]));
   const statusFilter = statuses.length > 0
     ? resolveStatusFilter(widget, statuses)
     : new Set(rows.map((row) => row.status_id));
@@ -282,15 +300,10 @@ export const buildTimeSeriesData = (
       label = row.assignee_name ?? 'Unassigned';
     } else if (groupBy === 'status') {
       rawKey = row.status_id;
-      const status = statusById.get(row.status_id);
-      label = status
-        ? formatStatusLabel(status.name, status.emoji)
-        : row.status_name;
+      label = resolveStatusSeriesName(row, statusById);
     } else if (groupBy === 'project') {
       rawKey = row.project_id ?? 'no-project';
-      label = row.project_id
-        ? projectNameById.get(row.project_id) ?? row.project_name ?? 'No project'
-        : 'No project';
+      label = resolveProjectSeriesName(row, projectById);
     } else if (groupBy === 'task_type') {
       rawKey = row.task_type_id ?? 'no-type';
       label = row.task_type_name ?? NO_TYPE_LABEL;

@@ -15,6 +15,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Starting statuses, task types and tags are created in the person's language, and the workspace is named "My workspace". Before, the list mixed two languages and came with four projects nobody had created.
 - The tour got honest: the projects step points at the right place again, a stray click next to a tooltip no longer closes or skips it, and the tour waits for the morning brief to close — and stays away on phones, where half of its tooltips have nothing to point at. You can take it again from account settings.
 
+### Fixed
+- The dashboard no longer shows outdated labels: rename a status or a task type in workspace settings and the widgets pick up the new name and colour as soon as settings close. The legend used to keep the old one until the page was reloaded.
+
 ## [0.9.65] - 2026-08-11
 ### Changed
 - An archived project no longer takes up space on the timeline in the Projects view: its row, its tasks and its milestones all go. The People view is unchanged — it still shows everything a person is busy with, archived projects included.
