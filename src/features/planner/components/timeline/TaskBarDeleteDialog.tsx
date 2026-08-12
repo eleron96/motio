@@ -38,7 +38,7 @@ const TaskBarDeleteDialogBase: React.FC<TaskBarDeleteDialogProps> = ({
 }) => {
   const tasks = usePlannerStore((state) => state.tasks);
   const assignees = usePlannerStore((state) => state.assignees);
-  const deleteTask = usePlannerStore((state) => state.deleteTask);
+  const deleteTaskDeferred = usePlannerStore((state) => state.deleteTaskDeferred);
   const deleteTaskSeries = usePlannerStore((state) => state.deleteTaskSeries);
   const removeAssigneeFromTask = usePlannerStore((state) => state.removeAssigneeFromTask);
 
@@ -104,7 +104,7 @@ const TaskBarDeleteDialogBase: React.FC<TaskBarDeleteDialogProps> = ({
                   if (deleteForRowAssigneeOnly && scopedAssignee) {
                     await removeAssigneeFromTask(task.id, scopedAssignee.id, 'single');
                   } else {
-                    await deleteTask(task.id);
+                    await deleteTaskDeferred(task.id);
                   }
                   onOpenChange(false);
                 }}
@@ -134,7 +134,7 @@ const TaskBarDeleteDialogBase: React.FC<TaskBarDeleteDialogProps> = ({
                 if (deleteForRowAssigneeOnly && scopedAssignee) {
                   await removeAssigneeFromTask(task.id, scopedAssignee.id, 'single');
                 } else {
-                  await deleteTask(task.id);
+                  await deleteTaskDeferred(task.id);
                 }
                 onOpenChange(false);
               }}

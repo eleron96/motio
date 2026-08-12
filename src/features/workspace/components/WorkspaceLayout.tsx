@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { SampleDataChoiceDialog } from '@/features/onboarding/components/SampleDataChoiceDialog';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
 import { MobileMenuProvider } from '@/features/workspace/components/MobileMenuContext';
 import { AnnouncementsHost } from '@/features/announcements/components/AnnouncementsHost';
@@ -73,6 +74,7 @@ export const WorkspaceLayout: React.FC = () => {
               page so an announcement cannot be scrolled past unseen. */}
           <AnnouncementsHost />
           <Outlet />
+          <SampleDataChoiceDialog />
         </div>
       </MobileMenuProvider>
     </HeaderConfigContext.Provider>

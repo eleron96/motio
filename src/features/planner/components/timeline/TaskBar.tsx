@@ -60,7 +60,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const taskTypes = usePlannerStore((state) => state.taskTypes);
   const assignees = usePlannerStore((state) => state.assignees);
   const moveTask = usePlannerStore((state) => state.moveTask);
-  const updateTask = usePlannerStore((state) => state.updateTask);
+  const moveTaskDetached = usePlannerStore((state) => state.moveTaskDetached);
   const setSelectedTaskId = usePlannerStore((state) => state.setSelectedTaskId);
   const setHighlightedTaskId = usePlannerStore((state) => state.setHighlightedTaskId);
   // Boolean selectors: this bar only re-renders when ITS own selected/
@@ -293,15 +293,11 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     if (scope === 'single') {
       // "Only this task" detaches the occurrence from its series (repeatId: null)
       // so future moves/edits treat it as standalone and never ask for scope again.
-      await updateTask(
-        task.id,
-        { startDate: pendingMove.startDate, endDate: pendingMove.endDate, repeatId: null },
-        'single',
-      );
+      await moveTaskDetached(task.id, pendingMove.startDate, pendingMove.endDate);
       return;
     }
     await moveTask(task.id, pendingMove.startDate, pendingMove.endDate, scope);
-  }, [moveTask, updateTask, pendingRepeatMove, task.id]);
+  }, [moveTask, moveTaskDetached, pendingRepeatMove, task.id]);
 
   const cancelPendingRepeatMove = useCallback(() => {
     setPendingRepeatMove(null);

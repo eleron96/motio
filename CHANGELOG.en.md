@@ -7,6 +7,27 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.66] - 2026-08-12
+### Added
+- The interface language is now detected from the browser. A Russian-speaking person gets the sign-in page, the app and the first email in Russian without choosing anything. An explicit choice still wins and is remembered for the account.
+- A new workspace no longer greets you with emptiness: it comes with a few examples — projects, colleagues, tasks and milestones — so you can see what a working timeline looks like. At the end of the tour the app asks whether to keep them or start clean; you can also remove them later in workspace settings.
+- An empty timeline now says how the first task is created.
+
+### Changed
+- Starting statuses, task types and tags are created in the person's language, and the workspace is named "My workspace". Before, the list mixed two languages and came with four projects nobody had created.
+- The tour got honest: the projects step points at the right place again, a stray click next to a tooltip no longer closes or skips it, and the tour waits for the morning brief to close — and stays away on phones, where half of its tooltips have nothing to point at. You can take it again from account settings.
+
+### Fixed
+- The dashboard no longer shows outdated labels: rename a status or a task type in workspace settings and the widgets pick up the new name and colour as soon as settings close. The legend used to keep the old one until the page was reloaded.
+
+## [0.9.65] - 2026-08-11
+### Changed
+- An archived project no longer takes up space on the timeline in the Projects view: its row, its tasks and its milestones all go. The People view is unchanged — it still shows everything a person is busy with, archived projects included.
+- Opening a task of an archived project from a link — a notification, a phone push, or a project card — now switches the timeline to the People view, where the task is visible. Previously the Projects view would land you on an empty screen.
+
+### Added
+- The timeline now supports undo: moving a task, changing its dates, switching status, priority or project, and deleting can all be reverted with the Undo button in the popup notification or with Cmd/Ctrl+Z. Undo never overwrites teammates' work: if a colleague changed the task after you, the app says so instead.
+
 ## [0.9.64] - 2026-08-09
 ### Changed
 - No documented changes.

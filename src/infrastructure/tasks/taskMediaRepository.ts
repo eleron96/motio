@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/lib/supabaseClient';
+import { extractTaskMediaIds } from '@/shared/domain/taskMediaIds';
 
 const trimTrailingSlash = (v: string) => v.replace(/\/+$/, '');
 const UTF8_HEADER_PREFIX = 'utf8:';
@@ -82,6 +83,44 @@ export const deleteTaskMedia = async (mediaId: string): Promise<boolean> => {
     console.warn('[taskMedia] delete failed', { mediaId: id, error });
     return false;
   }
+};
+
+/**
+ * Server-side orphan check for media GC: keeps only those candidates that no
+ * live task of the workspace references anymore. The in-memory task list is
+ * just a viewport slice — a duplicate task far outside the loaded range may
+ * embed the same image, so the DB is the only authority here. Fails closed:
+ * on any error the id is treated as referenced and the blob survives.
+ */
+export const filterOrphanTaskMediaIds = async (
+  workspaceId: string,
+  candidateIds: string[],
+): Promise<string[]> => {
+  const wsId = workspaceId.trim();
+  const unique = Array.from(new Set(candidateIds.map((id) => id.trim()).filter(Boolean)));
+  if (!wsId || unique.length === 0) return [];
+
+  const checks = await Promise.all(unique.map(async (mediaId) => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('description')
+      .eq('workspace_id', wsId)
+      .like('description', `%/task-media/${encodeURIComponent(mediaId)}%`)
+      .limit(20);
+
+    if (error) {
+      console.warn('[taskMedia] orphan check failed — keeping blob', { mediaId, error });
+      return { mediaId, referenced: true };
+    }
+
+    // LIKE — грубый префильтр; точным парсером подтверждаем, что найденные
+    // описания действительно ссылаются на этот id, а не содержат его подстроку.
+    const referenced = ((data ?? []) as Array<{ description: string | null }>)
+      .some((row) => extractTaskMediaIds(row.description).includes(mediaId));
+    return { mediaId, referenced };
+  }));
+
+  return checks.filter((check) => !check.referenced).map((check) => check.mediaId);
 };
 
 export const deleteTaskMediaBatch = async (mediaIds: string[]): Promise<void> => {

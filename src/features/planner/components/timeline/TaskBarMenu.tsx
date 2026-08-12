@@ -42,7 +42,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
   const trackedProjectIds = usePlannerStore((state) => state.trackedProjectIds);
   const statuses = usePlannerStore((state) => state.statuses);
   const groupMode = usePlannerStore((state) => state.groupMode);
-  const updateTask = usePlannerStore((state) => state.updateTask);
+  const updateTaskWithUndo = usePlannerStore((state) => state.updateTaskWithUndo);
   const duplicateTask = usePlannerStore((state) => state.duplicateTask);
 
   const [projectSubOpen, setProjectSubOpen] = useState(false);
@@ -89,7 +89,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
 
   const handleStatusChange = (statusId: string) => {
     if (!canEdit || statusId === task.statusId) return;
-    updateTask(task.id, { statusId });
+    updateTaskWithUndo(task.id, { statusId });
   };
 
   const handleProjectChange = (projectId: string) => {
@@ -97,7 +97,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
     if (noProjectDisabled && projectId === 'none') return;
     const nextProjectId = projectId === 'none' ? null : projectId;
     if (nextProjectId === task.projectId) return;
-    updateTask(task.id, { projectId: nextProjectId });
+    updateTaskWithUndo(task.id, { projectId: nextProjectId });
   };
 
   const handlePriorityChange = (value: string) => {
@@ -106,7 +106,7 @@ const TaskBarMenuBase: React.FC<TaskBarMenuProps> = ({ task, canEdit, onRequestD
       ? null
       : (value as TaskPriority);
     if (nextPriority === (task.priority ?? null)) return;
-    updateTask(task.id, { priority: nextPriority });
+    updateTaskWithUndo(task.id, { priority: nextPriority });
   };
 
   // On mobile the rows are bigger touch targets with leading icons (iOS-style).

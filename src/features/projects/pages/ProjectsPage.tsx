@@ -28,6 +28,7 @@ import { t } from '@lingui/macro';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/shared/ui/resizable';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
+import { needsAssigneeGroupingToRevealTask } from '@/shared/domain/timelineTaskReveal';
 import { format, parseISO } from 'date-fns';
 import {
   Plus,
@@ -150,6 +151,8 @@ const ProjectsPage = () => {
     setCurrentDate,
     requestScrollToDate,
     clearFilters,
+    groupMode,
+    setGroupMode,
   } = usePlannerStore(useShallow((state) => ({
     projects: state.projects,
     milestones: state.milestones,
@@ -189,6 +192,8 @@ const ProjectsPage = () => {
     setCurrentDate: state.setCurrentDate,
     requestScrollToDate: state.requestScrollToDate,
     clearFilters: state.clearFilters,
+    groupMode: state.groupMode,
+    setGroupMode: state.setGroupMode,
   })));
 
   const {
@@ -819,7 +824,6 @@ const ProjectsPage = () => {
   useOnboardingTour({
     pageId: 'projects',
     canEdit,
-    hasProjectAssigneeTarget: Boolean(selectedProject),
   });
 
   const navigate = useNavigate();
@@ -855,16 +859,23 @@ const ProjectsPage = () => {
     if (user?.id && typeof window !== 'undefined') {
       window.localStorage.removeItem(`planner-filters-${user.id}`);
     }
+    if (needsAssigneeGroupingToRevealTask({ task: selectedTask, projects, assignees, groupMode })) {
+      setGroupMode('assignee');
+    }
     setViewMode('day');
     setCurrentDate(selectedTask.startDate);
     requestScrollToDate(selectedTask.startDate);
     setSelectedTaskId(null);
     navigate('/app');
   }, [
+    assignees,
     clearFilters,
+    groupMode,
     navigate,
+    projects,
     requestScrollToDate,
     selectedTask,
+    setGroupMode,
     setHighlightedTaskId,
     setCurrentDate,
     setSelectedTaskId,

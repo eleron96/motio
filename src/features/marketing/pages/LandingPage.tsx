@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { t, Trans } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
+import { setPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { Button } from '@/shared/ui/button';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import logoMotio from '@/shared/assets/branding/logo-motio.png';
@@ -370,7 +371,16 @@ const LandingPage = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setLocale(locale === 'en' ? 'ru' : 'en')}
+              onClick={() => {
+                const nextLocale = locale === 'en' ? 'ru' : 'en';
+                setLocale(nextLocale);
+                // Только для гостя: его выбор должен пережить вход, иначе язык
+                // профиля перезапишет его обратно. У вошедшего человека язык
+                // аккаунта менять с витрины нельзя — для этого есть настройки.
+                if (!user) {
+                  setPendingLocale(nextLocale);
+                }
+              }}
               className="rounded-md px-2 py-1 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
               aria-label="Switch language"
             >

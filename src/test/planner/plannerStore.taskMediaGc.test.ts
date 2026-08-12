@@ -21,6 +21,11 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
 vi.mock('@/infrastructure/tasks/taskMediaRepository', () => ({
   deleteTaskMedia: mediaMocks.deleteTaskMedia,
   deleteTaskMediaBatch: mediaMocks.deleteTaskMediaBatch,
+  // Серверная проверка сирот здесь прозрачна: БД «подтверждает» всех
+  // кандидатов, так что ассерты про deleteTaskMediaBatch остаются прежними.
+  filterOrphanTaskMediaIds: vi.fn(
+    async (_workspaceId: string, candidateIds: string[]) => candidateIds,
+  ),
 }));
 
 const mediaUrl = (id: string) =>

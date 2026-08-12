@@ -43,6 +43,8 @@ type WorkspaceActions = Pick<
   | 'loadWorkspaceData'
   | 'refreshAssignees'
   | 'refreshMemberGroups'
+  | 'refreshSampleDataFlag'
+  | 'clearSampleData'
   | 'fetchAssigneeTaskCounts'
   | 'fetchMemberGroups'
   | 'fetchGroupMembers'
@@ -125,7 +127,14 @@ export const createWorkspaceActions = (
     const previousWorkspaceId = get().workspaceId;
     const workspaceChanged = Boolean(previousWorkspaceId && previousWorkspaceId !== workspaceId);
     const workspaceResetPatch = workspaceChanged
-      ? { trackedProjectIds: [] as string[], timelineAttentionDate: null as string | null }
+      ? {
+        trackedProjectIds: [] as string[],
+        timelineAttentionDate: null as string | null,
+        // Стек отмены — контекст воркспейса: записи чужого пространства
+        // нельзя ни показывать, ни исполнять. Окна отложенного удаления
+        // (pendingDeleteTaskIds) не трогаем — их коммиты должны доехать.
+        taskUndoStack: [] as PlannerStore['taskUndoStack'],
+      }
       : {};
 
     set({
@@ -518,6 +527,43 @@ export const createWorkspaceActions = (
         assigneeIds: state.filters.assigneeIds.filter((id) => activeAssigneeIds.has(id)),
       },
     }));
+  },
+
+  /**
+   * Есть ли ещё в пространстве примеры, которыми оно засеяно при создании.
+   * Дешёвый count-запрос: сами строки-примеры ничем не отличаются от обычных и
+   * в модель задач не тянутся — клиенту нужен только факт.
+   */
+  refreshSampleDataFlag: async (workspaceId) => {
+    const { count, error } = await supabase
+      .from('tasks')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspaceId)
+      .eq('is_sample', true);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    if (get().workspaceId && get().workspaceId !== workspaceId) return;
+    set({ hasSampleData: (count ?? 0) > 0 });
+  },
+
+  clearSampleData: async (workspaceId) => {
+    const { error } = await supabase.rpc('clear_workspace_sample_data', {
+      workspace_id: workspaceId,
+    });
+    if (error) {
+      console.error(error);
+      return { error: error.message };
+    }
+
+    // Примеры удалены прямо в БД, минуя стор. Сбрасываем отметку о загруженном
+    // окне — иначе loadWorkspaceData решит, что данные уже актуальны, выйдет
+    // сразу, и удалённые задачи останутся висеть на экране.
+    set({ hasSampleData: false, loadedRange: null });
+    await get().loadWorkspaceData(workspaceId);
+    return {};
   },
 
   refreshMemberGroups: async () => {

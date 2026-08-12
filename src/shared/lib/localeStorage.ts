@@ -1,6 +1,13 @@
-import { DEFAULT_LOCALE, isSupportedLocale, type Locale } from "@/shared/lib/locale";
+import { detectBrowserLocale, isSupportedLocale, type Locale } from "@/shared/lib/locale";
 
-const STORAGE_KEY = "ui-locale";
+/**
+ * Bumped from "ui-locale": the old key was written on every boot, including
+ * boots where the user never chose anything, so it recorded the historical
+ * English default for everybody. Reading that back would keep the browser
+ * language permanently ignored. Only a deliberate choice lands in this key —
+ * and for signed-in people the profile language restores their choice anyway.
+ */
+const STORAGE_KEY = "ui-locale.v2";
 
 export const getStoredLocalePreference = (): Locale | null => {
   if (typeof window === "undefined") return null;
@@ -8,8 +15,12 @@ export const getStoredLocalePreference = (): Locale | null => {
   return isSupportedLocale(stored) ? stored : null;
 };
 
+/**
+ * The language to show right now: what the user picked before, or — the very
+ * first time — whatever their browser is set to.
+ */
 export const getStoredLocale = (): Locale => {
-  return getStoredLocalePreference() ?? DEFAULT_LOCALE;
+  return getStoredLocalePreference() ?? detectBrowserLocale();
 };
 
 export const setStoredLocale = (locale: Locale) => {
