@@ -19,22 +19,26 @@ interface RemoteState {
   shownDate: string | null;
   /** Берём из preferences.daily_brief_enabled; по умолчанию true */
   enabled: boolean;
+  /** Дата регистрации — в день регистрации сводке нечего подводить */
+  signedUpDate: string | null;
 }
 
 const fetchRemoteState = async (userId: string): Promise<RemoteState> => {
   const { data } = await supabase
     .from('profiles')
-    .select('daily_brief_shown_date, preferences')
+    .select('daily_brief_shown_date, preferences, created_at')
     .eq('id', userId)
     .single();
 
   const prefs = (data?.preferences ?? {}) as Record<string, unknown>;
   // Если поле отсутствует — считаем включённым (обратная совместимость)
   const enabled = prefs.daily_brief_enabled !== false;
+  const signedUpAt = data?.created_at as string | null | undefined;
 
   return {
     shownDate: (data?.daily_brief_shown_date as string | null) ?? null,
     enabled,
+    signedUpDate: signedUpAt ? toLocalDateString(new Date(signedUpAt)) : null,
   };
 };
 
@@ -84,10 +88,15 @@ export const shouldShowNow = async (userId: string): Promise<boolean> => {
   if (getLocalShownDate(userId) === today) return false;
 
   // Медленный путь: один запрос к Supabase — проверяем и дату, и настройку
-  const { shownDate, enabled } = await fetchRemoteState(userId);
+  const { shownDate, enabled, signedUpDate } = await fetchRemoteState(userId);
 
   // Пользователь отключил функцию в настройках
   if (!enabled) return false;
+
+  // В день регистрации подводить нечего: своих задач ещё ноль, и сводка
+  // открывалась поверх идущего онбординг-тура, глуша его кнопки. Дату
+  // «показано» при этом не проставляем — завтра сводка придёт как обычно.
+  if (signedUpDate && signedUpDate === today) return false;
 
   if (shownDate === today) {
     // Синхронизируем локальный кэш — на этом устройстве тоже не показываем

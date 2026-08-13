@@ -43,6 +43,9 @@ const { plannerState, authState } = vi.hoisted(() => ({
     user: { id: 'u1' },
     members: [],
     currentWorkspaceRole: 'admin',
+    // Подсказка о пустом таймлайне ждёт готовности пространства: у новичка оно
+    // создаётся уже после входа, и до этого «задач пока нет» — неправда.
+    workspacesLoaded: true,
     currentWorkspaceId: 'ws-1',
     workspaces: [{ id: 'ws-1', holidayCountry: 'RU' }],
   },
