@@ -76,3 +76,37 @@ docker compose ... restart rest auth realtime backup && docker compose ... resta
 ```
 
 Prefer the full-stack path (`make deploy` / `prod-compose.sh`) over manual restarts.
+
+## `Refusing to deploy: the locale catalogs were out of date`
+
+The pre-deploy gate ran `lingui:extract` / `lingui:compile` and found a diff in
+`src/locales`, so nothing was uploaded. The catalogs are already regenerated — review
+the diff and commit it:
+
+```bash
+git diff -- src/locales
+```
+
+If the diff adds sources with ` 2` in the path, the working tree contained stray
+duplicates — see the next entry. A diff that merely drops references to files you
+deleted is an ordinary stale catalog: commit it.
+
+## Stray `X 2.tsx` / `X 2.sql` duplicates
+
+Artifacts of cloud-syncing the project folder. Symptoms: `typecheck` fails in a file
+that "should not exist"; `.po` files gain string sources with ` 2` in the path; the CI
+step `i18n catalogs up to date` turns red for no apparent reason.
+
+```bash
+find . -name '* 2.*' -not -path './node_modules/*'
+```
+
+Delete them, then regenerate and commit the catalogs:
+
+```bash
+npm run lingui:extract && npm run lingui:compile
+```
+
+Duplicated SQL migrations are harmless to the database: Liquibase follows the explicit
+changeSet list in `infra/supabase/liquibase/changelog-master.xml` and never picks them
+up.

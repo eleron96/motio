@@ -29,7 +29,7 @@ keep the whole team's workload visible — self-hosted, with SSO out of the box.
 
 - 📅 **Timeline and calendar** — an interactive planner with day/calendar views and a task detail panel.
 - 👥 **Workspaces and roles** — `viewer` / `editor` / `admin`, per-workspace members and invitations.
-- 🔐 **SSO out of the box** — sign-in through Keycloak + oauth2-proxy; user lifecycle lives in the Keycloak Admin Console.
+- 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself, Keycloak is the identity store.
 - 🖼 **Task media** — paste, drag or upload images straight into task descriptions, with per-user and per-workspace quotas.
 - 💾 **Backups built in** — scheduled backups with upload/download and one-click restore from the admin console.
 - 🗄 **Super-admin console** — user overview, workspace management, backup/restore.
@@ -63,12 +63,15 @@ Production, remote deploy and releases: see [docs/operations.md](docs/operations
 |---|---|
 | **Frontend** | Vite · React 18 · TypeScript · Zustand · TanStack Query · Tailwind · Radix UI |
 | **Backend** | Supabase, self-hosted (Postgres · GoTrue · PostgREST · Edge Functions) |
-| **Auth / SSO** | Keycloak · oauth2-proxy |
-| **Infrastructure** | Docker Compose · Nginx · Liquibase · standalone backup-service |
+| **Auth / SSO** | Keycloak (OIDC) · oauth2-proxy (fallback for non-public paths) |
+| **Infrastructure** | Docker Compose · Caddy (TLS edge) · Nginx (Supabase gateway) · Liquibase · standalone backup-service |
 
 ```
-Browser → oauth2-proxy → Keycloak (OIDC) → Supabase (identity link)
+Browser → Caddy (TLS) → SPA (web) → Supabase GoTrue /auth/v1 → Keycloak (OIDC)
 ```
+
+In production Caddy is the edge (TLS, domains, security headers) and the SPA starts
+sign-in itself; oauth2-proxy stays as a fallback catch-all for non-public paths.
 
 <details>
 <summary>Repository structure</summary>
@@ -106,13 +109,20 @@ Details: [docs/architecture.md](docs/architecture.md).
 
 ## 🤝 Contributing
 
-1. Fork and create a feature branch: `git checkout -b feature/my-feature`.
+1. Create a feature branch: `git checkout -b feature/my-feature` (the licence does not grant redistribution — see [LICENSE](./LICENSE)).
 2. `npm install`, then bring up the stack: `make up`.
-3. Add tests and keep it clean: `npm run test`, `npm run lint`, `npm run typecheck`
+3. Add tests and keep it clean: `npm run test`, `npm run lint`, `npm run typecheck`,
+   `bash infra/scripts/lint-security-definer.sh`, `npm run build`
    (plus `npm run test:integration` when touching RPC/RLS/cron).
 4. New UI strings go through Lingui: `npm run lingui:extract && npm run lingui:compile`.
-5. Open a PR with a clear description and a `CHANGELOG.md` entry (`Unreleased` section).
+   Stale catalogs fail both CI and the production deploy.
+5. Log the change with `make logchange RU="…" EN="…" [TYPE=added|changed|fixed|removed|security]`
+   — it writes the entry into the `Unreleased` section of both changelogs (ru and en).
+   Then open a PR with a clear description.
+
+Merging into `main` deploys nothing: production only goes out via `make deploy`.
 
 ## 📄 License
 
-Private / proprietary. All rights reserved.
+Source-available, not open source: the code is public to read, any other use
+requires written permission. See [LICENSE](./LICENSE).
