@@ -25,6 +25,19 @@ if [[ "${DEPLOY_SKIP_CHECKS:-0}" != "1" ]]; then
   npm --prefix "${root_dir}" run lint
   npm --prefix "${root_dir}" run typecheck
   npm --prefix "${root_dir}" run test
+  # Каталоги переводов — единственная проверка CI, которой здесь не было, и
+  # ровно она однажды пропустила на прод релиз с красной сборкой: extract,
+  # запущенный, когда в дереве лежали лишние файлы, записал в .po ссылки на то,
+  # чего в репозитории нет. Дерево на этом шаге уже чистое, поэтому любая
+  # правка, которую внесёт extract, означает устаревшие каталоги.
+  npm --prefix "${root_dir}" run lingui:extract
+  npm --prefix "${root_dir}" run lingui:compile
+  if [[ -n "$(git -C "${root_dir}" status --porcelain -- src/locales)" ]]; then
+    git -C "${root_dir}" status --short -- src/locales
+    echo "Refusing to deploy: the locale catalogs were out of date (see above)."
+    echo "They have just been regenerated — review and commit src/locales, then deploy again."
+    exit 1
+  fi
 else
   echo "!!! Pre-deploy checks SKIPPED (DEPLOY_SKIP_CHECKS=1) !!!"
 fi
