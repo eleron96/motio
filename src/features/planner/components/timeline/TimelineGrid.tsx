@@ -169,10 +169,15 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     holidayLabel: t`Holiday`,
   });
   // Подсказку показываем, только когда на таймлайне действительно нет ни одной
-  // задачи — не путать с «всё скрыто фильтрами», там пусто по воле человека.
+  // задачи — не путать с «всё скрыто фильтрами», там пусто по воле человека,
+  // и не путать с первыми секундами новичка: его пространство ещё создаётся на
+  // сервере, задачи к нему уже едут, а «задач пока нет» — неправда.
+  const workspaceReady = useAuthStore(
+    (state) => state.workspacesLoaded && state.currentWorkspaceId !== null,
+  );
   const showEmptyHint = useMemo(
-    () => tasks.length === 0 && !plannerLoading,
-    [tasks.length, plannerLoading],
+    () => tasks.length === 0 && !plannerLoading && workspaceReady,
+    [tasks.length, plannerLoading, workspaceReady],
   );
 
   // На доске проектов вехи архивных уезжают вместе со своими строками; в

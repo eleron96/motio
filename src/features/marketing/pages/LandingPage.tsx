@@ -603,42 +603,31 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* ── SELF-HOSTED / SSO ── */}
-        <section className="mx-auto w-full max-w-[1200px] px-4 pt-24 sm:px-6 lg:px-10">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 sm:px-12 sm:py-16">
-            <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-14">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-                  {t`Your infrastructure`}
-                </p>
-                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl" style={{ letterSpacing: '-0.5px' }}>
-                  {t`For teams that own their data`}
-                </h2>
-                <p className="mt-4 text-sm leading-relaxed text-slate-500 sm:text-base">
-                  {t`Motio runs on your infrastructure. No "our cloud" lock-in, no data leaves your perimeter. Built for teams who need to answer "where does our data live?" before they can adopt anything.`}
-                </p>
-              </div>
-
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {([
-                  { icon: '🖥️', title: t`Self-hosted`,        body: t`Docker Compose. Postgres. Your servers, your rules.` },
-                  { icon: '🔐', title: t`SSO via Keycloak`,    body: t`Plug into your identity provider out of the box.` },
-                  { icon: '💾', title: t`Backup & restore`,    body: t`Full snapshot from the admin console. Restore in one command.` },
-                  { icon: '🚪', title: t`No SaaS lock-in`,     body: t`Open source schema. Export everything, leave anytime.` },
-                ] as const).map((item, i) => (
-                  <li
-                    key={i}
-                    className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4"
-                  >
-                    <span className="text-lg leading-none">{item.icon}</span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-500">{item.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* ── SELF-HOSTED ──
+            Своя инфраструктура — это опция для тех, кому она нужна, а не основное
+            обещание страницы: главный путь остаётся «зарегистрировался и работаешь». */}
+        <section className="mx-auto w-full max-w-[900px] px-4 pt-24 sm:px-6 lg:px-10">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-6 py-8 sm:px-10">
+            <h2 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl" style={{ letterSpacing: '-0.3px' }}>
+              {t`Need it on your own servers? That works too.`}
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+              {t`Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want.`}
+            </p>
+            <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-500">
+              {([
+                t`Docker Compose`,
+                t`Postgres`,
+                t`SSO via Keycloak`,
+                t`Backup & restore`,
+                t`Full data export`,
+              ] as const).map((item, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span aria-hidden="true" className="h-1 w-1 rounded-full bg-slate-300" />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
@@ -706,7 +695,7 @@ const LandingPage = () => {
               {t`Try Motio now`}
             </h2>
             <p className="relative mx-auto mt-4 max-w-xl text-base leading-relaxed text-slate-400">
-              {t`Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread.`}
+              {t`We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed.`}
             </p>
             <div className="relative mt-8">
               <Button
