@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { useSampleChoiceStore } from '@/features/onboarding/store/sampleChoiceStore';
 import {
   getOnboardingPagePath,
   isOnboardingPageId,
@@ -41,6 +40,26 @@ const START_DELAY_MS = 800;
 const MODAL_POLL_MS = 400;
 /** Дольше этого не ждём: молчаливый тур хуже, чем тур поверх забытой модалки. */
 const MODAL_WAIT_LIMIT_MS = 30000;
+/**
+ * Сколько ждём, пока пространство создастся и данные приедут. У новичка первое
+ * пространство заводится уже после входа (ensure_initial_workspace), и без
+ * этого ожидания тур успевал стартовать по пустой сетке: якорь таймлайна есть
+ * всегда, поэтому подсказки честно висели над «задач пока нет».
+ */
+const WORKSPACE_WAIT_LIMIT_MS = 15000;
+
+/**
+ * Готово ли то, что тур собирается показывать. На таймлайне ждём и сами
+ * данные — остальным страницам довольно созданного пространства. Не дождались
+ * за отведённое время — тур в этот заход молчит; флаг «пройден» не ставится,
+ * так что он придёт в следующий.
+ */
+const isWorkspaceReady = (pageId: OnboardingPageId): boolean => {
+  const { workspacesLoaded, currentWorkspaceId } = useAuthStore.getState();
+  if (!workspacesLoaded || !currentWorkspaceId) return false;
+  if (pageId !== 'planner') return true;
+  return usePlannerStore.getState().loadedRange?.workspaceId === currentWorkspaceId;
+};
 
 const readPendingPage = (): OnboardingPageId | null => {
   if (typeof window === 'undefined') return null;
@@ -70,7 +89,13 @@ export const useOnboardingTour = ({
   // таком случае не падает и не пропускает шаг, а вешает подсказку по центру
   // пустого затемнённого экрана. Молчать честнее; флаг «пройден» не ставим,
   // поэтому тур дождётся человека за компьютером.
-  const isMobile = useIsMobile();
+  // Решение принимаем один раз за жизнь страницы. useIsMobile следит за
+  // шириной, и поворот телефона в ландшафт (~844 px) перещёлкивал его в
+  // «десктоп»: эффект перезапускался и тур уходил гулять по мобильной
+  // вёрстке, где половины якорей нет — затемнение и подсказка по центру пустоты.
+  const isMobileNow = useIsMobile();
+  const isMobileAtMount = useRef(isMobileNow);
+  const isMobile = isMobileAtMount.current;
   const started = useRef(false);
   const activeTour = useRef<Driver | null>(null);
   const canEditRef = useRef(canEdit);
@@ -106,8 +131,17 @@ export const useOnboardingTour = ({
       // подсказок не видно, а клики уходят в оверлей тура. Ждём, пока экран
       // освободится, но не бесконечно — если модалку не закрывают, начинаем.
       let waitedForModal = 0;
+      let waitedForWorkspace = 0;
       const startWhenScreenIsFree = () => {
         if (cancelled) return;
+
+        // Сначала данные, потом подсказки о них.
+        if (!isWorkspaceReady(pageId)) {
+          if (waitedForWorkspace >= WORKSPACE_WAIT_LIMIT_MS) return;
+          waitedForWorkspace += MODAL_POLL_MS;
+          startTimeout = setTimeout(startWhenScreenIsFree, MODAL_POLL_MS);
+          return;
+        }
 
         const modalOpen = typeof document !== 'undefined' && Boolean(document.querySelector(
           '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]',
@@ -133,16 +167,16 @@ export const useOnboardingTour = ({
                 navigate(getOnboardingPagePath(nextPage));
               });
             },
+            // Про примеры больше не спрашиваем окном: над экраном и так висит
+            // полоса «часть данных — примеры» с кнопкой «Убрать примеры»
+            // (SampleDataBanner). Третье окно подряд в первую минуту — шум, а
+            // не забота; полоса живёт до тех пор, пока примеры не убраны, и
+            // работает там, где тур не идёт вовсе: на телефоне и у приглашённых.
             onDismiss: () => {
               void markCompleted();
             },
             onComplete: () => {
               void markCompleted();
-              // Тур прошёл по таймлайну, собранному из примеров — теперь
-              // человек решает, оставить их или начать с чистого листа.
-              if (usePlannerStore.getState().hasSampleData) {
-                useSampleChoiceStore.getState().askSampleChoice();
-              }
             },
           });
 

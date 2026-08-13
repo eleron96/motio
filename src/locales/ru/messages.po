@@ -15,7 +15,7 @@ msgstr ""
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "— pick member —"
-msgstr "— выбери участника —"
+msgstr "— выберите участника —"
 
 #. placeholder {0}: groupDeleteTarget?.name ?? ''
 #: src/features/members/pages/MembersPage.tsx
@@ -65,6 +65,7 @@ msgid "{0, plural, one {# task} other {# tasks}}"
 msgstr "{0, plural, one {# задача} few {# задачи} many {# задач} other {# задачи}}"
 
 #. placeholder {0}: entry.rows.length
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 msgstr "{0, plural, one {Серия перенесена (# задача)} few {Серия перенесена (# задачи)} many {Серия перенесена (# задач)} other {Серия перенесена (# задачи)}}"
@@ -231,7 +232,7 @@ msgstr "🎯 Календарь вех"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "📈 Completion trends over time"
-msgstr "📈 Тренды выполнения во времени"
+msgstr "📈 Динамика выполнения"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "📊 Tasks by project & assignee"
@@ -578,6 +579,7 @@ msgstr "Все подписчики"
 msgid "All tasks"
 msgstr "Все задачи"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Already undone"
 msgstr "Уже отменено"
@@ -597,7 +599,7 @@ msgstr "Анонс"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
-msgstr "Любая задача добавляется за 10 секунд. Не потому что мы забыли выкатить больше фич. Это и есть позиция продукта."
+msgstr "Любая задача добавляется за 10 секунд. Не потому, что мы забыли выкатить больше функций. Это и есть позиция продукта."
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
@@ -755,7 +757,7 @@ msgstr "Вернуться к сегодняшней дате"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Backup & restore"
-msgstr "Бэкап и восстановление"
+msgstr "Резервные копии и восстановление"
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Backups"
@@ -811,7 +813,7 @@ msgstr "По пользователю"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "By workspace"
-msgstr "По воркспейсу"
+msgstr "По рабочему пространству"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/planner/components/timeline/TimelineControls.tsx
@@ -1055,7 +1057,6 @@ msgstr "Удалить фото"
 msgid "Clear search"
 msgstr "Очистить поиск"
 
-#: src/features/onboarding/components/SampleDataChoiceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Clearing…"
 msgstr "Очищаем…"
@@ -1229,10 +1230,12 @@ msgstr "Не удалось проверить доступ"
 msgid "Couldn't enable notifications. Please try again."
 msgstr "Не удалось включить уведомления. Попробуйте ещё раз."
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — the task was already changed"
 msgstr "Не удалось отменить: задачу уже изменили"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — try again"
 msgstr "Не удалось отменить — попробуйте ещё раз"
@@ -1292,7 +1295,7 @@ msgstr "Создайте здесь новый проект, а затем об�
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Create a task"
-msgstr "Создай задачу"
+msgstr "Создайте задачу"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Create account"
@@ -1330,7 +1333,7 @@ msgstr "Создать задачу"
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Create workspace"
-msgstr "Создать воркспейс"
+msgstr "Создать пространство"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
@@ -1807,8 +1810,12 @@ msgid "Display style"
 msgstr "Стиль отображения"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Docker Compose. Postgres. Your servers, your rules."
-msgstr "Docker Compose. Postgres. Ваши серверы, ваши правила."
+msgid "Docker Compose"
+msgstr "Docker Compose"
+
+#: src/features/marketing/pages/LandingPage.tsx
+#~ msgid "Docker Compose. Postgres. Your servers, your rules."
+#~ msgstr "Docker Compose. Postgres. Ваши серверы, ваши правила."
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
@@ -1898,7 +1905,7 @@ msgstr "Напр. Передано клиенту"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
-msgstr "Каждое утро начинается с короткого брифа. Что на тебе сегодня, какие майлстоуны на этой неделе, где команде нужна твоя помощь. До того как ты откроешь что-то ещё."
+msgstr "Каждое утро начинается с короткого брифа. Что на вас сегодня, какие вехи на этой неделе, где команде нужна ваша помощь. До того как вы откроете что-то ещё."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Easter eggs"
@@ -2134,7 +2141,7 @@ msgstr "Все"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Everyone sees the same picture. Plan together, ship together."
-msgstr "Все видят одну картину. Планируйте вместе, выполняйте вместе."
+msgstr "У всех перед глазами одна картина. Планируйте и работайте вместе."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "Everyone who already closed this announcement will see it once more."
@@ -2142,7 +2149,7 @@ msgstr "Все, кто уже закрыл это объявление, увид
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Everything your team needs to stay aligned"
-msgstr "Всё что нужно команде чтобы работать слаженно"
+msgstr "Всё, что нужно команде, чтобы работать слаженно"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Example data"
@@ -2185,7 +2192,7 @@ msgstr "Экспортируйте свои данные после регист
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Exports run on your real workspace. Sign up in 30 seconds to enable them."
-msgstr "Экспорт работает в вашем реальном воркспейсе. Регистрация займёт 30 секунд."
+msgstr "Экспорт работает в вашем собственном рабочем пространстве. Регистрация займёт 30 секунд."
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -2389,8 +2396,8 @@ msgid "For grouping — e.g. a field or department: Design, Development, АР"
 msgstr "Для группировки — напр. направление или отдел: дизайн, разработка, АР"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "For teams that own their data"
-msgstr "Для команд, которые держат данные у себя"
+#~ msgid "For teams that own their data"
+#~ msgstr "Для команд, которые держат данные у себя"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge account"
@@ -2413,6 +2420,10 @@ msgstr "Досрочное удаление запланировано"
 msgid "From"
 msgstr "С"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Full data export"
+msgstr "Полная выгрузка данных"
+
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "Full day ≈ {capacityDisplay} tasks/person"
 msgstr "Полный день ≈ {capacityDisplay} задач/чел"
@@ -2430,8 +2441,8 @@ msgid "Full name"
 msgstr "Имя и фамилия"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Full snapshot from the admin console. Restore in one command."
-msgstr "Полный снимок из админки. Восстановление одной командой."
+#~ msgid "Full snapshot from the admin console. Restore in one command."
+#~ msgstr "Полный снимок из админки. Восстановление одной командой."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -2596,11 +2607,11 @@ msgstr "Меня упомянули в комментарии"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
-msgstr "Меня зовут Niko G. Вот уже много лет я управляю командами и проектами, связанными с BIM, где я снова и снова упирался в одну и ту же проблему."
+msgstr "Меня зовут Niko G. Много лет я веду команды и проекты вокруг BIM и всё это время упираюсь в одну и ту же проблему."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
-msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в твоей команде, значит пора попробовать Motio."
+msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в вашей команде, значит пора попробовать Motio."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
@@ -2699,7 +2710,7 @@ msgstr "Приглашения, роли и доступ к пространст
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
-msgstr "Он не пытается быть всем сразу. В нём нет кастомных полей, сложных автоматизаций, формул и kanban-режима. Только один экран и возможность быстро понять, кто чем занят."
+msgstr "Он не пытается быть всем сразу. В нём нет кастомных полей, сложных автоматизаций, формул и режима канбана. Только один экран и возможность быстро понять, кто чем занят."
 
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "It will be permanently purged {purgeLabel}."
@@ -2717,9 +2728,10 @@ msgstr "Перейти к дате"
 msgid "Keep editing"
 msgstr "Продолжить редактирование"
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Keep examples"
-msgstr "Оставить примеры"
+#~ msgid "Keep examples"
+#~ msgstr "Оставить примеры"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Keep exploring"
@@ -2729,13 +2741,14 @@ msgstr "Продолжить демо"
 msgid "Keep holding the widget header..."
 msgstr "Продолжайте удерживать заголовок виджета..."
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Keep the example data?"
-msgstr "Оставить примеры?"
+#~ msgid "Keep the example data?"
+#~ msgstr "Оставить примеры?"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
-msgstr "KPI-виджеты, столбчатые и area-графики, круговые диаграммы. Соберите любой дашборд. Фильтрация по исполнителю, проекту или статусу."
+msgstr "KPI-виджеты, столбчатые и линейные графики, круговые диаграммы. Соберите любой дашборд. Фильтрация по исполнителю, проекту или статусу."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
@@ -2890,11 +2903,11 @@ msgstr "Считаем загрузку..."
 
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Loading workspace..."
-msgstr "Загрузка воркспейса..."
+msgstr "Загрузка рабочего пространства..."
 
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Loading workspaces..."
-msgstr "Загрузка воркспейсов..."
+msgstr "Загрузка рабочих пространств..."
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Loading your workspaces…"
@@ -3100,6 +3113,10 @@ msgid "Most often: {topProject}"
 msgstr "Чаще всего: {topProject}"
 
 #: src/features/marketing/pages/LandingPage.tsx
+msgid "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
+msgstr "Обычно команды просто регистрируются и начинают работать. Если данные должны оставаться внутри вашего периметра, Motio разворачивается на вашей инфраструктуре — и вы в любой момент можете выгрузить всё и уйти."
+
+#: src/features/marketing/pages/LandingPage.tsx
 msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
 msgstr "Большинство инструментов показывают, что люди делают. Но почти ни один не даёт быстро понять, когда они заняты, когда свободны и как работа распределена по неделе."
 
@@ -3117,16 +3134,16 @@ msgid "Motio home"
 msgstr "На главную Motio"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
-msgstr "Motio сейчас в тестовом режиме, но уже открыт для использования. Мы постепенно даём доступ небольшим командам, которым нужно проще понимать, кто чем занят и как распределена работа."
+#~ msgid "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
+#~ msgstr "Motio сейчас в тестовом режиме, но уже открыт для использования. Мы постепенно даём доступ небольшим командам, которым нужно проще понимать, кто чем занят и как распределена работа."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
-msgstr "Motio держит задачи, проекты и нагрузку в одном воркспейсе. Без хаоса и таблиц."
+msgstr "Задачи, проекты и загрузка команды — в одном рабочем пространстве. Без хаоса и таблиц."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
-msgstr "Motio работает на вашей инфраструктуре. Никакой привязки к «нашему облаку», данные не покидают периметр. Для команд, которым нужно сначала ответить на вопрос «где живут наши данные», прежде чем что-то внедрять."
+#~ msgid "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
+#~ msgstr "Motio работает на вашей инфраструктуре. Никакой привязки к «нашему облаку», данные не покидают периметр. Для команд, которым нужно сначала ответить на вопрос «где живут наши данные», прежде чем что-то внедрять."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Motio. One timeline for your whole team. 10 seconds per task."
@@ -3177,6 +3194,10 @@ msgstr "Имя должно быть не длиннее {DISPLAY_NAME_MAX_LENGT
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "name@example.com"
 msgstr "name@example.com"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Need it on your own servers? That works too."
+msgstr "Нужно на своих серверах? Так тоже можно."
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
@@ -3280,7 +3301,7 @@ msgstr "Следующая страница"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Next, we'll open Projects to show where project details, tasks and assignees are visible."
-msgstr "Дальше откроем Projects и покажем, где видны детали проекта, задачи и исполнители."
+msgstr "Дальше откроем «Проекты» и покажем, где видны детали проекта, задачи и исполнители."
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Next, we'll open the dashboard and show where widgets are added and arranged."
@@ -3402,7 +3423,7 @@ msgstr "У проекта пока нет клиента."
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "No customer contacts yet. Use + to add one."
-msgstr "Контактов клиента пока нет. Нажми +, чтобы добавить."
+msgstr "Контактов клиента пока нет. Нажмите +, чтобы добавить."
 
 #: src/features/projects/components/CustomerCombobox.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -3647,8 +3668,8 @@ msgid "No rules yet."
 msgstr "Правил пока нет."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "No SaaS lock-in"
-msgstr "Без SaaS-привязки"
+#~ msgid "No SaaS lock-in"
+#~ msgstr "Без SaaS-привязки"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
@@ -3696,7 +3717,7 @@ msgstr "Без команды"
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "No team members yet. Use + to add one."
-msgstr "В команде пока никого нет. Нажми +, чтобы добавить."
+msgstr "В команде пока никого нет. Нажмите +, чтобы добавить."
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -3725,7 +3746,7 @@ msgstr "Рабочие пространства не требуют вашего
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "No workspaces."
-msgstr "Нет воркспейсов."
+msgstr "Рабочих пространств нет."
 
 #: src/features/admin/components/AdminUserPicker.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
@@ -3946,8 +3967,8 @@ msgid "Open projects"
 msgstr "Открыть проекты"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Open source schema. Export everything, leave anytime."
-msgstr "Открытая схема данных. Выгрузить всё и уйти в любой момент."
+#~ msgid "Open source schema. Export everything, leave anytime."
+#~ msgstr "Открытая схема данных. Выгрузить всё и уйти в любой момент."
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Open team"
@@ -4024,6 +4045,10 @@ msgstr "Пальма"
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Parameters"
 msgstr "Параметры"
+
+#: src/features/onboarding/components/SampleDataBanner.tsx
+msgid "Part of what you see here is example data — the workspace started with it so the timeline wasn't empty."
+msgstr "Часть того, что вы здесь видите, — примеры: с ними пространство создавалось, чтобы таймлайн не был пустым."
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Passwords and account recovery are managed in Keycloak."
@@ -4152,8 +4177,12 @@ msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Plug into your identity provider out of the box."
-msgstr "Подключение к вашему провайдеру идентификации из коробки."
+#~ msgid "Plug into your identity provider out of the box."
+#~ msgstr "Подключение к вашему провайдеру идентификации из коробки."
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Postgres"
+msgstr "Postgres"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
@@ -4189,6 +4218,7 @@ msgstr "Вводили ранее"
 msgid "Priority"
 msgstr "Приоритет"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Priority changed"
 msgstr "Приоритет изменён"
@@ -4241,6 +4271,7 @@ msgstr "Проект"
 msgid "Project actions"
 msgstr "Действия с проектом"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Project changed"
 msgstr "Проект изменён"
@@ -4391,6 +4422,7 @@ msgstr "Убрать \"{scopedAssigneeName}\" из этой задачи или 
 msgid "Remove contact"
 msgstr "Удалить контакт"
 
+#: src/features/onboarding/components/SampleDataBanner.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Remove examples"
 msgstr "Убрать примеры"
@@ -4439,6 +4471,10 @@ msgstr "Удалить проекты, людей и задачи, с котор
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Remove widget"
 msgstr "Удалить виджет"
+
+#: src/features/onboarding/components/SampleDataBanner.tsx
+msgid "Removing…"
+msgstr "Убираем…"
 
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -4782,7 +4818,7 @@ msgstr "Поиск типов..."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
-msgstr "Все задачи на одной линии времени. Сразу видно, кто и когда занят."
+msgstr "Все задачи на одном таймлайне. Сразу видно, кто и когда занят."
 
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Select a customer"
@@ -4899,12 +4935,12 @@ msgid "Select workspace"
 msgstr "Выберите рабочее пространство"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Self-hosted"
-msgstr "Self-hosted"
+#~ msgid "Self-hosted"
+#~ msgstr "Self-hosted"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
-msgstr "Self-hosted планировщик задач для команды на одном экране, общем таймлайне. Без кастомных полей, автоматизаций и шума. Сделан из реальной проектной боли, а не из стартапной теории."
+msgstr "Планировщик для команды: один экран и общий таймлайн. Без кастомных полей, автоматизаций и шума. Сделан из реальной проектной боли, а не из стартапной теории."
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -4963,7 +4999,7 @@ msgstr "Установить или очистить пользовательс�
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Set up your team workspace in seconds. No credit card needed."
-msgstr "Настройте рабочее пространство за секунды."
+msgstr "Рабочее пространство готово за минуту. Карта не нужна."
 
 #: src/features/demo/providers/DemoBootstrap.tsx
 msgid "Setting up your demo sandbox…"
@@ -5148,9 +5184,10 @@ msgstr "Звезда"
 msgid "Start"
 msgstr "Начать"
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Start clean"
-msgstr "Начать с чистого листа"
+#~ msgid "Start clean"
+#~ msgstr "Начать с чистого листа"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TimeOffFields.tsx
@@ -5179,7 +5216,7 @@ msgstr "Начать бесплатно →"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Start now →"
-msgstr "Начни сейчас →"
+msgstr "Начать сейчас →"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -5204,6 +5241,7 @@ msgstr "Начни сейчас →"
 msgid "Status"
 msgstr "Статус"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Status changed"
 msgstr "Статус изменён"
@@ -5298,11 +5336,13 @@ msgstr "Задача"
 msgid "Task actions"
 msgstr "Действия с задачей"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task dates changed"
 msgstr "Сроки задачи изменены"
 
 #: src/features/auth/components/InboxPanel.tsx
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task deleted"
 msgstr "Задача удалена"
@@ -5323,6 +5363,7 @@ msgstr "Детали задачи"
 msgid "Task media across all users"
 msgstr "Медиа задач по всем пользователям"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task moved"
 msgstr "Задача перенесена"
@@ -5347,6 +5388,7 @@ msgstr "Типы задач"
 msgid "Task update"
 msgstr "Обновление по задаче"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task updated"
 msgstr "Задача изменена"
@@ -5398,7 +5440,7 @@ msgstr "Доступ команды"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Team planning workspace."
-msgstr "Воркспейс для командного планирования."
+msgstr "Рабочее пространство для командного планирования."
 
 #: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "Team time off"
@@ -5498,7 +5540,7 @@ msgstr "Вся команда в отпуске"
 
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
-msgstr "Воркспейс и все его данные будут удалены без возможности восстановления."
+msgstr "Рабочее пространство и все его данные будут удалены без возможности восстановления."
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "there"
@@ -5525,7 +5567,7 @@ msgstr "На эти дни уже есть отметка."
 
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "These members are derived from this project's tasks. Use + to pin them explicitly."
-msgstr "Эти участники выведены из задач проекта. Нажми +, чтобы закрепить их явно."
+msgstr "Эти участники выведены из задач проекта. Нажмите +, чтобы закрепить их явно."
 
 #: src/features/members/pages/MembersPage.tsx
 msgid "They end up without a group. Their tasks are not affected."
@@ -5896,18 +5938,21 @@ msgstr "меньше минуты"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Understand who is overloaded before it becomes a problem. Balance work across the team."
-msgstr "Узнайте кто перегружен до того как это станет проблемой. Балансируйте работу в команде."
+msgstr "Видно, кто перегружен, ещё до того как это станет проблемой. Распределяйте работу равномерно."
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undo"
 msgstr "Отменить"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undone"
 msgstr "Отменено"
 
 #. placeholder {0}: outcome.restored
 #. placeholder {1}: outcome.total
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undone partially ({0} of {1})"
 msgstr "Отменено частично ({0} из {1})"
@@ -6024,7 +6069,7 @@ msgstr "До даты"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Up and running in minutes"
-msgstr "Готово за несколько минут"
+msgstr "Начните за несколько минут"
 
 #: src/features/projects/components/MilestonesMobileSection.tsx
 msgid "Upcoming"
@@ -6086,7 +6131,7 @@ msgstr "UUID пользователя"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "User workspaces"
-msgstr "Воркспейсы пользователя"
+msgstr "Рабочие пространства пользователя"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/pages/AdminOverviewPage.tsx
@@ -6138,7 +6183,7 @@ msgstr "Видно всей команде."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Visual timeline"
-msgstr "Визуальный таймлайн"
+msgstr "Наглядный таймлайн"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Walk through the timeline, dashboard, projects and team again"
@@ -6147,6 +6192,10 @@ msgstr "Ещё раз пройтись по таймлайну, дашборду
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Waves"
 msgstr "Волны"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
+msgstr "Мы работаем с небольшими командами, которым нужно одно: видеть, кто занят, кто свободен и как работа распределена по неделе. Регистрация занимает минуту, карта не нужна."
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."
@@ -6187,7 +6236,7 @@ msgstr "Кто возьмёт на себя?"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Why I built this"
-msgstr "Почему я это делаю"
+msgstr "Почему я это сделал"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Why Motio"
@@ -6430,8 +6479,8 @@ msgid "Your display name stays visible in historical comments:"
 msgstr "Ваше отображаемое имя останется видимым в старых комментариях:"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Your infrastructure"
-msgstr "Ваша инфраструктура"
+#~ msgid "Your infrastructure"
+#~ msgstr "Ваша инфраструктура"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Your sign-in session expired. Please continue with Keycloak again."
@@ -6443,15 +6492,16 @@ msgstr "Прогресс команды всегда на виду"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Your timeline"
-msgstr "Твой таймлайн"
+msgstr "Ваш таймлайн"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
 msgstr "Здесь живут ваши виджеты. Меняйте их размер и порядок, чтобы следить за нагрузкой, сроками и прогрессом."
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
-msgstr "Мы наполнили пространство парой примеров — проектами, людьми и задачами, — чтобы таймлайн не был пустым. Оставьте их, чтобы освоиться, или очистите и начните со своей работы."
+#~ msgid "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
+#~ msgstr "Мы наполнили пространство парой примеров — проектами, людьми и задачами, — чтобы таймлайн не был пустым. Оставьте их, чтобы освоиться, или очистите и начните со своей работы."
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx

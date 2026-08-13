@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Russian wording is consistent now, and a workspace is called a workspace everywhere. The landing page no longer calls the product a test build, and the self-hosting story is a short block instead of half the page.
+- A quieter first visit: the morning brief no longer appears on the day you sign up, and the question about example data is no longer a pop-up. A bar above the screen says which data is an example and offers to remove it.
+
+
+### Fixed
+- The tour no longer starts before the timeline has any tasks on it, and no longer launches on a phone turned to landscape, where half its hints have nowhere to point. An empty timeline no longer claims there are no tasks while the workspace is still being created.
 ## [0.9.66] - 2026-08-12
 ### Added
 - The interface language is now detected from the browser. A Russian-speaking person gets the sign-in page, the app and the first email in Russian without choosing anything. An explicit choice still wins and is remembered for the account.

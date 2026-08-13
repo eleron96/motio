@@ -65,6 +65,7 @@ msgid "{0, plural, one {# task} other {# tasks}}"
 msgstr "{0, plural, one {# task} other {# tasks}}"
 
 #. placeholder {0}: entry.rows.length
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 msgstr "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
@@ -578,6 +579,7 @@ msgstr "All subscribers"
 msgid "All tasks"
 msgstr "All tasks"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Already undone"
 msgstr "Already undone"
@@ -1055,7 +1057,6 @@ msgstr "Clear photo"
 msgid "Clear search"
 msgstr "Clear search"
 
-#: src/features/onboarding/components/SampleDataChoiceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Clearing…"
 msgstr "Clearing…"
@@ -1229,10 +1230,12 @@ msgstr "Could not check access"
 msgid "Couldn't enable notifications. Please try again."
 msgstr "Couldn't enable notifications. Please try again."
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — the task was already changed"
 msgstr "Couldn't undo — the task was already changed"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — try again"
 msgstr "Couldn't undo — try again"
@@ -1807,8 +1810,12 @@ msgid "Display style"
 msgstr "Display style"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Docker Compose. Postgres. Your servers, your rules."
-msgstr "Docker Compose. Postgres. Your servers, your rules."
+msgid "Docker Compose"
+msgstr "Docker Compose"
+
+#: src/features/marketing/pages/LandingPage.tsx
+#~ msgid "Docker Compose. Postgres. Your servers, your rules."
+#~ msgstr "Docker Compose. Postgres. Your servers, your rules."
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
@@ -2389,8 +2396,8 @@ msgid "For grouping — e.g. a field or department: Design, Development, АР"
 msgstr "For grouping — e.g. a field or department: Design, Development, АР"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "For teams that own their data"
-msgstr "For teams that own their data"
+#~ msgid "For teams that own their data"
+#~ msgstr "For teams that own their data"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge account"
@@ -2413,6 +2420,10 @@ msgstr "Force purge scheduled"
 msgid "From"
 msgstr "From"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Full data export"
+msgstr "Full data export"
+
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "Full day ≈ {capacityDisplay} tasks/person"
 msgstr "Full day ≈ {capacityDisplay} tasks/person"
@@ -2430,8 +2441,8 @@ msgid "Full name"
 msgstr "Full name"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Full snapshot from the admin console. Restore in one command."
-msgstr "Full snapshot from the admin console. Restore in one command."
+#~ msgid "Full snapshot from the admin console. Restore in one command."
+#~ msgstr "Full snapshot from the admin console. Restore in one command."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -2717,9 +2728,10 @@ msgstr "Jump to date"
 msgid "Keep editing"
 msgstr "Keep editing"
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Keep examples"
-msgstr "Keep examples"
+#~ msgid "Keep examples"
+#~ msgstr "Keep examples"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Keep exploring"
@@ -2729,9 +2741,10 @@ msgstr "Keep exploring"
 msgid "Keep holding the widget header..."
 msgstr "Keep holding the widget header..."
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Keep the example data?"
-msgstr "Keep the example data?"
+#~ msgid "Keep the example data?"
+#~ msgstr "Keep the example data?"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
@@ -3100,6 +3113,10 @@ msgid "Most often: {topProject}"
 msgstr "Most often: {topProject}"
 
 #: src/features/marketing/pages/LandingPage.tsx
+msgid "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
+msgstr "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
+
+#: src/features/marketing/pages/LandingPage.tsx
 msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
 msgstr "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
 
@@ -3117,16 +3134,16 @@ msgid "Motio home"
 msgstr "Motio home"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
-msgstr "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
+#~ msgid "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
+#~ msgstr "Motio is currently in testing mode but already open for use. We're gradually giving access to small teams who need a simpler way to see who's working on what and how the workload is spread."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
 msgstr "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
-msgstr "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
+#~ msgid "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
+#~ msgstr "Motio runs on your infrastructure. No \"our cloud\" lock-in, no data leaves your perimeter. Built for teams who need to answer \"where does our data live?\" before they can adopt anything."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Motio. One timeline for your whole team. 10 seconds per task."
@@ -3177,6 +3194,10 @@ msgstr "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "name@example.com"
 msgstr "name@example.com"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Need it on your own servers? That works too."
+msgstr "Need it on your own servers? That works too."
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 #: src/features/planner/components/RepeatPopoverField.tsx
@@ -3647,8 +3668,8 @@ msgid "No rules yet."
 msgstr "No rules yet."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "No SaaS lock-in"
-msgstr "No SaaS lock-in"
+#~ msgid "No SaaS lock-in"
+#~ msgstr "No SaaS lock-in"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
@@ -3946,8 +3967,8 @@ msgid "Open projects"
 msgstr "Open projects"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Open source schema. Export everything, leave anytime."
-msgstr "Open source schema. Export everything, leave anytime."
+#~ msgid "Open source schema. Export everything, leave anytime."
+#~ msgstr "Open source schema. Export everything, leave anytime."
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Open team"
@@ -4024,6 +4045,10 @@ msgstr "Palm"
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Parameters"
 msgstr "Parameters"
+
+#: src/features/onboarding/components/SampleDataBanner.tsx
+msgid "Part of what you see here is example data — the workspace started with it so the timeline wasn't empty."
+msgstr "Part of what you see here is example data — the workspace started with it so the timeline wasn't empty."
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Passwords and account recovery are managed in Keycloak."
@@ -4152,8 +4177,12 @@ msgid "Please select an image file."
 msgstr "Please select an image file."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Plug into your identity provider out of the box."
-msgstr "Plug into your identity provider out of the box."
+#~ msgid "Plug into your identity provider out of the box."
+#~ msgstr "Plug into your identity provider out of the box."
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Postgres"
+msgstr "Postgres"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
@@ -4189,6 +4218,7 @@ msgstr "Previously entered"
 msgid "Priority"
 msgstr "Priority"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Priority changed"
 msgstr "Priority changed"
@@ -4241,6 +4271,7 @@ msgstr "Project"
 msgid "Project actions"
 msgstr "Project actions"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Project changed"
 msgstr "Project changed"
@@ -4391,6 +4422,7 @@ msgstr "Remove \"{scopedAssigneeName}\" from this task or from this and followin
 msgid "Remove contact"
 msgstr "Remove contact"
 
+#: src/features/onboarding/components/SampleDataBanner.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Remove examples"
 msgstr "Remove examples"
@@ -4439,6 +4471,10 @@ msgstr "Remove the sample projects, people and tasks this workspace started with
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Remove widget"
 msgstr "Remove widget"
+
+#: src/features/onboarding/components/SampleDataBanner.tsx
+msgid "Removing…"
+msgstr "Removing…"
 
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -4899,8 +4935,8 @@ msgid "Select workspace"
 msgstr "Select workspace"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Self-hosted"
-msgstr "Self-hosted"
+#~ msgid "Self-hosted"
+#~ msgstr "Self-hosted"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
@@ -5148,9 +5184,10 @@ msgstr "Star"
 msgid "Start"
 msgstr "Start"
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Start clean"
-msgstr "Start clean"
+#~ msgid "Start clean"
+#~ msgstr "Start clean"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TimeOffFields.tsx
@@ -5204,6 +5241,7 @@ msgstr "Start now →"
 msgid "Status"
 msgstr "Status"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Status changed"
 msgstr "Status changed"
@@ -5298,11 +5336,13 @@ msgstr "Task"
 msgid "Task actions"
 msgstr "Task actions"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task dates changed"
 msgstr "Task dates changed"
 
 #: src/features/auth/components/InboxPanel.tsx
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task deleted"
 msgstr "Task deleted"
@@ -5323,6 +5363,7 @@ msgstr "Task details"
 msgid "Task media across all users"
 msgstr "Task media across all users"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task moved"
 msgstr "Task moved"
@@ -5347,6 +5388,7 @@ msgstr "Task types"
 msgid "Task update"
 msgstr "Task update"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task updated"
 msgstr "Task updated"
@@ -5898,16 +5940,19 @@ msgstr "under a minute"
 msgid "Understand who is overloaded before it becomes a problem. Balance work across the team."
 msgstr "Understand who is overloaded before it becomes a problem. Balance work across the team."
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undo"
 msgstr "Undo"
 
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undone"
 msgstr "Undone"
 
 #. placeholder {0}: outcome.restored
 #. placeholder {1}: outcome.total
+#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undone partially ({0} of {1})"
 msgstr "Undone partially ({0} of {1})"
@@ -6147,6 +6192,10 @@ msgstr "Walk through the timeline, dashboard, projects and team again"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Waves"
 msgstr "Waves"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
+msgstr "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."
@@ -6430,8 +6479,8 @@ msgid "Your display name stays visible in historical comments:"
 msgstr "Your display name stays visible in historical comments:"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Your infrastructure"
-msgstr "Your infrastructure"
+#~ msgid "Your infrastructure"
+#~ msgstr "Your infrastructure"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Your sign-in session expired. Please continue with Keycloak again."
@@ -6449,9 +6498,10 @@ msgstr "Your timeline"
 msgid "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
 msgstr "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
 
+#: src/features/onboarding/components/SampleDataChoiceDialog 2.tsx
 #: src/features/onboarding/components/SampleDataChoiceDialog.tsx
-msgid "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
-msgstr "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
+#~ msgid "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
+#~ msgstr "Your workspace was filled with a few example projects, people and tasks so the timeline wasn't empty. Keep them to experiment, or clear them and start with your own work."
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
