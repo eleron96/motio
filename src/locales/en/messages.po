@@ -65,7 +65,6 @@ msgid "{0, plural, one {# task} other {# tasks}}"
 msgstr "{0, plural, one {# task} other {# tasks}}"
 
 #. placeholder {0}: entry.rows.length
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 msgstr "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
@@ -579,7 +578,6 @@ msgstr "All subscribers"
 msgid "All tasks"
 msgstr "All tasks"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Already undone"
 msgstr "Already undone"
@@ -1230,12 +1228,10 @@ msgstr "Could not check access"
 msgid "Couldn't enable notifications. Please try again."
 msgstr "Couldn't enable notifications. Please try again."
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — the task was already changed"
 msgstr "Couldn't undo — the task was already changed"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — try again"
 msgstr "Couldn't undo — try again"
@@ -4218,7 +4214,6 @@ msgstr "Previously entered"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Priority changed"
 msgstr "Priority changed"
@@ -4271,7 +4266,6 @@ msgstr "Project"
 msgid "Project actions"
 msgstr "Project actions"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Project changed"
 msgstr "Project changed"
@@ -5241,7 +5235,6 @@ msgstr "Start now →"
 msgid "Status"
 msgstr "Status"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Status changed"
 msgstr "Status changed"
@@ -5336,13 +5329,11 @@ msgstr "Task"
 msgid "Task actions"
 msgstr "Task actions"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task dates changed"
 msgstr "Task dates changed"
 
 #: src/features/auth/components/InboxPanel.tsx
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task deleted"
 msgstr "Task deleted"
@@ -5363,7 +5354,6 @@ msgstr "Task details"
 msgid "Task media across all users"
 msgstr "Task media across all users"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task moved"
 msgstr "Task moved"
@@ -5388,7 +5378,6 @@ msgstr "Task types"
 msgid "Task update"
 msgstr "Task update"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Task updated"
 msgstr "Task updated"
@@ -5940,19 +5929,16 @@ msgstr "under a minute"
 msgid "Understand who is overloaded before it becomes a problem. Balance work across the team."
 msgstr "Understand who is overloaded before it becomes a problem. Balance work across the team."
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undo"
 msgstr "Undo"
 
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undone"
 msgstr "Undone"
 
 #. placeholder {0}: outcome.restored
 #. placeholder {1}: outcome.total
-#: src/features/planner/hooks/useTaskUndoToasts 2.ts
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Undone partially ({0} of {1})"
 msgstr "Undone partially ({0} of {1})"
