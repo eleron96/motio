@@ -122,9 +122,12 @@ NEXT_VERSION=0.10.0 make deploy   # with an explicit version
 `infra/scripts/deploy-remote.sh`:
 
 1. **pre-deploy gate** — refuses to deploy a dirty working tree, then runs `lint`,
-   `typecheck` and `test` (~1 min). It runs before the first rsync, so a failure
-   leaves production untouched. Bypass for emergencies:
-   `DEPLOY_SKIP_CHECKS=1 make deploy`;
+   `typecheck`, `test`, `lingui:extract` and `lingui:compile`. Any diff under
+   `src/locales` after the last two stops the deploy with *"Refusing to deploy: the
+   locale catalogs were out of date"* — the catalogs have just been regenerated, so
+   review and commit `src/locales`, then deploy again. The gate runs before the first
+   rsync, so a failure leaves production untouched. Bypass for emergencies (drops the whole
+   gate, the clean-tree check included): `DEPLOY_SKIP_CHECKS=1 make deploy`;
 2. rsyncs the local working tree to the server (`.env`, `notes/`, `dist/`,
    `node_modules/` etc. are excluded — the server `.env` is managed by hand over SSH);
 3. runs `prod-compose.sh` on the server (migrations, Keycloak ensure scripts,
@@ -145,6 +148,26 @@ Post-deploy minimum: check that the app is reachable, the auth flow works
 ```bash
 ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-compose.prod.yml --env-file .env logs --since 15m"
 ```
+
+### CI
+
+`.github/workflows/ci.yml` runs on every push and pull request:
+
+- **lint-test-build** — `npm run lint` → SQL security lint
+  (`infra/scripts/lint-security-definer.sh`) → `npm run typecheck` → i18n catalogs up
+  to date (`lingui:extract`, then `git diff --exit-code src/locales`) →
+  `npm run test` → `npm run build`.
+- **integration-tests** — `infra/scripts/ci-test-db.sh` provisions the Supabase
+  Postgres and applies the Liquibase migrations, then `npm run test:integration`
+  runs against it.
+
+**CI does not gate production.** `main` is not protected and `make deploy` rsyncs the
+local working tree to the server, so a red CI run stops nothing — 0.9.67 shipped to
+production with the "i18n catalogs up to date" step failing. The only mandatory
+barrier before production is the pre-deploy gate in `deploy-remote.sh`, and it
+deliberately runs a smaller set than CI — no SQL security lint, no `npm run build`,
+no integration tests. Check the pipeline separately after pushing:
+`gh run list --branch $(git branch --show-current) --limit 1`.
 
 ---
 
@@ -218,7 +241,17 @@ docker compose -f infra/docker-compose.prod.yml --env-file .env run --rm migrate
 1. Create `infra/supabase/migrations/00xx_name.sql`.
 2. Add a matching `changeSet` to `infra/supabase/liquibase/changelog-master.xml`
    (without it Liquibase will not apply the migration).
-3. Run `migrate`.
+3. A new table needs an explicit `GRANT ... TO authenticated, service_role` in the same
+   migration: migrations are applied as `supabase_admin`, so Supabase's default grants
+   never fire and the table answers `42501` on testing and production. Never
+   `GRANT ... TO anon`.
+4. A `SECURITY DEFINER` function needs `REVOKE ALL ON FUNCTION ... FROM public, anon`
+   in the same migration — or an entry in
+   `infra/scripts/security-definer-allowlist.txt` if clients are meant to call it.
+   Neither one, and the `lint-security-definer.sh` step fails CI.
+5. Keep migrations idempotent and self-contained: an `EXECUTED` row in
+   `databasechangelog` is not proof that the object is still alive in the database.
+6. Run `migrate`.
 
 Audit helper: `make audit-migrations`.
 
