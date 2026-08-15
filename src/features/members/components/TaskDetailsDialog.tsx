@@ -67,14 +67,16 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
       {!selectedTask?.description && (
         <div className="text-sm text-muted-foreground">{t`No description.`}</div>
       )}
+      {/* task-description: pasted content (Bitrix screenshots, unbroken runs of
+          text) must wrap and shrink into the column instead of widening it. */}
       {selectedTask?.description && hasRichTags(selectedTask.description) && (
         <div
-          className="text-sm leading-6"
+          className="task-description text-sm leading-6"
           dangerouslySetInnerHTML={{ __html: selectedTaskDescription }}
         />
       )}
       {selectedTask?.description && !hasRichTags(selectedTask.description) && (
-        <div className="text-sm whitespace-pre-wrap">{selectedTaskDescription}</div>
+        <div className="task-description text-sm whitespace-pre-wrap">{selectedTaskDescription}</div>
       )}
     </div>
   );
@@ -155,8 +157,12 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-2xl">
-        <DialogHeader>
+      {/* The card is capped and scrolls inside. Without the cap a long description
+          grew it past both edges of a centred, non-scrolling overlay, so the end of
+          the text and both buttons became unreachable. */}
+      <DialogContent className="flex max-h-[85svh] w-[95vw] max-w-2xl flex-col overflow-hidden">
+        {/* pr-8 keeps a long title clear of the close button in the corner. */}
+        <DialogHeader className="shrink-0 pr-8">
           <DialogTitle>{selectedTask?.title ?? t`Task details`}</DialogTitle>
           <DialogDescription className="sr-only">
             {t`View task details without leaving the members page.`}
@@ -166,65 +172,75 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
           <div className="text-sm text-muted-foreground">{t`Task not found.`}</div>
         )}
         {selectedTask && (
-          <div className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Project`}</div>
-                <div className="text-sm">{projectLabel}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Status`}</div>
-                <div className="text-sm">{statusLabel}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Assignees`}</div>
-                <div className="flex flex-wrap gap-1">
-                  {assigneeNames.length === 0 && (
-                    <span className="text-xs text-muted-foreground">{t`Unassigned`}</span>
-                  )}
-                  {assigneeNames.map((assignee) => (
-                    <Badge key={assignee.id} variant="secondary" className="text-[10px]">
-                      {assignee.name}
-                      {!assignee.isActive && ` ${t`(disabled)`}`}
+          <>
+            {/* -mr-2/pr-2: the scrollbar rides the card's edge instead of biting
+                into the text column. */}
+            <div
+              data-testid="task-details-scroll"
+              className="-mr-2 min-h-0 flex-1 space-y-4 overflow-y-auto pr-2"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">{t`Project`}</div>
+                  <div className="text-sm">{projectLabel}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t`Status`}</div>
+                  <div className="text-sm">{statusLabel}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t`Assignees`}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {assigneeNames.length === 0 && (
+                      <span className="text-xs text-muted-foreground">{t`Unassigned`}</span>
+                    )}
+                    {assigneeNames.map((assignee) => (
+                      <Badge key={assignee.id} variant="secondary" className="text-[10px]">
+                        {assignee.name}
+                        {!assignee.isActive && ` ${t`(disabled)`}`}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t`Dates`}</div>
+                  <div className="text-sm text-muted-foreground">{datesLabel}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t`Type`}</div>
+                  <div className="text-sm">{typeLabel}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t`Priority`}</div>
+                  <div className="text-sm">{selectedTask.priority ?? t`None`}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">{t`Comments`}</div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 ? 'secondary' : 'outline'}
+                      className="min-w-8 justify-center text-[10px]"
+                    >
+                      {commentsLabel}
                     </Badge>
-                  ))}
+                    {typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {selectedTaskCommentCount === 1 ? t`1 comment` : t`${selectedTaskCommentCount} comments`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <div className="text-xs text-muted-foreground">{t`Tags`}</div>
+                  {tagList}
                 </div>
               </div>
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Dates`}</div>
-                <div className="text-sm text-muted-foreground">{datesLabel}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Type`}</div>
-                <div className="text-sm">{typeLabel}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Priority`}</div>
-                <div className="text-sm">{selectedTask.priority ?? t`None`}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">{t`Comments`}</div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 ? 'secondary' : 'outline'}
-                    className="min-w-8 justify-center text-[10px]"
-                  >
-                    {commentsLabel}
-                  </Badge>
-                  {typeof selectedTaskCommentCount === 'number' && selectedTaskCommentCount > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {selectedTaskCommentCount === 1 ? t`1 comment` : t`${selectedTaskCommentCount} comments`}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <div className="text-xs text-muted-foreground">{t`Tags`}</div>
-                {tagList}
-              </div>
+              {description}
             </div>
-            {description}
-            <div className="flex justify-end gap-2">
+            {/* Pinned below the scrollport: the buttons stay reachable however
+                long the description runs. -mx-6/-mb-6 cancels the card's padding
+                so the rule spans its full width. */}
+            <div className="-mx-6 -mb-6 flex shrink-0 justify-end gap-2 border-t border-border px-6 py-4">
               <Button onClick={onOpenTaskInTimeline}>
                 {t`Go to task`}
               </Button>
@@ -232,7 +248,7 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
                 {t`Close`}
               </Button>
             </div>
-          </div>
+          </>
         )}
       </DialogContent>
     </Dialog>

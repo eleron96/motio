@@ -10,9 +10,9 @@ See also: [Operations](operations.md) · [Configuration](configuration.md)
 |---|---|
 | **Frontend** | Vite · React 18 · TypeScript · Zustand · TanStack Query · Tailwind · Radix UI |
 | **Backend** | Supabase (Postgres · GoTrue · PostgREST · Edge Functions) |
-| **Auth / SSO** | Keycloak · oauth2-proxy |
+| **Auth / SSO** | Keycloak (OIDC) · oauth2-proxy |
 | **DB migrations** | Liquibase |
-| **Infrastructure** | Docker Compose · Nginx · standalone backup-service |
+| **Infrastructure** | Docker Compose · Caddy (public TLS edge) · Nginx (internal Supabase gateway + built frontend) · standalone backup-service |
 | **i18n** | Lingui (ru / en) |
 
 ## Repository structure
@@ -27,8 +27,9 @@ See also: [Operations](operations.md) · [Configuration](configuration.md)
 │   ├── supabase/
 │   │   ├── migrations/                  — SQL migrations
 │   │   ├── liquibase/changelog-master.xml
-│   │   ├── functions/                   — Edge Functions: main, admin, invite, task-media, inbox, notifications, holidays, data-export, account-purge
-│   │   └── nginx.conf                   — gateway: /auth/v1, /rest/v1, /functions/v1, /backup
+│   │   ├── functions/                   — Edge Functions: main, account-purge, admin, data-export, holidays, inbox, invite, mailer, notifications, push, task-media
+│   │   └── nginx.conf                   — internal gateway: /auth/v1, /rest/v1, /functions/v1, /storage/v1, /realtime/v1, /backup
+│   ├── caddy/                           — public TLS edge (Caddyfile, Caddyfile.testing); runs outside docker-compose.prod.yml
 │   ├── keycloak/realm/
 │   │   ├── timeline-realm.json          — dev realm
 │   │   └── timeline-realm.prod.json     — production baseline
@@ -45,13 +46,23 @@ described in [`AGENTS.md`](../AGENTS.md) §3.
 ## Auth flow
 
 ```
-Browser → oauth2-proxy → Keycloak (OIDC) → Supabase (identity link)
+Browser → Caddy → web (SPA)
+SPA     : supabase.auth.signInWithOAuth({ provider: 'keycloak' }) → GoTrue /auth/v1 → Keycloak (OIDC) → Supabase session
 Logout  : /oauth2/sign_out → oauth2-proxy backend logout → Keycloak end-session (id_token_hint) → /
 ```
 
-> **Important.** User lifecycle (create / edit / delete / password reset) is managed
-> **only in the Keycloak Admin Console**. The app's admin panel shows users as an
-> overview (access + storage) and does not replace IAM.
+In production Caddy serves the public paths (`/`, `/app*`, `/demo*`, `/invite*`,
+`/privacy*`, static assets) straight from `web`, and oauth2-proxy stays the
+catch-all for everything else. The plain `Browser → oauth2-proxy → Keycloak →
+Supabase` chain describes the **dev stack**, where port 5173 belongs to the proxy.
+
+> **Important.** Keycloak is the identity store: accounts, credentials and
+> password resets live there, and the Admin Console is where an administrator
+> manages them. Two user-facing flows start in the app itself — self-service
+> sign-up (`/auth?intent=register` opens the Keycloak registration form via
+> OIDC `prompt=create`) and account deletion (`DeleteAccountWizard`, RPC from
+> migration 0074). The app's admin panel shows users as an overview
+> (access + storage) and does not replace IAM.
 
 ## Keycloak Realm-as-Code
 
@@ -82,7 +93,9 @@ lets the testing stack stay self-contained when importing the production baselin
 
 ## Edge Functions
 
-Routed through `main` under `/functions/v1/`.
+Routed through `main` under `/functions/v1/`: `account-purge`, `admin`,
+`data-export`, `holidays`, `inbox`, `invite`, `mailer`, `notifications`, `push`,
+`task-media`. The subsections below cover the ones with a non-trivial contract.
 
 ### `admin`
 
@@ -139,10 +152,16 @@ node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
 
 ## Admin Console
 
-Page: `/admin/users`
+Page: `/app/admin` — super admins only, reachable by direct URL (no in-app links,
+by design). The SPA still redirects the old `/admin/users` address to
+`/app/admin/users`, but that only applies where the SPA serves the path: in
+production Caddy hands the whole `/admin*` prefix to the Keycloak console.
 
-| Tab | Capabilities |
+| Section | Capabilities |
 |---|---|
-| **Users** | user overview, workspace ownership, storage usage |
-| **Workspaces** | rename / delete workspace |
-| **Backups** | create / upload / download / rename / delete / restore |
+| **Overview** (`/app/admin`) | system at a glance: counts and storage assembled from the data the other sections fetch, plus the app version |
+| **Users** (`/app/admin/users`) | user overview, workspace ownership, storage usage |
+| **Workspaces** (`/app/admin/workspaces`) | rename / delete workspace |
+| **Easter eggs** (`/app/admin/easter-eggs`) | assign a daily-brief egg to one person, a mail domain, a workspace, or everyone |
+| **Broadcast** (`/app/admin/broadcast`) | announcements and service notices, sent by email or shown as an in-app banner |
+| **Backups** (`/app/admin/backups`) | create / upload / download / rename / delete / restore |
