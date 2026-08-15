@@ -861,6 +861,7 @@
 
 /* User content inside comments and descriptions must never widen its column. */
 .comment-body img,
+.task-description img,
 .rich-text-editor img,
 [contenteditable='true'] img {
   max-width: 100%;
@@ -869,6 +870,7 @@
 
 /* Long unbreakable tokens (URLs, file names) wrap instead of widening the column. */
 .rich-text-editor,
-.comment-body {
+.comment-body,
+.task-description {
   overflow-wrap: anywhere;
 }
