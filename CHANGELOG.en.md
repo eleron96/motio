@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- The task window on the Team and Projects pages no longer stretches past the edges of the screen: a long description scrolls inside the window, and the Go to task and Close buttons always stay in place. Images and long unbroken lines from pasted text fit the window too.
+
 ## [0.9.67] - 2026-08-13
 ### Changed
 - Russian wording is consistent now, and a workspace is called a workspace everywhere. The landing page no longer calls the product a test build, and the self-hosting story is a short block instead of half the page.
