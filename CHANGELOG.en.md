@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-04
+### Changed
+- No documented changes.
+
 ## [0.9.69] - 2026-09-04
 ### Fixed
 - Moving a repeating task no longer floods the assignee with dozens of notifications — a single one arrives.
