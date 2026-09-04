@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.9.69] - 2026-09-04
 ### Fixed
 - Перенос повторяющейся задачи больше не заваливает исполнителя десятками уведомлений — приходит одно.
 
