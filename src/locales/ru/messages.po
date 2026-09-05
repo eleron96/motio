@@ -2909,6 +2909,7 @@ msgstr "Загрузка рабочих пространств..."
 msgid "Loading your workspaces…"
 msgstr "Загружаем ваши рабочие пространства…"
 
+#: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Loading..."
@@ -3667,6 +3668,7 @@ msgstr "Правил пока нет."
 #~ msgid "No SaaS lock-in"
 #~ msgstr "Без SaaS-привязки"
 
+#: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
 msgstr "Подзадач пока нет."
@@ -5278,6 +5280,7 @@ msgstr "Действия с подзадачей"
 msgid "Subtask title"
 msgstr "Название подзадачи"
 
+#: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtasks"

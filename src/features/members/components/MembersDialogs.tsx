@@ -2,7 +2,7 @@ import React from 'react';
 import { t } from '@lingui/macro';
 import { TaskDetailsDialog } from '@/features/members/components/TaskDetailsDialog';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
-import { Assignee, Project, Status, Tag, Task, TaskType } from '@/features/planner/types/planner';
+import { Assignee, Project, Status, Tag, Task, TaskSubtask, TaskType } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Input } from '@/shared/ui/input';
@@ -27,6 +27,7 @@ type MembersDialogsProps = {
   selectedTaskTags: Tag[];
   selectedTaskDescription: string;
   selectedTaskCommentCount: number | undefined;
+  selectedTaskSubtasks: TaskSubtask[] | undefined;
   handleOpenTaskInTimeline: () => void;
   showSettings: boolean;
   setShowSettings: (open: boolean) => void;
@@ -53,6 +54,7 @@ export const MembersDialogs = ({
   selectedTaskTags,
   selectedTaskDescription,
   selectedTaskCommentCount,
+  selectedTaskSubtasks,
   handleOpenTaskInTimeline,
   showSettings,
   setShowSettings,
@@ -136,6 +138,7 @@ export const MembersDialogs = ({
         selectedTaskTags={selectedTaskTags}
         selectedTaskDescription={selectedTaskDescription}
         selectedTaskCommentCount={selectedTaskCommentCount}
+        selectedTaskSubtasks={selectedTaskSubtasks}
         onOpenTaskInTimeline={handleOpenTaskInTimeline}
         onClose={() => setSelectedTaskId(null)}
       />

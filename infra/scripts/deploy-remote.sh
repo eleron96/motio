@@ -7,6 +7,45 @@ remote_dir="${DEPLOY_PATH:-/opt/new_toggl}"
 
 echo "Deploy target: ${host}:${remote_dir}"
 
+# Каждый шаг гейта печатает своё время и умирает по будильнику. Без этого
+# деплой молчит, и зависший шаг неотличим от работающего: 2026-09-04 набор
+# юнит-тестов деградировал на форках до 23 минут, и вместо диагноза мы дважды
+# убили живой процесс, потому что не видели ни стадии, ни секунд. Лимиты взяты
+# с шестикратным запасом к замерам того же дня (lint 5 c, typecheck 8 c,
+# тесты 27 c, каталоги 3 c) — они ловят зависание, а не медленную машину.
+gate_step() {
+  local label="$1" limit="$2"
+  shift 2
+
+  local started=$SECONDS
+  "$@" &
+  local step_pid=$!
+
+  # Будильник: ждёт лимит и добивает шаг, если тот всё ещё жив.
+  ( sleep "$limit"; kill -TERM "$step_pid" 2>/dev/null || true ) &
+  local alarm_pid=$!
+
+  # stderr гасится, чтобы будильник не печатал "Terminated: 15" поверх
+  # осмысленного сообщения ниже.
+  local status=0
+  wait "$step_pid" 2>/dev/null || status=$?
+  kill "$alarm_pid" 2>/dev/null || true
+  wait "$alarm_pid" 2>/dev/null || true
+
+  local elapsed=$((SECONDS - started))
+  if [[ $status -ne 0 ]]; then
+    if (( elapsed >= limit )); then
+      echo "Gate step '${label}' hit its ${limit}s limit and was killed after ${elapsed}s."
+      echo "Something is hanging, not merely slow — check that vitest.config.ts still uses pool \"threads\"."
+    else
+      echo "Gate step '${label}' failed after ${elapsed}s."
+    fi
+    exit 1
+  fi
+
+  echo "gate: ${label} ok in ${elapsed}s"
+}
+
 # Pre-deploy gate. rsync below ships the working tree as-is and the server-side
 # `vite build` does not typecheck, so this is the only thing standing between a
 # local edit and production. Runs before the first rsync: if it fails, nothing
@@ -22,22 +61,24 @@ if [[ "${DEPLOY_SKIP_CHECKS:-0}" != "1" ]]; then
     echo "Commit or stash the changes — or re-run with DEPLOY_SKIP_CHECKS=1 if you mean it."
     exit 1
   fi
-  npm --prefix "${root_dir}" run lint
-  npm --prefix "${root_dir}" run typecheck
-  npm --prefix "${root_dir}" run test
+  gate_started=$SECONDS
+  gate_step lint 180 npm --prefix "${root_dir}" run lint
+  gate_step typecheck 180 npm --prefix "${root_dir}" run typecheck
+  gate_step tests 300 npm --prefix "${root_dir}" run test
   # Каталоги переводов — единственная проверка CI, которой здесь не было, и
   # ровно она однажды пропустила на прод релиз с красной сборкой: extract,
   # запущенный, когда в дереве лежали лишние файлы, записал в .po ссылки на то,
   # чего в репозитории нет. Дерево на этом шаге уже чистое, поэтому любая
   # правка, которую внесёт extract, означает устаревшие каталоги.
-  npm --prefix "${root_dir}" run lingui:extract
-  npm --prefix "${root_dir}" run lingui:compile
+  gate_step lingui:extract 180 npm --prefix "${root_dir}" run lingui:extract
+  gate_step lingui:compile 180 npm --prefix "${root_dir}" run lingui:compile
   if [[ -n "$(git -C "${root_dir}" status --porcelain -- src/locales)" ]]; then
     git -C "${root_dir}" status --short -- src/locales
     echo "Refusing to deploy: the locale catalogs were out of date (see above)."
     echo "They have just been regenerated — review and commit src/locales, then deploy again."
     exit 1
   fi
+  echo "Pre-deploy gate passed in $((SECONDS - gate_started))s."
 else
   echo "!!! Pre-deploy checks SKIPPED (DEPLOY_SKIP_CHECKS=1) !!!"
 fi

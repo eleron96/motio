@@ -2,6 +2,7 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TaskDetailsDialog } from '@/features/members/components/TaskDetailsDialog';
+import type { TaskSubtask } from '@/features/planner/types/planner';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 vi.mock('@lingui/macro', () => ({
@@ -16,7 +17,10 @@ vi.mock('@/shared/hooks/use-mobile', () => ({
 
 const useIsMobileMock = vi.mocked(useIsMobile);
 
-const renderDialog = ({ description = '' }: { description?: string } = {}) => render(
+const renderDialog = ({
+  description = '',
+  subtasks,
+}: { description?: string; subtasks?: TaskSubtask[] } = {}) => render(
       <TaskDetailsDialog
         open
         onOpenChange={vi.fn()}
@@ -39,6 +43,7 @@ const renderDialog = ({ description = '' }: { description?: string } = {}) => re
         selectedTaskTags={[]}
         selectedTaskDescription={description}
         selectedTaskCommentCount={3}
+        selectedTaskSubtasks={subtasks}
         onOpenTaskInTimeline={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -57,6 +62,36 @@ describe('TaskDetailsDialog', () => {
     expect(screen.getByText('Comments')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('3 comments')).toBeInTheDocument();
+  });
+
+  it('lists the subtasks read-only with a done counter', () => {
+    useIsMobileMock.mockReturnValue(false);
+
+    renderDialog({
+      subtasks: [
+        { id: 's1', taskId: 'task-1', title: 'Export families', isDone: true, doneAt: '2026-03-11', position: 0 },
+        { id: 's2', taskId: 'task-1', title: 'Check IFC', isDone: false, doneAt: null, position: 1 },
+      ],
+    });
+
+    const section = screen.getByTestId('task-details-subtasks');
+    expect(section).toHaveTextContent('Subtasks');
+    expect(section).toHaveTextContent('1/2');
+    expect(screen.getByText('Export families').className).toContain('line-through');
+    expect(screen.getByText('Check IFC').className).not.toContain('line-through');
+    // A quick look, not an editor: the boxes are inert.
+    expect(screen.getByRole('checkbox', { name: 'Export families' })).toBeDisabled();
+  });
+
+  it('says so when a task has no subtasks, and shows loading until they arrive', () => {
+    useIsMobileMock.mockReturnValue(false);
+
+    const { unmount } = renderDialog({ subtasks: [] });
+    expect(screen.getByTestId('task-details-subtasks')).toHaveTextContent('No subtasks yet.');
+    unmount();
+
+    renderDialog();
+    expect(screen.getByTestId('task-details-subtasks')).toHaveTextContent('Loading...');
   });
 
   it('scrolls a long description inside a capped card, buttons outside it', () => {

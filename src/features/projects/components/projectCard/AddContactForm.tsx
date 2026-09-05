@@ -23,8 +23,9 @@ interface AddContactFormProps {
   }) => Promise<boolean | void> | boolean | void;
   onCancel: () => void;
   /**
-   * Previously-entered people to suggest while typing the name. Empty (the
-   * default) makes the name field behave exactly like a plain input.
+   * Previously-entered people to suggest while typing the name, company, role,
+   * tag or email. Empty (the default) makes every field behave exactly like a
+   * plain input.
    */
   people?: readonly KnownPerson[];
 }
@@ -99,8 +100,22 @@ export const AddContactForm: React.FC<AddContactFormProps> = ({ onSave, onCancel
         people={people ?? []}
         className={FIELD_CLASS}
       />
-      <Field placeholder={t`Role / job title`} value={role} onChange={setRole} />
-      <Field placeholder={t`Tag`} value={tag} onChange={setTag} />
+      <PersonSuggestField
+        placeholder={t`Role / job title`}
+        value={role}
+        onChange={setRole}
+        onPick={applyPerson}
+        people={people ?? []}
+        className={FIELD_CLASS}
+      />
+      <PersonSuggestField
+        placeholder={t`Tag`}
+        value={tag}
+        onChange={setTag}
+        onPick={applyPerson}
+        people={people ?? []}
+        className={FIELD_CLASS}
+      />
       <PersonSuggestField
         placeholder="Email"
         value={email}

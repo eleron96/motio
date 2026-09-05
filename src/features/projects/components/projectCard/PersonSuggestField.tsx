@@ -133,7 +133,11 @@ export const PersonSuggestField: React.FC<PersonSuggestFieldProps> = ({
             {t`Previously entered`}
           </li>
           {suggestions.map((person, index) => {
-            const secondary = [person.company, person.email].filter(Boolean).join(' · ');
+            // Tag and role ride along so a match found by typing one of them is
+            // recognisable in the list, not just a bare name.
+            const secondary = [person.company, person.tag, person.role, person.email]
+              .filter(Boolean)
+              .join(' · ');
             return (
               <li key={`${person.name} ${person.email ?? ''} ${person.phone ?? ''}`}>
                 <button

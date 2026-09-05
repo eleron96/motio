@@ -125,8 +125,11 @@ export const collectKnownPeople = (
 };
 
 /**
- * Filter known people by a free-text query over name / company / email,
- * preserving the ranking from `collectKnownPeople`. Empty query returns all.
+ * Filter known people by a free-text query over name / company / tag / role /
+ * email, preserving the ranking from `collectKnownPeople`. Every field the add
+ * forms offer suggestions in takes part, so typing a firm, a discipline tag or
+ * a job title finds the person just like typing their name. Empty query
+ * returns all.
  */
 export const matchKnownPeople = (
   people: readonly KnownPerson[],
@@ -137,6 +140,8 @@ export const matchKnownPeople = (
   return people.filter((person) => (
     person.name.toLowerCase().includes(q)
     || (person.company?.toLowerCase().includes(q) ?? false)
+    || (person.tag?.toLowerCase().includes(q) ?? false)
+    || (person.role?.toLowerCase().includes(q) ?? false)
     || (person.email?.toLowerCase().includes(q) ?? false)
   ));
 };
