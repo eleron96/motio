@@ -3,6 +3,8 @@ import { t } from '@lingui/macro';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
+import { Checkbox } from '@/shared/ui/checkbox';
+import { cn } from '@/shared/lib/classNames';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
@@ -10,7 +12,7 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { hasRichTags } from '@/shared/domain/taskDescription';
-import { Assignee, Project, Status, Tag, Task, TaskType } from '@/features/planner/types/planner';
+import { Assignee, Project, Status, Tag, Task, TaskSubtask, TaskType } from '@/features/planner/types/planner';
 
 type TaskDetailsDialogProps = {
   open: boolean;
@@ -23,6 +25,8 @@ type TaskDetailsDialogProps = {
   selectedTaskTags: Tag[];
   selectedTaskDescription: string;
   selectedTaskCommentCount: number | undefined;
+  /** The task's subtasks; `undefined` while they are still loading. */
+  selectedTaskSubtasks?: TaskSubtask[];
   onOpenTaskInTimeline: () => void;
   onClose: () => void;
 };
@@ -38,6 +42,7 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
   selectedTaskTags,
   selectedTaskDescription,
   selectedTaskCommentCount,
+  selectedTaskSubtasks,
   onOpenTaskInTimeline,
   onClose,
 }) => {
@@ -77,6 +82,46 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
       )}
       {selectedTask?.description && !hasRichTags(selectedTask.description) && (
         <div className="task-description text-sm whitespace-pre-wrap">{selectedTaskDescription}</div>
+      )}
+    </div>
+  );
+
+  // Read-only mirror of the timeline panel's subtask list: the dialog is a
+  // quick look, editing happens after "Go to task".
+  const completedSubtasksCount = (selectedTaskSubtasks ?? [])
+    .filter((subtask) => subtask.isDone).length;
+  const subtasksSection = (
+    <div data-testid="task-details-subtasks">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {t`Subtasks`}
+        {selectedTaskSubtasks && selectedTaskSubtasks.length > 0 && (
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold tabular-nums text-secondary-foreground/80">
+            {completedSubtasksCount}/{selectedTaskSubtasks.length}
+          </span>
+        )}
+      </div>
+      {!selectedTaskSubtasks && (
+        <div className="text-sm text-muted-foreground">{t`Loading...`}</div>
+      )}
+      {selectedTaskSubtasks && selectedTaskSubtasks.length === 0 && (
+        <div className="text-sm text-muted-foreground">{t`No subtasks yet.`}</div>
+      )}
+      {selectedTaskSubtasks && selectedTaskSubtasks.length > 0 && (
+        <ul className="mt-1 space-y-1">
+          {selectedTaskSubtasks.map((subtask) => (
+            <li key={subtask.id} className="flex items-start gap-2.5">
+              <Checkbox checked={subtask.isDone} disabled aria-label={subtask.title} />
+              <span
+                className={cn(
+                  'whitespace-pre-wrap break-words text-sm leading-snug [overflow-wrap:anywhere]',
+                  subtask.isDone && 'text-muted-foreground line-through',
+                )}
+              >
+                {subtask.title}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -144,6 +189,10 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
 
             <div className="rounded-2xl border border-border bg-card px-4 py-3">
               {description}
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card px-4 py-3">
+              {subtasksSection}
             </div>
 
             <Button className="h-12 w-full" onClick={onOpenTaskInTimeline}>
@@ -236,6 +285,7 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
                 </div>
               </div>
               {description}
+              {subtasksSection}
             </div>
             {/* Pinned below the scrollport: the buttons stay reachable however
                 long the description runs. -mx-6/-mb-6 cancels the card's padding

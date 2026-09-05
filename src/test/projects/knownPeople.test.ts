@@ -153,16 +153,23 @@ describe('matchKnownPeople', () => {
       contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.ru', tag: 'СтройГрупп' }),
       contact({ id: 'c2', name: 'Борис Иванов', email: 'boris@x.ru' }),
     ],
-    [],
+    [
+      member({ id: 'm1', externalName: 'Вера Кузнецова', externalCompany: 'ПроектБюро', tag: 'КР', role: 'Конструктор' }),
+    ],
   );
 
   it('returns everything for an empty query', () => {
-    expect(matchKnownPeople(people, '  ')).toHaveLength(2);
+    expect(matchKnownPeople(people, '  ')).toHaveLength(3);
   });
 
   it('matches on name, company, and email, case-insensitively', () => {
     expect(matchKnownPeople(people, 'анна').map((p) => p.name)).toEqual(['Анна Смирнова']);
     expect(matchKnownPeople(people, 'СТРОЙ').map((p) => p.name)).toEqual(['Анна Смирнова']);
     expect(matchKnownPeople(people, 'boris@').map((p) => p.name)).toEqual(['Борис Иванов']);
+  });
+
+  it('matches on the discipline tag and the role as well', () => {
+    expect(matchKnownPeople(people, 'кр').map((p) => p.name)).toEqual(['Вера Кузнецова']);
+    expect(matchKnownPeople(people, 'конструк').map((p) => p.name)).toEqual(['Вера Кузнецова']);
   });
 });

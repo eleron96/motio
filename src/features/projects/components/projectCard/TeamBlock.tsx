@@ -628,27 +628,33 @@ export const TeamBlock: React.FC<TeamBlockProps> = ({
                       className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                       autoFocus
                     />
-                    <input
-                      type="text"
+                    <PersonSuggestField
                       placeholder={t`Company`}
                       value={addExternalCompany}
-                      onChange={(e) => setAddExternalCompany(e.target.value)}
+                      onChange={setAddExternalCompany}
+                      onPick={fillExternalFromPerson}
+                      people={people ?? []}
                       className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                     />
                   </>
                 )}
-                <input
-                  type="text"
+                {/* Role and tag suggest people too, but only for an external
+                    member: a pick fills the external draft, which a workspace
+                    member has no use for. */}
+                <PersonSuggestField
                   placeholder={t`Role / job title`}
                   value={addRole}
-                  onChange={(e) => setAddRole(e.target.value)}
+                  onChange={setAddRole}
+                  onPick={fillExternalFromPerson}
+                  people={addKind === 'external' ? (people ?? []) : []}
                   className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                 />
-                <input
-                  type="text"
+                <PersonSuggestField
                   placeholder={t`Company / contractor`}
                   value={addTag}
-                  onChange={(e) => setAddTag(e.target.value)}
+                  onChange={setAddTag}
+                  onPick={fillExternalFromPerson}
+                  people={addKind === 'external' ? (people ?? []) : []}
                   className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] outline-none focus:border-primary"
                 />
                 {addKind === 'external' && (

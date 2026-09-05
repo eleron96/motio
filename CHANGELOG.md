@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- В окне задачи на странице «Команда» теперь видны её подзадачи с отметками о выполнении и счётчиком.
+- На странице «Проекты» подсказки ранее введённых людей появляются не только в поле имени, но и в полях «Компания», «Роль» и «Тег» — и находят человека по любому из них.
 
 ## [0.10.0] - 2026-09-04
 ### Changed
