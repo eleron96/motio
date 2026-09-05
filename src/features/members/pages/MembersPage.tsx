@@ -34,7 +34,7 @@ import { MOBILE_FAB_BUTTON_CLASS } from '@/shared/ui/mobile-fab';
 import { cn } from '@/shared/lib/classNames';
 import { usePlannerLookupMaps } from '@/features/planner/hooks/usePlannerLookupMaps';
 import { useDisplayTaskRows, countTaskUnits, pickNearestRepeatTaskFromToday } from '@/features/planner/hooks/useDisplayTaskRows';
-import { Assignee } from '@/features/planner/types/planner';
+import { Assignee, TaskSubtask } from '@/features/planner/types/planner';
 import { useTaskScopeFilter } from '@/features/planner/hooks/useTaskScopeFilter';
 import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
 import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
@@ -76,6 +76,8 @@ const MembersPage = () => {
   } = useTaskScopeFilter();
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  // Subtasks of the task open in the details dialog; `undefined` = loading.
+  const [selectedTaskSubtasks, setSelectedTaskSubtasks] = useState<TaskSubtask[] | undefined>(undefined);
   // Two levels on a phone: the deck of lists, and the detail pushed on top.
   const [memberDetailOpen, setMemberDetailOpen] = useState(false);
   const [groupDetailOpen, setGroupDetailOpen] = useState(false);
@@ -92,6 +94,7 @@ const MembersPage = () => {
     taskCommentCounts,
     loadWorkspaceData,
     refreshTaskCommentCounts,
+    fetchTaskSubtasks,
     fetchAssigneeTaskCounts,
     fetchMemberGroups,
     fetchGroupMembers,
@@ -116,6 +119,7 @@ const MembersPage = () => {
     taskCommentCounts: state.taskCommentCounts,
     loadWorkspaceData: state.loadWorkspaceData,
     refreshTaskCommentCounts: state.refreshTaskCommentCounts,
+    fetchTaskSubtasks: state.fetchTaskSubtasks,
     fetchAssigneeTaskCounts: state.fetchAssigneeTaskCounts,
     fetchMemberGroups: state.fetchMemberGroups,
     fetchGroupMembers: state.fetchGroupMembers,
@@ -417,6 +421,22 @@ const MembersPage = () => {
 
     void refreshTaskCommentCounts(currentWorkspaceId, [selectedTaskId]);
   }, [currentWorkspaceId, refreshTaskCommentCounts, selectedTaskId]);
+
+  // The details dialog shows the task's subtasks read-only. They are not part
+  // of the assignee task rows, so fetch them for the open task only; a stale
+  // response for a task that is no longer open is dropped.
+  useEffect(() => {
+    setSelectedTaskSubtasks(undefined);
+    if (!currentWorkspaceId || !selectedTaskId) return;
+    let active = true;
+    void fetchTaskSubtasks(currentWorkspaceId, selectedTaskId).then((result) => {
+      if (!active) return;
+      setSelectedTaskSubtasks(result.error ? [] : result.subtasks);
+    });
+    return () => {
+      active = false;
+    };
+  }, [currentWorkspaceId, fetchTaskSubtasks, selectedTaskId]);
 
   const selectedTask = useMemo(
     () => assigneeTasks.find((task) => task.id === selectedTaskId) ?? null,
@@ -856,6 +876,7 @@ const MembersPage = () => {
         selectedTaskTags={selectedTaskTags}
         selectedTaskDescription={selectedTaskDescription}
         selectedTaskCommentCount={selectedTaskCommentCount}
+        selectedTaskSubtasks={selectedTaskSubtasks}
         handleOpenTaskInTimeline={handleOpenTaskInTimeline}
         showSettings={showSettings}
         setShowSettings={setShowSettings}

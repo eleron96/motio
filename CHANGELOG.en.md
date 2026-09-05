@@ -7,6 +7,19 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-09-05
+### Added
+- The task window on the Team page now shows the task's subtasks with their done marks and a counter.
+- On the Projects page, suggestions of previously entered people now appear in the Company, Role and Tag fields too, and find a person by any of them.
+
+## [0.10.0] - 2026-09-04
+### Changed
+- No documented changes.
+
+## [0.9.69] - 2026-09-04
+### Fixed
+- Moving a repeating task no longer floods the assignee with dozens of notifications — a single one arrives.
+
 ## [0.9.68] - 2026-08-15
 ### Fixed
 - The task window on the Team and Projects pages no longer stretches past the edges of the screen: a long description scrolls inside the window, and the Go to task and Close buttons always stay in place. Images and long unbroken lines from pasted text fit the window too.

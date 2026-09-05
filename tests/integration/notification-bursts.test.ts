@@ -14,6 +14,13 @@ import {
 // notification per recipient, not one per occurrence. Production hit this with
 // a 52-occurrence weekly series: rebuilding it wrote 52 'task_updated' rows for
 // the same assignee, all delivered as pushes.
+//
+// 0146: the same rule now holds when the client spends one transaction per
+// occurrence instead of one for the whole series — dragging a series with scope
+// "this and following" does exactly that, and it wrote 74 rows in production.
+// A test runs inside a single transaction, so now() cannot advance between
+// updates; the row-by-row case is modelled by ageing the notifications already
+// written, which moves the same distance the other way.
 
 const WORKSPACE_ID = TEST_WORKSPACE_IDS.bobShared;
 const ACTOR_ID = TEST_USER_IDS.bob;
@@ -86,6 +93,18 @@ async function clearNotifications(client: PoolClient): Promise<void> {
   ]);
 }
 
+// One request per occurrence means one transaction per occurrence, each with a
+// later now() than the notification written by the previous one. Inside a test
+// transaction now() is frozen, so the distance is created by ageing the rows.
+async function ageNotifications(client: PoolClient, seconds: number): Promise<void> {
+  await client.query(
+    `update public.user_notifications
+     set created_at = created_at - make_interval(secs => $1)
+     where workspace_id = $2`,
+    [seconds, WORKSPACE_ID],
+  );
+}
+
 async function countNotifications(client: PoolClient, type: string): Promise<number> {
   const { rows } = await client.query<{ count: string }>(
     `select count(*) as count
@@ -96,21 +115,21 @@ async function countNotifications(client: PoolClient, type: string): Promise<num
   return Number(rows[0].count);
 }
 
-describe("repeat-series notification bursts (0134)", () => {
+describe("repeat-series notification bursts (0134, 0146)", () => {
   beforeAll(async () => {
     const pool = getTestPool();
     const client = await pool.connect();
     try {
       await assertCoreSchemaReady(client);
       const { rows } = await client.query<{ guarded: boolean }>(
-        `select bool_and(pg_get_functiondef(p.oid) like '%n.created_at = now()%') as guarded
+        `select bool_and(pg_get_functiondef(p.oid) like '%n.created_at > now() - interval ''60 seconds''%') as guarded
          from pg_proc p
          join pg_namespace n on n.oid = p.pronamespace
          where n.nspname = 'public'
            and p.proname in ('notify_task_assignment', 'notify_task_updated')`,
       );
       if (!rows[0]?.guarded) {
-        throw new Error("0134 not applied: the per-transaction series guard is missing");
+        throw new Error("0146 not applied: the windowed series guard is missing");
       }
     } finally {
       client.release();
@@ -165,6 +184,65 @@ describe("repeat-series notification bursts (0134)", () => {
       );
 
       expect(await countNotifications(client, "task_assigned")).toBe(1);
+    });
+  });
+
+  it("collapses a row-by-row series move into a single notification", async () => {
+    await withRollback(async (client) => {
+      await loadFixture(client, "account-deletion.sql");
+      const assigneeId = await assigneeIdFor(client, WORKSPACE_ID, RECIPIENT_ID);
+      const taskIds = await createSeries(client, {
+        assigneeIds: [assigneeId],
+        repeatId: REPEAT_ID,
+        count: 5,
+      });
+      await clearNotifications(client);
+      await actAs(client, ACTOR_ID);
+
+      // What dragging a series with scope "this and following" does: one
+      // UPDATE per occurrence, each in its own transaction.
+      for (const taskId of taskIds) {
+        await client.query(
+          `update public.tasks
+           set start_date = start_date + 1, end_date = end_date + 1
+           where id = $1`,
+          [taskId],
+        );
+        await ageNotifications(client, 1);
+      }
+
+      expect(await countNotifications(client, "task_updated")).toBe(1);
+    });
+  });
+
+  it("notifies again once the collapse window has passed", async () => {
+    await withRollback(async (client) => {
+      await loadFixture(client, "account-deletion.sql");
+      const assigneeId = await assigneeIdFor(client, WORKSPACE_ID, RECIPIENT_ID);
+      const taskIds = await createSeries(client, {
+        assigneeIds: [assigneeId],
+        repeatId: REPEAT_ID,
+        count: 5,
+      });
+      await clearNotifications(client);
+      await actAs(client, ACTOR_ID);
+
+      await client.query(
+        `update public.tasks
+         set start_date = start_date + 1, end_date = end_date + 1
+         where id = $1`,
+        [taskIds[0]],
+      );
+      // Two unrelated edits minutes apart are two pieces of news, not a burst.
+      await ageNotifications(client, 120);
+      await client.query(
+        `update public.tasks
+         set start_date = start_date + 1, end_date = end_date + 1
+         where id = $1`,
+        [taskIds[1]],
+      );
+
+      expect(await countNotifications(client, "task_updated")).toBe(2);
     });
   });
 
