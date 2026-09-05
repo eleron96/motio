@@ -2909,6 +2909,7 @@ msgstr "Loading workspaces..."
 msgid "Loading your workspaces…"
 msgstr "Loading your workspaces…"
 
+#: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Loading..."
@@ -3667,6 +3668,7 @@ msgstr "No rules yet."
 #~ msgid "No SaaS lock-in"
 #~ msgstr "No SaaS lock-in"
 
+#: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
 msgstr "No subtasks yet."
@@ -5278,6 +5280,7 @@ msgstr "Subtask actions"
 msgid "Subtask title"
 msgstr "Subtask title"
 
+#: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtasks"

@@ -54,6 +54,7 @@ const { plannerState, authState } = vi.hoisted(() => ({
     taskCommentCounts: {},
     loadWorkspaceData: vi.fn(),
     refreshTaskCommentCounts: vi.fn(async () => undefined),
+    fetchTaskSubtasks: vi.fn(async () => ({ subtasks: [] })),
     fetchAssigneeTaskCounts: vi.fn(async () => ({ counts: {}, date: '2026-08-07' })),
     fetchMemberGroups: vi.fn(async () => ({
       groups: [{ id: 'g1', name: 'Backend' }, { id: 'g2', name: 'Frontend' }],

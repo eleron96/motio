@@ -65,6 +65,26 @@ describe('AddContactForm — people suggestions', () => {
     })));
   });
 
+  it('finds a person by their tag or role, not just by name', () => {
+    render(<AddContactForm onSave={vi.fn()} onCancel={vi.fn()} people={people} />);
+
+    const tagInput = screen.getByPlaceholderText('Tag');
+    fireEvent.focus(tagInput);
+    fireEvent.change(tagInput, { target: { value: 'АР' } });
+    fireEvent.mouseDown(screen.getByText('Анна Смирнова'));
+    expect((screen.getByPlaceholderText('Full name') as HTMLInputElement).value).toBe('Анна Смирнова');
+
+    cleanup();
+    render(<AddContactForm onSave={vi.fn()} onCancel={vi.fn()} people={people} />);
+
+    const roleInput = screen.getByPlaceholderText('Role / job title');
+    fireEvent.focus(roleInput);
+    fireEvent.change(roleInput, { target: { value: 'архит' } });
+    fireEvent.mouseDown(screen.getByText('Анна Смирнова'));
+    expect((screen.getByPlaceholderText('Full name') as HTMLInputElement).value).toBe('Анна Смирнова');
+    expect((screen.getByPlaceholderText('Company') as HTMLInputElement).value).toBe('СтройГрупп');
+  });
+
   it('behaves like a plain form when no people are given', async () => {
     const onSave = vi.fn().mockResolvedValue(true);
     render(<AddContactForm onSave={onSave} onCancel={vi.fn()} />);
