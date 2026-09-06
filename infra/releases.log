@@ -418,3 +418,4 @@
 2026-09-04T15:14:50Z | 0.9.69 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260904-151401.dump | Moving a repeating task no longer floods the assignee with dozens of notifications — a single one arrives.
 2026-09-04T16:32:14Z | 0.10.0 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260904-163130.dump | No documented changes.
 2026-09-05T22:59:17Z | 0.10.1 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260905-225833.dump | The task window on the Team page now shows the task's subtasks with their done marks and a counter.
+2026-09-06T08:45:57Z | 0.10.2 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260906-084512.dump | A task on the timeline can now be dragged past the visible screen: the timeline scrolls by itself near the edge, and edge strips show where that happens.
