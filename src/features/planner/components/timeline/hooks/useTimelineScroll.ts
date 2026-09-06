@@ -30,6 +30,9 @@ interface UseTimelineScrollOptions {
   setCurrentDate: (date: string) => void;
   markTimelineInteraction: (ms: number) => void;
   isDragScrolling?: boolean;
+  /** A task bar is being dragged: edge re-anchoring of the date range is held
+   *  back until the drop, since the drag math assumes a stable scroll origin. */
+  isTaskDragActive?: boolean;
   /** Days of context shown left of the focused date (default 2; 1 on mobile so
    *  "today" sits near the centre of the narrow viewport instead of the edge). */
   leftContextDays?: number;
@@ -60,9 +63,15 @@ export function useTimelineScroll({
   setCurrentDate,
   markTimelineInteraction,
   isDragScrolling = false,
+  isTaskDragActive = false,
   leftContextDays = LEFT_CONTEXT_DAYS,
 }: UseTimelineScrollOptions): UseTimelineScrollResult {
   const [scrollLeft, setScrollLeft] = useState(0);
+  // Read from a timer callback, so a ref rather than the closure value.
+  const taskDragActiveRef = useRef(isTaskDragActive);
+  taskDragActiveRef.current = isTaskDragActive;
+  // An edge re-anchor that was due mid-drag; replayed once the drag ends.
+  const deferredEdgeReanchorRef = useRef(false);
 
   const lastRenderedFocusIndexRef = useRef(-1);
   const scrollSyncFrameRef = useRef<number | null>(null);
@@ -161,6 +170,10 @@ export function useTimelineScroll({
         }
         const nextDate = pendingScrollDateRef.current;
         const container = scrollContainerRef.current;
+        if (taskDragActiveRef.current) {
+          deferredEdgeReanchorRef.current = true;
+          return;
+        }
         if (nextDate && nextDate !== currentDate && container) {
           const now = Date.now();
           if (now - lastEdgeReanchorAtRef.current < EDGE_REANCHOR_COOLDOWN_MS) {
@@ -190,6 +203,16 @@ export function useTimelineScroll({
       }, 450);
     }
   }, [currentDate, dayWidth, isDragScrolling, leftContextDays, markTimelineInteraction, scrollContainerRef, scrollReanchorEdgeTriggerDays, scrollReanchorMinShiftDays, setCurrentDate, visibleDays]);
+
+  // A task drag that ended near an edge still deserves the re-anchor it was
+  // denied: replay the scroll-end handling once the drag flag drops.
+  useEffect(() => {
+    if (isTaskDragActive || !deferredEdgeReanchorRef.current) return;
+    deferredEdgeReanchorRef.current = false;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    handleScroll({ currentTarget: container } as React.UIEvent<HTMLDivElement>);
+  }, [handleScroll, isTaskDragActive, scrollContainerRef]);
 
   // Flush the latest scroll position into React state when drag scrolling ends
   // so that virtualization catches up with the final position.
