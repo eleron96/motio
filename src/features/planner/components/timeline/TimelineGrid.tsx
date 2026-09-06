@@ -30,6 +30,13 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { usePersonColors } from '@/features/planner/hooks/usePersonColors';
 import { useDragScroll } from './hooks/useDragScroll';
+import { DRAG_EDGE_ZONE_PX } from '@/features/planner/lib/dragAutoScroll';
+import {
+  IDLE_TASK_DRAG_STATE,
+  TimelineDragScrollContext,
+  type TaskDragState,
+  type TimelineDragScrollController,
+} from './TimelineDragScrollContext';
 import { useSidebarResize } from './hooks/useSidebarResize';
 import { useTimelineViewport } from './hooks/useTimelineViewport';
 import { useTimelineScroll, LEFT_CONTEXT_DAYS } from './hooks/useTimelineScroll';
@@ -228,6 +235,26 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   const { isDragScrolling, lastDragTimeRef, handleDragStart } = useDragScroll({ markTimelineInteraction });
 
+  // Task-bar drag: the bars push this container when the cursor reaches an
+  // edge strip (see dragAutoScroll). The controller reads refs so its identity
+  // is stable and never re-renders the memoised bars.
+  const [taskDragState, setTaskDragStateRaw] = useState<TaskDragState>(IDLE_TASK_DRAG_STATE);
+  const dragScrollController = useMemo<TimelineDragScrollController>(() => ({
+    getScrollContainer: () => scrollContainerRef.current,
+    getViewportBounds: () => {
+      const container = scrollContainerRef.current;
+      if (!container) return null;
+      const rect = container.getBoundingClientRect();
+      // The sidebar is sticky inside the same scroll container, so the date
+      // area starts at its right edge; clientWidth excludes the scrollbar.
+      const sidebarRight = sidebarContainerRef.current?.getBoundingClientRect().right ?? rect.left;
+      return { left: Math.max(rect.left, sidebarRight), right: rect.left + container.clientWidth };
+    },
+    setTaskDragState: (next) => setTaskDragStateRaw((prev) => (
+      prev.active === next.active && prev.edge === next.edge ? prev : next
+    )),
+  }), []);
+
   const { isSidebarResizing, handleSidebarResizeStart, handleSidebarResizeReset } = useSidebarResize({
     sidebarContainerRef,
     sidebarMinWidth,
@@ -265,6 +292,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setCurrentDate,
     markTimelineInteraction,
     isDragScrolling,
+    isTaskDragActive: taskDragState.active,
     leftContextDays,
   });
 
@@ -468,6 +496,29 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           }}
         />
       )}
+      {/* Edge strips shown while a task bar is dragged: they mark where the
+          timeline starts scrolling on its own, and brighten while it does.
+          Opacity-only so the drag stays cheap; mouse passes through. */}
+      {!isMobile && (['left', 'right'] as const).map((edge) => (
+        <div
+          key={edge}
+          aria-hidden="true"
+          data-testid={`timeline-drag-edge-${edge}`}
+          data-active={taskDragState.edge === edge ? 'true' : undefined}
+          className={cn(
+            'pointer-events-none absolute top-0 bottom-0 z-40 transition-opacity duration-200 ease-out',
+            !taskDragState.active && 'opacity-0',
+            taskDragState.active && taskDragState.edge !== edge && 'timeline-drag-edge-idle',
+            taskDragState.active && taskDragState.edge === edge && 'timeline-drag-edge-active',
+          )}
+          style={{
+            ...(edge === 'left' ? { left: resolvedSidebarWidth } : { right: 0 }),
+            width: DRAG_EDGE_ZONE_PX,
+            background: `linear-gradient(to ${edge === 'left' ? 'right' : 'left'}, hsl(var(--primary) / 0.28), transparent)`,
+          }}
+        />
+      ))}
+      <TimelineDragScrollContext.Provider value={dragScrollController}>
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <div
           ref={scrollContainerRef}
@@ -607,6 +658,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           </div>
         </div>
       </div>
+      </TimelineDragScrollContext.Provider>
 
       {!isMobile && sidebarViewportWidth > 0 && (
         <div

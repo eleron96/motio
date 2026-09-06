@@ -175,6 +175,10 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   const mentionQueryRef = useRef<string | null>(null);
 
   const [plainLength, setPlainLength] = useState(0);
+  // Whether the draft holds anything worth sending — text or an image. Gates
+  // the save button instead of the plain-text count, which is 0 for a
+  // screenshot-only comment and used to leave that button dead.
+  const [hasDraft, setHasDraft] = useState(initialValue.trim().length > 0);
   const [saving, setSaving] = useState(false);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
 
@@ -196,6 +200,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     setEditorValue(editor, initialValue);
     lastValueRef.current = initialValue;
     setPlainLength(getCommentPlainLength(initialValue));
+    setHasDraft(initialValue.trim().length > 0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -206,6 +211,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     if (next === lastValueRef.current) return;
     lastValueRef.current = next;
     setPlainLength(getCommentPlainLength(next));
+    setHasDraft(next.trim().length > 0);
   }, []);
 
   const saveSelection = useCallback(() => {
@@ -581,6 +587,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
       const editor = editorRef.current;
       if (editor) { editor.innerHTML = ''; lastValueRef.current = ''; }
       setPlainLength(0);
+      setHasDraft(false);
     } catch {
       // Keep the draft intact so the user can retry after a failed save.
     } finally {
@@ -909,7 +916,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
             size="sm"
             className="h-7 px-3 text-xs"
             onClick={() => void handleSave()}
-            disabled={saving || disabled || isOverLimit || plainLength === 0}
+            disabled={saving || disabled || isOverLimit || !hasDraft}
           >
             {saveLabel ?? t`Save`}
           </Button>
