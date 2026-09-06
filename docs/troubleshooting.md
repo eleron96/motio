@@ -110,3 +110,57 @@ npm run lingui:extract && npm run lingui:compile
 Duplicated SQL migrations are harmless to the database: Liquibase follows the explicit
 changeSet list in `infra/supabase/liquibase/changelog-master.xml` and never picks them
 up.
+
+## `TLS handshake timeout` pulling from `public.ecr.aws` during deploy
+
+The `web` image build pulls its base images from Amazon's public registry, whose
+anycast address is sometimes unreachable from the server. Re-running the deploy
+does not help: pull the base images on the server first, retrying until they land,
+then deploy again.
+
+```bash
+ssh root@<prod> 'for img in public.ecr.aws/docker/library/node:20-bookworm-slim public.ecr.aws/docker/library/nginx:1.27-alpine; do for i in $(seq 1 10); do docker pull "$img" && break; sleep 15; done; done'
+```
+
+The tags above are the ones `infra/web/Dockerfile` uses today; take the exact names
+from the failing build log if they have moved on.
+
+## `502` on every `/functions/v1/*` after recreating `edge-runtime`
+
+Edge Functions fetch their dependencies from `esm.sh` on a cold start, and the
+production server cannot reach that host's anycast address. The compose file pins
+`esm.sh` to a Cloudflare IP via `extra_hosts` and keeps a persistent Deno cache
+(`motio_deno_cache`), so a recreated container starts from the cache without any
+download. If the `502` is back, check that both are still in place:
+
+```bash
+docker inspect infra-functions-1 --format '{{json .HostConfig.ExtraHosts}} {{json .Mounts}}'
+```
+
+## `git merge` into `main` hangs, or `cannot lock ref 'HEAD'`
+
+Merging the working branch into `main` has stalled on the commit step more than
+once. Run it with a generous timeout, `GIT_EDITOR=true` and no terminal on stdin.
+If the process was killed, it leaves stale locks behind and the next commit fails
+with `cannot lock ref 'HEAD'`. Make sure no git process is still running, then
+remove the locks and finish the merge:
+
+```bash
+pgrep -fl 'git (merge|commit)' || rm -f .git/HEAD.lock .git/refs/heads/main.lock
+```
+
+`MERGE_HEAD` may still be present with a fully merged index: `git commit --no-edit`
+completes it. If the merge state is gone, simply run the merge again.
+
+## A migration is `EXECUTED` but its object is missing
+
+`databasechangelog` records that a changeset ran, not that its object survived.
+Verify against the catalog before trusting the log:
+
+```bash
+docker exec infra-db-1 psql -U supabase_admin -d postgres -c "select tgname from pg_trigger where tgname = '<trigger>'"
+```
+
+Write migrations so they can be re-applied safely (`create or replace`, `if not
+exists`, `drop ... if exists` first) and fix a missing object with a new migration,
+never by editing an old one.
