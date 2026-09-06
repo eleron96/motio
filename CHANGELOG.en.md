@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- A task on the timeline can now be dragged past the visible screen: the timeline scrolls by itself near the edge, and edge strips show where that happens.
+- A task comment can now be sent with just a screenshot and no text.
 
 ## [0.10.1] - 2026-09-05
 ### Added

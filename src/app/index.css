@@ -665,6 +665,46 @@
   pointer-events: none !important;
 }
 
+/* Edge strips shown while a task bar is dragged (TimelineGrid). They fade in,
+   then breathe softly; the strip that is actually scrolling the timeline
+   pulses faster and brighter. Opacity only, so the drag stays cheap. */
+@keyframes timeline-drag-edge-in {
+  from { opacity: 0; }
+  to { opacity: 0.38; }
+}
+
+@keyframes timeline-drag-edge-breathe {
+  0%, 100% { opacity: 0.38; }
+  50% { opacity: 0.62; }
+}
+
+@keyframes timeline-drag-edge-pulse {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+.timeline-drag-edge-idle {
+  animation:
+    timeline-drag-edge-in 0.2s ease-out,
+    timeline-drag-edge-breathe 1.8s ease-in-out 0.2s infinite;
+}
+
+.timeline-drag-edge-active {
+  animation: timeline-drag-edge-pulse 0.9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-drag-edge-idle {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  .timeline-drag-edge-active {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Onboarding tour (driver.js) */
 .motio-tour-popover {
   --driver-overlay-opacity: 0.65;

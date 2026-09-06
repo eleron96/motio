@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Задачу на таймлайне теперь можно перетащить дальше видимого экрана: у края таймлайн прокручивается сам, а полосы по краям показывают зону прокрутки.
+- Комментарий к задаче теперь можно отправить с одним только скриншотом, без текста.
 
 ## [0.10.1] - 2026-09-05
 ### Added
