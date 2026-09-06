@@ -154,7 +154,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 2. Сразу после успешного деплоя: `make release-sync` — коммитит синкнутые релизные артефакты (`chore(release): sync release X.Y.Z`) и пушит.
 3. Полный релизный путь одной командой (changelog + commit + push + deploy + sync): `make release MSG="..." RU="..." EN="..." [TYPE=changed]`.
 4. GitHub Release публикуется **вручную**: `make release-publish` — запускать с `main` после мёржа рабочей ветки (деплой релизы больше не публикует). Команда идемпотентна и non-fatal: тег ставится на каждую версию, публичный Release создаётся только при реальных пользовательских изменениях в changelog.
-5. Ветки: рабочая ветка — `codex/main-current`; `main` — зеркало выпущенного (точка для тегов и GitHub Releases). Влитие в `main` идёт через Pull Request; перед мёржем убедиться, что CI зелёный (`gh pr checks <N>`). Ветка `main` не защищена настройками GitHub — force-push и удаление ветки агенту **запрещены**.
+5. Ветки: рабочая ветка — `codex/main-current`; `main` — зеркало выпущенного (точка для тегов и GitHub Releases). Влитие в `main` делается локально после `make release-sync`: `git checkout main && git pull --ff-only && git merge --no-ff codex/main-current && git push origin main`, затем `make release-publish` и возврат на рабочую ветку. Pull Request для этого не используется. Перед мёржем убедиться, что CI рабочей ветки зелёный (`gh run list --branch codex/main-current --limit 1`). Мёрж в `main` запускать с запасом по времени (≥4 мин) — он дважды зависал на шаге коммита; если процесс прервали, остаются стейл-локи `.git/HEAD.lock` / `.git/refs/heads/main.lock` (см. `docs/troubleshooting.md`, «`git merge` into `main` hangs»). Ветка `main` не защищена настройками GitHub — force-push и удаление ветки агенту **запрещены**.
 
 Гейт деплоя **не заменяет CI**: в нём нет SQL security lint (`infra/scripts/lint-security-definer.sh`), `npm run build` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --limit 1`; красный — чинить сразу.
 
@@ -298,6 +298,7 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request прог�
 2. В `tsconfig.app.json` `strict: false`, но `strictNullChecks` **включён** — null/undefined-разыменования ловит компилятор. `noImplicitAny` пока выключен: неявные any не ловятся, новый код типизировать явно. Полный `strict` — отдельная постепенная задача.
 3. Результаты Supabase-запросов со строковым `select` кастовать как `... as unknown as <Row>` (Supabase не выводит тип такого select — принятый паттерн границы).
 4. Интеграционные тесты (`npm run test:integration`, каталог `tests/`) запускаются и в CI (job `integration-tests`). Локально при изменениях в RPC/RLS/cron гонять той же схемой: `bash infra/scripts/ci-test-db.sh`, затем `npm run test:integration`.
+5. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1100 тестов за ~30 с. На `forks` тот же набор шёл 20+ минут и давал ложные падения по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
 
 ## 8. Definition of Done
 
@@ -310,6 +311,18 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request прог�
 5. Обновлены notes/spec при изменении пользовательского поведения (и `docs/`, если менялись операционные процессы).
 
 ## 9. Правила инфраструктуры
+
+### 9.0. Известные грабли (сверяться до диагностики)
+
+Подробные рецепты — в `docs/troubleshooting.md`; здесь только то, что регулярно сбивает с толку.
+
+1. **Флаги фич живут в серверных `.env`, из репозитория их не видно.** `VITE_FEATURE_*` читаются при сборке `web` на сервере; в репо нет ни прод-, ни тест-значений. Прежде чем считать фичу выключенной, проверить `grep '^VITE_FEATURE' /opt/new_toggl/.env` на нужном контуре. Тихий флип флага = правка серверного `.env` + пересборка `web`, без релиза.
+2. **Applied ≠ live.** `EXECUTED` в `databasechangelog` не доказывает, что объект миграции есть в живой БД (триггер из 0008 однажды пропал на тесте). При странностях проверять `pg_catalog`, миграции писать идемпотентными и самодостаточными.
+3. **Гранты новых таблиц** — §4.1 п.4: Liquibase на тесте/проде работает от `supabase_admin`, дефолтные гранты не срабатывают, без явного `GRANT` приложение получает `42501`.
+4. **`TLS handshake timeout` при сборке `web`** — anycast `public.ecr.aws` не маршрутизируется с сервера; повторный деплой не лечит, сначала `docker pull` базовых образов на сервере в цикле.
+5. **Edge Functions и `esm.sh`** — `edge-runtime` тянет зависимости с `esm.sh` на холодном старте; прод не маршрутизирует его anycast, пересоздание контейнера давало `502` на всех `/functions/v1/*`. Починено пином `extra_hosts` на IP Cloudflare и persistent-кэшем Deno (`motio_deno_cache`); при `502` после пересоздания проверять именно это.
+6. **`KEYCLOAK_ADMIN_PASSWORD` не менять через `.env`** — рассинхрон с realm даёт `401` на деплое. Пароль admin меняется в Keycloak, `.env` подгоняется следом.
+7. **Мёрж в `main` может зависнуть** — §5.4 п.5.
 
 ### 9.1. Docker Compose — перезапуск контейнеров
 

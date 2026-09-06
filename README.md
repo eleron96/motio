@@ -27,12 +27,18 @@ keep the whole team's workload visible — self-hosted, with SSO out of the box.
 
 ## ✨ Features
 
-- 📅 **Timeline and calendar** — an interactive planner with day/calendar views and a task detail panel.
-- 👥 **Workspaces and roles** — `viewer` / `editor` / `admin`, per-workspace members and invitations.
+- 📅 **Timeline** — drag-and-drop planner grouped by people or by project, with day / week / calendar views; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along.
+- ✅ **Tasks with depth** — subtasks, repeating series, priorities, tags, rich descriptions with pasted images, comments with @mentions and screenshots.
+- 👥 **Team** — members and groups, each person's current and past tasks at a glance.
+- 📁 **Projects and customers** — project cards with their team and customer contacts, a workspace-wide contact list; people you have entered before are suggested as you type.
+- 📊 **Dashboard** — configurable widgets and a department workload heatmap; a daily brief once a day and release notes right in the app.
+- 🔔 **Notifications** — in-app inbox plus browser push; installable as a PWA, push works on iPhone too.
+- 📱 **Works on phones** — a dedicated mobile layer for the timeline, tasks, team and projects.
+- 🏢 **Workspaces and roles** — `viewer` / `editor` / `admin`, invitations, owner transfer, leaving a workspace.
 - 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself, Keycloak is the identity store.
-- 🖼 **Task media** — paste, drag or upload images straight into task descriptions, with per-user and per-workspace quotas.
-- 💾 **Backups built in** — scheduled backups with upload/download and one-click restore from the admin console.
-- 🗄 **Super-admin console** — user overview, workspace management, backup/restore.
+- 💾 **Backups built in** — daily backups of the database, media and Keycloak with retention, upload/download and one-click restore from the admin console.
+- 🗄 **Super-admin console** — user overview, workspace management, backup/restore, announcements to every user.
+- 🧪 **Demo sandbox** — `/demo` runs entirely in the browser on sample data, no sign-in needed.
 - 🌍 **Two languages** — English and Russian UI (Lingui).
 
 ## 🚀 Quick start
