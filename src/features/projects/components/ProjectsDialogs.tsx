@@ -13,6 +13,7 @@ import {
   TaskType,
 } from '@/features/planner/types/planner';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
+import { formatProjectStatusInput } from '@/shared/domain/projectStatus';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/shared/ui/alert-dialog';
 import { Button } from '@/shared/ui/button';
@@ -455,8 +456,9 @@ export const ProjectsDialogs = ({
               <Input
                 placeholder={t`E.g. В работе, Заморожен, Завершен`}
                 value={newProjectStatus}
-                onChange={(event) => setNewProjectStatus(event.target.value)}
+                onChange={(event) => setNewProjectStatus(formatProjectStatusInput(event.target.value))}
                 disabled={!canEdit}
+                className="uppercase"
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -586,7 +588,7 @@ export const ProjectsDialogs = ({
                 <Input
                   placeholder={t`E.g. В работе, Заморожен, Завершен`}
                   value={projectSettingsStatus}
-                  onChange={(event) => setProjectSettingsStatus(event.target.value.toUpperCase())}
+                  onChange={(event) => setProjectSettingsStatus(formatProjectStatusInput(event.target.value))}
                   disabled={!canEdit}
                   className="uppercase"
                 />

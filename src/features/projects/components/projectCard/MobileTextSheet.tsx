@@ -29,6 +29,11 @@ interface MobileTextSheetProps {
   minLength?: number;
   /** Allow saving an empty value (e.g. clearing project status). Defaults to false. */
   allowEmpty?: boolean;
+  /**
+   * Force the draft to upper case as the user types (single-line only). Used by
+   * the project status sheet, where the stored value is always in caps.
+   */
+  uppercase?: boolean;
 }
 
 /**
@@ -55,6 +60,7 @@ export const MobileTextSheet: React.FC<MobileTextSheetProps> = ({
   multiline = false,
   minLength = 0,
   allowEmpty = false,
+  uppercase = false,
 }) => {
   const [value, setValue] = useState(initialValue);
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +70,7 @@ export const MobileTextSheet: React.FC<MobileTextSheetProps> = ({
   // Reset draft + focus whenever the sheet opens.
   useEffect(() => {
     if (open) {
-      setValue(initialValue);
+      setValue(uppercase && !multiline ? initialValue.toUpperCase() : initialValue);
       setSubmitting(false);
       // Defer focus to next paint so the sheet animation doesn't steal it.
       const id = window.requestAnimationFrame(() => {
@@ -76,7 +82,9 @@ export const MobileTextSheet: React.FC<MobileTextSheetProps> = ({
       return () => window.cancelAnimationFrame(id);
     }
     return undefined;
-  }, [open, initialValue]);
+  }, [open, initialValue, uppercase, multiline]);
+
+  const applyCase = (next: string) => (uppercase && !multiline ? next.toUpperCase() : next);
 
   const trimmed = value.trim();
   const meetsMin = trimmed.length >= minLength;
@@ -131,10 +139,11 @@ export const MobileTextSheet: React.FC<MobileTextSheetProps> = ({
             <Input
               ref={inputRef as React.RefObject<HTMLInputElement>}
               value={value}
-              onChange={(event) => setValue(event.target.value)}
+              onChange={(event) => setValue(applyCase(event.target.value))}
               placeholder={placeholder}
               disabled={submitting}
               autoFocus
+              className={uppercase ? 'uppercase' : undefined}
             />
           )}
           <div

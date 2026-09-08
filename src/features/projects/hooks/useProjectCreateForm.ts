@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useMemo, useState } from 'react';
 import { Project } from '@/features/planner/types/planner';
 import { DEFAULT_PROJECT_COLOR } from '@/shared/lib/colors';
+import { normalizeProjectStatus } from '@/shared/domain/projectStatus';
 
 interface UseProjectCreateFormParams {
   canEdit: boolean;
@@ -66,7 +67,7 @@ export const useProjectCreateForm = ({
       archived: false,
       customerId: newProjectCustomerId,
       ownerGroupId: newProjectOwnerGroupId,
-      status: newProjectStatus.trim() ? newProjectStatus.trim() : null,
+      status: normalizeProjectStatus(newProjectStatus),
     });
     setCreateProjectOpen(false);
     resetCreateProjectForm();

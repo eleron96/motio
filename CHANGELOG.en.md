@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-09-08
+### Fixed
+- The project status is now written in capitals everywhere — when a project is created, in the card and on the phone. Statuses entered earlier are brought in line.
+
 ## [0.10.2] - 2026-09-06
 ### Fixed
 - A task on the timeline can now be dragged past the visible screen: the timeline scrolls by itself near the edge, and edge strips show where that happens.

@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useMemo, useState } from 'react';
 import { Project } from '@/features/planner/types/planner';
 import { DEFAULT_PROJECT_COLOR } from '@/shared/lib/colors';
+import { normalizeProjectStatus } from '@/shared/domain/projectStatus';
 
 interface UseProjectMutationsParams {
   canEdit: boolean;
@@ -67,7 +68,7 @@ export const useProjectMutations = ({
     setProjectSettingsColor(project.color);
     setProjectSettingsCustomerId(project.customerId ?? null);
     setProjectSettingsOwnerGroupId(project.ownerGroupId ?? null);
-    setProjectSettingsStatus(project.status ?? '');
+    setProjectSettingsStatus(normalizeProjectStatus(project.status) ?? '');
     setProjectSettingsOpen(true);
   }, [canEdit]);
 
@@ -87,7 +88,7 @@ export const useProjectMutations = ({
     if (projectSettingsOwnerGroupId !== (projectSettingsTarget.ownerGroupId ?? null)) {
       updates.ownerGroupId = projectSettingsOwnerGroupId;
     }
-    const nextStatus = projectSettingsStatus.trim() ? projectSettingsStatus.trim().toUpperCase() : null;
+    const nextStatus = normalizeProjectStatus(projectSettingsStatus);
     if (nextStatus !== (projectSettingsTarget.status ?? null)) {
       updates.status = nextStatus;
     }
@@ -123,8 +124,7 @@ export const useProjectMutations = ({
     if (projectSettingsColor !== projectSettingsTarget.color) return true;
     if (projectSettingsCustomerId !== projectSettingsTarget.customerId) return true;
     if (projectSettingsOwnerGroupId !== (projectSettingsTarget.ownerGroupId ?? null)) return true;
-    const nextStatus = projectSettingsStatus.trim() ? projectSettingsStatus.trim() : null;
-    if (nextStatus !== (projectSettingsTarget.status ?? null)) return true;
+    if (normalizeProjectStatus(projectSettingsStatus) !== normalizeProjectStatus(projectSettingsTarget.status)) return true;
     return false;
   }, [
     projectSettingsCode,
