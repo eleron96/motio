@@ -12,6 +12,7 @@ import {
 } from '@/shared/ui/dropdown-menu';
 import type { Project, Customer } from '@/features/planner/types/planner';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
+import { formatProjectStatusInput, normalizeProjectStatus } from '@/shared/domain/projectStatus';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileTextSheet } from './MobileTextSheet';
 import styles from './projectCard.module.css';
@@ -56,7 +57,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
   const canEditInline = canEdit && !isMobile;
 
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(project.status ?? '');
+  const [draft, setDraft] = useState(normalizeProjectStatus(project.status) ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -73,7 +74,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
   // arriving while the user is mid-edit (or while a save is in flight) must
   // not stomp the draft they're typing.
   useEffect(() => {
-    setDraft(project.status ?? '');
+    setDraft(normalizeProjectStatus(project.status) ?? '');
     setEditing(false);
     setSubmitting(false);
     setMobileSheetOpen(false);
@@ -81,7 +82,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
 
   const beginEdit = () => {
     if (!canEditStatus) return;
-    setDraft(project.status ?? '');
+    setDraft(normalizeProjectStatus(project.status) ?? '');
     if (isMobile) {
       setMobileSheetOpen(true);
       return;
@@ -90,7 +91,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
   };
 
   const handleMobileSave = async (next: string): Promise<boolean> => {
-    const normalized = next.trim() ? next.trim() : null;
+    const normalized = normalizeProjectStatus(next);
     if (normalized === (project.status ?? null)) {
       // No change — close sheet without firing a network request.
       return true;
@@ -99,13 +100,13 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
   };
 
   const cancel = () => {
-    setDraft(project.status ?? '');
+    setDraft(normalizeProjectStatus(project.status) ?? '');
     setEditing(false);
   };
 
   const submit = async () => {
     if (submitting) return;
-    const next = draft.trim() ? draft.trim() : null;
+    const next = normalizeProjectStatus(draft);
     if (next === (project.status ?? null)) {
       setEditing(false);
       return;
@@ -154,7 +155,7 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
                 ref={inputRef}
                 type="text"
                 value={draft}
-                onChange={(event) => setDraft(event.target.value)}
+                onChange={(event) => setDraft(formatProjectStatusInput(event.target.value))}
                 onKeyDown={(event) => {
                   if (event.key === 'Escape') {
                     event.preventDefault();
@@ -293,9 +294,10 @@ export const ProjectCardHeader: React.FC<ProjectCardHeaderProps> = ({
         onSave={handleMobileSave}
         title={project.status ? t`Edit project status` : t`Add project status`}
         description={t`Set or clear the custom status label shown on this project.`}
-        initialValue={project.status ?? ''}
+        initialValue={normalizeProjectStatus(project.status) ?? ''}
         placeholder={t`Project status`}
         allowEmpty
+        uppercase
       />
     </div>
   );

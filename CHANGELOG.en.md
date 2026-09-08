@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- The project status is now written in capitals everywhere — when a project is created, in the card and on the phone. Statuses entered earlier are brought in line.
 
 ## [0.10.2] - 2026-09-06
 ### Fixed
