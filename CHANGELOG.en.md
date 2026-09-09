@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- On a phone, the project card opens its forms again: comment, contact, team member, task, milestone, project status. They used to open behind the card — the keyboard came up but the form was nowhere to be seen.
 
 ## [0.10.3] - 2026-09-08
 ### Fixed
