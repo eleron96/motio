@@ -820,7 +820,9 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
         >
           <div
             data-mention-popover="true"
-            className="fixed z-[60] flex w-64 flex-col overflow-hidden rounded-md border bg-popover shadow-md pointer-events-auto"
+            // Portalled to the body, so its layer is global: keep it a step above
+            // whatever surface the editor sits on. See src/shared/ui/layers.ts.
+            className="fixed z-[calc(var(--layer-modal)_+_10)] flex w-64 flex-col overflow-hidden rounded-md border bg-popover shadow-md pointer-events-auto"
             style={
               mentionPopoverPosition
                 ? {

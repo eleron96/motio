@@ -69,7 +69,9 @@ export const DailyBriefModal = ({ open, onDismiss, workspaceId, assigneeId }: Pr
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onDismiss(); }}>
       <DialogContent
-        className="sm:max-w-[480px] z-[60]"
+        // A step above the current overlay layer: the brief greets you over
+        // whatever the app already had open. See src/shared/ui/layers.ts.
+        className="sm:max-w-[480px] z-[calc(var(--layer-modal)_+_10)]"
         onInteractOutside={(e) => e.preventDefault()}
         /* easter egg — lets an egg lay itself out around the card instead of behind it */
         data-daily-brief-card=""

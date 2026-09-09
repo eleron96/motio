@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/classNames';
 import { MobilePillSubnav, type MobilePillSubnavItem } from '@/shared/ui/mobile-pill-subnav';
 import { MobileSwipeDeck } from '@/shared/ui/mobile-swipe-deck';
 import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
+import { useScreenLayer } from '@/shared/hooks/useScreenLayer';
 
 export interface MobileStackSection {
   id: string;
@@ -53,6 +54,9 @@ export const MobileStackScreen: React.FC<MobileStackScreenProps> = ({
   className,
 }) => {
   const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
+  // Own layer, one step above whatever is already open — and everything this
+  // screen opens lands a step above that. See src/shared/ui/layers.ts.
+  const layer = useScreenLayer(open);
   const activeIndex = Math.max(0, sections.findIndex((section) => section.id === activeId));
   const single = sections.length <= 1;
   const items: MobilePillSubnavItem[] = sections.map((section) => ({
@@ -64,7 +68,7 @@ export const MobileStackScreen: React.FC<MobileStackScreenProps> = ({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        <DialogPrimitive.Overlay style={{ zIndex: layer }} className="fixed inset-0 bg-black/40 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
           onOpenAutoFocus={(event) => event.preventDefault()}
           // A screen whose title says it all opts out of the description rather
@@ -73,12 +77,13 @@ export const MobileStackScreen: React.FC<MobileStackScreenProps> = ({
           {...(description ? {} : { 'aria-describedby': undefined })}
           className={cn(
             // Opaque on purpose: the screen covers the app, it doesn't tint it.
-            'fixed inset-x-0 z-50 flex flex-col bg-muted outline-none',
+            'fixed inset-x-0 flex flex-col bg-muted outline-none',
             'duration-300 data-[state=closed]:animate-out data-[state=open]:animate-in',
             'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
             className,
           )}
           style={{
+            zIndex: layer,
             // Bottom-anchored to the visual viewport: these sections carry text
             // fields (workspace name, holiday country), and with a top anchor
             // iOS would push the header — and the way back — off the screen.

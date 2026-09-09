@@ -612,7 +612,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
       {showTooltip && typeof document !== 'undefined' && createPortal(
         <div
           ref={tooltipElRef}
-          className="fixed z-50 w-64 max-w-xs rounded-lg border bg-background p-3 shadow-xl"
+          className="fixed z-[var(--layer-modal)] w-64 max-w-xs rounded-lg border bg-background p-3 shadow-xl"
           style={{ left: tooltipPos.x, top: tooltipPos.y }}
         >
           <div className="space-y-2">

@@ -199,7 +199,7 @@ export const MilestonesMobileSection: React.FC<MilestonesMobileSectionProps> = (
                 <MoreHorizontal className="h-5 w-5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="z-[70]">
+            <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => onEditMilestone(openMilestone)}>
                 {t`Edit milestone`}
               </DropdownMenuItem>
