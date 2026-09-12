@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -29,7 +28,6 @@ export default defineConfig(({ mode }) => {
           plugins: ["@lingui/babel-plugin-lingui-macro"],
         },
       }),
-      mode === "development" && componentTagger(),
       sentryEnabled && sentryVitePlugin({
         org: process.env.SENTRY_ORG || "motio",
         project: process.env.SENTRY_PROJECT || "motio-frontend",
