@@ -121,7 +121,7 @@ export const ContactDetailsMobileScreen: React.FC<ContactDetailsMobileScreenProp
               <MoreHorizontal className="h-5 w-5" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-[70]">
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={() => onEdit(entry)}>{t`Edit`}</DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => onDelete(entry)}

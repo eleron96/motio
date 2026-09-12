@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-09-09
+### Fixed
+- On a phone, the project card opens its forms again: comment, contact, team member, task, milestone, project status. They used to open behind the card — the keyboard came up but the form was nowhere to be seen.
+
 ## [0.10.3] - 2026-09-08
 ### Fixed
 - The project status is now written in capitals everywhere — when a project is created, in the card and on the phone. Statuses entered earlier are brought in line.

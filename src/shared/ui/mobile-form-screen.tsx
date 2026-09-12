@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { useKeyboardOffset } from '@/shared/hooks/useKeyboardOffset';
+import { useScreenLayer } from '@/shared/hooks/useScreenLayer';
 
 interface MobileFormScreenProps {
   open: boolean;
@@ -42,6 +43,9 @@ export const MobileFormScreen: React.FC<MobileFormScreenProps> = ({
   contentClassName,
 }) => {
   const { offset: keyboardOffset, height: viewportHeight } = useKeyboardOffset();
+  // Own layer, one step above whatever is already open — and everything this
+  // screen opens lands a step above that. See src/shared/ui/layers.ts.
+  const layer = useScreenLayer(open);
   const bodyRef = React.useRef<HTMLDivElement | null>(null);
 
   const focusedFieldRef = React.useRef<HTMLElement | null>(null);
@@ -86,17 +90,18 @@ export const MobileFormScreen: React.FC<MobileFormScreenProps> = ({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        <DialogPrimitive.Overlay style={{ zIndex: layer }} className="fixed inset-0 bg-black/40 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
           onOpenAutoFocus={(event) => event.preventDefault()}
           {...(description ? {} : { 'aria-describedby': undefined })}
           className={cn(
-            'fixed inset-x-0 z-50 flex flex-col bg-background outline-none',
+            'fixed inset-x-0 flex flex-col bg-background outline-none',
             'duration-300 data-[state=closed]:animate-out data-[state=open]:animate-in',
             'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
             className,
           )}
           style={{
+            zIndex: layer,
             // Anchored to the BOTTOM of the visual viewport, not the top: that
             // way the top edge lands at visualViewport.offsetTop, so the header
             // survives iOS shifting the visual viewport — top-0 would only

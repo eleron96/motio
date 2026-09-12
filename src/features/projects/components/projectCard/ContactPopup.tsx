@@ -111,7 +111,7 @@ export const ContactPopup: React.FC<ContactPopupProps> = ({ contact, anchorRect,
     <div
       ref={ref}
       tabIndex={-1}
-      className="fixed z-50 rounded-xl border border-border bg-card p-3.5 shadow-lg outline-none"
+      className="fixed z-[var(--layer-modal)] rounded-xl border border-border bg-card p-3.5 shadow-lg outline-none"
       style={{ top: placement.top, left: placement.left, width: placement.width }}
       role="dialog"
       aria-modal="true"
