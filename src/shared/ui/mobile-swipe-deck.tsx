@@ -51,6 +51,12 @@ interface MobileSwipeDeckProps {
   onIndexChange: (next: number) => void;
   /** Swiping right on the first page — used to walk back up the stack. */
   onEdgeBack?: () => void;
+  /**
+   * A gesture that starts inside an element matching this selector is not the
+   * deck's — a widget's drag handle, a resize grip — and is left to whatever
+   * owns that element.
+   */
+  ignoreSelector?: string;
   className?: string;
   children: React.ReactNode;
 }
@@ -65,6 +71,7 @@ export const MobileSwipeDeck: React.FC<MobileSwipeDeckProps> = ({
   count,
   onIndexChange,
   onEdgeBack,
+  ignoreSelector,
   className,
   children,
 }) => {
@@ -103,6 +110,11 @@ export const MobileSwipeDeck: React.FC<MobileSwipeDeckProps> = ({
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     if (startsInsideHorizontalScroller(event.target, trackRef.current)) return;
+    if (
+      ignoreSelector
+      && event.target instanceof Element
+      && event.target.closest(ignoreSelector)
+    ) return;
     // Cleared when the next gesture starts rather than by the click that, on
     // touch, may never come.
     swallowClickRef.current = false;
