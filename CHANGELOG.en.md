@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Dropped a leftover pre-connection to Google font servers on page load. No fonts were ever fetched from there, and the page now makes no contact with Google at all.
 
 ## [0.10.5] - 2026-09-12
 ### Changed
