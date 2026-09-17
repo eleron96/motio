@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Убрали лишнее обращение к серверам шрифтов Google при открытии приложения. Шрифты оттуда никогда не загружались, теперь страница не связывается с Google вовсе.
 
 ## [0.10.5] - 2026-09-12
 ### Changed
