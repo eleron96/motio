@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.10.6] - 2026-09-17
 ### Added
 - The workload heatmap now works on a phone: months are stacked full-width, day cells are finger-sized and a day opens as a sheet from the bottom. A swipe switches between the dashboards and the heatmap.
 

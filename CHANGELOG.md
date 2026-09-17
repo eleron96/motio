@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.10.6] - 2026-09-17
 ### Added
 - Тепловая карта загрузки теперь удобна на телефоне: месяцы идут столбиком на всю ширину, ячейки дня под палец, день открывается карточкой снизу. Между дашбордами и картой можно переключаться смахиванием.
 
