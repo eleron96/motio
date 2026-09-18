@@ -44,11 +44,12 @@ picture. Open the workspace settings — the gear next to the workspace name —
 Plans change daily, and in Motio most changes are a drag rather than a form:
 
 - drag a bar sideways to move its dates;
-- drag it into another row to hand the task to someone else;
 - drag its edge to make it shorter or longer.
 
-Drag past the edge of the screen and the timeline scrolls along with you. Everyone in
-the workspace sees the change straight away, without reloading the page.
+Drag past the edge of the screen and the timeline scrolls along with you, and if you
+moved something by mistake, **Undo** appears in the corner. To hand a task to someone
+else, click the bar and change **Assignees**. Everyone in the workspace sees the change
+straight away, without reloading the page.
 
 ## Thursday: mark who is away
 
