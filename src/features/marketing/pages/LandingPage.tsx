@@ -7,6 +7,8 @@ import { setPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { Button } from '@/shared/ui/button';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import logoMotio from '@/shared/assets/branding/logo-motio.png';
+import { HeroClip } from '@/features/marketing/components/HeroClip';
+import heatmapImage from '@/features/marketing/assets/heatmap.webp';
 
 // ── static animation data (outside component) ──────────────────────────────
 
@@ -79,8 +81,8 @@ const LandingPage = () => {
   }, [setSignOutRedirectInProgress, signOutRedirectInProgress]);
 
   usePageSeo({
-    title: t`Motio. One timeline for your whole team. 10 seconds per task.`,
-    description: t`Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory.`,
+    title: t`Motio — see who’s doing what this week, across every project`,
+    description: t`Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up.`,
     canonicalPath: '/',
     robots: 'index, follow',
   });
@@ -406,7 +408,7 @@ const LandingPage = () => {
               </>
             ) : (
               <>
-                <Button asChild variant="ghost" size="sm" className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800">
+                <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-primary/10 hover:text-primary">
                   {/* Hard navigation (not React Router push) so AuthProvider
                       remounts under /demo and the supabase mock is wired
                       from the start — never the prod client carrying a
@@ -435,8 +437,8 @@ const LandingPage = () => {
             style={{ animation: 'landFadeDown 0.5s 0.05s ease both', letterSpacing: '-1.5px' }}
           >
             <Trans>
-              One <em className="not-italic text-blue-500">clear timeline</em>
-              <br />{' '}for your whole team
+              See who’s doing what <em className="not-italic text-primary">this week</em>
+              <br />{' '}across every project
             </Trans>
           </h1>
 
@@ -444,7 +446,7 @@ const LandingPage = () => {
             className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg"
             style={{ animation: 'landFadeDown 0.5s 0.15s ease both' }}
           >
-            {t`Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets.`}
+            {t`One shared timeline for people, projects and workload. Spot overload before it hits a deadline.`}
           </p>
 
           <div
@@ -458,43 +460,18 @@ const LandingPage = () => {
             </Button>
             <Button
               asChild
+              variant="outline"
               size="lg"
-              className="demo-cta-button bg-emerald-500 text-white shadow-md hover:bg-emerald-600"
+              className="demo-cta-button border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
             >
               {/* Hard navigation — see header CTA above. */}
               <a href="/demo">{t`Try demo — no signup`}</a>
             </Button>
           </div>
 
-          {/* animated timeline */}
+          {/* the product itself, recorded in the live demo */}
           <div className="mx-auto mt-12 max-w-[860px]" style={{ animation: 'landFadeDown 0.6s 0.35s ease both' }}>
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-md">
-              <div className="flex items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-3 py-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                <span className="ml-2 text-xs text-slate-400">motio.app · Acme Team · Timeline</span>
-              </div>
-              <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
-                <span className="text-sm font-semibold text-slate-800">Acme · Projects</span>
-                <div className="flex gap-1">
-                  <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">{t`Timeline`}</span>
-                  <span className="rounded-md px-2.5 py-1 text-xs text-slate-400">{t`Calendar`}</span>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr' }}>
-                <div className="border-b border-r border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-400">
-                  {t`Members`}
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)' }} className="border-b border-slate-200 bg-white">
-                  {MONTHS.map(m => (
-                    <div key={m} className="border-r border-slate-100 px-2 py-1.5 text-xs font-medium text-slate-400">{m}</div>
-                  ))}
-                </div>
-                <div ref={tlRowsRef} />
-                <div ref={tlBarsRef} />
-              </div>
-            </div>
+            <HeroClip />
           </div>
         </section>
 
@@ -528,6 +505,34 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* ── WORKLOAD HEATMAP ──
+            A real screenshot from the live demo: the board that sets Motio apart. */}
+        <section className="mx-auto w-full max-w-[1200px] px-4 pt-24 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{t`Workload heatmap`}</p>
+            <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl" style={{ letterSpacing: '-0.5px' }}>
+              {t`Spot overload months ahead`}
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-slate-500 sm:text-base">
+              {t`Each day is coloured by how busy the team is: tasks per person who is actually there, with milestones and time off counted in. Click a hot day to jump straight to it on the timeline.`}
+            </p>
+          </div>
+          <div className="land-reveal mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+            <img
+              src={heatmapImage}
+              alt={t`The workload heatmap: the team's load per day for the coming months`}
+              width={1600}
+              height={470}
+              loading="lazy"
+              decoding="async"
+              className="block h-auto w-full"
+            />
+          </div>
+          <p className="mt-3 text-center text-xs text-slate-400">
+            {t`Experimental — a workspace admin switches it on in settings.`}
+          </p>
+        </section>
+
         {/* ── DASHBOARD ── */}
         <section ref={dashSectionRef} className="mx-auto w-full max-w-[1200px] px-4 pt-24 sm:px-6 lg:px-10">
           <div className="flex flex-col gap-12 lg:flex-row lg:items-center lg:gap-14">
@@ -557,7 +562,7 @@ const LandingPage = () => {
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
                   <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                  <span className="ml-2 text-xs text-slate-400">motio.app · Acme · Dashboard</span>
+                  <span className="ml-2 text-xs text-slate-400">motio.nikog.net · Acme · Dashboard</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
                   <span className="text-sm font-semibold text-slate-800">{t`Dashboard`}</span>
@@ -628,6 +633,17 @@ const LandingPage = () => {
                 </li>
               ))}
             </ul>
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+              <span className="font-medium text-slate-700">{t`Open source under AGPL-3.0`}</span>
+              <a
+                href="https://github.com/eleron96/motio#-self-host"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary"
+              >
+                {t`Self-hosting guide on GitHub →`}
+              </a>
+            </div>
           </div>
         </section>
 
@@ -651,6 +667,37 @@ const LandingPage = () => {
                 <p className="text-xs leading-relaxed text-slate-500">{step.body}</p>
               </div>
             ))}
+          </div>
+
+          {/* animated illustration of planning months ahead (it used to be the hero) */}
+          <div className="land-reveal mx-auto mt-14 max-w-[860px]">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-md">
+              <div className="flex items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-3 py-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                <span className="ml-2 text-xs text-slate-400">motio.nikog.net · Acme Team · Timeline</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2">
+                <span className="text-sm font-semibold text-slate-800">Acme · Projects</span>
+                <div className="flex gap-1">
+                  <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">{t`Timeline`}</span>
+                  <span className="rounded-md px-2.5 py-1 text-xs text-slate-400">{t`Calendar`}</span>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr' }}>
+                <div className="border-b border-r border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-400">
+                  {t`Members`}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)' }} className="border-b border-slate-200 bg-white">
+                  {MONTHS.map(m => (
+                    <div key={m} className="border-r border-slate-100 px-2 py-1.5 text-xs font-medium text-slate-400">{m}</div>
+                  ))}
+                </div>
+                <div ref={tlRowsRef} />
+                <div ref={tlBarsRef} />
+              </div>
+            </div>
           </div>
         </section>
 
@@ -690,20 +737,29 @@ const LandingPage = () => {
         {/* ── CTA BOTTOM ── */}
         <div className="mx-auto w-full max-w-[1200px] px-4 py-24 sm:px-6 lg:px-10">
           <div className="relative overflow-hidden rounded-3xl bg-slate-900 px-8 py-16 text-center">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(99,102,241,0.15),transparent_70%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(198,112,78,0.2),transparent_70%)]" />
             <h2 className="relative text-2xl font-bold text-white sm:text-3xl lg:text-4xl" style={{ letterSpacing: '-0.5px' }}>
               {t`Try Motio now`}
             </h2>
             <p className="relative mx-auto mt-4 max-w-xl text-base leading-relaxed text-slate-400">
               {t`We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed.`}
             </p>
-            <div className="relative mt-8">
+            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button
                 asChild
                 className="bg-white text-slate-900 hover:bg-slate-100"
                 size="lg"
               >
                 <Link to="/auth?intent=register">{t`Start now →`}</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+              >
+                {/* Hard navigation — see header CTA above. */}
+                <a href="/demo">{t`Try demo — no signup`}</a>
               </Button>
             </div>
           </div>
@@ -732,13 +788,38 @@ const LandingPage = () => {
             </Link>
           </p>
           <p>
+            <a
+              href="https://github.com/eleron96/motio"
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+            >
+              GitHub
+            </a>
+            {' · '}
+            <a
+              href="https://github.com/eleron96/motio/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+            >
+              {t`Open source (AGPL-3.0)`}
+            </a>
+            {' · '}
+            <a
+              href="mailto:inbox@nikog.net"
+              className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+            >
+              inbox@nikog.net
+            </a>
+            {' · '}
             <Trans>
               Designed and developed by{' '}
               <a
                 href="https://nikog.net"
                 target="_blank"
                 rel="noreferrer"
-                className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-blue-600"
+                className="font-medium text-slate-600 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-primary"
               >
                 NIKO G.
               </a>

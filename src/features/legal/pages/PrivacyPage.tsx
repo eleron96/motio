@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useLocaleStore } from '@/shared/store/localeStore';
 
-const CONTACT = 'info@nikog.net';
+const CONTACT = 'inbox@nikog.net';
 const SITE = 'motio.nikog.net';
-const UPDATED_EN = 'April 1, 2025';
-const UPDATED_RU = '1 апреля 2025 г.';
+const UPDATED_EN = 'September 18, 2026';
+const UPDATED_RU = '18 сентября 2026 г.';
 
 function PrivacyContentEn() {
   return (
@@ -29,6 +29,11 @@ function PrivacyContentEn() {
         <li>Profile photo (avatar) — optional, uploaded by the user</li>
         <li>Activity data within your workspace (tasks, comments, assignments)</li>
         <li>Interface preferences (language, settings)</li>
+        <li>Browser push subscription — only if you turn on notifications</li>
+        <li>
+          Technical data: anonymous visit statistics and error reports (see sections 5
+          and 7)
+        </li>
       </ul>
 
       <h2>3. Purpose and Legal Basis</h2>
@@ -56,10 +61,30 @@ function PrivacyContentEn() {
         Service and permanently deleted within 30 days of account removal.
       </p>
 
-      <h2>5. Third-Party Sharing</h2>
+      <h2>5. Service Providers and Third Parties</h2>
       <p>
-        We do not sell, trade, or share your personal data with third parties.
-        Data is only visible to members of the workspaces you belong to.
+        We do not sell or trade your personal data. Workspace data is visible only to
+        members of the workspaces you belong to.
+      </p>
+      <p>
+        To run the Service we rely on a few providers, and each receives only what its
+        job needs:
+      </p>
+      <ul>
+        <li>Hosting — TimeWeb, servers in Moscow, Russian Federation.</li>
+        <li>
+          Email delivery — our email (SMTP) provider receives your email address and the
+          message when we send sign-up confirmations, invitations and notifications.
+        </li>
+        <li>
+          Browser notifications — if you turn them on, your browser's push service
+          (Google, Apple or Mozilla, depending on the browser) delivers them. The message
+          content is encrypted, and the push service cannot read it.
+        </li>
+      </ul>
+      <p>
+        Visit statistics and error reports are collected by tools that run on our own
+        server; they are not shared with anyone.
       </p>
 
       <h2>6. Your Rights (GDPR)</h2>
@@ -77,10 +102,16 @@ function PrivacyContentEn() {
         <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. We will respond within 30 days.
       </p>
 
-      <h2>7. Cookies</h2>
+      <h2>7. Cookies, Statistics and Error Reports</h2>
       <p>
         We use only essential session cookies required for authentication.
         No tracking, analytics, or advertising cookies are used.
+      </p>
+      <p>
+        Our visit statistics are cookieless: they count pages, referring sites, campaign
+        tags, browser, device type and country, without identifying you. Error reports
+        contain technical details of what failed — the page, the browser and the error —
+        not your name or email.
       </p>
 
       <h2>8. Security</h2>
@@ -133,6 +164,11 @@ function PrivacyContentRu() {
         <li>Фотография профиля (аватар) — по желанию пользователя</li>
         <li>Данные активности в рабочем пространстве (задачи, комментарии, назначения)</li>
         <li>Настройки интерфейса (язык, предпочтения)</li>
+        <li>Подписка на уведомления браузера — только если вы их включили</li>
+        <li>
+          Технические данные: анонимная статистика посещений и отчёты об ошибках (см.
+          разделы 5 и 7)
+        </li>
       </ul>
 
       <h2>3. Цели обработки и правовое основание</h2>
@@ -163,10 +199,30 @@ function PrivacyContentRu() {
         Сервиса и безвозвратно удаляются в течение 30 дней после удаления аккаунта.
       </p>
 
-      <h2>5. Передача третьим лицам</h2>
+      <h2>5. Поставщики услуг и третьи лица</h2>
       <p>
-        Мы не продаём и не передаём ваши данные третьим лицам. Данные доступны
-        только участникам рабочих пространств, в которые вы входите.
+        Мы не продаём ваши данные. Данные рабочего пространства доступны только его
+        участникам.
+      </p>
+      <p>
+        Для работы Сервиса мы пользуемся услугами нескольких поставщиков, и каждый
+        получает только то, что нужно для его задачи:
+      </p>
+      <ul>
+        <li>Хостинг — TimeWeb, серверы в Москве, Россия.</li>
+        <li>
+          Отправка писем — почтовый (SMTP) провайдер получает ваш адрес и само письмо,
+          когда мы отправляем подтверждение регистрации, приглашения и уведомления.
+        </li>
+        <li>
+          Уведомления браузера — если вы их включили, их доставляет push-сервис вашего
+          браузера (Google, Apple или Mozilla — в зависимости от браузера). Содержимое
+          уведомлений зашифровано, и push-сервис не может его прочитать.
+        </li>
+      </ul>
+      <p>
+        Статистика посещений и отчёты об ошибках собираются инструментами, которые
+        работают на нашем собственном сервере; никому они не передаются.
       </p>
 
       <h2>6. Ваши права (GDPR)</h2>
@@ -184,10 +240,16 @@ function PrivacyContentRu() {
         <a href={`mailto:${CONTACT}`}>{CONTACT}</a>. Мы ответим в течение 30 дней.
       </p>
 
-      <h2>7. Файлы cookie</h2>
+      <h2>7. Файлы cookie, статистика и отчёты об ошибках</h2>
       <p>
         Мы используем только необходимые сессионные cookie для аутентификации.
         Трекинговые, аналитические и рекламные cookie не используются.
+      </p>
+      <p>
+        Статистика посещений работает без cookie: она считает страницы, сайты-источники,
+        метки кампаний, браузер, тип устройства и страну, не определяя, кто вы. Отчёты об
+        ошибках содержат технические детали сбоя — страницу, браузер и текст ошибки, — но
+        не ваше имя и не email.
       </p>
 
       <h2>8. Безопасность</h2>
@@ -224,7 +286,7 @@ const PrivacyPage = () => {
     <div className="min-h-screen bg-white">
       <header className="border-b border-slate-200">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link to="/" className="text-sm font-semibold text-slate-900 hover:text-blue-600">
+          <Link to="/" className="text-sm font-semibold text-slate-900 hover:text-primary">
             ← Motio
           </Link>
           <span className="text-xs text-slate-400">
