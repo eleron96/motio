@@ -1,0 +1,39 @@
+name: Release
+
+# Publishes the GitHub Release for the version that has just landed in main.
+# Runs the same idempotent script as `make release-publish`: every version gets a
+# tag, a public Release is created only when its changelog section has real
+# content, and a re-run never creates duplicates.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # A manual run from another branch would tag that branch's HEAD — refuse it.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags, so an already-released version is recognised
+
+      - name: Tag the version and publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Locally a gh hiccup is only a warning; here it must turn the run red,
+          # otherwise a missing Release would go unnoticed again.
+          RELEASE_PUBLISH_STRICT: "1"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bash infra/scripts/release-publish.sh
