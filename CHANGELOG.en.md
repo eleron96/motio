@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 ### Changed
+- On a phone, buttons, switches and navigation now dip slightly under the finger when pressed, and a tapped button no longer stays highlighted afterwards.
 - On a phone, the Team tab now shows each member's photo, or a coloured circle with their initials, to the left of their name, the same as on the timeline.
 
 ## [0.10.6] - 2026-09-17
