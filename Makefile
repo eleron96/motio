@@ -86,10 +86,11 @@ release-sync:
 		git commit -m "chore(release): sync release $$release_version"; \
 		git push origin $$(git branch --show-current); \
 	fi
-	@echo "Synced. Publish the GitHub Release after merging into main: make release-publish"
+	@echo "Synced. Merging into main publishes the GitHub Release on its own (Release workflow); manual fallback: make release-publish"
 
 # Tag + publish a GitHub Release for the current VERSION.
-# Run MANUALLY after merging into main — deploys no longer publish releases.
+# The Release workflow runs the same script on every push to main — deploys do not
+# publish releases. Run this by hand from main only to retry or when Actions is down.
 # Idempotent and non-fatal — safe to re-run if gh was offline.
 release-publish:
 	./infra/scripts/release-publish.sh

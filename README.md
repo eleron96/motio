@@ -7,23 +7,32 @@
 
 # Motio
 
-**Team task planning on a timeline.**
+**See who's doing what this week — across every project.**
 
-Plan work across people and projects on a drag-and-drop timeline,
-keep the whole team's workload visible — self-hosted, with SSO out of the box.
+One shared timeline for your whole team: people, projects and workload on a single screen.
+Free to use, and the live demo needs no sign-up.
 
-[![Version](https://img.shields.io/badge/version-0.10.5-blue.svg)](./CHANGELOG.en.md)
-[![React](https://img.shields.io/badge/React-18-61dafb.svg?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-5-646cff.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Supabase](https://img.shields.io/badge/Supabase-self--hosted-3ecf8e.svg?logo=supabase&logoColor=white)](https://supabase.com/)
-[![Keycloak](https://img.shields.io/badge/Keycloak-SSO-0096d6.svg?logo=keycloak&logoColor=white)](https://www.keycloak.org/)
+**[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
-[Features](#-features) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [Documentation](#-documentation)
+[![Version](https://img.shields.io/badge/version-0.10.7-blue.svg)](./CHANGELOG.en.md)
+[![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-source--available-lightgrey.svg)](./LICENSE)
 
 ![Motio — timeline view](.github/assets/screenshot-planner.png)
 
+[Why Motio](#why-motio) · [Features](#-features) · [Run it locally](#-run-it-locally) · [Architecture](#-architecture) · [Documentation](#-documentation)
+
 </div>
+
+## Why Motio
+
+Most tools answer "what's in project X?". Motio answers the question a team lead actually asks on Monday: **who is busy, who is free, and where does the next task go?**
+
+- 👥 **People first, not tasks first.** Every row is a person, every bar is their work — across all projects at once. Elsewhere that is one view among many; in Motio it is the product.
+- 🔥 **Overload shows up before the deadline does.** Workload sits on the same timeline and in a department heatmap, so you see who is full without assembling a report from boards, filters and spreadsheets.
+- ⚡ **Any task in 10 seconds.** Click, type, drag. No custom fields, no automations, no kanban mode — that is a position, not a missing feature. The [manifesto](./MANIFESTO.md) (in Russian) explains why.
+
+Built for teams of 5–50 people running several projects at once. It grew out of years of managing BIM and engineering project teams, and one recurring Monday question: who's free this week?
 
 ## ✨ Features
 
@@ -38,10 +47,12 @@ keep the whole team's workload visible — self-hosted, with SSO out of the box.
 - 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself, Keycloak is the identity store.
 - 💾 **Backups built in** — daily backups of the database, media and Keycloak with retention, upload/download and one-click restore from the admin console.
 - 🗄 **Super-admin console** — user overview, workspace management, backup/restore, announcements to every user.
-- 🧪 **Demo sandbox** — `/demo` runs entirely in the browser on sample data, no sign-in needed.
+- 🧪 **Demo sandbox** — [`/demo`](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme) runs entirely in the browser on sample data, no sign-in needed.
 - 🌍 **Two languages** — English and Russian UI (Lingui).
 
-## 🚀 Quick start
+## 🚀 Run it locally
+
+Most teams just [sign up](https://motio.nikog.net/?utm_source=github&utm_medium=readme) and start working. The code is here so you can read it and bring the whole stack up on your own machine to see how it works.
 
 Requirements: **Node.js 20+**, **Docker Desktop**.
 
@@ -61,9 +72,18 @@ make logs    # follow logs
 `make up` generates `.env` with dev secrets, applies Liquibase migrations and
 synchronizes Keycloak ↔ Supabase — no manual setup needed.
 
-Production, remote deploy and releases: see [docs/operations.md](docs/operations.md).
+Need Motio on your own servers, inside your own perimeter? That works too, but it
+needs the author's written permission first — see [License](#-license) and ask in
+[Discussions](https://github.com/eleron96/motio/discussions). Production, remote deploy
+and releases are described in [docs/operations.md](docs/operations.md).
 
 ## 🏗 Architecture
+
+[![React](https://img.shields.io/badge/React-18-61dafb.svg?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646cff.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-self--hosted-3ecf8e.svg?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Keycloak](https://img.shields.io/badge/Keycloak-SSO-0096d6.svg?logo=keycloak&logoColor=white)](https://www.keycloak.org/)
 
 | Layer | Technologies |
 |---|---|
@@ -111,24 +131,21 @@ Details: [docs/architecture.md](docs/architecture.md).
 | [docs/troubleshooting.md](docs/troubleshooting.md) | common errors and fixes |
 | [CHANGELOG.en.md](./CHANGELOG.en.md) · [CHANGELOG.md](./CHANGELOG.md) | change history (en / ru) |
 | [MANIFESTO.md](./MANIFESTO.md) | product principles |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | how to report a bug, propose an idea or send a pull request |
+| [SECURITY.md](./SECURITY.md) | how to report a security problem privately |
 | [AGENTS.md](./AGENTS.md) | working instructions for AI assistants |
 
 ## 🤝 Contributing
 
-1. Create a feature branch: `git checkout -b feature/my-feature` (the licence does not grant redistribution — see [LICENSE](./LICENSE)).
-2. `npm install`, then bring up the stack: `make up`.
-3. Add tests and keep it clean: `npm run test`, `npm run lint`, `npm run typecheck`,
-   `bash infra/scripts/lint-security-definer.sh`, `npm run build`
-   (plus `npm run test:integration` when touching RPC/RLS/cron).
-4. New UI strings go through Lingui: `npm run lingui:extract && npm run lingui:compile`.
-   Stale catalogs fail both CI and the production deploy.
-5. Log the change with `make logchange RU="…" EN="…" [TYPE=added|changed|fixed|removed|security]`
-   — it writes the entry into the `Unreleased` section of both changelogs (ru and en).
-   Then open a PR with a clear description.
+Found a bug or hit a wall? [Open an issue](https://github.com/eleron96/motio/issues/new/choose).
+Have a question, or want to show how your team plans its week? Head to
+[Discussions](https://github.com/eleron96/motio/discussions). Setup, checks and the
+note on licensing for pull requests are in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-Merging into `main` deploys nothing: production only goes out via `make deploy`.
+Security problem? Please report it privately — see [SECURITY.md](./SECURITY.md).
 
 ## 📄 License
 
-Source-available, not open source: the code is public to read, any other use
-requires written permission. See [LICENSE](./LICENSE).
+Source-available, not open source: you may read the code and run it locally to
+evaluate it. Anything else — production or commercial use, hosting it for others,
+redistribution — requires the author's written permission. See [LICENSE](./LICENSE).

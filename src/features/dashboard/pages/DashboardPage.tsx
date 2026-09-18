@@ -41,6 +41,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MOBILE_FAB_BUTTON_CLASS } from '@/shared/ui/mobile-fab';
+import { MobileSwipeDeck } from '@/shared/ui/mobile-swipe-deck';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
 import { cn } from '@/shared/lib/classNames';
 import {
@@ -63,6 +64,10 @@ const DashboardWidgetCard = lazyNamed(
 const WorkloadHeatmapBoard = lazyNamed(
   () => import('@/features/dashboard/components/WorkloadHeatmapBoard'),
   'WorkloadHeatmapBoard'
+);
+const WorkloadHeatmapMobile = lazyNamed(
+  () => import('@/features/dashboard/components/WorkloadHeatmapMobile'),
+  'WorkloadHeatmapMobile'
 );
 import { WidgetEditorDialog } from '@/features/dashboard/components/WidgetEditorDialog';
 import { DashboardLayouts, DashboardWidget } from '@/features/dashboard/types/dashboard';
@@ -217,6 +222,14 @@ const DashboardPage = () => {
   );
   const heatmapAvailable = isWorkloadHeatmapEnabled() && Boolean(currentWorkspace?.heatmapEnabled);
   const isHeatmapView = view === 'heatmap' && heatmapAvailable;
+  // A phone swipes between the two views, so both live in a deck. The heatmap
+  // page mounts the first time it is opened and stays: its data is not worth
+  // fetching for someone who never swipes over, and worth keeping once they do.
+  const swipeLayout = isMobile && heatmapAvailable;
+  const [heatmapMounted, setHeatmapMounted] = useState(false);
+  useEffect(() => {
+    if (isHeatmapView) setHeatmapMounted(true);
+  }, [isHeatmapView]);
 
   useOnboardingTour({
     pageId: 'dashboard',
@@ -843,41 +856,28 @@ const DashboardPage = () => {
     );
   };
 
-  const dashboardCanvas = (
-    <div
-      ref={containerRef}
-      data-tour="dashboard-canvas"
-      className={cn('flex-1 overflow-auto', isTouchReorderMode && 'dashboard-mobile-interactions')}
-      style={{
-        padding: `${currentGridSettings.containerPadding[1]}px ${currentGridSettings.containerPadding[0]}px`,
-      }}
-      onDoubleClick={handleCanvasDoubleClick}
-      onContextMenu={handleDashboardContextMenu}
-    >
-      <div
-        className="dashboard-toolbar flex flex-wrap items-center gap-2"
-        style={{ marginBottom: Math.max(8, currentGridSettings.margin[1]) }}
+  const toggleButtonClass = swipeLayout ? 'h-9 px-4 text-xs' : 'h-8 px-3 text-xs';
+  const viewToggle = heatmapAvailable ? (
+    <div className="mr-1 inline-flex items-center rounded-md border border-border p-0.5">
+      <Button
+        variant={isHeatmapView ? 'ghost' : 'secondary'}
+        className={toggleButtonClass}
+        onClick={() => selectView('dashboards')}
       >
-        {heatmapAvailable && (
-          <div className="mr-1 inline-flex items-center rounded-md border border-border p-0.5">
-            <Button
-              variant={isHeatmapView ? 'ghost' : 'secondary'}
-              className="h-8 px-3 text-xs"
-              onClick={() => selectView('dashboards')}
-            >
-              {t`Dashboards`}
-            </Button>
-            <Button
-              variant={isHeatmapView ? 'secondary' : 'ghost'}
-              className="h-8 px-3 text-xs"
-              onClick={() => selectView('heatmap')}
-            >
-              {t`Heatmap`}
-            </Button>
-          </div>
-        )}
-        {!isHeatmapView && (
-          <>
+        {t`Dashboards`}
+      </Button>
+      <Button
+        variant={isHeatmapView ? 'secondary' : 'ghost'}
+        className={toggleButtonClass}
+        onClick={() => selectView('heatmap')}
+      >
+        {t`Heatmap`}
+      </Button>
+    </div>
+  ) : null;
+
+  const dashboardControls = (
+    <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="gap-2">
@@ -952,21 +952,17 @@ const DashboardPage = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-          </>
-        )}
-      </div>
-      {isHeatmapView ? (
-        <Suspense
-          fallback={(
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {t`Loading workload...`}
-            </div>
-          )}
-        >
-          <WorkloadHeatmapBoard />
-        </Suspense>
-      ) : (
-        <>
+    </>
+  );
+
+  const heatmapFallback = (
+    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      {t`Loading workload...`}
+    </div>
+  );
+
+  const dashboardsContent = (
+    <>
       {canEdit && isTouchReorderMode && (
         <div className="mb-2 text-[11px] text-muted-foreground">
           {mobileDragArmedWidgetId
@@ -1022,8 +1018,80 @@ const DashboardPage = () => {
           ))}
         </ResponsiveGridLayout>
       )}
-        </>
-      )}
+    </>
+  );
+
+  const canvasPadding = `${currentGridSettings.containerPadding[1]}px ${currentGridSettings.containerPadding[0]}px`;
+  const toolbarGap = Math.max(8, currentGridSettings.margin[1]);
+
+  const dashboardCanvas = swipeLayout ? (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      {/* The toggle stays put above the deck: it is the indicator of which
+          page is under the finger, so it must not slide along with the page. */}
+      <div
+        className="dashboard-toolbar flex shrink-0 items-center gap-2"
+        style={{
+          padding: `${currentGridSettings.containerPadding[1]}px ${currentGridSettings.containerPadding[0]}px 0`,
+        }}
+      >
+        {viewToggle}
+      </div>
+      {/* A widget being moved or resized owns its drag; the deck must not page under it. */}
+      <MobileSwipeDeck
+        index={isHeatmapView ? 1 : 0}
+        count={2}
+        onIndexChange={(next) => selectView(next === 1 ? 'heatmap' : 'dashboards')}
+        ignoreSelector=".dashboard-widget-handle-mobile-armed, .react-resizable-handle"
+      >
+        <div
+          ref={containerRef}
+          data-tour="dashboard-canvas"
+          className={cn(
+            'h-full overflow-y-auto overflow-x-hidden',
+            isTouchReorderMode && 'dashboard-mobile-interactions',
+          )}
+          style={{ padding: canvasPadding }}
+          onDoubleClick={handleCanvasDoubleClick}
+          onContextMenu={handleDashboardContextMenu}
+        >
+          <div
+            className="dashboard-toolbar flex flex-wrap items-center gap-2"
+            style={{ marginBottom: toolbarGap }}
+          >
+            {dashboardControls}
+          </div>
+          {dashboardsContent}
+        </div>
+        <div className="h-full min-h-0">
+          {(isHeatmapView || heatmapMounted) && (
+            <Suspense fallback={heatmapFallback}>
+              <WorkloadHeatmapMobile />
+            </Suspense>
+          )}
+        </div>
+      </MobileSwipeDeck>
+    </div>
+  ) : (
+    <div
+      ref={containerRef}
+      data-tour="dashboard-canvas"
+      className={cn('flex-1 overflow-auto', isTouchReorderMode && 'dashboard-mobile-interactions')}
+      style={{ padding: canvasPadding }}
+      onDoubleClick={handleCanvasDoubleClick}
+      onContextMenu={handleDashboardContextMenu}
+    >
+      <div
+        className="dashboard-toolbar flex flex-wrap items-center gap-2"
+        style={{ marginBottom: toolbarGap }}
+      >
+        {viewToggle}
+        {!isHeatmapView && dashboardControls}
+      </div>
+      {isHeatmapView ? (
+        <Suspense fallback={heatmapFallback}>
+          <WorkloadHeatmapBoard />
+        </Suspense>
+      ) : dashboardsContent}
     </div>
   );
 

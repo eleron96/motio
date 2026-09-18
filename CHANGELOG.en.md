@@ -7,6 +7,18 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.7] - 2026-09-18
+### Changed
+- On a phone, buttons, switches and navigation now dip slightly under the finger when pressed, and a tapped button no longer stays highlighted afterwards.
+- On a phone, the Team tab now shows each member's photo, or a coloured circle with their initials, to the left of their name, the same as on the timeline.
+
+## [0.10.6] - 2026-09-17
+### Added
+- The workload heatmap now works on a phone: months are stacked full-width, day cells are finger-sized and a day opens as a sheet from the bottom. A swipe switches between the dashboards and the heatmap.
+
+### Changed
+- Dropped a leftover pre-connection to Google font servers on page load. No fonts were ever fetched from there, and the page now makes no contact with Google at all.
+
 ## [0.10.5] - 2026-09-12
 ### Changed
 - No documented changes.

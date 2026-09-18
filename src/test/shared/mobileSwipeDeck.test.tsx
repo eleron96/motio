@@ -176,4 +176,27 @@ describe('MobileSwipeDeck', () => {
 
     expect(onIndexChange).not.toHaveBeenCalled();
   });
+
+  it('leaves a gesture that starts inside ignoreSelector to its owner', () => {
+    const onIndexChange = vi.fn();
+    render(
+      <MobileSwipeDeck index={0} count={2} onIndexChange={onIndexChange} ignoreSelector=".grip">
+        <div>
+          <div className="grip" data-testid="grip">Drag me</div>
+        </div>
+        <div>Page two</div>
+      </MobileSwipeDeck>,
+    );
+
+    const deck = screen.getByTestId('mobile-swipe-deck');
+    Object.defineProperty(deck, 'offsetWidth', { configurable: true, value: DECK_WIDTH });
+    const grip = screen.getByTestId('grip');
+
+    // A widget's drag handle: the drag is the widget's, however far it travels.
+    fireEvent.pointerDown(grip, { pointerId: 1, clientX: 300, clientY: 100 });
+    fireEvent.pointerMove(deck, { pointerId: 1, clientX: 60, clientY: 100 });
+    fireEvent.pointerUp(deck, { pointerId: 1, clientX: 60, clientY: 100 });
+
+    expect(onIndexChange).not.toHaveBeenCalled();
+  });
 });

@@ -3,6 +3,12 @@ import tailwindcssAnimate from "tailwindcss-animate";
 import typography from "@tailwindcss/typography";
 
 export default {
+  // `hover:` only where a pointer can actually hover. On a touch screen iOS
+  // keeps :hover on whatever was tapped last, so a tapped button stayed
+  // highlighted until the next tap elsewhere. Desktop is untouched.
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   prefix: "",
