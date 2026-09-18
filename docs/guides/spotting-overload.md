@@ -19,7 +19,8 @@ that row. Scan the rows on Monday:
 - **An empty stretch** — free capacity, and the natural place for the next task.
 - **A grey Day off bar** — that person is away; don't count on them.
 
-Fix it on the spot: drag a bar into someone else's row, or stretch it over more days.
+Fix it on the spot: drag a bar to later days, stretch it over more days, or click it and
+give it to someone with free capacity under **Assignees**.
 
 ## The last few weeks: the dashboard
 
