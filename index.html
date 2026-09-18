@@ -30,21 +30,43 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14181f" media="(prefers-color-scheme: dark)" />
-    <title>Motio — One timeline for your whole team. 10 seconds per task.</title>
-    <meta name="description" content="Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory." />
+    <title>Motio — see who’s doing what this week, across every project</title>
+    <meta name="description" content="Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://motio.nikog.net/" />
 
-    <meta property="og:title" content="Motio — One timeline for your whole team. 10 seconds per task." />
-    <meta property="og:description" content="Self-hosted team planner built around one screen — a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory." />
+    <!-- Link previews (LinkedIn, Telegram, Slack…) read only these tags — they don't run
+         JavaScript. /og-image.png has its own public route in both Caddyfiles. -->
+    <meta property="og:site_name" content="Motio" />
+    <meta property="og:title" content="Motio — see who’s doing what this week, across every project" />
+    <meta property="og:description" content="Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://motio.nikog.net/" />
-    <meta property="og:image" content="https://motio.nikog.net/logo.png" />
+    <meta property="og:image" content="https://motio.nikog.net/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Motio: see who’s doing what this week — one timeline for people, projects and workload." />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Motio — One timeline for your whole team" />
-    <meta name="twitter:description" content="Self-hosted team planner built around one shared timeline. Any task in 10 seconds. No clutter, no SaaS lock-in." />
-    <meta name="twitter:image" content="https://motio.nikog.net/logo.png" />
+    <meta name="twitter:title" content="Motio — see who’s doing what this week, across every project" />
+    <meta name="twitter:description" content="Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up." />
+    <meta name="twitter:image" content="https://motio.nikog.net/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Motio",
+        "url": "https://motio.nikog.net/",
+        "image": "https://motio.nikog.net/og-image.png",
+        "description": "Free, open-source team planner: people, projects and workload on one shared timeline.",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+        "sameAs": ["https://github.com/eleron96/motio"]
+      }
+    </script>
 
     <script defer data-domain="motio.nikog.net" src="https://analise.nikog.webtm.ru/js/script.js"></script>
   </head>

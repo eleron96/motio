@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useLocaleStore } from '@/shared/store/localeStore';
 
-const CONTACT = 'info@nikog.net';
+const CONTACT = 'inbox@nikog.net';
 const SITE = 'motio.nikog.net';
-const UPDATED_EN = 'April 12, 2026';
-const UPDATED_RU = '12 апреля 2026 г.';
+const REPO = 'github.com/eleron96/motio';
+const LICENSE_URL = 'https://github.com/eleron96/motio/blob/main/LICENSE';
+const UPDATED_EN = 'September 18, 2026';
+const UPDATED_RU = '18 сентября 2026 г.';
 
 function TermsContentEn() {
   return (
@@ -60,11 +62,22 @@ function TermsContentEn() {
         Workspace administrators are responsible for managing membership and access.
       </p>
 
-      <h2>7. Intellectual Property</h2>
+      <h2>7. Intellectual Property and Open Source</h2>
       <p>
-        The Service, its original content (excluding user content), features, and
-        functionality are owned by Motio and are protected by copyright, trademark,
-        and other intellectual property laws.
+        The Motio software is free and open source: it is licensed under the{' '}
+        <a href={LICENSE_URL} target="_blank" rel="noreferrer">
+          GNU Affero General Public License v3.0
+        </a>
+        , and its source code is available at{' '}
+        <a href={`https://${REPO}`} target="_blank" rel="noreferrer">
+          {REPO}
+        </a>
+        . These Terms govern your use of the hosted Service at {SITE}.
+      </p>
+      <p>
+        The name “Motio” and the Motio logo are not covered by that licence: they may not
+        be used for a fork or for a modified version offered to others. The Service's
+        original content (excluding user content) is protected by copyright.
       </p>
 
       <h2>8. Termination</h2>
@@ -158,11 +171,23 @@ function TermsContentRu() {
         рабочего пространства отвечают за управление участниками и доступом.
       </p>
 
-      <h2>7. Интеллектуальная собственность</h2>
+      <h2>7. Интеллектуальная собственность и открытый код</h2>
       <p>
-        Сервис, его оригинальный контент (за исключением пользовательского контента),
-        функции и функциональность принадлежат Motio и защищены законами об авторском
-        праве, товарных знаках и интеллектуальной собственности.
+        Программа Motio — свободная, с открытым исходным кодом: она распространяется по
+        лицензии{' '}
+        <a href={LICENSE_URL} target="_blank" rel="noreferrer">
+          GNU Affero General Public License v3.0
+        </a>
+        , исходный код доступен на{' '}
+        <a href={`https://${REPO}`} target="_blank" rel="noreferrer">
+          {REPO}
+        </a>
+        . Настоящие условия регулируют использование сервиса на {SITE}.
+      </p>
+      <p>
+        Название «Motio» и логотип Motio этой лицензией не покрываются: их нельзя
+        использовать для форка или изменённой версии, предлагаемой другим. Оригинальный
+        контент Сервиса (за исключением пользовательского) охраняется авторским правом.
       </p>
 
       <h2>8. Прекращение использования</h2>
@@ -209,7 +234,7 @@ const TermsPage = () => {
     <div className="min-h-screen bg-white">
       <header className="border-b border-slate-200">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link to="/" className="text-sm font-semibold text-slate-900 hover:text-blue-600">
+          <Link to="/" className="text-sm font-semibold text-slate-900 hover:text-primary">
             ← Motio
           </Link>
           <span className="text-xs text-slate-400">

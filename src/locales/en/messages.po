@@ -1896,6 +1896,10 @@ msgid "E.g. Передано заказчику"
 msgstr "E.g. Передано заказчику"
 
 #: src/features/marketing/pages/LandingPage.tsx
+msgid "Each day is coloured by how busy the team is: tasks per person who is actually there, with milestones and time off counted in. Click a hot day to jump straight to it on the timeline."
+msgstr "Each day is coloured by how busy the team is: tasks per person who is actually there, with milestones and time off counted in. Click a hot day to jump straight to it on the timeline."
+
+#: src/features/marketing/pages/LandingPage.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
@@ -2169,6 +2173,10 @@ msgstr "Expand filters"
 msgid "experimental"
 msgstr "experimental"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Experimental — a workspace admin switches it on in settings."
+msgstr "Experimental — a workspace admin switches it on in settings."
+
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Expired"
@@ -2402,6 +2410,10 @@ msgstr "Force purge failed"
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge scheduled"
 msgstr "Force purge scheduled"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up."
+msgstr "Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up."
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
@@ -3104,20 +3116,16 @@ msgid "Motio"
 msgstr "Motio"
 
 #: src/features/marketing/pages/LandingPage.tsx
+msgid "Motio — see who’s doing what this week, across every project"
+msgstr "Motio — see who’s doing what this week, across every project"
+
+#: src/features/marketing/pages/LandingPage.tsx
 msgid "Motio grew out of exactly this boring but very real problem."
 msgstr "Motio grew out of exactly this boring but very real problem."
 
 #: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Motio home"
 msgstr "Motio home"
-
-#: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
-msgstr "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
-
-#: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio. One timeline for your whole team. 10 seconds per task."
-msgstr "Motio. One timeline for your whole team. 10 seconds per task."
 
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Mountains"
@@ -3847,10 +3855,6 @@ msgstr "On Monday I'd open three different tabs to answer one simple question: w
 msgid "On the calendar"
 msgstr "On the calendar"
 
-#: src/features/marketing/pages/LandingPage.tsx
-msgid "One <0>clear timeline</0><1/> for your whole team"
-msgstr "One <0>clear timeline</0><1/> for your whole team"
-
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "One of my tasks changes"
 msgstr "One of my tasks changes"
@@ -3858,6 +3862,10 @@ msgstr "One of my tasks changes"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "One person"
 msgstr "One person"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
+msgstr "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
@@ -3925,9 +3933,25 @@ msgstr "Open project"
 msgid "Open projects"
 msgstr "Open projects"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Open source (AGPL-3.0)"
+msgstr "Open source (AGPL-3.0)"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Open source under AGPL-3.0"
+msgstr "Open source under AGPL-3.0"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Open team"
 msgstr "Open team"
+
+#: src/features/marketing/components/HeroClip.tsx
+msgid "Open the live demo"
+msgstr "Open the live demo"
+
+#: src/features/marketing/components/HeroClip.tsx
+msgid "Open the live demo →"
+msgstr "Open the live demo →"
 
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Open this day"
@@ -4759,6 +4783,10 @@ msgstr "Search types..."
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "See who’s doing what <0>this week</0><1/> across every project"
+msgstr "See who’s doing what <0>this week</0><1/> across every project"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Select a customer"
 msgstr "Select a customer"
@@ -4874,8 +4902,8 @@ msgid "Select workspace"
 msgstr "Select workspace"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
-msgstr "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
+msgid "Self-hosting guide on GitHub →"
+msgstr "Self-hosting guide on GitHub →"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -5107,6 +5135,10 @@ msgstr "Sort Z to A"
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 msgid "Sorting"
 msgstr "Sorting"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Spot overload months ahead"
+msgstr "Spot overload months ahead"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "SSO via Keycloak"
@@ -5469,6 +5501,10 @@ msgstr "The tool I wanted to use"
 msgid "The whole team is away"
 msgstr "The whole team is away"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "The workload heatmap: the team's load per day for the coming months"
+msgstr "The workload heatmap: the team's load per day for the coming months"
+
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "The workspace and all its data will be deleted permanently."
@@ -5798,6 +5834,7 @@ msgstr "Try again from Account settings."
 msgid "Try demo"
 msgstr "Try demo"
 
+#: src/features/marketing/pages/LandingPage.tsx
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Try demo — no signup"
 msgstr "Try demo — no signup"
@@ -6189,6 +6226,7 @@ msgstr "Without this, only people who have not seen it yet will get it."
 msgid "Workflow"
 msgstr "Workflow"
 
+#: src/features/marketing/pages/LandingPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workload heatmap"
 msgstr "Workload heatmap"

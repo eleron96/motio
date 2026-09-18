@@ -1896,6 +1896,10 @@ msgid "E.g. Передано заказчику"
 msgstr "Напр. Передано клиенту"
 
 #: src/features/marketing/pages/LandingPage.tsx
+msgid "Each day is coloured by how busy the team is: tasks per person who is actually there, with milestones and time off counted in. Click a hot day to jump straight to it on the timeline."
+msgstr "Каждый день окрашен по тому, насколько занята команда: задачи на тех, кто на месте, с учётом вех и отпусков. Нажмите на загруженный день — и сразу окажетесь на нём на таймлайне."
+
+#: src/features/marketing/pages/LandingPage.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Каждое утро начинается с короткого брифа. Что на вас сегодня, какие вехи на этой неделе, где команде нужна ваша помощь. До того как вы откроете что-то ещё."
 
@@ -2169,6 +2173,10 @@ msgstr "Развернуть фильтры"
 msgid "experimental"
 msgstr "экспериментальная"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Experimental — a workspace admin switches it on in settings."
+msgstr "Экспериментальная функция — её включает администратор рабочего пространства в настройках."
+
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Expired"
@@ -2402,6 +2410,10 @@ msgstr "Досрочное удаление не удалось"
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge scheduled"
 msgstr "Досрочное удаление запланировано"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up."
+msgstr "Бесплатный планировщик с открытым кодом: люди, проекты и загрузка на одной общей шкале. Перегрузку видно заранее. Демо без регистрации."
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
@@ -3104,20 +3116,16 @@ msgid "Motio"
 msgstr "Motio"
 
 #: src/features/marketing/pages/LandingPage.tsx
+msgid "Motio — see who’s doing what this week, across every project"
+msgstr "Motio — кто чем занят на этой неделе, по всем проектам"
+
+#: src/features/marketing/pages/LandingPage.tsx
 msgid "Motio grew out of exactly this boring but very real problem."
 msgstr "Motio вырос именно из этой скучной, но очень реальной проблемы."
 
 #: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Motio home"
 msgstr "На главную Motio"
-
-#: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio keeps tasks, projects and workload in one shared workspace. No chaos, no spreadsheets."
-msgstr "Задачи, проекты и загрузка команды — в одном рабочем пространстве. Без хаоса и таблиц."
-
-#: src/features/marketing/pages/LandingPage.tsx
-msgid "Motio. One timeline for your whole team. 10 seconds per task."
-msgstr "Motio. Один таймлайн для всей команды. Любая задача за 10 секунд."
 
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Mountains"
@@ -3847,10 +3855,6 @@ msgstr "В понедельник я мог открыть три разные �
 msgid "On the calendar"
 msgstr "На календаре"
 
-#: src/features/marketing/pages/LandingPage.tsx
-msgid "One <0>clear timeline</0><1/> for your whole team"
-msgstr "Один <0>понятный таймлайн</0><1/> для всей команды"
-
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "One of my tasks changes"
 msgstr "Изменилась моя задача"
@@ -3858,6 +3862,10 @@ msgstr "Изменилась моя задача"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "One person"
 msgstr "Один человек"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
+msgstr "Люди, проекты и загрузка — на одной общей шкале. Перегрузку видно раньше, чем она сорвёт срок."
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
@@ -3925,9 +3933,25 @@ msgstr "Перейти к проекту"
 msgid "Open projects"
 msgstr "Открыть проекты"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Open source (AGPL-3.0)"
+msgstr "Открытый код (AGPL-3.0)"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Open source under AGPL-3.0"
+msgstr "Открытый код под лицензией AGPL-3.0"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Open team"
 msgstr "Открыть команду"
+
+#: src/features/marketing/components/HeroClip.tsx
+msgid "Open the live demo"
+msgstr "Открыть живое демо"
+
+#: src/features/marketing/components/HeroClip.tsx
+msgid "Open the live demo →"
+msgstr "Открыть демо →"
 
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Open this day"
@@ -4759,6 +4783,10 @@ msgstr "Поиск типов..."
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "Все задачи на одном таймлайне. Сразу видно, кто и когда занят."
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "See who’s doing what <0>this week</0><1/> across every project"
+msgstr "Кто чем занят <0>на этой неделе</0><1/> по всем проектам сразу"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Select a customer"
 msgstr "Выберите клиента"
@@ -4874,8 +4902,8 @@ msgid "Select workspace"
 msgstr "Выберите рабочее пространство"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Self-hosted team planner built around one screen, a shared timeline. No custom fields, no automations, no clutter. Built from real project pain, not startup theory."
-msgstr "Планировщик для команды: один экран и общий таймлайн. Без кастомных полей, автоматизаций и шума. Сделан из реальной проектной боли, а не из стартапной теории."
+msgid "Self-hosting guide on GitHub →"
+msgstr "Инструкция на GitHub →"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -5107,6 +5135,10 @@ msgstr "Сортировать Я→А"
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 msgid "Sorting"
 msgstr "Сортировка"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Spot overload months ahead"
+msgstr "Перегрузка видна за месяцы вперёд"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "SSO via Keycloak"
@@ -5469,6 +5501,10 @@ msgstr "Инструмент, которым я сам хотел пользов
 msgid "The whole team is away"
 msgstr "Вся команда в отпуске"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "The workload heatmap: the team's load per day for the coming months"
+msgstr "Тепловая карта загрузки: нагрузка команды по дням на ближайшие месяцы"
+
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "Рабочее пространство и все его данные будут удалены без возможности восстановления."
@@ -5798,6 +5834,7 @@ msgstr "Попробуйте снова в Настройках аккаунта
 msgid "Try demo"
 msgstr "Попробовать демо"
 
+#: src/features/marketing/pages/LandingPage.tsx
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Try demo — no signup"
 msgstr "Попробовать демо — без регистрации"
@@ -6189,6 +6226,7 @@ msgstr "Без этого объявление увидят только те, �
 msgid "Workflow"
 msgstr "Процесс"
 
+#: src/features/marketing/pages/LandingPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workload heatmap"
 msgstr "Тепловая карта загрузки"

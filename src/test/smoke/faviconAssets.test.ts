@@ -29,8 +29,8 @@ describe("brand asset routing", () => {
     // don't resolve relative og:image/og:url, so a relative path = no preview.
     expect(indexHtml).toContain('link rel="canonical" href="https://motio.nikog.net/"');
     expect(indexHtml).toContain('property="og:url" content="https://motio.nikog.net/"');
-    expect(indexHtml).toContain('property="og:image" content="https://motio.nikog.net/logo.png"');
-    expect(indexHtml).toContain('name="twitter:image" content="https://motio.nikog.net/logo.png"');
+    expect(indexHtml).toContain('property="og:image" content="https://motio.nikog.net/og-image.png"');
+    expect(indexHtml).toContain('name="twitter:image" content="https://motio.nikog.net/og-image.png"');
   });
 
   it("keeps public and login theme favicon assets in sync", () => {
