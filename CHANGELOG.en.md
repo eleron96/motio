@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.8] - 2026-09-18
+### Changed
+- The home page now shows Motio itself — a short clip of the timeline and the workload heatmap — and the Terms of Service open again without signing in. The Privacy Policy now names every service that handles your data.
+
 ## [0.10.7] - 2026-09-18
 ### Changed
 - On a phone, buttons, switches and navigation now dip slightly under the finger when pressed, and a tapped button no longer stays highlighted afterwards.
