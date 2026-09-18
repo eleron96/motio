@@ -35,7 +35,9 @@ const SWIPE_COMMIT_PX = 56;
 const PILL_PADDING_LEFT = 12;
 const PILL_PADDING_RIGHT = 14;
 const PILL_ICON_GAP = 6;
-const TRANSITION = 'width 320ms cubic-bezier(.4,.8,.3,1.05), padding 320ms cubic-bezier(.4,.8,.3,1.05), background-color 200ms ease, color 200ms ease';
+// The last entry is the press dip from `.press` (src/app/index.css): an inline
+// transition overrides the class's, so the pill has to carry it itself.
+const TRANSITION = 'width 320ms cubic-bezier(.4,.8,.3,1.05), padding 320ms cubic-bezier(.4,.8,.3,1.05), background-color 200ms ease, color 200ms ease, scale var(--press-t, 0ms) var(--press-ease, ease)';
 
 interface WorkspacePillNavProps {
   onOpenMenu: () => void;
@@ -62,7 +64,7 @@ const PillButton: React.FC<PillButtonProps> = ({ item, width }) => {
       end={item.end}
       aria-label={item.label}
       className={cn(
-        'inline-flex shrink-0 items-center overflow-hidden whitespace-nowrap rounded-full text-ui-sm font-semibold',
+        'press inline-flex shrink-0 items-center overflow-hidden whitespace-nowrap rounded-full text-ui-sm font-semibold',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         isActive
           ? 'bg-foreground text-background justify-start'
@@ -227,7 +229,7 @@ export const WorkspacePillNav: React.FC<WorkspacePillNavProps> = ({
         onClick={onOpenMenu}
         aria-label={t`Open menu`}
         className={cn(
-          'relative inline-flex shrink-0 items-center justify-center rounded-full',
+          'press relative inline-flex shrink-0 items-center justify-center rounded-full',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         )}
         style={{ width: ROUND, height: ROUND }}

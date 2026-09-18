@@ -767,7 +767,7 @@ export const CalendarTimeline: React.FC = () => {
           type="button"
           onClick={() => setMobileLegendOpen(true)}
           aria-label={t`On the calendar`}
-          className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] left-6 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent md:hidden"
+          className="press absolute bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] left-6 z-30 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent md:hidden"
         >
           <Layers className="h-6 w-6 text-muted-foreground" />
         </button>

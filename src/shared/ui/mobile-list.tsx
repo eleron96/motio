@@ -135,7 +135,7 @@ export const MobileListRow: React.FC<MobileListRowProps> = ({
   const rowClassName = cn(
     'flex w-full items-center gap-3 px-4 py-2.5 text-left',
     danger ? 'text-destructive' : 'text-foreground',
-    onClick && !disabled && 'active:bg-muted/60',
+    onClick && !disabled && 'active:bg-muted/60 [-webkit-tap-highlight-color:transparent]',
     disabled && 'opacity-50',
     className,
   );

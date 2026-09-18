@@ -141,7 +141,7 @@ export const MobilePickerScreen: React.FC<MobilePickerScreenProps> = ({
                 className={cn(
                   'flex w-full items-center gap-3 px-4 py-3 text-left',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
-                  option.disabled ? 'opacity-50' : 'active:bg-muted/60',
+                  option.disabled ? 'opacity-50' : 'active:bg-muted/60 [-webkit-tap-highlight-color:transparent]',
                 )}
                 style={{ minHeight: 56 }}
               >
