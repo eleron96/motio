@@ -2,6 +2,8 @@ import React from 'react';
 import { t } from '@lingui/macro';
 import { MoreHorizontal } from 'lucide-react';
 import { Assignee } from '@/features/planner/types/planner';
+import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { cn } from '@/shared/lib/classNames';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
@@ -55,6 +57,10 @@ interface MembersMobileListProps {
  * they lead somewhere, and the row menu hangs beside the row — a row is itself
  * a button, and nesting one button in another is invalid markup whose taps
  * land on the wrong target.
+ *
+ * A person's row leads with the same avatar the timeline and the member card
+ * draw — their photo, or their initials in their colour — so a face found here
+ * is the face found everywhere else.
  */
 export const MembersMobileList: React.FC<MembersMobileListProps> = ({
   mode,
@@ -178,6 +184,25 @@ export const MembersMobileList: React.FC<MembersMobileListProps> = ({
                 return (
                   <div key={assignee.id} className="relative">
                     <MobileListRow
+                      leading={(
+                        // Decorative: the name sits right beside it, so a screen
+                        // reader would otherwise read the person twice. Greyed on
+                        // the disabled list, which is otherwise the same list.
+                        <span
+                          aria-hidden="true"
+                          data-testid="member-avatar"
+                          className={cn('flex', !assignee.isActive && 'opacity-60 grayscale')}
+                        >
+                          <PersonAvatar
+                            assigneeId={assignee.id}
+                            userId={userId}
+                            name={assignee.name}
+                            avatarUrl={assignee.avatar}
+                            colorSeed={userId ?? assignee.id}
+                            size="md"
+                          />
+                        </span>
+                      )}
                       title={assignee.name}
                       subtitle={userId ? (currentGroupName ?? t`No group`) : undefined}
                       value={count !== null ? count : undefined}
