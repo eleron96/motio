@@ -4,11 +4,13 @@ import App from "./App.tsx";
 import { syncBrowserThemeFavicons } from "@/shared/lib/themeFavicon";
 import { installPreloadErrorReload } from "@/shared/lib/preloadErrorReload";
 import { isPushEnabled } from "@/shared/lib/featureFlags";
+import { preloadLandingHero } from "@/features/marketing/lib/preloadLandingHero";
 import "./index.css";
 
 initSentry();
 syncBrowserThemeFavicons();
 installPreloadErrorReload();
+preloadLandingHero();
 
 // Register the push service worker up front (only when the feature is enabled)
 // so it is active and ready when a user opts into notifications. It has no fetch
