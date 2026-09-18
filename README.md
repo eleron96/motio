@@ -73,8 +73,8 @@ make logs    # follow logs
 synchronizes Keycloak ↔ Supabase — no manual setup needed.
 
 Need Motio on your own servers, inside your own perimeter? That works too, but it
-needs the author's written permission first — see [License](#-license) and ask in
-[Discussions](https://github.com/eleron96/motio/discussions). Production, remote deploy
+needs the author's written permission first — see [License](#-license) and write to
+[inbox@nikog.net](mailto:inbox@nikog.net). Production, remote deploy
 and releases are described in [docs/operations.md](docs/operations.md).
 
 ## 🏗 Architecture
@@ -148,4 +148,5 @@ Security problem? Please report it privately — see [SECURITY.md](./SECURITY.md
 
 Source-available, not open source: you may read the code and run it locally to
 evaluate it. Anything else — production or commercial use, hosting it for others,
-redistribution — requires the author's written permission. See [LICENSE](./LICENSE).
+redistribution — requires the author's written permission: write to
+[inbox@nikog.net](mailto:inbox@nikog.net). See [LICENSE](./LICENSE).
