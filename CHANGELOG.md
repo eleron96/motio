@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- В мобильной версии во вкладке «Команда» слева от имени участника теперь его фото или цветной кружок с инициалами, как на таймлайне.
 
 ## [0.10.6] - 2026-09-17
 ### Added
