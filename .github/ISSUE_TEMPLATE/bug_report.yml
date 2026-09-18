@@ -1,0 +1,59 @@
+name: Bug report
+description: Something in Motio does not work the way it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time — a bug that can be reproduced usually gets fixed quickly.
+
+        **Security problem?** Please don't file it here: [report it privately](https://github.com/eleron96/motio/security/advisories/new).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, and what Motio did in response.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the timeline, group by people
+        2. Drag a task to …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it happen?
+      options:
+        - motio.nikog.net (hosted app)
+        - Demo sandbox (/demo)
+        - Local stack (make up)
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - Desktop browser
+        - Phone browser
+        - Installed app (PWA)
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Safari 18 on iOS 18, Chrome 140 on macOS, …
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or console errors
+      description: Drag images right into this field. Please blur anything private.
