@@ -76,10 +76,11 @@ maintainer.
 
 ## Licence and your contribution
 
-Motio is **source-available, not open source** — see [LICENSE](./LICENSE). The licence
-lets you read the code and run it locally to evaluate it; it does not grant the right
-to redistribute it or to run it in production.
+Motio is free software under the [GNU Affero General Public License v3.0](./LICENSE)
+(`AGPL-3.0-only`).
 
-By submitting a pull request you agree that the copyright holder may use, modify and
-distribute your contribution as part of Motio, under the current licence or any later
-one, without further permission. You keep the copyright to what you wrote.
+By submitting a pull request you agree that your contribution is licensed under that
+same licence, and that the copyright holder may also use, modify and distribute it as
+part of Motio under other terms — for example, a commercial licence for a company that
+cannot use AGPL software — without further permission. You keep the copyright to what
+you wrote.
