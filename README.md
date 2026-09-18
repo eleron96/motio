@@ -35,6 +35,8 @@ Most tools answer "what's in project X?". Motio answers the question a team lead
 
 Built for teams of 5–50 people running several projects at once. It grew out of years of managing BIM and engineering project teams, and one recurring Monday question: who's free this week?
 
+**New to Motio?** Three five-minute guides: [your first week](docs/guides/first-week.md) · [several projects, one team](docs/guides/multiple-projects.md) · [spotting overload early](docs/guides/spotting-overload.md).
+
 ## ✨ Features
 
 - 📅 **Timeline** — drag-and-drop planner grouped by people or by project, with day / week / calendar views; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along.
@@ -135,6 +137,7 @@ Details: [docs/architecture.md](docs/architecture.md).
 
 | | |
 |---|---|
+| [docs/guides/](docs/guides/) | how to plan with Motio: first week, several projects, spotting overload |
 | [docs/operations.md](docs/operations.md) | local dev, production, deploy, releases, migrations, backup/restore |
 | [docs/configuration.md](docs/configuration.md) | environment variables |
 | [docs/architecture.md](docs/architecture.md) | stack, auth flow, Edge Functions, admin console |
@@ -143,6 +146,7 @@ Details: [docs/architecture.md](docs/architecture.md).
 | [MANIFESTO.md](./MANIFESTO.md) | product principles |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | how to report a bug, propose an idea or send a pull request |
 | [SECURITY.md](./SECURITY.md) | how to report a security problem privately |
+| [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | how we treat each other in issues, discussions and pull requests |
 | [AGENTS.md](./AGENTS.md) | working instructions for AI assistants |
 
 ## 🤝 Contributing
@@ -150,7 +154,8 @@ Details: [docs/architecture.md](docs/architecture.md).
 Found a bug or hit a wall? [Open an issue](https://github.com/eleron96/motio/issues/new/choose).
 Have a question, or want to show how your team plans its week? Head to
 [Discussions](https://github.com/eleron96/motio/discussions). Setup, checks and the
-note on licensing for pull requests are in [CONTRIBUTING.md](./CONTRIBUTING.md).
+note on licensing for pull requests are in [CONTRIBUTING.md](./CONTRIBUTING.md), and
+everyone taking part follows the [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 Security problem? Please report it privately — see [SECURITY.md](./SECURITY.md).
 
