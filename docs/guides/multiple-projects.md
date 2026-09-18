@@ -46,8 +46,8 @@ This is the everyday question, and the reason Motio exists.
    the project, type the title, save.
 
 If nobody has a gap, that is an answer too: something has to move, and it is better to
-find out on Monday than on Thursday. Drag a less urgent task to later, or hand it to
-someone else by dragging it into their row.
+find out on Monday than on Thursday. Drag a less urgent task to later, or click it and
+hand it to someone else under **Assignees**.
 
 ## Narrow the view to what you're discussing
 
@@ -69,7 +69,7 @@ one place.
 ## A weekly routine in fifteen minutes
 
 - **Monday** — People view, current week: close the gaps, pull the overlaps apart.
-- **During the week** — drag what slipped; hand work over by dragging it into another row.
+- **During the week** — drag what slipped to its new dates; to hand work over, open the task and change **Assignees**.
 - **Friday** — Projects view, next week: does every project have someone on it?
 
 Motio deliberately has no task dependencies, no custom fields and no automations. When
