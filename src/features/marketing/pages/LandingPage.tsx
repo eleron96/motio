@@ -469,8 +469,10 @@ const LandingPage = () => {
             </Button>
           </div>
 
-          {/* the product itself, recorded in the live demo */}
-          <div className="mx-auto mt-12 max-w-[860px]" style={{ animation: 'landFadeDown 0.6s 0.35s ease both' }}>
+          {/* the product itself, recorded in the live demo. No fade-in here: the poster
+              is the largest thing on the first screen, and a delayed fade pushed it
+              (and the page's LCP) back by a third of a second. */}
+          <div className="mx-auto mt-12 max-w-[860px]">
             <HeroClip />
           </div>
         </section>
