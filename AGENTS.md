@@ -15,7 +15,7 @@
 1. Обзор продукта простым языком: `notes/overview-for-ai.md` (что Motio делает, из чего состоит, как работает).
 2. Архитектурные границы: `notes/architecture/frontend-boundaries.md`.
 3. Поведенческие спецификации: `notes/specifications/*-behavior-by-example.md` (ядро — `planner-behavior-by-example.md`).
-4. Публичная документация (трекается в git): `README.md` (витрина), `CONTRIBUTING.md` (как прислать баг, идею или PR), `SECURITY.md` (приватный канал для сообщений об уязвимостях), шаблоны issue/PR в `.github/` и `docs/` (операционный справочник: деплой, конфигурация, backup/restore, troubleshooting).
+4. Публичная документация (трекается в git): `README.md` (витрина), `CONTRIBUTING.md` (как прислать баг, идею или PR), `SECURITY.md` (приватный канал для сообщений об уязвимостях), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.0, контакт — inbox@nikog.net), шаблоны issue/PR в `.github/` и `docs/` (операционный справочник: деплой, конфигурация, backup/restore, troubleshooting). `docs/guides/` — пользовательские гайды «как получить пользу» (не эксплуатация): при изменении описанного в них поведения (кнопки, названия, жесты) править и гайд; скриншоты в `docs/guides/images/` сняты с публичного `/demo` в 1600×1000.
 5. Dev/Prod команды: `README.md` и `Makefile`.
 
 > Папка `notes/` — локальные рабочие материалы для агента: она в `.gitignore` и
