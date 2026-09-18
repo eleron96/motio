@@ -12,6 +12,8 @@ useful contributions are, in this order:
 
 Questions go to [Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a).
 Security problem? Don't open a public issue — see [SECURITY.md](./SECURITY.md).
+Everyone taking part in issues, discussions and pull requests follows the
+[Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## Before you propose a feature
 
