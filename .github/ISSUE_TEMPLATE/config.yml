@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question, or "how do I…?"
+    url: https://github.com/eleron96/motio/discussions/categories/q-a
+    about: Ask in Discussions — the answer stays searchable for the next person.
+  - name: Show how your team uses Motio
+    url: https://github.com/eleron96/motio/discussions/categories/show-and-tell
+    about: Setups, workflows and screenshots are welcome.
+  - name: Report a security vulnerability
+    url: https://github.com/eleron96/motio/security/advisories/new
+    about: Please report security problems privately, not in a public issue.

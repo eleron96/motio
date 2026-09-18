@@ -1,0 +1,37 @@
+name: Problem or idea
+description: A situation where Motio got in your way, or something that would make planning easier
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with the situation rather than the solution — a described problem is worth more than a proposed feature.
+
+        Motio stays small on purpose: no custom fields, no automations, no task dependencies, no kanban boards. Ideas that make adding a task faster or the team picture clearer have the best chance.
+  - type: textarea
+    id: situation
+    attributes:
+      label: What were you trying to do?
+      description: The real situation — who was planning what, and where it got awkward.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you handle it today?
+      description: In Motio, in a spreadsheet, in another tool, in your head — all are valid answers.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: Optional. If you have a solution in mind, describe it here.
+  - type: dropdown
+    id: team-size
+    attributes:
+      label: How big is the team you plan for?
+      options:
+        - Just me
+        - 2–5 people
+        - 6–15 people
+        - 16–50 people
+        - More than 50
