@@ -7,7 +7,9 @@ set -euo pipefail
 # publishes a GitHub Release from the matching CHANGELOG.en.md section.
 #
 # Design goals:
-#   - Manual: run `make release-publish` from main after the release merge.
+#   - Runs on its own: the `Release` workflow (.github/workflows/release.yml) calls
+#     it on every push to main. `make release-publish` from main stays as the
+#     manual path — for a re-run, or when Actions is unavailable.
 #   - Low-noise: a git tag is created for EVERY version (rollback / bisect
 #     anchors are invisible and always useful), but a public GitHub Release is
 #     only created when the changelog section has real content. Versions whose
@@ -16,6 +18,8 @@ set -euo pipefail
 #     is a no-op, so it's safe to retry after a transient gh/network failure.
 #   - Non-fatal: a GitHub hiccup never fails the deploy pipeline (the tag is
 #     already pushed by then); just re-run `make release-publish` later.
+#     RELEASE_PUBLISH_STRICT=1 (set by the workflow) turns that hiccup into a
+#     failure, so a Release that did not get published shows up as a red run.
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root_dir"
@@ -36,8 +40,14 @@ if [[ -z "$version" ]]; then
   exit 0
 fi
 tag="v${version}"
+strict="${RELEASE_PUBLISH_STRICT:-0}"
 
 # --- 1. Tag (always) -------------------------------------------------------
+# The workflow tags from CI, so the tag may already exist on origin but not here.
+# Pick it up first — otherwise a local re-run would create a second tag of the same
+# name on a different commit and never notice.
+git fetch --quiet origin "refs/tags/${tag}:refs/tags/${tag}" 2>/dev/null || true
+
 if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
   echo "release-publish: tag ${tag} already exists locally."
 else
@@ -77,6 +87,7 @@ fi
 # --- 4. Publish the GitHub Release (best-effort) ---------------------------
 if ! command -v gh >/dev/null 2>&1; then
   echo "release-publish: gh CLI not found — tag pushed, skipping Release. Run 'make release-publish' once gh is available." >&2
+  if [[ "${strict}" == "1" ]]; then exit 1; fi
   exit 0
 fi
 
@@ -96,4 +107,5 @@ if gh release create "${tag}" \
   echo "release-publish: published GitHub Release ${tag}."
 else
   echo "release-publish: 'gh release create' failed (auth/network?). Tag ${tag} is pushed; re-run 'make release-publish' later." >&2
+  if [[ "${strict}" == "1" ]]; then exit 1; fi
 fi

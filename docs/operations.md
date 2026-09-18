@@ -187,15 +187,19 @@ no integration tests. Check the pipeline separately after pushing:
   make logchange RU="..." EN="..." [TYPE=changed]
   ```
 
-- **GitHub Releases are published manually** after merging the working branch into
-  `main`:
+- **GitHub Releases publish themselves** when the working branch is merged into `main`:
+  the `Release` workflow (`.github/workflows/release.yml`) runs
+  `infra/scripts/release-publish.sh` on every push to `main`. It tags every version, but
+  creates a public GitHub Release only when the changelog section has real user-facing
+  content — one Release per version that reaches `main`. A Release that failed to publish
+  turns the run red: check `gh run list --workflow Release --limit 1` after the merge.
+
+  The manual path stays as a fallback (a retry, or Actions being down). Run it from
+  `main`; it is idempotent and picks up a tag the workflow has already pushed:
 
   ```bash
   make release-publish
   ```
-
-  The command is idempotent and non-fatal: it tags every version, but creates a public
-  GitHub Release only when the changelog section has real user-facing content.
 
 ---
 

@@ -386,7 +386,7 @@ const PlannerPage = () => {
               setShowAddTask(true);
             }}
             disabled={!canOpenCreateDialog}
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card text-primary hover:bg-accent disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="press flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card text-primary hover:bg-accent disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <SquarePen className="h-6 w-6" />
           </button>
@@ -458,7 +458,7 @@ const PlannerPage = () => {
                   // Same 56px round button as the "add task" FAB, and lifted the
                   // same way: at 16px the button sat in the phone's rounded
                   // corner and under the home indicator, which clipped it.
-                  className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] z-30 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent"
+                  className="press absolute bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] z-30 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card shadow-md hover:bg-accent"
                 >
                   <Filter className="h-6 w-6 text-muted-foreground" />
                 </button>

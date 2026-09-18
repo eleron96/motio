@@ -919,3 +919,58 @@
 .task-description {
   overflow-wrap: anywhere;
 }
+
+/* Press feedback on touch screens.
+
+   A phone has no hover, so a tap had nothing to show between the finger going
+   down and whatever it opened: no highlight, sometimes iOS's grey flash, and a
+   hover colour that stuck after the finger was gone. `.press` gives a control
+   a short dip while it is held and a softer rise when it is let go, the way a
+   native control answers.
+
+   Only `scale` moves — the individual transform property, so it composes with
+   whatever `transform` the control already has (a centring translate, say)
+   instead of replacing it — plus the colours the control already changes.
+   Nothing here reaches a mouse: the whole block is gated on a touch-only
+   pointer, so desktop is exactly as it was.
+
+   The feel lives in the variables below; tune them here, not per control. */
+:root {
+  --press-scale: 0.95;
+  /* A full-width button travels further at the same ratio, so it dips less. */
+  --press-scale-wide: 0.98;
+  --press-in: 90ms;
+  --press-out: 220ms;
+  --press-ease: cubic-bezier(0.2, 0.6, 0.35, 1);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .press {
+    /* Read by controls whose transition is an inline style and so cannot be
+       replaced from here: they append `scale var(--press-t)` to their own. */
+    --press-t: var(--press-out);
+    -webkit-tap-highlight-color: transparent;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, scale;
+    transition-duration: var(--press-t);
+    transition-timing-function: var(--press-ease);
+  }
+
+  .press:active {
+    --press-t: var(--press-in);
+    scale: var(--press-scale);
+  }
+
+  /* An attribute selector on purpose: a `.w-full` class selector here is
+     picked up by every `@apply w-full` elsewhere in this file, which then
+     copies this rule under its own selector. */
+  .press[class~="w-full"] {
+    --press-scale: var(--press-scale-wide);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+  /* The colour still answers; nothing moves. */
+  .press:active {
+    scale: none;
+  }
+}
