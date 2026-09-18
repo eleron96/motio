@@ -18,7 +18,9 @@ Free and open source: use the hosted app, or run it on your own servers. The liv
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
 
-![Motio — timeline view](.github/assets/screenshot-planner.png)
+[![Motio in 20 seconds: add a task, drag it to Monday, stretch it over two days, then check that day on the workload heatmap](.github/assets/motio-demo.gif)](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme&utm_content=gif)
+
+<sub>Recorded in the live demo. Click it to try the same yourself — no sign-up.</sub>
 
 [Why Motio](#why-motio) · [Features](#-features) · [Self-host](#-self-host) · [Architecture](#-architecture) · [Documentation](#-documentation)
 
