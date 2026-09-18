@@ -10,17 +10,17 @@
 **See who's doing what this week — across every project.**
 
 One shared timeline for your whole team: people, projects and workload on a single screen.
-Free to use, and the live demo needs no sign-up.
+Free and open source: use the hosted app, or run it on your own servers. The live demo needs no sign-up.
 
-**[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
+**[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Self-host it](#-self-host)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
 [![Version](https://img.shields.io/badge/version-0.10.7-blue.svg)](./CHANGELOG.en.md)
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-source--available-lightgrey.svg)](./LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
 
 ![Motio — timeline view](.github/assets/screenshot-planner.png)
 
-[Why Motio](#why-motio) · [Features](#-features) · [Run it locally](#-run-it-locally) · [Architecture](#-architecture) · [Documentation](#-documentation)
+[Why Motio](#why-motio) · [Features](#-features) · [Self-host](#-self-host) · [Architecture](#-architecture) · [Documentation](#-documentation)
 
 </div>
 
@@ -31,6 +31,7 @@ Most tools answer "what's in project X?". Motio answers the question a team lead
 - 👥 **People first, not tasks first.** Every row is a person, every bar is their work — across all projects at once. Elsewhere that is one view among many; in Motio it is the product.
 - 🔥 **Overload shows up before the deadline does.** Workload sits on the same timeline and in a department heatmap, so you see who is full without assembling a report from boards, filters and spreadsheets.
 - ⚡ **Any task in 10 seconds.** Click, type, drag. No custom fields, no automations, no kanban mode — that is a position, not a missing feature. The [manifesto](./MANIFESTO.md) (in Russian) explains why.
+- 🔓 **Yours to run.** Open source under AGPL-3.0. Use the free hosted app, or keep the data inside your own perimeter: Docker Compose, Postgres, SSO via Keycloak, built-in backups and a full data export.
 
 Built for teams of 5–50 people running several projects at once. It grew out of years of managing BIM and engineering project teams, and one recurring Monday question: who's free this week?
 
@@ -50,9 +51,11 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 - 🧪 **Demo sandbox** — [`/demo`](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme) runs entirely in the browser on sample data, no sign-in needed.
 - 🌍 **Two languages** — English and Russian UI (Lingui).
 
-## 🚀 Run it locally
+## 🚀 Self-host
 
-Most teams just [sign up](https://motio.nikog.net/?utm_source=github&utm_medium=readme) and start working. The code is here so you can read it and bring the whole stack up on your own machine to see how it works.
+Most teams just [sign up](https://motio.nikog.net/?utm_source=github&utm_medium=readme) and start working. If your data has to stay inside your own perimeter, Motio runs on your infrastructure — the same stack that serves motio.nikog.net.
+
+### Try it on your machine
 
 Requirements: **Node.js 20+**, **Docker Desktop**.
 
@@ -72,10 +75,17 @@ make logs    # follow logs
 `make up` generates `.env` with dev secrets, applies Liquibase migrations and
 synchronizes Keycloak ↔ Supabase — no manual setup needed.
 
-Need Motio on your own servers, inside your own perimeter? That works too, but it
-needs the author's written permission first — see [License](#-license) and write to
-[inbox@nikog.net](mailto:inbox@nikog.net). Production, remote deploy
-and releases are described in [docs/operations.md](docs/operations.md).
+### Run it for your team
+
+The production stack is `infra/docker-compose.prod.yml` behind Caddy (TLS), with Keycloak
+for sign-in. Fill in `.env` ([docs/configuration.md](docs/configuration.md)) and start it
+with `make up-prod`; remote deploy, releases, backups and disaster recovery are described
+in [docs/operations.md](docs/operations.md).
+
+An honest caveat: there is no one-command installer for other domains yet. The Caddyfile
+and the production Keycloak realm still carry the `motio.nikog.net` domain, so expect to
+replace it with your own. Self-hosting is community-supported — questions are welcome in
+[Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a).
 
 ## 🏗 Architecture
 
@@ -146,7 +156,15 @@ Security problem? Please report it privately — see [SECURITY.md](./SECURITY.md
 
 ## 📄 License
 
-Source-available, not open source: you may read the code and run it locally to
-evaluate it. Anything else — production or commercial use, hosting it for others,
-redistribution — requires the author's written permission: write to
-[inbox@nikog.net](mailto:inbox@nikog.net). See [LICENSE](./LICENSE).
+Motio is free software under the [GNU Affero General Public License v3.0](./LICENSE)
+(`AGPL-3.0-only`). You can use it, run it for your team on your own servers, study it,
+change it and share it. If you let other people use a modified version over a network,
+you must offer them the source of that version under the same licence.
+
+Copyright © 2026 Niko G.
+
+The name "Motio" and the Motio logo are not covered by the licence: a fork, or a modified
+version offered to others, needs a name and a logo of its own.
+
+Need different terms — for example, to build Motio into a closed product? Write to
+[inbox@nikog.net](mailto:inbox@nikog.net).
