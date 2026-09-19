@@ -7,6 +7,10 @@
 // against the visitor's current_date when the seed is hydrated. That
 // keeps the timeline always centered on "today" no matter when the
 // build is shipped.
+//
+// The same data fills the testing stand (`make seed-testing`, built by
+// infra/scripts/seed-testing/build-seed-sql.ts), so a change here changes
+// the stand's playground too; the "QA …" teammates are its QA accounts.
 
 export interface DemoSeedProject {
   id: string;
@@ -98,6 +102,16 @@ export const DEMO_SEED_ASSIGNEES: DemoSeedAssignee[] = [
   {"id":"22222222-0000-0000-0000-000000000012","name":"Advisory Consultant","sort_order":12},
   {"id":"22222222-0000-0000-0000-000000000013","name":"External QA Vendor","sort_order":13}
 ];
+
+// Colours for a few teammates, so the sandbox shows what a workspace looks like
+// once people have been given colours (dashboard series, calendar day-off
+// circles, monogram backgrounds). Values come from PERSON_PRESET_COLORS.
+export const DEMO_SEED_ASSIGNEE_COLORS: Record<string, string> = {
+  '22222222-0000-0000-0000-000000000001': '#c2d6f4', // Emma Taylor — powder blue
+  '22222222-0000-0000-0000-000000000002': '#deb373', // Ben Harper — amber
+  '22222222-0000-0000-0000-000000000005': '#bcf0c1', // Mark Sullivan — mint cream
+  '22222222-0000-0000-0000-000000000012': '#afa6d3', // Advisory Consultant — lavender
+};
 
 export const DEMO_SEED_STATUSES: DemoSeedStatus[] = [
   {"id":"33333333-0000-0000-0000-000000000001","name":"Backlog","color":"#cbd5e1","is_final":false,"is_cancelled":false,"sort_order":1},

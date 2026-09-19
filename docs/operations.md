@@ -226,6 +226,13 @@ The testing environment is fully isolated from production.
   `infra/testing-releases.log`, commits/pushes the artifacts, and runs
   `make deploy-testing` without touching production.
 - The `.env` on the testing server is completely separate — all secrets are its own.
+- Test data: `make seed-testing` (re)builds the "Motio QA Playground" workspace from
+  the `/demo` seed (`src/features/demo/lib/demoSeed.ts`), with dates around today. It
+  is shared by the QA accounts of the testing Keycloak: `qa.alice` (owner, admin),
+  `qa.bob` and `qa.carol` (editors), `qa.dave` (viewer), all `…playground@motio.test`;
+  `qa.newbie` is left out for first sign-in tests. Rerun it at any time: only that
+  workspace is replaced. Keycloak is read, not changed, so the accounts and their
+  passwords must already exist there. `seed-testing.sh` refuses the production server.
 
 ---
 
