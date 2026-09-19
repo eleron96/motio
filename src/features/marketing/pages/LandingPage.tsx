@@ -640,7 +640,8 @@ const LandingPage = () => {
               <a
                 href="https://github.com/eleron96/motio#-self-host"
                 target="_blank"
-                rel="noreferrer"
+                // noopener, not noreferrer: GitHub's traffic page should see this site as the referrer
+                rel="noopener"
                 className="font-medium text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary"
               >
                 {t`Self-hosting guide on GitHub →`}
@@ -793,7 +794,7 @@ const LandingPage = () => {
             <a
               href="https://github.com/eleron96/motio"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener"
               className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
             >
               GitHub
@@ -802,7 +803,7 @@ const LandingPage = () => {
             <a
               href="https://github.com/eleron96/motio/blob/main/LICENSE"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener"
               className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
             >
               {t`Open source (AGPL-3.0)`}
