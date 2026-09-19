@@ -18,9 +18,10 @@ docker compose -f infra/docker-compose.prod.yml --env-file .env ps
 
 `oauth2-proxy` and `web` should be in the `Up` state.
 
-## `Warning: could not confirm Keycloak sync bootstrap`
+## `Warning: could not confirm reserve admin bootstrap`
 
-Migrations applied, but `bootstrap.sync` did not return `200`. The usual cause is
+Migrations applied, but `bootstrap.sync` (which makes sure the reserve super-admin
+account exists) did not return `200`. The usual cause is
 wrong `KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD`. Check the `functions` log for
 `Invalid user credentials`.
 

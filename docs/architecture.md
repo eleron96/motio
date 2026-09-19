@@ -101,11 +101,10 @@ Routed through `main` under `/functions/v1/`: `account-purge`, `admin`,
 
 | Action | Purpose |
 |---|---|
-| `bootstrap.sync` | initial Keycloak ↔ Supabase synchronization |
+| `bootstrap.sync` | makes sure the reserve super-admin account exists (called by the deploy scripts) |
 | `users.list` | user overview |
 | `workspaces.list` / `workspaces.update` / `workspaces.delete` | workspace management |
 | `superAdmins.list` | super-admin overview |
-| `keycloak.sync` | role resync |
 
 > `users.create` / `users.update` / `users.delete` / `users.resetPassword` and
 > `superAdmins.create` / `superAdmins.delete` **return an error by design** — user

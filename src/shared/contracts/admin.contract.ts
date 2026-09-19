@@ -81,10 +81,6 @@ const adminSuperAdminsWhoamiRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI),
 }).strict();
 
-const adminKeycloakSyncRequestSchema = z.object({
-  action: z.literal(ADMIN_ACTIONS.KEYCLOAK_SYNC),
-}).strict();
-
 const adminEasterEggsListRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_LIST),
 }).strict();
@@ -220,7 +216,6 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminSuperAdminsCreateRequestSchema,
   adminSuperAdminsDeleteRequestSchema,
   adminSuperAdminsWhoamiRequestSchema,
-  adminKeycloakSyncRequestSchema,
   adminEasterEggsListRequestSchema,
   adminEasterEggsSaveRequestSchema,
   adminEasterEggsDeleteRequestSchema,
