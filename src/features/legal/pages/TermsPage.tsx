@@ -3,6 +3,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 
 const CONTACT = 'inbox@nikog.net';
 const SITE = 'motio.nikog.net';
+// GitHub links use rel="noopener", not noreferrer, so GitHub's traffic page sees this site as the referrer.
 const REPO = 'github.com/eleron96/motio';
 const LICENSE_URL = 'https://github.com/eleron96/motio/blob/main/LICENSE';
 const UPDATED_EN = 'September 18, 2026';
@@ -65,11 +66,11 @@ function TermsContentEn() {
       <h2>7. Intellectual Property and Open Source</h2>
       <p>
         The Motio software is free and open source: it is licensed under the{' '}
-        <a href={LICENSE_URL} target="_blank" rel="noreferrer">
+        <a href={LICENSE_URL} target="_blank" rel="noopener">
           GNU Affero General Public License v3.0
         </a>
         , and its source code is available at{' '}
-        <a href={`https://${REPO}`} target="_blank" rel="noreferrer">
+        <a href={`https://${REPO}`} target="_blank" rel="noopener">
           {REPO}
         </a>
         . These Terms govern your use of the hosted Service at {SITE}.
@@ -175,11 +176,11 @@ function TermsContentRu() {
       <p>
         Программа Motio — свободная, с открытым исходным кодом: она распространяется по
         лицензии{' '}
-        <a href={LICENSE_URL} target="_blank" rel="noreferrer">
+        <a href={LICENSE_URL} target="_blank" rel="noopener">
           GNU Affero General Public License v3.0
         </a>
         , исходный код доступен на{' '}
-        <a href={`https://${REPO}`} target="_blank" rel="noreferrer">
+        <a href={`https://${REPO}`} target="_blank" rel="noopener">
           {REPO}
         </a>
         . Настоящие условия регулируют использование сервиса на {SITE}.
