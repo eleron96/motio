@@ -427,3 +427,4 @@
 2026-09-18T14:23:55Z | 0.10.8 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260918-142257.dump | The home page now shows Motio itself — a short clip of the timeline and the workload heatmap — and the Terms of Service open again without signing in. The Privacy Policy now names every service that handles your data.
 2026-09-19T12:19:59Z | 0.10.9 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260919-121912.dump | No documented changes.
 2026-09-19T13:32:43Z | 0.10.10 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260919-133201.dump | No documented changes.
+2026-09-19T14:49:17Z | 0.10.11 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260919-144834.dump | Workspaces can be deleted again, even when they contain tasks with several assignees or tags.
