@@ -9,6 +9,7 @@
 import {
   DEMO_SEED_PROJECTS,
   DEMO_SEED_ASSIGNEES,
+  DEMO_SEED_ASSIGNEE_COLORS,
   DEMO_SEED_STATUSES,
   DEMO_SEED_TASK_TYPES,
   DEMO_SEED_TAGS,
@@ -22,16 +23,6 @@ import {
   DEMO_SEED_DASHBOARDS,
   buildDemoDashboardLayouts,
 } from './demoSeed';
-
-// Colours for a few demo teammates, so /demo shows what a workspace looks like
-// once people have been given colours (dashboard series, calendar day-off
-// circles, monogram backgrounds). Values come from PERSON_PRESET_COLORS.
-const DEMO_SEED_ASSIGNEE_COLORS: Record<string, string> = {
-  '22222222-0000-0000-0000-000000000001': '#c2d6f4', // Emma Taylor — powder blue
-  '22222222-0000-0000-0000-000000000002': '#deb373', // Ben Harper — amber
-  '22222222-0000-0000-0000-000000000005': '#bcf0c1', // Mark Sullivan — mint cream
-  '22222222-0000-0000-0000-000000000012': '#afa6d3', // Advisory Consultant — lavender
-};
 
 const STORAGE_KEY = 'motio.demo.state.v1';
 const TTL_MS = 24 * 60 * 60 * 1000;
