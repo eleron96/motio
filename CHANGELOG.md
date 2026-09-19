@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.11] - 2026-09-19
 ### Fixed
 - Пространство снова можно удалить, даже если в нём есть задачи с несколькими исполнителями или тегами.
 
