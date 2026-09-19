@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Workspaces can be deleted again, even when they contain tasks with several assignees or tags.
+
 ## [0.10.10] - 2026-09-19
 ### Changed
 - No documented changes.
