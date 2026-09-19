@@ -8,7 +8,11 @@
 //
 // Driven by infra/scripts/seed-testing.sh (`make seed-testing`):
 //   build-seed-sql.ts          prints the SQL
-//   build-seed-sql.ts --emails prints the QA accounts the SQL expects
+//   build-seed-sql.ts --emails prints the accounts the SQL expects
+//
+// SEED_TESTING_EXTRA_MEMBERS ("email:role,email:role") adds real people to the
+// playground on top of the QA accounts. The script takes it from the testing
+// server's .env, so personal addresses stay out of this public repository.
 
 import {
   DEMO_SEED_ASSIGNEES,
@@ -43,6 +47,35 @@ const QA_MEMBERS = [
 
 const OWNER_EMAIL = QA_MEMBERS[0].email;
 
+const WORKSPACE_ROLES = ['admin', 'editor', 'viewer'] as const;
+type WorkspaceRole = (typeof WORKSPACE_ROLES)[number];
+
+const parseExtraMembers = (raw: string): { email: string; role: WorkspaceRole }[] =>
+  raw
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const [emailPart, rolePart = ''] = entry.split(':');
+      const email = emailPart.trim().toLowerCase();
+      const role = rolePart.trim() as WorkspaceRole;
+      if (!/^[^\s@:,']+@[^\s@:,']+\.[^\s@:,']+$/.test(email)) {
+        throw new Error(`SEED_TESTING_EXTRA_MEMBERS: "${entry}" has no valid email`);
+      }
+      if (!WORKSPACE_ROLES.includes(role)) {
+        throw new Error(`SEED_TESTING_EXTRA_MEMBERS: "${entry}" needs a role of ${WORKSPACE_ROLES.join('/')}`);
+      }
+      if (QA_MEMBERS.some((m) => m.email === email)) {
+        throw new Error(`SEED_TESTING_EXTRA_MEMBERS: ${email} is already a QA member`);
+      }
+      return { email, role };
+    });
+
+// Real people join as themselves: the member-sync trigger gives each one an
+// assignee under their profile name, without seed tasks of their own.
+const EXTRA_MEMBERS = parseExtraMembers(process.env.SEED_TESTING_EXTRA_MEMBERS ?? '');
+const ALL_MEMBERS = [...QA_MEMBERS.map(({ email, role }) => ({ email, role })), ...EXTRA_MEMBERS];
+
 const lit = (value: string | number | boolean | null | undefined): string => {
   if (value === null || value === undefined) return 'null';
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
@@ -72,7 +105,7 @@ const buildSql = (): string => {
 -- src/features/demo/lib/demoSeed.ts. Do not edit; rerun \`make seed-testing\`.
 -- Runs as one transaction on the testing database only.`);
 
-  const emailList = `array[${QA_MEMBERS.map((m) => lit(m.email)).join(', ')}]`;
+  const emailList = `array[${ALL_MEMBERS.map((m) => lit(m.email)).join(', ')}]`;
   parts.push(`do $$
 declare
   missing text;
@@ -142,7 +175,7 @@ end $$;`);
   );
   parts.push(
     insert('workspace_members', ['workspace_id', 'user_id', 'role'],
-      QA_MEMBERS.map((m) => [W, userId(m.email), lit(m.role)])),
+      ALL_MEMBERS.map((m) => [W, userId(m.email), lit(m.role)])),
   );
 
   parts.push(
@@ -187,7 +220,7 @@ end $$;`);
 };
 
 if (process.argv.includes('--emails')) {
-  process.stdout.write(`${QA_MEMBERS.map((m) => m.email).join('\n')}\n`);
+  process.stdout.write(`${ALL_MEMBERS.map((m) => m.email).join('\n')}\n`);
 } else {
   process.stdout.write(buildSql());
 }

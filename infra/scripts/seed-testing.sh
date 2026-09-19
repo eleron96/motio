@@ -23,19 +23,24 @@ fi
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
+# Real people to add on top of the QA accounts ("email:role,…") live in the
+# testing server's .env, never in this public repository.
+extra_members="$(ssh "$host" "grep -E '^SEED_TESTING_EXTRA_MEMBERS=' '$remote_dir/.env' | head -n1 | cut -d= -f2-" || true)"
+export SEED_TESTING_EXTRA_MEMBERS="$extra_members"
+
 cd "$root_dir"
 npx --no-install esbuild infra/scripts/seed-testing/build-seed-sql.ts \
   --bundle --platform=node --format=esm --log-level=warning \
   --outfile="$work_dir/build-seed-sql.mjs"
 node "$work_dir/build-seed-sql.mjs" > "$work_dir/seed.sql"
-qa_emails="$(node "$work_dir/build-seed-sql.mjs" --emails | tr '\n' ' ')"
+member_emails="$(node "$work_dir/build-seed-sql.mjs" --emails | tr '\n' ' ')"
 
 echo "Seed target (TESTING): ${host}:${remote_dir}"
 
-# 1. Each QA account needs a Supabase user linked to its Keycloak identity, the
-#    way the admin console creates users. Without the link the first sign-in
-#    would create a new, empty user instead of landing in the playground.
-ssh "$host" "REMOTE_DIR='$remote_dir' QA_EMAILS='$qa_emails' bash -s" <<'REMOTE'
+# 1. Each member needs a Supabase user linked to its Keycloak identity, the way
+#    the admin console creates users. Without the link the first sign-in would
+#    create a new, empty user instead of landing in the playground.
+ssh "$host" "REMOTE_DIR='$remote_dir' MEMBER_EMAILS='$member_emails' bash -s" <<'REMOTE'
 set -euo pipefail
 cd "$REMOTE_DIR"
 
@@ -50,7 +55,7 @@ issuer="$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' infra-au
   | grep -E '^GOTRUE_EXTERNAL_KEYCLOAK_URL=' | cut -d= -f2- || true)"
 issuer="${issuer:-keycloak}"
 
-for email in $QA_EMAILS; do
+for email in $MEMBER_EMAILS; do
   keycloak_id="$(kq "select u.id from user_entity u join realm r on r.id = u.realm_id where r.name = '$realm' and lower(u.email) = lower('$email')")"
   if [[ -z "$keycloak_id" ]]; then
     echo "ERROR: $email is not in the testing Keycloak (realm $realm)." >&2
@@ -72,7 +77,11 @@ for email in $QA_EMAILS; do
     state="created"
   fi
 
-  sq "select public.link_keycloak_identity('$user_id', '$keycloak_id', '$email', null, '$issuer')" >/dev/null
+  # A person who already signed in has the link GoTrue made; leave it alone.
+  linked="$(sq "select count(*) from auth.identities where provider = 'keycloak' and provider_id = '$keycloak_id' and user_id = '$user_id'")"
+  if [[ "$linked" == "0" ]]; then
+    sq "select public.link_keycloak_identity('$user_id', '$keycloak_id', '$email', null, '$issuer')" >/dev/null
+  fi
   echo "  $email: Supabase user $state, linked to Keycloak"
 done
 REMOTE
@@ -82,4 +91,5 @@ REMOTE
 ssh "$host" "docker exec -i infra-db-1 psql -U supabase_admin -d postgres -At -q -v ON_ERROR_STOP=1 --single-transaction" \
   < "$work_dir/seed.sql"
 
-echo "Testing seed finished: sign in as qa.alice / qa.bob / qa.carol / qa.dave @motio.test."
+extra_count="$(printf '%s' "$extra_members" | tr ',' '\n' | grep -c '[^[:space:]]' || true)"
+echo "Testing seed finished: sign in as qa.alice / qa.bob / qa.carol / qa.dave @motio.test (+${extra_count} member(s) from the server's SEED_TESTING_EXTRA_MEMBERS)."
