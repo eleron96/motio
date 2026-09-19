@@ -30,7 +30,7 @@ make logs    # follow logs
 - brings up `db`, `keycloak-db`, `keycloak`, `auth`, `rest`, `functions`, `gateway`,
   `web`, `oauth2-proxy` (`backup` / `realtime` / `storage` start only in `up-prod`);
 - applies Liquibase migrations;
-- calls `bootstrap.sync` to synchronize Keycloak ↔ Supabase.
+- calls `bootstrap.sync` to make sure the reserve super-admin account exists.
 
 ### URLs
 
