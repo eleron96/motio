@@ -86,11 +86,9 @@ begin
   end if;
 end $$;`);
 
-  // Tasks go first: deleting the workspace alone lets the assignee and tag
-  // strip-from-tasks triggers update tasks whose workspace is already gone, and
-  // the second update of a row trips its foreign key, failing the whole cascade.
-  parts.push(`delete from public.tasks where workspace_id = ${W};
-delete from public.workspaces where id = ${W};`);
+  // Everything under the workspace cascades; every rerun also exercises the
+  // real workspace deletion (0149).
+  parts.push(`delete from public.workspaces where id = ${W};`);
 
   // Linked people show their profile name, so the testers carry the seed's names.
   parts.push(
