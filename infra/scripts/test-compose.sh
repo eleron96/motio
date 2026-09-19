@@ -214,13 +214,13 @@ fi
 # --- Run migrations ---
 $compose_cmd run --rm migrate
 
-# --- Keycloak sync bootstrap ---
+# --- Reserve admin bootstrap ---
 if command -v curl >/dev/null 2>&1; then
   bootstrap_url="http://localhost:8080/functions/v1/admin"
   bootstrap_payload='{"action":"bootstrap.sync"}'
   bootstrap_service_key=$(grep -E '^SERVICE_ROLE_KEY=' "$env_file" | head -n1 | cut -d= -f2- || true)
   if [[ -z "$bootstrap_service_key" ]]; then
-    echo "Warning: SERVICE_ROLE_KEY not found in $env_file; skipping Keycloak sync bootstrap." >&2
+    echo "Warning: SERVICE_ROLE_KEY not found in $env_file; skipping reserve admin bootstrap." >&2
   else
     bootstrap_ok=0
     BOOTSTRAP_CONNECT_TIMEOUT_SECONDS="${BOOTSTRAP_CONNECT_TIMEOUT_SECONDS:-5}"
@@ -236,7 +236,7 @@ if command -v curl >/dev/null 2>&1; then
         -d "$bootstrap_payload" \
         "$bootstrap_url" || true)
       if [[ "$status_code" == "200" ]]; then
-        echo "Keycloak sync bootstrap completed (HTTP $status_code)."
+        echo "Reserve admin bootstrap completed (HTTP $status_code)."
         bootstrap_ok=1
         break
       fi
@@ -244,11 +244,11 @@ if command -v curl >/dev/null 2>&1; then
     done
 
     if [[ "$bootstrap_ok" -ne 1 ]]; then
-      echo "Warning: could not confirm Keycloak sync bootstrap. Check functions logs." >&2
+      echo "Warning: could not confirm reserve admin bootstrap. Check functions logs." >&2
     fi
   fi
 else
-  echo "Warning: curl is not installed, skipping Keycloak sync bootstrap request." >&2
+  echo "Warning: curl is not installed, skipping reserve admin bootstrap request." >&2
 fi
 
 # --- Build and start web + oauth2-proxy ---

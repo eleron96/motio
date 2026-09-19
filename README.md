@@ -77,7 +77,7 @@ make logs    # follow logs
 | Postgres | `localhost:54322` |
 
 `make up` generates `.env` with dev secrets, applies Liquibase migrations and
-synchronizes Keycloak ↔ Supabase — no manual setup needed.
+creates the reserve super-admin account — no manual setup needed.
 
 ### Run it for your team
 

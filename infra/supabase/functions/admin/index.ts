@@ -43,7 +43,6 @@ const keycloakConfig = getKeycloakConfig();
 const keycloakIssuer = `${keycloakConfig.baseUrl}/realms/${keycloakConfig.realm}`;
 
 let reserveAdminSynced = false;
-let keycloakMigrationDone = false;
 
 const workspaceRoleToRealmRole: Record<WorkspaceRole, AppRealmRole> = {
   viewer: "app_workspace_viewer",
@@ -114,9 +113,6 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_DELETE),
     userId: z.string().min(1),
-  }).strict(),
-  z.object({
-    action: z.literal(ADMIN_ACTIONS.KEYCLOAK_SYNC),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.EASTER_EGGS_LIST),
@@ -471,135 +467,6 @@ const syncUserRoles = async (userId: string, keycloakUserId?: string | null) => 
   };
 };
 
-const syncAllUsersToKeycloak = async () => {
-  const keycloakReady = ensureKeycloakReady(keycloakConfig);
-  if ("error" in keycloakReady) {
-    return {
-      fatalError: keycloakReady.error,
-      summary: {
-        processed: 0,
-        createdKeycloakUsers: 0,
-        createdSupabaseUsers: 0,
-        roleAssignmentsUpdated: 0,
-        warnings: [] as string[],
-        errors: [] as string[],
-      },
-    };
-  }
-
-  const ensureRolesResult = await ensureRealmRoles(keycloakConfig, APP_REALM_ROLES);
-  if ("error" in ensureRolesResult) {
-    return {
-      fatalError: ensureRolesResult.error,
-      summary: {
-        processed: 0,
-        createdKeycloakUsers: 0,
-        createdSupabaseUsers: 0,
-        roleAssignmentsUpdated: 0,
-        warnings: [] as string[],
-        errors: [] as string[],
-      },
-    };
-  }
-
-  const listed = await listAllAuthUsers(supabaseAdmin);
-  if ("error" in listed) {
-    return {
-      fatalError: listed.error,
-      summary: {
-        processed: 0,
-        createdKeycloakUsers: 0,
-        createdSupabaseUsers: 0,
-        roleAssignmentsUpdated: 0,
-        warnings: [] as string[],
-        errors: [] as string[],
-      },
-    };
-  }
-
-  const users = listed.users.filter((user) => Boolean(user.email?.trim()));
-  const profileResult = await getProfileMap(supabaseAdmin, users.map((user) => user.id));
-  if ("error" in profileResult) {
-    return {
-      fatalError: profileResult.error,
-      summary: {
-        processed: 0,
-        createdKeycloakUsers: 0,
-        createdSupabaseUsers: 0,
-        roleAssignmentsUpdated: 0,
-        warnings: [] as string[],
-        errors: [] as string[],
-      },
-    };
-  }
-
-  const roleMapResult = await getRoleSnapshotMap(supabaseAdmin, users.map((user) => user.id));
-  if ("error" in roleMapResult) {
-    return {
-      fatalError: roleMapResult.error,
-      summary: {
-        processed: 0,
-        createdKeycloakUsers: 0,
-        createdSupabaseUsers: 0,
-        roleAssignmentsUpdated: 0,
-        warnings: [] as string[],
-        errors: [] as string[],
-      },
-    };
-  }
-
-  const summary = {
-    processed: 0,
-    createdKeycloakUsers: 0,
-    createdSupabaseUsers: 0,
-    roleAssignmentsUpdated: 0,
-    warnings: [] as string[],
-    errors: [] as string[],
-  };
-
-  for (const user of users) {
-    if (!user.email) continue;
-
-    const profile = profileResult.profiles.get(user.id);
-    const linked = await resolveLinkedUserByEmail(user.email, profile?.displayName ?? null);
-
-    if ("error" in linked) {
-      summary.errors.push(`User ${user.id}: ${linked.error}`);
-      continue;
-    }
-
-    summary.processed += 1;
-    if (linked.keycloakCreated) {
-      summary.createdKeycloakUsers += 1;
-    }
-    if (linked.supabaseCreated) {
-      summary.createdSupabaseUsers += 1;
-    }
-    if (linked.warning) {
-      summary.warnings.push(`User ${linked.email}: ${linked.warning}`);
-    }
-
-    const desiredRoles = buildDesiredRealmRoles(roleMapResult.roleMap.get(user.id));
-    const syncResult = await syncUserRealmRoles(
-      keycloakConfig,
-      linked.keycloakUserId,
-      desiredRoles,
-      APP_REALM_ROLES,
-    );
-
-    if ("error" in syncResult) {
-      summary.errors.push(`Role sync failed for ${linked.email}: ${syncResult.error}`);
-      continue;
-    }
-
-    if ((syncResult.added?.length ?? 0) + (syncResult.removed?.length ?? 0) > 0) {
-      summary.roleAssignmentsUpdated += 1;
-    }
-  }
-
-  return { summary };
-};
-
 const ensureReserveAdminAccount = async () => {
   if (!reserveAdminEmail || !reserveAdminPassword) {
     return { error: "RESERVE_ADMIN_EMAIL or RESERVE_ADMIN_PASSWORD is not configured." };
@@ -663,27 +530,6 @@ const ensureReserveAdminOnce = async () => {
 
   reserveAdminSynced = true;
   return { ready: true };
-};
-
-const ensureKeycloakMigrationOnce = async () => {
-  if (keycloakMigrationDone) return { ready: true };
-
-  const result = await syncAllUsersToKeycloak();
-
-  if ("fatalError" in result && result.fatalError) {
-    console.error("Keycloak migration failed:", result.fatalError);
-    return { error: result.fatalError };
-  }
-
-  if (result.summary.errors.length > 0) {
-    console.error("Keycloak migration completed with errors:", result.summary.errors);
-  }
-
-  keycloakMigrationDone = true;
-  return {
-    ready: true,
-    summary: result.summary,
-  };
 };
 
 const handleUsersList = async (payload: { search?: string; includeSuperAdmins?: boolean }) => {
@@ -1798,19 +1644,6 @@ const handleBroadcastsList = async () => {
   });
 };
 
-const handleKeycloakSync = async () => {
-  const result = await syncAllUsersToKeycloak();
-
-  if ("fatalError" in result && result.fatalError) {
-    return jsonResponse({ error: result.fatalError }, 500);
-  }
-
-  return jsonResponse({
-    success: true,
-    ...result.summary,
-  });
-};
-
 export const handler = async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -1837,6 +1670,11 @@ export const handler = async (req: Request) => {
   const payload = parsedPayload.data;
   const action = payload.action;
 
+  // Deploy scripts call this after every restart of the functions container.
+  // It only makes sure the reserve super-admin exists. The bulk copy of every
+  // user into Keycloak that used to run here had nothing left to do (everyone
+  // has been linked since the move to Keycloak), and re-running it on each
+  // deploy re-enabled accounts that had been blocked in Keycloak.
   if (action === ADMIN_ACTIONS.BOOTSTRAP_SYNC) {
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
@@ -1849,15 +1687,7 @@ export const handler = async (req: Request) => {
       return jsonResponse({ error: reserveResult.error }, 503);
     }
 
-    const migrationResult = await ensureKeycloakMigrationOnce();
-    if ("error" in migrationResult) {
-      return jsonResponse({ error: migrationResult.error }, 503);
-    }
-
-    return jsonResponse({
-      success: true,
-      ...(migrationResult.summary ?? {}),
-    });
+    return jsonResponse({ success: true });
   }
 
   // The broadcast ticker is invoked by the backup-service cron with the
@@ -1892,7 +1722,6 @@ export const handler = async (req: Request) => {
   }
 
   await ensureReserveAdminOnce();
-  await ensureKeycloakMigrationOnce();
 
   switch (action) {
     case ADMIN_ACTIONS.USERS_LIST:
@@ -1917,8 +1746,6 @@ export const handler = async (req: Request) => {
       return handleSuperAdminsCreate();
     case ADMIN_ACTIONS.SUPER_ADMINS_DELETE:
       return handleSuperAdminsDelete();
-    case ADMIN_ACTIONS.KEYCLOAK_SYNC:
-      return handleKeycloakSync();
     case ADMIN_ACTIONS.EASTER_EGGS_LIST:
       return handleEasterEggsList();
     case ADMIN_ACTIONS.EASTER_EGGS_SAVE:
