@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.10.12] - 2026-09-21
 ### Fixed
 - Если коллега несколько раз подряд подвинул одну и ту же задачу, приходит одно уведомление, а не пачка одинаковых.
 

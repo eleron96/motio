@@ -428,3 +428,4 @@
 2026-09-19T12:19:59Z | 0.10.9 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260919-121912.dump | No documented changes.
 2026-09-19T13:32:43Z | 0.10.10 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260919-133201.dump | No documented changes.
 2026-09-19T14:49:17Z | 0.10.11 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260919-144834.dump | Workspaces can be deleted again, even when they contain tasks with several assignees or tags.
+2026-09-21T15:42:41Z | 0.10.12 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260921-154156.dump | When a teammate adjusts the same task several times in a row, you now get one notification instead of a stack of identical ones.
