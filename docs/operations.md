@@ -233,6 +233,11 @@ The testing environment is fully isolated from production.
   `qa.newbie` is left out for first sign-in tests. Rerun it at any time: only that
   workspace is replaced. Keycloak is read, not changed, so the accounts and their
   passwords must already exist there. `seed-testing.sh` refuses the production server.
+  To add real people as well, put `SEED_TESTING_EXTRA_MEMBERS=email:role,email:role`
+  (role `admin`, `editor` or `viewer`) into the testing server's `.env`: personal
+  addresses stay out of the repository and survive every rerun. This matters for a
+  super admin in particular — one without any workspace is treated as the reserve
+  service account and sent straight to the admin console.
 
 ---
 

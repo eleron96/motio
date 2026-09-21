@@ -292,3 +292,108 @@ describe("repeat-series notification bursts (0134, 0146)", () => {
     });
   });
 });
+
+// 0150: the same person adjusting ONE task several times in a row (dragging its
+// bar until it sits right) is one piece of news. Production: four identical
+// notifications and four pushes inside 30 seconds for a single task.
+describe("repeated edits of one task (0150)", () => {
+  beforeAll(async () => {
+    const pool = getTestPool();
+    const client = await pool.connect();
+    try {
+      const { rows } = await client.query<{ guarded: boolean }>(
+        `select pg_get_functiondef(p.oid) like '%n.created_at > now() - interval ''2 minutes''%' as guarded
+         from pg_proc p
+         join pg_namespace n on n.oid = p.pronamespace
+         where n.nspname = 'public' and p.proname = 'notify_task_updated'`,
+      );
+      if (!rows[0]?.guarded) {
+        throw new Error("0150 not applied: the same-task guard is missing");
+      }
+    } finally {
+      client.release();
+    }
+  });
+
+  async function nudge(client: PoolClient, taskId: string): Promise<void> {
+    await client.query(
+      `update public.tasks
+       set start_date = start_date + 1, end_date = end_date + 1
+       where id = $1`,
+      [taskId],
+    );
+  }
+
+  async function setUp(client: PoolClient): Promise<string> {
+    await loadFixture(client, "account-deletion.sql");
+    const assigneeId = await assigneeIdFor(client, WORKSPACE_ID, RECIPIENT_ID);
+    const [taskId] = await createSeries(client, {
+      assigneeIds: [assigneeId],
+      repeatId: null,
+      count: 1,
+    });
+    await clearNotifications(client);
+    await actAs(client, ACTOR_ID);
+    return taskId;
+  }
+
+  it("keeps one notification and refreshes its snapshot", async () => {
+    await withRollback(async (client) => {
+      const taskId = await setUp(client);
+
+      for (let i = 0; i < 4; i += 1) {
+        await nudge(client, taskId);
+        await ageNotifications(client, 10);
+      }
+
+      expect(await countNotifications(client, "task_updated")).toBe(1);
+      const { rows } = await client.query<{ matches: boolean }>(
+        `select n.task_start_date_snapshot = t.start_date as matches
+         from public.user_notifications n
+         join public.tasks t on t.id = n.task_id
+         where n.task_id = $1`,
+        [taskId],
+      );
+      expect(rows[0].matches).toBe(true);
+    });
+  });
+
+  it("notifies again once the earlier notification was read", async () => {
+    await withRollback(async (client) => {
+      const taskId = await setUp(client);
+
+      await nudge(client, taskId);
+      await client.query(
+        "update public.user_notifications set read_at = now() where task_id = $1",
+        [taskId],
+      );
+      await nudge(client, taskId);
+
+      expect(await countNotifications(client, "task_updated")).toBe(2);
+    });
+  });
+
+  it("notifies again once the window has passed", async () => {
+    await withRollback(async (client) => {
+      const taskId = await setUp(client);
+
+      await nudge(client, taskId);
+      await ageNotifications(client, 180);
+      await nudge(client, taskId);
+
+      expect(await countNotifications(client, "task_updated")).toBe(2);
+    });
+  });
+
+  it("notifies separately when someone else edits the task", async () => {
+    await withRollback(async (client) => {
+      const taskId = await setUp(client);
+
+      await nudge(client, taskId);
+      await actAs(client, TEST_USER_IDS.alice);
+      await nudge(client, taskId);
+
+      expect(await countNotifications(client, "task_updated")).toBe(2);
+    });
+  });
+});

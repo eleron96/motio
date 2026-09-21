@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.12] - 2026-09-21
+### Fixed
+- When a teammate adjusts the same task several times in a row, you now get one notification instead of a stack of identical ones.
+
 ## [0.10.11] - 2026-09-19
 ### Fixed
 - Workspaces can be deleted again, even when they contain tasks with several assignees or tags.
