@@ -1107,6 +1107,8 @@
   </changeSet>
 
   <changeSet id="0080_add_project_owner_group.sql" author="timeline" runInTransaction="true">
+    <!-- File edited after it shipped (personal data removed from comments/seed); the schema it creates is unchanged. -->
+    <validCheckSum>ANY</validCheckSum>
     <preConditions onFail="MARK_RAN" onError="HALT">
       <or>
         <not>
@@ -1261,6 +1263,8 @@
   </changeSet>
 
   <changeSet id="0091_add_easter_egg_targets.sql" author="timeline" runInTransaction="true">
+    <!-- File edited after it shipped (personal data removed from comments/seed); the schema it creates is unchanged. -->
+    <validCheckSum>ANY</validCheckSum>
     <preConditions onFail="MARK_RAN" onError="HALT">
       <or>
         <not>

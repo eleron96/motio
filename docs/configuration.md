@@ -21,15 +21,14 @@ OAUTH2_PROXY_CLIENT_SECRET
 OAUTH2_PROXY_COOKIE_SECRET
 ```
 
-Pre-deploy check:
+`prod-compose.sh` runs `infra/scripts/check-prod-secrets.sh` on every deploy by
+itself, so the deploy is **blocked** if OIDC secrets are empty or use dev/default
+values. To look into a suspected secrets problem by hand:
 
 ```bash
 make check-prod-secrets
 make check-prod-secrets-remote   # check .env on the remote server
 ```
-
-> The production deploy is **blocked** if OIDC secrets are empty or use dev/default
-> values.
 
 ---
 
@@ -66,6 +65,11 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `BACKUP_MAX_UPLOAD_MB`
 - `BACKUP_RESTORE_DB_URL` *(optional)*
 - `BACKUP_AUTH_DB_USER`, `BACKUP_AUTH_HOST`
+- `STORAGE_BACKUP_RETENTION_COUNT` — daily archives of uploaded files to keep.
+- `KEYCLOAK_BACKUP_RETENTION_COUNT` — Keycloak database backups to keep.
+- `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` —
+  any S3-compatible bucket for off-server copies. The bucket is pruned with the
+  same retention counts, and never below 5 copies.
 
 ## Liquibase
 
@@ -82,3 +86,75 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `TASK_MEDIA_TOKEN_TTL_SECONDS` — `315360000` (10 years) by default. The token is
   baked into the URL inside the task description HTML and is not refreshed on the
   client, so keep the TTL long: a short value silently breaks images in older tasks.
+
+---
+
+## Feature flags
+
+`VITE_FEATURE_*` are read when the `web` image is **built** on the server. They
+are not in the repository, so check the server's `.env` before assuming a feature
+is off. Missing or empty means **off**. To flip a flag, edit the server `.env`
+and rebuild `web`; no release is needed.
+
+| Flag | Turns on |
+|---|---|
+| `VITE_FEATURE_PROJECT_CARD` | the project card on the Projects page and the Contacts tab |
+| `VITE_FEATURE_PROJECT_CARD_MOBILE` | the same project card on phones (needs `PROJECT_CARD`) |
+| `VITE_FEATURE_PEOPLE_SUGGEST` | suggestions of people already entered elsewhere in the workspace when adding a contact or an external team member (needs `PROJECT_CARD`) |
+| `VITE_FEATURE_WORKLOAD_HEATMAP` | the workload heatmap board on the dashboard; each workspace still opts in with its own switch in workspace settings (off by default) |
+| `VITE_FEATURE_TIME_OFF` | marking days off on the timeline |
+| `VITE_FEATURE_PUSH` | browser push notifications (needs the VAPID keys below) |
+| `VITE_FEATURE_ACCOUNT_DELETION` | account self-deletion in account settings |
+
+The `/demo` sandbox always shows the project card, contacts, heatmap and time off,
+whatever the flags say.
+
+## Push notifications
+
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — the key pair the `push`
+  Edge Function signs with. Generate a pair with `npx web-push generate-vapid-keys`;
+  use separate keys per server.
+- `VITE_PUSH_VAPID_PUBLIC_KEY` — the same public key, built into `web`.
+- `PUSH_TICK_CRON` — how often backup-service asks the `push` function to send
+  queued notifications (`*/1 * * * *` by default).
+
+Without both keys the function reports push as not configured, and nothing is sent.
+
+## Email (`mailer`)
+
+The `mailer` Edge Function sends the welcome email and email broadcasts. Every
+`MAILER_SMTP_*` / `MAILER_FROM_*` variable falls back to its `GOTRUE_SMTP_*`
+counterpart, so one SMTP account is enough.
+
+- `MAILER_SMTP_HOST`, `MAILER_SMTP_PORT`, `MAILER_SMTP_USER`, `MAILER_SMTP_PASS`
+- `MAILER_FROM_EMAIL`, `MAILER_FROM_NAME`
+- `MAILER_WELCOME_ENABLED` — welcome email after the first sign-in (`true` by default).
+- `MAILER_DRY_RUN` — `1` logs messages instead of sending them.
+
+## Error tracking
+
+- `GLITCHTIP_DSN` — server-side errors (Edge Functions, backup-service).
+- `VITE_GLITCHTIP_DSN` — browser errors, built into `web`.
+
+Empty means error reporting is off.
+
+## Background jobs (backup-service)
+
+backup-service runs every scheduled job with `node-cron`. Defaults:
+
+| Variable | Default | Job |
+|---|---|---|
+| `BACKUP_CRON` | `0 3 * * *` | daily database, storage and Keycloak backup |
+| `PUSH_TICK_CRON` | `*/1 * * * *` | send queued push notifications |
+| `BROADCAST_TICK_CRON` | `*/1 * * * *` | send scheduled email broadcasts |
+| `EXPORT_WORKER_CRON` | `*/5 * * * *` | build requested data exports |
+| `EXPORT_CLEANUP_CRON` | `0 5 * * *` | remove expired exports (`EXPORT_CLEANUP_BATCH_LIMIT` per run, `100`) |
+| `PURGE_CRON` | `0 4 * * *` | purge accounts whose deletion grace period is over (`PURGE_CRON_ENABLED`, `true`) |
+| `ACCOUNT_DELETION_HEALTH_CRON` | `15 * * * *` | health check of the account-deletion pipeline |
+
+## Testing server only
+
+- `SEED_TESTING_EXTRA_MEMBERS` — `email:role,email:role`; real people
+  `make seed-testing` adds to the QA playground workspace (see
+  [Operations](operations.md)). Personal addresses stay in the server `.env`,
+  never in the repository.
