@@ -7,6 +7,7 @@ import {
   fetchInbox,
   isExportNotification,
   markAllTaskNotificationsRead,
+  markTaskNotificationsReadForTask,
   subscribeToInboxChanges,
   updateTaskNotificationStatus,
   type PendingInvite,
@@ -14,7 +15,9 @@ import {
   type TaskNotification,
 } from '@/infrastructure/notifications/inboxRepository';
 import {
+  findUnreadNotificationIdsForTask,
   markAllNotificationsAsRead,
+  markNotificationsAsReadByIds,
   removeNotificationsByIds,
 } from '@/features/auth/lib/notificationReadState';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -98,6 +101,7 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
   const clearFilters = usePlannerStore((state) => state.clearFilters);
   const setSelectedTaskId = usePlannerStore((state) => state.setSelectedTaskId);
   const setHighlightedTaskId = usePlannerStore((state) => state.setHighlightedTaskId);
+  const selectedTaskId = usePlannerStore((state) => state.selectedTaskId);
 
   // A disabled feed behaves exactly like a signed-out one: no fetch, no timers.
   const user = enabled ? currentUser : null;
@@ -430,6 +434,28 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
     if (!user) return;
     void runPollingCycle('open');
   }, [runPollingCycle, user]);
+
+  // Opening a task's card means its notifications have been seen: read them
+  // here as well, not only when the row is clicked in the bell. Only asks the
+  // server when this feed actually holds an unread row for the task, so plain
+  // task clicks cost nothing. On failure the next poll restores the truth.
+  // Each notification is asked for once per session: if a refetch still shows
+  // it unread, the server did not take it and asking again would only loop.
+  const taskReadRequestedIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!user) return;
+    const unreadIds = findUnreadNotificationIdsForTask(taskNotifications, selectedTaskId)
+      .filter((id) => !taskReadRequestedIdsRef.current.has(id));
+    if (!selectedTaskId || unreadIds.length === 0) return;
+
+    unreadIds.forEach((id) => taskReadRequestedIdsRef.current.add(id));
+    setTaskNotifications((current) => (
+      markNotificationsAsReadByIds(current, unreadIds, new Date().toISOString())
+    ));
+    void markTaskNotificationsReadForTask(selectedTaskId).then(({ error }) => {
+      if (error) refresh();
+    });
+  }, [refresh, selectedTaskId, taskNotifications, user]);
 
   const handleAccept = useCallback(async (token: string) => {
     const acceptedInvite = pendingInvites.find((invite) => invite.token === token) ?? null;

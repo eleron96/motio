@@ -11,7 +11,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type NotificationAction = "list" | "markRead" | "markUnread" | "markAllRead" | "deleteAll" | "delete";
+type NotificationAction = "list" | "markRead" | "markUnread" | "markAllRead" | "markTaskRead" | "deleteAll" | "delete";
 type NotificationType =
   | "task_assigned"
   | "comment_mention"
@@ -22,6 +22,7 @@ type NotificationType =
 interface NotificationsPayload {
   action?: NotificationAction;
   notificationId?: string;
+  taskId?: string;
   limit?: number;
 }
 
@@ -337,6 +338,31 @@ const handleMarkAllRead = async (authUser: AuthNotificationsUser) => {
   return jsonResponse({ success: true, updated: total });
 };
 
+// Opening a task's card counts as seeing what the notifications about it said:
+// every unread, non-deleted notification of this user for that task is read.
+// Scoped by recipient, so a task id from another workspace changes nothing.
+const handleMarkTaskRead = async (authUser: AuthNotificationsUser, payload: NotificationsPayload) => {
+  const taskId = payload.taskId?.trim() ?? "";
+  if (!taskId) {
+    return jsonResponse({ error: "taskId is required." }, 400);
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("user_notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("recipient_user_id", authUser.id)
+    .eq("task_id", taskId)
+    .is("deleted_at", null)
+    .is("read_at", null)
+    .select("id");
+
+  if (error) {
+    return jsonResponse({ error: error.message }, 400);
+  }
+
+  return jsonResponse({ success: true, updated: (data ?? []).length });
+};
+
 const handleDeleteAll = async (authUser: AuthNotificationsUser) => {
   const { data: memberships, error: membershipsError } = await supabaseAdmin
     .from("workspace_members")
@@ -407,6 +433,10 @@ const handleNotifications = async (req: Request) => {
 
   if (action === "markAllRead") {
     return handleMarkAllRead(authResult.user);
+  }
+
+  if (action === "markTaskRead") {
+    return handleMarkTaskRead(authResult.user, payload);
   }
 
   if (action === "deleteAll") {

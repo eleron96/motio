@@ -41,6 +41,7 @@ const mocks = vi.hoisted(() => ({
     setSelectedTaskId: vi.fn(),
     setHighlightedTaskId: vi.fn(),
   },
+  selectedTaskId: { current: null as string | null },
 }));
 
 vi.mock('@/shared/lib/supabaseClient', () => ({
@@ -74,7 +75,7 @@ vi.mock('@/features/auth/store/authStore', () => ({
 
 vi.mock('@/features/planner/store/plannerStore', () => ({
   usePlannerStore: (selector?: (state: unknown) => unknown) => {
-    const state = mocks.planner;
+    const state = { ...mocks.planner, selectedTaskId: mocks.selectedTaskId.current };
     return typeof selector === 'function' ? selector(state) : state;
   },
 }));
@@ -89,6 +90,7 @@ describe('InviteNotifications', () => {
     mocks.setCurrentWorkspaceId.mockClear();
     mocks.acceptInvite.mockClear();
     Object.values(mocks.planner).forEach((fn) => fn.mockClear());
+    mocks.selectedTaskId.current = null;
 
     mocks.invoke.mockImplementation(async (name: string, options?: { body?: { action?: string } }) => {
       if (name === 'inbox') {
@@ -190,6 +192,106 @@ describe('InviteNotifications', () => {
     });
 
     expect(screen.getByText('No notifications.')).toBeInTheDocument();
+  });
+
+  it('reads the notifications of a task whose card is open', async () => {
+    const user = userEvent.setup();
+    mocks.selectedTaskId.current = 'task-1';
+    // The server remembers the read, as the real one does.
+    let task1ReadAt: string | null = null;
+    const listImplementation = mocks.invoke.getMockImplementation()!;
+    mocks.invoke.mockImplementation(async (name: string, options?: { body?: { action?: string; taskId?: string } }) => {
+      if (name === 'notifications' && options?.body?.action === 'markTaskRead') {
+        task1ReadAt = '2026-10-13T12:00:00.000Z';
+        return { data: { success: true, updated: 1 }, error: null, response: new Response() };
+      }
+      const result = await listImplementation(name, options);
+      if (name === 'inbox' && task1ReadAt) {
+        result.data.notifications = result.data.notifications.map((n: { taskId: string }) => (
+          n.taskId === 'task-1' ? { ...n, readAt: task1ReadAt } : n
+        ));
+      }
+      return result;
+    });
+    const { InviteNotifications } = await import('@/features/auth/components/InviteNotifications');
+
+    render(
+      <TooltipProvider>
+        <MemoryRouter>
+          <InviteNotifications />
+        </MemoryRouter>
+      </TooltipProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+
+    await waitFor(() => {
+      expect(mocks.invoke).toHaveBeenCalledWith('notifications', {
+        body: { action: 'markTaskRead', taskId: 'task-1' },
+      });
+    });
+    // Only Task B is still unread.
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Mark as read \(1\)/ })).toBeInTheDocument();
+    });
+    expect(mocks.invoke).not.toHaveBeenCalledWith('notifications', {
+      body: { action: 'markTaskRead', taskId: 'task-2' },
+    });
+    const markTaskReadCalls = mocks.invoke.mock.calls.filter(
+      ([name, options]) => name === 'notifications' && options?.body?.action === 'markTaskRead',
+    );
+    expect(markTaskReadCalls).toHaveLength(1);
+  });
+
+  it('asks the server only once even if a refetch still shows the row unread', async () => {
+    const user = userEvent.setup();
+    mocks.selectedTaskId.current = 'task-1';
+    const { InviteNotifications } = await import('@/features/auth/components/InviteNotifications');
+
+    render(
+      <TooltipProvider>
+        <MemoryRouter>
+          <InviteNotifications />
+        </MemoryRouter>
+      </TooltipProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+    await waitFor(() => {
+      expect(mocks.invoke).toHaveBeenCalledWith('notifications', {
+        body: { action: 'markTaskRead', taskId: 'task-1' },
+      });
+    });
+    // The mock server never stores the read: the refetch brings the row back
+    // unread, and the feed must not loop on it.
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Mark as read \(2\)/ })).toBeInTheDocument();
+    });
+    const markTaskReadCalls = mocks.invoke.mock.calls.filter(
+      ([name, options]) => name === 'notifications' && options?.body?.action === 'markTaskRead',
+    );
+    expect(markTaskReadCalls).toHaveLength(1);
+  });
+
+  it('asks nothing of the server while no open task has unread notifications', async () => {
+    const user = userEvent.setup();
+    mocks.selectedTaskId.current = 'task-without-notifications';
+    const { InviteNotifications } = await import('@/features/auth/components/InviteNotifications');
+
+    render(
+      <TooltipProvider>
+        <MemoryRouter>
+          <InviteNotifications />
+        </MemoryRouter>
+      </TooltipProvider>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+    expect(await screen.findByRole('button', { name: 'Mark as read (2)' })).toBeInTheDocument();
+    const markTaskReadCalls = mocks.invoke.mock.calls.filter(
+      ([name, options]) => name === 'notifications' && options?.body?.action === 'markTaskRead',
+    );
+    expect(markTaskReadCalls).toHaveLength(0);
   });
 
   it('accents unread rows and leaves read ones plain', async () => {
