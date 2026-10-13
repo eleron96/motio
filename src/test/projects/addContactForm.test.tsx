@@ -10,7 +10,7 @@ vi.mock('@lingui/macro', () => ({
 }));
 
 const people: KnownPerson[] = [
-  { name: 'Анна Смирнова', role: 'Архитектор', company: 'СтройГрупп', tag: 'АР', email: 'anna@stroy.ru', phone: '+7900', usageCount: 3 },
+  { name: 'Анна Смирнова', role: 'Архитектор', company: 'СтройГрупп', tag: 'АР', email: 'anna@stroy.example', phone: '+7900', usageCount: 3 },
 ];
 
 beforeEach(() => cleanup());
@@ -29,7 +29,7 @@ describe('AddContactForm — people suggestions', () => {
     expect((screen.getByPlaceholderText('Role / job title') as HTMLInputElement).value).toBe('Архитектор');
     expect((screen.getByPlaceholderText('Company') as HTMLInputElement).value).toBe('СтройГрупп');
     expect((screen.getByPlaceholderText('Tag') as HTMLInputElement).value).toBe('АР');
-    expect((screen.getByPlaceholderText('Email') as HTMLInputElement).value).toBe('anna@stroy.ru');
+    expect((screen.getByPlaceholderText('Email') as HTMLInputElement).value).toBe('anna@stroy.example');
     expect((screen.getByPlaceholderText('Phone') as HTMLInputElement).value).toBe('+7900');
 
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
@@ -37,7 +37,7 @@ describe('AddContactForm — people suggestions', () => {
       name: 'Анна Смирнова',
       company: 'СтройГрупп',
       role: 'Архитектор',
-      email: 'anna@stroy.ru',
+      email: 'anna@stroy.example',
       phone: '+7900',
       tag: 'АР',
     }));
@@ -55,12 +55,12 @@ describe('AddContactForm — people suggestions', () => {
 
     expect((screen.getByPlaceholderText('Full name') as HTMLInputElement).value).toBe('Анна Смирнова');
     expect((screen.getByPlaceholderText('Company') as HTMLInputElement).value).toBe('СтройГрупп');
-    expect((emailInput as HTMLInputElement).value).toBe('anna@stroy.ru');
+    expect((emailInput as HTMLInputElement).value).toBe('anna@stroy.example');
 
     fireEvent.click(screen.getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       name: 'Анна Смирнова',
-      email: 'anna@stroy.ru',
+      email: 'anna@stroy.example',
       company: 'СтройГрупп',
     })));
   });

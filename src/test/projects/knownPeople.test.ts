@@ -31,12 +31,12 @@ const member = (over: Partial<ProjectMember>): ProjectMember => ({
 describe('collectKnownPeople', () => {
   it('pulls people from customer contacts and external project members', () => {
     const people = collectKnownPeople(
-      [contact({ id: 'c1', name: 'Анна', email: 'anna@a.ru', tag: 'АйБиМ' })],
+      [contact({ id: 'c1', name: 'Анна', email: 'anna@a.example', tag: 'АйБиМ' })],
       [member({ id: 'm1', externalName: 'Борис', externalCompany: 'СтройГрупп', externalPhone: '+7900' })],
     );
     expect(people).toHaveLength(2);
     const anna = people.find((p) => p.name === 'Анна');
-    expect(anna).toMatchObject({ email: 'anna@a.ru', company: 'АйБиМ' });
+    expect(anna).toMatchObject({ email: 'anna@a.example', company: 'АйБиМ' });
     const boris = people.find((p) => p.name === 'Борис');
     expect(boris).toMatchObject({ company: 'СтройГрупп', phone: '+7900' });
   });
@@ -90,10 +90,10 @@ describe('collectKnownPeople', () => {
   it('collapses rows identical on name+email+phone, counting usages and filling gaps', () => {
     const people = collectKnownPeople(
       [
-        contact({ id: 'c1', name: 'Иван Петров', email: 'ivan@x.ru' }),
-        contact({ id: 'c2', name: 'иван петров', email: 'IVAN@x.ru', role: 'Прораб' }),
+        contact({ id: 'c1', name: 'Иван Петров', email: 'ivan@x.example' }),
+        contact({ id: 'c2', name: 'иван петров', email: 'IVAN@x.example', role: 'Прораб' }),
       ],
-      [member({ id: 'm1', externalName: 'Иван Петров', externalEmail: 'ivan@x.ru', externalCompany: 'СтройГрупп' })],
+      [member({ id: 'm1', externalName: 'Иван Петров', externalEmail: 'ivan@x.example', externalCompany: 'СтройГрупп' })],
     );
     expect(people).toHaveLength(1);
     // Gaps (role, company) fill in from later rows; name keeps its first-seen casing.
@@ -115,8 +115,8 @@ describe('collectKnownPeople', () => {
   it('keeps a phone-bearing entry separate from a phoneless one (strict key)', () => {
     const people = collectKnownPeople(
       [
-        contact({ id: 'c1', name: 'Иван Петров', email: 'ivan@x.ru' }),
-        contact({ id: 'c2', name: 'Иван Петров', email: 'ivan@x.ru', phone: '+7 111' }),
+        contact({ id: 'c1', name: 'Иван Петров', email: 'ivan@x.example' }),
+        contact({ id: 'c2', name: 'Иван Петров', email: 'ivan@x.example', phone: '+7 111' }),
       ],
       [],
     );
@@ -126,8 +126,8 @@ describe('collectKnownPeople', () => {
   it('does NOT merge two different people who share an email', () => {
     const people = collectKnownPeople(
       [
-        contact({ id: 'c1', name: 'Отдел продаж', email: 'info@co.ru' }),
-        contact({ id: 'c2', name: 'Директор', email: 'info@co.ru' }),
+        contact({ id: 'c1', name: 'Отдел продаж', email: 'info@co.example' }),
+        contact({ id: 'c2', name: 'Директор', email: 'info@co.example' }),
       ],
       [],
     );
@@ -138,8 +138,8 @@ describe('collectKnownPeople', () => {
     const people = collectKnownPeople(
       [
         contact({ id: 'c1', name: 'Редкий' }),
-        contact({ id: 'c2', name: 'Частый', email: 'f@f.ru' }),
-        contact({ id: 'c3', name: 'Частый', email: 'f@f.ru' }),
+        contact({ id: 'c2', name: 'Частый', email: 'f@f.example' }),
+        contact({ id: 'c3', name: 'Частый', email: 'f@f.example' }),
       ],
       [],
     );
@@ -150,8 +150,8 @@ describe('collectKnownPeople', () => {
 describe('matchKnownPeople', () => {
   const people = collectKnownPeople(
     [
-      contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.ru', tag: 'СтройГрупп' }),
-      contact({ id: 'c2', name: 'Борис Иванов', email: 'boris@x.ru' }),
+      contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.example', tag: 'СтройГрупп' }),
+      contact({ id: 'c2', name: 'Борис Иванов', email: 'boris@x.example' }),
     ],
     [
       member({ id: 'm1', externalName: 'Вера Кузнецова', externalCompany: 'ПроектБюро', tag: 'КР', role: 'Конструктор' }),

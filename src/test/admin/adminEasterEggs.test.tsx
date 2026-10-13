@@ -152,7 +152,7 @@ describe('AdminEasterEggsPage', () => {
     // Audience: email domain.
     fireEvent.click(screen.getAllByRole('combobox')[1]!);
     fireEvent.click(await screen.findByRole('option', { name: 'Email domain' }));
-    fireEvent.change(screen.getByPlaceholderText('example.com'), { target: { value: 'studio-north.ru' } });
+    fireEvent.change(screen.getByPlaceholderText('example.com'), { target: { value: 'studio-north.example' } });
 
     // The window is optional; set an end date to prove it travels.
     fireEvent.change(document.getElementById('egg-ends-at') as HTMLInputElement, {
@@ -165,7 +165,7 @@ describe('AdminEasterEggsPage', () => {
       expect(invokeAdminFunctionMock).toHaveBeenCalledWith(expect.objectContaining({
         action: 'easterEggs.save',
         audienceKind: 'domain',
-        audienceValue: 'studio-north.ru',
+        audienceValue: 'studio-north.example',
         enabled: true,
         endsAt: new Date('2026-08-31T23:59:59').toISOString(),
       }));

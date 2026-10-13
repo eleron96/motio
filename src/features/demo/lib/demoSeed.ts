@@ -335,7 +335,7 @@ export const DEMO_SEED_CUSTOMER_CONTACTS: DemoSeedCustomerContact[] = [
   {"id":"99999999-0000-0000-0000-000000000005","customer_id":"88888888-0000-0000-0000-000000000003","name":"David Okafor","role":"VP Analytics","email":"d.okafor@globex.example","phone":"+44 20 7946 0912","company":"Globex Systems","tag":"Sponsor","position":0},
   {"id":"99999999-0000-0000-0000-000000000006","customer_id":"88888888-0000-0000-0000-000000000004","name":"Susan Meyers","role":"Compliance Lead","email":"s.meyers@initech.example","phone":null,"company":"Initech Software","tag":"Legal","position":0},
   {"id":"99999999-0000-0000-0000-000000000007","customer_id":"88888888-0000-0000-0000-000000000005","name":"Alan Reyes","role":"Clinical Director","email":"a.reyes@umbrella.example","phone":"+1 415 555 0170","company":"Umbrella Group","tag":null,"position":0},
-  {"id":"99999999-0000-0000-0000-000000000008","customer_id":null,"name":"Marco Bianchi","role":"Freelance Designer","email":"marco@bianchi.studio","phone":"+39 02 5550 88","company":"Bianchi Studio","tag":"Contractor","position":0},
+  {"id":"99999999-0000-0000-0000-000000000008","customer_id":null,"name":"Marco Bianchi","role":"Freelance Designer","email":"marco@bianchi.example","phone":"+39 02 5550 88","company":"Bianchi Studio","tag":"Contractor","position":0},
   {"id":"99999999-0000-0000-0000-000000000009","customer_id":null,"name":"Priya Nair","role":"Legal Advisor","email":"priya.nair@example.com","phone":null,"company":null,"tag":null,"position":1}
 ];
 
