@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.16] - 2026-10-13
+### Security
+- Outsiders can no longer get a list of users through the avatar storage. Avatars themselves show up as before.
+
 ## [0.10.15] - 2026-10-13
 ### Security
 - Closed a vulnerability: the internal account-deletion and data-export functions could be called without signing in. There are no signs that anyone used it.
