@@ -15,6 +15,7 @@ import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { TimeOff } from '@/features/planner/types/planner';
+import { useTimelineDragScroll } from './TimelineDragScrollContext';
 
 export interface TimeOffBarProps {
   record: TimeOff;
@@ -64,6 +65,7 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const isMobile = useIsMobile();
+  const dragScroll = useTimelineDragScroll();
   const updateTimeOff = usePlannerStore((state) => state.updateTimeOff);
   const setTimeOffDragPreview = usePlannerStore((state) => state.setTimeOffDragPreview);
 
@@ -103,6 +105,8 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
   const handleMouseDown = useCallback((event: React.MouseEvent, mode: Gesture['mode']) => {
     if (!canDrag) return;
     if (event.button !== 0) return;
+    // Mid rapid pan: keep scrolling the timeline instead of grabbing the bar.
+    if (mode === 'move' && dragScroll.isPanGraceActive()) return;
     event.preventDefault();
     // Without this the timeline surface starts a drag-scroll under the cursor.
     event.stopPropagation();
@@ -115,7 +119,7 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
       baseStart: record.startDate,
       baseEnd: record.endDate,
     });
-  }, [canDrag, record.endDate, record.startDate]);
+  }, [canDrag, dragScroll, record.endDate, record.startDate]);
 
   useEffect(() => {
     if (!gesture) return;
@@ -178,8 +182,9 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
       onClick={interactive
         ? (event) => {
           event.stopPropagation();
-          // A drag that moved the bar must not also open the dialog.
-          if (movedRef.current || gesture) return;
+          // A drag that moved the bar must not also open the dialog, nor may
+          // a pan stroke that started on the bar (pan grace).
+          if (movedRef.current || gesture || dragScroll.isPanGraceActive()) return;
           onOpenDetail?.(record.id);
         }
         : undefined}

@@ -5,8 +5,7 @@ describe('easter-egg catalog', () => {
   it('isEggKey accepts every known catalog key', () => {
     expect(isEggKey('shabbat')).toBe(true);
     expect(isEggKey('six-seven')).toBe(true);
-    expect(isEggKey('anniversary-blueprint')).toBe(true);
-    expect(isEggKey('anniversary-salute')).toBe(true);
+    expect(isEggKey('mashallah')).toBe(true);
     for (const key of Object.keys(EGG_CATALOG)) {
       expect(isEggKey(key)).toBe(true);
     }
@@ -14,6 +13,9 @@ describe('easter-egg catalog', () => {
 
   it('isEggKey rejects unknown and non-string values', () => {
     expect(isEggKey('nope')).toBe(false);
+    // Retired effects: a leftover DB row with one of these keys must show nothing.
+    expect(isEggKey('anniversary-blueprint')).toBe(false);
+    expect(isEggKey('anniversary-salute')).toBe(false);
     expect(isEggKey('')).toBe(false);
     expect(isEggKey(null)).toBe(false);
     expect(isEggKey(undefined)).toBe(false);

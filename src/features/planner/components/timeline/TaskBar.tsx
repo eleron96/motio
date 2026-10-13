@@ -275,6 +275,9 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const handleMouseDown = useCallback((e: React.MouseEvent, resize?: 'left' | 'right') => {
     if (!canEdit) return;
     if (e.button !== 0) return;
+    // Mid rapid pan the bar slid under the cursor: let the press bubble to the
+    // grid and keep scrolling. Resize handles are too narrow to hit by accident.
+    if (!resize && dragScroll.isPanGraceActive()) return;
     e.preventDefault();
     e.stopPropagation();
 

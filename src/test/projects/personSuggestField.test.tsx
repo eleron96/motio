@@ -13,8 +13,8 @@ vi.mock('@lingui/macro', () => ({
 }));
 
 const people: KnownPerson[] = [
-  { name: 'Анна Смирнова', role: 'Архитектор', company: 'СтройГрупп', tag: 'АР', email: 'anna@stroy.ru', phone: '+7900', usageCount: 3 },
-  { name: 'Борис Иванов', role: null, company: null, tag: null, email: 'boris@x.ru', phone: null, usageCount: 1 },
+  { name: 'Анна Смирнова', role: 'Архитектор', company: 'СтройГрупп', tag: 'АР', email: 'anna@stroy.example', phone: '+7900', usageCount: 3 },
+  { name: 'Борис Иванов', role: null, company: null, tag: null, email: 'boris@x.example', phone: null, usageCount: 1 },
 ];
 
 const Harness: React.FC<{ people: readonly KnownPerson[]; onPick: (p: KnownPerson) => void }> = ({
@@ -46,7 +46,7 @@ describe('PersonSuggestField', () => {
     expect(screen.queryByText('Борис Иванов')).not.toBeInTheDocument();
 
     fireEvent.mouseDown(screen.getByText('Анна Смирнова'));
-    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: 'Анна Смирнова', email: 'anna@stroy.ru' }));
+    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: 'Анна Смирнова', email: 'anna@stroy.example' }));
   });
 
   it('shows no suggestions on focus or a single typed character', () => {

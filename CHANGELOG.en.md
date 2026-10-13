@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.13] - 2026-10-13
+### Fixed
+- Quickly dragging the timeline with the mouse no longer grabs tasks that end up under the cursor.
+
 ## [0.10.12] - 2026-09-21
 ### Fixed
 - When a teammate adjusts the same task several times in a row, you now get one notification instead of a stack of identical ones.

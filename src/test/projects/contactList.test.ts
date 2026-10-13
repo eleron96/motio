@@ -66,8 +66,8 @@ describe('buildContactList', () => {
 
   it('dedupes an external person across projects, keeping every member id', () => {
     const entries = buildContactList([], [
-      member({ id: 'm1', projectId: 'p1', externalName: 'Игорь', externalCompany: 'СтройТех', externalEmail: 'i@s.ru' }),
-      member({ id: 'm2', projectId: 'p2', externalName: 'Игорь', externalCompany: 'СтройТех', externalEmail: 'i@s.ru', role: 'прораб' }),
+      member({ id: 'm1', projectId: 'p1', externalName: 'Игорь', externalCompany: 'СтройТех', externalEmail: 'i@s.example' }),
+      member({ id: 'm2', projectId: 'p2', externalName: 'Игорь', externalCompany: 'СтройТех', externalEmail: 'i@s.example', role: 'прораб' }),
     ], customersById);
     expect(entries).toHaveLength(1);
     expect(entries[0].source).toEqual({ kind: 'external', memberIds: ['m1', 'm2'], projectIds: ['p1', 'p2'] });
@@ -127,8 +127,8 @@ describe('company grouping', () => {
 
 describe('searchContactList', () => {
   const entries = buildContactList([
-    contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.ru', company: 'СтройГрупп' }),
-    contact({ id: 'c2', name: 'Борис Иванов', email: 'boris@x.ru' }),
+    contact({ id: 'c1', name: 'Анна Смирнова', email: 'anna@stroy.example', company: 'СтройГрупп' }),
+    contact({ id: 'c2', name: 'Борис Иванов', email: 'boris@x.example' }),
   ], [], customersById);
 
   it('empty query returns all', () => {

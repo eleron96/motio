@@ -20,6 +20,9 @@ export interface TimelineDragScrollController {
   getScrollContainer: () => HTMLDivElement | null;
   getViewportBounds: () => ViewportBounds | null;
   setTaskDragState: (state: TaskDragState) => void;
+  /** True right after a drag-scroll: a press on a bar keeps panning instead of
+   *  grabbing it (see `lib/panGrace.ts`). */
+  isPanGraceActive: () => boolean;
 }
 
 export const IDLE_TASK_DRAG_STATE: TaskDragState = { active: false, edge: null };
@@ -28,6 +31,7 @@ const noopController: TimelineDragScrollController = {
   getScrollContainer: () => null,
   getViewportBounds: () => null,
   setTaskDragState: () => {},
+  isPanGraceActive: () => false,
 };
 
 /** Defaults to a no-op so a bar rendered outside the grid (tests, previews)
