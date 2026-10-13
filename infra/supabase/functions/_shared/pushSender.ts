@@ -10,7 +10,7 @@
 
 const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
-const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@motio.app";
+const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@example.com";
 
 const encoder = new TextEncoder();
 

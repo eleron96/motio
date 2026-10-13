@@ -64,7 +64,7 @@ vi.mock('@/features/workspace/components/MobileWorkspacesScreen', () => ({
 
 const { authState } = vi.hoisted(() => ({
   authState: {
-    user: { id: 'user-1', email: 'niko@motio.app' },
+    user: { id: 'user-1', email: 'niko@motio.example' },
     profileDisplayName: 'Niko',
     profileAvatarUrl: null,
     workspaces: [{ id: 'workspace-1', name: 'Motio Team' }],
