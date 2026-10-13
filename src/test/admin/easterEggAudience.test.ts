@@ -16,7 +16,7 @@ const labels = {
 
 const target = (overrides: Partial<EasterEggTarget> = {}): EasterEggTarget => ({
   id: 'e1',
-  eggKey: 'anniversary-blueprint',
+  eggKey: 'mashallah',
   audienceKind: 'user',
   audienceValue: null,
   audienceLabel: null,
@@ -33,7 +33,7 @@ const target = (overrides: Partial<EasterEggTarget> = {}): EasterEggTarget => ({
 
 describe('easter egg audiences', () => {
   it('knows when a draft says who it is for', () => {
-    const draft = emptyEasterEggDraft('anniversary-blueprint');
+    const draft = emptyEasterEggDraft('mashallah');
 
     // A personal assignment needs a person.
     expect(isEasterEggDraftReady(draft)).toBe(false);
@@ -41,7 +41,7 @@ describe('easter egg audiences', () => {
 
     // A domain needs a domain, a workspace needs a workspace...
     expect(isEasterEggDraftReady({ ...draft, audienceKind: 'domain' })).toBe(false);
-    expect(isEasterEggDraftReady({ ...draft, audienceKind: 'domain', domain: ' studio-north.ru ' })).toBe(true);
+    expect(isEasterEggDraftReady({ ...draft, audienceKind: 'domain', domain: ' studio-north.example ' })).toBe(true);
     expect(isEasterEggDraftReady({ ...draft, audienceKind: 'workspace' })).toBe(false);
     expect(isEasterEggDraftReady({ ...draft, audienceKind: 'workspace', workspaceId: 'w1' })).toBe(true);
 
@@ -54,7 +54,7 @@ describe('easter egg audiences', () => {
 
     expect(draftAudienceValue({ ...draft, userId: 'u1' })).toBeNull();
     expect(draftAudienceValue({ ...draft, audienceKind: 'all_active' })).toBeNull();
-    expect(draftAudienceValue({ ...draft, audienceKind: 'domain', domain: '  Studio-North.ru ' })).toBe('Studio-North.ru');
+    expect(draftAudienceValue({ ...draft, audienceKind: 'domain', domain: '  Studio-North.example ' })).toBe('Studio-North.example');
     expect(draftAudienceValue({ ...draft, audienceKind: 'workspace', workspaceId: 'w1' })).toBe('w1');
   });
 
@@ -62,9 +62,9 @@ describe('easter egg audiences', () => {
     expect(audienceSummary(target(), labels)).toBe('Anna');
     expect(audienceSummary(target({ userDisplayName: null }), labels)).toBe('anna@example.com');
     expect(audienceSummary(
-      target({ audienceKind: 'domain', audienceValue: 'studio-north.ru', userId: null }),
+      target({ audienceKind: 'domain', audienceValue: 'studio-north.example', userId: null }),
       labels,
-    )).toBe('@studio-north.ru');
+    )).toBe('@studio-north.example');
     expect(audienceSummary(
       target({ audienceKind: 'workspace', audienceValue: 'w1', audienceLabel: 'Studio', userId: null }),
       labels,
