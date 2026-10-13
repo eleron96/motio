@@ -75,6 +75,35 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
     await closeTestPool();
   });
 
+  // ────────────── grants ──────────────
+
+  it("keeps every service-only `_` helper closed to anon and authenticated (0151, 0152)", async () => {
+    // Liquibase on test/prod runs as supabase_admin, whose default privileges
+    // grant anon EXECUTE explicitly: a `revoke ... from public` alone left these
+    // callable by anyone holding the public anon key.
+    await withFixture(async (client) => {
+      const { rows } = await client.query<{
+        fn: string; anon_exec: boolean; auth_exec: boolean; service_exec: boolean;
+      }>(`select p.oid::regprocedure::text as fn,
+                 has_function_privilege('anon', p.oid, 'EXECUTE') as anon_exec,
+                 has_function_privilege('authenticated', p.oid, 'EXECUTE') as auth_exec,
+                 has_function_privilege('service_role', p.oid, 'EXECUTE') as service_exec
+            from pg_proc p
+            join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public'
+             and p.prosecdef
+             and p.proname like '\\_%'
+           order by 1`);
+
+      expect(rows.length).toBeGreaterThanOrEqual(8);
+      for (const row of rows) {
+        expect({ fn: row.fn, anon: row.anon_exec }).toEqual({ fn: row.fn, anon: false });
+        expect({ fn: row.fn, authenticated: row.auth_exec }).toEqual({ fn: row.fn, authenticated: false });
+        expect({ fn: row.fn, service_role: row.service_exec }).toEqual({ fn: row.fn, service_role: true });
+      }
+    });
+  });
+
   // ────────────── _pick_profiles_to_purge ──────────────
 
   describe("_pick_profiles_to_purge", () => {
