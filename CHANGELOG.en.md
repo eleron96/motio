@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.13] - 2026-10-13
 ### Fixed
 - Quickly dragging the timeline with the mouse no longer grabs tasks that end up under the cursor.
 
