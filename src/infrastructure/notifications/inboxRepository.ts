@@ -179,6 +179,16 @@ export const markAllTaskNotificationsRead = async (): Promise<{ error?: string }
   return {};
 };
 
+export const markTaskNotificationsReadForTask = async (taskId: string): Promise<{ error?: string }> => {
+  const { error, response } = await supabase.functions.invoke('notifications', {
+    body: { action: 'markTaskRead', taskId },
+  });
+  if (error) {
+    return { error: await parseInvokeError(error, response) };
+  }
+  return {};
+};
+
 export const deleteAllTaskNotifications = async (): Promise<{ error?: string }> => {
   const { error, response } = await supabase.functions.invoke('notifications', {
     body: { action: 'deleteAll' },
