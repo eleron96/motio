@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Workspace invites and the admin user list work again: after one account was deleted they were failing with an error.
+
+
+### Changed
+- After you drag the timeline with the mouse, tasks now stay un-grabbable for a full second, so they don't get caught even when you scroll at a relaxed pace.
 ## [0.10.13] - 2026-10-13
 ### Fixed
 - Quickly dragging the timeline with the mouse no longer grabs tasks that end up under the cursor.
