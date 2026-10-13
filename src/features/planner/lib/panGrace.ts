@@ -4,7 +4,7 @@
  * release, press again) land on bars that slid under the cursor while the
  * timeline moved; without this window the next stroke drags the bar instead.
  */
-export const PAN_GRACE_MS = 400;
+export const PAN_GRACE_MS = 1000;
 
 /** `lastPanEndAt` is the time a drag-scroll that actually moved ended (0 = never). */
 export const isWithinPanGrace = (lastPanEndAt: number, now: number): boolean => (
