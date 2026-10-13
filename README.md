@@ -41,7 +41,7 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 
 ## ✨ Features
 
-- 📅 **Timeline** — drag-and-drop planner grouped by people or by project, with day / week / calendar views; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along.
+- 📅 **Timeline** — drag-and-drop planner grouped by people or by project, with day / week / calendar views; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along. Moved, rescheduled or deleted something by mistake? Undo it from the toast or with Cmd/Ctrl+Z.
 - ✅ **Tasks with depth** — subtasks, repeating series, priorities, tags, rich descriptions with pasted images, comments with @mentions and screenshots.
 - 👥 **Team** — members and groups, each person's current and past tasks at a glance.
 - 📁 **Projects and customers** — project cards with their team and customer contacts, a workspace-wide contact list; people you have entered before are suggested as you type.
@@ -141,7 +141,7 @@ Details: [docs/architecture.md](docs/architecture.md).
 |---|---|
 | [docs/guides/](docs/guides/) | how to plan with Motio: first week, several projects, spotting overload |
 | [docs/operations.md](docs/operations.md) | local dev, production, deploy, releases, migrations, backup/restore |
-| [docs/configuration.md](docs/configuration.md) | environment variables |
+| [docs/configuration.md](docs/configuration.md) | environment variables, feature flags, push, email, scheduled jobs |
 | [docs/architecture.md](docs/architecture.md) | stack, auth flow, Edge Functions, admin console |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | common errors and fixes |
 | [CHANGELOG.en.md](./CHANGELOG.en.md) · [CHANGELOG.md](./CHANGELOG.md) | change history (en / ru) |
