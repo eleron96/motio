@@ -51,16 +51,6 @@ $$;
 revoke execute on function public.get_my_daily_brief_egg() from anon, public;
 grant  execute on function public.get_my_daily_brief_egg() to authenticated;
 
--- Seed: migrate the current hardcoded assignments (registry.ts) into rows, with
--- NO behavior change. Guarded by `where exists` against auth.users so the
--- migration also succeeds on the test stand, where not every prod user exists.
-insert into public.easter_egg_targets (egg_key, user_id, note)
-select v.egg_key, v.user_id::uuid, v.note
-from (values
-  ('shabbat',   '00000000-0000-0000-0000-00000000000a', 'user.a (A)'),
-  ('six-seven', '00000000-0000-0000-0000-00000000000b', 'user.b (B)'),
-  ('six-seven', '00000000-0000-0000-0000-00000000000c', 'a.ivanova (C)'),
-  ('six-seven', '00000000-0000-0000-0000-00000000000d', 'user.d (D)')
-) as v(egg_key, user_id, note)
-where exists (select 1 from auth.users u where u.id = v.user_id::uuid)
-on conflict do nothing;
+-- No seed rows on purpose. Who gets which egg is live data, not schema: it is
+-- set in the admin console (Admin → Easter eggs) or with SQL on the server, so a
+-- fresh install starts with no assignments and no personal data ships in git.

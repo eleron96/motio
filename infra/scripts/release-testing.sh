@@ -302,7 +302,7 @@ printf "%s | %s | %s | %s | %s | target=testing | %s\n" \
   "$release_version" \
   "$release_commit" \
   "$(whoami)" \
-  "$(hostname -s 2>/dev/null || hostname)" \
+  "local" \
   "$release_summary" >> "$release_log_file"
 
 echo "Testing release prepared: $current_version -> $release_version"
