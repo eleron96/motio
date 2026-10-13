@@ -7,12 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.15] - 2026-10-13
 ### Security
 - Closed a vulnerability: the internal account-deletion and data-export functions could be called without signing in. There are no signs that anyone used it.
 
 
 ### Fixed
 - A task notification now clears as soon as you open the task's card, not only when you click it in the bell.
+
 ## [0.10.14] - 2026-10-13
 ### Fixed
 - Workspace invites and the admin user list work again: after one account was deleted they were failing with an error.

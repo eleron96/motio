@@ -431,3 +431,4 @@
 2026-09-21T15:42:41Z | 0.10.12 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20260921-154156.dump | When a teammate adjusts the same task several times in a row, you now get one notification instead of a stack of identical ones.
 2026-10-13T12:07:10Z | 0.10.13 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261013-120544.dump | Quickly dragging the timeline with the mouse no longer grabs tasks that end up under the cursor.
 2026-10-13T12:31:59Z | 0.10.14 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261013-123114.dump | Workspace invites and the admin user list work again: after one account was deleted they were failing with an error.
+2026-10-13T13:03:20Z | 0.10.15 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261013-130235.dump | Closed a vulnerability: the internal account-deletion and data-export functions could be called without signing in. There are no signs that anyone used it.
