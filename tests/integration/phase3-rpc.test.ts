@@ -144,6 +144,21 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
   // ────────────── _finalize_profile_purge ──────────────
 
   describe("_finalize_profile_purge", () => {
+    it("is callable by service_role only, not by clients (0151)", async () => {
+      await withFixture(async (client) => {
+        const { rows } = await client.query<{
+          service_exec: boolean; auth_exec: boolean; anon_exec: boolean;
+        }>(`select
+              has_function_privilege('service_role','public._finalize_profile_purge(uuid, text, jsonb)','EXECUTE') as service_exec,
+              has_function_privilege('authenticated','public._finalize_profile_purge(uuid, text, jsonb)','EXECUTE') as auth_exec,
+              has_function_privilege('anon','public._finalize_profile_purge(uuid, text, jsonb)','EXECUTE') as anon_exec`);
+
+        expect(rows[0].service_exec).toBe(true);
+        expect(rows[0].auth_exec).toBe(false);
+        expect(rows[0].anon_exec).toBe(false);
+      });
+    });
+
     it("happy path: PENDING_DELETION → PURGED with anonymized auth.users + profiles", async () => {
       await withFixture(async (client) => {
         await markPending(client, TEST_USER_IDS.alice, "now() - interval '1 day'");
@@ -173,7 +188,9 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
         expect(profile[0]?.purge_after).toBeNull();
 
         const { rows: auth } = await client.query(
-          `select email, raw_user_meta_data, banned_until
+          `select email, raw_user_meta_data,
+                  isfinite(banned_until) as ban_is_finite,
+                  banned_until > now() + interval '99 years' as ban_is_long
              from auth.users where id = $1`,
           [TEST_USER_IDS.alice],
         );
@@ -181,7 +198,10 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
           `deleted-${TEST_USER_IDS.alice}@motio.invalid`,
         );
         expect(auth[0]?.raw_user_meta_data).toEqual({});
-        expect(auth[0]?.banned_until?.toString().toLowerCase()).toContain("infinity");
+        // GoTrue cannot read an infinite banned_until: one such row made every
+        // GET /admin/users answer 500 (0151). The ban must be long but finite.
+        expect(auth[0]?.ban_is_finite).toBe(true);
+        expect(auth[0]?.ban_is_long).toBe(true);
       });
     });
 
