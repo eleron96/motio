@@ -592,6 +592,24 @@ describe("Phase 3 — purge & export helper RPCs (0075)", () => {
     });
   });
 
+  describe("avatars bucket RLS (0153)", () => {
+    it("lets a signed-in user see only their own avatar folder, and anon nothing", async () => {
+      await withFixture(async (client) => {
+        const { rows } = await client.query<{ policyname: string; roles: string; qual: string }>(
+          `select policyname, roles::text as roles, qual::text as qual
+             from pg_policies
+            where schemaname = 'storage' and tablename = 'objects'
+              and cmd = 'SELECT' and qual ilike '%avatars%'`,
+        );
+        // The bucket is public: avatar URLs never needed a SELECT policy, and a
+        // SELECT for every role let anyone list the user-id folders.
+        expect(rows.map((row) => row.policyname)).toEqual(["Users can read their own avatar"]);
+        expect(rows[0]?.roles).toBe("{authenticated}");
+        expect(rows[0]?.qual).toContain("uid()");
+      });
+    });
+  });
+
   // ────────────── end-to-end покрытие request→pick→finalize ──────────────
 
   describe("end-to-end export flow via public + helper RPCs", () => {
