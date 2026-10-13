@@ -181,15 +181,21 @@ const runFrame = () => {
   pending.forEach((callback) => callback(performance.now()));
 };
 
-const renderBar = (container: ReturnType<typeof makeContainer>, bounds = { left: 200, right: 1000 }) => {
+const renderBar = (
+  container: ReturnType<typeof makeContainer>,
+  bounds = { left: 200, right: 1000 },
+  { panGrace = false, onGridMouseDown }: { panGrace?: boolean; onGridMouseDown?: () => void } = {},
+) => {
   const states: TaskDragState[] = [];
   const controller: TimelineDragScrollController = {
     getScrollContainer: () => container as unknown as HTMLDivElement,
     getViewportBounds: () => bounds,
     setTaskDragState: (state) => states.push(state),
+    isPanGraceActive: () => panGrace,
   };
   const utils = render(
     <TimelineDragScrollContext.Provider value={controller}>
+      <div data-testid="grid" onMouseDown={onGridMouseDown}>
       <TaskBar
         canEdit
         dayWidth={10}
@@ -198,6 +204,7 @@ const renderBar = (container: ReturnType<typeof makeContainer>, bounds = { left:
         task={{ ...baseTask }}
         visibleDays={[]}
       />
+      </div>
     </TimelineDragScrollContext.Provider>,
   );
   const bar = utils.container.querySelector('[data-task-id="task-1"]') as HTMLElement;
@@ -296,5 +303,33 @@ describe('TaskBar drag with timeline auto-scroll', () => {
     expect(states.every((state) => !state.active)).toBe(true);
     expect(plannerState.setSelectedTaskId).toHaveBeenCalledWith('task-1');
     expect(moveTask).not.toHaveBeenCalled();
+  });
+
+  it('lets a press right after a pan bubble to the grid instead of grabbing the bar', () => {
+    const container = makeContainer();
+    const onGridMouseDown = vi.fn();
+    const { bar, states } = renderBar(container, undefined, { panGrace: true, onGridMouseDown });
+
+    fireEvent.mouseDown(bar, { button: 0, clientX: 500 });
+    fireEvent.mouseMove(document, { clientX: 600 });
+    fireEvent.mouseUp(document);
+
+    expect(onGridMouseDown).toHaveBeenCalledTimes(1);
+    expect(states).toHaveLength(0);
+    expect(moveTask).not.toHaveBeenCalled();
+    expect(plannerState.setSelectedTaskId).not.toHaveBeenCalled();
+  });
+
+  it('still drags a bar when no pan just happened', () => {
+    const container = makeContainer();
+    const onGridMouseDown = vi.fn();
+    const { bar } = renderBar(container, undefined, { onGridMouseDown });
+
+    fireEvent.mouseDown(bar, { button: 0, clientX: 500 });
+    fireEvent.mouseMove(document, { clientX: 520 });
+    fireEvent.mouseUp(document);
+
+    expect(onGridMouseDown).not.toHaveBeenCalled();
+    expect(moveTask).toHaveBeenCalledWith('task-1', '2026-02-03', '2026-02-03', 'single');
   });
 });

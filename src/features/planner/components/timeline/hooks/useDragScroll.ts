@@ -1,4 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { isWithinPanGrace } from '@/features/planner/lib/panGrace';
+
+// Presses on these never start a drag-scroll: they own their own gestures.
+const DRAG_SCROLL_BLOCKERS = '.task-bar, .milestone-dot, .milestone-cell, [data-timeline-sidebar], [data-timeline-resize-handle]';
+// Within the pan grace window task bars stop blocking; the rest still do.
+const DRAG_SCROLL_BLOCKERS_IN_PAN_GRACE = '.milestone-dot, .milestone-cell, [data-timeline-sidebar], [data-timeline-resize-handle]';
 
 interface UseDragScrollOptions {
   markTimelineInteraction: (ms: number) => void;
@@ -25,10 +31,12 @@ export function useDragScroll({ markTimelineInteraction }: UseDragScrollOptions)
   const handleDragStart = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     const target = e.target;
-    if (
-      target instanceof Element
-      && target.closest('.task-bar, .milestone-dot, .milestone-cell, [data-timeline-sidebar], [data-timeline-resize-handle]')
-    ) {
+    // Right after a pan, a press on a task bar continues panning: the bar slid
+    // under the cursor between rapid strokes (see lib/panGrace.ts).
+    const blockedSelector = isWithinPanGrace(lastDragTimeRef.current, Date.now())
+      ? DRAG_SCROLL_BLOCKERS_IN_PAN_GRACE
+      : DRAG_SCROLL_BLOCKERS;
+    if (target instanceof Element && target.closest(blockedSelector)) {
       return;
     }
     dragScrollRef.current = {

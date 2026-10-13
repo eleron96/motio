@@ -31,6 +31,7 @@ import { getPersonMonogram } from '@/shared/domain/personName';
 import { usePersonColors } from '@/features/planner/hooks/usePersonColors';
 import { useDragScroll } from './hooks/useDragScroll';
 import { DRAG_EDGE_ZONE_PX } from '@/features/planner/lib/dragAutoScroll';
+import { isWithinPanGrace } from '@/features/planner/lib/panGrace';
 import {
   IDLE_TASK_DRAG_STATE,
   TimelineDragScrollContext,
@@ -253,7 +254,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setTaskDragState: (next) => setTaskDragStateRaw((prev) => (
       prev.active === next.active && prev.edge === next.edge ? prev : next
     )),
-  }), []);
+    isPanGraceActive: () => isWithinPanGrace(lastDragTimeRef.current, Date.now()),
+  }), [lastDragTimeRef]);
 
   const { isSidebarResizing, handleSidebarResizeStart, handleSidebarResizeReset } = useSidebarResize({
     sidebarContainerRef,
