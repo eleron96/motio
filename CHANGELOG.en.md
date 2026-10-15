@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- A task notification now also clears when you follow the browser pop-up notification or tap the task on the timeline on your phone. For repeating tasks, opening any occurrence is enough.
 
 ## [0.10.16] - 2026-10-13
 ### Security
