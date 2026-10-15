@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  findUnreadNotificationIdsForTask,
+  collectSeenTaskIds,
+  findUnreadNotificationsForTasks,
   markAllNotificationsAsRead,
   markNotificationsAsReadByIds,
   removeNotificationsByIds,
@@ -54,13 +55,16 @@ describe('reading the notifications of one task', () => {
     { id: 'n5', taskId: 'task-1', readAt: null },
   ];
 
-  it('finds only the unread notifications of that task', () => {
-    expect(findUnreadNotificationIdsForTask(notifications, 'task-1')).toEqual(['n1', 'n5']);
-    expect(findUnreadNotificationIdsForTask(notifications, 'task-3')).toEqual([]);
+  const idsOf = (items: Array<{ id: string }>) => items.map((item) => item.id);
+
+  it('finds only the unread notifications of the seen tasks', () => {
+    expect(idsOf(findUnreadNotificationsForTasks(notifications, new Set(['task-1'])))).toEqual(['n1', 'n5']);
+    expect(idsOf(findUnreadNotificationsForTasks(notifications, new Set(['task-1', 'task-2'])))).toEqual(['n1', 'n3', 'n5']);
+    expect(findUnreadNotificationsForTasks(notifications, new Set(['task-3']))).toEqual([]);
   });
 
-  it('finds nothing when no task is open', () => {
-    expect(findUnreadNotificationIdsForTask(notifications, null)).toEqual([]);
+  it('finds nothing when no task is seen', () => {
+    expect(findUnreadNotificationsForTasks(notifications, new Set())).toEqual([]);
   });
 
   it('marks just the given ids and keeps an earlier read time', () => {
@@ -76,5 +80,30 @@ describe('reading the notifications of one task', () => {
 
   it('returns the original collection when there is nothing to mark', () => {
     expect(markNotificationsAsReadByIds(notifications, [], readAt)).toBe(notifications);
+  });
+});
+
+describe('collectSeenTaskIds', () => {
+  const tasks = [
+    { id: 'a1', repeatId: 'series-a' },
+    { id: 'a2', repeatId: 'series-a' },
+    { id: 'b1', repeatId: 'series-b' },
+    { id: 'solo', repeatId: null },
+  ];
+
+  it('keeps the focused tasks and drops empty slots', () => {
+    expect([...collectSeenTaskIds(tasks, ['solo', null, null])]).toEqual(['solo']);
+    expect(collectSeenTaskIds(tasks, [null, null]).size).toBe(0);
+  });
+
+  it('adds every loaded occurrence of a focused repeat series', () => {
+    // A series edit notifies once, on one occurrence: opening another
+    // occurrence of the same series must still count as seeing it.
+    expect([...collectSeenTaskIds(tasks, ['a2'])].sort()).toEqual(['a1', 'a2']);
+    expect([...collectSeenTaskIds(tasks, ['a1', 'solo'])].sort()).toEqual(['a1', 'a2', 'solo']);
+  });
+
+  it('keeps a focused task that is not loaded', () => {
+    expect([...collectSeenTaskIds(tasks, ['elsewhere'])]).toEqual(['elsewhere']);
   });
 });

@@ -144,6 +144,7 @@ export const createWorkspaceActions = (
       selectedTaskId: null,
       highlightedTaskId: null,
       highlightedTaskRowAssigneeId: null,
+      peekedTaskId: null,
       dataRequestId: requestId,
       ...workspaceResetPatch,
     });

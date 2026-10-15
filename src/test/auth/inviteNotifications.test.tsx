@@ -42,6 +42,9 @@ const mocks = vi.hoisted(() => ({
     setHighlightedTaskId: vi.fn(),
   },
   selectedTaskId: { current: null as string | null },
+  highlightedTaskId: { current: null as string | null },
+  peekedTaskId: { current: null as string | null },
+  tasks: { current: [] as Array<{ id: string; repeatId: string | null }> },
 }));
 
 vi.mock('@/shared/lib/supabaseClient', () => ({
@@ -73,12 +76,21 @@ vi.mock('@/features/auth/store/authStore', () => ({
   },
 }));
 
-vi.mock('@/features/planner/store/plannerStore', () => ({
-  usePlannerStore: (selector?: (state: unknown) => unknown) => {
-    const state = { ...mocks.planner, selectedTaskId: mocks.selectedTaskId.current };
+vi.mock('@/features/planner/store/plannerStore', () => {
+  const plannerState = () => ({
+    ...mocks.planner,
+    selectedTaskId: mocks.selectedTaskId.current,
+    highlightedTaskId: mocks.highlightedTaskId.current,
+    peekedTaskId: mocks.peekedTaskId.current,
+    tasks: mocks.tasks.current,
+  });
+  const usePlannerStore = (selector?: (state: unknown) => unknown) => {
+    const state = plannerState();
     return typeof selector === 'function' ? selector(state) : state;
-  },
-}));
+  };
+  usePlannerStore.getState = plannerState;
+  return { usePlannerStore };
+});
 
 describe('InviteNotifications', () => {
   beforeEach(() => {
@@ -91,6 +103,9 @@ describe('InviteNotifications', () => {
     mocks.acceptInvite.mockClear();
     Object.values(mocks.planner).forEach((fn) => fn.mockClear());
     mocks.selectedTaskId.current = null;
+    mocks.highlightedTaskId.current = null;
+    mocks.peekedTaskId.current = null;
+    mocks.tasks.current = [];
 
     mocks.invoke.mockImplementation(async (name: string, options?: { body?: { action?: string } }) => {
       if (name === 'inbox') {
@@ -271,6 +286,56 @@ describe('InviteNotifications', () => {
       ([name, options]) => name === 'notifications' && options?.body?.action === 'markTaskRead',
     );
     expect(markTaskReadCalls).toHaveLength(1);
+  });
+
+  const renderBellAndOpen = async () => {
+    const user = userEvent.setup();
+    const { InviteNotifications } = await import('@/features/auth/components/InviteNotifications');
+    render(
+      <TooltipProvider>
+        <MemoryRouter>
+          <InviteNotifications />
+        </MemoryRouter>
+      </TooltipProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Notifications' }));
+  };
+
+  it('reads the notifications of a task highlighted by a push jump', async () => {
+    mocks.highlightedTaskId.current = 'task-1';
+    await renderBellAndOpen();
+    await waitFor(() => {
+      expect(mocks.invoke).toHaveBeenCalledWith('notifications', {
+        body: { action: 'markTaskRead', taskId: 'task-1' },
+      });
+    });
+  });
+
+  it('reads the notifications of a task previewed by a tap on a phone', async () => {
+    mocks.peekedTaskId.current = 'task-2';
+    await renderBellAndOpen();
+    await waitFor(() => {
+      expect(mocks.invoke).toHaveBeenCalledWith('notifications', {
+        body: { action: 'markTaskRead', taskId: 'task-2' },
+      });
+    });
+    expect(mocks.invoke).not.toHaveBeenCalledWith('notifications', {
+      body: { action: 'markTaskRead', taskId: 'task-1' },
+    });
+  });
+
+  it('reads a series notification when another occurrence of the series is open', async () => {
+    mocks.tasks.current = [
+      { id: 'task-1', repeatId: 'series-1' },
+      { id: 'task-1-next', repeatId: 'series-1' },
+    ];
+    mocks.selectedTaskId.current = 'task-1-next';
+    await renderBellAndOpen();
+    await waitFor(() => {
+      expect(mocks.invoke).toHaveBeenCalledWith('notifications', {
+        body: { action: 'markTaskRead', taskId: 'task-1' },
+      });
+    });
   });
 
   it('asks nothing of the server while no open task has unread notifications', async () => {

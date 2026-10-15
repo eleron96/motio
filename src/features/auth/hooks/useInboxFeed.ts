@@ -15,7 +15,8 @@ import {
   type TaskNotification,
 } from '@/infrastructure/notifications/inboxRepository';
 import {
-  findUnreadNotificationIdsForTask,
+  collectSeenTaskIds,
+  findUnreadNotificationsForTasks,
   markAllNotificationsAsRead,
   markNotificationsAsReadByIds,
   removeNotificationsByIds,
@@ -102,6 +103,8 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
   const setSelectedTaskId = usePlannerStore((state) => state.setSelectedTaskId);
   const setHighlightedTaskId = usePlannerStore((state) => state.setHighlightedTaskId);
   const selectedTaskId = usePlannerStore((state) => state.selectedTaskId);
+  const highlightedTaskId = usePlannerStore((state) => state.highlightedTaskId);
+  const peekedTaskId = usePlannerStore((state) => state.peekedTaskId);
 
   // A disabled feed behaves exactly like a signed-out one: no fetch, no timers.
   const user = enabled ? currentUser : null;
@@ -435,27 +438,36 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
     void runPollingCycle('open');
   }, [runPollingCycle, user]);
 
-  // Opening a task's card means its notifications have been seen: read them
-  // here as well, not only when the row is clicked in the bell. Only asks the
-  // server when this feed actually holds an unread row for the task, so plain
-  // task clicks cost nothing. On failure the next poll restores the truth.
+  // Looking at a task means its notifications have been seen: read them here
+  // as well, not only when the row is clicked in the bell. "Looking" is an open
+  // card, a highlighted bar (the jump from a browser push or from the bell) or
+  // the tap preview on a phone — and covers every loaded occurrence of the
+  // task's repeat series. Only asks the server when this feed actually holds an
+  // unread row for those tasks, so plain task clicks cost nothing. On failure
+  // the next poll restores the truth.
   // Each notification is asked for once per session: if a refetch still shows
   // it unread, the server did not take it and asking again would only loop.
   const taskReadRequestedIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!user) return;
-    const unreadIds = findUnreadNotificationIdsForTask(taskNotifications, selectedTaskId)
-      .filter((id) => !taskReadRequestedIdsRef.current.has(id));
-    if (!selectedTaskId || unreadIds.length === 0) return;
+    const seenTaskIds = collectSeenTaskIds(
+      usePlannerStore.getState().tasks,
+      [selectedTaskId, highlightedTaskId, peekedTaskId],
+    );
+    const unread = findUnreadNotificationsForTasks(taskNotifications, seenTaskIds)
+      .filter((notification) => !taskReadRequestedIdsRef.current.has(notification.id));
+    if (unread.length === 0) return;
 
+    const unreadIds = unread.map((notification) => notification.id);
     unreadIds.forEach((id) => taskReadRequestedIdsRef.current.add(id));
     setTaskNotifications((current) => (
       markNotificationsAsReadByIds(current, unreadIds, new Date().toISOString())
     ));
-    void markTaskNotificationsReadForTask(selectedTaskId).then(({ error }) => {
-      if (error) refresh();
+    const notifiedTaskIds = Array.from(new Set(unread.map((notification) => notification.taskId as string)));
+    void Promise.all(notifiedTaskIds.map(markTaskNotificationsReadForTask)).then((results) => {
+      if (results.some(({ error }) => error)) refresh();
     });
-  }, [refresh, selectedTaskId, taskNotifications, user]);
+  }, [highlightedTaskId, peekedTaskId, refresh, selectedTaskId, taskNotifications, user]);
 
   const handleAccept = useCallback(async (token: string) => {
     const acceptedInvite = pendingInvites.find((invite) => invite.token === token) ?? null;

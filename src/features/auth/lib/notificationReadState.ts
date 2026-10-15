@@ -32,15 +32,44 @@ export const removeNotificationsByIds = <T extends IdentifiedNotification>(
   return notifications.filter((notification) => !ids.has(notification.id));
 };
 
-/** Ids of the unread notifications about one task — what opening its card reads. */
-export const findUnreadNotificationIdsForTask = <T extends TaskLinkedNotification>(
+type SeriesLinkedTask = {
+  id: string;
+  repeatId: string | null;
+};
+
+/**
+ * The tasks the user is looking at right now: the given ones (open card,
+ * highlighted bar, tap preview) plus every loaded occurrence of their repeat
+ * series. A series edit notifies once, on one occurrence, so opening any
+ * occurrence of that series has to count as seeing it.
+ */
+export const collectSeenTaskIds = (
+  tasks: SeriesLinkedTask[],
+  focusedTaskIds: Array<string | null>,
+): Set<string> => {
+  const seen = new Set(focusedTaskIds.filter((id): id is string => Boolean(id)));
+  if (seen.size === 0) return seen;
+  const repeatIds = new Set(
+    tasks
+      .filter((task) => seen.has(task.id) && task.repeatId)
+      .map((task) => task.repeatId as string),
+  );
+  if (repeatIds.size === 0) return seen;
+  tasks.forEach((task) => {
+    if (task.repeatId && repeatIds.has(task.repeatId)) seen.add(task.id);
+  });
+  return seen;
+};
+
+/** The unread notifications about the seen tasks — what looking at them reads. */
+export const findUnreadNotificationsForTasks = <T extends TaskLinkedNotification>(
   notifications: T[],
-  taskId: string | null,
-): string[] => {
-  if (!taskId) return [];
-  return notifications
-    .filter((notification) => notification.taskId === taskId && !notification.readAt)
-    .map((notification) => notification.id);
+  taskIds: ReadonlySet<string>,
+): T[] => {
+  if (taskIds.size === 0) return [];
+  return notifications.filter((notification) => (
+    notification.taskId !== null && taskIds.has(notification.taskId) && !notification.readAt
+  ));
 };
 
 export const markNotificationsAsReadByIds = <T extends ReadableNotification>(
