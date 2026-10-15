@@ -64,6 +64,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   const moveTask = usePlannerStore((state) => state.moveTask);
   const moveTaskDetached = usePlannerStore((state) => state.moveTaskDetached);
   const setSelectedTaskId = usePlannerStore((state) => state.setSelectedTaskId);
+  const setPeekedTaskId = usePlannerStore((state) => state.setPeekedTaskId);
   const setHighlightedTaskId = usePlannerStore((state) => state.setHighlightedTaskId);
   // Boolean selectors: this bar only re-renders when ITS own selected/
   // highlighted state flips, not on every selection change across the board.
@@ -155,6 +156,16 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
       singleTapTimerRef.current = null;
     }
   }, []);
+
+  // Mobile: the tap preview is how a phone looks at a task, so publish it —
+  // the inbox reads the task's notifications as seen while it is open.
+  useEffect(() => {
+    if (!isMobile || !mobileTooltipOpen) return undefined;
+    setPeekedTaskId(task.id);
+    return () => {
+      if (usePlannerStore.getState().peekedTaskId === task.id) setPeekedTaskId(null);
+    };
+  }, [isMobile, mobileTooltipOpen, setPeekedTaskId, task.id]);
 
   // Mobile: dismiss the tap-tooltip on the next touch outside it. Passive so the
   // same gesture still scrolls the timeline (no blocking full-screen backdrop).

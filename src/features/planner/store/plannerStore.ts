@@ -38,6 +38,7 @@ export const usePlannerStore = create<PlannerStore>()(
       selectedTaskId: null,
       highlightedTaskId: null,
       highlightedTaskRowAssigneeId: null,
+      peekedTaskId: null,
       timelineAttentionDate: null,
       workspaceId: null,
       loading: false,
@@ -82,6 +83,7 @@ export const usePlannerStore = create<PlannerStore>()(
         selectedTaskId: null,
         highlightedTaskId: null,
         highlightedTaskRowAssigneeId: null,
+        peekedTaskId: null,
         timelineAttentionDate: null,
         workspaceId: null,
         loading: false,
@@ -257,6 +259,7 @@ export const usePlannerStore = create<PlannerStore>()(
         highlightedTaskId: id,
         highlightedTaskRowAssigneeId: null,
       }),
+      setPeekedTaskId: (id) => set({ peekedTaskId: id }),
       setHighlightedTaskTarget: (taskId, rowAssigneeId = null) => set({
         highlightedTaskId: taskId,
         highlightedTaskRowAssigneeId: taskId ? rowAssigneeId ?? null : null,

@@ -270,5 +270,7 @@ export interface PlannerState {
   selectedTaskId: string | null;
   highlightedTaskId: string | null;
   highlightedTaskRowAssigneeId: string | null;
+  /** Task whose tap preview is open on a phone (the touch stand-in for hover). */
+  peekedTaskId: string | null;
   timelineAttentionDate: string | null;
 }
