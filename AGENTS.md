@@ -156,7 +156,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 4. GitHub Release публикуется **сам**: workflow `Release` (`.github/workflows/release.yml`) на каждый push в `main` запускает `infra/scripts/release-publish.sh` (деплой релизы не публикует). Скрипт идемпотентен: тег ставится на каждую версию, публичный Release создаётся только при реальных пользовательских изменениях в changelog. В workflow включён строгий режим (`RELEASE_PUBLISH_STRICT=1`): неопубликованный Release = красный прогон, после мёржа проверять `gh run list --workflow Release --limit 1`. Ручной запасной путь (повтор, недоступен Actions) — `make release-publish` с `main`; он non-fatal и подхватывает тег, уже поставленный из CI.
 5. Ветки: рабочая ветка — `codex/main-current`; `main` — зеркало выпущенного (точка для тегов и GitHub Releases). Влитие в `main` делается локально после `make release-sync`: `git checkout main && git pull --ff-only && git merge --no-ff codex/main-current && git push origin main`, затем возврат на рабочую ветку — этот пуш сам публикует Release (п. 4). Если в этом же дереве параллельно идёт другая работа или возможен деплой, мёржить из отдельного `git worktree add <путь> main`, не переключая рабочее дерево: `make deploy` rsync-ит дерево как есть, и дерево, оставленное на `main`, увезло бы на прод старый код. Pull Request для этого не используется. Перед мёржем убедиться, что CI рабочей ветки зелёный (`gh run list --branch codex/main-current --limit 1`). Мёрж в `main` запускать с запасом по времени (≥4 мин) — он дважды зависал на шаге коммита; если процесс прервали, остаются стейл-локи `.git/HEAD.lock` / `.git/refs/heads/main.lock` (см. `docs/troubleshooting.md`, «`git merge` into `main` hangs»). Ветка `main` не защищена настройками GitHub — force-push и удаление ветки агенту **запрещены**.
 
-Гейт деплоя **не заменяет CI**: в нём нет SQL security lint (`infra/scripts/lint-security-definer.sh`), `npm run build` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --limit 1`; красный — чинить сразу.
+Гейт деплоя **не заменяет CI**: в нём нет SQL security lint (`infra/scripts/lint-security-definer.sh`), `npm run build`, `npm run test:backup` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --limit 1`; красный — чинить сразу.
 
 ## 5.4.1. Remote deploy (testing)
 
@@ -291,7 +291,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 
 CI (`.github/workflows/ci.yml`) на каждый push и pull request прогоняет два параллельных job:
 
-- `lint-test-build`: **lint → SQL security lint → typecheck → i18n-каталоги → test → build**. Шаг «SQL security lint» (`infra/scripts/lint-security-definer.sh`) падает, если в миграциях есть функция с `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (см. §4.1 п.5). Шаг «i18n catalogs up to date» падает, если `npm run lingui:extract` даёт дифф в `src/locales` (см. §4.2 п.5).
+- `lint-test-build`: **lint → SQL security lint → typecheck → i18n-каталоги → test → backup-service tests → build**. Шаг «SQL security lint» (`infra/scripts/lint-security-definer.sh`) падает, если в миграциях есть функция с `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (см. §4.1 п.5). Шаг «i18n catalogs up to date» падает, если `npm run lingui:extract` даёт дифф в `src/locales` (см. §4.2 п.5).
 - `integration-tests`: поднимает Supabase-Postgres и прогоняет Liquibase-миграции скриптом `infra/scripts/ci-test-db.sh`, затем гоняет `npm run test:integration` (RLS, RPC, cron).
 
 Любой красный шаг останавливает пайплайн — но не мерж и не деплой (см. ниже). При этом CI **не является гейтом мержа и деплоя**: ветка `main` не защищена, а прод собирается из рабочего дерева по rsync — красный пайплайн технически не мешает выкатить релиз. Поэтому за зелёным CI следит агент (§5.4).
@@ -300,7 +300,8 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request прог�
 2. В `tsconfig.app.json` `strict: false`, но `strictNullChecks` **включён** — null/undefined-разыменования ловит компилятор. `noImplicitAny` пока выключен: неявные any не ловятся, новый код типизировать явно. Полный `strict` — отдельная постепенная задача.
 3. Результаты Supabase-запросов со строковым `select` кастовать как `... as unknown as <Row>` (Supabase не выводит тип такого select — принятый паттерн границы).
 4. Интеграционные тесты (`npm run test:integration`, каталог `tests/`) запускаются и в CI (job `integration-tests`). Локально при изменениях в RPC/RLS/cron гонять той же схемой: `bash infra/scripts/ci-test-db.sh`, затем `npm run test:integration`.
-5. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1100 тестов за ~30 с. На `forks` тот же набор шёл 20+ минут и давал ложные падения по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
+5. Тесты backup-service (`infra/backup-service/*.test.js`) — отдельный набор на `node:test` вне vitest: `npm run test:backup`, гоняется в CI шагом «backup-service tests». Новые тесты сервиса класть туда же рядом с кодом, без внешних зависимостей (CI не ставит `node_modules` сервиса).
+6. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1100 тестов за ~30 с. На `forks` тот же набор шёл 20+ минут и давал ложные падения по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
 
 ## 8. Definition of Done
 

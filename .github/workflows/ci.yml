@@ -40,6 +40,11 @@ jobs:
       - name: Unit tests
         run: npm run test
 
+      # backup-service is a separate Node (CommonJS) service outside vitest's
+      # src/ include; its tests use node:test and need no extra dependencies.
+      - name: backup-service tests
+        run: npm run test:backup
+
       - name: Production build
         run: npm run build
 

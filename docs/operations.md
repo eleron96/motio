@@ -65,6 +65,7 @@ npm run typecheck         # tsc -p tsconfig.app.json --noEmit (CI gate)
 npm run test              # unit + component
 npm run test:watch
 npm run test:integration  # DB integration suite (also gates CI)
+npm run test:backup       # backup-service crons (node:test, also gates CI)
 npm run lingui:extract    # extract translatable strings
 npm run lingui:compile    # compile .po → .js
 ```
@@ -156,7 +157,8 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
 - **lint-test-build** — `npm run lint` → SQL security lint
   (`infra/scripts/lint-security-definer.sh`) → `npm run typecheck` → i18n catalogs up
   to date (`lingui:extract`, then `git diff --exit-code src/locales`) →
-  `npm run test` → `npm run build`.
+  `npm run test` → `npm run test:backup` (backup-service, `node:test`) →
+  `npm run build`.
 - **integration-tests** — `infra/scripts/ci-test-db.sh` provisions the Supabase
   Postgres and applies the Liquibase migrations, then `npm run test:integration`
   runs against it.

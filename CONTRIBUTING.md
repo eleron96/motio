@@ -56,6 +56,8 @@ are in [docs/troubleshooting.md](docs/troubleshooting.md).
    npm run build
    ```
 
+   When touching `infra/backup-service`, run its tests: `npm run test:backup`.
+
    When touching RPC, RLS, cron or migrations, also run the database tests:
 
    ```bash
