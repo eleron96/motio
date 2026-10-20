@@ -31,6 +31,7 @@ const buildCtx = (ctx) => {
     cronEnabled = true,
     exportCleanupBatchLimit = 100,
     healthCheckThresholds = {},
+    now = () => new Date(),
   } = ctx;
 
   if (!supabaseUrl) throw new Error('account-deletion cron: SUPABASE_URL is required');
@@ -47,8 +48,14 @@ const buildCtx = (ctx) => {
     logger,
     cronEnabled,
     exportCleanupBatchLimit,
+    now,
     healthCheckThresholds: {
       stuckPurges: healthCheckThresholds.stuckPurges ?? 0,
+      // Purge крутится раз в сутки (PURGE_CRON, по умолчанию 04:00 UTC), а SQL
+      // считает purge застрявшим уже через час после purge_after. Аккаунт, чей
+      // grace period кончился сразу после 04:00, законно ждёт ~24 ч — алертим,
+      // только если самый старый ждёт дольше суток с запасом.
+      stuckPurgeMinAgeHours: healthCheckThresholds.stuckPurgeMinAgeHours ?? 26,
       stuckExports: healthCheckThresholds.stuckExports ?? 3,
       stuckExpiredFiles: healthCheckThresholds.stuckExpiredFiles ?? 10,
     },
@@ -220,14 +227,26 @@ const tickDataExportCleanup = async (rawCtx) => {
   return summary;
 };
 
+// Без даты (или с кривой) считаем «старым»: лучше лишний алерт, чем пропущенный.
+const isOlderThanHours = (timestamp, hours, now) => {
+  const time = timestamp ? new Date(timestamp).getTime() : NaN;
+  if (Number.isNaN(time)) return true;
+  return now.getTime() - time > hours * 60 * 60 * 1000;
+};
+
 const tickHealthCheck = async (rawCtx) => {
   const ctx = buildCtx(rawCtx);
   try {
     const { rows } = await ctx.pool.query('select public._account_deletion_health_check() as health');
     const health = rows[0]?.health ?? {};
-    const { stuckPurges, stuckExports, stuckExpiredFiles } = ctx.healthCheckThresholds;
+    const {
+      stuckPurges, stuckPurgeMinAgeHours, stuckExports, stuckExpiredFiles,
+    } = ctx.healthCheckThresholds;
     const breaches = [];
-    if ((health.stuck_purges ?? 0) > stuckPurges) breaches.push('stuck_purges');
+    if ((health.stuck_purges ?? 0) > stuckPurges
+      && isOlderThanHours(health.oldest_stuck_purge, stuckPurgeMinAgeHours, ctx.now())) {
+      breaches.push('stuck_purges');
+    }
     if ((health.stuck_exports ?? 0) > stuckExports) breaches.push('stuck_exports');
     if ((health.stuck_expired_files ?? 0) > stuckExpiredFiles) breaches.push('stuck_expired_files');
 
