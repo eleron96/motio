@@ -165,3 +165,19 @@ docker exec infra-db-1 psql -U supabase_admin -d postgres -c "select tgname from
 Write migrations so they can be re-applied safely (`create or replace`, `if not
 exists`, `drop ... if exists` first) and fix a missing object with a new migration,
 never by editing an old one.
+
+## Testing sign-in sends the browser to `ids-checker-keycloak:8080`
+
+On the testing server Keycloak is shared (see [Operations](operations.md),
+"Testing stand"), and GoTrue builds the sign-in redirect from the internal
+Keycloak URL. The gateway (`infra/supabase/nginx.conf`) rewrites it to the
+public origin with one `proxy_redirect` line per internal address; if
+`KEYCLOAK_INTERNAL_URL` / `GOTRUE_EXTERNAL_KEYCLOAK_URL` point somewhere new,
+add a matching line. Check the redirect the app actually uses — `/oauth2/start`
+does not go through GoTrue:
+
+```bash
+curl -s -o /dev/null -D - "https://test.motio.nikog.net/auth/v1/authorize?provider=keycloak&redirect_to=https://test.motio.nikog.net/app" | grep -i '^location'
+```
+
+The `Location` must start with `https://test.motio.nikog.net/realms/timeline/`.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Fills the TESTING stand (46.149.69.61) with test data: the "Motio QA
+# Fills the TESTING stand (72.56.34.157) with test data: the "Motio QA
 # Playground" workspace, built from the /demo seed and shared by the QA
 # accounts of the testing Keycloak. Rerun at any time for a fresh playground
 # with dates around today; nothing outside that workspace is touched, apart
@@ -11,7 +11,7 @@ set -euo pipefail
 # exist there. Refuses the production server.
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-host="${1:-root@46.149.69.61}"
+host="${1:-root@72.56.34.157}"
 remote_dir="/opt/motio-test"
 
 prod_ip="94.141.162.237"
@@ -46,7 +46,8 @@ cd "$REMOTE_DIR"
 
 env_get() { grep -E "^$1=" .env | head -n1 | cut -d= -f2- || true; }
 sq() { docker exec infra-db-1 psql -U supabase_admin -d postgres -At -v ON_ERROR_STOP=1 -c "$1" </dev/null; }
-kq() { docker exec infra-keycloak-db-1 psql -U keycloak -d keycloak -At -v ON_ERROR_STOP=1 -c "$1" </dev/null; }
+# Realm `timeline` lives in the shared Keycloak of the test server (ids-checker's).
+kq() { docker exec ids-checker-keycloak-db psql -U keycloak -d keycloak -At -v ON_ERROR_STOP=1 -c "$1" </dev/null; }
 
 service_key="$(env_get SERVICE_ROLE_KEY)"
 realm="$(env_get KEYCLOAK_REALM)"

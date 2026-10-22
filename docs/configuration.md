@@ -154,6 +154,13 @@ backup-service runs every scheduled job with `node-cron`. Defaults:
 
 ## Testing server only
 
+- The testing server uses a Keycloak shared with its neighbour (see
+  [Operations](operations.md)): `KEYCLOAK_ADMIN_BASE_URL=http://127.0.0.1:8081/auth`,
+  `KEYCLOAK_INTERNAL_URL=http://ids-checker-keycloak:8080/auth`, and the
+  `GOTRUE_EXTERNAL_KEYCLOAK_URL` / `OAUTH2_PROXY_*_URL` internal addresses use the
+  same base; `KEYCLOAK_ADMIN`/`KEYCLOAK_ADMIN_PASSWORD` are that Keycloak's master
+  admin.
+
 - `SEED_TESTING_EXTRA_MEMBERS` — `email:role,email:role`; real people
   `make seed-testing` adds to the QA playground workspace (see
   [Operations](operations.md)). Personal addresses stay in the server `.env`,

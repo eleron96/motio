@@ -217,6 +217,38 @@ The testing environment is fully isolated from production.
 | Release | `make release` | `make release-testing` |
 
 - `make deploy-testing` does **not** touch `VERSION`/changelogs and syncs nothing back.
+- The testing server is shared with another project, whose host nginx owns ports
+  80/443 and `127.0.0.1:8081`. So on testing:
+  - the host nginx terminates TLS for `test.motio.nikog.net`
+    (`infra/nginx/motio-test.conf`, installed by hand into
+    `/etc/nginx/sites-available/motio-test`; certificate from `certbot --nginx`)
+    and proxies to `motio-caddy`, which listens on `127.0.0.1:8088` only and
+    keeps all routing (`Caddyfile.testing`);
+  - Keycloak is **shared** with that project: realm `timeline` lives in its
+    Keycloak 26.1 (container `ids-checker-keycloak`, `127.0.0.1:8081`, served
+    under `/auth`), and one master admin manages both realms at
+    `https://check-ifc.nikog.webtm.ru/auth/admin/`. The realm's frontend URL stays
+    `https://test.motio.nikog.net`, so issuer and public paths match production;
+    `Caddyfile.testing` adds the `/auth` prefix when proxying. Our own
+    `keycloak`/`keycloak-db` only start with the `own-keycloak` compose profile;
+    `auth`, `functions` and `oauth2-proxy` join the `ids-checker_default`
+    network, and the testing `.env` points the internal Keycloak URLs at
+    `http://ids-checker-keycloak:8080/auth`. The login theme is synced into
+    `/opt/keycloak-themes/timeline`, which that Keycloak mounts; a theme change
+    restarts it (ids-checker sign-in blinks for ~30 s). Registration in the
+    testing realm is closed.
+
+  `motio-caddy` is not part of compose. To recreate it:
+
+  ```bash
+  docker run -d --name motio-caddy --restart unless-stopped \
+    --network infra_default -p 127.0.0.1:8088:80 \
+    -v /opt/motio-test/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+    -v caddy_data:/data -v caddy_config:/config caddy:2.8
+  bash /opt/motio-test/infra/scripts/ensure-caddy-network-access.sh
+  ```
+
+  Do not run `harden-firewall.sh` there: the firewall belongs to the shared server.
 - `deploy-testing.sh` hard-blocks deploying to the production server.
 - A tracked release on testing:
 

@@ -164,7 +164,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 
 | | Production | Testing |
 |---|---|---|
-| Сервер | `94.141.162.237` | `46.149.69.61` |
+| Сервер | `94.141.162.237` | `72.56.34.157` |
 | Домен | `motio.nikog.net` | `test.motio.nikog.net` |
 | Путь | `/opt/new_toggl` | `/opt/motio-test` |
 | Deploy | `make deploy-remote` | `make deploy-testing` |
@@ -179,7 +179,40 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 5. `.env` на тестовом сервере полностью отдельный — все секреты свои.
 6. **Никогда** не использовать `make deploy-remote` для тестового сервера и наоборот.
 7. У `make deploy-testing` гейта нет вообще: он катит рабочее дерево как есть, включая незакоммиченное. Отсюда два правила: порядок контуров обязателен (сначала тест, потом прод) и всё, что проверено на тесте, должно быть закоммичено до `make deploy` — иначе гейт прода упрётся в грязное дерево, а на прод уедет не то, что проверяли.
-8. Тестовые данные — `make seed-testing`: пересобирает пространство «Motio QA Playground» из сида `/demo` (`src/features/demo/lib/demoSeed.ts`) для QA-учёток тестового Keycloak (`qa.alice` — владелец, `qa.bob`/`qa.carol` — редакторы, `qa.dave` — просмотр; `qa.newbie` не входит — для проверки первого входа). Повторный запуск заменяет только это пространство; Keycloak скрипт лишь читает, пароли не задаёт; прод отклоняет. Демо и тестовые данные берутся из одного сида — меняя `demoSeed.ts`, помни, что меняешь и тестовый стенд. Живых людей (например, владельца) добавляет строка `SEED_TESTING_EXTRA_MEMBERS=email:role,…` в `.env` тестового сервера — личные адреса в публичный репозиторий не кладём. Суперадмин без единого пространства считается резервной служебной учёткой и попадает сразу в админку, поэтому владельцу на тесте нужно членство.
+8. Тестовый сервер **общий** с другим проектом владельца — ids-checker, и для ids-checker это **его прод** (https://check-ifc.nikog.webtm.ru). Ids-checker о соседе знает (его `docs/operations.md`, «Соседи на сервере»). Карта — в §5.4.1.1; подробности — `docs/operations.md`, «Testing stand». Прежний тестовый сервер `46.149.69.61` с 2026-10-22 выводится: туда не деплоить.
+9. Тестовые данные — `make seed-testing`: пересобирает пространство «Motio QA Playground» из сида `/demo` (`src/features/demo/lib/demoSeed.ts`) для QA-учёток тестового Keycloak (`qa.alice` — владелец, `qa.bob`/`qa.carol` — редакторы, `qa.dave` — просмотр; `qa.newbie` не входит — для проверки первого входа). Повторный запуск заменяет только это пространство; Keycloak скрипт лишь читает, пароли не задаёт; прод отклоняет. Демо и тестовые данные берутся из одного сида — меняя `demoSeed.ts`, помни, что меняешь и тестовый стенд. Живых людей (например, владельца) добавляет строка `SEED_TESTING_EXTRA_MEMBERS=email:role,…` в `.env` тестового сервера — личные адреса в публичный репозиторий не кладём. Суперадмин без единого пространства считается резервной служебной учёткой и попадает сразу в админку, поэтому владельцу на тесте нужно членство.
+
+## 5.4.1.1. Карта теста: что происходит по «кати на тест»
+
+«Кати на тест» / «сделай деплой» без указания контура = `make deploy-testing` из этого репозитория (§5.4.2). Что и где:
+
+| Что | Где |
+|---|---|
+| Сервер | `root@72.56.34.157` — **общий с прод-контуром ids-checker** (`/opt/ids-checker`, контейнеры `ids-checker*`) |
+| Код и `.env` теста | `/opt/motio-test` (rsync рабочего дерева, `.env` только серверный) |
+| Контейнеры теста | compose-проект `infra` (`infra-*`) + `motio-caddy` (вне compose) |
+| Вход снаружи | хостовый nginx ids-checker (80/443, TLS certbot) → сайт `/etc/nginx/sites-available/motio-test` (= `infra/nginx/motio-test.conf`, ставится руками, деплоем не трогается) → `motio-caddy` на `127.0.0.1:8088` → `web` / `gateway` / `oauth2-proxy` |
+| Keycloak | **общий**: `ids-checker-keycloak` (26.1, `127.0.0.1:8081`, под `/auth`), realm `timeline`; изнутри стека — `http://ids-checker-keycloak:8080/auth` (сеть `ids-checker_default`), снаружи — `https://test.motio.nikog.net/realms/timeline` (frontend URL realm'а; Caddy дописывает `/auth`) |
+| БД Keycloak | `ids-checker-keycloak-db` (её читает `seed-testing.sh`) |
+| Админка Keycloak | https://check-ifc.nikog.webtm.ru/auth/admin/ — один master-админ на оба realm; он же `KEYCLOAK_ADMIN*` в `.env` теста |
+| Тема логина | синкается в `/opt/keycloak-themes/timeline`; при её изменении деплой перезапускает `ids-checker-keycloak` (вход ids-checker мигает ~30 с) |
+| Свой Keycloak Motio | на тесте не стартует (профиль `own-keycloak`); `infra-keycloak-1`/`-db-1` остановлены, тома сохранены для отката |
+
+Кто может войти на тест: регистрация в realm `timeline` **закрыта**; включены только владелец, `qa.alice` (под ней работает агент, тестирующий выгрузки — **пароль ей не сбрасывать**) и резервный админ `RESERVE_ADMIN_EMAIL`. Остальные учётки, включая `qa.bob/carol/dave/newbie`, выключены, не удалены; включать — только по просьбе владельца.
+
+Что деплой теста трогает: `/opt/motio-test`, контейнеры `infra-*`, reload `motio-caddy`, тему в `/opt/keycloak-themes/timeline` и настройки realm `timeline` (ensure-скрипты через `127.0.0.1:8081/auth`). Чего не трогает и трогать нельзя: всё `ids-checker*`, его compose (блок `keycloak` живёт в репозитории ids-checker), его nginx-сайт, сайт ТЭП `test-tep`, UFW; `harden-firewall.sh` на тесте не запускать. Без нужды не перезапускать `ids-checker-keycloak` — это вход прода ids-checker.
+
+Post-deploy на тесте (кроме §5.5):
+
+```bash
+# вход приложения: Location должен вести на https://test.motio.nikog.net/realms/timeline/…, а не на внутренний адрес
+curl -s -o /dev/null -D - "https://test.motio.nikog.net/auth/v1/authorize?provider=keycloak&redirect_to=https://test.motio.nikog.net/app" | grep -i '^location'
+ssh root@72.56.34.157 "cd /opt/motio-test && docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.testing.yml --env-file .env logs --since 15m"
+ssh root@72.56.34.157 "docker logs --since 15m ids-checker-keycloak 2>&1 | grep -E 'ERROR|realmName=\"timeline\"' | tail"
+ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с воркером ids-checker (лимит 6G)
+```
+
+Грабли: GoTrue строит адрес входа из внутреннего URL Keycloak, а gateway (`infra/supabase/nginx.conf`, `proxy_redirect`) переписывает его на публичный — для каждого внутреннего адреса Keycloak нужна своя строка, иначе браузер уходит на `ids-checker-keycloak:8080`. Проверка входа через `/oauth2/start` этого не ловит — проверять именно `/auth/v1/authorize`.
 
 ## 5.4.2. Правило для агента при явной команде "сделай деплой"
 

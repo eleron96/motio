@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploy to the TESTING server (46.149.69.61).
+# Deploy to the TESTING server (72.56.34.157).
 # This script is intentionally separate from deploy-remote.sh to avoid
 # accidentally touching the production server or its release artifacts.
 #
@@ -13,7 +13,7 @@ set -euo pipefail
 #   - Syncs Caddyfile.testing instead of Caddyfile
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-host="${1:-root@46.149.69.61}"
+host="${1:-root@72.56.34.157}"
 remote_dir="/opt/motio-test"
 
 # Safety: refuse to deploy to production IP
@@ -63,8 +63,10 @@ rsync -az --inplace \
 ssh "$host" "cd '${remote_dir}' && bash infra/scripts/test-compose.sh"
 
 if [[ "${keycloak_theme_changed}" == "true" ]]; then
-  echo "Keycloak theme changes detected. Recreating keycloak to flush theme cache."
-  ssh "$host" "cd '${remote_dir}' && docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.testing.yml --env-file .env up -d --force-recreate --no-deps keycloak"
+  # The test server's Keycloak is shared with ids-checker (its login blinks for
+  # ~30 s); test-compose.sh has already synced the theme into its mount.
+  echo "Keycloak theme changes detected. Restarting the shared Keycloak to flush theme cache."
+  ssh "$host" "docker restart ids-checker-keycloak >/dev/null"
 fi
 
 ssh "$host" "cd '${remote_dir}' && if docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.testing.yml --env-file .env ps -q gateway >/dev/null 2>&1; then \
