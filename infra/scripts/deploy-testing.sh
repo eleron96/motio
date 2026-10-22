@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploy to the TESTING server (46.149.69.61).
+# Deploy to the TESTING server (72.56.34.157).
 # This script is intentionally separate from deploy-remote.sh to avoid
 # accidentally touching the production server or its release artifacts.
 #
@@ -13,7 +13,7 @@ set -euo pipefail
 #   - Syncs Caddyfile.testing instead of Caddyfile
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-host="${1:-root@46.149.69.61}"
+host="${1:-root@72.56.34.157}"
 remote_dir="/opt/motio-test"
 
 # Safety: refuse to deploy to production IP

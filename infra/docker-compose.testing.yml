@@ -1,6 +1,6 @@
 # Testing environment overrides.
-# Applied on top of docker-compose.prod.yml to reduce resource limits
-# for the 1 CPU / 2 GB RAM test server.
+# Applied on top of docker-compose.prod.yml to cap resources on the test
+# server, which is shared with another project.
 #
 # Usage: docker compose -f docker-compose.prod.yml -f docker-compose.testing.yml ...
 
@@ -20,6 +20,11 @@ services:
           cpus: '0.5'
 
   keycloak:
+    # The neighbouring project already publishes its Keycloak on
+    # 127.0.0.1:8081, so ours moves to 8082 (test-compose.sh points the
+    # keycloak-ensure-* scripts there).
+    ports: !override
+      - "127.0.0.1:8082:8080"
     deploy:
       resources:
         limits:

@@ -141,6 +141,10 @@ fi
 
 export COMPOSE_MENU=0
 
+# 127.0.0.1:8081 belongs to the neighbouring project's Keycloak on the shared
+# test server; ours is published on 8082 (infra/docker-compose.testing.yml).
+export KEYCLOAK_ADMIN_BASE_URL="http://127.0.0.1:8082"
+
 # --- Start database first ---
 $compose_cmd up -d db
 
@@ -258,5 +262,5 @@ echo "Testing stack is running."
 echo "Frontend: http://localhost:5173"
 echo "Supabase Gateway health: http://localhost:8080/health"
 echo "Supabase Auth health: http://localhost:8080/auth/v1/health"
-echo "Keycloak: http://localhost:8081"
+echo "Keycloak: http://localhost:8082"
 echo "Login as reserve super admin: $RESERVE_ADMIN_EMAIL"

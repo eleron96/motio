@@ -1,4 +1,13 @@
-test.motio.nikog.net {
+# The shared test server's 80/443 belong to the host nginx: it terminates TLS
+# (infra/nginx/motio-test.conf) and forwards plain HTTP to this container,
+# published on 127.0.0.1:8088. Trust its X-Forwarded-* so upstreams see https.
+{
+  servers {
+    trusted_proxies static private_ranges
+  }
+}
+
+http://test.motio.nikog.net {
   header {
     Strict-Transport-Security "max-age=31536000; includeSubDomains"
     X-Content-Type-Options "nosniff"

@@ -154,6 +154,10 @@ backup-service runs every scheduled job with `node-cron`. Defaults:
 
 ## Testing server only
 
+- `KEYCLOAK_ADMIN_BASE_URL=http://127.0.0.1:8082` — the shared testing server
+  publishes Motio's Keycloak on 8082 (8081 is taken by its neighbour);
+  `test-compose.sh` sets the same value for the ensure scripts.
+
 - `SEED_TESTING_EXTRA_MEMBERS` — `email:role,email:role`; real people
   `make seed-testing` adds to the QA playground workspace (see
   [Operations](operations.md)). Personal addresses stay in the server `.env`,

@@ -217,6 +217,27 @@ The testing environment is fully isolated from production.
 | Release | `make release` | `make release-testing` |
 
 - `make deploy-testing` does **not** touch `VERSION`/changelogs and syncs nothing back.
+- The testing server is shared with another project, whose host nginx owns ports
+  80/443 and `127.0.0.1:8081`. So on testing:
+  - the host nginx terminates TLS for `test.motio.nikog.net`
+    (`infra/nginx/motio-test.conf`, installed by hand into
+    `/etc/nginx/sites-available/motio-test`; certificate from `certbot --nginx`)
+    and proxies to `motio-caddy`, which listens on `127.0.0.1:8088` only and
+    keeps all routing (`Caddyfile.testing`);
+  - Keycloak is published on `127.0.0.1:8082` (`docker-compose.testing.yml`),
+    and `test-compose.sh` points the `keycloak-ensure-*` scripts there.
+
+  `motio-caddy` is not part of compose. To recreate it:
+
+  ```bash
+  docker run -d --name motio-caddy --restart unless-stopped \
+    --network infra_default -p 127.0.0.1:8088:80 \
+    -v /opt/motio-test/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+    -v caddy_data:/data -v caddy_config:/config caddy:2.8
+  bash /opt/motio-test/infra/scripts/ensure-caddy-network-access.sh
+  ```
+
+  Do not run `harden-firewall.sh` there: the firewall belongs to the shared server.
 - `deploy-testing.sh` hard-blocks deploying to the production server.
 - A tracked release on testing:
 
