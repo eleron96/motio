@@ -224,8 +224,19 @@ The testing environment is fully isolated from production.
     `/etc/nginx/sites-available/motio-test`; certificate from `certbot --nginx`)
     and proxies to `motio-caddy`, which listens on `127.0.0.1:8088` only and
     keeps all routing (`Caddyfile.testing`);
-  - Keycloak is published on `127.0.0.1:8082` (`docker-compose.testing.yml`),
-    and `test-compose.sh` points the `keycloak-ensure-*` scripts there.
+  - Keycloak is **shared** with that project: realm `timeline` lives in its
+    Keycloak 26.1 (container `ids-checker-keycloak`, `127.0.0.1:8081`, served
+    under `/auth`), and one master admin manages both realms at
+    `https://check-ifc.nikog.webtm.ru/auth/admin/`. The realm's frontend URL stays
+    `https://test.motio.nikog.net`, so issuer and public paths match production;
+    `Caddyfile.testing` adds the `/auth` prefix when proxying. Our own
+    `keycloak`/`keycloak-db` only start with the `own-keycloak` compose profile;
+    `auth`, `functions` and `oauth2-proxy` join the `ids-checker_default`
+    network, and the testing `.env` points the internal Keycloak URLs at
+    `http://ids-checker-keycloak:8080/auth`. The login theme is synced into
+    `/opt/keycloak-themes/timeline`, which that Keycloak mounts; a theme change
+    restarts it (ids-checker sign-in blinks for ~30 s). Registration in the
+    testing realm is closed.
 
   `motio-caddy` is not part of compose. To recreate it:
 

@@ -46,7 +46,8 @@ cd "$REMOTE_DIR"
 
 env_get() { grep -E "^$1=" .env | head -n1 | cut -d= -f2- || true; }
 sq() { docker exec infra-db-1 psql -U supabase_admin -d postgres -At -v ON_ERROR_STOP=1 -c "$1" </dev/null; }
-kq() { docker exec infra-keycloak-db-1 psql -U keycloak -d keycloak -At -v ON_ERROR_STOP=1 -c "$1" </dev/null; }
+# Realm `timeline` lives in the shared Keycloak of the test server (ids-checker's).
+kq() { docker exec ids-checker-keycloak-db psql -U keycloak -d keycloak -At -v ON_ERROR_STOP=1 -c "$1" </dev/null; }
 
 service_key="$(env_get SERVICE_ROLE_KEY)"
 realm="$(env_get KEYCLOAK_REALM)"

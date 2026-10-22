@@ -30,27 +30,30 @@ http://test.motio.nikog.net {
     redir /realms/master/ /realms/master/account 302
     redir /realms/timeline /realms/timeline/account 302
     redir /realms/timeline/ /realms/timeline/account 302
-    redir /admin /admin/master/console/ 302
-    redir /admin/master/console /admin/master/console/ 302
+    # Keycloak is shared with ids-checker (container ids-checker-keycloak,
+    # served under /auth); realm `timeline` keeps https://test.motio.nikog.net
+    # as its frontend URL, so its public paths stay as on production. The
+    # admin console of the shared Keycloak lives on the ids-checker host.
+    redir /admin* https://check-ifc.nikog.webtm.ru/auth/admin/master/console/ 302
 
     handle /resources* {
-      reverse_proxy keycloak:8080
+      rewrite * /auth{uri}
+      reverse_proxy ids-checker-keycloak:8080
     }
 
     handle /realms* {
-      reverse_proxy keycloak:8080
-    }
-
-    handle /admin* {
-      reverse_proxy keycloak:8080
+      rewrite * /auth{uri}
+      reverse_proxy ids-checker-keycloak:8080
     }
 
     handle /js* {
-      reverse_proxy keycloak:8080
+      rewrite * /auth{uri}
+      reverse_proxy ids-checker-keycloak:8080
     }
 
     handle /.well-known* {
-      reverse_proxy keycloak:8080
+      rewrite * /auth{uri}
+      reverse_proxy ids-checker-keycloak:8080
     }
 
     handle /health {

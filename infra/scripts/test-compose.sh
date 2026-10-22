@@ -141,9 +141,14 @@ fi
 
 export COMPOSE_MENU=0
 
-# 127.0.0.1:8081 belongs to the neighbouring project's Keycloak on the shared
-# test server; ours is published on 8082 (infra/docker-compose.testing.yml).
-export KEYCLOAK_ADMIN_BASE_URL="http://127.0.0.1:8082"
+# Realm `timeline` lives in the shared Keycloak of the test server
+# (ids-checker's, 127.0.0.1:8081 under /auth); see docker-compose.testing.yml.
+export KEYCLOAK_ADMIN_BASE_URL="http://127.0.0.1:8081/auth"
+
+# The shared Keycloak serves our login theme from this host directory;
+# deploy-testing.sh restarts it when the theme changes.
+mkdir -p /opt/keycloak-themes/timeline
+rsync -a --delete infra/keycloak/themes/timeline/ /opt/keycloak-themes/timeline/
 
 # --- Start database first ---
 $compose_cmd up -d db
@@ -186,7 +191,7 @@ $compose_cmd exec -T db \
   psql -U supabase_admin -d "$POSTGRES_DB" -c "CREATE SCHEMA IF NOT EXISTS _realtime;" >/dev/null 2>&1
 
 # --- Start remaining services ---
-$compose_cmd up -d keycloak-db keycloak auth rest functions backup realtime storage gateway
+$compose_cmd up -d auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache.
 $compose_cmd up -d --force-recreate --no-deps functions
@@ -262,5 +267,5 @@ echo "Testing stack is running."
 echo "Frontend: http://localhost:5173"
 echo "Supabase Gateway health: http://localhost:8080/health"
 echo "Supabase Auth health: http://localhost:8080/auth/v1/health"
-echo "Keycloak: http://localhost:8082"
+echo "Keycloak (shared): http://localhost:8081/auth"
 echo "Login as reserve super admin: $RESERVE_ADMIN_EMAIL"

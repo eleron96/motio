@@ -1,6 +1,12 @@
 # Testing environment overrides.
 # Applied on top of docker-compose.prod.yml to cap resources on the test
-# server, which is shared with another project.
+# server, which is shared with another project (ids-checker).
+#
+# Keycloak is shared too: realm `timeline` lives in ids-checker's Keycloak
+# (container ids-checker-keycloak, served under /auth, network
+# ids-checker_default). Our own keycloak/keycloak-db stay defined but only
+# start with the `own-keycloak` profile; services that talk to Keycloak join
+# the shared network instead.
 #
 # Usage: docker compose -f docker-compose.prod.yml -f docker-compose.testing.yml ...
 
@@ -13,6 +19,7 @@ services:
           cpus: '0.9'
 
   keycloak-db:
+    profiles: [own-keycloak]
     deploy:
       resources:
         limits:
@@ -20,9 +27,8 @@ services:
           cpus: '0.5'
 
   keycloak:
-    # The neighbouring project already publishes its Keycloak on
-    # 127.0.0.1:8081, so ours moves to 8082 (test-compose.sh points the
-    # keycloak-ensure-* scripts there).
+    profiles: [own-keycloak]
+    # 127.0.0.1:8081 is the shared Keycloak's; keep ours off it if ever started.
     ports: !override
       - "127.0.0.1:8082:8080"
     deploy:
@@ -32,6 +38,10 @@ services:
           cpus: '0.9'
 
   auth:
+    depends_on: !override
+      db:
+        condition: service_healthy
+    networks: [default, shared-keycloak]
     deploy:
       resources:
         limits:
@@ -53,6 +63,7 @@ services:
           cpus: '0.5'
 
   functions:
+    networks: [default, shared-keycloak]
     deploy:
       resources:
         limits:
@@ -60,6 +71,9 @@ services:
           cpus: '0.5'
 
   backup:
+    environment:
+      # The shared Keycloak DB belongs to ids-checker; we do not dump it.
+      KEYCLOAK_DB_URL: ""
     deploy:
       resources:
         limits:
@@ -86,3 +100,14 @@ services:
         limits:
           memory: 64M
           cpus: '0.25'
+
+  oauth2-proxy:
+    depends_on: !override
+      web:
+        condition: service_started
+    networks: [default, shared-keycloak]
+
+networks:
+  shared-keycloak:
+    name: ids-checker_default
+    external: true
