@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- The landing page and project description now mention the board as an optional view next to the timeline.
+- The board is easier to read: every column, Cancelled included, starts open, the Mine filter is now your avatar labelled You, and the board opens without a delay.
+
 ## [0.10.19] - 2026-10-26
 ### Added
 - Board (beta): tasks as cards in columns by your statuses. Turn it on in account settings → Appearance → Board view (beta), then switch to it next to Timeline and Calendar; it works on phones too.
