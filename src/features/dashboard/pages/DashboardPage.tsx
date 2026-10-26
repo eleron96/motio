@@ -1,6 +1,6 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { lazyNamed } from '@/shared/lib/lazyComponent';
-import { ResponsiveGridLayout, cloneLayout } from 'react-grid-layout';
+import { ResponsiveGridLayout, verticalCompactor } from 'react-grid-layout';
 import type { Layout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -51,7 +51,7 @@ import {
 import {
   DASHBOARD_BREAKPOINTS,
   DASHBOARD_COLS,
-  DASHBOARD_GRID_SETTINGS,
+  getDashboardGridSettings,
   getViewportProfileForBreakpoint,
   type DashboardBreakpoint,
 } from '@/features/dashboard/lib/dashboardResponsive';
@@ -169,11 +169,6 @@ const DashboardPage = () => {
     moved: boolean;
   } | null>(null);
   const { width, containerRef } = useRemountSafeContainerWidth();
-  const gridCompactor = useMemo(() => ({
-    type: 'vertical' as const,
-    allowOverlap: false,
-    compact: (layout: Layout) => cloneLayout(layout),
-  }), []);
 
   const {
     widgets,
@@ -282,8 +277,8 @@ const DashboardPage = () => {
     && currentWorkspaceId
     && prevWorkspaceIdRef.current !== currentWorkspaceId,
   );
-  const currentGridSettings = DASHBOARD_GRID_SETTINGS[currentBreakpoint] ?? DASHBOARD_GRID_SETTINGS.lg;
-  const currentViewportProfile = getViewportProfileForBreakpoint(currentBreakpoint);
+  const currentGridSettings = getDashboardGridSettings(currentBreakpoint, width);
+  const currentViewportProfile = getViewportProfileForBreakpoint(currentBreakpoint, width);
   const isTouchDashboardViewport = currentViewportProfile === 'phone'
     || currentViewportProfile === 'tablet'
     || currentViewportProfile === 'laptop';
@@ -1009,7 +1004,9 @@ const DashboardPage = () => {
           onDragStop={handleGridDragStop}
           onResizeStop={handleResizeStop}
           onBreakpointChange={handleBreakpointChange}
-          compactor={gridCompactor}
+          // Real vertical compaction: widgets float up into holes left by a
+          // resize, a deleted widget or a narrower breakpoint.
+          compactor={verticalCompactor}
         >
           {widgets.map((widget) => (
             <div key={widget.id} className="dashboard-grid-item h-full w-full">
