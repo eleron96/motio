@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { AlertCircle, Check, ChevronDown, Search, User, X } from 'lucide-react';
+import { AlertCircle, Check, ChevronDown, Search, User, Users, X } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useBoardPeopleCounts } from '@/features/planner/hooks/useBoardColumns';
-import { resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSelectors';
+import { buildAssigneeGroupMap, resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSelectors';
 import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
@@ -44,7 +44,7 @@ interface BoardQuickFiltersProps {
 }
 
 /**
- * One row of one-click filters above the board. People and projects write into
+ * One row of one-click filters above the board. People, groups and projects write into
  * the planner's shared filters (the same ones the filter panel and the timeline
  * use, persisted per user); search and "overdue" are board-only and transient.
  */
@@ -57,6 +57,8 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
   const assignees = usePlannerStore((state) => state.assignees);
   const projects = usePlannerStore((state) => state.projects);
   const trackedProjectIds = usePlannerStore((state) => state.trackedProjectIds);
+  const memberGroups = usePlannerStore((state) => state.memberGroups);
+  const memberGroupAssignments = usePlannerStore((state) => state.memberGroupAssignments);
   const filters = usePlannerStore((state) => state.filters);
   const setFilters = usePlannerStore((state) => state.setFilters);
   const clearFilterCriteria = usePlannerStore((state) => state.clearFilterCriteria);
@@ -65,20 +67,34 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
 
   const [morePeopleOpen, setMorePeopleOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const [groupsOpen, setGroupsOpen] = useState(false);
 
   const myAssigneeId = useMemo(() => resolveCurrentUserAssigneeId(assignees, userId), [assignees, userId]);
 
+  const assigneeGroupMap = useMemo(
+    () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
+    [assignees, memberGroupAssignments],
+  );
+  const selectedGroups = filters.groupIds;
+  const selectedPeople = filters.assigneeIds;
+
   // The busiest people first; ties by name. "Mine" covers the current user.
+  // With a group picked, the row narrows to its members (plus anyone already
+  // selected, so a choice never disappears from view).
   const people = useMemo(() => (
     assignees
       .filter((person) => person.isActive && person.id !== myAssigneeId)
+      .filter((person) => (
+        selectedGroups.length === 0
+        || selectedGroups.includes(assigneeGroupMap.get(person.id) ?? '')
+        || selectedPeople.includes(person.id)
+      ))
       .sort((left, right) => (
         (peopleCounts.get(right.id) ?? 0) - (peopleCounts.get(left.id) ?? 0)
         || left.name.localeCompare(right.name)
       ))
-  ), [assignees, myAssigneeId, peopleCounts]);
+  ), [assignees, myAssigneeId, peopleCounts, selectedGroups, assigneeGroupMap, selectedPeople]);
 
-  const selectedPeople = filters.assigneeIds;
   // A selected person stays visible even past the cut, so the row shows every
   // active choice without opening "+N".
   const visiblePeople = useMemo(() => {
@@ -109,6 +125,19 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
     || filters.typeIds.length > 0
     || filters.tagIds.length > 0;
   const showReset = hasCriteria || search.trim().length > 0 || overdueOnly;
+
+  const sortedGroups = useMemo(
+    () => [...memberGroups].sort((left, right) => left.name.localeCompare(right.name)),
+    [memberGroups],
+  );
+  const groupLabel = (() => {
+    if (selectedGroups.length === 0) return t`Group: all`;
+    if (selectedGroups.length === 1) {
+      return memberGroups.find((group) => group.id === selectedGroups[0])?.name ?? t`Group: all`;
+    }
+    return t`Groups: ${selectedGroups.length}`;
+  })();
+  const toggleGroup = (id: string) => setFilters({ groupIds: toggleId(selectedGroups, id) });
 
   const togglePerson = (id: string) => setFilters({ assigneeIds: toggleId(selectedPeople, id) });
   const toggleProject = (id: string) => setFilters({ projectIds: toggleId(selectedProjects, id) });
@@ -192,7 +221,10 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
                         <CommandItem
                           key={person.id}
                           value={`${person.name} ${person.id}`}
-                          onSelect={() => togglePerson(person.id)}
+                          onSelect={() => {
+                            togglePerson(person.id);
+                            setMorePeopleOpen(false);
+                          }}
                           className="gap-2"
                         >
                           <PersonAvatar assigneeId={person.id} name={person.name} avatarUrl={person.avatar} size="xs" />
@@ -211,6 +243,53 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
 
       <span aria-hidden className="h-5 w-px flex-shrink-0 bg-border" />
 
+      {sortedGroups.length > 0 && (
+        <Popover open={groupsOpen} onOpenChange={setGroupsOpen}>
+          <PopoverTrigger asChild>
+            <button type="button" className={chipClass(selectedGroups.length > 0)}>
+              <Users className="h-4 w-4" />
+              <span className="max-w-[10rem] truncate">{groupLabel}</span>
+              <ChevronDown className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-0" align="start">
+            <Command>
+              <CommandInput placeholder={t`Find a group`} />
+              <CommandList>
+                <CommandEmpty>{t`No groups found`}</CommandEmpty>
+                <CommandGroup>
+                  <CommandItem
+                    value="__all__"
+                    onSelect={() => {
+                      setFilters({ groupIds: [] });
+                      setGroupsOpen(false);
+                    }}
+                    className="gap-2"
+                  >
+                    <span className="min-w-0 flex-1">{t`All groups`}</span>
+                    {selectedGroups.length === 0 && <Check className="h-4 w-4 text-primary" />}
+                  </CommandItem>
+                  {sortedGroups.map((group) => (
+                    <CommandItem
+                      key={group.id}
+                      value={`${group.name} ${group.id}`}
+                      onSelect={() => {
+                        toggleGroup(group.id);
+                        setGroupsOpen(false);
+                      }}
+                      className="gap-2"
+                    >
+                      <span className="min-w-0 flex-1 truncate">{group.name}</span>
+                      {selectedGroups.includes(group.id) && <Check className="h-4 w-4 text-primary" />}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
+
       <Popover open={projectsOpen} onOpenChange={setProjectsOpen}>
         <PopoverTrigger asChild>
           <button type="button" className={chipClass(selectedProjects.length > 0)}>
@@ -224,7 +303,14 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
             <CommandList>
               <CommandEmpty>{t`No projects found`}</CommandEmpty>
               <CommandGroup>
-                <CommandItem value="__all__" onSelect={() => setFilters({ projectIds: [] })} className="gap-2">
+                <CommandItem
+                  value="__all__"
+                  onSelect={() => {
+                    setFilters({ projectIds: [] });
+                    setProjectsOpen(false);
+                  }}
+                  className="gap-2"
+                >
                   <span className="min-w-0 flex-1">{t`All projects`}</span>
                   {selectedProjects.length === 0 && <Check className="h-4 w-4 text-primary" />}
                 </CommandItem>
@@ -232,7 +318,10 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
                   <CommandItem
                     key={project.id}
                     value={`${formatProjectLabel(project.name, project.code)} ${project.id}`}
-                    onSelect={() => toggleProject(project.id)}
+                    onSelect={() => {
+                      toggleProject(project.id);
+                      setProjectsOpen(false);
+                    }}
                     className="gap-2"
                   >
                     <span aria-hidden className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ backgroundColor: project.color }} />

@@ -167,10 +167,47 @@ describe('PlannerBoard', () => {
         ],
         tasks: [
           makeTask({ id: 'Смета по фасаду', assigneeIds: ['me'], projectId: 'north', endDate: '2020-01-01' }),
-          makeTask({ id: 'Договор', assigneeIds: ['boris'] }),
+          makeTask({ id: 'Договор', assigneeIds: ['boris'], projectId: 'south' }),
           makeTask({ id: 'Обмеры', assigneeIds: ['vera'], statusId: 'doing' }),
         ],
       });
+      // The board load answers with the same tasks (there is no date window
+      // in these tests, so an empty answer would empty the cache).
+      mocks.fetchBoardTasks.mockImplementation(async () => ({ data: usePlannerStore.getState().tasks }));
+    });
+
+    it('closes the project list right after a project is picked', async () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      fireEvent.click(screen.getByRole('button', { name: /Project: all/ }));
+      fireEvent.click(await screen.findByRole('option', { name: /Север/ }));
+
+      expect(usePlannerStore.getState().filters.projectIds).toEqual(['north']);
+      expect(screen.queryByPlaceholderText('Find a project')).not.toBeInTheDocument();
+      // Tasks without a project pass the project filter, as on the timeline.
+      expect(cardTitles()).toEqual(['Смета по фасаду', 'Обмеры']);
+    });
+
+    it('filters by a people group: cards and the people row narrow to its members', async () => {
+      usePlannerStore.setState({
+        memberGroups: [{ id: 'design', name: 'Дизайн' }],
+        memberGroupAssignments: [{ userId: 'user-v', groupId: 'design' }],
+      });
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      expect(screen.getByRole('button', { name: 'Борис' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Group: all/ }));
+      fireEvent.click(await screen.findByRole('option', { name: /Дизайн/ }));
+
+      expect(usePlannerStore.getState().filters.groupIds).toEqual(['design']);
+      expect(screen.queryByPlaceholderText('Find a group')).not.toBeInTheDocument();
+      expect(cardTitles()).toEqual(['Обмеры']);
+      expect(screen.queryByRole('button', { name: 'Борис' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Вера' })).toBeInTheDocument();
+    });
+
+    it('hides the group filter when the workspace has no groups', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      expect(screen.queryByRole('button', { name: /Group: all/ })).not.toBeInTheDocument();
     });
 
     const cardTitles = () => Array.from(document.querySelectorAll('[data-task-id]')).map((el) => el.getAttribute('data-task-id'));

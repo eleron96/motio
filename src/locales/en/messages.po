@@ -555,6 +555,10 @@ msgstr "All contacts"
 msgid "All current data will be lost."
 msgstr "All current data will be lost."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "All groups"
+msgstr "All groups"
+
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -2392,6 +2396,10 @@ msgid "Final status"
 msgstr "Final status"
 
 #: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Find a group"
+msgstr "Find a group"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Find a person"
@@ -2555,11 +2563,21 @@ msgstr "Group name"
 msgid "Group tasks by project, set milestones, and track progress without switching tools."
 msgstr "Group tasks by project, set milestones, and track progress without switching tools."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Group: all"
+msgstr "Group: all"
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/FilterPanel.tsx
 msgid "Groups"
 msgstr "Groups"
+
+#. placeholder {0}: selectedGroups.length
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Groups: {0}"
+msgstr "Groups: {0}"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Heatmap"
@@ -3505,6 +3523,10 @@ msgstr "No group"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No groups created yet."
 msgstr "No groups created yet."
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "No groups found"
+msgstr "No groups found"
 
 #: src/features/members/components/AssignGroupDialog.tsx
 msgid "No groups found."
