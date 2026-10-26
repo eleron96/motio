@@ -52,17 +52,17 @@ msgstr "(you)"
 msgid "{0, plural, one {# day streak} other {# day streak}}"
 msgstr "{0, plural, one {# day streak} other {# day streak}}"
 
-#. placeholder {0}: summary.projectCount
-#: src/features/auth/components/ProfileSummary.tsx
-msgid "{0, plural, one {# project} other {# projects}}"
-msgstr "{0, plural, one {# project} other {# projects}}"
-
 #. placeholder {0}: overdueTasks.length
 #. placeholder {0}: todayTasks.length
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "{0, plural, one {# task} other {# tasks}}"
 msgstr "{0, plural, one {# task} other {# tasks}}"
+
+#. placeholder {0}: summary.weeklyCompleted.length - 1
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "{0, plural, one {# week ago} other {# weeks ago}}"
+msgstr "{0, plural, one {# week ago} other {# weeks ago}}"
 
 #. placeholder {0}: entry.rows.length
 #: src/features/planner/hooks/useTaskUndoToasts.ts
@@ -204,6 +204,10 @@ msgstr "{minutes} minutes"
 msgid "{months} mo in Motio"
 msgstr "{months} mo in Motio"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
+msgstr "{moreProjects, plural, one {and # more project} other {and # more projects}}"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{page} of {pageCount}"
 msgstr "{page} of {pageCount}"
@@ -219,6 +223,10 @@ msgstr "{remaining} more"
 #: src/features/members/components/TaskDetailsDialog.tsx
 msgid "{selectedTaskCommentCount} comments"
 msgstr "{selectedTaskCommentCount} comments"
+
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "{weeksAgo, plural, one {# week ago} other {# weeks ago}}"
+msgstr "{weeksAgo, plural, one {# week ago} other {# weeks ago}}"
 
 #. placeholder {0}: hiddenMilestones.length
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
@@ -793,6 +801,10 @@ msgstr "Bar chart"
 msgid "Beer"
 msgstr "Beer"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "best week: {bestWeek}"
+msgstr "best week: {bestWeek}"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Biweekly (every 2 weeks)"
@@ -1109,6 +1121,10 @@ msgstr "Closed"
 msgid "closed by {0}"
 msgstr "closed by {0}"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "Closed by week"
+msgstr "Closed by week"
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -1391,6 +1407,11 @@ msgstr "Current"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Current month"
 msgstr "Current month"
+
+#: src/features/auth/components/ProfileSummary.tsx
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "current week"
+msgstr "current week"
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 msgid "Custom"
@@ -3153,10 +3174,6 @@ msgstr "More actions"
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 msgid "More people"
 msgstr "More people"
-
-#: src/features/auth/components/ProfileSummary.tsx
-msgid "Most often: {topProject}"
-msgstr "Most often: {topProject}"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
@@ -6257,6 +6274,10 @@ msgstr "Visible to the whole team."
 msgid "Visual timeline"
 msgstr "Visual timeline"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "vs last week"
+msgstr "vs last week"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Walk through the timeline, dashboard, projects and team again"
 msgstr "Walk through the timeline, dashboard, projects and team again"
@@ -6297,6 +6318,10 @@ msgstr "Welcome to Motio!"
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "What the planner shows"
 msgstr "What the planner shows"
+
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "Where your tasks are"
+msgstr "Where your tasks are"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Who"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, Star } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { plural, t } from '@lingui/macro';
 import { useCountUp } from '@/shared/hooks/useCountUp';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -26,7 +26,9 @@ export const ProfileSummary: React.FC<ProfileSummaryProps> = ({ summary, animate
   if (!summary.hasData) return null;
 
   const ringOffset = RING_CIRCUMFERENCE * (1 - rate / 100);
-  const topProject = summary.topProjectName ?? '';
+  const weekDeltaLabel = summary.weekDelta > 0 ? `+${summary.weekDelta}` : `−${Math.abs(summary.weekDelta)}`;
+  const bestWeek = formatCompactCount(summary.bestWeek, locale);
+  const moreProjects = summary.projectCount - summary.topProjects.length;
 
   return (
     <div className="w-full max-w-xs space-y-3 pt-1">
@@ -84,12 +86,81 @@ export const ProfileSummary: React.FC<ProfileSummaryProps> = ({ summary, animate
 
       <div className="h-px bg-border" />
 
+      {summary.bestWeek > 0 && (
+        <div className="space-y-1.5 text-left">
+          <div className="flex items-baseline justify-between gap-2 text-[11px]">
+            <span className="font-medium text-foreground">{t`Closed by week`}</span>
+            {summary.weekDelta !== 0 && (
+              <span className="text-muted-foreground">
+                <span className={cn('font-medium', summary.weekDelta > 0 ? 'text-primary' : 'text-foreground/80')}>
+                  {weekDeltaLabel}
+                </span>{' '}
+                {t`vs last week`}
+              </span>
+            )}
+          </div>
+          {/* Bars are scaled to the best week; an empty week keeps a 2px stub so
+              the row still reads as a timeline rather than a gap. */}
+          <div className="flex h-14 items-end gap-1.5">
+            {summary.weeklyCompleted.map((count, index) => {
+              const weeksAgo = summary.weeklyCompleted.length - 1 - index;
+              const when = weeksAgo === 0
+                ? t`current week`
+                : plural(weeksAgo, { one: '# week ago', other: '# weeks ago' });
+              return (
+                <div
+                  key={weeksAgo}
+                  title={`${when}: ${count}`}
+                  aria-label={`${when}: ${count}`}
+                  className={cn(
+                    'min-h-[2px] flex-1 rounded-t-[3px] transition-colors',
+                    weeksAgo === 0 ? 'bg-primary' : 'bg-muted-foreground/25 hover:bg-muted-foreground/45',
+                  )}
+                  style={{ height: `${Math.round((count / summary.bestWeek) * 100)}%` }}
+                />
+              );
+            })}
+          </div>
+          <div className="flex justify-between text-[10px] text-muted-foreground">
+            <span>{plural(summary.weeklyCompleted.length - 1, { one: '# week ago', other: '# weeks ago' })}</span>
+            <span>{t`current week`}</span>
+          </div>
+        </div>
+      )}
+
+      {summary.topProjects.length > 0 && (
+        <div className="space-y-1.5 text-left">
+          <div className="text-[11px] font-medium text-foreground">{t`Where your tasks are`}</div>
+          {summary.topProjects.map((project) => (
+            <div
+              key={project.id}
+              className="grid grid-cols-[minmax(0,7.5rem)_minmax(0,1fr)_2rem] items-center gap-2 text-[11px]"
+            >
+              <span className="truncate text-foreground/80" title={project.name}>{project.name}</span>
+              <span className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <span className="block h-full rounded-full bg-primary/70" style={{ width: `${project.share}%` }} />
+              </span>
+              <span className="text-right tabular-nums text-muted-foreground">{project.share}%</span>
+            </div>
+          ))}
+          {moreProjects > 0 && (
+            <div className="text-[10px] text-muted-foreground">
+              {plural(moreProjects, { one: 'and # more project', other: 'and # more projects' })}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
         <span>
           <span className="font-medium text-foreground/80">{formatCompactCount(summary.completed, locale)}</span> {t`closed`}
         </span>
-        <span aria-hidden="true" className="opacity-50">·</span>
-        <span>{plural(summary.projectCount, { one: '# project', other: '# projects' })}</span>
+        {summary.bestWeek > 0 && (
+          <>
+            <span aria-hidden="true" className="opacity-50">·</span>
+            <span>{t`best week: ${bestWeek}`}</span>
+          </>
+        )}
         {summary.streakDays > 0 && (
           <>
             <span aria-hidden="true" className="opacity-50">·</span>
@@ -100,13 +171,6 @@ export const ProfileSummary: React.FC<ProfileSummaryProps> = ({ summary, animate
           </>
         )}
       </div>
-
-      {summary.topProjectName && (
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-          <Star className="h-3 w-3 shrink-0" aria-hidden="true" />
-          <span className="truncate">{t`Most often: ${topProject}`}</span>
-        </div>
-      )}
     </div>
   );
 };

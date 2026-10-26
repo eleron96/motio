@@ -52,17 +52,17 @@ msgstr "(вы)"
 msgid "{0, plural, one {# day streak} other {# day streak}}"
 msgstr "{0, plural, one {# день подряд} few {# дня подряд} many {# дней подряд} other {# дня подряд}}"
 
-#. placeholder {0}: summary.projectCount
-#: src/features/auth/components/ProfileSummary.tsx
-msgid "{0, plural, one {# project} other {# projects}}"
-msgstr "{0, plural, one {# проект} few {# проекта} many {# проектов} other {# проекта}}"
-
 #. placeholder {0}: overdueTasks.length
 #. placeholder {0}: todayTasks.length
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "{0, plural, one {# task} other {# tasks}}"
 msgstr "{0, plural, one {# задача} few {# задачи} many {# задач} other {# задачи}}"
+
+#. placeholder {0}: summary.weeklyCompleted.length - 1
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "{0, plural, one {# week ago} other {# weeks ago}}"
+msgstr "{0, plural, one {# неделю назад} few {# недели назад} many {# недель назад} other {# недели назад}}"
 
 #. placeholder {0}: entry.rows.length
 #: src/features/planner/hooks/useTaskUndoToasts.ts
@@ -204,6 +204,10 @@ msgstr "{minutes} мин."
 msgid "{months} mo in Motio"
 msgstr "В Motio {months} мес"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
+msgstr "{moreProjects, plural, one {и ещё # проект} few {и ещё # проекта} many {и ещё # проектов} other {и ещё # проекта}}"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{page} of {pageCount}"
 msgstr "{page} из {pageCount}"
@@ -219,6 +223,10 @@ msgstr "ещё {remaining}"
 #: src/features/members/components/TaskDetailsDialog.tsx
 msgid "{selectedTaskCommentCount} comments"
 msgstr "{selectedTaskCommentCount} комментариев"
+
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "{weeksAgo, plural, one {# week ago} other {# weeks ago}}"
+msgstr "{weeksAgo, plural, one {# неделю назад} few {# недели назад} many {# недель назад} other {# недели назад}}"
 
 #. placeholder {0}: hiddenMilestones.length
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
@@ -793,6 +801,10 @@ msgstr "Столбчатая диаграмма"
 msgid "Beer"
 msgstr "Пиво"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "best week: {bestWeek}"
+msgstr "лучшая неделя — {bestWeek}"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Двухнедельная (раз в две недели)"
@@ -1109,6 +1121,10 @@ msgstr "Закрытые"
 msgid "closed by {0}"
 msgstr "закрыли: {0}"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "Closed by week"
+msgstr "Закрыто по неделям"
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -1391,6 +1407,11 @@ msgstr "Текущие"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Current month"
 msgstr "Текущий месяц"
+
+#: src/features/auth/components/ProfileSummary.tsx
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "current week"
+msgstr "эта неделя"
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 msgid "Custom"
@@ -3153,10 +3174,6 @@ msgstr "Ещё действия"
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 msgid "More people"
 msgstr "Ещё люди"
-
-#: src/features/auth/components/ProfileSummary.tsx
-msgid "Most often: {topProject}"
-msgstr "Чаще всего: {topProject}"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
@@ -6257,6 +6274,10 @@ msgstr "Видно всей команде."
 msgid "Visual timeline"
 msgstr "Наглядный таймлайн"
 
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "vs last week"
+msgstr "к прошлой неделе"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Walk through the timeline, dashboard, projects and team again"
 msgstr "Ещё раз пройтись по таймлайну, дашборду, проектам и команде"
@@ -6297,6 +6318,10 @@ msgstr "Добро пожаловать в Motio!"
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "What the planner shows"
 msgstr "Что показывает планировщик"
+
+#: src/features/auth/components/ProfileSummary.tsx
+msgid "Where your tasks are"
+msgstr "Где ваши задачи"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Who"

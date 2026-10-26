@@ -24,11 +24,34 @@ export interface ProfileSummaryData {
   streakDays: number;
   /** Distinct projects the user has any task in. */
   projectCount: number;
-  /** Project the user has the most tasks in. */
-  topProjectName: string | null;
+  /**
+   * Finalisations per trailing 7-day window, oldest first; the last entry is
+   * the current window (equals `completedThisWeek`). Always PROFILE_WEEKS long.
+   */
+  weeklyCompleted: number[];
+  /** Current window minus the one before it. */
+  weekDelta: number;
+  /** Largest entry of `weeklyCompleted`. */
+  bestWeek: number;
+  /**
+   * Up to PROFILE_TOP_PROJECTS projects by task count, with their share of the
+   * user's tasks that belong to a project (whole percent).
+   */
+  topProjects: ProfileTopProject[];
   /** Whole months since the account was created. */
   monthsInMotio: number | null;
 }
+
+export interface ProfileTopProject {
+  id: string;
+  name: string;
+  share: number;
+}
+
+/** How many weekly bars the Profile tab shows. */
+export const PROFILE_WEEKS = 8;
+/** How many projects the "where your tasks are" list shows. */
+export const PROFILE_TOP_PROJECTS = 3;
 
 export const EMPTY_PROFILE_SUMMARY: ProfileSummaryData = {
   hasData: false,
@@ -39,7 +62,10 @@ export const EMPTY_PROFILE_SUMMARY: ProfileSummaryData = {
   completedThisWeek: 0,
   streakDays: 0,
   projectCount: 0,
-  topProjectName: null,
+  weeklyCompleted: Array.from({ length: PROFILE_WEEKS }, () => 0),
+  weekDelta: 0,
+  bestWeek: 0,
+  topProjects: [],
   monthsInMotio: null,
 };
 
@@ -95,7 +121,8 @@ export const computeProfileSummary = ({
   let completed = 0;
   let active = 0;
   let overdue = 0;
-  let completedThisWeek = 0;
+  // weekly[0] is the oldest window, weekly[PROFILE_WEEKS - 1] the current one.
+  const weekly = Array.from({ length: PROFILE_WEEKS }, () => 0);
 
   myTasks.forEach((task) => {
     const status = statusById.get(task.statusId);
@@ -110,7 +137,8 @@ export const computeProfileSummary = ({
       if (doneKey) {
         completionDayKeys.add(doneKey);
         const diff = differenceInCalendarDays(today, parseISO(doneKey));
-        if (diff >= 0 && diff <= 6) completedThisWeek += 1;
+        const weeksAgo = Math.floor(diff / 7);
+        if (diff >= 0 && weeksAgo < PROFILE_WEEKS) weekly[PROFILE_WEEKS - 1 - weeksAgo] += 1;
       }
     } else if (!isCancelled) {
       active += 1;
@@ -133,17 +161,24 @@ export const computeProfileSummary = ({
     }
   }
 
-  let topProjectId: string | null = null;
-  let topProjectCount = 0;
-  projectCounts.forEach((count, id) => {
-    if (count > topProjectCount) {
-      topProjectCount = count;
-      topProjectId = id;
-    }
+  // Shares are of the tasks that have a project, so the listed projects plus
+  // "N more" add up to the whole. Ties keep insertion order (stable sort).
+  let projectTaskTotal = 0;
+  projectCounts.forEach((count) => {
+    projectTaskTotal += count;
   });
-  const topProjectName = topProjectId
-    ? projects.find((project) => project.id === topProjectId)?.name ?? null
-    : null;
+  const projectNameById = new Map(projects.map((project) => [project.id, project.name]));
+  const topProjects: ProfileTopProject[] = [...projectCounts.entries()]
+    .filter(([id]) => projectNameById.has(id))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, PROFILE_TOP_PROJECTS)
+    .map(([id, count]) => ({
+      id,
+      name: projectNameById.get(id) ?? '',
+      share: Math.round((count / projectTaskTotal) * 100),
+    }));
+
+  const completedThisWeek = weekly[PROFILE_WEEKS - 1];
 
   return {
     hasData: true,
@@ -154,7 +189,10 @@ export const computeProfileSummary = ({
     completedThisWeek,
     streakDays,
     projectCount: projectCounts.size,
-    topProjectName,
+    weeklyCompleted: weekly,
+    weekDelta: completedThisWeek - weekly[PROFILE_WEEKS - 2],
+    bestWeek: Math.max(...weekly),
+    topProjects,
     monthsInMotio,
   };
 };
