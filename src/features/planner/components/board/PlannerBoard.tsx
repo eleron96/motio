@@ -156,13 +156,15 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
 
   return (
     <div className="flex h-full flex-col">
-      <BoardQuickFilters
-        search={search}
-        onSearchChange={setSearch}
-        overdueOnly={overdueOnly}
-        onOverdueOnlyChange={setOverdueOnly}
-        compact={isMobile}
-      />
+      {/* Phones have the planner's filter button; no second filter row there. */}
+      {!isMobile && (
+        <BoardQuickFilters
+          search={search}
+          onSearchChange={setSearch}
+          overdueOnly={overdueOnly}
+          onOverdueOnlyChange={setOverdueOnly}
+        />
+      )}
       {isMobile ? (
         <MobileBoardColumns
           columns={columns}

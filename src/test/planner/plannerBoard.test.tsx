@@ -353,10 +353,10 @@ describe('PlannerBoard', () => {
       expect(within(card).getByRole('button', { name: 'Task actions' })).toBeInTheDocument();
     });
 
-    it('keeps the quick filters but drops the popover pickers', () => {
+    it('has no quick filter row: the planner filter button covers phones', () => {
       render(<PlannerBoard onCreateTask={onCreateTask} />);
-      expect(screen.getByLabelText('Search by title')).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /Project: all/ })).not.toBeInTheDocument();
+      expect(screen.queryByTestId('board-quick-filters')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Search by title')).not.toBeInTheDocument();
     });
   });
 });
