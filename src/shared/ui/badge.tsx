@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/shared/lib/classNames";
+import { cnWithUiSizes } from "@/shared/lib/classNames";
 
 const badgeVariants = cva(
   "inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -29,7 +29,9 @@ const badgeVariants = cva(
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, size, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant, size }), className)} {...props} />;
+  // cnWithUiSizes: plain cn dropped the variant's text colour as a "conflict"
+  // with the text-ui-xs size, leaving dark text on the accent background.
+  return <div className={cnWithUiSizes(badgeVariants({ variant, size }), className)} {...props} />;
 }
 
 export { Badge, badgeVariants };
