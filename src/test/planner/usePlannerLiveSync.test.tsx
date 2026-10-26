@@ -123,6 +123,17 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
   },
 }));
 
+const boardRepoMocks = vi.hoisted(() => ({
+  fetchBoardTaskIds: vi.fn(),
+  fetchTaskDeltaSince: vi.fn(),
+}));
+
+vi.mock('@/infrastructure/tasks/boardTasksRepository', () => ({
+  fetchBoardTasks: vi.fn(),
+  fetchBoardTaskIds: boardRepoMocks.fetchBoardTaskIds,
+  fetchTaskDeltaSince: boardRepoMocks.fetchTaskDeltaSince,
+}));
+
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 
@@ -358,6 +369,68 @@ describe('usePlannerLiveSync', () => {
 
     expect(supabaseMocks.from).toHaveBeenCalledWith('tasks');
     expect(usePlannerStore.getState().tasks.map((task) => task.id)).toEqual(['task-1']);
+
+    view.unmount();
+  });
+
+  it('keeps an open task outside the window only while a board scope claims it', async () => {
+    const farOpenRow = {
+      ...taskRowFor(workspaceOne, 'far-open'),
+      start_date: '2027-01-10',
+      end_date: '2027-01-11',
+    };
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
+      taskFlush: async () => ({ data: [farOpenRow], error: null }),
+    }));
+    usePlannerStore.setState({ timelineInteractingUntil: 0 });
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    // No board: the row is outside the window, so it is not cached.
+    act(() => {
+      supabaseMocks.emitTaskUpsert('far-open');
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(320);
+    });
+    expect(usePlannerStore.getState().tasks).toHaveLength(0);
+
+    // Board on (read live, no resubscribe): the same event now lands in the cache.
+    usePlannerStore.setState({
+      boardScope: {
+        workspaceId: workspaceOne,
+        openStatusIds: ['status-open'],
+        recentlySince: '2026-03-01T00:00:00.000Z',
+      },
+    });
+    act(() => {
+      supabaseMocks.emitTaskUpsert('far-open');
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(320);
+    });
+    expect(usePlannerStore.getState().tasks.map((task) => task.id)).toEqual(['far-open']);
+    expect(supabaseMocks.channel).toHaveBeenCalledTimes(1);
+
+    // Closed long ago and outside the window: no scope claims it, so it leaves.
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
+      taskFlush: async () => ({
+        data: [{ ...farOpenRow, status_id: 'status-done', updated_at: '2026-02-01T00:00:00.000Z' }],
+        error: null,
+      }),
+    }));
+    act(() => {
+      supabaseMocks.emitTaskUpsert('far-open');
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(320);
+    });
+    expect(usePlannerStore.getState().tasks).toHaveLength(0);
 
     view.unmount();
   });
@@ -710,6 +783,73 @@ describe('usePlannerLiveSync', () => {
     });
 
     expect(taskCommentDeltaCallCount).toBe(1);
+
+    view.unmount();
+  });
+
+  it('reconciles the board scope: drops board tasks deleted remotely, keeps claimed ones', async () => {
+    const farTask = (id: string) => ({
+      id,
+      startDate: '2027-01-10',
+      endDate: '2027-01-11',
+      statusId: 'status-open',
+      assigneeIds: [],
+      tagIds: [],
+    });
+    usePlannerStore.setState({
+      timelineInteractingUntil: 0,
+      workspaceId: workspaceOne,
+      boardScope: {
+        workspaceId: workspaceOne,
+        openStatusIds: ['status-open'],
+        recentlySince: '2026-03-01T00:00:00.000Z',
+      },
+      tasks: [farTask('board-kept'), farTask('board-gone')] as never,
+    });
+    boardRepoMocks.fetchTaskDeltaSince.mockResolvedValue({ data: [] });
+    boardRepoMocks.fetchBoardTaskIds.mockResolvedValue({ data: ['board-kept'] });
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock());
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    act(() => {
+      supabaseMocks.emitStatus('SUBSCRIBED');
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INITIAL_RECONCILE_DELAY_MS + 50);
+    });
+
+    expect(boardRepoMocks.fetchBoardTaskIds).toHaveBeenCalledTimes(1);
+    expect(usePlannerStore.getState().tasks.map((task) => task.id)).toEqual(['board-kept']);
+
+    view.unmount();
+  });
+
+  it('skips the board queries during reconcile when no board scope is claimed', async () => {
+    usePlannerStore.setState({ timelineInteractingUntil: 0, workspaceId: workspaceOne });
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock());
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+
+    act(() => {
+      supabaseMocks.emitStatus('SUBSCRIBED');
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INITIAL_RECONCILE_DELAY_MS + 50);
+    });
+
+    expect(boardRepoMocks.fetchBoardTaskIds).not.toHaveBeenCalled();
+    expect(boardRepoMocks.fetchTaskDeltaSince).not.toHaveBeenCalled();
 
     view.unmount();
   });

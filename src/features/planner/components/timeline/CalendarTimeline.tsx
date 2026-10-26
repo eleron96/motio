@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useEffect, useCallback, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useTimelineTasks } from '@/features/planner/hooks/useTimelineTasks';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { MilestoneDialog } from '@/features/planner/components/timeline/MilestoneDialog';
 import * as HoverCardPrimitive from '@radix-ui/react-hover-card';
@@ -70,7 +71,6 @@ export const CalendarTimeline: React.FC = () => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const {
-    tasks,
     milestones,
     timeOff,
     projects,
@@ -83,7 +83,6 @@ export const CalendarTimeline: React.FC = () => {
     requestScrollToDate,
     setTimelineAttentionDate,
   } = usePlannerStore(useShallow((state) => ({
-    tasks: state.tasks,
     milestones: state.milestones,
     timeOff: state.timeOff ?? NO_TIME_OFF,
     projects: state.projects,
@@ -96,6 +95,7 @@ export const CalendarTimeline: React.FC = () => {
     requestScrollToDate: state.requestScrollToDate,
     setTimelineAttentionDate: state.setTimelineAttentionDate,
   })));
+  const tasks = useTimelineTasks();
   const user = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);

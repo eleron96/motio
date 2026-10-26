@@ -8,6 +8,7 @@ import {
 } from 'date-fns';
 import { getStatusEmoji, splitStatusLabel } from '@/shared/lib/statusLabels';
 import type { TaskMappedRow } from '@/shared/domain/taskRowMapper';
+import { windowContains } from '@/shared/domain/taskLoadScopes';
 import {
   Assignee,
   Customer,
@@ -236,6 +237,35 @@ export const buildTaskRange = (currentDate: string, viewMode: ViewMode) => {
 export const isDateWithinRange = (date: string, start: string, end: string) => {
   const target = parseISO(date);
   return target >= parseISO(start) && target <= parseISO(end);
+};
+
+export type LoadedTaskWindow = {
+  start: string;
+  end: string;
+  viewMode: ViewMode;
+  workspaceId: string;
+};
+
+/**
+ * Whether the already loaded task window serves the requested view, so
+ * loadWorkspaceData can skip a full refetch.
+ *
+ * Two ways to qualify, both requiring the same workspace and `currentDate`
+ * inside the loaded window:
+ * - same view mode — the historical rule: the window is re-anchored only once
+ *   `currentDate` leaves it;
+ * - the loaded window covers the window the new mode would request — e.g.
+ *   Day↔Week at an unchanged date or Calendar (±1 year) → Day (±3 months).
+ *   Before this, every mode switch refetched all workspace data.
+ */
+export const shouldReuseLoadedWindow = (
+  loaded: LoadedTaskWindow | null,
+  request: { workspaceId: string; currentDate: string; viewMode: ViewMode },
+): boolean => {
+  if (!loaded || loaded.workspaceId !== request.workspaceId) return false;
+  if (!isDateWithinRange(request.currentDate, loaded.start, loaded.end)) return false;
+  if (loaded.viewMode === request.viewMode) return true;
+  return windowContains(loaded, buildTaskRange(request.currentDate, request.viewMode));
 };
 
 export const uniqueAssigneeIds = (assigneeIds: string[] | null | undefined) => (

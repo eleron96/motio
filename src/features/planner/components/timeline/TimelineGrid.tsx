@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useTimelineTasks } from '@/features/planner/hooks/useTimelineTasks';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { TimelineHeader } from './TimelineHeader';
@@ -95,7 +96,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const isMobile = useIsMobile();
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
-  const tasks = usePlannerStore((state) => state.tasks);
+  const tasks = useTimelineTasks();
   const plannerLoading = usePlannerStore((state) => state.loading);
   const milestones = usePlannerStore((state) => state.milestones);
   // NO_TIME_OFF (frozen constant), not `?? []`: partial store mocks in tests do
