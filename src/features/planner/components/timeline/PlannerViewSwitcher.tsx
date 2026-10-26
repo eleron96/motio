@@ -190,9 +190,10 @@ function SlidingSegmented<K extends string>({
 }
 
 /**
- * Desktop: the view pill, then the timeline's own settings next to it. The
- * settings fold and unfold over the same 300ms instead of popping in and out,
- * so the view pill glides rather than jumping sideways.
+ * Desktop: the timeline's own settings, then the view pill anchored at the
+ * right edge of the toolbar. The pill never moves: the settings fold to
+ * nothing on its left (over the same 300ms as the sliding highlight) when the
+ * calendar or the board is shown, instead of pushing the pill sideways.
  */
 export const PlannerViewSwitcher: React.FC = () => {
   const state = usePlannerViewState();
@@ -201,12 +202,6 @@ export const PlannerViewSwitcher: React.FC = () => {
 
   return (
     <div className="flex items-center">
-      <SlidingSegmented
-        options={views.map((view) => ({ key: view, label: viewLabel(view), icon: VIEW_ICONS[view] }))}
-        value={state.view}
-        onChange={state.selectView}
-      />
-
       {/* 0fr ↔ 1fr animates the column, so the block folds to nothing. */}
       <div
         aria-hidden={!showTimelineSettings}
@@ -217,8 +212,7 @@ export const PlannerViewSwitcher: React.FC = () => {
         style={{ gridTemplateColumns: showTimelineSettings ? '1fr' : '0fr' }}
         data-testid="timeline-view-settings"
       >
-        <div className="flex min-w-0 items-center gap-3 overflow-hidden pl-3">
-          <span aria-hidden className="h-5 w-px flex-shrink-0 bg-border" />
+        <div className="flex min-w-0 items-center justify-end gap-3 overflow-hidden pr-3">
           {state.weekEnabled && (
             <SlidingSegmented
               options={(['day', 'week'] as const).map((scale) => ({
@@ -240,8 +234,15 @@ export const PlannerViewSwitcher: React.FC = () => {
             onChange={state.selectGroup}
             tabbable={showTimelineSettings}
           />
+          <span aria-hidden className="h-5 w-px flex-shrink-0 bg-border" />
         </div>
       </div>
+
+      <SlidingSegmented
+        options={views.map((view) => ({ key: view, label: viewLabel(view), icon: VIEW_ICONS[view] }))}
+        value={state.view}
+        onChange={state.selectView}
+      />
     </div>
   );
 };
