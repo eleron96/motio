@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { TimelineGrid } from '@/features/planner/components/timeline/TimelineGrid';
 import { CalendarTimeline } from '@/features/planner/components/timeline/CalendarTimeline';
-import { PlannerBoard } from '@/features/planner/components/board/PlannerBoard';
+import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
 import { isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
@@ -34,6 +34,13 @@ import {
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
+
+// The board is a beta most people never open: load its code on first use so
+// the planner bundle stays the same size for everyone else.
+const PlannerBoard = lazyNamed(
+  () => import('@/features/planner/components/board/PlannerBoard'),
+  'PlannerBoard',
+);
 
 type AddTaskDefaults = {
   startDate: string;
@@ -88,7 +95,11 @@ const PlannerTimelineArea = React.memo(({
   <div className="flex-1 flex flex-col overflow-hidden min-h-0 timeline-surface">
     <TimelineControls />
     <div className="relative flex-1 overflow-hidden min-h-0">
-      {surface === 'board' && <PlannerBoard onCreateTask={onCreateTaskRequest} />}
+      {surface === 'board' && (
+        <Suspense fallback={null}>
+          <PlannerBoard onCreateTask={onCreateTaskRequest} />
+        </Suspense>
+      )}
       {surface === 'timeline' && (viewMode === 'calendar'
         ? <CalendarTimeline />
         : (
