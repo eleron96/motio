@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { CalendarDays, Flag, MessageSquare, Repeat } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CalendarDays, MessageSquare, Repeat } from 'lucide-react';
 import { t } from '@lingui/macro';
-import type { Assignee, Project, Task } from '@/features/planner/types/planner';
+import type { Assignee, Project, Task, TaskPriority } from '@/features/planner/types/planner';
 import type { BoardColumnKind } from '@/shared/domain/boardColumns';
 import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { TaskBarMenu } from '@/features/planner/components/timeline/TaskBarMenu';
 import { TaskBarDeleteDialog } from '@/features/planner/components/timeline/TaskBarDeleteDialog';
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/shared/ui/context-menu';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { DEFAULT_NEUTRAL_COLOR, TASK_PRIORITY_COLORS } from '@/shared/lib/colors';
+import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
+import { getTaskBarAppearance } from '@/features/planner/lib/taskBarColors';
 import { cn } from '@/shared/lib/classNames';
 
 const MAX_AVATARS = 3;
@@ -64,6 +65,19 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
     onDragStart(task.id);
   };
 
+  // Same "!" / "‼" badge as the timeline bar, from the same colour rules.
+  const priorityVisual = useMemo(() => (
+    task.priority
+      ? getTaskBarAppearance({ priority: task.priority, status: null }).priorityVisual
+      : null
+  ), [task.priority]);
+  const priorityLabels: Record<TaskPriority, string> = {
+    low: t`Low priority`,
+    medium: t`Medium priority`,
+    high: t`High priority`,
+  };
+  const priorityLabel = task.priority ? priorityLabels[task.priority] : '';
+
   const shownPeople = people.slice(0, MAX_AVATARS);
   const hiddenPeopleCount = people.length - shownPeople.length;
   const projectColor = project?.color ?? DEFAULT_NEUTRAL_COLOR;
@@ -101,13 +115,27 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
               {formatProjectLabel(project.name, project.code)}
             </div>
           )}
-          <div
-            className={cn(
-              'line-clamp-3 break-words text-sm font-medium leading-snug text-foreground',
-              kind === 'cancelled' && 'line-through',
+          <div className="flex items-start gap-1.5">
+            {priorityVisual && (
+              <span
+                className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
+                style={priorityVisual.badgeStyle}
+                title={priorityLabel}
+                aria-label={priorityLabel}
+              >
+                <span className={cn('text-[11px] font-black leading-none priority-blink', priorityVisual.className)}>
+                  {priorityVisual.symbol}
+                </span>
+              </span>
             )}
-          >
-            {task.title}
+            <div
+              className={cn(
+                'min-w-0 line-clamp-3 break-words text-sm font-medium leading-snug text-foreground',
+                kind === 'cancelled' && 'line-through',
+              )}
+            >
+              {task.title}
+            </div>
           </div>
 
           <div className="mt-2 flex items-center justify-between gap-2">
@@ -121,13 +149,6 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
               </span>
               {task.repeatId && (
                 <Repeat className="h-3.5 w-3.5 flex-shrink-0" aria-label={t`Repeating task`} />
-              )}
-              {task.priority && (
-                <Flag
-                  className="h-3.5 w-3.5 flex-shrink-0"
-                  style={{ color: TASK_PRIORITY_COLORS[task.priority] }}
-                  aria-label={t`Priority`}
-                />
               )}
               {commentCount > 0 && (
                 <span className="inline-flex items-center gap-0.5" aria-label={t`Comments`}>

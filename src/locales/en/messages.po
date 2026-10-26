@@ -2577,6 +2577,7 @@ msgstr "Hide past"
 msgid "High"
 msgstr "High"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "High priority"
@@ -2939,6 +2940,7 @@ msgstr "Loading…"
 msgid "Low"
 msgstr "Low"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Low priority"
@@ -2999,6 +3001,7 @@ msgstr "Maximum image size is 5 MB."
 msgid "Medium"
 msgstr "Medium"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Medium priority"
@@ -4202,7 +4205,6 @@ msgstr "Previously entered"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
-#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx

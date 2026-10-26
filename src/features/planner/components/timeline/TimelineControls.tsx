@@ -263,7 +263,12 @@ export const TimelineControls: React.FC = () => {
             <Calendar className="h-3.5 w-3.5 md:hidden" />
             <span className="hidden md:inline">{t`Calendar`}</span>
           </SegmentedControlItem>
-          {boardAvailable && (
+        </SegmentedControl>
+
+        {/* Board: a surface of its own, not a timeline scale, so it gets its
+            own pill instead of joining Day / Calendar. */}
+        {boardAvailable && (
+          <SegmentedControl surface="compact">
             <SegmentedControlItem
               active={onBoard}
               className="gap-1.5"
@@ -273,8 +278,8 @@ export const TimelineControls: React.FC = () => {
               <SquareKanban className="h-3.5 w-3.5" />
               <span className="hidden md:inline">{t`Board`}</span>
             </SegmentedControlItem>
-          )}
-        </SegmentedControl>
+          </SegmentedControl>
+        )}
 
         {/* Group mode toggle */}
         <SegmentedControl surface="compact">

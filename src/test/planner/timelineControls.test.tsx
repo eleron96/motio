@@ -104,6 +104,10 @@ describe('TimelineControls', () => {
     authState.profilePreferences = { board_view_enabled: true };
     const { rerender } = render(<TimelineControls />);
 
+    // Its own pill: not grouped with the Day / Calendar scale buttons.
+    expect(screen.getByRole('button', { name: 'Board' }).parentElement)
+      .not.toBe(screen.getByRole('button', { name: 'Day' }).parentElement);
+
     fireEvent.click(screen.getByRole('button', { name: 'Board' }));
     expect(plannerState.setPlannerSurface).toHaveBeenCalledWith('board');
 

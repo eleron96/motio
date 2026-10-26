@@ -125,6 +125,22 @@ describe('PlannerBoard', () => {
     expect(onCreateTask).toHaveBeenCalledWith(expect.objectContaining({ statusId: 'doing' }));
   });
 
+  it('shows priority with the timeline exclamation badge', () => {
+    usePlannerStore.setState({
+      tasks: [
+        makeTask({ id: 'Urgent fix', priority: 'high' }),
+        makeTask({ id: 'Someday', priority: 'low' }),
+        makeTask({ id: 'Plain' }),
+      ],
+    });
+    render(<PlannerBoard onCreateTask={onCreateTask} />);
+
+    expect(screen.getByLabelText('High priority')).toHaveTextContent('‼');
+    expect(screen.getByLabelText('Low priority')).toHaveTextContent('!');
+    const plainCard = screen.getByText('Plain').closest('[data-task-id]') as HTMLElement;
+    expect(within(plainCard).queryByLabelText(/priority/)).not.toBeInTheDocument();
+  });
+
   it('is read-only for viewers: no dragging, no create buttons', () => {
     useAuthStore.setState({ currentWorkspaceRole: 'viewer' });
     render(<PlannerBoard onCreateTask={onCreateTask} />);
