@@ -223,9 +223,10 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
           </div>
         </div>
       </ContextMenuTrigger>
-      <ContextMenuContent>
-        {/* Mounted only while the menu is open — same lazy body as the timeline bar. */}
-        <TaskBarMenu task={task} canEdit={canEdit} onRequestDelete={handleRequestDelete} />
+      <ContextMenuContent className={cn(touch && 'min-w-[232px] rounded-2xl p-1.5')}>
+        {/* Mounted only while the menu is open — same lazy body (and the same
+            touch-sized rows on a phone) as the timeline bar. */}
+        <TaskBarMenu task={task} canEdit={canEdit} onRequestDelete={handleRequestDelete} isMobile={touch} />
       </ContextMenuContent>
       {deleteMounted && (
         <TaskBarDeleteDialog
