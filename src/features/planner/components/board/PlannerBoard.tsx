@@ -3,7 +3,8 @@ import { t } from '@lingui/macro';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useBoardColumns, useBoardScopeLifecycle } from '@/features/planner/hooks/useBoardColumns';
-import { isBoardTaskOverdue } from '@/shared/domain/boardColumns';
+import { isBoardTaskOverdue, type BoardColumn as BoardColumnModel } from '@/shared/domain/boardColumns';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
@@ -13,6 +14,7 @@ import type { Assignee } from '@/features/planner/types/planner';
 import { BoardColumn } from './BoardColumn';
 import { BoardCard } from './BoardCard';
 import { BoardQuickFilters } from './BoardQuickFilters';
+import { MobileBoardColumns } from './MobileBoardColumns';
 
 export type BoardCreateTaskDefaults = {
   startDate: string;
@@ -33,10 +35,10 @@ const BOARD_EDGE_MAX_SPEED = 28;
 
 /**
  * The board (kanban) surface of the planner: one column per status, tasks as
- * cards. Dragging a card to another column changes its status (undoable, like
- * the status item of the task menu). Desktop only for now; mouse drag uses the
- * native HTML drag-and-drop — the board only needs "drop into a column", none
- * of the timeline's resize or edge auto-scroll.
+ * cards. On desktop, dragging a card to another column changes its status
+ * (undoable, like the status item of the task menu) with native HTML
+ * drag-and-drop. On a phone, one column per screen with status tabs; the
+ * status changes through the card's menu (⋯ or a long press).
  */
 export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
   const workspaceId = usePlannerStore((state) => state.workspaceId);
@@ -51,6 +53,7 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const today = useTodayKey();
+  const isMobile = useIsMobile();
 
   // Board-only quick filters: transient, so they reset when the board closes.
   const [search, setSearch] = useState('');
@@ -116,6 +119,33 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
     onCreateTask({ startDate: today, endDate: today, statusId });
   }, [onCreateTask, today]);
 
+  const renderCards = (column: BoardColumnModel) => column.tasks.map((task) => {
+    const people = task.assigneeIds.length === 0
+      ? NO_PEOPLE
+      : task.assigneeIds
+        .map((id) => assigneeById.get(id))
+        .filter((person): person is Assignee => Boolean(person));
+    return (
+      <BoardCard
+        key={task.id}
+        task={task}
+        kind={column.kind}
+        overdue={isBoardTaskOverdue(task, column.kind, today)}
+        project={task.projectId ? projectById.get(task.projectId) : undefined}
+        people={people}
+        commentCount={taskCommentCounts[task.id] ?? 0}
+        dueLabel={format(parseISO(task.endDate), 'd MMM', { locale: dateLocale })}
+        canEdit={canEdit}
+        touch={isMobile}
+        highlighted={highlightedTaskId === task.id}
+        dragging={draggingTaskId === task.id}
+        onOpen={setSelectedTaskId}
+        onDragStart={setDraggingTaskId}
+        onDragEnd={handleDragEnd}
+      />
+    );
+  });
+
   if (columns.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -131,54 +161,40 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
         onSearchChange={setSearch}
         overdueOnly={overdueOnly}
         onOverdueOnlyChange={setOverdueOnly}
+        compact={isMobile}
       />
-      <div
-        ref={boardScrollRef}
-        onDragOverCapture={(event) => {
-          if (draggingTaskId) dragPointerXRef.current = event.clientX;
-        }}
-        className="flex min-h-0 flex-1 gap-3 overflow-x-auto p-4"
-        data-testid="planner-board"
-      >
-        {columns.map((column) => (
-          <BoardColumn
-            key={column.status.id}
-            column={column}
-            isDropTarget={draggingTaskId !== null && dropStatusId === column.status.id}
-            canCreate={canEdit}
-            onCreate={handleCreate}
-            onDragOver={setDropStatusId}
-            onDragLeave={(statusId) => setDropStatusId((current) => (current === statusId ? null : current))}
-            onDrop={handleDrop}
-          >
-            {column.tasks.map((task) => {
-              const people = task.assigneeIds.length === 0
-                ? NO_PEOPLE
-                : task.assigneeIds
-                  .map((id) => assigneeById.get(id))
-                  .filter((person): person is Assignee => Boolean(person));
-              return (
-                <BoardCard
-                  key={task.id}
-                  task={task}
-                  kind={column.kind}
-                  overdue={isBoardTaskOverdue(task, column.kind, today)}
-                  project={task.projectId ? projectById.get(task.projectId) : undefined}
-                  people={people}
-                  commentCount={taskCommentCounts[task.id] ?? 0}
-                  dueLabel={format(parseISO(task.endDate), 'd MMM', { locale: dateLocale })}
-                  canEdit={canEdit}
-                  highlighted={highlightedTaskId === task.id}
-                  dragging={draggingTaskId === task.id}
-                  onOpen={setSelectedTaskId}
-                  onDragStart={setDraggingTaskId}
-                  onDragEnd={handleDragEnd}
-                />
-              );
-            })}
-          </BoardColumn>
-        ))}
-      </div>
+      {isMobile ? (
+        <MobileBoardColumns
+          columns={columns}
+          canCreate={canEdit}
+          onCreate={handleCreate}
+          renderCards={renderCards}
+        />
+      ) : (
+        <div
+          ref={boardScrollRef}
+          onDragOverCapture={(event) => {
+            if (draggingTaskId) dragPointerXRef.current = event.clientX;
+          }}
+          className="flex min-h-0 flex-1 gap-3 overflow-x-auto p-4"
+          data-testid="planner-board"
+        >
+          {columns.map((column) => (
+            <BoardColumn
+              key={column.status.id}
+              column={column}
+              isDropTarget={draggingTaskId !== null && dropStatusId === column.status.id}
+              canCreate={canEdit}
+              onCreate={handleCreate}
+              onDragOver={setDropStatusId}
+              onDragLeave={(statusId) => setDropStatusId((current) => (current === statusId ? null : current))}
+              onDrop={handleDrop}
+            >
+              {renderCards(column)}
+            </BoardColumn>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

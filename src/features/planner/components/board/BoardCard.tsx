@@ -23,6 +23,11 @@ export interface BoardCardProps {
   commentCount: number;
   dueLabel: string;
   canEdit: boolean;
+  /**
+   * Phone: no drag (a status changes through the menu), the ⋯ is always shown
+   * and a long press opens the same menu.
+   */
+  touch?: boolean;
   highlighted: boolean;
   dragging: boolean;
   onOpen: (taskId: string) => void;
@@ -39,6 +44,7 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
   commentCount,
   dueLabel,
   canEdit,
+  touch = false,
   highlighted,
   dragging,
   onOpen,
@@ -105,9 +111,9 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
           role="button"
           tabIndex={0}
           data-task-id={task.id}
-          draggable={canEdit}
-          onDragStart={canEdit ? handleDragStart : undefined}
-          onDragEnd={canEdit ? onDragEnd : undefined}
+          draggable={canEdit && !touch}
+          onDragStart={canEdit && !touch ? handleDragStart : undefined}
+          onDragEnd={canEdit && !touch ? onDragEnd : undefined}
           onClick={() => onOpen(task.id)}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ' ') {
@@ -123,7 +129,8 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
             dragging && 'opacity-40',
             highlighted && 'ring-2 ring-primary',
           )}
-          style={{ borderLeft: `4px solid ${projectColor}` }}
+          // No iOS callout on a long press: that gesture opens the task menu.
+          style={{ borderLeft: `4px solid ${projectColor}`, WebkitTouchCallout: 'none' }}
         >
           <button
             type="button"
@@ -138,19 +145,21 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
               event.stopPropagation();
             }}
             className={cn(
-              'absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-opacity',
-              'opacity-0 hover:bg-muted hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100',
+              'absolute right-1.5 top-1.5 flex items-center justify-center rounded-md text-muted-foreground transition-opacity',
+              touch
+                ? 'press h-8 w-8'
+                : 'h-6 w-6 opacity-0 hover:bg-muted hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
           >
             <MoreHorizontal className="h-4 w-4" />
           </button>
           {project && (
-            <div className="mb-1 truncate pr-6 text-xs text-muted-foreground">
+            <div className={cn('mb-1 truncate text-xs text-muted-foreground', touch ? 'pr-8' : 'pr-6')}>
               {formatProjectLabel(project.name, project.code)}
             </div>
           )}
-          <div className={cn('flex items-start gap-1.5', !project && 'pr-6')}>
+          <div className={cn('flex items-start gap-1.5', !project && (touch ? 'pr-8' : 'pr-6'))}>
             {priorityVisual && (
               <span
                 className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"

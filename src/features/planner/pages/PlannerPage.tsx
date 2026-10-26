@@ -482,11 +482,14 @@ const PlannerPage = () => {
                   aria-label={t`Expand filters`}
                   data-tour="filter-toggle"
                   onClick={() => setFilterCollapsed(false)}
+                  // Next to the timeline's row sidebar; the board has none.
                   style={{
                     left: `calc(${
-                      groupMode === 'assignee'
-                        ? 'clamp(48px, 14vw, 56px)'
-                        : 'clamp(120px, 38vw, 152px)'
+                      surface === 'board'
+                        ? '0px'
+                        : groupMode === 'assignee'
+                          ? 'clamp(48px, 14vw, 56px)'
+                          : 'clamp(120px, 38vw, 152px)'
                     } + 24px)`,
                   }}
                   // Same 56px round button as the "add task" FAB, and lifted the

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEvent, fireEvent, render, screen, within } from '@testing-library/react';
 import type { Status, Task } from '@/features/planner/types/planner';
 
@@ -313,6 +313,50 @@ describe('PlannerBoard', () => {
       expect(screen.getByLabelText('Search by title')).toHaveValue('');
       expect(usePlannerStore.getState().filters.assigneeIds).toEqual([]);
       expect(cardTitles()).toHaveLength(3);
+    });
+  });
+
+  describe('on a phone', () => {
+    const originalWidth = window.innerWidth;
+    beforeEach(() => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    });
+    afterEach(() => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
+    });
+
+    it('shows status tabs with counts and one column per screen', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs.map((tab) => tab.textContent)).toEqual(['To do1', 'Doing1', 'Done0']);
+      expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+
+      fireEvent.click(tabs[1]);
+      expect(screen.getAllByRole('tab')[1]).toHaveAttribute('aria-selected', 'true');
+      // The visible page is the chosen column; the others are aria-hidden.
+      expect(screen.getByRole('tabpanel', { name: 'Doing' })).toBeInTheDocument();
+      expect(screen.queryByRole('tabpanel', { name: 'To do' })).not.toBeInTheDocument();
+    });
+
+    it('creates a task in the column on screen', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      fireEvent.click(screen.getAllByRole('tab')[1]);
+      fireEvent.click(screen.getByRole('button', { name: 'Add task' }));
+      expect(onCreateTask).toHaveBeenCalledWith(expect.objectContaining({ statusId: 'doing' }));
+    });
+
+    it('changes status through the card menu, not by dragging', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      const card = screen.getByText('Write brief').closest('[data-task-id]') as HTMLElement;
+      expect(card).toHaveAttribute('draggable', 'false');
+      expect(within(card).getByRole('button', { name: 'Task actions' })).toBeInTheDocument();
+    });
+
+    it('keeps the quick filters but drops the popover pickers', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      expect(screen.getByLabelText('Search by title')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Project: all/ })).not.toBeInTheDocument();
     });
   });
 });

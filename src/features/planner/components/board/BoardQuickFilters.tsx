@@ -41,6 +41,11 @@ interface BoardQuickFiltersProps {
   onSearchChange: (value: string) => void;
   overdueOnly: boolean;
   onOverdueOnlyChange: (value: boolean) => void;
+  /**
+   * Phone: no popover pickers (they do not scroll under a finger). Group and
+   * project filters stay reachable through the planner's filter screen.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -53,6 +58,7 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
   onSearchChange,
   overdueOnly,
   onOverdueOnlyChange,
+  compact = false,
 }) => {
   const assignees = usePlannerStore((state) => state.assignees);
   const projects = usePlannerStore((state) => state.projects);
@@ -97,11 +103,13 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
 
   // A selected person stays visible even past the cut, so the row shows every
   // active choice without opening "+N".
+  // On a phone the row scrolls sideways, so everyone is in it (no "+N").
+  const visibleLimit = compact ? people.length : VISIBLE_PEOPLE;
   const visiblePeople = useMemo(() => {
-    const top = people.slice(0, VISIBLE_PEOPLE);
-    const extraSelected = people.slice(VISIBLE_PEOPLE).filter((person) => selectedPeople.includes(person.id));
+    const top = people.slice(0, visibleLimit);
+    const extraSelected = people.slice(visibleLimit).filter((person) => selectedPeople.includes(person.id));
     return [...top, ...extraSelected];
-  }, [people, selectedPeople]);
+  }, [people, selectedPeople, visibleLimit]);
   const foldedPeople = people.filter((person) => !visiblePeople.includes(person));
 
   const activeProjects = useMemo(
@@ -183,7 +191,7 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder={t`Search by title`}
           aria-label={t`Search by title`}
-          className="h-8 w-56 rounded-full pl-8 text-sm"
+          className={cn('h-8 rounded-full pl-8 text-sm', compact ? 'w-40' : 'w-56')}
         />
       </div>
 
@@ -204,7 +212,7 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
       {visiblePeople.length > 0 && (
         <div className="flex flex-shrink-0 items-center gap-1">
           {visiblePeople.map(personButton)}
-          {foldedPeople.length > 0 && (
+          {!compact && foldedPeople.length > 0 && (
             <Popover open={morePeopleOpen} onOpenChange={setMorePeopleOpen}>
               <PopoverTrigger asChild>
                 <button type="button" className={chipClass(false)} aria-label={t`More people`}>
@@ -243,7 +251,7 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
 
       <span aria-hidden className="h-5 w-px flex-shrink-0 bg-border" />
 
-      {sortedGroups.length > 0 && (
+      {!compact && sortedGroups.length > 0 && (
         <Popover open={groupsOpen} onOpenChange={setGroupsOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={chipClass(selectedGroups.length > 0)}>
@@ -290,50 +298,52 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
         </Popover>
       )}
 
-      <Popover open={projectsOpen} onOpenChange={setProjectsOpen}>
-        <PopoverTrigger asChild>
-          <button type="button" className={chipClass(selectedProjects.length > 0)}>
-            <span className="max-w-[12rem] truncate">{projectLabel}</span>
-            <ChevronDown className="h-4 w-4" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-72 p-0" align="start">
-          <Command>
-            <CommandInput placeholder={t`Find a project`} />
-            <CommandList>
-              <CommandEmpty>{t`No projects found`}</CommandEmpty>
-              <CommandGroup>
-                <CommandItem
-                  value="__all__"
-                  onSelect={() => {
-                    setFilters({ projectIds: [] });
-                    setProjectsOpen(false);
-                  }}
-                  className="gap-2"
-                >
-                  <span className="min-w-0 flex-1">{t`All projects`}</span>
-                  {selectedProjects.length === 0 && <Check className="h-4 w-4 text-primary" />}
-                </CommandItem>
-                {activeProjects.map((project) => (
+      {!compact && (
+        <Popover open={projectsOpen} onOpenChange={setProjectsOpen}>
+          <PopoverTrigger asChild>
+            <button type="button" className={chipClass(selectedProjects.length > 0)}>
+              <span className="max-w-[12rem] truncate">{projectLabel}</span>
+              <ChevronDown className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0" align="start">
+            <Command>
+              <CommandInput placeholder={t`Find a project`} />
+              <CommandList>
+                <CommandEmpty>{t`No projects found`}</CommandEmpty>
+                <CommandGroup>
                   <CommandItem
-                    key={project.id}
-                    value={`${formatProjectLabel(project.name, project.code)} ${project.id}`}
+                    value="__all__"
                     onSelect={() => {
-                      toggleProject(project.id);
+                      setFilters({ projectIds: [] });
                       setProjectsOpen(false);
                     }}
                     className="gap-2"
                   >
-                    <span aria-hidden className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ backgroundColor: project.color }} />
-                    <span className="min-w-0 flex-1 truncate">{formatProjectLabel(project.name, project.code)}</span>
-                    {selectedProjects.includes(project.id) && <Check className="h-4 w-4 text-primary" />}
+                    <span className="min-w-0 flex-1">{t`All projects`}</span>
+                    {selectedProjects.length === 0 && <Check className="h-4 w-4 text-primary" />}
                   </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+                  {activeProjects.map((project) => (
+                    <CommandItem
+                      key={project.id}
+                      value={`${formatProjectLabel(project.name, project.code)} ${project.id}`}
+                      onSelect={() => {
+                        toggleProject(project.id);
+                        setProjectsOpen(false);
+                      }}
+                      className="gap-2"
+                    >
+                      <span aria-hidden className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ backgroundColor: project.color }} />
+                      <span className="min-w-0 flex-1 truncate">{formatProjectLabel(project.name, project.code)}</span>
+                      {selectedProjects.includes(project.id) && <Check className="h-4 w-4 text-primary" />}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
 
       <button
         type="button"
