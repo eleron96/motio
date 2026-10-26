@@ -102,11 +102,32 @@ export const isBoardTaskOverdue = (task: Pick<Task, 'endDate'>, kind: BoardColum
   kind === 'open' && task.endDate < today
 );
 
+/** Board-only quick filters (not shared with the timeline, not persisted). */
+export type BoardQuickFilters = {
+  /** Case-insensitive substring of the title; blank means no search. */
+  search?: string;
+  /** Only open tasks past their end date — finished columns stay empty. */
+  overdueOnly?: boolean;
+};
+
+const matchesSearch = (task: Task, query: string) => (
+  task.title.toLocaleLowerCase().includes(query)
+);
+
+const tasksOnBoard = (tasks: Task[], statuses: Status[], scope: TaskBoardScope | null): Task[] => {
+  const openStatusIds = new Set(
+    statuses.filter((status) => columnKind(status) === 'open').map((status) => status.id),
+  );
+  return tasks.filter((task) => (
+    scope ? isTaskInBoardScope(task, scope) : openStatusIds.has(task.statusId)
+  ));
+};
+
 /**
  * The board's columns. `tasks` are already filtered (filter panel); the board
  * scope decides which of them belong on the board — while it is still loading
  * (null), only tasks in an open status are shown. A status filter narrows the
- * columns themselves, not just their cards.
+ * columns themselves, not just their cards; quick filters narrow the cards.
  */
 export const buildBoardColumns = ({
   statuses,
@@ -114,22 +135,22 @@ export const buildBoardColumns = ({
   scope,
   today,
   statusFilterIds = [],
+  quick = {},
 }: {
   statuses: Status[];
   tasks: Task[];
   scope: TaskBoardScope | null;
   today: string;
   statusFilterIds?: string[];
+  quick?: BoardQuickFilters;
 }): BoardColumn[] => {
   const visibleStatuses = statusFilterIds.length > 0
     ? statuses.filter((status) => statusFilterIds.includes(status.id))
     : statuses;
-  const openStatusIds = new Set(
-    statuses.filter((status) => columnKind(status) === 'open').map((status) => status.id),
-  );
-  const onBoard = tasks.filter((task) => (
-    scope ? isTaskInBoardScope(task, scope) : openStatusIds.has(task.statusId)
-  ));
+  const query = quick.search?.trim().toLocaleLowerCase() ?? '';
+  const onBoard = query
+    ? tasksOnBoard(tasks, statuses, scope).filter((task) => matchesSearch(task, query))
+    : tasksOnBoard(tasks, statuses, scope);
 
   const tasksByStatus = new Map<string, Task[]>();
   collapseRepeatSeries(onBoard, today).forEach((task) => {
@@ -140,10 +161,36 @@ export const buildBoardColumns = ({
 
   return orderBoardStatuses(visibleStatuses).map((status) => {
     const kind = columnKind(status);
+    const columnTasks = tasksByStatus.get(status.id) ?? [];
+    const shown = quick.overdueOnly
+      ? columnTasks.filter((task) => isBoardTaskOverdue(task, kind, today))
+      : columnTasks;
     return {
       status,
       kind,
-      tasks: sortBoardCards(tasksByStatus.get(status.id) ?? [], kind),
+      tasks: sortBoardCards(shown, kind),
     };
   });
+};
+
+/**
+ * Open board cards per person — orders the people in the quick-filter row so
+ * the busiest come first. Counted before any filter (a click must not reshuffle
+ * the row) and after collapsing series (a daily repeat is one card, not 365).
+ */
+export const countOpenBoardCardsByAssignee = (
+  tasks: Task[],
+  statuses: Status[],
+  scope: TaskBoardScope | null,
+  today: string,
+): Map<string, number> => {
+  const openStatusIds = new Set(
+    statuses.filter((status) => columnKind(status) === 'open').map((status) => status.id),
+  );
+  const counts = new Map<string, number>();
+  collapseRepeatSeries(tasksOnBoard(tasks, statuses, scope), today).forEach((task) => {
+    if (!openStatusIds.has(task.statusId)) return;
+    task.assigneeIds.forEach((id) => counts.set(id, (counts.get(id) ?? 0) + 1));
+  });
+  return counts;
 };

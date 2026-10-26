@@ -56,6 +56,7 @@ describe('PlannerBoard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     usePlannerStore.getState().reset();
+    usePlannerStore.getState().clearFilters();
     mocks.fetchBoardTasks.mockResolvedValue({ data: [] });
     usePlannerStore.setState({
       workspaceId: 'ws-1',
@@ -148,5 +149,71 @@ describe('PlannerBoard', () => {
     const card = screen.getByText('Write brief').closest('[data-task-id]') as HTMLElement;
     expect(card).toHaveAttribute('draggable', 'false');
     expect(screen.queryByRole('button', { name: /Add task/ })).not.toBeInTheDocument();
+  });
+
+  describe('quick filters', () => {
+    const people = [
+      { id: 'me', name: 'Анна', userId: 'user-me', isActive: true, email: null, phone: null },
+      { id: 'boris', name: 'Борис', userId: 'user-b', isActive: true, email: null, phone: null },
+      { id: 'vera', name: 'Вера', userId: 'user-v', isActive: true, email: null, phone: null },
+    ];
+
+    beforeEach(() => {
+      useAuthStore.setState({ user: { id: 'user-me' } as never });
+      usePlannerStore.setState({
+        assignees: people,
+        projects: [
+          { id: 'north', name: 'Север', code: null, color: '#3b82f6', archived: false, customerId: null, ownerGroupId: null, status: null },
+        ],
+        tasks: [
+          makeTask({ id: 'Смета по фасаду', assigneeIds: ['me'], projectId: 'north', endDate: '2020-01-01' }),
+          makeTask({ id: 'Договор', assigneeIds: ['boris'] }),
+          makeTask({ id: 'Обмеры', assigneeIds: ['vera'], statusId: 'doing' }),
+        ],
+      });
+    });
+
+    const cardTitles = () => Array.from(document.querySelectorAll('[data-task-id]')).map((el) => el.getAttribute('data-task-id'));
+
+    it('searches card titles without touching the shared filters', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      fireEvent.change(screen.getByLabelText('Search by title'), { target: { value: 'фасад' } });
+      expect(cardTitles()).toEqual(['Смета по фасаду']);
+      expect(usePlannerStore.getState().filters.assigneeIds).toEqual([]);
+    });
+
+    it('shows only overdue open cards', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      fireEvent.click(screen.getByRole('button', { name: /Overdue/ }));
+      expect(cardTitles()).toEqual(['Смета по фасаду']);
+    });
+
+    it('"Mine" and people avatars write into the shared assignee filter', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Mine/ }));
+      expect(usePlannerStore.getState().filters.assigneeIds).toEqual(['me']);
+      expect(cardTitles()).toEqual(['Смета по фасаду']);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Борис' }));
+      expect(usePlannerStore.getState().filters.assigneeIds).toEqual(['me', 'boris']);
+      expect(screen.getByRole('button', { name: 'Борис' })).toHaveAttribute('aria-pressed', 'true');
+
+      fireEvent.click(screen.getByRole('button', { name: /Mine/ }));
+      expect(usePlannerStore.getState().filters.assigneeIds).toEqual(['boris']);
+    });
+
+    it('resets search, overdue and shared filters at once', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      expect(screen.queryByRole('button', { name: /Reset/ })).not.toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText('Search by title'), { target: { value: 'zzz' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Вера' }));
+      fireEvent.click(screen.getByRole('button', { name: /Reset/ }));
+
+      expect(screen.getByLabelText('Search by title')).toHaveValue('');
+      expect(usePlannerStore.getState().filters.assigneeIds).toEqual([]);
+      expect(cardTitles()).toHaveLength(3);
+    });
   });
 });

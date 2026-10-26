@@ -1,7 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { buildAssigneeGroupMap, selectFilteredTasks } from '@/features/planner/lib/timelineSelectors';
-import { buildBoardColumns, type BoardColumn } from '@/shared/domain/boardColumns';
+import {
+  buildBoardColumns,
+  countOpenBoardCardsByAssignee,
+  type BoardColumn,
+  type BoardQuickFilters,
+} from '@/shared/domain/boardColumns';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
 
 /**
@@ -27,7 +32,7 @@ export const useBoardScopeLifecycle = (workspaceId: string | null) => {
 };
 
 /** Board columns for the current filters — the board UI only renders these. */
-export const useBoardColumns = (): BoardColumn[] => {
+export const useBoardColumns = ({ search, overdueOnly }: BoardQuickFilters = {}): BoardColumn[] => {
   const tasks = usePlannerStore((state) => state.tasks);
   const statuses = usePlannerStore((state) => state.statuses);
   const boardScope = usePlannerStore((state) => state.boardScope);
@@ -52,7 +57,20 @@ export const useBoardColumns = (): BoardColumn[] => {
       scope: boardScope,
       today,
       statusFilterIds: filters.statusIds,
+      quick: { search, overdueOnly },
     }),
-    [statuses, filteredTasks, boardScope, today, filters.statusIds],
+    [statuses, filteredTasks, boardScope, today, filters.statusIds, search, overdueOnly],
+  );
+};
+
+/** Open board cards per person, before any filter — orders the people chips. */
+export const useBoardPeopleCounts = (): Map<string, number> => {
+  const tasks = usePlannerStore((state) => state.tasks);
+  const statuses = usePlannerStore((state) => state.statuses);
+  const boardScope = usePlannerStore((state) => state.boardScope);
+  const today = useTodayKey();
+  return useMemo(
+    () => countOpenBoardCardsByAssignee(tasks, statuses, boardScope, today),
+    [tasks, statuses, boardScope, today],
   );
 };

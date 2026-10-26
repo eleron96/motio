@@ -11,6 +11,7 @@ import { format, parseISO } from '@/features/planner/lib/dateUtils';
 import type { Assignee } from '@/features/planner/types/planner';
 import { BoardColumn } from './BoardColumn';
 import { BoardCard } from './BoardCard';
+import { BoardQuickFilters } from './BoardQuickFilters';
 
 export type BoardCreateTaskDefaults = {
   startDate: string;
@@ -45,8 +46,12 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const today = useTodayKey();
 
+  // Board-only quick filters: transient, so they reset when the board closes.
+  const [search, setSearch] = useState('');
+  const [overdueOnly, setOverdueOnly] = useState(false);
+
   useBoardScopeLifecycle(workspaceId);
-  const columns = useBoardColumns();
+  const columns = useBoardColumns({ search, overdueOnly });
 
   const projectById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects]);
   const assigneeById = useMemo(() => new Map(assignees.map((person) => [person.id, person])), [assignees]);
@@ -82,45 +87,53 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
   }
 
   return (
-    <div className="flex h-full gap-3 overflow-x-auto p-4" data-testid="planner-board">
-      {columns.map((column) => (
-        <BoardColumn
-          key={column.status.id}
-          column={column}
-          isDropTarget={draggingTaskId !== null && dropStatusId === column.status.id}
-          canCreate={canEdit}
-          onCreate={handleCreate}
-          onDragOver={setDropStatusId}
-          onDragLeave={(statusId) => setDropStatusId((current) => (current === statusId ? null : current))}
-          onDrop={handleDrop}
-        >
-          {column.tasks.map((task) => {
-            const people = task.assigneeIds.length === 0
-              ? NO_PEOPLE
-              : task.assigneeIds
-                .map((id) => assigneeById.get(id))
-                .filter((person): person is Assignee => Boolean(person));
-            return (
-              <BoardCard
-                key={task.id}
-                task={task}
-                kind={column.kind}
-                overdue={isBoardTaskOverdue(task, column.kind, today)}
-                project={task.projectId ? projectById.get(task.projectId) : undefined}
-                people={people}
-                commentCount={taskCommentCounts[task.id] ?? 0}
-                dueLabel={format(parseISO(task.endDate), 'd MMM', { locale: dateLocale })}
-                canEdit={canEdit}
-                highlighted={highlightedTaskId === task.id}
-                dragging={draggingTaskId === task.id}
-                onOpen={setSelectedTaskId}
-                onDragStart={setDraggingTaskId}
-                onDragEnd={handleDragEnd}
-              />
-            );
-          })}
-        </BoardColumn>
-      ))}
+    <div className="flex h-full flex-col">
+      <BoardQuickFilters
+        search={search}
+        onSearchChange={setSearch}
+        overdueOnly={overdueOnly}
+        onOverdueOnlyChange={setOverdueOnly}
+      />
+      <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto p-4" data-testid="planner-board">
+        {columns.map((column) => (
+          <BoardColumn
+            key={column.status.id}
+            column={column}
+            isDropTarget={draggingTaskId !== null && dropStatusId === column.status.id}
+            canCreate={canEdit}
+            onCreate={handleCreate}
+            onDragOver={setDropStatusId}
+            onDragLeave={(statusId) => setDropStatusId((current) => (current === statusId ? null : current))}
+            onDrop={handleDrop}
+          >
+            {column.tasks.map((task) => {
+              const people = task.assigneeIds.length === 0
+                ? NO_PEOPLE
+                : task.assigneeIds
+                  .map((id) => assigneeById.get(id))
+                  .filter((person): person is Assignee => Boolean(person));
+              return (
+                <BoardCard
+                  key={task.id}
+                  task={task}
+                  kind={column.kind}
+                  overdue={isBoardTaskOverdue(task, column.kind, today)}
+                  project={task.projectId ? projectById.get(task.projectId) : undefined}
+                  people={people}
+                  commentCount={taskCommentCounts[task.id] ?? 0}
+                  dueLabel={format(parseISO(task.endDate), 'd MMM', { locale: dateLocale })}
+                  canEdit={canEdit}
+                  highlighted={highlightedTaskId === task.id}
+                  dragging={draggingTaskId === task.id}
+                  onOpen={setSelectedTaskId}
+                  onDragStart={setDraggingTaskId}
+                  onDragEnd={handleDragEnd}
+                />
+              );
+            })}
+          </BoardColumn>
+        ))}
+      </div>
     </div>
   );
 };

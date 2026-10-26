@@ -556,6 +556,7 @@ msgid "All current data will be lost."
 msgstr "Все текущие данные будут потеряны."
 
 #: src/features/members/pages/MembersPage.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All projects"
 msgstr "Все проекты"
@@ -2390,10 +2391,15 @@ msgstr "Финальный"
 msgid "Final status"
 msgstr "Финальный статус"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Find a person"
 msgstr "Найти человека"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Find a project"
+msgstr "Найти проект"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -3088,6 +3094,7 @@ msgstr "Вехи"
 msgid "Milestones still ahead"
 msgstr "Предстоящие вехи"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Mine"
@@ -3119,6 +3126,10 @@ msgstr "Ежемесячный повтор"
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "More actions"
 msgstr "Ещё действия"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "More people"
+msgstr "Ещё люди"
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Most often: {topProject}"
@@ -3637,6 +3648,7 @@ msgstr "Нет проектов у этого клиента."
 msgid "No projects for this member."
 msgstr "Нет проектов у этого участника."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 msgid "No projects found"
@@ -3751,6 +3763,7 @@ msgid "No workspaces."
 msgstr "Рабочих пространств нет."
 
 #: src/features/admin/components/AdminUserPicker.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Nobody found"
@@ -4007,6 +4020,7 @@ msgstr "просрочено"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 #: src/features/planner/components/board/BoardCard.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 msgid "Overdue"
 msgstr "Просрочено"
 
@@ -4305,6 +4319,11 @@ msgstr "Статус проекта"
 msgid "Project status: {0}"
 msgstr "Статус проекта: {0}"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Project: all"
+msgstr "Проект: все"
+
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -4328,6 +4347,11 @@ msgstr "Проекты и вехи"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Projects, milestones and clients"
 msgstr "Проекты, вехи и клиенты"
+
+#. placeholder {0}: selectedProjects.length
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Projects: {0}"
+msgstr "Проекты: {0}"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
@@ -4533,6 +4557,7 @@ msgstr "Повторяется до выбранной даты."
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Заменить отображаемое имя удалённого аккаунта. Изменение применится везде, где упоминается этот пользователь."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Reset"
 msgstr "Сброс"
@@ -4716,6 +4741,11 @@ msgstr "Поиск и фильтры"
 #: src/features/admin/components/AdminUserPicker.tsx
 msgid "Search by name or email"
 msgstr "Поиск по имени или почте"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Search by title"
+msgstr "Поиск по названию"
 
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 msgid "Search companies..."

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildBoardColumns,
   collapseRepeatSeries,
+  countOpenBoardCardsByAssignee,
   isBoardTaskOverdue,
   orderBoardStatuses,
   sortBoardCards,
@@ -134,5 +135,41 @@ describe('boardColumns', () => {
   it('narrows the columns to the status filter', () => {
     const columns = buildBoardColumns({ statuses, tasks: [], scope, today: TODAY, statusFilterIds: ['done'] });
     expect(columns.map((column) => column.status.id)).toEqual(['done']);
+  });
+
+  it('narrows cards by a case-insensitive title search', () => {
+    const columns = buildBoardColumns({
+      statuses,
+      tasks: [makeTask({ id: 'a', title: 'Смета по фасаду' }), makeTask({ id: 'b', title: 'Договор' })],
+      scope,
+      today: TODAY,
+      quick: { search: '  ФАСАД ' },
+    });
+    expect(columns[0].tasks.map((task) => task.id)).toEqual(['a']);
+  });
+
+  it('keeps only overdue open cards when "overdue" is on', () => {
+    const columns = buildBoardColumns({
+      statuses,
+      tasks: [
+        makeTask({ id: 'late', endDate: '2026-10-20' }),
+        makeTask({ id: 'today', endDate: TODAY }),
+        makeTask({ id: 'done-late', statusId: 'done', endDate: '2026-10-01', updatedAt: '2026-10-20T00:00:00Z' }),
+      ],
+      scope,
+      today: TODAY,
+      quick: { overdueOnly: true },
+    });
+    expect(columns.map((column) => column.tasks.map((task) => task.id))).toEqual([['late'], []]);
+  });
+
+  it('counts open cards per person, one per repeat series', () => {
+    const counts = countOpenBoardCardsByAssignee([
+      makeTask({ id: 'r1-a', repeatId: 'r1', assigneeIds: ['anna'], endDate: '2026-10-27' }),
+      makeTask({ id: 'r1-b', repeatId: 'r1', assigneeIds: ['anna'], endDate: '2026-11-03' }),
+      makeTask({ id: 'pair', assigneeIds: ['anna', 'boris'] }),
+      makeTask({ id: 'closed', statusId: 'done', assigneeIds: ['boris'], updatedAt: '2026-10-20T00:00:00Z' }),
+    ], statuses, scope, TODAY);
+    expect(Object.fromEntries(counts)).toEqual({ anna: 2, boris: 1 });
   });
 });

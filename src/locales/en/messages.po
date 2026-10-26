@@ -556,6 +556,7 @@ msgid "All current data will be lost."
 msgstr "All current data will be lost."
 
 #: src/features/members/pages/MembersPage.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All projects"
 msgstr "All projects"
@@ -2390,10 +2391,15 @@ msgstr "Final"
 msgid "Final status"
 msgstr "Final status"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Find a person"
 msgstr "Find a person"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Find a project"
+msgstr "Find a project"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -3088,6 +3094,7 @@ msgstr "Milestones"
 msgid "Milestones still ahead"
 msgstr "Milestones still ahead"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Mine"
@@ -3119,6 +3126,10 @@ msgstr "Monthly recurring"
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "More actions"
 msgstr "More actions"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "More people"
+msgstr "More people"
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Most often: {topProject}"
@@ -3637,6 +3648,7 @@ msgstr "No projects assigned to this customer."
 msgid "No projects for this member."
 msgstr "No projects for this member."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 msgid "No projects found"
@@ -3751,6 +3763,7 @@ msgid "No workspaces."
 msgstr "No workspaces."
 
 #: src/features/admin/components/AdminUserPicker.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Nobody found"
@@ -4007,6 +4020,7 @@ msgstr "overdue"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 #: src/features/planner/components/board/BoardCard.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 msgid "Overdue"
 msgstr "Overdue"
 
@@ -4305,6 +4319,11 @@ msgstr "Project status"
 msgid "Project status: {0}"
 msgstr "Project status: {0}"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Project: all"
+msgstr "Project: all"
+
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -4328,6 +4347,11 @@ msgstr "Projects & milestones"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Projects, milestones and clients"
 msgstr "Projects, milestones and clients"
+
+#. placeholder {0}: selectedProjects.length
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Projects: {0}"
+msgstr "Projects: {0}"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
@@ -4533,6 +4557,7 @@ msgstr "Repeats until the selected date."
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Reset"
 msgstr "Reset"
@@ -4716,6 +4741,11 @@ msgstr "Search & filters"
 #: src/features/admin/components/AdminUserPicker.tsx
 msgid "Search by name or email"
 msgstr "Search by name or email"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Search by title"
+msgstr "Search by title"
 
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 msgid "Search companies..."
