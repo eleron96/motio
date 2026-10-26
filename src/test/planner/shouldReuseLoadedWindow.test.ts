@@ -19,12 +19,15 @@ describe('shouldReuseLoadedWindow', () => {
     expect(shouldReuseLoadedWindow(dayWindow, { workspaceId: 'ws-1', currentDate: '2026-03-15', viewMode: 'week' })).toBe(true);
   });
 
-  it('refetches Day to Week once the date moved and the week window is no longer covered', () => {
-    expect(shouldReuseLoadedWindow(dayWindow, { workspaceId: 'ws-1', currentDate: '2026-04-15', viewMode: 'week' })).toBe(false);
+  it('keeps reusing the shared window while navigating Week after a switch from Day', () => {
+    // Without this, the first arrow press in Week would refetch everything.
+    expect(shouldReuseLoadedWindow(dayWindow, { workspaceId: 'ws-1', currentDate: '2026-04-15', viewMode: 'week' })).toBe(true);
+    expect(shouldReuseLoadedWindow(dayWindow, { workspaceId: 'ws-1', currentDate: '2026-07-01', viewMode: 'week' })).toBe(false);
   });
 
-  it('reuses the wide calendar window for Day, but not the other way round', () => {
-    expect(shouldReuseLoadedWindow(calendarWindow, { workspaceId: 'ws-1', currentDate: '2026-09-01', viewMode: 'day' })).toBe(true);
+  it('never mixes the calendar year with the Day/Week window, in either direction', () => {
+    // A year of cached tasks would change timeline row heights in Day.
+    expect(shouldReuseLoadedWindow(calendarWindow, { workspaceId: 'ws-1', currentDate: '2026-09-01', viewMode: 'day' })).toBe(false);
     expect(shouldReuseLoadedWindow(dayWindow, { workspaceId: 'ws-1', currentDate: '2026-03-15', viewMode: 'calendar' })).toBe(false);
   });
 });

@@ -8,7 +8,6 @@ import {
 } from 'date-fns';
 import { getStatusEmoji, splitStatusLabel } from '@/shared/lib/statusLabels';
 import type { TaskMappedRow } from '@/shared/domain/taskRowMapper';
-import { windowContains } from '@/shared/domain/taskLoadScopes';
 import {
   Assignee,
   Customer,
@@ -247,17 +246,20 @@ export type LoadedTaskWindow = {
   workspaceId: string;
 };
 
+// Day and Week request the same ±3-month window; Calendar requests ±1 year.
+const loadWindowFamily = (viewMode: ViewMode) => (viewMode === 'calendar' ? 'year' : 'months');
+
 /**
  * Whether the already loaded task window serves the requested view, so
- * loadWorkspaceData can skip a full refetch.
+ * loadWorkspaceData can skip a full refetch: same workspace, `currentDate`
+ * still inside the loaded window (the window is re-anchored only once the date
+ * leaves it), and a mode that requests the same kind of window.
  *
- * Two ways to qualify, both requiring the same workspace and `currentDate`
- * inside the loaded window:
- * - same view mode — the historical rule: the window is re-anchored only once
- *   `currentDate` leaves it;
- * - the loaded window covers the window the new mode would request — e.g.
- *   Day↔Week at an unchanged date or Calendar (±1 year) → Day (±3 months).
- *   Before this, every mode switch refetched all workspace data.
+ * Day↔Week share a window, so switching between them no longer refetches all
+ * workspace data. Calendar is deliberately NOT reused for Day/Week even though
+ * its ±1 year covers them: the timeline lays out every cached task of a row
+ * (row heights, bars), so a year of tasks would grow rows and add off-screen
+ * bars compared with the usual ±3 months.
  */
 export const shouldReuseLoadedWindow = (
   loaded: LoadedTaskWindow | null,
@@ -265,8 +267,7 @@ export const shouldReuseLoadedWindow = (
 ): boolean => {
   if (!loaded || loaded.workspaceId !== request.workspaceId) return false;
   if (!isDateWithinRange(request.currentDate, loaded.start, loaded.end)) return false;
-  if (loaded.viewMode === request.viewMode) return true;
-  return windowContains(loaded, buildTaskRange(request.currentDate, request.viewMode));
+  return loadWindowFamily(loaded.viewMode) === loadWindowFamily(request.viewMode);
 };
 
 export const uniqueAssigneeIds = (assigneeIds: string[] | null | undefined) => (
