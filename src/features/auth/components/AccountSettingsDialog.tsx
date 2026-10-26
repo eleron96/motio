@@ -541,7 +541,10 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
   // ---------------- PROFILE ----------------
   const profileContent = (
-  <div className="space-y-5">
+  // flex-1 on desktop: the pane grows to the scroller's height, so the sign-out
+  // block below can sit at the bottom of a tall card (mt-auto) instead of
+  // floating right under the stats. On a phone sectionContent pins the pill.
+  <div className={cn('flex flex-col gap-5', !isMobile && 'flex-1')}>
     <div className="flex flex-col items-center space-y-4 text-center">
       {user && (
         <AvatarWithEditButton
@@ -617,9 +620,10 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       <ProfileSummary summary={summary} animate={open} />
     </div>
 
-    {/* No longer pinned with mt-auto: the pane scrolls inside the rail
-        layout instead of owning the full card height. */}
-    <div className="flex flex-col items-center gap-3 border-t pt-5">
+    {/* mt-auto pins it to the bottom of the pane when the card is taller than
+        the profile; when it is shorter, the pane scrolls and this simply
+        follows the stats. */}
+    <div className={cn('flex flex-col items-center gap-3 border-t pt-5', !isMobile && 'mt-auto')}>
       {summary.monthsInMotio !== null && (
         <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
           <CalendarDays className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -1067,13 +1071,15 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
                 flush to its left edge, so without the padding every focused field
                 loses the left side of its ring. The negative margin cancels the
                 padding, leaving the content exactly where it was. */}
-            <div className="-ml-1.5 min-w-0 flex-1 overflow-y-auto px-1.5">
+            <div className="-ml-1.5 flex min-w-0 flex-1 flex-col overflow-y-auto px-1.5">
               <h2 className={cn('mb-4 text-base font-semibold', activeSection === 'danger' && 'text-destructive')}>
                 {activeLabel}
               </h2>
               {/* The card is 980px wide; settings rows read badly stretched across
                   the whole of it, so the pane keeps a comfortable measure. */}
-              <div className="max-w-[560px] pb-2">
+              {/* flex-1 + flex-col let a pane fill the scroller's height (the
+                  profile pins sign-out to the bottom); taller panes still scroll. */}
+              <div className="flex max-w-[560px] flex-1 flex-col pb-2">
                 {sectionContent[activeSection]}
               </div>
             </div>
