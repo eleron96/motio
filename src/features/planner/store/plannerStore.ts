@@ -33,6 +33,7 @@ export const usePlannerStore = create<PlannerStore>()(
       tags: [],
       viewMode: 'day',
       groupMode: 'assignee',
+      plannerSurface: 'timeline',
       currentDate: format(new Date(), 'yyyy-MM-dd'),
       filters: initialFilters,
       selectedTaskId: null,
@@ -233,6 +234,7 @@ export const usePlannerStore = create<PlannerStore>()(
       ...createUndoActions(set, get),
 
       setViewMode: (mode) => set({ viewMode: mode }),
+      setPlannerSurface: (surface) => set({ plannerSurface: surface }),
       setGroupMode: (mode) => set({ groupMode: mode }),
       setCurrentDate: (date) => set({ currentDate: date }),
       setVisibleCenterDate: (date) => set({ visibleCenterDate: date }),
@@ -276,6 +278,7 @@ export const usePlannerStore = create<PlannerStore>()(
       partialize: (state) => ({
         viewMode: state.viewMode,
         groupMode: state.groupMode,
+        plannerSurface: state.plannerSurface,
         currentDate: state.currentDate,
       }),
     },

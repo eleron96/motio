@@ -389,6 +389,10 @@ msgid "Add"
 msgstr "Add"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Add a \"Board\" button: tasks as cards in status columns"
+msgstr "Add a \"Board\" button: tasks as cards in status columns"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Add a \"Week\" button next to Day and Calendar"
 msgstr "Add a \"Week\" button next to Day and Calendar"
 
@@ -457,6 +461,7 @@ msgstr "Add rule"
 msgid "Add subtask"
 msgstr "Add subtask"
 
+#: src/features/planner/components/board/BoardColumn.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
@@ -784,6 +789,15 @@ msgstr "Beer"
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Biweekly (every 2 weeks)"
+
+#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/TimelineControls.tsx
+msgid "Board"
+msgstr "Board"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Board view (beta)"
+msgstr "Board view (beta)"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
@@ -1124,6 +1138,7 @@ msgstr "Comment actions"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Comments"
 msgstr "Comments"
@@ -1864,6 +1879,10 @@ msgstr "Draw every status in its own colour instead of the palette."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw everyone in their own colour from workspace settings instead of the palette."
 msgstr "Draw everyone in their own colour from workspace settings instead of the palette."
+
+#: src/features/planner/components/board/BoardCard.tsx
+msgid "Due date"
+msgstr "Due date"
 
 #: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "due today"
@@ -3646,6 +3665,10 @@ msgstr "No role"
 msgid "No rules yet."
 msgstr "No rules yet."
 
+#: src/features/planner/components/board/PlannerBoard.tsx
+msgid "No statuses in this workspace yet"
+msgstr "No statuses in this workspace yet"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
@@ -3667,6 +3690,10 @@ msgstr "No tags"
 #: src/features/planner/components/TagMultiSelect.tsx
 msgid "No tags available yet."
 msgstr "No tags available yet."
+
+#: src/features/planner/components/board/BoardColumn.tsx
+msgid "No tasks"
+msgstr "No tasks"
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
@@ -3976,6 +4003,7 @@ msgid "overdue"
 msgstr "overdue"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 msgid "Overdue"
 msgstr "Overdue"
 
@@ -4174,6 +4202,7 @@ msgstr "Previously entered"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
@@ -4489,6 +4518,10 @@ msgstr "Repeat task"
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeat type"
 msgstr "Repeat type"
+
+#: src/features/planner/components/board/BoardCard.tsx
+msgid "Repeating task"
+msgstr "Repeating task"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeats until the selected date."

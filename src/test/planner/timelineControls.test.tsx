@@ -11,6 +11,8 @@ const { plannerState, authState } = vi.hoisted(() => ({
   plannerState: {
     viewMode: 'day',
     setViewMode: vi.fn(),
+    plannerSurface: 'timeline',
+    setPlannerSurface: vi.fn(),
     groupMode: 'project',
     setGroupMode: vi.fn(),
     currentDate: '2026-03-20',
@@ -47,10 +49,12 @@ vi.mock('@/shared/lib/dateFnsLocale', () => ({
 describe('TimelineControls', () => {
   beforeEach(() => {
     plannerState.viewMode = 'day';
+    plannerState.plannerSurface = 'timeline';
     plannerState.groupMode = 'project';
     plannerState.currentDate = '2026-03-20';
     plannerState.filters.hideUnassigned = false;
     authState.profilePreferences = null;
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
 
@@ -81,5 +85,38 @@ describe('TimelineControls', () => {
     expect(weekButton).toBeInTheDocument();
     fireEvent.click(weekButton);
     expect(plannerState.setViewMode).toHaveBeenCalledWith('week');
+  });
+
+  it('hides the Board button unless both the build flag and the preference are on', () => {
+    authState.profilePreferences = { board_view_enabled: true };
+    const { unmount } = render(<TimelineControls />);
+    expect(screen.queryByRole('button', { name: 'Board' })).not.toBeInTheDocument();
+    unmount();
+
+    vi.stubEnv('VITE_FEATURE_KANBAN', 'true');
+    authState.profilePreferences = { board_view_enabled: false };
+    render(<TimelineControls />);
+    expect(screen.queryByRole('button', { name: 'Board' })).not.toBeInTheDocument();
+  });
+
+  it('switches to the board and back to the timeline scale the person picks', () => {
+    vi.stubEnv('VITE_FEATURE_KANBAN', 'true');
+    authState.profilePreferences = { board_view_enabled: true };
+    const { rerender } = render(<TimelineControls />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Board' }));
+    expect(plannerState.setPlannerSurface).toHaveBeenCalledWith('board');
+
+    plannerState.plannerSurface = 'board';
+    rerender(<TimelineControls />);
+    expect(screen.getByRole('button', { name: 'Board' })).toHaveClass('bg-primary/15');
+    expect(screen.getByRole('button', { name: 'Day' })).not.toHaveClass('bg-primary/15');
+    // No date axis on the board: grouping is off, the arrows are gone.
+    expect(screen.getByRole('button', { name: 'Projects' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Previous' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Day' }));
+    expect(plannerState.setPlannerSurface).toHaveBeenLastCalledWith('timeline');
+    expect(plannerState.setViewMode).toHaveBeenLastCalledWith('day');
   });
 });

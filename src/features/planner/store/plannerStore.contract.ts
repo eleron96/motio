@@ -8,6 +8,7 @@ import {
   MemberGroupAssignment,
   Milestone,
   PlannerState,
+  PlannerSurface,
   Project,
   ProjectActivity,
   ProjectMember,
@@ -236,6 +237,7 @@ export interface PlannerStore extends PlannerState {
   setTimeOffDragPreview: (preview: TimeOffDragPreview) => void;
 
   setViewMode: (mode: ViewMode) => void;
+  setPlannerSurface: (surface: PlannerSurface) => void;
   setGroupMode: (mode: GroupMode) => void;
   setCurrentDate: (date: string) => void;
   setVisibleCenterDate: (date: string) => void;

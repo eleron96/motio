@@ -128,6 +128,7 @@ export type StatusRow = {
   color: string;
   is_final: boolean;
   is_cancelled?: boolean | null;
+  created_at?: string | null;
 };
 
 export type TaskTypeRow = {
@@ -368,6 +369,7 @@ export const mapStatusRow = (row: StatusRow): Status => {
     color: row.color,
     isFinal: Boolean(row.is_final) && !isCancelled,
     isCancelled,
+    ...(row.created_at ? { createdAt: row.created_at } : {}),
   };
 };
 

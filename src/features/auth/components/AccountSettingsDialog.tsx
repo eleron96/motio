@@ -62,6 +62,8 @@ import {
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { demoStore } from '@/features/demo/lib/demoDataStore';
 import { isWeekViewEnabled, WEEK_VIEW_PREFERENCE_KEY } from '@/features/planner/lib/weekViewPreference';
+import { BOARD_VIEW_PREFERENCE_KEY, isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
+import { isBoardViewEnabled } from '@/shared/lib/featureFlags';
 import {
   DEFAULT_TIME_OFF_MOTIF_ID,
   getTimeOffMotifId,
@@ -145,6 +147,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const [pushOnMention, setPushOnMention] = useState(true);
   const [pushOnTaskChange, setPushOnTaskChange] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
+  const [boardViewEnabled, setBoardViewEnabled] = useState(false);
   const [tourRestarting, setTourRestarting] = useState(false);
   const [tourRestarted, setTourRestarted] = useState(false);
   const [accentId, setAccentId] = useState<string>(DEFAULT_ACCENT_ID);
@@ -180,6 +183,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
       setDailyBriefEnabled(data.preferences.daily_brief_enabled !== false);
       setMarketingEmailsEnabled(data.marketingEmailsOptIn);
       setWeekViewEnabled(isWeekViewEnabled(data.preferences));
+      setBoardViewEnabled(isBoardViewPreferenceOn(data.preferences));
       setAccentId(getAccentColorId(data.preferences));
       setTimeOffMotifId(getTimeOffMotifId(data.preferences));
 
@@ -359,6 +363,26 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
     if (updateError) {
       setWeekViewEnabled(previousEnabled);
+      setCurrentPrefs(previousPrefs);
+      setError(updateError);
+    }
+  };
+
+  const handleBoardViewToggle = async (checked: boolean) => {
+    if (!user) return;
+    const previousEnabled = boardViewEnabled;
+    const previousPrefs = currentPrefs;
+
+    // Same optimistic pattern as the Week toggle: the planner reads the
+    // preference from the store and shows/hides the Board button reactively.
+    setBoardViewEnabled(checked);
+    const updatedPrefs = { ...currentPrefs, [BOARD_VIEW_PREFERENCE_KEY]: checked };
+    setCurrentPrefs(updatedPrefs);
+
+    const { error: updateError } = await updateProfilePreferences(updatedPrefs);
+
+    if (updateError) {
+      setBoardViewEnabled(previousEnabled);
       setCurrentPrefs(previousPrefs);
       setError(updateError);
     }
@@ -745,6 +769,26 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
           {t`Add a "Week" button next to Day and Calendar`}
         </p>
       </div>
+
+      {isBoardViewEnabled() && (
+        <div className="space-y-2 border-t pt-4 text-left">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="board-view-toggle" className="cursor-pointer">
+              {t`Board view (beta)`}
+            </Label>
+            <Switch
+              size={switchSize}
+              id="board-view-toggle"
+              checked={boardViewEnabled}
+              onCheckedChange={handleBoardViewToggle}
+              disabled={!user || loading}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t`Add a "Board" button: tasks as cards in status columns`}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2 border-t pt-4 text-left">
         <div className="flex items-center justify-between gap-3">

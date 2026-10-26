@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TimelineGrid } from '@/features/planner/components/timeline/TimelineGrid';
 import { CalendarTimeline } from '@/features/planner/components/timeline/CalendarTimeline';
+import { PlannerBoard } from '@/features/planner/components/board/PlannerBoard';
+import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
+import { isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
@@ -17,7 +20,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
-import { Filters, ViewMode } from '@/features/planner/types/planner';
+import { Filters, PlannerSurface, ViewMode } from '@/features/planner/types/planner';
 import { format } from 'date-fns';
 import { Navigate } from 'react-router-dom';
 import { t } from '@lingui/macro';
@@ -37,6 +40,7 @@ type AddTaskDefaults = {
   endDate: string;
   projectId?: string | null;
   assigneeIds?: string[];
+  statusId?: string;
 };
 
 const normalizeFilterIds = (value: unknown) => (
@@ -60,6 +64,7 @@ const normalizeFilters = (value: unknown): Filters => {
 
 interface PlannerTimelineAreaProps {
   viewMode: ViewMode;
+  surface: PlannerSurface;
   onCreateTaskRequest: (defaults: AddTaskDefaults) => void;
   timelineSidebarWidth: number | null;
   onTimelineSidebarWidthChange: (width: number) => void;
@@ -71,6 +76,7 @@ interface PlannerTimelineAreaProps {
 
 const PlannerTimelineArea = React.memo(({
   viewMode,
+  surface,
   onCreateTaskRequest,
   timelineSidebarWidth,
   onTimelineSidebarWidthChange,
@@ -82,7 +88,8 @@ const PlannerTimelineArea = React.memo(({
   <div className="flex-1 flex flex-col overflow-hidden min-h-0 timeline-surface">
     <TimelineControls />
     <div className="relative flex-1 overflow-hidden min-h-0">
-      {viewMode === 'calendar'
+      {surface === 'board' && <PlannerBoard onCreateTask={onCreateTaskRequest} />}
+      {surface === 'timeline' && (viewMode === 'calendar'
         ? <CalendarTimeline />
         : (
           <TimelineGrid
@@ -92,7 +99,7 @@ const PlannerTimelineArea = React.memo(({
             onSidebarWidthReset={onTimelineSidebarWidthReset}
           />
         )
-      }
+      )}
       {showLoadingOverlay && (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-background/60">
           {t`Loading workspace...`}
@@ -143,6 +150,9 @@ const PlannerPage = () => {
   const clearFilters = usePlannerStore((state) => state.clearFilters);
   const viewMode = usePlannerStore((state) => state.viewMode);
   const setViewMode = usePlannerStore((state) => state.setViewMode);
+  const storedSurface = usePlannerStore((state) => state.plannerSurface);
+  const setPlannerSurface = usePlannerStore((state) => state.setPlannerSurface);
+  const { surface } = usePlannerSurface();
   const groupMode = usePlannerStore((state) => state.groupMode);
   const currentDate = usePlannerStore((state) => state.currentDate);
   const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
@@ -181,6 +191,19 @@ const PlannerPage = () => {
       setViewMode('day');
     }
   }, [profilePreferences, viewMode, setViewMode]);
+
+  // Same fallback for the board: a person who turned the preference off (or
+  // carries a persisted 'board' from another account) lands on the timeline.
+  // Phones are NOT reset here — usePlannerSurface just shows them the timeline.
+  useEffect(() => {
+    if (
+      profilePreferences !== null
+      && storedSurface === 'board'
+      && !isBoardViewPreferenceOn(profilePreferences)
+    ) {
+      setPlannerSurface('timeline');
+    }
+  }, [profilePreferences, storedSurface, setPlannerSurface]);
 
   useOnboardingTour({
     pageId: 'planner',
@@ -512,6 +535,7 @@ const PlannerPage = () => {
         {/* Timeline area */}
         <PlannerTimelineArea
           viewMode={viewMode}
+          surface={surface}
           onCreateTaskRequest={handleCreateTaskRequest}
           timelineSidebarWidth={timelineSidebarWidth ?? null}
           onTimelineSidebarWidthChange={handleTimelineSidebarWidthChange}
@@ -537,6 +561,7 @@ const PlannerPage = () => {
         initialEndDate={addTaskDefaults?.endDate}
         initialProjectId={addTaskDefaults?.projectId}
         initialAssigneeIds={addTaskDefaults?.assigneeIds}
+        initialStatusId={addTaskDefaults?.statusId}
         timeOffEnabled={timeOffOn}
         timeOffOnly={timeOffOn && !canEdit}
       />

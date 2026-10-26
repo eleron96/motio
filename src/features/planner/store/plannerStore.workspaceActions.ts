@@ -262,7 +262,7 @@ export const createWorkspaceActions = (
       .eq('workspace_id', workspaceId);
     const statusesQuery = supabase
       .from('statuses')
-      .select('id, workspace_id, name, emoji, color, is_final, is_cancelled')
+      .select('id, workspace_id, name, emoji, color, is_final, is_cancelled, created_at')
       .eq('workspace_id', workspaceId);
     const taskTypesQuery = supabase
       .from('task_types')

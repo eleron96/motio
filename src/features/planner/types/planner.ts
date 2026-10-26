@@ -159,6 +159,8 @@ export interface Status {
   color: string; // hex
   isFinal: boolean;
   isCancelled: boolean;
+  /** ISO timestamp; orders board columns. Absent in fixtures and partial fetches. */
+  createdAt?: string;
 }
 
 export interface TaskType {
@@ -235,6 +237,8 @@ export interface TaskComment {
 
 export type ViewMode = 'day' | 'week' | 'calendar';
 export type GroupMode = 'assignee' | 'project';
+/** What the planner page shows: the timeline (Day/Week/Calendar) or the board. */
+export type PlannerSurface = 'timeline' | 'board';
 
 export interface Filters {
   projectIds: string[];
@@ -265,6 +269,11 @@ export interface PlannerState {
   tags: Tag[];
   viewMode: ViewMode;
   groupMode: GroupMode;
+  /**
+   * Kept apart from viewMode so timeline code never sees the board, and leaving
+   * the board returns to the scale the person had (Day or Week).
+   */
+  plannerSurface: PlannerSurface;
   currentDate: string;
   filters: Filters;
   selectedTaskId: string | null;

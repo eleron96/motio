@@ -66,6 +66,8 @@ interface AddTaskDialogProps {
   initialEndDate?: string;
   initialProjectId?: string | null;
   initialAssigneeIds?: string[];
+  /** Status to start with (the board's "Add task" of a column); falls back to the default. */
+  initialStatusId?: string;
   /** Lock the project field to the initial value (used on the Projects tab). */
   lockProject?: boolean;
   /** Planner only: offer the second mode, "Отметить выходной". */
@@ -127,6 +129,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   initialEndDate,
   initialProjectId,
   initialAssigneeIds,
+  initialStatusId,
   lockProject = false,
   timeOffEnabled = false,
   timeOffOnly = false,
@@ -567,7 +570,11 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setEndDate(nextEnd);
     setProjectId(nextProjectId);
     setAssigneeIds(nextAssignees);
-    setStatusId(defaultStatusId);
+    setStatusId(
+      initialStatusId && statuses.some((status) => status.id === initialStatusId)
+        ? initialStatusId
+        : defaultStatusId,
+    );
     setRepeatFrequency('none');
     setRepeatEnds('never');
     repeatUntilAutoRef.current = true;
@@ -598,6 +605,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     fallbackProjectId,
     initialAssigneeIds,
     initialEndDate,
+    initialStatusId,
     initialProjectId,
     initialStartDate,
     normalizeAssigneeSelection,
@@ -606,6 +614,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     open,
     projectInitialized,
     selectableAssignees,
+    statuses,
   ]);
 
   useEffect(() => {
