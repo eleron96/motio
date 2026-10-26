@@ -4128,7 +4128,6 @@ msgstr "Pending"
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
-#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "People"
 msgstr "People"
 
@@ -4351,7 +4350,6 @@ msgstr "Project: all"
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
-#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx

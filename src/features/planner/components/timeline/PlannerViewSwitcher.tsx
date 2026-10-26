@@ -1,8 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { t } from '@lingui/macro';
 import {
   Calendar,
+  Calendar1,
+  CalendarRange,
   ChartGantt,
   ChevronDown,
   FolderKanban,
@@ -14,7 +16,6 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
 import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
-import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/ui/sheet';
 import { useSheetDragDismiss } from '@/shared/hooks/useSheetDragDismiss';
 import { cn } from '@/shared/lib/classNames';
@@ -90,72 +91,157 @@ const viewLabel = (view: PlannerView) => {
   return t`Timeline`;
 };
 
+const SCALE_ICONS: Record<TimelineScale, React.FC<{ className?: string }>> = {
+  day: Calendar1,
+  week: CalendarRange,
+};
+
 const scaleLabel = (scale: TimelineScale) => (scale === 'week' ? t`Week` : t`Day`);
 const groupLabel = (group: GroupMode) => (group === 'project' ? t`Projects` : t`People`);
 
-/** Desktop: the view pill, then the timeline's own settings next to it. */
+type SlidingOption<K extends string> = {
+  key: K;
+  label: string;
+  icon: React.FC<{ className?: string }>;
+};
+
+/**
+ * A segmented pill whose highlight slides to the chosen item instead of
+ * blinking from one button to another. Local to the switcher: the shared
+ * SegmentedControl is used in many places and keeps its plain behaviour.
+ */
+function SlidingSegmented<K extends string>({
+  options,
+  value,
+  onChange,
+  tabbable = true,
+}: {
+  options: SlidingOption<K>[];
+  value: K;
+  onChange: (key: K) => void;
+  /** False while the pill is folded away, so Tab skips its buttons. */
+  tabbable?: boolean;
+}) {
+  const itemRefs = useRef(new Map<K, HTMLButtonElement>());
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null);
+  // The first placement must not slide in from the left edge.
+  const [animate, setAnimate] = useState(false);
+
+  useLayoutEffect(() => {
+    const place = () => {
+      const button = itemRefs.current.get(value);
+      if (!button) return;
+      setIndicator({ left: button.offsetLeft, width: button.offsetWidth });
+    };
+    place();
+    // Web fonts and label changes (language) resize the buttons after mount.
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null;
+    itemRefs.current.forEach((button) => observer?.observe(button));
+    return () => observer?.disconnect();
+  }, [value, options.length]);
+
+  useLayoutEffect(() => {
+    if (indicator && !animate) {
+      const frame = requestAnimationFrame(() => setAnimate(true));
+      return () => cancelAnimationFrame(frame);
+    }
+    return undefined;
+  }, [indicator, animate]);
+
+  return (
+    <div className="relative inline-flex items-center rounded-lg bg-muted p-0.5">
+      {indicator && (
+        <span
+          aria-hidden
+          className={cn(
+            'absolute bottom-0.5 top-0.5 left-0 rounded-md bg-primary/15',
+            animate && 'transition-[transform,width] duration-300 ease-out motion-reduce:transition-none',
+          )}
+          style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
+        />
+      )}
+      {options.map(({ key, label, icon: Icon }) => {
+        const active = key === value;
+        return (
+          <button
+            key={key}
+            ref={(node) => {
+              if (node) itemRefs.current.set(key, node);
+              else itemRefs.current.delete(key);
+            }}
+            type="button"
+            onClick={() => onChange(key)}
+            aria-pressed={active}
+            aria-label={label}
+            tabIndex={tabbable ? undefined : -1}
+            className={cn(
+              'press relative z-10 inline-flex h-7 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-ui-xs font-medium transition-colors duration-300',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background',
+              active ? 'text-primary' : 'text-foreground hover:text-primary/80',
+            )}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            <span>{label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Desktop: the view pill, then the timeline's own settings next to it. The
+ * settings fold and unfold over the same 300ms instead of popping in and out,
+ * so the view pill glides rather than jumping sideways.
+ */
 export const PlannerViewSwitcher: React.FC = () => {
   const state = usePlannerViewState();
   const views: PlannerView[] = state.boardAvailable ? ['timeline', 'calendar', 'board'] : ['timeline', 'calendar'];
+  const showTimelineSettings = state.view === 'timeline';
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <SegmentedControl surface="compact">
-        {views.map((view) => {
-          const Icon = VIEW_ICONS[view];
-          return (
-            <SegmentedControlItem
-              key={view}
-              active={state.view === view}
-              className="gap-1.5"
-              onClick={() => state.selectView(view)}
-              aria-label={viewLabel(view)}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              <span>{viewLabel(view)}</span>
-            </SegmentedControlItem>
-          );
-        })}
-      </SegmentedControl>
+    <div className="flex items-center">
+      <SlidingSegmented
+        options={views.map((view) => ({ key: view, label: viewLabel(view), icon: VIEW_ICONS[view] }))}
+        value={state.view}
+        onChange={state.selectView}
+      />
 
-      {state.view === 'timeline' && (
-        <>
-          <span aria-hidden className="h-5 w-px bg-border" />
+      {/* 0fr ↔ 1fr animates the column, so the block folds to nothing. */}
+      <div
+        aria-hidden={!showTimelineSettings}
+        className={cn(
+          'grid transition-[grid-template-columns,opacity] duration-300 ease-out motion-reduce:transition-none',
+          showTimelineSettings ? 'opacity-100' : 'pointer-events-none opacity-0',
+        )}
+        style={{ gridTemplateColumns: showTimelineSettings ? '1fr' : '0fr' }}
+        data-testid="timeline-view-settings"
+      >
+        <div className="flex min-w-0 items-center gap-3 overflow-hidden pl-3">
+          <span aria-hidden className="h-5 w-px flex-shrink-0 bg-border" />
           {state.weekEnabled && (
-            <SegmentedControl surface="compact">
-              {(['day', 'week'] as const).map((scale) => (
-                <SegmentedControlItem
-                  key={scale}
-                  active={state.scale === scale}
-                  onClick={() => state.selectScale(scale)}
-                >
-                  {scaleLabel(scale)}
-                </SegmentedControlItem>
-              ))}
-            </SegmentedControl>
+            <SlidingSegmented
+              options={(['day', 'week'] as const).map((scale) => ({
+                key: scale,
+                label: scaleLabel(scale),
+                icon: SCALE_ICONS[scale],
+              }))}
+              value={state.scale}
+              onChange={state.selectScale}
+              tabbable={showTimelineSettings}
+            />
           )}
-          <SegmentedControl surface="compact">
-            <SegmentedControlItem
-              active={state.groupMode === 'assignee'}
-              className="gap-1.5"
-              onClick={() => state.selectGroup('assignee')}
-              aria-label={t`People`}
-            >
-              <Users className="h-3.5 w-3.5" />
-              <span>{t`People`}</span>
-            </SegmentedControlItem>
-            <SegmentedControlItem
-              active={state.groupMode === 'project'}
-              className="gap-1.5"
-              onClick={() => state.selectGroup('project')}
-              aria-label={t`Projects`}
-            >
-              <FolderKanban className="h-3.5 w-3.5" />
-              <span>{t`Projects`}</span>
-            </SegmentedControlItem>
-          </SegmentedControl>
-        </>
-      )}
+          <SlidingSegmented
+            options={[
+              { key: 'assignee' as const, label: t`People`, icon: Users },
+              { key: 'project' as const, label: t`Projects`, icon: FolderKanban },
+            ]}
+            value={state.groupMode}
+            onChange={state.selectGroup}
+            tabbable={showTimelineSettings}
+          />
+        </div>
+      </div>
     </div>
   );
 };
@@ -246,6 +332,7 @@ export const MobilePlannerViewButton: React.FC = () => {
                       key={scale}
                       active={state.scale === scale}
                       onClick={() => state.selectScale(scale)}
+                      icon={SCALE_ICONS[scale]}
                       label={scaleLabel(scale)}
                     />
                   ))}

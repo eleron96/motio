@@ -67,10 +67,10 @@ describe('TimelineControls', () => {
     const timelineButton = screen.getByRole('button', { name: 'Timeline' });
     const projectsButton = screen.getByRole('button', { name: 'Projects' });
 
-    expect(timelineButton).toHaveClass('bg-primary/15', 'text-primary');
-    expect(timelineButton).not.toHaveClass('bg-foreground');
-    expect(projectsButton).toHaveClass('bg-primary/15', 'text-primary');
-    expect(screen.getByRole('button', { name: 'Calendar' })).not.toHaveClass('bg-primary/15');
+    expect(timelineButton).toHaveAttribute('aria-pressed', 'true');
+    expect(timelineButton).toHaveClass('text-primary');
+    expect(projectsButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Calendar' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('has no scale control while the Week preference is off', () => {
@@ -85,7 +85,7 @@ describe('TimelineControls', () => {
   it('offers Day / Week as the timeline scale when the preference is on', () => {
     authState.profilePreferences = { week_view_enabled: true };
     render(<TimelineControls />);
-    expect(screen.getByRole('button', { name: 'Day' })).toHaveClass('bg-primary/15');
+    expect(screen.getByRole('button', { name: 'Day' })).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'Week' }));
     expect(plannerState.setPlannerSurface).toHaveBeenCalledWith('timeline');
     expect(plannerState.setViewMode).toHaveBeenCalledWith('week');
@@ -98,8 +98,12 @@ describe('TimelineControls', () => {
 
     plannerState.viewMode = 'calendar';
     rerender(<TimelineControls />);
+    // Folded away (kept mounted so it can animate): hidden from the a11y tree
+    // and out of the tab order.
     expect(screen.queryByRole('button', { name: 'People' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Projects' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('timeline-view-settings')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByRole('button', { name: 'Projects', hidden: true })).toHaveAttribute('tabindex', '-1');
 
     fireEvent.click(screen.getByRole('button', { name: 'Timeline' }));
     expect(plannerState.setViewMode).toHaveBeenLastCalledWith('day');
@@ -131,8 +135,8 @@ describe('TimelineControls', () => {
 
     plannerState.plannerSurface = 'board';
     rerender(<TimelineControls />);
-    expect(screen.getByRole('button', { name: 'Board' })).toHaveClass('bg-primary/15');
-    expect(screen.getByRole('button', { name: 'Timeline' })).not.toHaveClass('bg-primary/15');
+    expect(screen.getByRole('button', { name: 'Board' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Timeline' })).toHaveAttribute('aria-pressed', 'false');
     // No date axis and no rows on the board: those controls are gone.
     expect(screen.queryByRole('button', { name: 'Projects' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Previous' })).not.toBeInTheDocument();
