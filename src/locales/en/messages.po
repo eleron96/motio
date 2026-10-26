@@ -2752,8 +2752,8 @@ msgid "Invites, roles and workspace access live in workspace settings, under \"M
 msgstr "Invites, roles and workspace access live in workspace settings, under \"Members and access\"."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
-msgstr "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what."
+msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
+msgstr "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
 
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "It will be permanently purged {purgeLabel}."
@@ -2875,6 +2875,10 @@ msgstr "Loading available countries..."
 #: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Loading backups..."
 msgstr "Loading backups..."
+
+#: src/features/planner/pages/PlannerPage.tsx
+msgid "Loading board..."
+msgstr "Loading board..."
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Loading dashboard..."
@@ -3112,6 +3116,7 @@ msgstr "Milestones"
 msgid "Milestones still ahead"
 msgstr "Milestones still ahead"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
@@ -6426,6 +6431,10 @@ msgstr "Yearly recurring"
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "yesterday"
 msgstr "yesterday"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "You"
+msgstr "You"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/hooks/useWorkspaceAccess.ts

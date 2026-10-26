@@ -27,9 +27,10 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   onDrop,
   children,
 }) => {
-  const { status, kind, tasks } = column;
-  // Cancelled work is rarely looked at: its column starts folded.
-  const [collapsed, setCollapsed] = useState(kind === 'cancelled');
+  const { status, tasks } = column;
+  // Every column starts open, cancelled included: a folded column hid its
+  // cards and people did not realise they were there. Folding is by click.
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <section

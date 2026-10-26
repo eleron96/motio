@@ -18,9 +18,11 @@ Everyone taking part in issues, discussions and pull requests follows the
 ## Before you propose a feature
 
 Motio stays small on purpose. There are no custom fields, no automations, no task
-dependencies, no kanban boards and no formula columns — that is a product position,
-not a backlog. The [manifesto](./MANIFESTO.md) (in Russian) explains why. Every idea is
-checked against three questions:
+dependencies and no formula columns — that is a product position, not a backlog. The
+board (status columns) is an optional view next to the timeline: ideas that would make
+it the main screen or give it fields of its own are out of scope. The
+[manifesto](./MANIFESTO.md) (in Russian) explains why. Every idea is checked against
+three questions:
 
 1. Does it make creating a task faster?
 2. Does it help the team see the whole picture?

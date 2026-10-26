@@ -726,7 +726,7 @@ const LandingPage = () => {
               {t`Motio grew out of exactly this boring but very real problem.`}
             </p>
             <p>
-              {t`It doesn't try to be everything at once. No custom fields, no complex automations, no formulas, no kanban mode. Just one screen and a quick way to see who's working on what.`}
+              {t`It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it.`}
             </p>
             <p>
               {t`Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position.`}

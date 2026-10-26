@@ -37,10 +37,8 @@ import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 
 // The board is a beta most people never open: load its code on first use so
 // the planner bundle stays the same size for everyone else.
-const PlannerBoard = lazyNamed(
-  () => import('@/features/planner/components/board/PlannerBoard'),
-  'PlannerBoard',
-);
+const importPlannerBoard = () => import('@/features/planner/components/board/PlannerBoard');
+const PlannerBoard = lazyNamed(importPlannerBoard, 'PlannerBoard');
 
 type AddTaskDefaults = {
   startDate: string;
@@ -96,7 +94,13 @@ const PlannerTimelineArea = React.memo(({
     <TimelineControls />
     <div className="relative flex-1 overflow-hidden min-h-0">
       {surface === 'board' && (
-        <Suspense fallback={null}>
+        <Suspense
+          fallback={(
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              {t`Loading board...`}
+            </div>
+          )}
+        >
           <PlannerBoard onCreateTask={onCreateTaskRequest} />
         </Suspense>
       )}
@@ -163,7 +167,20 @@ const PlannerPage = () => {
   const setViewMode = usePlannerStore((state) => state.setViewMode);
   const storedSurface = usePlannerStore((state) => state.plannerSurface);
   const setPlannerSurface = usePlannerStore((state) => state.setPlannerSurface);
-  const { surface } = usePlannerSurface();
+  const { surface, boardAvailable } = usePlannerSurface();
+
+  // People who turned the board on get its code in the background while the
+  // browser is idle, so switching to it is instant; nobody else downloads it.
+  useEffect(() => {
+    if (!boardAvailable || typeof window === 'undefined') return undefined;
+    const prefetch = () => { void importPlannerBoard().catch(() => undefined); };
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(prefetch, { timeout: 4000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const timer = window.setTimeout(prefetch, 1500);
+    return () => window.clearTimeout(timer);
+  }, [boardAvailable]);
   const groupMode = usePlannerStore((state) => state.groupMode);
   const currentDate = usePlannerStore((state) => state.currentDate);
   const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
