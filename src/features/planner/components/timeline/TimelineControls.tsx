@@ -2,27 +2,18 @@ import React from 'react';
 import { CaptionProps, useNavigation } from 'react-day-picker';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
 import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
-import type { ViewMode } from '@/features/planner/types/planner';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobilePlannerViewButton, PlannerViewSwitcher } from './PlannerViewSwitcher';
 import { Button } from '@/shared/ui/button';
 import { Calendar as CalendarComponent } from '@/shared/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Users,
-  FolderKanban,
-  SquareKanban,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format, parseISO, addDays, subDays } from '@/features/planner/lib/dateUtils';
 import { addMonths, setMonth, setYear, subMonths } from 'date-fns';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 
 function CalendarCaption({ displayMonth }: CaptionProps) {
   const { goToMonth } = useNavigation();
@@ -101,33 +92,20 @@ export const TimelineControls: React.FC = () => {
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const {
     viewMode,
-    setViewMode,
-    setPlannerSurface,
-    groupMode,
-    setGroupMode,
     currentDate,
     setCurrentDate,
     visibleCenterDate,
     requestScrollToDate,
   } = usePlannerStore(useShallow((state) => ({
     viewMode: state.viewMode,
-    setViewMode: state.setViewMode,
-    setPlannerSurface: state.setPlannerSurface,
-    groupMode: state.groupMode,
-    setGroupMode: state.setGroupMode,
     currentDate: state.currentDate,
     setCurrentDate: state.setCurrentDate,
     visibleCenterDate: state.visibleCenterDate,
     requestScrollToDate: state.requestScrollToDate,
   })));
-  const weekViewEnabled = useAuthStore((state) => isWeekViewEnabled(state.profilePreferences));
-  const { surface, boardAvailable } = usePlannerSurface();
+  const { surface } = usePlannerSurface();
   const onBoard = surface === 'board';
-
-  const showTimeline = (mode: ViewMode) => {
-    setPlannerSurface('timeline');
-    setViewMode(mode);
-  };
+  const isMobile = useIsMobile();
 
   const handlePrev = () => {
     const date = parseISO(currentDate);
@@ -238,73 +216,9 @@ export const TimelineControls: React.FC = () => {
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:gap-x-3">
-        {/* View mode toggle */}
-        <SegmentedControl surface="compact">
-          <SegmentedControlItem
-            active={!onBoard && viewMode === 'day'}
-            onClick={() => showTimeline('day')}
-          >
-            {t`Day`}
-          </SegmentedControlItem>
-          {weekViewEnabled && (
-            <SegmentedControlItem
-              active={!onBoard && viewMode === 'week'}
-              onClick={() => showTimeline('week')}
-            >
-              {t`Week`}
-            </SegmentedControlItem>
-          )}
-          <SegmentedControlItem
-            active={!onBoard && viewMode === 'calendar'}
-            onClick={() => showTimeline('calendar')}
-            aria-label={t`Calendar`}
-          >
-            <Calendar className="h-3.5 w-3.5 md:hidden" />
-            <span className="hidden md:inline">{t`Calendar`}</span>
-          </SegmentedControlItem>
-        </SegmentedControl>
-
-        {/* Board: a surface of its own, not a timeline scale, so it gets its
-            own pill instead of joining Day / Calendar. */}
-        {boardAvailable && (
-          <SegmentedControl surface="compact">
-            <SegmentedControlItem
-              active={onBoard}
-              className="gap-1.5"
-              onClick={() => setPlannerSurface('board')}
-              aria-label={t`Board`}
-            >
-              <SquareKanban className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">{t`Board`}</span>
-            </SegmentedControlItem>
-          </SegmentedControl>
-        )}
-
-        {/* Group mode toggle */}
-        <SegmentedControl surface="compact">
-          <SegmentedControlItem
-            active={groupMode === 'assignee'}
-            className="gap-1.5"
-            disabled={onBoard || viewMode === 'calendar'}
-            onClick={() => setGroupMode('assignee')}
-            aria-label={t`People`}
-          >
-            <Users className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">{t`People`}</span>
-          </SegmentedControlItem>
-          <SegmentedControlItem
-            active={groupMode === 'project'}
-            className="gap-1.5"
-            disabled={onBoard || viewMode === 'calendar'}
-            onClick={() => setGroupMode('project')}
-            aria-label={t`Projects`}
-          >
-            <FolderKanban className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">{t`Projects`}</span>
-          </SegmentedControlItem>
-        </SegmentedControl>
-      </div>
+      {/* What is shown, then only that view's own settings: no disabled
+          buttons. The phone gets one "View" button with a sheet instead. */}
+      {isMobile ? <MobilePlannerViewButton /> : <PlannerViewSwitcher />}
     </div>
   );
 };

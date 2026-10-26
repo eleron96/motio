@@ -796,8 +796,7 @@ msgstr "Beer"
 msgid "Biweekly (every 2 weeks)"
 msgstr "Biweekly (every 2 weeks)"
 
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Board"
 msgstr "Board"
 
@@ -836,8 +835,7 @@ msgid "By workspace"
 msgstr "By workspace"
 
 #: src/features/marketing/pages/LandingPage.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -1504,7 +1502,7 @@ msgid "Dates"
 msgstr "Dates"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Day"
 msgstr "Day"
 
@@ -4127,8 +4125,10 @@ msgstr "Pending"
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "People"
 msgstr "People"
 
@@ -4351,8 +4351,10 @@ msgstr "Project: all"
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -4666,6 +4668,10 @@ msgstr "Role / job title"
 msgid "Rose"
 msgstr "Rose"
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Rows"
+msgstr "Rows"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Rows per page"
 msgstr "Rows per page"
@@ -4723,6 +4729,10 @@ msgstr "Saved."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Saving..."
 msgstr "Saving..."
+
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Scale"
+msgstr "Scale"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -5787,6 +5797,7 @@ msgid "Time off pattern"
 msgstr "Time off pattern"
 
 #: src/features/marketing/pages/LandingPage.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Timeline"
 msgstr "Timeline"
@@ -6192,6 +6203,11 @@ msgstr "Users"
 msgid "Vacation, day off, sick leave..."
 msgstr "Vacation, day off, sick leave..."
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "View"
+msgstr "View"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "View all workspaces where this user is a member."
 msgstr "View all workspaces where this user is a member."
@@ -6252,7 +6268,7 @@ msgid "We'll open Team next so you can see where invitations, roles and workspac
 msgstr "We'll open Team next so you can see where invitations, roles and workspace access are managed."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Week"
 msgstr "Week"
 
@@ -6271,6 +6287,10 @@ msgstr "Weekly recurring"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Welcome to Motio!"
 msgstr "Welcome to Motio!"
+
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "What the planner shows"
+msgstr "What the planner shows"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Who"
