@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen, within } from '@testing-library/react';
 import type { Status, Task } from '@/features/planner/types/planner';
 
 vi.mock('@lingui/macro', () => ({
@@ -47,6 +47,22 @@ const makeTask = (overrides: Partial<Task> & { id: string }): Task => ({
   ...overrides,
 });
 
+// jsdom has no DOMRect; Radix's context menu builds one when it opens.
+if (typeof (globalThis as { DOMRect?: unknown }).DOMRect === 'undefined') {
+  class DOMRectStub {
+    constructor(public x = 0, public y = 0, public width = 0, public height = 0) {}
+    get top() { return this.y; }
+    get left() { return this.x; }
+    get right() { return this.x + this.width; }
+    get bottom() { return this.y + this.height; }
+    toJSON() { return {}; }
+    static fromRect(rect: { x?: number; y?: number; width?: number; height?: number } = {}) {
+      return new DOMRectStub(rect.x, rect.y, rect.width, rect.height);
+    }
+  }
+  (globalThis as { DOMRect?: unknown }).DOMRect = DOMRectStub;
+}
+
 const dataTransfer = () => ({ setData: vi.fn(), getData: vi.fn(), effectAllowed: '', dropEffect: '' });
 
 describe('PlannerBoard', () => {
@@ -57,7 +73,9 @@ describe('PlannerBoard', () => {
     vi.clearAllMocks();
     usePlannerStore.getState().reset();
     usePlannerStore.getState().clearFilters();
-    mocks.fetchBoardTasks.mockResolvedValue({ data: [] });
+    // The board load answers with the cached tasks: these tests have no date
+    // window, so an empty answer would empty the cache mid-test.
+    mocks.fetchBoardTasks.mockImplementation(async () => ({ data: usePlannerStore.getState().tasks }));
     usePlannerStore.setState({
       workspaceId: 'ws-1',
       statuses,
@@ -126,6 +144,53 @@ describe('PlannerBoard', () => {
     expect(onCreateTask).toHaveBeenCalledWith(expect.objectContaining({ statusId: 'doing' }));
   });
 
+  it('opens the task menu from the ⋯ button without opening the task', async () => {
+    render(<PlannerBoard onCreateTask={onCreateTask} />);
+    const card = screen.getByText('Write brief').closest('[data-task-id]') as HTMLElement;
+    // The ⋯ replays a right click on the card, which is what opens the same
+    // Radix context menu (jsdom cannot lay that menu out, so assert the event).
+    const onContextMenu = vi.fn();
+    card.addEventListener('contextmenu', onContextMenu);
+
+    fireEvent.click(within(card).getByRole('button', { name: 'Task actions' }));
+
+    expect(onContextMenu).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole('menuitem', { name: /Duplicate task/ })).toBeInTheDocument();
+    expect(usePlannerStore.getState().selectedTaskId).toBeNull();
+  });
+
+  it('scrolls the board sideways while a card is dragged near its edge', async () => {
+    render(<PlannerBoard onCreateTask={onCreateTask} />);
+    const board = screen.getByTestId('planner-board');
+    // jsdom has no layout: keep scrollLeft as a plain value to observe it.
+    let scrollLeft = 0;
+    Object.defineProperty(board, 'scrollLeft', {
+      configurable: true,
+      get: () => scrollLeft,
+      set: (value: number) => { scrollLeft = value; },
+    });
+    vi.spyOn(board, 'getBoundingClientRect').mockReturnValue({
+      left: 0, right: 1000, top: 0, bottom: 600, width: 1000, height: 600, x: 0, y: 0, toJSON: () => ({}),
+    } as DOMRect);
+    const card = screen.getByText('Write brief').closest('[data-task-id]') as HTMLElement;
+
+    fireEvent.dragStart(card, { dataTransfer: dataTransfer() });
+    // jsdom drag events carry no pointer position: set it on the event.
+    const dragOver = createEvent.dragOver(board, { dataTransfer: dataTransfer() });
+    Object.defineProperty(dragOver, 'clientX', { value: 995 });
+    fireEvent(board, dragOver);
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    const scrolled = board.scrollLeft;
+    expect(scrolled).toBeGreaterThan(0);
+
+    // The drag ends: the loop stops, the board stays where it is.
+    fireEvent.dragEnd(card, { dataTransfer: dataTransfer() });
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    const afterEnd = board.scrollLeft;
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    expect(board.scrollLeft).toBe(afterEnd);
+  });
+
   it('shows priority with the timeline exclamation badge', () => {
     usePlannerStore.setState({
       tasks: [
@@ -171,9 +236,6 @@ describe('PlannerBoard', () => {
           makeTask({ id: 'Обмеры', assigneeIds: ['vera'], statusId: 'doing' }),
         ],
       });
-      // The board load answers with the same tasks (there is no date window
-      // in these tests, so an empty answer would empty the cache).
-      mocks.fetchBoardTasks.mockImplementation(async () => ({ data: usePlannerStore.getState().tasks }));
     });
 
     it('closes the project list right after a project is picked', async () => {

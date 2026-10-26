@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, MessageSquare, Repeat } from 'lucide-react';
+import { CalendarDays, MessageSquare, MoreHorizontal, Repeat } from 'lucide-react';
 import { t } from '@lingui/macro';
 import type { Assignee, Project, Task, TaskPriority } from '@/features/planner/types/planner';
 import type { BoardColumnKind } from '@/shared/domain/boardColumns';
@@ -59,6 +59,21 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
     setDeleteOpen(true);
   }, []);
 
+  // Radix opens a context menu at the pointer of a `contextmenu` event on its
+  // trigger. Replaying one from the ⋯ button opens the very same lazy menu as
+  // a right click, instead of keeping a second copy of its items in sync.
+  const handleMenuButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left,
+      clientY: rect.bottom,
+    }));
+  };
+
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', task.id);
@@ -110,12 +125,32 @@ const BoardCardBase: React.FC<BoardCardProps> = ({
           )}
           style={{ borderLeft: `4px solid ${projectColor}` }}
         >
+          <button
+            type="button"
+            aria-label={t`Task actions`}
+            title={t`Task actions`}
+            onClick={handleMenuButtonClick}
+            // Keep the card's own handlers out of it: Enter must not open the
+            // task, and a press-and-move must not start dragging the card.
+            onKeyDown={(event) => event.stopPropagation()}
+            onDragStart={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            className={cn(
+              'absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-opacity',
+              'opacity-0 hover:bg-muted hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            )}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
           {project && (
-            <div className="mb-1 truncate text-xs text-muted-foreground">
+            <div className="mb-1 truncate pr-6 text-xs text-muted-foreground">
               {formatProjectLabel(project.name, project.code)}
             </div>
           )}
-          <div className="flex items-start gap-1.5">
+          <div className={cn('flex items-start gap-1.5', !project && 'pr-6')}>
             {priorityVisual && (
               <span
                 className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"

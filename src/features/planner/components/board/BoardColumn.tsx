@@ -51,49 +51,54 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         onDrop(status.id);
       }}
       className={cn(
-        'flex max-h-full w-72 flex-shrink-0 flex-col rounded-xl border border-transparent bg-muted/50 transition-colors',
-        isDropTarget && 'border-primary bg-primary/5',
+        // Columns share the width between 18 and 24rem: a few statuses fill a
+        // wide screen, many of them scroll sideways instead of getting cramped.
+        // A folded column stays narrow — there is nothing in it to widen for.
+        'flex max-h-full flex-col rounded-xl border border-border bg-muted/80 shadow-sm transition-colors',
+        collapsed ? 'w-60 flex-none' : 'min-w-[18rem] max-w-[24rem] flex-1 basis-0',
+        isDropTarget && 'border-primary bg-primary/10',
       )}
     >
-      <button
-        type="button"
-        onClick={() => setCollapsed((value) => !value)}
-        aria-expanded={!collapsed}
-        className="flex items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-foreground"
-      >
-        {collapsed
-          ? <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-          : <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />}
-        <span
-          aria-hidden
-          className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-          style={{ backgroundColor: status.color }}
-        />
-        <span className="min-w-0 flex-1 truncate">{formatStatusLabel(status.name, status.emoji)}</span>
-        <span className="flex-shrink-0 rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
-          {tasks.length}
-        </span>
-      </button>
+      <div className="flex items-center gap-1 border-b border-border/60 py-1.5 pl-1.5 pr-1.5">
+        <button
+          type="button"
+          onClick={() => setCollapsed((value) => !value)}
+          aria-expanded={!collapsed}
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1 text-left text-sm font-medium text-foreground hover:bg-background/60"
+        >
+          {collapsed
+            ? <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            : <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />}
+          <span
+            aria-hidden
+            className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+            style={{ backgroundColor: status.color }}
+          />
+          <span className="min-w-0 flex-1 truncate">{formatStatusLabel(status.name, status.emoji)}</span>
+          <span className="flex-shrink-0 rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+            {tasks.length}
+          </span>
+        </button>
+        {canCreate && (
+          <button
+            type="button"
+            onClick={() => onCreate(status.id)}
+            aria-label={t`Add task`}
+            title={t`Add task`}
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       {!collapsed && (
-        <>
-          <div className="flex min-h-[3rem] flex-1 flex-col gap-2 overflow-y-auto px-2 pb-2">
-            {tasks.length === 0 && (
-              <p className="px-1 py-3 text-center text-xs text-muted-foreground">{t`No tasks`}</p>
-            )}
-            {children}
-          </div>
-          {canCreate && (
-            <button
-              type="button"
-              onClick={() => onCreate(status.id)}
-              className="m-2 mt-0 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-            >
-              <Plus className="h-4 w-4" />
-              {t`Add task`}
-            </button>
+        <div className="flex min-h-[3rem] flex-1 flex-col gap-2 overflow-y-auto p-2">
+          {tasks.length === 0 && (
+            <p className="px-1 py-3 text-center text-xs text-muted-foreground">{t`No tasks`}</p>
           )}
-        </>
+          {children}
+        </div>
       )}
     </section>
   );

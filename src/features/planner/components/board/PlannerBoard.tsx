@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -8,6 +8,7 @@ import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { format, parseISO } from '@/features/planner/lib/dateUtils';
+import { getEdgeScrollVelocity } from '@/features/planner/lib/dragAutoScroll';
 import type { Assignee } from '@/features/planner/types/planner';
 import { BoardColumn } from './BoardColumn';
 import { BoardCard } from './BoardCard';
@@ -24,6 +25,11 @@ interface PlannerBoardProps {
 }
 
 const NO_PEOPLE: Assignee[] = [];
+
+/** Strip at each side of the board that scrolls it while a card is dragged. */
+const BOARD_EDGE_ZONE_PX = 80;
+const BOARD_EDGE_MIN_SPEED = 4;
+const BOARD_EDGE_MAX_SPEED = 28;
 
 /**
  * The board (kanban) surface of the planner: one column per status, tasks as
@@ -58,6 +64,38 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
 
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dropStatusId, setDropStatusId] = useState<string | null>(null);
+
+  // Edge auto-scroll while a card is dragged: with many statuses the target
+  // column may be off screen. dragover fires continuously, even with the mouse
+  // at rest, so it only records the pointer; a rAF loop applies the speed (the
+  // same ramp the timeline bars use) until the drag ends.
+  const boardScrollRef = useRef<HTMLDivElement>(null);
+  const dragPointerXRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!draggingTaskId) return undefined;
+    let frame = 0;
+    const step = () => {
+      const container = boardScrollRef.current;
+      const pointerX = dragPointerXRef.current;
+      if (container && pointerX !== null) {
+        const rect = container.getBoundingClientRect();
+        const velocity = getEdgeScrollVelocity(
+          pointerX,
+          { left: rect.left, right: rect.right },
+          BOARD_EDGE_ZONE_PX,
+          BOARD_EDGE_MIN_SPEED,
+          BOARD_EDGE_MAX_SPEED,
+        );
+        if (velocity !== 0) container.scrollLeft += velocity;
+      }
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(frame);
+      dragPointerXRef.current = null;
+    };
+  }, [draggingTaskId]);
 
   const handleDragEnd = useCallback(() => {
     setDraggingTaskId(null);
@@ -94,7 +132,14 @@ export const PlannerBoard: React.FC<PlannerBoardProps> = ({ onCreateTask }) => {
         overdueOnly={overdueOnly}
         onOverdueOnlyChange={setOverdueOnly}
       />
-      <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto p-4" data-testid="planner-board">
+      <div
+        ref={boardScrollRef}
+        onDragOverCapture={(event) => {
+          if (draggingTaskId) dragPointerXRef.current = event.clientX;
+        }}
+        className="flex min-h-0 flex-1 gap-3 overflow-x-auto p-4"
+        data-testid="planner-board"
+      >
         {columns.map((column) => (
           <BoardColumn
             key={column.status.id}

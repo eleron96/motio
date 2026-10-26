@@ -462,6 +462,7 @@ msgid "Add subtask"
 msgstr "Add subtask"
 
 #: src/features/planner/components/board/BoardColumn.tsx
+#: src/features/planner/components/board/BoardColumn.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
@@ -5382,6 +5383,8 @@ msgstr "Tap to copy"
 msgid "Task"
 msgstr "Task"
 
+#: src/features/planner/components/board/BoardCard.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Task actions"
 msgstr "Task actions"
