@@ -149,6 +149,16 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-family: var(--font-sans);
   }
+
+  /* Home Screen app on iOS: the strip under the status bar shows the canvas,
+     which otherwise takes the body's page grey — under the system's edge blur
+     that read as a grey haze above the white header. Paint the canvas in the
+     header colour; the body keeps painting the page grey itself. */
+  @media (display-mode: standalone) {
+    html {
+      background-color: hsl(var(--card));
+    }
+  }
 }
 
 @layer utilities {
