@@ -472,7 +472,7 @@ export const CalendarTimeline: React.FC = () => {
             ref={containerRef}
             className="h-full min-h-0 overflow-y-scroll overflow-x-hidden overscroll-contain scrollbar-hidden scroll-smooth select-none"
           >
-          <div className="w-full max-w-6xl px-4 py-4 space-y-8">
+          <div className="mx-auto w-full max-w-6xl px-4 py-4 space-y-8">
             {years.map(([year, yearMonths]) => (
               <div key={year} className="grid gap-4 md:grid-cols-[80px,1fr]">
                 <div className="text-lg font-semibold text-muted-foreground">{year}</div>
