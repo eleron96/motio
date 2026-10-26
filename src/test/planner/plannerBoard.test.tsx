@@ -339,6 +339,18 @@ describe('PlannerBoard', () => {
       expect(screen.queryByRole('tabpanel', { name: 'To do' })).not.toBeInTheDocument();
     });
 
+    it('shows one page dot per column with the current one highlighted', () => {
+      render(<PlannerBoard onCreateTask={onCreateTask} />);
+      const dots = within(screen.getByTestId('board-page-dots')).getAllByText('', { selector: 'span.rounded-full' });
+      expect(dots).toHaveLength(3);
+      expect(dots[0]).toHaveClass('bg-primary');
+
+      fireEvent.click(screen.getAllByRole('tab')[2]);
+      const after = within(screen.getByTestId('board-page-dots')).getAllByText('', { selector: 'span.rounded-full' });
+      expect(after[2]).toHaveClass('bg-primary');
+      expect(after[0]).not.toHaveClass('bg-primary');
+    });
+
     it('creates a task in the column on screen', () => {
       render(<PlannerBoard onCreateTask={onCreateTask} />);
       fireEvent.click(screen.getAllByRole('tab')[1]);

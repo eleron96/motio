@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { t } from '@lingui/macro';
 import type { BoardColumn } from '@/shared/domain/boardColumns';
@@ -38,47 +38,93 @@ export const MobileBoardColumns: React.FC<MobileBoardColumnsProps> = ({
     tabRefs.current.get(activeColumn.status.id)?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
   }, [activeColumn]);
 
+  // Edge shades on the tab strip say "there is more this way" — without them
+  // the last tab simply ran under the "+" button.
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const updateEdges = useCallback(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const left = strip.scrollLeft > 2;
+    const right = strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2;
+    setEdges((current) => (current.left === left && current.right === right ? current : { left, right }));
+  }, []);
+  useEffect(() => {
+    updateEdges();
+    const strip = stripRef.current;
+    if (!strip || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(updateEdges);
+    observer.observe(strip);
+    return () => observer.disconnect();
+  }, [updateEdges, columns.length]);
+
   if (!activeColumn) return null;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-1 border-b border-border bg-card">
-        {/* A horizontal scroller: the deck leaves gestures that start here alone. */}
-        <div role="tablist" aria-label={t`Statuses`} className="flex min-w-0 flex-1 gap-1 overflow-x-auto px-2 py-2 scrollbar-hidden">
-          {columns.map((column, index) => {
-            const active = index === activeIndex;
-            return (
-              <button
-                key={column.status.id}
-                ref={(node) => {
-                  if (node) tabRefs.current.set(column.status.id, node);
-                  else tabRefs.current.delete(column.status.id);
-                }}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setActiveStatusId(column.status.id)}
-                className={cn(
-                  'press inline-flex h-9 flex-shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors',
-                  active ? 'border-primary/40 bg-primary/15 text-primary' : 'border-border text-foreground',
-                )}
-              >
-                <span aria-hidden className="h-2 w-2 rounded-full" style={{ backgroundColor: column.status.color }} />
-                <span className="max-w-[9rem] truncate">{formatStatusLabel(column.status.name, column.status.emoji)}</span>
-                <span className={cn('text-xs', active ? 'text-primary/80' : 'text-muted-foreground')}>{column.tasks.length}</span>
-              </button>
-            );
-          })}
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center border-b border-border bg-card">
+        <div className="relative min-w-0 flex-1">
+          {/* A horizontal scroller: the deck leaves gestures that start here alone. */}
+          <div
+            ref={stripRef}
+            role="tablist"
+            aria-label={t`Statuses`}
+            onScroll={updateEdges}
+            className="flex gap-1 overflow-x-auto px-2 py-2 scrollbar-hidden"
+          >
+            {columns.map((column, index) => {
+              const active = index === activeIndex;
+              return (
+                <button
+                  key={column.status.id}
+                  ref={(node) => {
+                    if (node) tabRefs.current.set(column.status.id, node);
+                    else tabRefs.current.delete(column.status.id);
+                  }}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveStatusId(column.status.id)}
+                  className={cn(
+                    'press inline-flex h-9 flex-shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors',
+                    active ? 'border-primary/40 bg-primary/15 text-primary' : 'border-border text-foreground',
+                  )}
+                >
+                  <span aria-hidden className="h-2 w-2 rounded-full" style={{ backgroundColor: column.status.color }} />
+                  <span className="max-w-[9rem] truncate">{formatStatusLabel(column.status.name, column.status.emoji)}</span>
+                  <span className={cn('text-xs', active ? 'text-primary/80' : 'text-muted-foreground')}>{column.tasks.length}</span>
+                </button>
+              );
+            })}
+          </div>
+          <span
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-card to-transparent transition-opacity',
+              edges.left ? 'opacity-100' : 'opacity-0',
+            )}
+          />
+          <span
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent transition-opacity',
+              edges.right ? 'opacity-100' : 'opacity-0',
+            )}
+          />
         </div>
         {canCreate && (
-          <button
-            type="button"
-            onClick={() => onCreate(activeColumn.status.id)}
-            aria-label={t`Add task`}
-            className="press mr-2 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-border text-foreground"
-          >
-            <Plus className="h-5 w-5" />
-          </button>
+          // Set apart from the strip by a divider and a soft shadow, so it does
+          // not read as one more tab half-hidden at the end of the row.
+          <div className="flex flex-shrink-0 items-center border-l border-border py-2 pl-2 pr-2 shadow-[-6px_0_10px_-8px_rgba(15,23,42,0.35)]">
+            <button
+              type="button"
+              onClick={() => onCreate(activeColumn.status.id)}
+              aria-label={t`Add task`}
+              className="press flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
         )}
       </div>
 
@@ -103,6 +149,28 @@ export const MobileBoardColumns: React.FC<MobileBoardColumnsProps> = ({
           </div>
         ))}
       </MobileSwipeDeck>
+
+      {/* Page dots: how many columns there are and which one is on screen.
+          Between the two floating buttons, at their height. */}
+      {columns.length > 1 && (
+        <div
+          aria-hidden
+          data-testid="board-page-dots"
+          className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+2rem+24px)] z-20 flex justify-center"
+        >
+          <div className="flex items-center gap-1.5 rounded-full bg-card/90 px-2.5 py-1.5 shadow-sm">
+            {columns.map((column, index) => (
+              <span
+                key={column.status.id}
+                className={cn(
+                  'h-1.5 rounded-full transition-all duration-300',
+                  index === activeIndex ? 'w-4 bg-primary' : 'w-1.5 bg-muted-foreground/40',
+                )}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
