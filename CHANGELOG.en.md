@@ -7,12 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.21] - 2026-10-26
 ### Fixed
 - The Owner badge in workspace settings is readable again on a dark interface colour, and Sign out in account settings stays at the bottom of the window on tall screens.
 
 
 ### Changed
 - Your profile now shows how many tasks you closed each week over the last two months and which projects hold most of your tasks.
+
 ## [0.10.20] - 2026-10-26
 ### Changed
 - The landing page and project description now mention the board as an optional view next to the timeline.
