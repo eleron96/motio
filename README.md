@@ -32,7 +32,7 @@ Most tools answer "what's in project X?". Motio answers the question a team lead
 
 - 👥 **People first, not tasks first.** Every row is a person, every bar is their work — across all projects at once. Elsewhere that is one view among many; in Motio it is the product.
 - 🔥 **Overload shows up before the deadline does.** Workload sits on the same timeline and in a department heatmap, so you see who is full without assembling a report from boards, filters and spreadsheets.
-- ⚡ **Any task in 10 seconds.** Click, type, drag. No custom fields, no automations, no kanban mode — that is a position, not a missing feature. The [manifesto](./MANIFESTO.md) (in Russian) explains why.
+- ⚡ **Any task in 10 seconds.** Click, type, drag. No custom fields, no automations — that is a position, not a missing feature. A board of status columns is there if you want it, as an optional view next to the timeline rather than a replacement for it. The [manifesto](./MANIFESTO.md) (in Russian) explains why.
 - 🔓 **Yours to run.** Open source under AGPL-3.0. Use the free hosted app, or keep the data inside your own perimeter: Docker Compose, Postgres, SSO via Keycloak, built-in backups and a full data export.
 
 Built for teams of 5–50 people running several projects at once. It grew out of years of managing BIM and engineering project teams, and one recurring Monday question: who's free this week?
@@ -41,19 +41,28 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 
 ## ✨ Features
 
-- 📅 **Timeline** — drag-and-drop planner grouped by people or by project, with day / week / calendar views; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along. Moved, rescheduled or deleted something by mistake? Undo it from the toast or with Cmd/Ctrl+Z.
+- 📅 **Timeline** — drag-and-drop planner grouped by people or by project, at a day or week scale, plus a three-year calendar; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along. Moved, rescheduled or deleted something by mistake? Undo it from the toast or with Cmd/Ctrl+Z.
+- 🗂 **Board (beta)** — the same tasks as cards in columns by your own statuses, as an optional view next to the timeline. Drag a card to another column to change its status (undo included), filter by person, group, project or overdue in one click. On a phone it is one column per screen with a swipe between them. Each person turns it on in account settings.
 - ✅ **Tasks with depth** — subtasks, repeating series, priorities, tags, rich descriptions with pasted images, comments with @mentions and screenshots.
 - 👥 **Team** — members and groups, each person's current and past tasks at a glance.
 - 📁 **Projects and customers** — project cards with their team and customer contacts, a workspace-wide contact list; people you have entered before are suggested as you type.
-- 📊 **Dashboard** — configurable widgets and a department workload heatmap; a daily brief once a day and release notes right in the app.
+- 📊 **Dashboard** — configurable widgets and a department workload heatmap, with one layout that scales to wide monitors; a daily brief once a day and release notes right in the app.
 - 🔔 **Notifications** — in-app inbox plus browser push; installable as a PWA, push works on iPhone too.
-- 📱 **Works on phones** — a dedicated mobile layer for the timeline, tasks, team and projects.
+- 📱 **Works on phones** — a dedicated mobile layer for the timeline, the board, tasks, team and projects; one View button switches between them.
 - 🏢 **Workspaces and roles** — `viewer` / `editor` / `admin`, invitations, owner transfer, leaving a workspace.
 - 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself, Keycloak is the identity store.
 - 💾 **Backups built in** — daily backups of the database, media and Keycloak with retention, upload/download and one-click restore from the admin console.
 - 🗄 **Super-admin console** — user overview, workspace management, backup/restore, announcements to every user.
 - 🧪 **Demo sandbox** — [`/demo`](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme) runs entirely in the browser on sample data, no sign-in needed.
 - 🌍 **Two languages** — English and Russian UI (Lingui).
+
+<div align="center">
+
+[![The board: switch from the timeline to the board, drag a card from Ready to Review, the undo toast appears](.github/assets/motio-board.gif)](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme&utm_content=board-gif)
+
+<sub>The optional board, recorded in the live demo: turn it on in account settings → Appearance → Board view (beta).</sub>
+
+</div>
 
 ## 🚀 Self-host
 
