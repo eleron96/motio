@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Assignee, Project, Status, Task } from '@/features/planner/types/planner';
-import { computeProfileSummary, formatCompactCount } from '@/features/auth/lib/profileSummary';
+import { PROFILE_WEEKS, computeProfileSummary, formatCompactCount } from '@/features/auth/lib/profileSummary';
 
 const TODAY = '2026-06-14';
 
@@ -89,9 +89,45 @@ describe('computeProfileSummary', () => {
     expect(summary.streakDays).toBe(3);
   });
 
-  it('reports distinct projects and the most-worked one', () => {
+  it('reports distinct projects and the top ones with their share', () => {
     expect(summary.projectCount).toBe(3);
-    expect(summary.topProjectName).toBe('Alpha');
+    // 7 of my tasks have a project: Alpha 3, Beta 2, Gamma 2.
+    expect(summary.topProjects).toEqual([
+      { id: 'p1', name: 'Alpha', share: 43 },
+      { id: 'p2', name: 'Beta', share: 29 },
+      { id: 'p3', name: 'Gamma', share: 29 },
+    ]);
+  });
+
+  it('buckets finalisations into trailing weeks, oldest first', () => {
+    // t1–t3 fall in the current 7 days, t4 (10 days ago) in the week before.
+    expect(summary.weeklyCompleted).toEqual([0, 0, 0, 0, 0, 0, 1, 3]);
+    expect(summary.weeklyCompleted[PROFILE_WEEKS - 1]).toBe(summary.completedThisWeek);
+    expect(summary.weekDelta).toBe(2);
+    expect(summary.bestWeek).toBe(3);
+  });
+
+  it('drops finalisations older than the bars and lists at most three projects', () => {
+    const projects: Project[] = [
+      ...PROJECTS,
+      { id: 'p4', name: 'Delta', code: null, color: '#444', archived: false, customerId: null, ownerGroupId: null, status: null },
+    ];
+    const wide = computeProfileSummary({
+      tasks: [
+        ...TASKS,
+        task({ id: 't9', statusId: 'done', projectId: 'p4', updatedAt: '2026-04-01T12:00:00' }),
+      ],
+      statuses: STATUSES,
+      projects,
+      assignees: ASSIGNEES,
+      userId: 'u1',
+      accountCreatedAt: '2026-01-14T10:00:00',
+      todayKey: TODAY,
+    });
+    expect(wide.weeklyCompleted.reduce((sum, count) => sum + count, 0)).toBe(4);
+    expect(wide.completed).toBe(5);
+    expect(wide.projectCount).toBe(4);
+    expect(wide.topProjects.map((project) => project.id)).toEqual(['p1', 'p2', 'p3']);
   });
 
   it('measures whole months since the account was created', () => {
@@ -111,6 +147,8 @@ describe('computeProfileSummary', () => {
     expect(empty.hasData).toBe(false);
     expect(empty.completed).toBe(0);
     expect(empty.monthsInMotio).toBe(5);
+    expect(empty.weeklyCompleted).toHaveLength(PROFILE_WEEKS);
+    expect(empty.topProjects).toEqual([]);
   });
 });
 
