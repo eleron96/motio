@@ -98,6 +98,23 @@ describe('PlannerBoard', () => {
     expect(within(columns[2]).getByText('No tasks')).toBeInTheDocument();
   });
 
+  it('shows the cancelled column open with its cards, foldable by click', () => {
+    usePlannerStore.setState({
+      statuses: [
+        ...statuses,
+        { id: 'cancelled', name: 'Cancelled', emoji: null, color: '#ef4444', isFinal: false, isCancelled: true, createdAt: '2026-01-01T00:00:00Z' },
+      ],
+      tasks: [makeTask({ id: 'Dropped idea', statusId: 'cancelled', updatedAt: new Date().toISOString() })],
+    });
+    render(<PlannerBoard onCreateTask={onCreateTask} />);
+
+    const column = screen.getByRole('region', { name: 'Cancelled' });
+    expect(within(column).getByText('Dropped idea')).toBeInTheDocument();
+
+    fireEvent.click(within(column).getByRole('button', { expanded: true }));
+    expect(within(column).queryByText('Dropped idea')).not.toBeInTheDocument();
+  });
+
   it('claims the board scope on mount and releases it on unmount', () => {
     const view = render(<PlannerBoard onCreateTask={onCreateTask} />);
     expect(mocks.fetchBoardTasks).toHaveBeenCalledWith(expect.objectContaining({
@@ -289,6 +306,11 @@ describe('PlannerBoard', () => {
 
     it('"Mine" and people avatars write into the shared assignee filter', () => {
       render(<PlannerBoard onCreateTask={onCreateTask} />);
+
+      // The current user's own avatar with a small "You", named "Mine" for screen readers.
+      const mine = screen.getByRole('button', { name: /Mine/ });
+      expect(within(mine).getByText('You')).toBeInTheDocument();
+      expect(within(mine).getByText('А')).toBeInTheDocument();
 
       fireEvent.click(screen.getByRole('button', { name: /Mine/ }));
       expect(usePlannerStore.getState().filters.assigneeIds).toEqual(['me']);

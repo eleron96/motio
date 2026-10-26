@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AlertCircle, Check, ChevronDown, Search, User, Users, X } from 'lucide-react';
+import { AlertCircle, Check, ChevronDown, Search, Users, X } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -70,6 +70,10 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
   const [groupsOpen, setGroupsOpen] = useState(false);
 
   const myAssigneeId = useMemo(() => resolveCurrentUserAssigneeId(assignees, userId), [assignees, userId]);
+  const me = useMemo(
+    () => (myAssigneeId ? assignees.find((person) => person.id === myAssigneeId) ?? null : null),
+    [assignees, myAssigneeId],
+  );
 
   const assigneeGroupMap = useMemo(
     () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
@@ -189,15 +193,19 @@ export const BoardQuickFilters: React.FC<BoardQuickFiltersProps> = ({
 
       <span aria-hidden className="h-5 w-px flex-shrink-0 bg-border" />
 
-      {myAssigneeId && (
+      {me && (
+        // The person's own face reads faster than a generic "Mine" label; the
+        // small "You" keeps it from looking like just another teammate.
         <button
           type="button"
-          onClick={() => togglePerson(myAssigneeId)}
-          aria-pressed={selectedPeople.includes(myAssigneeId)}
-          className={chipClass(selectedPeople.includes(myAssigneeId))}
+          onClick={() => togglePerson(me.id)}
+          aria-pressed={selectedPeople.includes(me.id)}
+          aria-label={t`Mine`}
+          title={t`Mine`}
+          className={cn(chipClass(selectedPeople.includes(me.id)), 'gap-1.5 pl-1 pr-2.5')}
         >
-          <User className="h-4 w-4" />
-          {t`Mine`}
+          <PersonAvatar assigneeId={me.id} name={me.name} avatarUrl={me.avatar} size="xs" />
+          <span className="text-xs">{t`You`}</span>
         </button>
       )}
 
