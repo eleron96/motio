@@ -2,24 +2,18 @@ import React from 'react';
 import { CaptionProps, useNavigation } from 'react-day-picker';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
+import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { MobilePlannerViewButton, PlannerViewSwitcher } from './PlannerViewSwitcher';
 import { Button } from '@/shared/ui/button';
 import { Calendar as CalendarComponent } from '@/shared/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Users,
-  FolderKanban,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { format, parseISO, addDays, subDays } from '@/features/planner/lib/dateUtils';
 import { addMonths, setMonth, setYear, subMonths } from 'date-fns';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 
 function CalendarCaption({ displayMonth }: CaptionProps) {
   const { goToMonth } = useNavigation();
@@ -98,24 +92,20 @@ export const TimelineControls: React.FC = () => {
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const {
     viewMode,
-    setViewMode,
-    groupMode,
-    setGroupMode,
     currentDate,
     setCurrentDate,
     visibleCenterDate,
     requestScrollToDate,
   } = usePlannerStore(useShallow((state) => ({
     viewMode: state.viewMode,
-    setViewMode: state.setViewMode,
-    groupMode: state.groupMode,
-    setGroupMode: state.setGroupMode,
     currentDate: state.currentDate,
     setCurrentDate: state.setCurrentDate,
     visibleCenterDate: state.visibleCenterDate,
     requestScrollToDate: state.requestScrollToDate,
   })));
-  const weekViewEnabled = useAuthStore((state) => isWeekViewEnabled(state.profilePreferences));
+  const { surface } = usePlannerSurface();
+  const onBoard = surface === 'board';
+  const isMobile = useIsMobile();
 
   const handlePrev = () => {
     const date = parseISO(currentDate);
@@ -164,114 +154,71 @@ export const TimelineControls: React.FC = () => {
       <div className="flex items-center gap-x-2 gap-y-1 md:gap-x-3 min-w-0 flex-1 md:flex-initial">
         {/* Navigation — hidden on mobile: touch-scroll moves the timeline and
             the floating "Today" FAB covers the jump-to-today action. */}
-        <div className="hidden md:flex items-center gap-1 flex-shrink-0">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handlePrev}
-            className="h-8 w-8"
-            aria-label={t`Previous`}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleToday}
-            className="h-8 px-2 text-sm md:px-3"
-          >
-            {t`Today`}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleNext}
-            className="h-8 w-8"
-            aria-label={t`Next`}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Current date display — opens calendar picker */}
-        <Popover open={calendarOpen} onOpenChange={handleOpenChange}>
-          <PopoverTrigger asChild>
-            <div className="flex items-center gap-1.5 md:gap-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
-              <Calendar className="h-4 w-4 flex-shrink-0" />
-              <span
-                key={format(displayDate, 'MMM yyyy', { locale: dateLocale })}
-                className="inline-block animate-in fade-in slide-in-from-bottom-1 duration-200"
-              >
-                <span className="md:hidden">{format(displayDate, 'MMM yyyy', { locale: dateLocale })}</span>
-                <span className="hidden md:inline">{format(displayDate, 'MMMM yyyy', { locale: dateLocale })}</span>
-              </span>
-            </div>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <CalendarComponent
-              mode="single"
-              selected={displayDate}
-              month={calendarMonth}
-              onMonthChange={setCalendarMonth}
-              onSelect={handleCalendarSelect}
-              locale={dateLocale}
-              components={{ Caption: CalendarCaption }}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:gap-x-3">
-        {/* View mode toggle */}
-        <SegmentedControl surface="compact">
-          <SegmentedControlItem
-            active={viewMode === 'day'}
-            onClick={() => setViewMode('day')}
-          >
-            {t`Day`}
-          </SegmentedControlItem>
-          {weekViewEnabled && (
-            <SegmentedControlItem
-              active={viewMode === 'week'}
-              onClick={() => setViewMode('week')}
+        {!onBoard && (
+          <div className="hidden md:flex items-center gap-1 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePrev}
+              className="h-8 w-8"
+              aria-label={t`Previous`}
             >
-              {t`Week`}
-            </SegmentedControlItem>
-          )}
-          <SegmentedControlItem
-            active={viewMode === 'calendar'}
-            onClick={() => setViewMode('calendar')}
-            aria-label={t`Calendar`}
-          >
-            <Calendar className="h-3.5 w-3.5 md:hidden" />
-            <span className="hidden md:inline">{t`Calendar`}</span>
-          </SegmentedControlItem>
-        </SegmentedControl>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleToday}
+              className="h-8 px-2 text-sm md:px-3"
+            >
+              {t`Today`}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNext}
+              className="h-8 w-8"
+              aria-label={t`Next`}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
-        {/* Group mode toggle */}
-        <SegmentedControl surface="compact">
-          <SegmentedControlItem
-            active={groupMode === 'assignee'}
-            className="gap-1.5"
-            disabled={viewMode === 'calendar'}
-            onClick={() => setGroupMode('assignee')}
-            aria-label={t`People`}
-          >
-            <Users className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">{t`People`}</span>
-          </SegmentedControlItem>
-          <SegmentedControlItem
-            active={groupMode === 'project'}
-            className="gap-1.5"
-            disabled={viewMode === 'calendar'}
-            onClick={() => setGroupMode('project')}
-            aria-label={t`Projects`}
-          >
-            <FolderKanban className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">{t`Projects`}</span>
-          </SegmentedControlItem>
-        </SegmentedControl>
+        {/* Current date display — opens calendar picker. The board has no
+            date axis, so neither the picker nor the arrows apply there. */}
+        {!onBoard && (
+          <Popover open={calendarOpen} onOpenChange={handleOpenChange}>
+            <PopoverTrigger asChild>
+              <div className="flex items-center gap-1.5 md:gap-2 text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
+                <Calendar className="h-4 w-4 flex-shrink-0" />
+                <span
+                  key={format(displayDate, 'MMM yyyy', { locale: dateLocale })}
+                  className="inline-block animate-in fade-in slide-in-from-bottom-1 duration-200"
+                >
+                  <span className="md:hidden">{format(displayDate, 'MMM yyyy', { locale: dateLocale })}</span>
+                  <span className="hidden md:inline">{format(displayDate, 'MMMM yyyy', { locale: dateLocale })}</span>
+                </span>
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={displayDate}
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
+                onSelect={handleCalendarSelect}
+                locale={dateLocale}
+                components={{ Caption: CalendarCaption }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
+
+      {/* What is shown, then only that view's own settings: no disabled
+          buttons. The phone gets one "View" button with a sheet instead. */}
+      {isMobile ? <MobilePlannerViewButton /> : <PlannerViewSwitcher />}
     </div>
   );
 };

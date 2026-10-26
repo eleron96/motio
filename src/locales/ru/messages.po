@@ -389,6 +389,10 @@ msgid "Add"
 msgstr "Добавить"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Add a \"Board\" button: tasks as cards in status columns"
+msgstr "Добавить кнопку «Доска»: задачи карточками в колонках по статусам"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Add a \"Week\" button next to Day and Calendar"
 msgstr "Добавить кнопку «Неделя» рядом с «День» и «Календарь»"
 
@@ -457,6 +461,9 @@ msgstr "Добавить правило"
 msgid "Add subtask"
 msgstr "Добавить подзадачу"
 
+#: src/features/planner/components/board/BoardColumn.tsx
+#: src/features/planner/components/board/BoardColumn.tsx
+#: src/features/planner/components/board/MobileBoardColumns.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
@@ -550,7 +557,12 @@ msgstr "Все контакты"
 msgid "All current data will be lost."
 msgstr "Все текущие данные будут потеряны."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "All groups"
+msgstr "Все группы"
+
 #: src/features/members/pages/MembersPage.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All projects"
 msgstr "Все проекты"
@@ -785,6 +797,14 @@ msgstr "Пиво"
 msgid "Biweekly (every 2 weeks)"
 msgstr "Двухнедельная (раз в две недели)"
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Board"
+msgstr "Доска"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Board view (beta)"
+msgstr "Доска (бета)"
+
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "Broadcast"
@@ -816,8 +836,7 @@ msgid "By workspace"
 msgstr "По рабочему пространству"
 
 #: src/features/marketing/pages/LandingPage.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Calendar"
 msgstr "Календарь"
 
@@ -1124,6 +1143,7 @@ msgstr "Действия с комментарием"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Comments"
 msgstr "Комментарии"
@@ -1483,7 +1503,7 @@ msgid "Dates"
 msgstr "Даты"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Day"
 msgstr "День"
 
@@ -1864,6 +1884,10 @@ msgstr "Рисовать каждый статус его цветом, а не 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw everyone in their own colour from workspace settings instead of the palette."
 msgstr "Рисовать каждого его цветом из настроек пространства, а не цветом палитры."
+
+#: src/features/planner/components/board/BoardCard.tsx
+msgid "Due date"
+msgstr "Срок"
 
 #: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "due today"
@@ -2371,10 +2395,19 @@ msgstr "Финальный"
 msgid "Final status"
 msgstr "Финальный статус"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Find a group"
+msgstr "Найти группу"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Find a person"
 msgstr "Найти человека"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Find a project"
+msgstr "Найти проект"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -2530,11 +2563,21 @@ msgstr "Название группы"
 msgid "Group tasks by project, set milestones, and track progress without switching tools."
 msgstr "Группируйте задачи по проектам, ставьте вехи и отслеживайте прогресс в одном месте."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Group: all"
+msgstr "Группа: все"
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/FilterPanel.tsx
 msgid "Groups"
 msgstr "Группы"
+
+#. placeholder {0}: selectedGroups.length
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Groups: {0}"
+msgstr "Группы: {0}"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Heatmap"
@@ -2558,6 +2601,7 @@ msgstr "Скрыть прошедшие"
 msgid "High"
 msgstr "Высокий"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "High priority"
@@ -2920,6 +2964,7 @@ msgstr "Загрузка…"
 msgid "Low"
 msgstr "Низкий"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Low priority"
@@ -2980,6 +3025,7 @@ msgstr "Максимальный размер изображения — 5 МБ.
 msgid "Medium"
 msgstr "Средний"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Medium priority"
@@ -3066,6 +3112,7 @@ msgstr "Вехи"
 msgid "Milestones still ahead"
 msgstr "Предстоящие вехи"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Mine"
@@ -3097,6 +3144,10 @@ msgstr "Ежемесячный повтор"
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "More actions"
 msgstr "Ещё действия"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "More people"
+msgstr "Ещё люди"
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Most often: {topProject}"
@@ -3473,6 +3524,10 @@ msgstr "Без группы"
 msgid "No groups created yet."
 msgstr "Группы еще не созданы."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "No groups found"
+msgstr "Группы не найдены"
+
 #: src/features/members/components/AssignGroupDialog.tsx
 msgid "No groups found."
 msgstr "Групп не найдено."
@@ -3615,6 +3670,7 @@ msgstr "Нет проектов у этого клиента."
 msgid "No projects for this member."
 msgstr "Нет проектов у этого участника."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 msgid "No projects found"
@@ -3646,6 +3702,10 @@ msgstr "Без роли"
 msgid "No rules yet."
 msgstr "Правил пока нет."
 
+#: src/features/planner/components/board/PlannerBoard.tsx
+msgid "No statuses in this workspace yet"
+msgstr "В пространстве пока нет статусов"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
@@ -3667,6 +3727,11 @@ msgstr "Нет тегов"
 #: src/features/planner/components/TagMultiSelect.tsx
 msgid "No tags available yet."
 msgstr "Тегов пока нет."
+
+#: src/features/planner/components/board/BoardColumn.tsx
+#: src/features/planner/components/board/MobileBoardColumns.tsx
+msgid "No tasks"
+msgstr "Нет задач"
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
@@ -3721,6 +3786,7 @@ msgid "No workspaces."
 msgstr "Рабочих пространств нет."
 
 #: src/features/admin/components/AdminUserPicker.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Nobody found"
@@ -3976,6 +4042,8 @@ msgid "overdue"
 msgstr "просрочено"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
+#: src/features/planner/components/board/BoardCard.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 msgid "Overdue"
 msgstr "Просрочено"
 
@@ -4059,8 +4127,9 @@ msgstr "Ожидает"
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "People"
 msgstr "Участники"
 
@@ -4274,12 +4343,18 @@ msgstr "Статус проекта"
 msgid "Project status: {0}"
 msgstr "Статус проекта: {0}"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Project: all"
+msgstr "Проект: все"
+
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -4297,6 +4372,11 @@ msgstr "Проекты и вехи"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Projects, milestones and clients"
 msgstr "Проекты, вехи и клиенты"
+
+#. placeholder {0}: selectedProjects.length
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Projects: {0}"
+msgstr "Проекты: {0}"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
@@ -4490,6 +4570,10 @@ msgstr "Повторять задачу"
 msgid "Repeat type"
 msgstr "Тип повтора"
 
+#: src/features/planner/components/board/BoardCard.tsx
+msgid "Repeating task"
+msgstr "Повторяющаяся задача"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeats until the selected date."
 msgstr "Повторяется до выбранной даты."
@@ -4498,6 +4582,7 @@ msgstr "Повторяется до выбранной даты."
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Заменить отображаемое имя удалённого аккаунта. Изменение применится везде, где упоминается этот пользователь."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Reset"
 msgstr "Сброс"
@@ -4583,6 +4668,10 @@ msgstr "Роль"
 msgid "Rose"
 msgstr "Розовый"
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Rows"
+msgstr "Строки"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Rows per page"
 msgstr "Строк на странице"
@@ -4641,6 +4730,10 @@ msgstr "Сохранено."
 msgid "Saving..."
 msgstr "Сохранение..."
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Scale"
+msgstr "Масштаб"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -4681,6 +4774,11 @@ msgstr "Поиск и фильтры"
 #: src/features/admin/components/AdminUserPicker.tsx
 msgid "Search by name or email"
 msgstr "Поиск по имени или почте"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Search by title"
+msgstr "Поиск по названию"
 
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 msgid "Search companies..."
@@ -5214,6 +5312,7 @@ msgid "Status colours"
 msgstr "Цвета статусов"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
+#: src/features/planner/components/board/MobileBoardColumns.tsx
 #: src/features/projects/components/projectCard/ProjectTasksFiltersScreen.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -5295,6 +5394,8 @@ msgstr "Нажмите, чтобы скопировать"
 msgid "Task"
 msgstr "Задача"
 
+#: src/features/planner/components/board/BoardCard.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Task actions"
 msgstr "Действия с задачей"
@@ -5697,6 +5798,7 @@ msgid "Time off pattern"
 msgstr "Узор выходных"
 
 #: src/features/marketing/pages/LandingPage.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Timeline"
 msgstr "Таймлайн"
@@ -6102,6 +6204,11 @@ msgstr "Пользователи"
 msgid "Vacation, day off, sick leave..."
 msgstr "Отпуск, отгул, больничный..."
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "View"
+msgstr "Вид"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "View all workspaces where this user is a member."
 msgstr "Посмотрите все рабочие пространства, в которых состоит этот пользователь."
@@ -6162,7 +6269,7 @@ msgid "We'll open Team next so you can see where invitations, roles and workspac
 msgstr "Следом откроем Team, чтобы показать, где управляются приглашения, роли и доступ к рабочему пространству."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Week"
 msgstr "Неделя"
 
@@ -6181,6 +6288,10 @@ msgstr "Еженедельный повтор"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Welcome to Motio!"
 msgstr "Добро пожаловать в Motio!"
+
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "What the planner shows"
+msgstr "Что показывает планировщик"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Who"

@@ -7,6 +7,19 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.19] - 2026-10-26
+### Added
+- Board (beta): tasks as cards in columns by your statuses. Turn it on in account settings → Appearance → Board view (beta), then switch to it next to Timeline and Calendar; it works on phones too.
+
+
+### Changed
+- On wide monitors the dashboard keeps the same layout as on a regular screen, without gaps or squashed charts.
+- New view switcher: Timeline and Calendar with a smooth highlight, while Day/Week and People/Projects show only on the timeline. On phones it is a single View button.
+
+
+### Fixed
+- The calendar is centred on wide screens, the grey strip under the status bar is gone in the iPhone Home Screen app, and switching Day/Week no longer reloads data.
+
 ## [0.10.18] - 2026-10-20
 ### Changed
 - No documented changes.

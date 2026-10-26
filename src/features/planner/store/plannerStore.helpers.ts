@@ -127,6 +127,7 @@ export type StatusRow = {
   color: string;
   is_final: boolean;
   is_cancelled?: boolean | null;
+  created_at?: string | null;
 };
 
 export type TaskTypeRow = {
@@ -238,6 +239,37 @@ export const isDateWithinRange = (date: string, start: string, end: string) => {
   return target >= parseISO(start) && target <= parseISO(end);
 };
 
+export type LoadedTaskWindow = {
+  start: string;
+  end: string;
+  viewMode: ViewMode;
+  workspaceId: string;
+};
+
+// Day and Week request the same ±3-month window; Calendar requests ±1 year.
+const loadWindowFamily = (viewMode: ViewMode) => (viewMode === 'calendar' ? 'year' : 'months');
+
+/**
+ * Whether the already loaded task window serves the requested view, so
+ * loadWorkspaceData can skip a full refetch: same workspace, `currentDate`
+ * still inside the loaded window (the window is re-anchored only once the date
+ * leaves it), and a mode that requests the same kind of window.
+ *
+ * Day↔Week share a window, so switching between them no longer refetches all
+ * workspace data. Calendar is deliberately NOT reused for Day/Week even though
+ * its ±1 year covers them: the timeline lays out every cached task of a row
+ * (row heights, bars), so a year of tasks would grow rows and add off-screen
+ * bars compared with the usual ±3 months.
+ */
+export const shouldReuseLoadedWindow = (
+  loaded: LoadedTaskWindow | null,
+  request: { workspaceId: string; currentDate: string; viewMode: ViewMode },
+): boolean => {
+  if (!loaded || loaded.workspaceId !== request.workspaceId) return false;
+  if (!isDateWithinRange(request.currentDate, loaded.start, loaded.end)) return false;
+  return loadWindowFamily(loaded.viewMode) === loadWindowFamily(request.viewMode);
+};
+
 export const uniqueAssigneeIds = (assigneeIds: string[] | null | undefined) => (
   Array.from(new Set((assigneeIds ?? []).filter(Boolean)))
 );
@@ -338,6 +370,7 @@ export const mapStatusRow = (row: StatusRow): Status => {
     color: row.color,
     isFinal: Boolean(row.is_final) && !isCancelled,
     isCancelled,
+    ...(row.created_at ? { createdAt: row.created_at } : {}),
   };
 };
 

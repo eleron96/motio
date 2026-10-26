@@ -77,3 +77,13 @@ export const isPushEnabled = (): boolean => (
 export const isTimeOffEnabled = (): boolean => (
   isDemoRoute() || readFlag(import.meta.env.VITE_FEATURE_TIME_OFF)
 );
+
+/**
+ * When on, a person can turn on the board (kanban) view in account settings →
+ * Preferences and then switch the planner between the timeline and a board of
+ * status columns. A hidden beta: the manifesto still says "no kanban", so it
+ * is NOT forced on in /demo (the public sandbox) — only the build env enables it.
+ */
+export const isBoardViewEnabled = (): boolean => (
+  readFlag(import.meta.env.VITE_FEATURE_KANBAN)
+);

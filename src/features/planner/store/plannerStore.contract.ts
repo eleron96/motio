@@ -8,6 +8,7 @@ import {
   MemberGroupAssignment,
   Milestone,
   PlannerState,
+  PlannerSurface,
   Project,
   ProjectActivity,
   ProjectMember,
@@ -21,7 +22,8 @@ import {
   TimeOffDragPreview,
   ViewMode,
 } from '@/features/planner/types/planner';
-import { MutationResult, TimeOffMutationResult } from '@/features/planner/store/plannerStore.helpers';
+import { LoadedTaskWindow, MutationResult, TimeOffMutationResult } from '@/features/planner/store/plannerStore.helpers';
+import type { TaskBoardScope } from '@/shared/domain/taskLoadScopes';
 import { RepeatCreateOptions } from '@/features/planner/lib/taskFormRules';
 import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 import { TaskUndoEntry, TaskUndoOutcome } from '@/shared/domain/taskUndo';
@@ -43,12 +45,13 @@ export interface PlannerStore extends PlannerState {
   loading: boolean;
   error: string | null;
   dataRequestId: number;
-  loadedRange: {
-    start: string;
-    end: string;
-    viewMode: ViewMode;
-    workspaceId: string;
-  } | null;
+  /** The timeline's date window: one of the task cache's load scopes. */
+  loadedRange: LoadedTaskWindow | null;
+  /**
+   * The board's load scope (every open task, regardless of dates), or null
+   * while no board is shown. See shared/domain/taskLoadScopes.
+   */
+  boardScope: TaskBoardScope | null;
   assigneeTaskCounts: Record<string, number>;
   taskCommentCounts: Record<string, number>;
   assigneeCountsDate: string | null;
@@ -60,6 +63,10 @@ export interface PlannerStore extends PlannerState {
   syncHealthy: boolean;
   setWorkspaceId: (id: string | null) => void;
   loadWorkspaceData: (workspaceId: string) => Promise<void>;
+  /** Loads the board scope into the shared task cache (open + recently changed tasks). */
+  loadBoardTasks: (workspaceId: string) => Promise<void>;
+  /** Drops the board scope; tasks only it held leave the cache. */
+  releaseBoardScope: () => void;
   refreshAssignees: () => Promise<void>;
   refreshMemberGroups: () => Promise<void>;
   fetchAssigneeTaskCounts: (params: {
@@ -230,6 +237,7 @@ export interface PlannerStore extends PlannerState {
   setTimeOffDragPreview: (preview: TimeOffDragPreview) => void;
 
   setViewMode: (mode: ViewMode) => void;
+  setPlannerSurface: (surface: PlannerSurface) => void;
   setGroupMode: (mode: GroupMode) => void;
   setCurrentDate: (date: string) => void;
   setVisibleCenterDate: (date: string) => void;

@@ -103,6 +103,7 @@ and rebuild `web`; no release is needed.
 | `VITE_FEATURE_PEOPLE_SUGGEST` | suggestions of people already entered elsewhere in the workspace when adding a contact or an external team member (needs `PROJECT_CARD`) |
 | `VITE_FEATURE_WORKLOAD_HEATMAP` | the workload heatmap board on the dashboard; each workspace still opts in with its own switch in workspace settings (off by default) |
 | `VITE_FEATURE_TIME_OFF` | marking days off on the timeline |
+| `VITE_FEATURE_KANBAN` | the board view (beta): each person still turns it on in account settings → Preferences; not shown in `/demo` |
 | `VITE_FEATURE_PUSH` | browser push notifications (needs the VAPID keys below) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | account self-deletion in account settings |
 

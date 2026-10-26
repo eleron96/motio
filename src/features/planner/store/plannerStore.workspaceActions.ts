@@ -14,7 +14,6 @@ import {
   AssigneeRow,
   AssigneeUniqueTaskCountRow,
   buildTaskRange,
-  isDateWithinRange,
   mapAssigneeRow,
   mapCustomerRow,
   mapCustomerContactRow,
@@ -27,6 +26,7 @@ import {
   mapTaskTypeRow,
   mapTimeOffRow,
   MemberGroupAssignmentRow,
+  shouldReuseLoadedWindow,
   MemberGroupRow,
   ProjectTrackingRow,
   SupabaseResult,
@@ -37,10 +37,19 @@ import type { Assignee } from '@/features/planner/types/planner';
 import { getTimeOffMotifId, type TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
 import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
 import { buildWorkspaceMemberActivityActorSnapshot } from '@/shared/domain/workspaceMemberActivity';
+import {
+  buildBoardScope,
+  mergeBoardLoad,
+  mergeWindowLoad,
+  pruneToWindow,
+} from '@/shared/domain/taskLoadScopes';
+import { fetchBoardTasks } from '@/infrastructure/tasks/boardTasksRepository';
 
 type WorkspaceActions = Pick<
   PlannerStore,
   | 'loadWorkspaceData'
+  | 'loadBoardTasks'
+  | 'releaseBoardScope'
   | 'refreshAssignees'
   | 'refreshMemberGroups'
   | 'refreshSampleDataFlag'
@@ -108,18 +117,17 @@ const attachAssigneeProfiles = async (assignees: Assignee[]): Promise<void> => {
   }
 };
 
+// Guards board loads against stale responses: a newer load or a release bumps
+// it, and an in-flight response with an older value is ignored.
+let boardRequestSeq = 0;
+
 export const createWorkspaceActions = (
   set: PlannerSetState,
   get: PlannerGetState,
 ): WorkspaceActions => ({
   loadWorkspaceData: async (workspaceId) => {
     const { currentDate, viewMode, loadedRange } = get();
-    if (
-      loadedRange
-      && loadedRange.workspaceId === workspaceId
-      && loadedRange.viewMode === viewMode
-      && isDateWithinRange(currentDate, loadedRange.start, loadedRange.end)
-    ) {
+    if (shouldReuseLoadedWindow(loadedRange, { workspaceId, currentDate, viewMode })) {
       return;
     }
 
@@ -134,6 +142,8 @@ export const createWorkspaceActions = (
         // нельзя ни показывать, ни исполнять. Окна отложенного удаления
         // (pendingDeleteTaskIds) не трогаем — их коммиты должны доехать.
         taskUndoStack: [] as PlannerStore['taskUndoStack'],
+        // The board scope belongs to the previous workspace's statuses.
+        boardScope: null as PlannerStore['boardScope'],
       }
       : {};
 
@@ -252,7 +262,7 @@ export const createWorkspaceActions = (
       .eq('workspace_id', workspaceId);
     const statusesQuery = supabase
       .from('statuses')
-      .select('id, workspace_id, name, emoji, color, is_final, is_cancelled')
+      .select('id, workspace_id, name, emoji, color, is_final, is_cancelled, created_at')
       .eq('workspace_id', workspaceId);
     const taskTypesQuery = supabase
       .from('task_types')
@@ -409,34 +419,41 @@ export const createWorkspaceActions = (
 
     if (get().dataRequestId !== requestId) return;
 
-    set((state) => ({
-      tasks: taskRows.map(mapTaskRow),
-      taskCommentCounts: Object.fromEntries(
-        Object.entries(state.taskCommentCounts).filter(([taskId]) => nextTaskIds.has(taskId)),
-      ),
-      milestones: (milestonesRes.data ?? []).map(mapMilestoneRow),
-      timeOff: nextTimeOff,
-      projects: nextProjects,
-      trackedProjectIds: nextTrackedProjectIds,
-      customers: nextCustomers,
-      customerContacts: nextCustomerContacts,
-      assignees,
-      projectMembers: nextProjectMembers,
-      projectActivity: nextProjectActivity,
-      memberGroups,
-      memberGroupAssignments,
-      statuses: (statusesRes.data ?? []).map(mapStatusRow),
-      taskTypes: (taskTypesRes.data ?? []).map(mapTaskTypeRow),
-      tags: (tagsRes.data ?? []).map(mapTagRow),
-      loadedRange: { start, end, viewMode, workspaceId },
-      filters: {
-        ...state.filters,
-        projectIds: state.filters.projectIds.filter((id) => activeProjectIds.has(id)),
-        assigneeIds: state.filters.assigneeIds.filter((id) => activeAssigneeIds.has(id)),
-        groupIds: state.filters.groupIds.filter((id) => activeGroupIds.has(id)),
-      },
-      loading: false,
-    }));
+    set((state) => {
+      const boardScope = state.boardScope?.workspaceId === workspaceId ? state.boardScope : null;
+      const nextTasks = mergeWindowLoad(state.tasks, taskRows.map(mapTaskRow), boardScope);
+      const keptTaskIds = nextTasks.length === taskRows.length
+        ? nextTaskIds
+        : new Set(nextTasks.map((task) => task.id));
+      return {
+        tasks: nextTasks,
+        taskCommentCounts: Object.fromEntries(
+          Object.entries(state.taskCommentCounts).filter(([taskId]) => keptTaskIds.has(taskId)),
+        ),
+        milestones: (milestonesRes.data ?? []).map(mapMilestoneRow),
+        timeOff: nextTimeOff,
+        projects: nextProjects,
+        trackedProjectIds: nextTrackedProjectIds,
+        customers: nextCustomers,
+        customerContacts: nextCustomerContacts,
+        assignees,
+        projectMembers: nextProjectMembers,
+        projectActivity: nextProjectActivity,
+        memberGroups,
+        memberGroupAssignments,
+        statuses: (statusesRes.data ?? []).map(mapStatusRow),
+        taskTypes: (taskTypesRes.data ?? []).map(mapTaskTypeRow),
+        tags: (tagsRes.data ?? []).map(mapTagRow),
+        loadedRange: { start, end, viewMode, workspaceId },
+        filters: {
+          ...state.filters,
+          projectIds: state.filters.projectIds.filter((id) => activeProjectIds.has(id)),
+          assigneeIds: state.filters.assigneeIds.filter((id) => activeAssigneeIds.has(id)),
+          groupIds: state.filters.groupIds.filter((id) => activeGroupIds.has(id)),
+        },
+        loading: false,
+      };
+    });
 
     fetchTaskCommentCounts(workspaceId, taskRows.map((row) => row.id))
       .then((commentCountsRes) => {
@@ -487,6 +504,53 @@ export const createWorkspaceActions = (
       .catch((error) => {
         console.error(error);
       });
+  },
+
+  loadBoardTasks: async (workspaceId) => {
+    const { workspaceId: activeWorkspaceId, statuses } = get();
+    // The scope is built from the workspace's statuses, so it needs them loaded.
+    if (activeWorkspaceId !== workspaceId || statuses.length === 0) return;
+
+    const requestId = ++boardRequestSeq;
+    const scope = buildBoardScope(workspaceId, statuses, new Date());
+    // Claim the scope before fetching: realtime events arriving meanwhile are
+    // then kept rather than dropped as "outside every scope".
+    set({ boardScope: scope });
+
+    const result = await fetchBoardTasks(scope);
+    if (requestId !== boardRequestSeq || get().workspaceId !== workspaceId) return;
+    if ('error' in result) {
+      console.error(result.error);
+      return;
+    }
+
+    const knownIds = new Set(get().tasks.map((task) => task.id));
+    set((state) => ({
+      tasks: mergeBoardLoad(state.tasks, result.data, { window: state.loadedRange, board: scope }),
+    }));
+
+    const newIds = result.data.map((task) => task.id).filter((id) => !knownIds.has(id));
+    if (newIds.length > 0) {
+      void get().refreshTaskCommentCounts(workspaceId, newIds);
+    }
+  },
+
+  releaseBoardScope: () => {
+    boardRequestSeq += 1;
+    if (!get().boardScope) return;
+    set((state) => {
+      const tasks = pruneToWindow(state.tasks, state.loadedRange);
+      if (tasks === state.tasks) return { boardScope: null };
+      const keptIds = new Set(tasks.map((task) => task.id));
+      return {
+        boardScope: null,
+        tasks,
+        taskCommentCounts: Object.fromEntries(
+          Object.entries(state.taskCommentCounts).filter(([taskId]) => keptIds.has(taskId)),
+        ),
+        selectedTaskId: state.selectedTaskId && keptIds.has(state.selectedTaskId) ? state.selectedTaskId : null,
+      };
+    });
   },
 
   refreshAssignees: async () => {

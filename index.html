@@ -28,8 +28,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Motio" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#14181f" media="(prefers-color-scheme: dark)" />
+    <!-- Same colour as the app header (--card), not the page background: iOS
+         paints the status-bar strip of a Home Screen app with theme-color, and a
+         page-grey strip above the white header read as a blurred band. -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1f28" media="(prefers-color-scheme: dark)" />
     <title>Motio — see who’s doing what this week, across every project</title>
     <meta name="description" content="Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up." />
     <meta name="robots" content="index, follow" />

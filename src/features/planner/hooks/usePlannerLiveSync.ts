@@ -3,18 +3,21 @@ import { WifiOff } from 'lucide-react';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { toast } from 'sonner';
 import { t } from '@lingui/macro';
-import { Milestone, MilestoneStatusOverride, TaskPriority, ViewMode } from '@/features/planner/types/planner';
+import { Milestone, MilestoneStatusOverride, TaskPriority } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import type { LoadedTaskWindow } from '@/features/planner/store/plannerStore.helpers';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
+import { fetchBoardTaskIds, fetchTaskDeltaSince } from '@/infrastructure/tasks/boardTasksRepository';
 
 import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
+import {
+  isTaskInBoardScope,
+  isTaskInLoadScopes,
+  isTaskInWindow,
+  type TaskLoadScopes,
+} from '@/shared/domain/taskLoadScopes';
 
-type LoadedRange = {
-  start: string;
-  end: string;
-  viewMode: ViewMode;
-  workspaceId: string;
-};
+type LoadedRange = LoadedTaskWindow;
 
 type TaskSyncRow = TaskMappedRow & {
   workspace_id: string;
@@ -99,10 +102,6 @@ const mapMilestoneRow = (row: MilestoneSyncRow): Milestone => ({
   includeInWorkload: row.include_in_workload ?? true,
 });
 
-const inTaskRange = (row: TaskSyncRow, range: LoadedRange) => (
-  row.end_date >= range.start && row.start_date <= range.end
-);
-
 const takeFromSet = (source: Set<string>, limit: number) => {
   const values: string[] = [];
   for (const value of source) {
@@ -177,6 +176,16 @@ export const usePlannerLiveSync = (
     let lastReconnectAttemptAt = 0;
     const rangeRef: LoadedRange = loadedRange;
     const workspaceRef = workspaceId;
+    // The window is fixed for this subscription's lifetime (a new window
+    // re-runs the effect); the board scope is read live, so toggling the board
+    // does not tear down the channel.
+    const currentScopes = (): TaskLoadScopes => {
+      const board = usePlannerStore.getState().boardScope;
+      return {
+        window: rangeRef,
+        board: board && board.workspaceId === workspaceRef ? board : null,
+      };
+    };
 
     if (!lastTaskSyncAtRef.current) {
       lastTaskSyncAtRef.current = new Date().toISOString();
@@ -271,17 +280,19 @@ export const usePlannerLiveSync = (
                   reconcileRequested = true;
                 } else {
                   const rows = (data ?? []) as unknown as TaskSyncRow[];
-                  const byId = new Map(rows.map((row) => [row.id, row]));
-                  const upsertRows = rows.filter((row) => inTaskRange(row, rangeRef));
-                  if (upsertRows.length > 0) {
-                    upsertTasks(upsertRows.map(mapTaskRow));
-                    upsertRows.forEach((row) => pendingTaskCommentCountRefreshes.add(row.id));
+                  const scopes = currentScopes();
+                  const scopedById = new Map(
+                    rows
+                      .map(mapTaskRow)
+                      .filter((task) => isTaskInLoadScopes(task, scopes))
+                      .map((task) => [task.id, task]),
+                  );
+                  if (scopedById.size > 0) {
+                    upsertTasks(Array.from(scopedById.values()));
+                    scopedById.forEach((_task, id) => pendingTaskCommentCountRefreshes.add(id));
                   }
-                  const removeIds = taskUpsertIds.filter((id) => {
-                    const row = byId.get(id);
-                    if (!row) return true;
-                    return !inTaskRange(row, rangeRef);
-                  });
+                  // Missing (deleted or no longer visible) or outside every scope.
+                  const removeIds = taskUpsertIds.filter((id) => !scopedById.has(id));
                   if (removeIds.length > 0) {
                     removeTasksByIds(removeIds);
                   }
@@ -362,6 +373,8 @@ export const usePlannerLiveSync = (
             reconcileRequested = false;
 
             const reconcileEpoch = lifecycleEpoch;
+            const reconcileScopes = currentScopes();
+            const reconcileBoard = reconcileScopes.board;
             const nowIso = new Date().toISOString();
             const taskSince = lastTaskSyncAtRef.current ?? nowIso;
             const milestoneSince = lastMilestoneSyncAtRef.current ?? nowIso;
@@ -402,24 +415,36 @@ export const usePlannerLiveSync = (
                 .eq('workspace_id', workspaceRef),
               fetchTaskCommentDeltaRows(workspaceRef, taskCommentSince),
             ]);
+            // The board has no date window: its delta and id list are
+            // workspace-wide. Only fetched while a board scope is claimed.
+            const [boardDeltaRes, boardIdsRes] = reconcileBoard
+              ? await Promise.all([
+                fetchTaskDeltaSince(workspaceRef, taskSince),
+                fetchBoardTaskIds(reconcileBoard),
+              ])
+              : [null, null];
 
             if (!isLifecycleActive(reconcileEpoch)) {
               break;
             }
 
+            const boardError = (boardDeltaRes && 'error' in boardDeltaRes ? boardDeltaRes.error : null)
+              ?? (boardIdsRes && 'error' in boardIdsRes ? boardIdsRes.error : null);
             if (
               taskDeltaRes.error
               || milestoneDeltaRes.error
               || taskIdsRes.error
               || milestoneIdsRes.error
               || taskCommentDeltaRes.error
+              || boardError
             ) {
               console.error(
                 taskDeltaRes.error
                 ?? milestoneDeltaRes.error
                 ?? taskIdsRes.error
                 ?? milestoneIdsRes.error
-                ?? taskCommentDeltaRes.error,
+                ?? taskCommentDeltaRes.error
+                ?? boardError,
               );
               growFallbackFailures();
               if (
@@ -449,20 +474,29 @@ export const usePlannerLiveSync = (
             const milestoneRows = (milestoneDeltaRes.data ?? []) as unknown as MilestoneSyncRow[];
             const taskCommentRows = (taskCommentDeltaRes.data ?? []) as TaskCommentSyncRow[];
 
-            if (taskRows.length > 0) {
-              upsertTasks(taskRows.map(mapTaskRow));
+            const boardDeltaTasks = boardDeltaRes && 'data' in boardDeltaRes && reconcileBoard
+              ? boardDeltaRes.data.filter((task) => isTaskInBoardScope(task, reconcileBoard))
+              : [];
+            if (taskRows.length > 0 || boardDeltaTasks.length > 0) {
+              upsertTasks([...taskRows.map(mapTaskRow), ...boardDeltaTasks]);
             }
             if (milestoneRows.length > 0) {
               upsertMilestones(milestoneRows.map(mapMilestoneRow));
             }
 
             const remoteTaskIds = new Set(((taskIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
+            const remoteBoardIds = new Set(boardIdsRes && 'data' in boardIdsRes ? boardIdsRes.data : []);
+            // A local task is stale when a scope it belongs to locally no
+            // longer claims it remotely, and no other scope does either.
             const staleTaskIds = usePlannerStore.getState().tasks
-              .filter((task) => (
-                task.endDate >= rangeRef.start
-                && task.startDate <= rangeRef.end
-                && !remoteTaskIds.has(task.id)
-              ))
+              .filter((task) => {
+                const inWindow = isTaskInWindow(task, rangeRef);
+                const inBoard = reconcileBoard !== null && isTaskInBoardScope(task, reconcileBoard);
+                if (!inWindow && !inBoard) return false;
+                if (inWindow && remoteTaskIds.has(task.id)) return false;
+                if (reconcileBoard && remoteBoardIds.has(task.id)) return false;
+                return true;
+              })
               .map((task) => task.id);
             if (staleTaskIds.length > 0) {
               removeTasksByIds(staleTaskIds);
@@ -484,10 +518,11 @@ export const usePlannerLiveSync = (
                 .filter((taskId): taskId is string => typeof taskId === 'string' && taskId.length > 0),
             );
             taskRows.forEach((row) => {
-              if (inTaskRange(row, rangeRef)) {
+              if (isTaskInWindow(mapTaskRow(row), rangeRef)) {
                 taskCommentRefreshIds.add(row.id);
               }
             });
+            boardDeltaTasks.forEach((task) => taskCommentRefreshIds.add(task.id));
             if (taskCommentRefreshIds.size > 0) {
               const taskCommentRefreshEpoch = lifecycleEpoch;
               const refreshResult = await refreshTaskCommentCounts(workspaceRef, Array.from(taskCommentRefreshIds));

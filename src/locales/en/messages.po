@@ -389,6 +389,10 @@ msgid "Add"
 msgstr "Add"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Add a \"Board\" button: tasks as cards in status columns"
+msgstr "Add a \"Board\" button: tasks as cards in status columns"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Add a \"Week\" button next to Day and Calendar"
 msgstr "Add a \"Week\" button next to Day and Calendar"
 
@@ -457,6 +461,9 @@ msgstr "Add rule"
 msgid "Add subtask"
 msgstr "Add subtask"
 
+#: src/features/planner/components/board/BoardColumn.tsx
+#: src/features/planner/components/board/BoardColumn.tsx
+#: src/features/planner/components/board/MobileBoardColumns.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
@@ -550,7 +557,12 @@ msgstr "All contacts"
 msgid "All current data will be lost."
 msgstr "All current data will be lost."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "All groups"
+msgstr "All groups"
+
 #: src/features/members/pages/MembersPage.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All projects"
 msgstr "All projects"
@@ -785,6 +797,14 @@ msgstr "Beer"
 msgid "Biweekly (every 2 weeks)"
 msgstr "Biweekly (every 2 weeks)"
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Board"
+msgstr "Board"
+
+#: src/features/auth/components/AccountSettingsDialog.tsx
+msgid "Board view (beta)"
+msgstr "Board view (beta)"
+
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "Broadcast"
@@ -816,8 +836,7 @@ msgid "By workspace"
 msgstr "By workspace"
 
 #: src/features/marketing/pages/LandingPage.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -1124,6 +1143,7 @@ msgstr "Comment actions"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Comments"
 msgstr "Comments"
@@ -1483,7 +1503,7 @@ msgid "Dates"
 msgstr "Dates"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Day"
 msgstr "Day"
 
@@ -1864,6 +1884,10 @@ msgstr "Draw every status in its own colour instead of the palette."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw everyone in their own colour from workspace settings instead of the palette."
 msgstr "Draw everyone in their own colour from workspace settings instead of the palette."
+
+#: src/features/planner/components/board/BoardCard.tsx
+msgid "Due date"
+msgstr "Due date"
 
 #: src/features/daily-brief/components/DailyBriefStats.tsx
 msgid "due today"
@@ -2371,10 +2395,19 @@ msgstr "Final"
 msgid "Final status"
 msgstr "Final status"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Find a group"
+msgstr "Find a group"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Find a person"
 msgstr "Find a person"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Find a project"
+msgstr "Find a project"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -2530,11 +2563,21 @@ msgstr "Group name"
 msgid "Group tasks by project, set milestones, and track progress without switching tools."
 msgstr "Group tasks by project, set milestones, and track progress without switching tools."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Group: all"
+msgstr "Group: all"
+
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/planner/components/FilterPanel.tsx
 msgid "Groups"
 msgstr "Groups"
+
+#. placeholder {0}: selectedGroups.length
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Groups: {0}"
+msgstr "Groups: {0}"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Heatmap"
@@ -2558,6 +2601,7 @@ msgstr "Hide past"
 msgid "High"
 msgstr "High"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "High priority"
@@ -2920,6 +2964,7 @@ msgstr "Loading…"
 msgid "Low"
 msgstr "Low"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Low priority"
@@ -2980,6 +3025,7 @@ msgstr "Maximum image size is 5 MB."
 msgid "Medium"
 msgstr "Medium"
 
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Medium priority"
@@ -3066,6 +3112,7 @@ msgstr "Milestones"
 msgid "Milestones still ahead"
 msgstr "Milestones still ahead"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Mine"
@@ -3097,6 +3144,10 @@ msgstr "Monthly recurring"
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "More actions"
 msgstr "More actions"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "More people"
+msgstr "More people"
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Most often: {topProject}"
@@ -3473,6 +3524,10 @@ msgstr "No group"
 msgid "No groups created yet."
 msgstr "No groups created yet."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "No groups found"
+msgstr "No groups found"
+
 #: src/features/members/components/AssignGroupDialog.tsx
 msgid "No groups found."
 msgstr "No groups found."
@@ -3615,6 +3670,7 @@ msgstr "No projects assigned to this customer."
 msgid "No projects for this member."
 msgstr "No projects for this member."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 msgid "No projects found"
@@ -3646,6 +3702,10 @@ msgstr "No role"
 msgid "No rules yet."
 msgstr "No rules yet."
 
+#: src/features/planner/components/board/PlannerBoard.tsx
+msgid "No statuses in this workspace yet"
+msgstr "No statuses in this workspace yet"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
@@ -3667,6 +3727,11 @@ msgstr "No tags"
 #: src/features/planner/components/TagMultiSelect.tsx
 msgid "No tags available yet."
 msgstr "No tags available yet."
+
+#: src/features/planner/components/board/BoardColumn.tsx
+#: src/features/planner/components/board/MobileBoardColumns.tsx
+msgid "No tasks"
+msgstr "No tasks"
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
@@ -3721,6 +3786,7 @@ msgid "No workspaces."
 msgstr "No workspaces."
 
 #: src/features/admin/components/AdminUserPicker.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "Nobody found"
@@ -3976,6 +4042,8 @@ msgid "overdue"
 msgstr "overdue"
 
 #: src/features/daily-brief/components/DailyBriefModal.tsx
+#: src/features/planner/components/board/BoardCard.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 msgid "Overdue"
 msgstr "Overdue"
 
@@ -4059,8 +4127,9 @@ msgstr "Pending"
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "People"
 msgstr "People"
 
@@ -4274,12 +4343,18 @@ msgstr "Project status"
 msgid "Project status: {0}"
 msgstr "Project status: {0}"
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Project: all"
+msgstr "Project: all"
+
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -4297,6 +4372,11 @@ msgstr "Projects & milestones"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Projects, milestones and clients"
 msgstr "Projects, milestones and clients"
+
+#. placeholder {0}: selectedProjects.length
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Projects: {0}"
+msgstr "Projects: {0}"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
@@ -4490,6 +4570,10 @@ msgstr "Repeat task"
 msgid "Repeat type"
 msgstr "Repeat type"
 
+#: src/features/planner/components/board/BoardCard.tsx
+msgid "Repeating task"
+msgstr "Repeating task"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeats until the selected date."
 msgstr "Repeats until the selected date."
@@ -4498,6 +4582,7 @@ msgstr "Repeats until the selected date."
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 
+#: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Reset"
 msgstr "Reset"
@@ -4583,6 +4668,10 @@ msgstr "Role / job title"
 msgid "Rose"
 msgstr "Rose"
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Rows"
+msgstr "Rows"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Rows per page"
 msgstr "Rows per page"
@@ -4641,6 +4730,10 @@ msgstr "Saved."
 msgid "Saving..."
 msgstr "Saving..."
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "Scale"
+msgstr "Scale"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -4681,6 +4774,11 @@ msgstr "Search & filters"
 #: src/features/admin/components/AdminUserPicker.tsx
 msgid "Search by name or email"
 msgstr "Search by name or email"
+
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+#: src/features/planner/components/board/BoardQuickFilters.tsx
+msgid "Search by title"
+msgstr "Search by title"
 
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 msgid "Search companies..."
@@ -5214,6 +5312,7 @@ msgid "Status colours"
 msgstr "Status colours"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
+#: src/features/planner/components/board/MobileBoardColumns.tsx
 #: src/features/projects/components/projectCard/ProjectTasksFiltersScreen.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
@@ -5295,6 +5394,8 @@ msgstr "Tap to copy"
 msgid "Task"
 msgstr "Task"
 
+#: src/features/planner/components/board/BoardCard.tsx
+#: src/features/planner/components/board/BoardCard.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Task actions"
 msgstr "Task actions"
@@ -5697,6 +5798,7 @@ msgid "Time off pattern"
 msgstr "Time off pattern"
 
 #: src/features/marketing/pages/LandingPage.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Timeline"
 msgstr "Timeline"
@@ -6102,6 +6204,11 @@ msgstr "Users"
 msgid "Vacation, day off, sick leave..."
 msgstr "Vacation, day off, sick leave..."
 
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "View"
+msgstr "View"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "View all workspaces where this user is a member."
 msgstr "View all workspaces where this user is a member."
@@ -6162,7 +6269,7 @@ msgid "We'll open Team next so you can see where invitations, roles and workspac
 msgstr "We'll open Team next so you can see where invitations, roles and workspace access are managed."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Week"
 msgstr "Week"
 
@@ -6181,6 +6288,10 @@ msgstr "Weekly recurring"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Welcome to Motio!"
 msgstr "Welcome to Motio!"
+
+#: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
+msgid "What the planner shows"
+msgstr "What the planner shows"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Who"

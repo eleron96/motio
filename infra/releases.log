@@ -435,3 +435,4 @@
 2026-10-13T13:23:47Z | 0.10.16 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261013-132302.dump | Outsiders can no longer get a list of users through the avatar storage. Avatars themselves show up as before.
 2026-10-15T15:28:41Z | 0.10.17 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261015-152755.dump | A task notification now also clears when you follow the browser pop-up notification or tap the task on the timeline on your phone. For repeating tasks, opening any occurrence is enough.
 2026-10-20T09:31:53Z | 0.10.18 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261020-093108.dump | No documented changes.
+2026-10-26T13:07:37Z | 0.10.19 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261026-130638.dump | Board (beta): tasks as cards in columns by your statuses. Turn it on in account settings → Appearance → Board view (beta), then switch to it next to Timeline and Calendar; it works on phones too.
