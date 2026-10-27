@@ -320,7 +320,8 @@ Audit helper: `make audit-migrations`.
 | `PATCH` | `/backup/backups/:name` |
 | `DELETE` | `/backup/backups/:name` |
 | `POST` | `/backup/backups/:name/restore` |
-| `POST` | `/backup/storage-backups` *(manual backup of Storage blobs; requires `STORAGE_BLOBS_DIR`, otherwise 501)* |
+| `POST` | `/backup/storage-backups` *(manual local archive of uploaded files; requires `STORAGE_BLOBS_DIR`, otherwise 501)* |
+| `POST` | `/backup/backups/run-nightly` *(runs the nightly backup now; 200 with per-step results, 500 if a step failed, 409 if another job runs)* |
 
 **Restore flow:**
 

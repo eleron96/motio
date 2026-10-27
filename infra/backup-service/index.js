@@ -926,10 +926,11 @@ const dailyBackupSteps = () => [
   { label: 'bucket-budget', run: () => checkBucket() },
 ];
 
-cron.schedule(BACKUP_CRON, async () => {
+// Returns the run summary, or null when another backup job holds the lock.
+const runNightly = async () => {
   if (activeJob) {
-    captureMessage(`Daily backup skipped: job already running (${activeJob})`);
-    return;
+    captureMessage(`Nightly backup skipped: job already running (${activeJob})`);
+    return null;
   }
   activeJob = 'daily-backup';
   try {
@@ -938,10 +939,23 @@ cron.schedule(BACKUP_CRON, async () => {
       pingHeartbeat,
       log: (message) => console.error(message),
     });
-    console.log(`Daily backup finished: ${summary.results.map((r) => `${r.label}=${r.ok ? 'ok' : 'FAILED'}`).join(', ')}`);
+    console.log(`Nightly backup finished: ${summary.results.map((r) => `${r.label}=${r.ok ? 'ok' : 'FAILED'}`).join(', ')}`);
+    return summary;
   } finally {
     activeJob = null;
   }
+};
+
+cron.schedule(BACKUP_CRON, () => runNightly());
+
+// The same run on demand: after changing backup settings, or for a drill.
+app.post('/backups/run-nightly', requireSuperAdmin, async (_req, res) => {
+  const summary = await runNightly();
+  if (!summary) {
+    res.status(409).json({ error: 'Another backup job is running.' });
+    return;
+  }
+  res.status(summary.ok ? 200 : 500).json(summary);
 });
 
 // ─────────────────────────── Phase 5: account-deletion cron ───────────────────────────
