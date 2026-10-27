@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.22] - 2026-10-27
+### Changed
+- No documented changes.
+
 ## [0.10.21] - 2026-10-26
 ### Fixed
 - The Owner badge in workspace settings is readable again on a dark interface colour, and Sign out in account settings stays at the bottom of the window on tall screens.
