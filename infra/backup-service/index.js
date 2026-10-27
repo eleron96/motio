@@ -138,11 +138,15 @@ const s3 = s3Enabled
     })
   : null;
 
+// ContentLength is explicit: a bare stream goes out chunked, which some
+// S3-compatible servers reject (MissingContentLength).
 const putS3Object = async (filePath, key) => {
+  const { size } = await fs.stat(filePath);
   await s3.send(new PutObjectCommand({
     Bucket: S3_BUCKET,
     Key: key,
     Body: createReadStream(filePath),
+    ContentLength: size,
   }));
 };
 const uploadEncryptedOrPlain = createS3Uploader({

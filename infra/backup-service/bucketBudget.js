@@ -33,7 +33,7 @@ const checkBucketBudget = (objects, { warnBytes, alarmBytes }) => {
   const breakdown = Object.entries(byFamily)
     .sort(([, a], [, b]) => b - a)
     .map(([family, bytes]) => `${family} ${gb(bytes)} GB`)
-    .join(', ');
+    .join(', ') || 'empty';
   const message = `Backup bucket holds ${gb(totalBytes)} GB of ${gb(alarmBytes)} GB alarm line (${breakdown}).`;
   return { level, totalBytes, byFamily, message };
 };
