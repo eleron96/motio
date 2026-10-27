@@ -65,7 +65,11 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `BACKUP_MAX_UPLOAD_MB`
 - `BACKUP_RESTORE_DB_URL` *(optional)*
 - `BACKUP_AUTH_DB_USER`, `BACKUP_AUTH_HOST`
-- `STORAGE_BACKUP_RETENTION_COUNT` — daily archives of uploaded files to keep.
+- `STORAGE_BACKUP_RETENTION_COUNT` — manual archives of uploaded files (`POST /backup/storage-backups`)
+  kept on the server.
+- `BACKUP_FILES_DELETED_GRACE_DAYS` (default 90) — uploaded files (avatars, task media) are copied
+  to S3 one by one under `files/`, each file once; when a file is deleted in the app its S3 copy
+  is kept this many days, then removed. Data exports (`user-exports`) are not copied.
 - `KEYCLOAK_BACKUP_RETENTION_COUNT` — Keycloak database backups to keep.
 - `METABASE_DB_URL` — Metabase app database (`postgresql://metabase:<password>@metabase-db:5432/metabase`,
   password URL-encoded). When set, dashboards and saved questions are dumped daily to `metabase/` in S3;

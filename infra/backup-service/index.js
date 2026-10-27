@@ -16,6 +16,7 @@ const { selectExpiredKeys, selectGfsExpiredKeys } = require('./retention');
 const { createSideDbBackup } = require('./sideDbBackup');
 const { runDailyBackup, createHeartbeat } = require('./dailyRun');
 const { parseAgeRecipient, encryptWithAge, createS3Uploader } = require('./encryption');
+const { FILES_PREFIX, listLocalFiles, syncFilesToS3 } = require('./fileSync');
 const {
   tickAccountPurge,
   tickDataExportWorker,
@@ -84,6 +85,14 @@ const S3_DUMP_RETENTION = {
   weekly: readPositiveInt('BACKUP_S3_KEEP_WEEKLY', 8),
   monthly: readPositiveInt('BACKUP_S3_KEEP_MONTHLY', 12),
 };
+
+// Uploaded files live in S3 one copy each (fileSync.js); a file deleted from
+// the app keeps its S3 copy this many days.
+const FILES_DELETED_GRACE_DAYS = readPositiveInt('BACKUP_FILES_DELETED_GRACE_DAYS', 90);
+const FILES_TOMBSTONES_PATH = path.join(BACKUP_DIR, 'files-tombstones.json');
+// Daily storage-*.tar.gz archives in S3 predate the per-file copies; keep a few
+// as a fallback and let the rest go.
+const LEGACY_STORAGE_ARCHIVES_KEEP = 7;
 
 const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
@@ -163,17 +172,30 @@ if (s3) {
   }
 }
 
-const listAllS3Objects = async () => {
+const listAllS3Objects = async (prefix) => {
   const objects = [];
   let ContinuationToken;
   do {
-    const res = await s3.send(new ListObjectsV2Command({ Bucket: S3_BUCKET, ContinuationToken }));
+    const res = await s3.send(new ListObjectsV2Command({ Bucket: S3_BUCKET, Prefix: prefix, ContinuationToken }));
     for (const obj of res.Contents || []) {
-      objects.push({ Key: obj.Key, LastModified: obj.LastModified });
+      objects.push({ Key: obj.Key, LastModified: obj.LastModified, Size: obj.Size });
     }
     ContinuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
   } while (ContinuationToken);
   return objects;
+};
+
+const deleteS3Keys = async (keys) => {
+  for (let i = 0; i < keys.length; i += 1000) {
+    const batch = keys.slice(i, i + 1000);
+    const res = await s3.send(new DeleteObjectsCommand({
+      Bucket: S3_BUCKET,
+      Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
+    }));
+    if (res.Errors && res.Errors.length > 0) {
+      throw new Error(`S3 refused to delete ${res.Errors.length} object(s); first: ${res.Errors[0].Key} (${res.Errors[0].Code})`);
+    }
+  }
 };
 
 // Delete the S3 objects whose Key matches `pattern` and that `selectExpired`
@@ -187,13 +209,7 @@ const pruneS3 = async (pattern, selectExpired) => {
     const matching = all.filter((obj) => typeof obj.Key === 'string' && pattern.test(obj.Key));
     const toDelete = selectExpired(matching);
     if (toDelete.length === 0) return;
-    for (let i = 0; i < toDelete.length; i += 1000) {
-      const batch = toDelete.slice(i, i + 1000);
-      await s3.send(new DeleteObjectsCommand({
-        Bucket: S3_BUCKET,
-        Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
-      }));
-    }
+    await deleteS3Keys(toDelete);
     console.log(`S3 prune: removed ${toDelete.length} old object(s) for ${pattern}.`);
   } catch (error) {
     console.error(`S3 prune failed for ${pattern}:`, error.message || error);
@@ -505,9 +521,8 @@ const createStorageBackup = async () => {
     throw new Error(`Storage archive validation failed: ${validationError.message || validationError}`);
   }
 
+  // Local snapshot only: S3 gets uploaded files one by one (syncFiles).
   await pruneStorageBackups([name]);
-  await uploadToS3(filePath, name);
-  await pruneS3(S3_STORAGE_PATTERN, (objects) => selectExpiredKeys(objects, STORAGE_BACKUP_RETENTION_COUNT));
 
   return {
     name,
@@ -515,6 +530,42 @@ const createStorageBackup = async () => {
     createdAt: stat.mtime.toISOString(),
     size: stat.size,
   };
+};
+
+const readFilesTombstones = async () => {
+  try {
+    return JSON.parse(await fs.readFile(FILES_TOMBSTONES_PATH, 'utf8'));
+  } catch (_error) {
+    // Missing or unreadable: deleted files simply start a fresh grace period.
+    return {};
+  }
+};
+
+const writeFilesTombstones = async (tombstones) => {
+  const tmpPath = `${FILES_TOMBSTONES_PATH}.tmp`;
+  await fs.writeFile(tmpPath, JSON.stringify(tombstones, null, 1));
+  await fs.rename(tmpPath, FILES_TOMBSTONES_PATH);
+};
+
+// Copy new uploaded files to S3, retire ones deleted more than the grace period
+// ago, then trim the legacy daily archives. No-op without S3.
+const syncFiles = async () => {
+  if (!s3) return null;
+  const summary = await syncFilesToS3({
+    root: STORAGE_BLOBS_DIR,
+    encrypted: S3_ENCRYPTION.kind === 'age',
+    graceMs: FILES_DELETED_GRACE_DAYS * 86400000,
+    now: () => Date.now(),
+    listLocal: () => listLocalFiles(STORAGE_BLOBS_DIR, { fs, path }),
+    listRemoteKeys: async () => (await listAllS3Objects(FILES_PREFIX)).map((obj) => obj.Key),
+    upload: uploadToS3,
+    deleteKeys: deleteS3Keys,
+    readTombstones: readFilesTombstones,
+    writeTombstones: writeFilesTombstones,
+  });
+  console.log(`Files backup ok: ${summary.files} file(s), ${summary.uploaded} uploaded, ${summary.deleted} deleted, ${summary.awaitingDeletion} awaiting deletion.`);
+  await pruneS3(S3_STORAGE_PATTERN, (objects) => selectExpiredKeys(objects, LEGACY_STORAGE_ARCHIVES_KEEP));
+  return summary;
 };
 
 // Side databases dumped daily after the Supabase DB. Keycloak: logins/passwords/realm;
@@ -845,12 +896,12 @@ app.post('/storage-backups', requireSuperAdmin, async (_req, res) => {
 
 const pingHeartbeat = createHeartbeat(BACKUP_HEARTBEAT_URL, fetch);
 
-// Nightly: Supabase DB, then uploaded files, then side DBs (Keycloak auth,
+// Nightly: Supabase DB, then uploaded files (one S3 copy each), then side DBs (Keycloak auth,
 // Metabase dashboards). One failing step does not skip the next; every failure
 // reaches GlitchTip, and the heartbeat fires only after a fully clean run.
 const dailyBackupSteps = () => [
   { label: 'db', run: () => createBackup('daily') },
-  ...(STORAGE_BLOBS_DIR ? [{ label: 'storage', run: () => createStorageBackup() }] : []),
+  ...(STORAGE_BLOBS_DIR ? [{ label: 'files', run: () => syncFiles() }] : []),
   ...SIDE_DB_TARGETS
     .filter((target) => target.dbUrl)
     .map((target) => ({ label: target.label, run: () => createSideDbBackup(target, sideDbBackupDeps) })),

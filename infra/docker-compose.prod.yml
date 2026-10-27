@@ -297,6 +297,8 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY:-}
       # age public key (age1…): everything sent to S3 is encrypted with it. Empty = plaintext.
       BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:-}
+      # Uploaded files go to S3 one copy each; a deleted file's copy is kept this many days.
+      BACKUP_FILES_DELETED_GRACE_DAYS: ${BACKUP_FILES_DELETED_GRACE_DAYS:-90}
       # S3 rotation of DB dumps (Supabase, Keycloak, Metabase): days / weeks / months kept.
       BACKUP_S3_KEEP_DAILY: ${BACKUP_S3_KEEP_DAILY:-14}
       BACKUP_S3_KEEP_WEEKLY: ${BACKUP_S3_KEEP_WEEKLY:-8}
@@ -317,7 +319,7 @@ services:
       GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
     volumes:
       - ./backups:/backups
-      # Read-only mount so backup-service can tar+upload task-media blobs to S3.
+      # Read-only mount so backup-service can copy uploaded files to S3 (fileSync.js).
       # Same volume is mounted rw into the storage service above.
       - storage_data:/storage-blobs:ro
 
