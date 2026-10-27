@@ -324,7 +324,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 
 CI (`.github/workflows/ci.yml`) на каждый push и pull request прогоняет два параллельных job:
 
-- `lint-test-build`: **lint → SQL security lint → typecheck → i18n-каталоги → test → backup-service tests → build**. Шаг «SQL security lint» (`infra/scripts/lint-security-definer.sh`) падает, если в миграциях есть функция с `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (см. §4.1 п.5). Шаг «i18n catalogs up to date» падает, если `npm run lingui:extract` даёт дифф в `src/locales` (см. §4.2 п.5).
+- `lint-test-build`: **lint → SQL security lint → typecheck → edge-функции → i18n-каталоги → test → backup-service tests → build**. Шаг «SQL security lint» (`infra/scripts/lint-security-definer.sh`) падает, если в миграциях есть функция с `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (см. §4.1 п.5). Шаг «i18n catalogs up to date» падает, если `npm run lingui:extract` даёт дифф в `src/locales` (см. §4.2 п.5).
 - `integration-tests`: поднимает Supabase-Postgres и прогоняет Liquibase-миграции скриптом `infra/scripts/ci-test-db.sh`, затем гоняет `npm run test:integration` (RLS, RPC, cron).
 
 Любой красный шаг останавливает пайплайн — но не мерж и не деплой (см. ниже). При этом CI **не является гейтом мержа и деплоя**: ветка `main` не защищена, а прод собирается из рабочего дерева по rsync — красный пайплайн технически не мешает выкатить релиз. Поэтому за зелёным CI следит агент (§5.4).
@@ -333,8 +333,9 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request прог�
 2. В `tsconfig.app.json` `strict: false`, но `strictNullChecks` **включён** — null/undefined-разыменования ловит компилятор. `noImplicitAny` пока выключен: неявные any не ловятся, новый код типизировать явно. Полный `strict` — отдельная постепенная задача.
 3. Результаты Supabase-запросов со строковым `select` кастовать как `... as unknown as <Row>` (Supabase не выводит тип такого select — принятый паттерн границы).
 4. Интеграционные тесты (`npm run test:integration`, каталог `tests/`) запускаются и в CI (job `integration-tests`). Локально при изменениях в RPC/RLS/cron гонять той же схемой: `bash infra/scripts/ci-test-db.sh`, затем `npm run test:integration`.
-5. Тесты backup-service (`infra/backup-service/*.test.js`) — отдельный набор на `node:test` вне vitest: `npm run test:backup`, гоняется в CI шагом «backup-service tests». Новые тесты сервиса класть туда же рядом с кодом, без внешних зависимостей (CI не ставит `node_modules` сервиса).
-6. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1100 тестов за ~30 с. На `forks` тот же набор шёл 20+ минут и давал ложные падения по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
+5. Edge Functions (`infra/supabase/functions`) в `tsconfig.app.json` не входят — их проверяет шаг «Edge Functions typecheck»: `infra/scripts/check-edge-functions.sh`, Deno 1.40.3 (как в `supabase/edge-runtime`), строгость как у фронта (`infra/supabase/deno.check.json`). Это храповик: в коде есть старые ошибки типов, шаг падает, только если их число превысило `infra/scripts/edge-typecheck-baseline.txt`. Починил старые — понизь базу через `--write-baseline`. Локально без Deno: `docker run --rm -v "$PWD:/repo:ro" -w /repo denoland/deno:1.40.3 bash infra/scripts/check-edge-functions.sh`.
+6. Тесты backup-service (`infra/backup-service/*.test.js`) — отдельный набор на `node:test` вне vitest: `npm run test:backup`, гоняется в CI шагом «backup-service tests». Новые тесты сервиса класть туда же рядом с кодом, без внешних зависимостей (CI не ставит `node_modules` сервиса).
+7. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1100 тестов за ~30 с. На `forks` тот же набор шёл 20+ минут и давал ложные падения по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
 
 ## 8. Definition of Done
 

@@ -31,6 +31,15 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Edge Functions live outside tsconfig.app.json. Deno 1.40.3 = the version
+      # inside supabase/edge-runtime v1.41.2. Ratchet: fails only on new errors.
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v1.40.3
+
+      - name: Edge Functions typecheck
+        run: bash infra/scripts/check-edge-functions.sh
+
       - name: i18n catalogs up to date
         run: |
           npm run lingui:extract
