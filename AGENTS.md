@@ -228,7 +228,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 
 Перед выполнением `make release` или `make release-testing` агент обязан составить пользовательские release notes:
 
-1. Получить список коммитов с последнего тега: `git log $(git describe --tags --abbrev=0)..HEAD --oneline`.
+1. Получить список коммитов с прошлого релиза: `git log --oneline "$(git log -1 --format=%H --grep='^chore(release): sync release')"..HEAD`. Граница — последний коммит `make release-sync` на рабочей ветке. Теги `vX.Y.Z` для этого не годятся: CI ставит их на мёрж-коммиты в `main`, из `codex/main-current` они недостижимы, и `git describe` уводит к давнему тегу (сотни лишних коммитов).
 2. Отфильтровать только те, что влияют на пользователя:
    - Включать: `feat(*)`, `fix(*)` затрагивающие UI, поведение, данные пользователя.
    - Исключать: `chore`, `refactor`, `test`, `docs`, `infra`, `ci`, внутренние технические fix (миграции индексов, конфиги, docker, nginx).
