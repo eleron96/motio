@@ -73,6 +73,13 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `METABASE_BACKUP_RETENTION_COUNT` — Metabase database backups to keep.
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` —
   any S3-compatible bucket for off-server copies.
+- `BACKUP_AGE_RECIPIENT` — [age](https://age-encryption.org) public key (`age1…`). When
+  set, every object sent to S3 is encrypted with it and stored as `<name>.age`; the server
+  holds only this public key and cannot decrypt its own S3 copies. The matching private key
+  (`AGE-SECRET-KEY-1…`) must be kept off the server — without it the S3 copies cannot be
+  restored. A malformed value stops all S3 uploads (and reports to GlitchTip) rather than
+  falling back to plaintext. Local copies in `infra/backups` stay unencrypted. Empty = S3
+  copies are plaintext.
 - `BACKUP_S3_KEEP_DAILY` / `BACKUP_S3_KEEP_WEEKLY` / `BACKUP_S3_KEEP_MONTHLY` (defaults
   14 / 8 / 12) — how database dumps (Supabase, Keycloak, Metabase) are rotated in S3: the
   newest N days, plus the newest dump of each of the last N weeks and N months that have

@@ -295,6 +295,8 @@ services:
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      # age public key (age1…): everything sent to S3 is encrypted with it. Empty = plaintext.
+      BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:-}
       # S3 rotation of DB dumps (Supabase, Keycloak, Metabase): days / weeks / months kept.
       BACKUP_S3_KEEP_DAILY: ${BACKUP_S3_KEEP_DAILY:-14}
       BACKUP_S3_KEEP_WEEKLY: ${BACKUP_S3_KEEP_WEEKLY:-8}

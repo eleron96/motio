@@ -7,9 +7,9 @@
 
 const isSafeDumpName = (name) => /^[a-z0-9._-]+$/i.test(name) && name.endsWith('.dump');
 
-// S3 keys of one family: `<prefix>/<anything>.dump`. Never matches the flat
-// Supabase dumps or another family's prefix.
-const s3PatternFor = (prefix) => new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/.+\\.dump$`);
+// S3 keys of one family: `<prefix>/<anything>.dump`, plus `.age` when encrypted.
+// Never matches the flat Supabase dumps or another family's prefix.
+const s3PatternFor = (prefix) => new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/.+\\.dump(\\.age)?$`);
 
 // Split the password out of a postgres URL so it travels via PGPASSWORD, not
 // argv: argv is visible in `ps`, and execFile errors echo the full command into

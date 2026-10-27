@@ -62,6 +62,7 @@ test('dumps, validates, uploads under its own prefix and prunes only that prefix
   assert.deepEqual(calls.uploads, ['metabase/metabase-daily-20261027-030000.dump']);
   const [pattern] = calls.prunes;
   assert.ok(pattern.test('metabase/metabase-daily-20261027-030000.dump'));
+  assert.ok(pattern.test('metabase/metabase-daily-20261027-030000.dump.age'));
   assert.ok(!pattern.test('keycloak/keycloak-daily-20261027-030000.dump'));
   assert.ok(!pattern.test('daily-20261027-030000.dump'));
 });

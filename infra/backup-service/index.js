@@ -15,6 +15,7 @@ const { captureException, captureMessage } = require('./glitchtipCapture');
 const { selectExpiredKeys, selectGfsExpiredKeys } = require('./retention');
 const { createSideDbBackup } = require('./sideDbBackup');
 const { runDailyBackup, createHeartbeat } = require('./dailyRun');
+const { parseAgeRecipient, encryptWithAge, createS3Uploader } = require('./encryption');
 const {
   tickAccountPurge,
   tickDataExportWorker,
@@ -89,6 +90,8 @@ const S3_REGION = process.env.S3_REGION || 'us-east-1';
 const S3_BUCKET = process.env.S3_BUCKET || '';
 const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || '';
 const S3_SECRET_KEY = process.env.S3_SECRET_KEY || '';
+// age public key: every object sent to S3 is encrypted with it (see encryption.js).
+const S3_ENCRYPTION = parseAgeRecipient(process.env.BACKUP_AGE_RECIPIENT);
 // Uptime monitor pinged after a fully successful nightly run; empty = no-op.
 const BACKUP_HEARTBEAT_URL = process.env.BACKUP_HEARTBEAT_URL || '';
 
@@ -119,22 +122,46 @@ const s3 = s3Enabled
     })
   : null;
 
+const putS3Object = async (filePath, key) => {
+  await s3.send(new PutObjectCommand({
+    Bucket: S3_BUCKET,
+    Key: key,
+    Body: createReadStream(filePath),
+  }));
+};
+const uploadEncryptedOrPlain = createS3Uploader({
+  recipientConfig: S3_ENCRYPTION,
+  tmpDir: path.join(BACKUP_DIR, '.s3-upload-tmp'),
+  fs,
+  path,
+  put: putS3Object,
+  encryptFile: encryptWithAge(execFileAsync),
+});
+
 // Throws on failure: the caller's step fails, so the nightly run reports it to
 // GlitchTip and skips the heartbeat. A swallowed upload error is exactly how
-// "backups quietly stopped reaching S3" happens.
+// "backups quietly stopped reaching S3" happens. Returns the key written
+// (with ".age" when encrypted).
 const uploadToS3 = async (filePath, key) => {
-  if (!s3) return;
+  if (!s3) return null;
+  let writtenKey;
   try {
-    await s3.send(new PutObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: key,
-      Body: createReadStream(filePath),
-    }));
+    writtenKey = await uploadEncryptedOrPlain(filePath, key);
   } catch (error) {
     throw new Error(`S3 upload failed for ${key}: ${error.message || error}`);
   }
-  console.log(`S3 upload ok: ${key}`);
+  console.log(`S3 upload ok: ${writtenKey}`);
+  return writtenKey;
 };
+
+if (s3) {
+  if (S3_ENCRYPTION.kind === 'invalid') {
+    console.error(`BACKUP_AGE_RECIPIENT is unusable (${S3_ENCRYPTION.reason}); S3 uploads will fail until it is fixed.`);
+    captureMessage(`BACKUP_AGE_RECIPIENT is unusable: ${S3_ENCRYPTION.reason}`, { level: 'error' });
+  } else {
+    console.log(`S3 backups: ${S3_ENCRYPTION.kind === 'age' ? 'encrypted with age' : 'NOT encrypted (BACKUP_AGE_RECIPIENT unset)'}.`);
+  }
+}
 
 const listAllS3Objects = async () => {
   const objects = [];
@@ -177,8 +204,8 @@ const pruneS3Dumps = (pattern) => pruneS3(pattern, (objects) => selectGfsExpired
 
 // S3 key patterns for each backup family (flat layout; side DBs under their
 // own prefix — keycloak/, metabase/ — see sideDbBackup.js).
-const S3_DB_DUMP_PATTERN = /^[^/]+\.dump$/;
-const S3_STORAGE_PATTERN = /^[^/]+\.tar\.gz$/;
+const S3_DB_DUMP_PATTERN = /^[^/]+\.dump(\.age)?$/;
+const S3_STORAGE_PATTERN = /^[^/]+\.tar\.gz(\.age)?$/;
 
 if (!DB_URL) {
   console.error('Missing SUPABASE_DB_URL');
