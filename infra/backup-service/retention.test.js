@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { selectExpiredKeys, selectKeysOlderThan, MIN_SAFE_KEEP } = require('./retention');
+const { selectExpiredKeys, selectKeysOlderThan, selectGfsExpiredKeys, MIN_SAFE_KEEP } = require('./retention');
 
 // Build an object dated `daysAgo` before a fixed reference date.
 function obj(key, daysAgo) {
@@ -51,4 +51,47 @@ test('selectKeysOlderThan returns keys strictly older than cutoff', () => {
 
 test('selectKeysOlderThan: invalid cutoff -> no deletes', () => {
   assert.deepEqual(selectKeysOlderThan([obj('a', 100)], 'not-a-date'), []);
+});
+
+// ── GFS (daily / weekly / monthly) ─────────────────────────────────────────
+
+// One backup a day at 03:00 UTC from `from` to `to` inclusive (YYYY-MM-DD).
+const dailyObjects = (from, to) => {
+  const objects = [];
+  for (let t = Date.parse(`${from}T03:00:00Z`); t <= Date.parse(`${to}T03:00:00Z`); t += 86400000) {
+    const day = new Date(t).toISOString().slice(0, 10);
+    objects.push({ Key: `daily-${day.replace(/-/g, '')}-030000.dump`, LastModified: new Date(t) });
+  }
+  return objects;
+};
+const dayOf = (key) => key.slice(6, 14);
+const POLICY = { daily: 14, weekly: 8, monthly: 12 };
+
+test('GFS: keeps 14 newest days, the newest of 8 ISO weeks and of 12 months', () => {
+  const objects = dailyObjects('2026-01-01', '2026-10-27'); // 2026-10-27 is a Tuesday
+  const deleted = new Set(selectGfsExpiredKeys(objects, POLICY));
+  const kept = objects.map((o) => o.Key).filter((k) => !deleted.has(k)).map(dayOf).sort();
+
+  const daily = Array.from({ length: 14 }, (_, i) => `202610${String(14 + i).padStart(2, '0')}`);
+  // Sundays closing the earlier weeks (the two newest weeks are covered by the dailies).
+  const weekly = ['20260913', '20260920', '20260927', '20261004', '20261011'];
+  // Last day of every earlier month that has backups (only 10 months exist).
+  const monthly = ['20260131', '20260228', '20260331', '20260430', '20260531', '20260630', '20260731', '20260831', '20260930'];
+  assert.deepEqual(kept, [...daily, ...weekly, ...monthly].sort());
+});
+
+test('GFS: nothing to delete while there are no more than the daily count', () => {
+  assert.deepEqual(selectGfsExpiredKeys(dailyObjects('2026-10-20', '2026-10-27'), POLICY), []);
+});
+
+test('GFS: the daily tier never drops below the safety floor', () => {
+  const objects = dailyObjects('2026-10-01', '2026-10-27');
+  const deleted = new Set(selectGfsExpiredKeys(objects, { daily: 1, weekly: 0, monthly: 0 }));
+  const kept = objects.filter((o) => !deleted.has(o.Key)).map((o) => dayOf(o.Key));
+  assert.deepEqual(kept, ['20261023', '20261024', '20261025', '20261026', '20261027']);
+});
+
+test('GFS: an object without a readable date is never deleted', () => {
+  const objects = [...dailyObjects('2026-01-01', '2026-10-27'), { Key: 'manual-unknown.dump', LastModified: 'garbage' }];
+  assert.ok(!selectGfsExpiredKeys(objects, POLICY).includes('manual-unknown.dump'));
 });

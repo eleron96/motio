@@ -50,6 +50,7 @@ const pruneLocalDumps = async (dir, keepCount, protectedNames, { fs, path }) => 
 
 // target: { label, dbUrl, dir, retentionCount, s3Prefix }
 // deps:   { execFileAsync, fs, path, buildTimestamp, uploadToS3, pruneS3 }
+// `retentionCount` is for the local copies; pruneS3 owns the S3 rotation.
 // Returns null when dbUrl is unset, so stacks without that database keep working.
 const createSideDbBackup = async (target, deps) => {
   const { label, dbUrl, dir, retentionCount, s3Prefix } = target;
@@ -86,7 +87,7 @@ const createSideDbBackup = async (target, deps) => {
   }
   await pruneLocalDumps(dir, retentionCount, [name], { fs, path });
   await uploadToS3(filePath, `${s3Prefix}/${name}`);
-  await pruneS3(s3PatternFor(s3Prefix), retentionCount);
+  await pruneS3(s3PatternFor(s3Prefix));
   return {
     name,
     type: label,

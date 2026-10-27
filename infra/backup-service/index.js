@@ -12,7 +12,7 @@ const { Pool } = require('pg');
 const cron = require('node-cron');
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const { captureException, captureMessage } = require('./glitchtipCapture');
-const { selectExpiredKeys } = require('./retention');
+const { selectExpiredKeys, selectGfsExpiredKeys } = require('./retention');
 const { createSideDbBackup } = require('./sideDbBackup');
 const { runDailyBackup, createHeartbeat } = require('./dailyRun');
 const {
@@ -70,6 +70,19 @@ const BACKUP_RETENTION_COUNT = (() => {
   const parsed = Number.parseInt(process.env.BACKUP_RETENTION_COUNT || '30', 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
 })();
+
+const readPositiveInt = (name, fallback) => {
+  const parsed = Number.parseInt(process.env[name] || String(fallback), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+// S3 copies of database dumps (Supabase, Keycloak, Metabase) are rotated
+// grandfather-father-son: 14 newest days + one per week for 8 weeks + one per
+// month for a year. Local copies on the server keep the plain counts above.
+const S3_DUMP_RETENTION = {
+  daily: readPositiveInt('BACKUP_S3_KEEP_DAILY', 14),
+  weekly: readPositiveInt('BACKUP_S3_KEEP_WEEKLY', 8),
+  monthly: readPositiveInt('BACKUP_S3_KEEP_MONTHLY', 12),
+};
 
 const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
@@ -136,15 +149,16 @@ const listAllS3Objects = async () => {
   return objects;
 };
 
-// Keep only the `keepCount` newest S3 objects whose Key matches `pattern`.
-// Uses the unit-tested selectExpiredKeys (with its safety floor) so a bug can
-// never wipe the bucket. Best-effort: logs + reports but never throws.
-const pruneS3 = async (pattern, keepCount) => {
+// Delete the S3 objects whose Key matches `pattern` and that `selectExpired`
+// picks (both selectors in retention.js are unit-tested and keep a safety
+// floor, so a bug can never wipe the bucket). Best-effort: logs + reports but
+// never throws.
+const pruneS3 = async (pattern, selectExpired) => {
   if (!s3) return;
   try {
     const all = await listAllS3Objects();
     const matching = all.filter((obj) => typeof obj.Key === 'string' && pattern.test(obj.Key));
-    const toDelete = selectExpiredKeys(matching, keepCount);
+    const toDelete = selectExpired(matching);
     if (toDelete.length === 0) return;
     for (let i = 0; i < toDelete.length; i += 1000) {
       const batch = toDelete.slice(i, i + 1000);
@@ -153,12 +167,13 @@ const pruneS3 = async (pattern, keepCount) => {
         Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
       }));
     }
-    console.log(`S3 prune: removed ${toDelete.length} old object(s) for ${pattern} (kept ${keepCount}).`);
+    console.log(`S3 prune: removed ${toDelete.length} old object(s) for ${pattern}.`);
   } catch (error) {
     console.error(`S3 prune failed for ${pattern}:`, error.message || error);
     captureException(error instanceof Error ? error : new Error(`S3 prune failed for ${pattern}`));
   }
 };
+const pruneS3Dumps = (pattern) => pruneS3(pattern, (objects) => selectGfsExpiredKeys(objects, S3_DUMP_RETENTION));
 
 // S3 key patterns for each backup family (flat layout; side DBs under their
 // own prefix — keycloak/, metabase/ — see sideDbBackup.js).
@@ -386,7 +401,7 @@ const createBackup = async (type, options = {}) => {
     await pruneBackups([name]);
   }
   await uploadToS3(filePath, name);
-  await pruneS3(S3_DB_DUMP_PATTERN, BACKUP_RETENTION_COUNT);
+  await pruneS3Dumps(S3_DB_DUMP_PATTERN);
   return {
     ...toBackupEntry(name, stat),
     type,
@@ -465,7 +480,7 @@ const createStorageBackup = async () => {
 
   await pruneStorageBackups([name]);
   await uploadToS3(filePath, name);
-  await pruneS3(S3_STORAGE_PATTERN, STORAGE_BACKUP_RETENTION_COUNT);
+  await pruneS3(S3_STORAGE_PATTERN, (objects) => selectExpiredKeys(objects, STORAGE_BACKUP_RETENTION_COUNT));
 
   return {
     name,
@@ -481,7 +496,7 @@ const SIDE_DB_TARGETS = [
   { label: 'keycloak', dbUrl: KEYCLOAK_DB_URL, dir: KEYCLOAK_BACKUP_DIR, retentionCount: KEYCLOAK_BACKUP_RETENTION_COUNT, s3Prefix: 'keycloak' },
   { label: 'metabase', dbUrl: METABASE_DB_URL, dir: METABASE_BACKUP_DIR, retentionCount: METABASE_BACKUP_RETENTION_COUNT, s3Prefix: 'metabase' },
 ];
-const sideDbBackupDeps = { execFileAsync, fs, path, buildTimestamp, uploadToS3, pruneS3 };
+const sideDbBackupDeps = { execFileAsync, fs, path, buildTimestamp, uploadToS3, pruneS3: pruneS3Dumps };
 
 const saveUploadedBackup = async (name, stream) => {
   if (!isSafeBackupName(name)) {

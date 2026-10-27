@@ -24,7 +24,7 @@ const makeDeps = ({ dumpContent = 'PGDMP fake', restoreFails = false, dumpError 
       return { stdout: '', stderr: '' };
     },
     uploadToS3: async (filePath, key) => { calls.uploads.push(key); },
-    pruneS3: async (pattern, keep) => { calls.prunes.push([pattern, keep]); },
+    pruneS3: async (pattern) => { calls.prunes.push(pattern); },
   };
   return { deps, calls };
 };
@@ -60,8 +60,7 @@ test('dumps, validates, uploads under its own prefix and prunes only that prefix
   assert.equal(calls.exec[1][0], 'pg_restore');
 
   assert.deepEqual(calls.uploads, ['metabase/metabase-daily-20261027-030000.dump']);
-  const [pattern, keep] = calls.prunes[0];
-  assert.equal(keep, 90);
+  const [pattern] = calls.prunes;
   assert.ok(pattern.test('metabase/metabase-daily-20261027-030000.dump'));
   assert.ok(!pattern.test('keycloak/keycloak-daily-20261027-030000.dump'));
   assert.ok(!pattern.test('daily-20261027-030000.dump'));
