@@ -125,6 +125,7 @@ const makeHarness = (dbRows: TaskRow[]) => {
     removeTasksByIds: (ids: string[]) => {
       state = { ...state, tasks: state.tasks.filter((task) => !ids.includes(task.id)) };
     },
+    reportTaskWriteFailure: vi.fn(),
   };
   const set = (partial: Record<string, unknown> | ((current: typeof state) => Record<string, unknown>)) => {
     const nextPartial = typeof partial === 'function' ? partial(state) : partial;

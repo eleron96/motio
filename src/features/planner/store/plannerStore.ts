@@ -58,10 +58,21 @@ export const usePlannerStore = create<PlannerStore>()(
       syncHealthy: true,
       taskUndoStack: [],
       pendingDeleteTaskIds: [],
+      taskWriteFailure: null,
       pendingRevealTaskId: null,
       hasSampleData: false,
 
       setWorkspaceId: (id) => set({ workspaceId: id }),
+      reportTaskWriteFailure: (kind, action, error) => {
+        console.error({
+          module: 'planner.store',
+          action,
+          workspaceId: get().workspaceId,
+          result: 'error',
+          message: (error as { message?: string } | null)?.message ?? String(error),
+        });
+        set({ taskWriteFailure: { kind } });
+      },
       setPendingRevealTaskId: (taskId) => set({ pendingRevealTaskId: taskId }),
       setSyncHealthy: (healthy) => set({ syncHealthy: healthy }),
 
@@ -103,6 +114,7 @@ export const usePlannerStore = create<PlannerStore>()(
         syncHealthy: true,
         taskUndoStack: [],
         pendingDeleteTaskIds: [],
+        taskWriteFailure: null,
         pendingRevealTaskId: null,
         hasSampleData: false,
       }),

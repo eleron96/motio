@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { Bold, Italic, Underline, Strikethrough, List, ListOrdered, Quote, Image } from 'lucide-react';
 import { sanitizeTaskRichText } from '@/shared/lib/sanitizer';
 import { normalizePastedTaskHtml } from '@/shared/lib/pastedRichText';
+import { hasRichTags } from '@/shared/domain/taskDescription';
 import { Button } from '@/shared/ui/button';
 import { toast } from '@/shared/ui/sonner';
 import { cn } from '@/shared/lib/classNames';
@@ -34,10 +35,6 @@ interface RichTextEditorProps {
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MIN_IMAGE_WIDTH = 120;
 const DEFAULT_IMAGE_SCALE = 0.7;
-
-const hasRichTags = (value: string) => (
-  /<\/?(b|strong|i|em|u|s|strike|ul|ol|li|blockquote|br|div|p|span|img)\b/i.test(value)
-);
 
 const normalizePlainText = (text: string) => text.replace(/\u00a0/g, ' ');
 

@@ -1262,9 +1262,17 @@ msgstr "Copy phone"
 msgid "Could not check access"
 msgstr "Could not check access"
 
+#: src/features/planner/hooks/useTaskWriteFailureToasts.ts
+msgid "Couldn't delete the task. It's back in place."
+msgstr "Couldn't delete the task. It's back in place."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Couldn't enable notifications. Please try again."
 msgstr "Couldn't enable notifications. Please try again."
+
+#: src/features/planner/hooks/useTaskWriteFailureToasts.ts
+msgid "Couldn't save the task. Check your connection and try again."
+msgstr "Couldn't save the task. Check your connection and try again."
 
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — the task was already changed"

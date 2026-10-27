@@ -22,7 +22,12 @@ import {
   TimeOffDragPreview,
   ViewMode,
 } from '@/features/planner/types/planner';
-import { LoadedTaskWindow, MutationResult, TimeOffMutationResult } from '@/features/planner/store/plannerStore.helpers';
+import {
+  LoadedTaskWindow,
+  MutationResult,
+  TaskWriteFailure,
+  TimeOffMutationResult,
+} from '@/features/planner/store/plannerStore.helpers';
 import type { TaskBoardScope } from '@/shared/domain/taskLoadScopes';
 import { RepeatCreateOptions } from '@/features/planner/lib/taskFormRules';
 import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
@@ -152,6 +157,13 @@ export interface PlannerStore extends PlannerState {
    */
   pendingDeleteTaskIds: string[];
   pushTaskUndo: (entry: TaskUndoEntry) => void;
+  /**
+   * Latest task write the server rejected. Every report is a new object, so the
+   * same kind failing twice is shown twice (useTaskWriteFailureToasts).
+   */
+  taskWriteFailure: TaskWriteFailure | null;
+  /** The one place a rejected task write is logged and surfaced to the user. */
+  reportTaskWriteFailure: (kind: TaskWriteFailure['kind'], action: string, error: unknown) => void;
   /** Undo a specific entry (cascading through newer same-task entries). */
   undoTaskEntry: (entryId: string) => Promise<TaskUndoOutcome | null>;
   /** Undo the most recent entry (Cmd/Ctrl+Z). */
