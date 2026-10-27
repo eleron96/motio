@@ -67,6 +67,10 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `BACKUP_AUTH_DB_USER`, `BACKUP_AUTH_HOST`
 - `STORAGE_BACKUP_RETENTION_COUNT` — daily archives of uploaded files to keep.
 - `KEYCLOAK_BACKUP_RETENTION_COUNT` — Keycloak database backups to keep.
+- `METABASE_DB_URL` — Metabase app database (`postgresql://metabase:<password>@metabase-db:5432/metabase`,
+  password URL-encoded). When set, dashboards and saved questions are dumped daily to `metabase/` in S3;
+  empty disables it.
+- `METABASE_BACKUP_RETENTION_COUNT` — Metabase database backups to keep.
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` —
   any S3-compatible bucket for off-server copies. The bucket is pruned with the
   same retention counts, and never below 5 copies.

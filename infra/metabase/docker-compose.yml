@@ -21,6 +21,8 @@ services:
       retries: 10
     networks:
       - metabase-internal
+      # backup-service (main stack) dumps this DB daily — see METABASE_DB_URL.
+      - infra_default
 
   metabase:
     image: metabase/metabase:v0.64.3.5

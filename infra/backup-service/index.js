@@ -13,6 +13,7 @@ const cron = require('node-cron');
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const { captureException, captureMessage } = require('./glitchtipCapture');
 const { selectExpiredKeys } = require('./retention');
+const { createSideDbBackup } = require('./sideDbBackup');
 const {
   tickAccountPurge,
   tickDataExportWorker,
@@ -39,6 +40,14 @@ const KEYCLOAK_DB_URL = process.env.KEYCLOAK_DB_URL || '';
 const KEYCLOAK_BACKUP_DIR = path.join(process.env.BACKUP_DIR || '/backups', 'keycloak');
 const KEYCLOAK_BACKUP_RETENTION_COUNT = (() => {
   const parsed = Number.parseInt(process.env.KEYCLOAK_BACKUP_RETENTION_COUNT || '90', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 90;
+})();
+// Metabase app DB (dashboards, saved questions, users). Lives in its own stack
+// (infra/metabase); dumped daily when METABASE_DB_URL is set. No-op if unset.
+const METABASE_DB_URL = process.env.METABASE_DB_URL || '';
+const METABASE_BACKUP_DIR = path.join(process.env.BACKUP_DIR || '/backups', 'metabase');
+const METABASE_BACKUP_RETENTION_COUNT = (() => {
+  const parsed = Number.parseInt(process.env.METABASE_BACKUP_RETENTION_COUNT || '90', 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 90;
 })();
 const BACKUP_RESTORE_DB_URL = process.env.BACKUP_RESTORE_DB_URL || '';
@@ -149,10 +158,10 @@ const pruneS3 = async (pattern, keepCount) => {
   }
 };
 
-// S3 key patterns for each backup family (flat layout; keycloak under keycloak/).
+// S3 key patterns for each backup family (flat layout; side DBs under their
+// own prefix — keycloak/, metabase/ — see sideDbBackup.js).
 const S3_DB_DUMP_PATTERN = /^[^/]+\.dump$/;
 const S3_STORAGE_PATTERN = /^[^/]+\.tar\.gz$/;
-const S3_KEYCLOAK_PATTERN = /^keycloak\/.+\.dump$/;
 
 if (!DB_URL) {
   console.error('Missing SUPABASE_DB_URL');
@@ -464,66 +473,13 @@ const createStorageBackup = async () => {
   };
 };
 
-const isSafeKeycloakBackupName = (name) => /^[a-z0-9._-]+$/i.test(name) && name.endsWith('.dump');
-
-const pruneKeycloakLocal = async (keepCount, protectedNames = []) => {
-  const protectedSet = new Set(protectedNames);
-  await fs.mkdir(KEYCLOAK_BACKUP_DIR, { recursive: true });
-  const entries = await fs.readdir(KEYCLOAK_BACKUP_DIR);
-  const files = await Promise.all(
-    entries
-      .filter((name) => isSafeKeycloakBackupName(name))
-      .map(async (name) => {
-        const fullPath = path.join(KEYCLOAK_BACKUP_DIR, name);
-        const stat = await fs.stat(fullPath);
-        return { name, fullPath, mtimeMs: stat.mtimeMs };
-      }),
-  );
-  files.sort((a, b) => b.mtimeMs - a.mtimeMs);
-  let kept = 0;
-  for (const file of files) {
-    if (protectedSet.has(file.name)) { kept += 1; continue; }
-    if (kept < keepCount) { kept += 1; continue; }
-    await fs.unlink(file.fullPath).catch(() => {});
-  }
-};
-
-// Daily Keycloak DB dump (logins/passwords/realm). No-op when KEYCLOAK_DB_URL
-// is unset so local/dev stacks without Keycloak keep working.
-const createKeycloakBackup = async () => {
-  if (!KEYCLOAK_DB_URL) {
-    return null;
-  }
-  await fs.mkdir(KEYCLOAK_BACKUP_DIR, { recursive: true });
-  const name = `keycloak-daily-${buildTimestamp()}.dump`;
-  const filePath = path.join(KEYCLOAK_BACKUP_DIR, name);
-  await execFileAsync('pg_dump', [
-    '--format=custom',
-    '--no-owner',
-    '--file', filePath,
-    '--dbname', KEYCLOAK_DB_URL,
-  ]);
-  try {
-    await execFileAsync('pg_restore', ['--list', filePath]);
-  } catch (validationError) {
-    await fs.unlink(filePath).catch(() => {});
-    throw new Error(`Keycloak backup validation failed (corrupt dump): ${validationError.message || validationError}`);
-  }
-  const stat = await fs.stat(filePath);
-  if (stat.size === 0) {
-    await fs.unlink(filePath).catch(() => {});
-    throw new Error('Keycloak backup file is empty after pg_dump.');
-  }
-  await pruneKeycloakLocal(KEYCLOAK_BACKUP_RETENTION_COUNT, [name]);
-  await uploadToS3(filePath, `keycloak/${name}`);
-  await pruneS3(S3_KEYCLOAK_PATTERN, KEYCLOAK_BACKUP_RETENTION_COUNT);
-  return {
-    name,
-    type: 'keycloak',
-    createdAt: stat.mtime.toISOString(),
-    size: stat.size,
-  };
-};
+// Side databases dumped daily after the Supabase DB. Keycloak: logins/passwords/realm;
+// Metabase: dashboards/saved questions. Each is a no-op while its URL is unset.
+const SIDE_DB_TARGETS = [
+  { label: 'keycloak', dbUrl: KEYCLOAK_DB_URL, dir: KEYCLOAK_BACKUP_DIR, retentionCount: KEYCLOAK_BACKUP_RETENTION_COUNT, s3Prefix: 'keycloak' },
+  { label: 'metabase', dbUrl: METABASE_DB_URL, dir: METABASE_BACKUP_DIR, retentionCount: METABASE_BACKUP_RETENTION_COUNT, s3Prefix: 'metabase' },
+];
+const sideDbBackupDeps = { execFileAsync, fs, path, buildTimestamp, uploadToS3, pruneS3 };
 
 const saveUploadedBackup = async (name, stream) => {
   if (!isSafeBackupName(name)) {
@@ -872,16 +828,18 @@ cron.schedule(BACKUP_CRON, async () => {
     }
   }
 
-  // Keycloak DB (auth) backup — daily, so a restore brings back logins too.
-  if (KEYCLOAK_DB_URL) {
+  // Side DBs (Keycloak auth, Metabase dashboards) — daily, so a restore brings
+  // them back too. One failing target does not skip the next.
+  for (const target of SIDE_DB_TARGETS) {
+    if (!target.dbUrl) continue;
     if (activeJob) return;
-    activeJob = 'daily-keycloak-backup';
+    activeJob = `daily-${target.label}-backup`;
     try {
-      const backup = await createKeycloakBackup();
-      if (backup) console.log(`Keycloak backup ok: ${backup.name} (${backup.size} bytes)`);
+      const backup = await createSideDbBackup(target, sideDbBackupDeps);
+      if (backup) console.log(`${target.label} backup ok: ${backup.name} (${backup.size} bytes)`);
     } catch (error) {
-      console.error('Daily keycloak backup failed:', error.message || error);
-      captureException(error instanceof Error ? error : new Error('Daily keycloak backup failed'));
+      console.error(`Daily ${target.label} backup failed:`, error.message || error);
+      captureException(error instanceof Error ? error : new Error(`Daily ${target.label} backup failed`));
     } finally {
       activeJob = null;
     }
