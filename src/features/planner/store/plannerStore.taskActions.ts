@@ -250,7 +250,7 @@ export const createTaskActions = (
         .eq('workspace_id', workspaceId)
         .single();
       if (baseTaskError || !baseTaskData) {
-        console.error(baseTaskError);
+        get().reportTaskWriteFailure('save', 'updateTask', baseTaskError);
         return;
       }
       baseTask = mapTaskRow(baseTaskData as TaskRow);
@@ -284,7 +284,7 @@ export const createTaskActions = (
         : query.select('*'));
 
       if (error) {
-        console.error(error);
+        get().reportTaskWriteFailure('save', 'updateTask', error);
         return;
       }
 
@@ -302,7 +302,7 @@ export const createTaskActions = (
       .single();
 
     if (error || !data) {
-      console.error(error);
+      get().reportTaskWriteFailure('save', 'updateTask', error);
       return;
     }
 
@@ -334,13 +334,13 @@ export const createTaskActions = (
       .eq('workspace_id', workspaceId);
 
     if (error) {
-      console.error(error);
       set({
         tasks: previousTasks,
         selectedTaskId: previousSelectedTaskId,
         highlightedTaskId: previousHighlightedTaskId,
         highlightedTaskRowAssigneeId: previousHighlightedTaskRowAssigneeId,
       });
+      get().reportTaskWriteFailure('delete', 'deleteTask', error);
       return;
     }
 
@@ -413,7 +413,7 @@ export const createTaskActions = (
     const newStart = addDays(end, 1);
     const newEnd = addDays(newStart, Math.max(0, duration - 1));
 
-    await get().addTask({
+    const duplicate = await get().addTask({
       title: task.title,
       projectId: task.projectId,
       assigneeIds: [...task.assigneeIds],
@@ -426,6 +426,7 @@ export const createTaskActions = (
       description: task.description ?? null,
       repeatId: null,
     });
+    if (!duplicate) get().reportTaskWriteFailure('save', 'duplicateTask', null);
   },
 
   createRepeats: async (id, options) => {
@@ -717,7 +718,7 @@ export const createTaskActions = (
         .eq('workspace_id', workspaceId)
         .single();
       if (baseTaskError || !baseTaskData) {
-        console.error(baseTaskError);
+        get().reportTaskWriteFailure('save', 'moveTask', baseTaskError);
         return;
       }
       baseTask = mapTaskRow(baseTaskData as TaskRow);
@@ -746,7 +747,7 @@ export const createTaskActions = (
       : seriesQuery);
 
     if (targetRowsError) {
-      console.error(targetRowsError);
+      get().reportTaskWriteFailure('save', 'moveTask', targetRowsError);
       return;
     }
 
@@ -778,7 +779,7 @@ export const createTaskActions = (
         .single();
 
       if (updateError || !updatedRow) {
-        console.error(updateError);
+        get().reportTaskWriteFailure('save', 'moveTask', updateError);
 
         const refreshQuery = supabase
           .from('tasks')
@@ -958,13 +959,13 @@ export const createTaskActions = (
       .gte('start_date', fromDate);
 
     if (error) {
-      console.error(error);
       set({
         tasks: previousTasks,
         selectedTaskId: previousSelectedTaskId,
         highlightedTaskId: previousHighlightedTaskId,
         highlightedTaskRowAssigneeId: previousHighlightedTaskRowAssigneeId,
       });
+      get().reportTaskWriteFailure('delete', 'deleteTaskSeries', error);
       return;
     }
 
@@ -984,7 +985,7 @@ export const createTaskActions = (
         .eq('workspace_id', workspaceId)
         .single();
       if (error || !data) {
-        console.error(error);
+        get().reportTaskWriteFailure('save', 'removeAssigneeFromTask', error);
         return;
       }
       baseTask = mapTaskRow(data as TaskRow);
@@ -1004,7 +1005,7 @@ export const createTaskActions = (
     const { data: targetRows, error: targetRowsError } = await fetchTargetRows();
 
     if (targetRowsError) {
-      console.error(targetRowsError);
+      get().reportTaskWriteFailure('save', 'removeAssigneeFromTask', targetRowsError);
       return;
     }
 
@@ -1036,7 +1037,7 @@ export const createTaskActions = (
         .single();
 
       if (updateError || !updatedRow) {
-        console.error(updateError);
+        get().reportTaskWriteFailure('save', 'removeAssigneeFromTask', updateError);
         // Earlier rows may already be updated in the DB; resync from the DB so
         // the store doesn't silently diverge from the persisted state.
         const { data: refreshed } = await fetchTargetRows();
@@ -1055,7 +1056,7 @@ export const createTaskActions = (
         .in('id', deleteIds);
 
       if (deleteError) {
-        console.error(deleteError);
+        get().reportTaskWriteFailure('save', 'removeAssigneeFromTask', deleteError);
         // The assignee updates above are persisted but not yet reflected in the
         // store (the optimistic set() runs only on full success); resync now.
         const { data: refreshed } = await fetchTargetRows();

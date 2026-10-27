@@ -186,6 +186,14 @@ export type MutationResult = {
 };
 
 /**
+ * A task write the server rejected, as the user should hear about it: 'save'
+ * covers edit, move, duplicate and unassign; 'delete' means the task is back.
+ */
+export type TaskWriteFailure = {
+  kind: 'save' | 'delete';
+};
+
+/**
  * Time-off writes carry a machine-readable reason so the UI can show a specific
  * message instead of a raw Postgres string. `overlap` is 23P01 (the person
  * already has days off in that period), `invalidRange` is 23514 (end before

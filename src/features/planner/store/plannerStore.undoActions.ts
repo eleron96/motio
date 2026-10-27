@@ -159,10 +159,10 @@ export const createUndoActions = (
     removePendingDeleteTaskIds(taskIds);
 
     if (error) {
-      console.error(error);
       if (get().workspaceId === pending.workspaceId) {
         get().upsertTasks(pending.snapshot);
       }
+      get().reportTaskWriteFailure('delete', 'deleteTaskDeferred', error);
       return;
     }
 

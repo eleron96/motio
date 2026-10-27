@@ -13,6 +13,7 @@ import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { useTaskUndoToasts } from '@/features/planner/hooks/useTaskUndoToasts';
+import { useTaskWriteFailureToasts } from '@/features/planner/hooks/useTaskWriteFailureToasts';
 import { useRevealPendingTask } from '@/features/planner/hooks/useRevealPendingTask';
 import { Button } from '@/shared/ui/button';
 import { Filter, Plus, SquarePen } from 'lucide-react';
@@ -260,6 +261,7 @@ const PlannerPage = () => {
 
   usePlannerLiveSync(currentWorkspaceId, loadedRange);
   useTaskUndoToasts();
+  useTaskWriteFailureToasts();
   useRevealPendingTask();
 
   useEffect(() => {
