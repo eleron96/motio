@@ -124,6 +124,10 @@ const main = async () => {
     region: S3_REGION || 'us-east-1',
     credentials: { accessKeyId: S3_ACCESS_KEY, secretAccessKey: S3_SECRET_KEY },
     forcePathStyle: true,
+    // SDK ≥3.729 adds CRC checksums with aws-chunked uploads by default, which
+    // S3-compatible servers outside AWS often reject; only send them when required.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
   });
 
   const objects = [];
