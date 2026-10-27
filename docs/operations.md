@@ -309,6 +309,26 @@ Audit helper: `make audit-migrations`.
 
 ## Backup / Restore
 
+### What is backed up, and where
+
+Every night (`BACKUP_CRON`, 03:00) backup-service runs these steps in order. A failed
+step is reported to GlitchTip and does not stop the next one; `BACKUP_HEARTBEAT_URL` is
+pinged only when all of them succeeded.
+
+| Step | On the server (`infra/backups`) | In S3 |
+|---|---|---|
+| `db` — Supabase DB (`public`, `auth`, `storage`: users, workspaces, tasks, comments, file records) | `daily-*.dump`, `BACKUP_RETENTION_COUNT` newest | `daily-*.dump[.age]`, rotated 14 days / 8 weeks / 12 months |
+| `files` — uploaded files (avatars, task media) | — (the live volume) | `files/<path in the volume>[.age]`, one copy per file; a deleted file's copy stays `BACKUP_FILES_DELETED_GRACE_DAYS` (90) |
+| `keycloak` — logins, passwords, realm | `keycloak/*.dump` | `keycloak/*.dump[.age]`, same rotation as `db` |
+| `metabase` — dashboards (when `METABASE_DB_URL` is set) | `metabase/*.dump` | `metabase/*.dump[.age]`, same rotation |
+| `bucket-budget` — size of the bucket | — | warning from `BACKUP_S3_WARN_GB`, failed step from `BACKUP_S3_ALARM_GB` |
+
+With `BACKUP_AGE_RECIPIENT` set, everything in S3 is encrypted with that age public key
+(`.age` suffix) and only the owner's private key can read it back. Data exports
+(`user-exports`) are not copied: they are short-lived copies of data that is backed up
+anyway. Older `storage-*.tar.gz` archives in S3 predate the per-file copies; the newest 7
+are kept as a fallback.
+
 `backup-service` under `/backup`:
 
 | Method | Endpoint |
@@ -320,7 +340,8 @@ Audit helper: `make audit-migrations`.
 | `PATCH` | `/backup/backups/:name` |
 | `DELETE` | `/backup/backups/:name` |
 | `POST` | `/backup/backups/:name/restore` |
-| `POST` | `/backup/storage-backups` *(manual backup of Storage blobs; requires `STORAGE_BLOBS_DIR`, otherwise 501)* |
+| `POST` | `/backup/storage-backups` *(manual local archive of uploaded files; requires `STORAGE_BLOBS_DIR`, otherwise 501)* |
+| `POST` | `/backup/backups/run-nightly` *(runs the nightly backup now; 200 with per-step results, 500 if a step failed, 409 if another job runs)* |
 
 **Restore flow:**
 
@@ -335,20 +356,23 @@ The standard restore assumes a database with a matching schema (the same server)
 freshly initialized DB `pg_restore --clean --exit-on-error` fails, so before loading
 the dump:
 
-1. Drop the objects pre-created by the image and create empty schemas
-   (`pg_restore --schema` does not create the schemas themselves):
+1. Drop the objects pre-created by the image, create empty schemas
+   (`pg_restore --schema` does not create the schemas themselves) and put back
+   `btree_gist`, the one extension that lives in `public` (dropping `public` removes
+   it, and `time_off_no_overlap` needs it):
 
    ```sql
    DROP SCHEMA IF EXISTS storage CASCADE;
    DROP SCHEMA IF EXISTS auth CASCADE;
    DROP SCHEMA IF EXISTS public CASCADE;
    CREATE SCHEMA public; CREATE SCHEMA auth; CREATE SCHEMA storage;
+   CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
    ```
 
 2. Create the missing roles that the dump GRANTs to:
    `CREATE ROLE metabase_ro NOLOGIN;`
 
-3. Load the dump **without** `--clean`:
+3. Load the dump **without** `--clean`, as `supabase_admin`:
 
    ```bash
    pg_restore --single-transaction --exit-on-error --no-owner \
@@ -359,8 +383,48 @@ the dump:
 4. Then follow steps 3–4 of the standard restore (`auth` grants, restart
    GoTrue/storage).
 
-Verified against a copy of the production dump (June 2026): after preparation the dump
-loads without errors, and a subsequent standard restore on top works too.
+### Restoring from S3 (the server is gone)
+
+You need the S3 credentials (`S3_*`) and, if the copies are encrypted, the age private
+key (`AGE-SECRET-KEY-1…`) kept off the server. Without that key the S3 copies cannot be
+read.
+
+1. Bring the stack up on the new server (deploy, `.env` with the same `S3_*`), so the
+   database, storage volume and the backup image exist.
+2. Put the private key on the server (`/root/restore/owner-key.txt`, mode 600) and pull a
+   decrypted set — the newest dumps and every file (`--database <key>` picks an older dump):
+
+   ```bash
+   docker compose -f infra/docker-compose.prod.yml --env-file .env run --rm \
+     -v /root/restore:/restore backup \
+     node restoreFromS3.js --out /restore/set --identity /restore/owner-key.txt
+   ```
+
+   Result: `set/database/*.dump`, `set/keycloak/*.dump`, `set/metabase/*.dump`,
+   `set/files/…`.
+3. Database: load `set/database/<dump>` as in *Disaster recovery* above.
+4. Files: pack them and restore into the storage volume. The script snapshots the
+   volume first and then rebuilds the xattrs storage-api needs from `storage.objects`
+   (without them it answers 500), so the database must already be restored:
+
+   ```bash
+   tar czf /root/restore/storage-from-s3.tar.gz -C /root/restore/set/files .
+   infra/scripts/restore-storage.sh /root/restore/storage-from-s3.tar.gz
+   ```
+
+5. Logins: `infra/scripts/restore-keycloak.sh /root/restore/set/keycloak/<dump>`.
+6. Restart `auth`, `storage`, then `gateway` (see [Troubleshooting](troubleshooting.md#container-restarts-break-the-gateway-connect-failed)).
+7. Delete `/root/restore` and the key file from the server.
+
+**Drills.** The test stand runs the same S3 path against a local stand-in (`backup-s3`
+in `docker-compose.testing.yml`) with a test-only age key
+(`/root/motio-backup-drill/test-age-key.txt` on the test server). Drill of 2026-10-27:
+plaintext and encrypted nightly runs, a deleted file kept under a tombstone, a full set
+pulled and decrypted, the dump loaded into a fresh `supabase/postgres` (all 58 tables
+matched the live row counts except one later `auth.audit_log_entries` row), files
+restored with `restore-storage.sh` and served again as `200 image/png`.
+It found and fixed: S3 uploads rejected without `Content-Length` by the current AWS SDK,
+the missing `btree_gist` step above, and the missing xattrs on restored files.
 
 ---
 

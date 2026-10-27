@@ -6,7 +6,9 @@
 #   2. Создаёт Docker-сеть motio-glitchtip (если ещё нет)
 #   3. Подключает Caddy к этой сети (если ещё не подключён)
 #   4. Синхронизирует Caddyfile in-place и перезагружает Caddy
-#   5. Поднимает контейнеры GlitchTip (или обновляет если уже запущены)
+#   5. Применяет миграции новым образом и поднимает контейнеры GlitchTip
+#      (или обновляет, если уже запущены). Версия образа закреплена в compose —
+#      обновление = смена тега там и повторный запуск скрипта.
 #   6. Подсказывает что делать при первом запуске
 #
 # Использование:
@@ -51,6 +53,15 @@ docker network connect motio-glitchtip motio-caddy 2>/dev/null && echo "Caddy co
 
 echo "==> Starting GlitchTip containers..."
 docker compose -f infra/docker-compose.glitchtip.yml --env-file .env pull --quiet
+
+# start.sh образа миграции не запускает: без этого шага новый код поднимается
+# на старой схеме (воркер сыпет 42703 до ручного migrate).
+# Compose-проект общий с основным стеком (`infra`), отсюда warning про orphan
+# containers — это прод Motio: --remove-orphans здесь НЕ добавлять.
+echo "==> Running GlitchTip migrations with the new image..."
+docker compose -f infra/docker-compose.glitchtip.yml --env-file .env up -d glitchtip-postgres glitchtip-redis
+docker compose -f infra/docker-compose.glitchtip.yml --env-file .env run --rm --no-deps glitchtip-web ./bin/run-migrate.sh
+
 docker compose -f infra/docker-compose.glitchtip.yml --env-file .env up -d
 
 echo "==> Reloading Caddy config..."

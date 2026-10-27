@@ -21,13 +21,14 @@ This file is safe to commit: it contains **no secrets**, only variable names.
 | **Supabase DB** — app data + GoTrue `auth` schema | `{daily,manual}-<ts>.dump` (custom-format `pg_dump`, schemas `public,auth,storage`) | existing path — [§4](#4-restore-the-database) |
 | **Storage blobs** — avatars, task-media files | `storage-<ts>.tar.gz` | `infra/scripts/restore-storage.sh` — [§6](#6-restore-storage-blobs) |
 | **Keycloak** — logins, passwords, realm | `keycloak/keycloak-daily-<ts>.dump` (custom-format `pg_dump`) | `infra/scripts/restore-keycloak.sh` — [§5](#5-restore-keycloak-logins) |
+| **Metabase** — dashboards, saved questions, Metabase users | `metabase/metabase-daily-<ts>.dump` (custom-format `pg_dump`, only when `METABASE_DB_URL` is set) | `infra/metabase/README.md` → Backup — [§7](#7-bring-up-the-rest--out-of-compose-containers) |
 
 "Logins" live in **two** places: GoTrue accounts ride along inside the Supabase
 DB dump, but the real password store is **Keycloak** — restore both.
 
 **Not in S3 / recreated from config, not backups:** the compose stack itself,
-and the out-of-compose containers **Caddy** (TLS ingress), **Beszel**, **Metabase**
-— see §7.
+and the out-of-compose containers **Caddy** (TLS ingress), **Beszel**, and the
+**Metabase** containers themselves (its data is in S3, above) — see §7.
 
 ---
 
@@ -46,7 +47,7 @@ and the out-of-compose containers **Caddy** (TLS ingress), **Beszel**, **Metabas
 
 ## 3. Pull the latest backups from S3
 
-Flat bucket layout; Keycloak dumps live under `keycloak/`. Grab the newest of
+Flat bucket layout; Keycloak dumps live under `keycloak/`, Metabase under `metabase/`. Grab the newest of
 each family into `./backups/` (create it first: `mkdir -p backups`).
 
 ```sh
@@ -59,10 +60,12 @@ S3=s3://$S3_BUCKET
 aws s3 ls  $S3/               --endpoint-url "$S3_ENDPOINT" | grep '\.dump$'    | sort | tail -1
 aws s3 ls  $S3/               --endpoint-url "$S3_ENDPOINT" | grep '\.tar\.gz$' | sort | tail -1
 aws s3 ls  $S3/keycloak/      --endpoint-url "$S3_ENDPOINT"                      | sort | tail -1
+aws s3 ls  $S3/metabase/      --endpoint-url "$S3_ENDPOINT"                      | sort | tail -1
 
 aws s3 cp  $S3/<daily-….dump>            backups/  --endpoint-url "$S3_ENDPOINT"
 aws s3 cp  $S3/<storage-….tar.gz>        backups/  --endpoint-url "$S3_ENDPOINT"
 aws s3 cp  $S3/keycloak/<keycloak-….dump> backups/ --endpoint-url "$S3_ENDPOINT"
+aws s3 cp  $S3/metabase/<metabase-….dump> backups/ --endpoint-url "$S3_ENDPOINT"
 ```
 
 ---
@@ -148,7 +151,8 @@ Then recreate the containers that live **outside** this compose file:
 - **Caddy** — the TLS ingress. Nothing serves HTTPS until it's back. Restore its
   `Caddyfile` + data volume and `docker run` it on the shared network (see
   `infra/caddy/` and `infra/scripts/ensure-caddy-network-access.sh`).
-- **Metabase** — analytics. See `infra/metabase/README.md`.
+- **Metabase** — analytics. Start its stack, then restore dashboards from the
+  `metabase-daily-…dump` — see `infra/metabase/README.md`, section Backup.
 - **Beszel** — host monitoring agent.
 
 ---

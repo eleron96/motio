@@ -8,7 +8,7 @@ Exposed at `https://analytics.motio.nikog.net` behind Caddy.
 
 ## Components
 
-- `metabase` — Metabase OSS v0.50, capped at 1 GB RAM / 1 vCPU.
+- `metabase` — Metabase OSS v0.64, capped at 2 GB RAM / 1 vCPU (heap 1 GB; the JVM adds ~400 MB on top).
 - `metabase-db` — Postgres 15-alpine for Metabase's own metadata
   (dashboards, users, cached query results). Capped at 256 MB.
 
@@ -62,20 +62,47 @@ late-evening without hammering prod DB.
 
 ## Updates
 
+The image tag is pinned in `docker-compose.yml`: bump it there (latest patch of
+the target major), sync the file to the server, then:
+
 ```bash
 cd /opt/new_toggl/infra/metabase
-docker compose pull
-docker compose up -d
+docker exec metabase-db pg_dump -U metabase -d metabase -Fc > /root/backups/metabase-$(date +%F).dump
+docker compose --env-file .env.metabase pull
+docker compose --env-file .env.metabase up -d
+docker logs -f metabase   # wait for "Metabase Initialization COMPLETE"
 ```
 
-Metabase auto-migrates its metadata schema on startup.
+Metabase auto-migrates its metadata schema on startup. Do not stop or restart
+the container while migrations run — an interrupted migration can corrupt the
+metadata DB. Rollback = restore the dump into `metabase-db` and start the old tag.
 
 ## Backup
 
-The global `backup-service` only backs up the main Supabase Postgres.
-Metabase's metadata DB (dashboards + saved queries + users) is **not**
-auto-backed-up yet. If you invest significant time building dashboards,
-add a periodic `pg_dump` of the `metabase_db` volume to your backup flow.
+`backup-service` (main stack) dumps `metabase-db` daily with the other
+backups and uploads it to S3 under `metabase/` (90 newest kept, see
+`METABASE_BACKUP_RETENTION_COUNT`). It reaches the DB as `metabase-db` on
+`infra_default` and connects with `METABASE_DB_URL` from the **main** `.env`:
+
+```bash
+# one-time on the server: build the URL from .env.metabase (password URL-encoded)
+postgresql://metabase:<METABASE_APP_DB_PASSWORD>@metabase-db:5432/metabase
+```
+
+Empty `METABASE_DB_URL` = not backed up (test stand, local).
+
+Restore (dashboards come back as of the dump; stop Metabase so it does not
+write meanwhile):
+
+```bash
+docker stop metabase
+docker exec -i metabase-db pg_restore --clean --if-exists --no-owner \
+  -U metabase -d metabase < backups/metabase-daily-<ts>.dump
+docker start metabase
+```
+
+Restore into the **same or newer** Metabase version — it migrates an older
+schema on boot but cannot downgrade a newer one.
 
 Quick manual dump:
 

@@ -11,6 +11,11 @@ set -euo pipefail
 # Safety: before overwriting, we snapshot the current volume contents to a
 # timestamped pre-restore archive, so a bad restore is reversible.
 #
+# The archive carries no xattrs, so at the end restore-storage-xattrs.sh
+# rebuilds them from storage.objects — restore the database first.
+# The same script restores a set pulled from S3: pack <set>/files into a
+# tar.gz (`tar czf storage-from-s3.tar.gz -C <set>/files .`) and pass it here.
+#
 # Usage:
 #   infra/scripts/restore-storage.sh <path/to/storage-YYYY...tar.gz> [--yes]
 #
@@ -79,6 +84,9 @@ docker run --rm \
   -v "$archive_abs":/src/archive.tar.gz:ro \
   "$HELPER_IMAGE" \
   sh -c "set -e; rm -rf /dst/* /dst/..?* /dst/.[!.]* 2>/dev/null || true; tar xzf /src/archive.tar.gz -C /dst; echo '    restored entries:' \$(find /dst -mindepth 1 | wc -l)"
+
+# Archives carry no xattrs, and storage-api answers 500 without them.
+"$root_dir/infra/scripts/restore-storage-xattrs.sh"
 
 echo
 echo "==> Storage restore complete."

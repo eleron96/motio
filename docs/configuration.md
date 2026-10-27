@@ -60,16 +60,44 @@ make check-prod-secrets-remote   # check .env on the remote server
 ## Backup / Restore
 
 - `BACKUP_CRON`
-- `BACKUP_RETENTION_COUNT`
+- `BACKUP_RETENTION_COUNT` — database dumps kept **on the server** (`infra/backups`).
 - `BACKUP_SCHEMAS` (default `public,auth,storage`)
 - `BACKUP_MAX_UPLOAD_MB`
 - `BACKUP_RESTORE_DB_URL` *(optional)*
 - `BACKUP_AUTH_DB_USER`, `BACKUP_AUTH_HOST`
-- `STORAGE_BACKUP_RETENTION_COUNT` — daily archives of uploaded files to keep.
+- `STORAGE_BACKUP_RETENTION_COUNT` — manual archives of uploaded files (`POST /backup/storage-backups`)
+  kept on the server.
+- `BACKUP_FILES_DELETED_GRACE_DAYS` (default 90) — uploaded files (avatars, task media) are copied
+  to S3 one by one under `files/`, each file once; when a file is deleted in the app its S3 copy
+  is kept this many days, then removed. Data exports (`user-exports`) are not copied.
 - `KEYCLOAK_BACKUP_RETENTION_COUNT` — Keycloak database backups to keep.
+- `METABASE_DB_URL` — Metabase app database (`postgresql://metabase:<password>@metabase-db:5432/metabase`,
+  password URL-encoded). When set, dashboards and saved questions are dumped daily to `metabase/` in S3;
+  empty disables it.
+- `METABASE_BACKUP_RETENTION_COUNT` — Metabase database backups to keep.
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` —
-  any S3-compatible bucket for off-server copies. The bucket is pruned with the
-  same retention counts, and never below 5 copies.
+  any S3-compatible bucket for off-server copies.
+- `BACKUP_AGE_RECIPIENT` — [age](https://age-encryption.org) public key (`age1…`). When
+  set, every object sent to S3 is encrypted with it and stored as `<name>.age`; the server
+  holds only this public key and cannot decrypt its own S3 copies. The matching private key
+  (`AGE-SECRET-KEY-1…`) must be kept off the server — without it the S3 copies cannot be
+  restored. A malformed value stops all S3 uploads (and reports to GlitchTip) rather than
+  falling back to plaintext. Local copies in `infra/backups` stay unencrypted. Empty = S3
+  copies are plaintext.
+- `BACKUP_S3_KEEP_DAILY` / `BACKUP_S3_KEEP_WEEKLY` / `BACKUP_S3_KEEP_MONTHLY` (defaults
+  14 / 8 / 12) — how database dumps (Supabase, Keycloak, Metabase) are rotated in S3: the
+  newest N days, plus the newest dump of each of the last N weeks and N months that have
+  one. That is about 34 dumps per database reaching a year back, instead of 90 dailies
+  reaching three months. Never fewer than 5. The `*_RETENTION_COUNT` values above only
+  govern the copies on the server.
+- `BACKUP_S3_WARN_GB` / `BACKUP_S3_ALARM_GB` (defaults 7 / 9) — the last nightly step sums
+  every object in the bucket (logged with a per-family breakdown). From the warning line it
+  sends a GlitchTip warning; from the alarm line the step fails (GlitchTip error, no
+  heartbeat). Nothing is deleted to make room.
+- `BACKUP_HEARTBEAT_URL` — uptime monitor (GlitchTip *Heartbeat* monitor, healthchecks.io, …)
+  that backup-service POSTs to after a nightly run where every step succeeded. Each failed
+  step is reported to GlitchTip on its own; a missing ping is what catches a run that never
+  happened (container down). Empty disables it.
 
 ## Liquibase
 

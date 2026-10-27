@@ -12,7 +12,12 @@ const { Pool } = require('pg');
 const cron = require('node-cron');
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const { captureException, captureMessage } = require('./glitchtipCapture');
-const { selectExpiredKeys } = require('./retention');
+const { selectExpiredKeys, selectGfsExpiredKeys } = require('./retention');
+const { createSideDbBackup } = require('./sideDbBackup');
+const { runDailyBackup, createHeartbeat } = require('./dailyRun');
+const { parseAgeRecipient, encryptWithAge, createS3Uploader } = require('./encryption');
+const { FILES_PREFIX, listLocalFiles, syncFilesToS3 } = require('./fileSync');
+const { checkBucketBudget } = require('./bucketBudget');
 const {
   tickAccountPurge,
   tickDataExportWorker,
@@ -41,6 +46,14 @@ const KEYCLOAK_BACKUP_RETENTION_COUNT = (() => {
   const parsed = Number.parseInt(process.env.KEYCLOAK_BACKUP_RETENTION_COUNT || '90', 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 90;
 })();
+// Metabase app DB (dashboards, saved questions, users). Lives in its own stack
+// (infra/metabase); dumped daily when METABASE_DB_URL is set. No-op if unset.
+const METABASE_DB_URL = process.env.METABASE_DB_URL || '';
+const METABASE_BACKUP_DIR = path.join(process.env.BACKUP_DIR || '/backups', 'metabase');
+const METABASE_BACKUP_RETENTION_COUNT = (() => {
+  const parsed = Number.parseInt(process.env.METABASE_BACKUP_RETENTION_COUNT || '90', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 90;
+})();
 const BACKUP_RESTORE_DB_URL = process.env.BACKUP_RESTORE_DB_URL || '';
 const BACKUP_AUTH_DB_USER = process.env.BACKUP_AUTH_DB_USER || '';
 const BACKUP_AUTH_HOST = process.env.BACKUP_AUTH_HOST || 'auth';
@@ -61,11 +74,42 @@ const BACKUP_RETENTION_COUNT = (() => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
 })();
 
+const readPositiveInt = (name, fallback) => {
+  const parsed = Number.parseInt(process.env[name] || String(fallback), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+// S3 copies of database dumps (Supabase, Keycloak, Metabase) are rotated
+// grandfather-father-son: 14 newest days + one per week for 8 weeks + one per
+// month for a year. Local copies on the server keep the plain counts above.
+const S3_DUMP_RETENTION = {
+  daily: readPositiveInt('BACKUP_S3_KEEP_DAILY', 14),
+  weekly: readPositiveInt('BACKUP_S3_KEEP_WEEKLY', 8),
+  monthly: readPositiveInt('BACKUP_S3_KEEP_MONTHLY', 12),
+};
+
+// Uploaded files live in S3 one copy each (fileSync.js); a file deleted from
+// the app keeps its S3 copy this many days.
+const FILES_DELETED_GRACE_DAYS = readPositiveInt('BACKUP_FILES_DELETED_GRACE_DAYS', 90);
+const FILES_TOMBSTONES_PATH = path.join(BACKUP_DIR, 'files-tombstones.json');
+// Daily storage-*.tar.gz archives in S3 predate the per-file copies; keep a few
+// as a fallback and let the rest go.
+const LEGACY_STORAGE_ARCHIVES_KEEP = 7;
+
+// The bucket is a fixed 10 GB plan: warn from 7 GB, alarm (failed step) from 9 GB.
+const S3_BUDGET = {
+  warnBytes: readPositiveInt('BACKUP_S3_WARN_GB', 7) * 1024 ** 3,
+  alarmBytes: readPositiveInt('BACKUP_S3_ALARM_GB', 9) * 1024 ** 3,
+};
+
 const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
 const S3_BUCKET = process.env.S3_BUCKET || '';
 const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || '';
 const S3_SECRET_KEY = process.env.S3_SECRET_KEY || '';
+// age public key: every object sent to S3 is encrypted with it (see encryption.js).
+const S3_ENCRYPTION = parseAgeRecipient(process.env.BACKUP_AGE_RECIPIENT);
+// Uptime monitor pinged after a fully successful nightly run; empty = no-op.
+const BACKUP_HEARTBEAT_URL = process.env.BACKUP_HEARTBEAT_URL || '';
 
 // Phase 5: account-deletion cron
 const SUPABASE_INTERNAL_URL = process.env.SUPABASE_INTERNAL_URL || '';
@@ -91,68 +135,108 @@ const s3 = s3Enabled
       region: S3_REGION,
       credentials: { accessKeyId: S3_ACCESS_KEY, secretAccessKey: S3_SECRET_KEY },
       forcePathStyle: true,
+      // SDK ≥3.729 adds CRC checksums with aws-chunked uploads by default, which
+      // S3-compatible servers outside AWS often reject; only send them when required.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     })
   : null;
 
+// ContentLength is explicit: a bare stream goes out chunked, which some
+// S3-compatible servers reject (MissingContentLength).
+const putS3Object = async (filePath, key) => {
+  const { size } = await fs.stat(filePath);
+  await s3.send(new PutObjectCommand({
+    Bucket: S3_BUCKET,
+    Key: key,
+    Body: createReadStream(filePath),
+    ContentLength: size,
+  }));
+};
+const uploadEncryptedOrPlain = createS3Uploader({
+  recipientConfig: S3_ENCRYPTION,
+  tmpDir: path.join(BACKUP_DIR, '.s3-upload-tmp'),
+  fs,
+  path,
+  put: putS3Object,
+  encryptFile: encryptWithAge(execFileAsync),
+});
+
+// Throws on failure: the caller's step fails, so the nightly run reports it to
+// GlitchTip and skips the heartbeat. A swallowed upload error is exactly how
+// "backups quietly stopped reaching S3" happens. Returns the key written
+// (with ".age" when encrypted).
 const uploadToS3 = async (filePath, key) => {
-  if (!s3) return;
+  if (!s3) return null;
+  let writtenKey;
   try {
-    const fileStream = createReadStream(filePath);
-    await s3.send(new PutObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: key,
-      Body: fileStream,
-    }));
-    console.log(`S3 upload ok: ${key}`);
+    writtenKey = await uploadEncryptedOrPlain(filePath, key);
   } catch (error) {
-    // A silent S3 failure is exactly how "backups stop containing everything"
-    // happens, so surface it to GlitchTip instead of only logging.
-    console.error(`S3 upload failed for ${key}:`, error.message || error);
-    captureException(error instanceof Error ? error : new Error(`S3 upload failed for ${key}`));
+    throw new Error(`S3 upload failed for ${key}: ${error.message || error}`);
   }
+  console.log(`S3 upload ok: ${writtenKey}`);
+  return writtenKey;
 };
 
-const listAllS3Objects = async () => {
+if (s3) {
+  if (S3_ENCRYPTION.kind === 'invalid') {
+    console.error(`BACKUP_AGE_RECIPIENT is unusable (${S3_ENCRYPTION.reason}); S3 uploads will fail until it is fixed.`);
+    captureMessage(`BACKUP_AGE_RECIPIENT is unusable: ${S3_ENCRYPTION.reason}`, { level: 'error' });
+  } else {
+    console.log(`S3 backups: ${S3_ENCRYPTION.kind === 'age' ? 'encrypted with age' : 'NOT encrypted (BACKUP_AGE_RECIPIENT unset)'}.`);
+  }
+}
+
+const listAllS3Objects = async (prefix) => {
   const objects = [];
   let ContinuationToken;
   do {
-    const res = await s3.send(new ListObjectsV2Command({ Bucket: S3_BUCKET, ContinuationToken }));
+    const res = await s3.send(new ListObjectsV2Command({ Bucket: S3_BUCKET, Prefix: prefix, ContinuationToken }));
     for (const obj of res.Contents || []) {
-      objects.push({ Key: obj.Key, LastModified: obj.LastModified });
+      objects.push({ Key: obj.Key, LastModified: obj.LastModified, Size: obj.Size });
     }
     ContinuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
   } while (ContinuationToken);
   return objects;
 };
 
-// Keep only the `keepCount` newest S3 objects whose Key matches `pattern`.
-// Uses the unit-tested selectExpiredKeys (with its safety floor) so a bug can
-// never wipe the bucket. Best-effort: logs + reports but never throws.
-const pruneS3 = async (pattern, keepCount) => {
+const deleteS3Keys = async (keys) => {
+  for (let i = 0; i < keys.length; i += 1000) {
+    const batch = keys.slice(i, i + 1000);
+    const res = await s3.send(new DeleteObjectsCommand({
+      Bucket: S3_BUCKET,
+      Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
+    }));
+    if (res.Errors && res.Errors.length > 0) {
+      throw new Error(`S3 refused to delete ${res.Errors.length} object(s); first: ${res.Errors[0].Key} (${res.Errors[0].Code})`);
+    }
+  }
+};
+
+// Delete the S3 objects whose Key matches `pattern` and that `selectExpired`
+// picks (both selectors in retention.js are unit-tested and keep a safety
+// floor, so a bug can never wipe the bucket). Best-effort: logs + reports but
+// never throws.
+const pruneS3 = async (pattern, selectExpired) => {
   if (!s3) return;
   try {
     const all = await listAllS3Objects();
     const matching = all.filter((obj) => typeof obj.Key === 'string' && pattern.test(obj.Key));
-    const toDelete = selectExpiredKeys(matching, keepCount);
+    const toDelete = selectExpired(matching);
     if (toDelete.length === 0) return;
-    for (let i = 0; i < toDelete.length; i += 1000) {
-      const batch = toDelete.slice(i, i + 1000);
-      await s3.send(new DeleteObjectsCommand({
-        Bucket: S3_BUCKET,
-        Delete: { Objects: batch.map((Key) => ({ Key })), Quiet: true },
-      }));
-    }
-    console.log(`S3 prune: removed ${toDelete.length} old object(s) for ${pattern} (kept ${keepCount}).`);
+    await deleteS3Keys(toDelete);
+    console.log(`S3 prune: removed ${toDelete.length} old object(s) for ${pattern}.`);
   } catch (error) {
     console.error(`S3 prune failed for ${pattern}:`, error.message || error);
     captureException(error instanceof Error ? error : new Error(`S3 prune failed for ${pattern}`));
   }
 };
+const pruneS3Dumps = (pattern) => pruneS3(pattern, (objects) => selectGfsExpiredKeys(objects, S3_DUMP_RETENTION));
 
-// S3 key patterns for each backup family (flat layout; keycloak under keycloak/).
-const S3_DB_DUMP_PATTERN = /^[^/]+\.dump$/;
-const S3_STORAGE_PATTERN = /^[^/]+\.tar\.gz$/;
-const S3_KEYCLOAK_PATTERN = /^keycloak\/.+\.dump$/;
+// S3 key patterns for each backup family (flat layout; side DBs under their
+// own prefix — keycloak/, metabase/ — see sideDbBackup.js).
+const S3_DB_DUMP_PATTERN = /^[^/]+\.dump(\.age)?$/;
+const S3_STORAGE_PATTERN = /^[^/]+\.tar\.gz(\.age)?$/;
 
 if (!DB_URL) {
   console.error('Missing SUPABASE_DB_URL');
@@ -375,7 +459,7 @@ const createBackup = async (type, options = {}) => {
     await pruneBackups([name]);
   }
   await uploadToS3(filePath, name);
-  await pruneS3(S3_DB_DUMP_PATTERN, BACKUP_RETENTION_COUNT);
+  await pruneS3Dumps(S3_DB_DUMP_PATTERN);
   return {
     ...toBackupEntry(name, stat),
     type,
@@ -452,9 +536,8 @@ const createStorageBackup = async () => {
     throw new Error(`Storage archive validation failed: ${validationError.message || validationError}`);
   }
 
+  // Local snapshot only: S3 gets uploaded files one by one (syncFiles).
   await pruneStorageBackups([name]);
-  await uploadToS3(filePath, name);
-  await pruneS3(S3_STORAGE_PATTERN, STORAGE_BACKUP_RETENTION_COUNT);
 
   return {
     name,
@@ -464,66 +547,60 @@ const createStorageBackup = async () => {
   };
 };
 
-const isSafeKeycloakBackupName = (name) => /^[a-z0-9._-]+$/i.test(name) && name.endsWith('.dump');
-
-const pruneKeycloakLocal = async (keepCount, protectedNames = []) => {
-  const protectedSet = new Set(protectedNames);
-  await fs.mkdir(KEYCLOAK_BACKUP_DIR, { recursive: true });
-  const entries = await fs.readdir(KEYCLOAK_BACKUP_DIR);
-  const files = await Promise.all(
-    entries
-      .filter((name) => isSafeKeycloakBackupName(name))
-      .map(async (name) => {
-        const fullPath = path.join(KEYCLOAK_BACKUP_DIR, name);
-        const stat = await fs.stat(fullPath);
-        return { name, fullPath, mtimeMs: stat.mtimeMs };
-      }),
-  );
-  files.sort((a, b) => b.mtimeMs - a.mtimeMs);
-  let kept = 0;
-  for (const file of files) {
-    if (protectedSet.has(file.name)) { kept += 1; continue; }
-    if (kept < keepCount) { kept += 1; continue; }
-    await fs.unlink(file.fullPath).catch(() => {});
-  }
-};
-
-// Daily Keycloak DB dump (logins/passwords/realm). No-op when KEYCLOAK_DB_URL
-// is unset so local/dev stacks without Keycloak keep working.
-const createKeycloakBackup = async () => {
-  if (!KEYCLOAK_DB_URL) {
-    return null;
-  }
-  await fs.mkdir(KEYCLOAK_BACKUP_DIR, { recursive: true });
-  const name = `keycloak-daily-${buildTimestamp()}.dump`;
-  const filePath = path.join(KEYCLOAK_BACKUP_DIR, name);
-  await execFileAsync('pg_dump', [
-    '--format=custom',
-    '--no-owner',
-    '--file', filePath,
-    '--dbname', KEYCLOAK_DB_URL,
-  ]);
+const readFilesTombstones = async () => {
   try {
-    await execFileAsync('pg_restore', ['--list', filePath]);
-  } catch (validationError) {
-    await fs.unlink(filePath).catch(() => {});
-    throw new Error(`Keycloak backup validation failed (corrupt dump): ${validationError.message || validationError}`);
+    return JSON.parse(await fs.readFile(FILES_TOMBSTONES_PATH, 'utf8'));
+  } catch (_error) {
+    // Missing or unreadable: deleted files simply start a fresh grace period.
+    return {};
   }
-  const stat = await fs.stat(filePath);
-  if (stat.size === 0) {
-    await fs.unlink(filePath).catch(() => {});
-    throw new Error('Keycloak backup file is empty after pg_dump.');
-  }
-  await pruneKeycloakLocal(KEYCLOAK_BACKUP_RETENTION_COUNT, [name]);
-  await uploadToS3(filePath, `keycloak/${name}`);
-  await pruneS3(S3_KEYCLOAK_PATTERN, KEYCLOAK_BACKUP_RETENTION_COUNT);
-  return {
-    name,
-    type: 'keycloak',
-    createdAt: stat.mtime.toISOString(),
-    size: stat.size,
-  };
 };
+
+const writeFilesTombstones = async (tombstones) => {
+  const tmpPath = `${FILES_TOMBSTONES_PATH}.tmp`;
+  await fs.writeFile(tmpPath, JSON.stringify(tombstones, null, 1));
+  await fs.rename(tmpPath, FILES_TOMBSTONES_PATH);
+};
+
+// Copy new uploaded files to S3, retire ones deleted more than the grace period
+// ago, then trim the legacy daily archives. No-op without S3.
+const syncFiles = async () => {
+  if (!s3) return null;
+  const summary = await syncFilesToS3({
+    root: STORAGE_BLOBS_DIR,
+    encrypted: S3_ENCRYPTION.kind === 'age',
+    graceMs: FILES_DELETED_GRACE_DAYS * 86400000,
+    now: () => Date.now(),
+    listLocal: () => listLocalFiles(STORAGE_BLOBS_DIR, { fs, path }),
+    listRemoteKeys: async () => (await listAllS3Objects(FILES_PREFIX)).map((obj) => obj.Key),
+    upload: uploadToS3,
+    deleteKeys: deleteS3Keys,
+    readTombstones: readFilesTombstones,
+    writeTombstones: writeFilesTombstones,
+  });
+  console.log(`Files backup ok: ${summary.files} file(s), ${summary.uploaded} uploaded, ${summary.deleted} deleted, ${summary.awaitingDeletion} awaiting deletion.`);
+  await pruneS3(S3_STORAGE_PATTERN, (objects) => selectExpiredKeys(objects, LEGACY_STORAGE_ARCHIVES_KEEP));
+  return summary;
+};
+
+// Last nightly step: measure the bucket. Warn → GlitchTip warning; alarm →
+// the step fails, so it is reported as an error and the heartbeat is skipped.
+const checkBucket = async () => {
+  if (!s3) return null;
+  const budget = checkBucketBudget(await listAllS3Objects(), S3_BUDGET);
+  if (budget.level === 'alarm') throw new Error(budget.message);
+  if (budget.level === 'warn') captureMessage(budget.message, { level: 'warning' });
+  console.log(budget.message);
+  return budget;
+};
+
+// Side databases dumped daily after the Supabase DB. Keycloak: logins/passwords/realm;
+// Metabase: dashboards/saved questions. Each is a no-op while its URL is unset.
+const SIDE_DB_TARGETS = [
+  { label: 'keycloak', dbUrl: KEYCLOAK_DB_URL, dir: KEYCLOAK_BACKUP_DIR, retentionCount: KEYCLOAK_BACKUP_RETENTION_COUNT, s3Prefix: 'keycloak' },
+  { label: 'metabase', dbUrl: METABASE_DB_URL, dir: METABASE_BACKUP_DIR, retentionCount: METABASE_BACKUP_RETENTION_COUNT, s3Prefix: 'metabase' },
+];
+const sideDbBackupDeps = { execFileAsync, fs, path, buildTimestamp, uploadToS3, pruneS3: pruneS3Dumps };
 
 const saveUploadedBackup = async (name, stream) => {
   if (!isSafeBackupName(name)) {
@@ -843,49 +920,50 @@ app.post('/storage-backups', requireSuperAdmin, async (_req, res) => {
   }
 });
 
-cron.schedule(BACKUP_CRON, async () => {
-  if (activeJob) return;
+const pingHeartbeat = createHeartbeat(BACKUP_HEARTBEAT_URL, fetch);
+
+// Nightly: Supabase DB, then uploaded files (one S3 copy each), then side DBs (Keycloak auth,
+// Metabase dashboards). One failing step does not skip the next; every failure
+// reaches GlitchTip, and the heartbeat fires only after a fully clean run.
+const dailyBackupSteps = () => [
+  { label: 'db', run: () => createBackup('daily') },
+  ...(STORAGE_BLOBS_DIR ? [{ label: 'files', run: () => syncFiles() }] : []),
+  ...SIDE_DB_TARGETS
+    .filter((target) => target.dbUrl)
+    .map((target) => ({ label: target.label, run: () => createSideDbBackup(target, sideDbBackupDeps) })),
+  { label: 'bucket-budget', run: () => checkBucket() },
+];
+
+// Returns the run summary, or null when another backup job holds the lock.
+const runNightly = async () => {
+  if (activeJob) {
+    captureMessage(`Nightly backup skipped: job already running (${activeJob})`);
+    return null;
+  }
   activeJob = 'daily-backup';
   try {
-    await createBackup('daily');
-  } catch (error) {
-    console.error('Daily backup failed:', error.message || error);
+    const summary = await runDailyBackup(dailyBackupSteps(), {
+      captureException,
+      pingHeartbeat,
+      log: (message) => console.error(message),
+    });
+    console.log(`Nightly backup finished: ${summary.results.map((r) => `${r.label}=${r.ok ? 'ok' : 'FAILED'}`).join(', ')}`);
+    return summary;
   } finally {
     activeJob = null;
   }
+};
 
-  // Storage blobs backup runs right after the DB dump.
-  // We accept a brief window where freshly uploaded files may appear in DB after
-  // the pg_dump but before the tar starts — those files will still be on disk
-  // in the next daily archive, so the only risk is orphan blobs (files without
-  // a corresponding DB row), which is strictly safer than dangling DB references.
-  if (STORAGE_BLOBS_DIR) {
-    if (activeJob) return;
-    activeJob = 'daily-storage-backup';
-    try {
-      const backup = await createStorageBackup();
-      console.log(`Storage backup ok: ${backup.name} (${backup.size} bytes)`);
-    } catch (error) {
-      console.error('Daily storage backup failed:', error.message || error);
-    } finally {
-      activeJob = null;
-    }
-  }
+cron.schedule(BACKUP_CRON, () => runNightly());
 
-  // Keycloak DB (auth) backup — daily, so a restore brings back logins too.
-  if (KEYCLOAK_DB_URL) {
-    if (activeJob) return;
-    activeJob = 'daily-keycloak-backup';
-    try {
-      const backup = await createKeycloakBackup();
-      if (backup) console.log(`Keycloak backup ok: ${backup.name} (${backup.size} bytes)`);
-    } catch (error) {
-      console.error('Daily keycloak backup failed:', error.message || error);
-      captureException(error instanceof Error ? error : new Error('Daily keycloak backup failed'));
-    } finally {
-      activeJob = null;
-    }
+// The same run on demand: after changing backup settings, or for a drill.
+app.post('/backups/run-nightly', requireSuperAdmin, async (_req, res) => {
+  const summary = await runNightly();
+  if (!summary) {
+    res.status(409).json({ error: 'Another backup job is running.' });
+    return;
   }
+  res.status(summary.ok ? 200 : 500).json(summary);
 });
 
 // ─────────────────────────── Phase 5: account-deletion cron ───────────────────────────

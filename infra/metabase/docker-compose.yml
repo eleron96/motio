@@ -21,15 +21,17 @@ services:
       retries: 10
     networks:
       - metabase-internal
+      # backup-service (main stack) dumps this DB daily — see METABASE_DB_URL.
+      - infra_default
 
   metabase:
-    image: metabase/metabase:v0.50.27
+    image: metabase/metabase:v0.64.3.5
     container_name: metabase
     restart: unless-stopped
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 2G
           cpus: '1.0'
     depends_on:
       metabase-db:
@@ -44,7 +46,7 @@ services:
       MB_SITE_URL: https://analytics.motio.nikog.net
       MB_JETTY_HOST: 0.0.0.0
       MB_JETTY_PORT: 3000
-      JAVA_OPTS: "-Xmx768m -XX:+UseG1GC"
+      JAVA_OPTS: "-Xmx1g -XX:+UseG1GC"
     volumes:
       - metabase_plugins:/plugins
     healthcheck:
