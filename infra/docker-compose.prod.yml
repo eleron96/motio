@@ -303,6 +303,9 @@ services:
       BACKUP_S3_KEEP_DAILY: ${BACKUP_S3_KEEP_DAILY:-14}
       BACKUP_S3_KEEP_WEEKLY: ${BACKUP_S3_KEEP_WEEKLY:-8}
       BACKUP_S3_KEEP_MONTHLY: ${BACKUP_S3_KEEP_MONTHLY:-12}
+      # Bucket size checked nightly: GlitchTip warning from WARN, failed step from ALARM (GB).
+      BACKUP_S3_WARN_GB: ${BACKUP_S3_WARN_GB:-7}
+      BACKUP_S3_ALARM_GB: ${BACKUP_S3_ALARM_GB:-9}
       # Uptime monitor pinged after a fully successful nightly backup; empty = no-op.
       BACKUP_HEARTBEAT_URL: ${BACKUP_HEARTBEAT_URL:-}
       # Phase 5: account-deletion cron (no-op if SUPABASE_INTERNAL_URL / SERVICE_ROLE_KEY missing).

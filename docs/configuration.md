@@ -90,6 +90,10 @@ make check-prod-secrets-remote   # check .env on the remote server
   one. That is about 34 dumps per database reaching a year back, instead of 90 dailies
   reaching three months. Never fewer than 5. The `*_RETENTION_COUNT` values above only
   govern the copies on the server.
+- `BACKUP_S3_WARN_GB` / `BACKUP_S3_ALARM_GB` (defaults 7 / 9) — the last nightly step sums
+  every object in the bucket (logged with a per-family breakdown). From the warning line it
+  sends a GlitchTip warning; from the alarm line the step fails (GlitchTip error, no
+  heartbeat). Nothing is deleted to make room.
 - `BACKUP_HEARTBEAT_URL` — uptime monitor (GlitchTip *Heartbeat* monitor, healthchecks.io, …)
   that backup-service POSTs to after a nightly run where every step succeeded. Each failed
   step is reported to GlitchTip on its own; a missing ping is what catches a run that never

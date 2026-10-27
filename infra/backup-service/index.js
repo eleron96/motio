@@ -17,6 +17,7 @@ const { createSideDbBackup } = require('./sideDbBackup');
 const { runDailyBackup, createHeartbeat } = require('./dailyRun');
 const { parseAgeRecipient, encryptWithAge, createS3Uploader } = require('./encryption');
 const { FILES_PREFIX, listLocalFiles, syncFilesToS3 } = require('./fileSync');
+const { checkBucketBudget } = require('./bucketBudget');
 const {
   tickAccountPurge,
   tickDataExportWorker,
@@ -93,6 +94,12 @@ const FILES_TOMBSTONES_PATH = path.join(BACKUP_DIR, 'files-tombstones.json');
 // Daily storage-*.tar.gz archives in S3 predate the per-file copies; keep a few
 // as a fallback and let the rest go.
 const LEGACY_STORAGE_ARCHIVES_KEEP = 7;
+
+// The bucket is a fixed 10 GB plan: warn from 7 GB, alarm (failed step) from 9 GB.
+const S3_BUDGET = {
+  warnBytes: readPositiveInt('BACKUP_S3_WARN_GB', 7) * 1024 ** 3,
+  alarmBytes: readPositiveInt('BACKUP_S3_ALARM_GB', 9) * 1024 ** 3,
+};
 
 const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
@@ -568,6 +575,17 @@ const syncFiles = async () => {
   return summary;
 };
 
+// Last nightly step: measure the bucket. Warn → GlitchTip warning; alarm →
+// the step fails, so it is reported as an error and the heartbeat is skipped.
+const checkBucket = async () => {
+  if (!s3) return null;
+  const budget = checkBucketBudget(await listAllS3Objects(), S3_BUDGET);
+  if (budget.level === 'alarm') throw new Error(budget.message);
+  if (budget.level === 'warn') captureMessage(budget.message, { level: 'warning' });
+  console.log(budget.message);
+  return budget;
+};
+
 // Side databases dumped daily after the Supabase DB. Keycloak: logins/passwords/realm;
 // Metabase: dashboards/saved questions. Each is a no-op while its URL is unset.
 const SIDE_DB_TARGETS = [
@@ -905,6 +923,7 @@ const dailyBackupSteps = () => [
   ...SIDE_DB_TARGETS
     .filter((target) => target.dbUrl)
     .map((target) => ({ label: target.label, run: () => createSideDbBackup(target, sideDbBackupDeps) })),
+  { label: 'bucket-budget', run: () => checkBucket() },
 ];
 
 cron.schedule(BACKUP_CRON, async () => {
