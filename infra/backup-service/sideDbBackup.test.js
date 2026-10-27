@@ -5,19 +5,20 @@ const assert = require('node:assert/strict');
 const os = require('os');
 const path = require('path');
 const fs = require('fs/promises');
-const { createSideDbBackup, pruneLocalDumps, s3PatternFor } = require('./sideDbBackup');
+const { createSideDbBackup, pruneLocalDumps, s3PatternFor, splitDbPassword } = require('./sideDbBackup');
 
 const makeDir = () => fs.mkdtemp(path.join(os.tmpdir(), 'side-db-backup-'));
 
 // Fake deps: pg_dump writes `dumpContent` to --file; pg_restore succeeds unless told otherwise.
-const makeDeps = ({ dumpContent = 'PGDMP fake', restoreFails = false } = {}) => {
+const makeDeps = ({ dumpContent = 'PGDMP fake', restoreFails = false, dumpError = null } = {}) => {
   const calls = { exec: [], uploads: [], prunes: [] };
   const deps = {
     fs,
     path,
     buildTimestamp: () => '20261027-030000',
-    execFileAsync: async (cmd, args) => {
-      calls.exec.push([cmd, args]);
+    execFileAsync: async (cmd, args, opts) => {
+      calls.exec.push([cmd, args, opts]);
+      if (cmd === 'pg_dump' && dumpError) throw dumpError;
       if (cmd === 'pg_dump') await fs.writeFile(args[args.indexOf('--file') + 1], dumpContent);
       if (cmd === 'pg_restore' && restoreFails) throw new Error('not a valid archive');
       return { stdout: '', stderr: '' };
@@ -53,7 +54,9 @@ test('dumps, validates, uploads under its own prefix and prunes only that prefix
   const [dumpCmd, dumpArgs] = calls.exec[0];
   assert.equal(dumpCmd, 'pg_dump');
   assert.ok(dumpArgs.includes('--format=custom'));
-  assert.equal(dumpArgs[dumpArgs.indexOf('--dbname') + 1], 'postgresql://u:p@metabase-db:5432/metabase');
+  // password travels via PGPASSWORD, never in argv
+  assert.equal(dumpArgs[dumpArgs.indexOf('--dbname') + 1], 'postgresql://u@metabase-db:5432/metabase');
+  assert.equal(calls.exec[0][2].env.PGPASSWORD, 'p');
   assert.equal(calls.exec[1][0], 'pg_restore');
 
   assert.deepEqual(calls.uploads, ['metabase/metabase-daily-20261027-030000.dump']);
@@ -101,4 +104,23 @@ test('s3PatternFor escapes the prefix', () => {
   const pattern = s3PatternFor('meta.base');
   assert.ok(pattern.test('meta.base/x.dump'));
   assert.ok(!pattern.test('metaXbase/x.dump'));
+});
+
+test('pg_dump failure -> password masked in the error, partial file removed', async () => {
+  const dir = await makeDir();
+  const err = Object.assign(new Error('Command failed: pg_dump ... s3cr3t'), { stderr: 'FATAL: password authentication failed (s3cr3t)' });
+  const { deps, calls } = makeDeps({ dumpError: err });
+  const t = target(dir, { dbUrl: 'postgresql://metabase:s3cr3t@metabase-db:5432/metabase' });
+  await assert.rejects(createSideDbBackup(t, deps), (e) => {
+    assert.match(e.message, /^metabase pg_dump failed: FATAL: password authentication failed/);
+    assert.ok(!e.message.includes('s3cr3t'));
+    return true;
+  });
+  assert.deepEqual(await fs.readdir(dir), []);
+  assert.equal(calls.uploads.length, 0);
+});
+
+test('splitDbPassword decodes the password and strips it from the URL', () => {
+  assert.deepEqual(splitDbPassword('postgresql://u:p%40ss@h:5432/d'), { dbUrl: 'postgresql://u@h:5432/d', password: 'p@ss' });
+  assert.deepEqual(splitDbPassword('postgresql://u@h/d'), { dbUrl: 'postgresql://u@h/d', password: '' });
 });

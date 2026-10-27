@@ -11,6 +11,20 @@ const isSafeDumpName = (name) => /^[a-z0-9._-]+$/i.test(name) && name.endsWith('
 // Supabase dumps or another family's prefix.
 const s3PatternFor = (prefix) => new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/.+\\.dump$`);
 
+// Split the password out of a postgres URL so it travels via PGPASSWORD, not
+// argv: argv is visible in `ps`, and execFile errors echo the full command into
+// logs and GlitchTip.
+const splitDbPassword = (dbUrl) => {
+  try {
+    const parsed = new URL(dbUrl);
+    const password = decodeURIComponent(parsed.password || '');
+    parsed.password = '';
+    return { dbUrl: parsed.toString(), password };
+  } catch (_error) {
+    return { dbUrl, password: '' };
+  }
+};
+
 // Keep the `keepCount` newest local dumps (plus `protectedNames`), delete the rest.
 const pruneLocalDumps = async (dir, keepCount, protectedNames, { fs, path }) => {
   const protectedSet = new Set(protectedNames);
@@ -46,12 +60,19 @@ const createSideDbBackup = async (target, deps) => {
   await fs.mkdir(dir, { recursive: true });
   const name = `${label}-daily-${buildTimestamp()}.dump`;
   const filePath = path.join(dir, name);
-  await execFileAsync('pg_dump', [
-    '--format=custom',
-    '--no-owner',
-    '--file', filePath,
-    '--dbname', dbUrl,
-  ]);
+  const conn = splitDbPassword(dbUrl);
+  try {
+    await execFileAsync('pg_dump', [
+      '--format=custom',
+      '--no-owner',
+      '--file', filePath,
+      '--dbname', conn.dbUrl,
+    ], { env: { ...process.env, PGPASSWORD: conn.password } });
+  } catch (dumpError) {
+    await fs.unlink(filePath).catch(() => {});
+    const stderr = String(dumpError.stderr || dumpError.message || dumpError).trim();
+    throw new Error(`${label} pg_dump failed: ${conn.password ? stderr.split(conn.password).join('***') : stderr}`);
+  }
   try {
     await execFileAsync('pg_restore', ['--list', filePath]);
   } catch (validationError) {
@@ -74,4 +95,4 @@ const createSideDbBackup = async (target, deps) => {
   };
 };
 
-module.exports = { createSideDbBackup, pruneLocalDumps, s3PatternFor, isSafeDumpName };
+module.exports = { createSideDbBackup, pruneLocalDumps, s3PatternFor, isSafeDumpName, splitDbPassword };
