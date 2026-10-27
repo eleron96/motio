@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.25] - 2026-10-27
 ### Fixed
 - If the server rejects a task change (move, edit or delete), you now see an error message instead of the change silently not saving.
 
