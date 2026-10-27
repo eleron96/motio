@@ -13,6 +13,7 @@
 //         <out>/files/<path inside the storage volume>.
 
 const DB_PATTERN = /^[^/]+\.dump(\.age)?$/;
+const stripAge = (name) => (name.endsWith('.age') ? name.slice(0, -'.age'.length) : name);
 const prefixedDumpPattern = (prefix) => new RegExp(`^${prefix}/[^/]+\\.dump(\\.age)?$`);
 
 const newestKey = (objects, pattern) => {
@@ -40,11 +41,21 @@ const planRestore = (objects, { database } = {}) => {
     database: databaseKey,
     keycloak: newestKey(objects, prefixedDumpPattern('keycloak')),
     metabase: newestKey(objects, prefixedDumpPattern('metabase')),
-    files: objects.map((o) => o.Key).filter((key) => key.startsWith('files/')).sort(),
+    files: uniqueFileKeys(objects.map((o) => o.Key).filter((key) => key.startsWith('files/'))),
   };
 };
 
-const stripAge = (name) => (name.endsWith('.age') ? name.slice(0, -'.age'.length) : name);
+// Right after encryption is switched on, a file can sit in S3 both plain and
+// as .age (the plain copy waits out its grace period). Restore it once,
+// preferring the encrypted copy.
+const uniqueFileKeys = (keys) => {
+  const byTarget = new Map();
+  for (const key of keys) {
+    const target = stripAge(key);
+    if (!byTarget.has(target) || key.endsWith('.age')) byTarget.set(target, key);
+  }
+  return [...byTarget.values()].sort();
+};
 
 // deps: { plan, out, identityPath, fs, path, download(key, dst), decryptFile(src, dst, identity) }
 const downloadBackupSet = async ({ plan, out, identityPath, fs, path, download, decryptFile }) => {

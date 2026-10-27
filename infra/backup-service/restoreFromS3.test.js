@@ -30,6 +30,17 @@ test('plan: newest dump of each database, every file, legacy archives ignored', 
   ]);
 });
 
+test('plan: a file stored both plain and encrypted (encryption switch-over) is restored once, from the encrypted copy', () => {
+  const plan = planRestore([
+    ...bucket,
+    { Key: 'files/stub/stub/avatars/u1/a.png/v1', LastModified: at('2026-09-01T03:00:00Z') },
+  ], {});
+  assert.deepEqual(plan.files, [
+    'files/stub/stub/avatars/u1/a.png/v1.age',
+    'files/stub/stub/task-media/t1/b.jpg/v1',
+  ]);
+});
+
 test('plan: a named database dump wins over the newest, and an unknown name is an error', () => {
   assert.equal(planRestore(bucket, { database: 'manual-20261020-120000.dump' }).database, 'manual-20261020-120000.dump');
   assert.throws(() => planRestore(bucket, { database: 'nope.dump' }), /not found in the bucket: nope\.dump/);
