@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- If the server rejects a task change (move, edit or delete), you now see an error message instead of the change silently not saving.
+
 ## [0.10.24] - 2026-10-27
 ### Changed
 - Backups of your data are now encrypted, and their history is kept for up to a year.
