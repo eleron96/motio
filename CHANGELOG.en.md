@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.23] - 2026-10-27
 ### Changed
 - Privacy policy update: once a day the app notes your device type, operating system and planner view, so we know what to improve. This is never shared and is deleted with your account.
 
