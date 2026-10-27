@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.24] - 2026-10-27
 ### Changed
 - Резервные копии ваших данных теперь шифруются, а их история хранится до года.
 

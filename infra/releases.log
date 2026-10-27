@@ -440,3 +440,4 @@
 2026-10-26T14:35:20Z | 0.10.21 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261026-143434.dump | The Owner badge in workspace settings is readable again on a dark interface colour, and Sign out in account settings stays at the bottom of the window on tall screens.
 2026-10-27T09:58:33Z | 0.10.22 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261027-095746.dump | No documented changes.
 2026-10-27T10:22:27Z | 0.10.23 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261027-102141.dump | Privacy policy update: once a day the app notes your device type, operating system and planner view, so we know what to improve. This is never shared and is deleted with your account.
+2026-10-27T12:28:16Z | 0.10.24 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261027-122726.dump | Backups of your data are now encrypted, and their history is kept for up to a year.
