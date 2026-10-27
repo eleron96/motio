@@ -3,6 +3,7 @@ import { TimelineGrid } from '@/features/planner/components/timeline/TimelineGri
 import { CalendarTimeline } from '@/features/planner/components/timeline/CalendarTimeline';
 import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
+import { useUsageBeacon } from '@/features/planner/hooks/useUsageBeacon';
 import { isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
@@ -195,6 +196,7 @@ const PlannerPage = () => {
   const workspacesLoaded = useAuthStore((state) => state.workspacesLoaded);
   const hasWorkspaces = useAuthStore((state) => state.workspaces.length > 0);
   const fetchMembers = useAuthStore((state) => state.fetchMembers);
+  useUsageBeacon({ enabled: Boolean(user), viewMode, plannerSurface: surface, groupMode });
   const membersLoading = useAuthStore((state) => state.membersLoading);
   const membersWorkspaceId = useAuthStore((state) => state.membersWorkspaceId);
   const profilePreferences = useAuthStore((state) => state.profilePreferences);

@@ -3,8 +3,8 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 
 const CONTACT = 'inbox@nikog.net';
 const SITE = 'motio.nikog.net';
-const UPDATED_EN = 'September 18, 2026';
-const UPDATED_RU = '18 сентября 2026 г.';
+const UPDATED_EN = 'October 27, 2026';
+const UPDATED_RU = '27 октября 2026 г.';
 
 function PrivacyContentEn() {
   return (
@@ -30,6 +30,11 @@ function PrivacyContentEn() {
         <li>Activity data within your workspace (tasks, comments, assignments)</li>
         <li>Interface preferences (language, settings)</li>
         <li>Browser push subscription — only if you turn on notifications</li>
+        <li>
+          Usage statistics: once a day, the type of device (phone, tablet or computer),
+          its operating system, whether Motio is installed as an app, and which planner
+          view you use (see section 7)
+        </li>
         <li>
           Technical data: anonymous visit statistics and error reports (see sections 5
           and 7)
@@ -113,6 +118,13 @@ function PrivacyContentEn() {
         contain technical details of what failed — the page, the browser and the error —
         not your name or email.
       </p>
+      <p>
+        To decide what to improve, the app records once a day which kind of device you
+        use Motio on (phone, tablet or computer), its operating system, whether Motio is
+        installed as an app, and which planner view you work in (day, week, calendar or
+        board). It is linked to your account, has no IP address or browser details,
+        stays on our server, is never shared, and is deleted together with your account.
+      </p>
 
       <h2>8. Security</h2>
       <p>
@@ -165,6 +177,11 @@ function PrivacyContentRu() {
         <li>Данные активности в рабочем пространстве (задачи, комментарии, назначения)</li>
         <li>Настройки интерфейса (язык, предпочтения)</li>
         <li>Подписка на уведомления браузера — только если вы их включили</li>
+        <li>
+          Статистика использования: раз в день — тип устройства (телефон, планшет или
+          компьютер), его операционная система, установлен ли Motio как приложение и
+          какой вид планировщика вы используете (см. раздел 7)
+        </li>
         <li>
           Технические данные: анонимная статистика посещений и отчёты об ошибках (см.
           разделы 5 и 7)
@@ -250,6 +267,14 @@ function PrivacyContentRu() {
         метки кампаний, браузер, тип устройства и страну, не определяя, кто вы. Отчёты об
         ошибках содержат технические детали сбоя — страницу, браузер и текст ошибки, — но
         не ваше имя и не email.
+      </p>
+      <p>
+        Чтобы понимать, что улучшать, приложение раз в день отмечает, с какого устройства
+        вы работаете в Motio (телефон, планшет или компьютер), его операционную систему,
+        установлен ли Motio как приложение и какой вид планировщика вы используете
+        (день, неделя, календарь или доска). Эти данные привязаны к аккаунту, не содержат
+        IP-адреса и сведений о браузере, хранятся на нашем сервере, никому не передаются
+        и удаляются вместе с аккаунтом.
       </p>
 
       <h2>8. Безопасность</h2>
