@@ -14,6 +14,7 @@ const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectsCommand }
 const { captureException, captureMessage } = require('./glitchtipCapture');
 const { selectExpiredKeys } = require('./retention');
 const { createSideDbBackup } = require('./sideDbBackup');
+const { runDailyBackup, createHeartbeat } = require('./dailyRun');
 const {
   tickAccountPurge,
   tickDataExportWorker,
@@ -75,6 +76,8 @@ const S3_REGION = process.env.S3_REGION || 'us-east-1';
 const S3_BUCKET = process.env.S3_BUCKET || '';
 const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || '';
 const S3_SECRET_KEY = process.env.S3_SECRET_KEY || '';
+// Uptime monitor pinged after a fully successful nightly run; empty = no-op.
+const BACKUP_HEARTBEAT_URL = process.env.BACKUP_HEARTBEAT_URL || '';
 
 // Phase 5: account-deletion cron
 const SUPABASE_INTERNAL_URL = process.env.SUPABASE_INTERNAL_URL || '';
@@ -103,22 +106,21 @@ const s3 = s3Enabled
     })
   : null;
 
+// Throws on failure: the caller's step fails, so the nightly run reports it to
+// GlitchTip and skips the heartbeat. A swallowed upload error is exactly how
+// "backups quietly stopped reaching S3" happens.
 const uploadToS3 = async (filePath, key) => {
   if (!s3) return;
   try {
-    const fileStream = createReadStream(filePath);
     await s3.send(new PutObjectCommand({
       Bucket: S3_BUCKET,
       Key: key,
-      Body: fileStream,
+      Body: createReadStream(filePath),
     }));
-    console.log(`S3 upload ok: ${key}`);
   } catch (error) {
-    // A silent S3 failure is exactly how "backups stop containing everything"
-    // happens, so surface it to GlitchTip instead of only logging.
-    console.error(`S3 upload failed for ${key}:`, error.message || error);
-    captureException(error instanceof Error ? error : new Error(`S3 upload failed for ${key}`));
+    throw new Error(`S3 upload failed for ${key}: ${error.message || error}`);
   }
+  console.log(`S3 upload ok: ${key}`);
 };
 
 const listAllS3Objects = async () => {
@@ -799,50 +801,34 @@ app.post('/storage-backups', requireSuperAdmin, async (_req, res) => {
   }
 });
 
+const pingHeartbeat = createHeartbeat(BACKUP_HEARTBEAT_URL, fetch);
+
+// Nightly: Supabase DB, then uploaded files, then side DBs (Keycloak auth,
+// Metabase dashboards). One failing step does not skip the next; every failure
+// reaches GlitchTip, and the heartbeat fires only after a fully clean run.
+const dailyBackupSteps = () => [
+  { label: 'db', run: () => createBackup('daily') },
+  ...(STORAGE_BLOBS_DIR ? [{ label: 'storage', run: () => createStorageBackup() }] : []),
+  ...SIDE_DB_TARGETS
+    .filter((target) => target.dbUrl)
+    .map((target) => ({ label: target.label, run: () => createSideDbBackup(target, sideDbBackupDeps) })),
+];
+
 cron.schedule(BACKUP_CRON, async () => {
-  if (activeJob) return;
+  if (activeJob) {
+    captureMessage(`Daily backup skipped: job already running (${activeJob})`);
+    return;
+  }
   activeJob = 'daily-backup';
   try {
-    await createBackup('daily');
-  } catch (error) {
-    console.error('Daily backup failed:', error.message || error);
+    const summary = await runDailyBackup(dailyBackupSteps(), {
+      captureException,
+      pingHeartbeat,
+      log: (message) => console.error(message),
+    });
+    console.log(`Daily backup finished: ${summary.results.map((r) => `${r.label}=${r.ok ? 'ok' : 'FAILED'}`).join(', ')}`);
   } finally {
     activeJob = null;
-  }
-
-  // Storage blobs backup runs right after the DB dump.
-  // We accept a brief window where freshly uploaded files may appear in DB after
-  // the pg_dump but before the tar starts — those files will still be on disk
-  // in the next daily archive, so the only risk is orphan blobs (files without
-  // a corresponding DB row), which is strictly safer than dangling DB references.
-  if (STORAGE_BLOBS_DIR) {
-    if (activeJob) return;
-    activeJob = 'daily-storage-backup';
-    try {
-      const backup = await createStorageBackup();
-      console.log(`Storage backup ok: ${backup.name} (${backup.size} bytes)`);
-    } catch (error) {
-      console.error('Daily storage backup failed:', error.message || error);
-    } finally {
-      activeJob = null;
-    }
-  }
-
-  // Side DBs (Keycloak auth, Metabase dashboards) — daily, so a restore brings
-  // them back too. One failing target does not skip the next.
-  for (const target of SIDE_DB_TARGETS) {
-    if (!target.dbUrl) continue;
-    if (activeJob) return;
-    activeJob = `daily-${target.label}-backup`;
-    try {
-      const backup = await createSideDbBackup(target, sideDbBackupDeps);
-      if (backup) console.log(`${target.label} backup ok: ${backup.name} (${backup.size} bytes)`);
-    } catch (error) {
-      console.error(`Daily ${target.label} backup failed:`, error.message || error);
-      captureException(error instanceof Error ? error : new Error(`Daily ${target.label} backup failed`));
-    } finally {
-      activeJob = null;
-    }
   }
 });
 

@@ -295,6 +295,8 @@ services:
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      # Uptime monitor pinged after a fully successful nightly backup; empty = no-op.
+      BACKUP_HEARTBEAT_URL: ${BACKUP_HEARTBEAT_URL:-}
       # Phase 5: account-deletion cron (no-op if SUPABASE_INTERNAL_URL / SERVICE_ROLE_KEY missing).
       SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY:-}

@@ -74,6 +74,10 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` —
   any S3-compatible bucket for off-server copies. The bucket is pruned with the
   same retention counts, and never below 5 copies.
+- `BACKUP_HEARTBEAT_URL` — uptime monitor (GlitchTip *Heartbeat* monitor, healthchecks.io, …)
+  that backup-service POSTs to after a nightly run where every step succeeded. Each failed
+  step is reported to GlitchTip on its own; a missing ping is what catches a run that never
+  happened (container down). Empty disables it.
 
 ## Liquibase
 
