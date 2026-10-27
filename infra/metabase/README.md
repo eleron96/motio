@@ -8,7 +8,7 @@ Exposed at `https://analytics.motio.nikog.net` behind Caddy.
 
 ## Components
 
-- `metabase` — Metabase OSS v0.50, capped at 1 GB RAM / 1 vCPU.
+- `metabase` — Metabase OSS v0.64, capped at 2 GB RAM / 1 vCPU (heap 1 GB; the JVM adds ~400 MB on top).
 - `metabase-db` — Postgres 15-alpine for Metabase's own metadata
   (dashboards, users, cached query results). Capped at 256 MB.
 
@@ -62,13 +62,20 @@ late-evening without hammering prod DB.
 
 ## Updates
 
+The image tag is pinned in `docker-compose.yml`: bump it there (latest patch of
+the target major), sync the file to the server, then:
+
 ```bash
 cd /opt/new_toggl/infra/metabase
-docker compose pull
-docker compose up -d
+docker exec metabase-db pg_dump -U metabase -d metabase -Fc > /root/backups/metabase-$(date +%F).dump
+docker compose --env-file .env.metabase pull
+docker compose --env-file .env.metabase up -d
+docker logs -f metabase   # wait for "Metabase Initialization COMPLETE"
 ```
 
-Metabase auto-migrates its metadata schema on startup.
+Metabase auto-migrates its metadata schema on startup. Do not stop or restart
+the container while migrations run — an interrupted migration can corrupt the
+metadata DB. Rollback = restore the dump into `metabase-db` and start the old tag.
 
 ## Backup
 
