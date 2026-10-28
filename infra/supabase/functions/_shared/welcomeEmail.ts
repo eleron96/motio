@@ -5,7 +5,11 @@
  * inline styles only (email clients strip <style> blocks).
  */
 
-export type WelcomeLocale = "ru" | "en";
+export type WelcomeLocale = "ru" | "en" | "de";
+
+/** The welcome-email language for a profile locale; anything unknown gets English. */
+export const toWelcomeLocale = (locale: unknown): WelcomeLocale =>
+  locale === "ru" || locale === "de" ? locale : "en";
 
 interface WelcomeEmailInput {
   locale: WelcomeLocale;
@@ -52,6 +56,19 @@ const COPY: Record<WelcomeLocale, {
     button: "Open Motio",
     footer:
       "This is a one-time welcome email. We won't send you newsletters without your consent — only essential emails about your account.",
+  },
+  de: {
+    subject: "Willkommen bei Motio",
+    greeting: (name) => `Hallo ${name},`,
+    intro: "Motio ist die gemeinsame Zeitachse Ihres Teams. So gelingt der Einstieg am leichtesten:",
+    steps: [
+      "Legen Sie Ihre erste Aufgabe an – das dauert 10 Sekunden.",
+      "Öffnen Sie die Zeitachse und sehen Sie, woran Ihr Team arbeitet.",
+      "Laden Sie Kolleginnen und Kollegen ein, um gemeinsam zu planen.",
+    ],
+    button: "Motio öffnen",
+    footer:
+      "Dies ist eine einmalige Willkommens-E-Mail. Newsletter senden wir nur mit Ihrer Einwilligung – sonst nur wichtige E-Mails zu Ihrem Konto.",
   },
 };
 

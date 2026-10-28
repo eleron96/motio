@@ -7,7 +7,7 @@ import {
   sendEmail,
   verifyUnsubscribeSignature,
 } from "../_shared/mailer.ts";
-import { renderWelcomeEmail, type WelcomeLocale } from "../_shared/welcomeEmail.ts";
+import { renderWelcomeEmail, toWelcomeLocale, type WelcomeLocale } from "../_shared/welcomeEmail.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -76,7 +76,7 @@ const handleWelcome = async (userId: string) => {
     return jsonResponse({ sent: false, reason: "already-sent" });
   }
 
-  const locale: WelcomeLocale = claimed.locale === "ru" ? "ru" : "en";
+  const locale: WelcomeLocale = toWelcomeLocale(claimed.locale);
   const email = renderWelcomeEmail({
     locale,
     name: resolveDisplayName(claimed.display_name, claimed.email),
@@ -153,20 +153,43 @@ const handleMailer = async (req: Request) => {
 // authorization. Always answers with a human page, never JSON.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const unsubscribePage = (locale: string, ok: boolean) => {
-  const ru = locale === "ru";
-  const title = ok
-    ? (ru ? "Вы отписаны" : "You are unsubscribed")
-    : (ru ? "Ссылка недействительна" : "This link is not valid");
-  const detail = ok
-    ? (ru
-      ? "Новости Motio больше не будут приходить на вашу почту. Передумаете — включите их в настройках аккаунта."
-      : "Motio product news will no longer be sent to your inbox. Changed your mind? Re-enable it in account settings.")
-    : (ru
-      ? "Похоже, ссылка повреждена или устарела. Отписаться можно в настройках аккаунта."
-      : "The link looks broken or outdated. You can unsubscribe in your account settings.");
+const UNSUBSCRIBE_COPY: Record<WelcomeLocale, { ok: [string, string]; invalid: [string, string] }> = {
+  ru: {
+    ok: [
+      "Вы отписаны",
+      "Новости Motio больше не будут приходить на вашу почту. Передумаете — включите их в настройках аккаунта.",
+    ],
+    invalid: [
+      "Ссылка недействительна",
+      "Похоже, ссылка повреждена или устарела. Отписаться можно в настройках аккаунта.",
+    ],
+  },
+  en: {
+    ok: [
+      "You are unsubscribed",
+      "Motio product news will no longer be sent to your inbox. Changed your mind? Re-enable it in account settings.",
+    ],
+    invalid: [
+      "This link is not valid",
+      "The link looks broken or outdated. You can unsubscribe in your account settings.",
+    ],
+  },
+  de: {
+    ok: [
+      "Sie sind abgemeldet",
+      "Motio-Neuigkeiten werden nicht mehr an Ihr Postfach gesendet. Sie können sie in den Kontoeinstellungen jederzeit wieder aktivieren.",
+    ],
+    invalid: [
+      "Dieser Link ist ungültig",
+      "Der Link scheint beschädigt oder veraltet zu sein. Abmelden können Sie sich in den Kontoeinstellungen.",
+    ],
+  },
+};
+
+const unsubscribePage = (locale: WelcomeLocale, ok: boolean) => {
+  const [title, detail] = UNSUBSCRIBE_COPY[locale][ok ? "ok" : "invalid"];
   return new Response(
-    `<!doctype html><html lang="${ru ? "ru" : "en"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title></head>
+    `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title></head>
 <body style="margin:0;padding:48px 16px;background:#f6f5f3;font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#1f1d1a;">
 <div style="max-width:420px;margin:0 auto;background:#fff;border:1px solid #e5e2dd;border-radius:12px;padding:32px;text-align:center;">
 <p style="margin:0 0 16px;font-size:20px;font-weight:700;">Motio</p>
@@ -200,7 +223,7 @@ const handleUnsubscribe = async (req: Request) => {
     return unsubscribePage("en", false);
   }
 
-  return unsubscribePage(data?.locale === "ru" ? "ru" : "en", true);
+  return unsubscribePage(toWelcomeLocale(data?.locale), true);
 };
 
 export const handler = async (req: Request) => {

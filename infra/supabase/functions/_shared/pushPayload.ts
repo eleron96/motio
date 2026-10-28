@@ -1,7 +1,71 @@
 // Render the JSON payload the service worker turns into a browser notification.
-// Text is localized by the recipient's profile locale (ru/en), mirroring the
+// Text is localized by the recipient's profile locale (ru/en/de), mirroring the
 // email render helpers (welcomeEmail.ts / broadcastEmail.ts).
-export type PushLocale = "ru" | "en";
+export type PushLocale = "ru" | "en" | "de";
+
+/** The push language for a profile locale; anything unknown gets English. */
+export const toPushLocale = (locale: unknown): PushLocale =>
+  locale === "ru" || locale === "de" ? locale : "en";
+
+interface PushCopy {
+  testTitle: string;
+  testBody: string;
+  task: string;
+  someone: string;
+  assignedHeading: string;
+  assignedBy: (actor: string, title: string) => string;
+  assigned: (title: string) => string;
+  mentionHeading: string;
+  mentionedIn: (actor: string, title: string) => string;
+  updatedHeading: string;
+  updatedBy: (actor: string, title: string) => string;
+  updated: (title: string) => string;
+}
+
+const COPY: Record<PushLocale, PushCopy> = {
+  ru: {
+    testTitle: "Motio — проверка уведомлений",
+    testBody: "Пуш-уведомления работают. Так будут приходить оповещения о задачах.",
+    task: "Задача",
+    someone: "Кто-то",
+    assignedHeading: "Новая задача",
+    assignedBy: (actor, title) => `${actor} назначил(а) вам: ${title}`,
+    assigned: (title) => `Вам назначена задача: ${title}`,
+    mentionHeading: "Упоминание в комментарии",
+    mentionedIn: (actor, title) => `${actor} упомянул(а) вас в «${title}»`,
+    updatedHeading: "Задача изменилась",
+    updatedBy: (actor, title) => `${actor} изменил(а) задачу: ${title}`,
+    updated: (title) => `Изменена задача: ${title}`,
+  },
+  en: {
+    testTitle: "Motio — test notification",
+    testBody: "Push notifications are working. This is how task alerts will arrive.",
+    task: "Task",
+    someone: "Someone",
+    assignedHeading: "New task",
+    assignedBy: (actor, title) => `${actor} assigned you: ${title}`,
+    assigned: (title) => `You were assigned: ${title}`,
+    mentionHeading: "Mentioned in a comment",
+    mentionedIn: (actor, title) => `${actor} mentioned you in "${title}"`,
+    updatedHeading: "Task updated",
+    updatedBy: (actor, title) => `${actor} updated: ${title}`,
+    updated: (title) => `Updated: ${title}`,
+  },
+  de: {
+    testTitle: "Motio – Testbenachrichtigung",
+    testBody: "Push-Benachrichtigungen funktionieren. So kommen Hinweise zu Aufgaben bei Ihnen an.",
+    task: "Aufgabe",
+    someone: "Jemand",
+    assignedHeading: "Neue Aufgabe",
+    assignedBy: (actor, title) => `${actor} hat Ihnen zugewiesen: ${title}`,
+    assigned: (title) => `Ihnen wurde zugewiesen: ${title}`,
+    mentionHeading: "In einem Kommentar erwähnt",
+    mentionedIn: (actor, title) => `${actor} hat Sie in „${title}“ erwähnt`,
+    updatedHeading: "Aufgabe geändert",
+    updatedBy: (actor, title) => `${actor} hat geändert: ${title}`,
+    updated: (title) => `Geändert: ${title}`,
+  },
+};
 
 export interface PushContent {
   title: string;
@@ -13,12 +77,10 @@ export interface PushContent {
 }
 
 export const renderTestPush = (locale: PushLocale, appUrl: string): PushContent => {
-  const ru = locale === "ru";
+  const copy = COPY[locale];
   return {
-    title: ru ? "Motio — проверка уведомлений" : "Motio — test notification",
-    body: ru
-      ? "Пуш-уведомления работают. Так будут приходить оповещения о задачах."
-      : "Push notifications are working. This is how task alerts will arrive.",
+    title: copy.testTitle,
+    body: copy.testBody,
     url: appUrl || "/",
     tag: "motio-test",
   };
@@ -65,30 +127,26 @@ export const renderNotificationPush = (
   link: PushLink,
   appUrl: string,
 ): PushContent => {
-  const ru = locale === "ru";
+  const copy = COPY[locale];
   const actor = (input.actorName ?? "").trim();
-  const title = input.taskTitle || (ru ? "Задача" : "Task");
+  const title = input.taskTitle || copy.task;
   let heading: string;
   let body: string;
 
   switch (input.type) {
     case "task_assigned":
-      heading = ru ? "Новая задача" : "New task";
-      body = actor
-        ? (ru ? `${actor} назначил(а) вам: ${title}` : `${actor} assigned you: ${title}`)
-        : (ru ? `Вам назначена задача: ${title}` : `You were assigned: ${title}`);
+      heading = copy.assignedHeading;
+      body = actor ? copy.assignedBy(actor, title) : copy.assigned(title);
       break;
     case "comment_mention":
-      heading = ru ? "Упоминание в комментарии" : "Mentioned in a comment";
+      heading = copy.mentionHeading;
       body = input.commentPreview
         ? (actor ? `${actor}: ${input.commentPreview}` : input.commentPreview)
-        : (ru ? `${actor || "Кто-то"} упомянул(а) вас в «${title}»` : `${actor || "Someone"} mentioned you in "${title}"`);
+        : copy.mentionedIn(actor || copy.someone, title);
       break;
     case "task_updated":
-      heading = ru ? "Задача изменилась" : "Task updated";
-      body = actor
-        ? (ru ? `${actor} изменил(а) задачу: ${title}` : `${actor} updated: ${title}`)
-        : (ru ? `Изменена задача: ${title}` : `Updated: ${title}`);
+      heading = copy.updatedHeading;
+      body = actor ? copy.updatedBy(actor, title) : copy.updated(title);
       break;
   }
 

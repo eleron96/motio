@@ -6,6 +6,7 @@ import { isPushConfigured, sendWebPush, type PushSubscriptionRecord } from "../_
 import {
   renderNotificationPush,
   renderTestPush,
+  toPushLocale,
   type NotificationPushType,
   type PushLocale,
 } from "../_shared/pushPayload.ts";
@@ -114,7 +115,7 @@ const handleTest = async (userId: string) => {
     .eq("id", userId)
     .maybeSingle();
 
-  const locale: PushLocale = profile?.locale === "ru" ? "ru" : "en";
+  const locale: PushLocale = toPushLocale(profile?.locale);
   const sent = await deliverToUser(userId, renderTestPush(locale, appUrl), "test");
   return jsonResponse({ sent });
 };
@@ -227,7 +228,7 @@ const handleFlush = async () => {
     const actorName = row.actor_user_id
       ? (profileMap.get(row.actor_user_id)?.displayName ?? null)
       : null;
-    const locale: PushLocale = recipient.locale === "ru" ? "ru" : "en";
+    const locale: PushLocale = toPushLocale(recipient.locale);
     const payload = renderNotificationPush(
       locale,
       {
