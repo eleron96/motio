@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.27] - 2026-10-28
 ### Changed
 - Тексты на главной странице стали проще: про тепловую карту загрузки и про установку на свой сервер.
 

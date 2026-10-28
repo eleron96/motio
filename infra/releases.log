@@ -443,3 +443,4 @@
 2026-10-27T12:28:16Z | 0.10.24 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261027-122726.dump | Backups of your data are now encrypted, and their history is kept for up to a year.
 2026-10-27T16:07:51Z | 0.10.25 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261027-160655.dump | If the server rejects a task change (move, edit or delete), you now see an error message instead of the change silently not saving.
 2026-10-28T10:51:48Z | 0.10.26 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261028-105101.dump | Motio now speaks German: the language follows your browser or can be picked in account settings. The sign-in page, welcome email, push notifications and the examples of a new workspace are in German too.
+2026-10-28T11:07:51Z | 0.10.27 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261028-110706.dump | Clearer wording on the home page about the workload heatmap and installing Motio on your own server.
