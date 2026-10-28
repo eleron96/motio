@@ -103,12 +103,7 @@ export const CustomerCombobox: React.FC<CustomerComboboxProps> = ({
               }
             }}
           />
-          <CommandList
-            className="max-h-60 overscroll-contain"
-            onWheel={(event) => {
-              event.stopPropagation();
-            }}
-          >
+          <CommandList className="max-h-60">
             <CommandEmpty>{t`No customers found.`}</CommandEmpty>
             <CommandGroup>
               <CommandItem onSelect={() => handleSelect(null)}>
