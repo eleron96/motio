@@ -171,9 +171,13 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
     return normalizeHolidayCountryCode(currentWorkspace?.holidayCountry);
   }, [workspaces, currentWorkspaceId]);
+  const holidayRegionCode = useMemo(() => (
+    workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.holidayRegion ?? null
+  ), [workspaces, currentWorkspaceId]);
   const { holidayDates } = useHolidayMap({
     years: visibleHolidayYears,
     holidayCountryCode,
+    holidayRegionCode,
     fallbackHolidayLabel: t`Non-working day`,
     holidayLabel: t`Holiday`,
   });

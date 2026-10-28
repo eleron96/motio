@@ -38,7 +38,8 @@ that keeps climbing for one person is overload in slow motion.
 
 **Dashboard → Heatmap** lays the coming months out as calendars. Each day is coloured
 from pale (quiet) to dark red (over capacity); green diamonds are milestones, hatched
-days are public holidays.
+days are public holidays — the country's, plus your region's if one is picked in
+**Workspace settings → Holiday calendar**.
 
 ![The workload heatmap: the team's load per day for the coming months](images/heatmap.png)
 

@@ -10,6 +10,7 @@ import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
 import { broadcastAuthSessionSync } from '@/features/auth/lib/authSessionSync';
 import { workspaceSyncService } from '@/application/workspace/workspaceSyncService';
 import { ADMIN_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
+import { normalizeHolidayRegionCode } from '@/shared/domain/holidayRegion';
 import { invokeAdminFunction, invokeInviteFunction } from '@/infrastructure/auth/functionsGateway';
 import {
   fetchWorkspaceGroupNameMap,
@@ -80,6 +81,8 @@ interface WorkspaceSummary {
   id: string;
   name: string;
   holidayCountry: string;
+  /** ISO 3166-2 region whose own holidays count too; null = the whole country. */
+  holidayRegion: string | null;
   heatmapEnabled: boolean;
   heatmapCapacityPerPerson: number | null;
   role: WorkspaceRole;
@@ -103,6 +106,7 @@ interface WorkspaceMemberRow {
     id: string;
     name: string;
     holiday_country: string | null;
+    holiday_region: string | null;
     heatmap_enabled: boolean | null;
     heatmap_capacity_per_person: number | string | null;
     owner_id: string | null;
@@ -151,6 +155,10 @@ const mapWorkspaceRows = (rows: WorkspaceMemberRow[]): WorkspaceSummary[] => row
     id: row.workspaces?.id ?? row.workspace_id,
     name: row.workspaces?.name ?? 'Workspace',
     holidayCountry: normalizeHolidayCountryCode(row.workspaces?.holiday_country),
+    holidayRegion: normalizeHolidayRegionCode(
+      row.workspaces?.holiday_region,
+      normalizeHolidayCountryCode(row.workspaces?.holiday_country),
+    ),
     heatmapEnabled: row.workspaces?.heatmap_enabled ?? false,
     heatmapCapacityPerPerson: normalizeCapacity(row.workspaces?.heatmap_capacity_per_person),
     role: row.role as WorkspaceRole,
@@ -200,7 +208,11 @@ interface AuthState {
   createWorkspace: (name: string) => Promise<{ error?: string }>;
   deleteWorkspace: (workspaceId?: string) => Promise<{ error?: string }>;
   updateWorkspaceName: (workspaceId: string, name: string) => Promise<{ error?: string }>;
-  updateWorkspaceHolidayCountry: (workspaceId: string, countryCode: string) => Promise<{ error?: string }>;
+  updateWorkspaceHolidayCountry: (
+    workspaceId: string,
+    countryCode: string,
+    regionCode: string | null,
+  ) => Promise<{ error?: string }>;
   updateWorkspaceHeatmapEnabled: (workspaceId: string, enabled: boolean) => Promise<{ error?: string }>;
   updateWorkspaceHeatmapCapacity: (workspaceId: string, capacity: number | null) => Promise<{ error?: string }>;
   fetchMembers: (workspaceId?: string) => Promise<void>;
@@ -547,7 +559,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const loadWorkspaces = async () => {
       const { data, error } = await supabase
         .from('workspace_members')
-        .select('workspace_id, role, workspaces(id, name, holiday_country, heatmap_enabled, heatmap_capacity_per_person, owner_id)')
+        .select('workspace_id, role, workspaces(id, name, holiday_country, holiday_region, heatmap_enabled, heatmap_capacity_per_person, owner_id)')
         .eq('user_id', user.id);
 
       if (error) {
@@ -780,12 +792,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().fetchWorkspaces();
     return {};
   },
-  updateWorkspaceHolidayCountry: async (workspaceId, countryCode) => {
+  updateWorkspaceHolidayCountry: async (workspaceId, countryCode, regionCode) => {
     const normalizedCode = normalizeHolidayCountryCode(countryCode);
 
+    // Country and region are written together: a region of the previous
+    // country would violate workspaces_holiday_region_check.
     const { error } = await supabase
       .from('workspaces')
-      .update({ holiday_country: normalizedCode })
+      .update({
+        holiday_country: normalizedCode,
+        holiday_region: normalizeHolidayRegionCode(regionCode, normalizedCode),
+      })
       .eq('id', workspaceId);
 
     if (error) return { error: error.message };

@@ -179,7 +179,7 @@ describe('demo workload heatmap', () => {
     const userId = demoStore.user().id;
     const { data, error } = await demoSupabaseClient
       .from('workspace_members')
-      .select('workspace_id, role, workspaces(id, name, holiday_country, heatmap_enabled, heatmap_capacity_per_person, owner_id)')
+      .select('workspace_id, role, workspaces(id, name, holiday_country, holiday_region, heatmap_enabled, heatmap_capacity_per_person, owner_id)')
       .eq('user_id', userId);
     expect(error).toBeNull();
     const row = (data as unknown as Array<{ workspaces: { name: string; heatmap_enabled: boolean } | null }>)[0];
