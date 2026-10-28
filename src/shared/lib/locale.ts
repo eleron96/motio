@@ -1,4 +1,4 @@
-export const SUPPORTED_LOCALES = ["en", "ru"] as const;
+export const SUPPORTED_LOCALES = ["en", "ru", "de"] as const;
 
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
@@ -10,7 +10,8 @@ export const isSupportedLocale = (value: unknown): value is Locale =>
 
 /**
  * Picks a UI language from a browser language list ("ru-RU", "en-GB", …).
- * Only the primary subtag matters: every Russian region variant maps to `ru`.
+ * Only the primary subtag matters: every regional variant maps to its language
+ * (`ru-RU` → `ru`, `de-AT` → `de`).
  * The first entry we recognise wins — a list is ordered by the user's own
  * preference — and anything unknown falls back to English.
  */
@@ -38,7 +39,15 @@ export const detectBrowserLocale = (): Locale => {
   return resolveLocaleFromLanguages(languages as readonly string[]);
 };
 
+/** BCP 47 tag for Intl / toLocaleString formatting in each UI language. */
+export const localeIntlTags: Record<Locale, string> = {
+  en: "en-US",
+  ru: "ru-RU",
+  de: "de-DE",
+};
+
 export const localeLabels: Record<Locale, string> = {
   en: "English",
   ru: "Русский",
+  de: "Deutsch",
 };

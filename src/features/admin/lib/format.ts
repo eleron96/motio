@@ -1,20 +1,18 @@
 import type { AdminUser, BackupEntry } from '@/features/admin/store/adminStore';
-import type { Locale } from '@/shared/lib/locale';
+import { localeIntlTags, type Locale } from '@/shared/lib/locale';
 
 export const formatDate = (value: string | null | undefined, locale: Locale) => {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
-  const language = locale === 'ru' ? 'ru-RU' : 'en-US';
-  return date.toLocaleString(language);
+  return date.toLocaleString(localeIntlTags[locale]);
 };
 
 export const formatDateCompact = (value: string | null | undefined, locale: Locale) => {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
-  const language = locale === 'ru' ? 'ru-RU' : 'en-US';
-  return date.toLocaleDateString(language);
+  return date.toLocaleDateString(localeIntlTags[locale]);
 };
 
 export const formatWorkspaceSummary = (workspaces: AdminUser['workspaces']) => {

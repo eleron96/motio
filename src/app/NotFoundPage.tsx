@@ -1,33 +1,26 @@
 import { Link, useLocation } from "react-router-dom";
+import { t } from "@lingui/macro";
 import { Button } from "@/shared/ui/button";
 import { useLocaleStore } from "@/shared/store/localeStore";
 import { usePageSeo } from "@/shared/lib/seo/usePageSeo";
 
 const NotFoundPage = () => {
   const location = useLocation();
-  const locale = useLocaleStore((state) => state.locale);
-  const isRu = locale === "ru";
+  // Subscribed so the page re-renders in the new language right away.
+  useLocaleStore((state) => state.locale);
 
   usePageSeo({
-    title: isRu ? "404 — Страница не найдена | Motio" : "404 - Page not found | Motio",
-    description: isRu
-      ? "Такой страницы не существует. Вернитесь на главную или в таймлайн."
-      : "This page does not exist. Return home or jump back to the timeline.",
+    title: t`404 - Page not found | Motio`,
+    description: t`This page does not exist. Return home or jump back to the timeline.`,
     robots: "noindex, nofollow",
   });
 
-  const title = isRu
-    ? "Ой, эта страница ушла за кофе."
-    : "Oops, this page took a coffee break.";
-  const subtitle = isRu
-    ? "Ошибка 404. Мы всё проверили, но здесь пусто."
-    : "Error 404. We checked everywhere, but nothing is here.";
-  const hint = isRu
-    ? "Вернитесь на главную или сразу откройте таймлайн."
-    : "Try returning home or jump back into the timeline.";
-  const missingPathLabel = isRu ? "Запрошенный путь" : "Requested path";
-  const homeLabel = isRu ? "На главную" : "Back to home";
-  const timelineLabel = isRu ? "Открыть таймлайн" : "Open timeline";
+  const title = t`Oops, this page took a coffee break.`;
+  const subtitle = t`Error 404. We checked everywhere, but nothing is here.`;
+  const hint = t`Try returning home or jump back into the timeline.`;
+  const missingPathLabel = t`Requested path`;
+  const homeLabel = t`Back to home`;
+  const timelineLabel = t`Open timeline`;
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-10">

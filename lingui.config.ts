@@ -3,7 +3,9 @@ import { formatter } from "@lingui/format-po";
 
 export default defineConfig({
   sourceLocale: "en",
-  locales: ["en", "ru"],
+  locales: ["en", "ru", "de"],
+  // A string not yet translated shows in English, never as a message id.
+  fallbackLocales: { default: "en" },
   catalogs: [
     {
       path: "src/locales/{locale}/messages",

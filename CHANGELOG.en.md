@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Motio now speaks German: the language follows your browser or can be picked in account settings. The sign-in page, welcome email, push notifications and the examples of a new workspace are in German too.
+
+### Fixed
+- When no name is set, the morning brief now simply wishes you a good morning, without a stray word in the greeting.
+
 ## [0.10.25] - 2026-10-27
 ### Fixed
 - If the server rejects a task change (move, edit or delete), you now see an error message instead of the change silently not saving.

@@ -4,19 +4,19 @@
 //
 // Type-only import: the release-notes module inlines both CHANGELOG files and is
 // loaded on demand by the dialog (see src/test/shared/releaseNotesBoundary.test.ts).
+import { t } from '@lingui/macro';
 import type { ReleaseNotesEntry } from '@/shared/lib/releaseNotes';
 
 type ReleaseNotesListProps = {
   /** `null` while the notes chunk is still loading, `[]` when there is nothing. */
   entries: ReleaseNotesEntry[] | null;
-  isRussianLocale: boolean;
 };
 
-export const ReleaseNotesList = ({ entries, isRussianLocale }: ReleaseNotesListProps) => {
+export const ReleaseNotesList = ({ entries }: ReleaseNotesListProps) => {
   if (entries === null) {
     return (
       <p className="text-sm text-muted-foreground">
-        {isRussianLocale ? 'Загружаем историю изменений…' : 'Loading the change history…'}
+        {t`Loading the change history…`}
       </p>
     );
   }
@@ -24,7 +24,7 @@ export const ReleaseNotesList = ({ entries, isRussianLocale }: ReleaseNotesListP
   if (entries.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        {isRussianLocale ? 'Нет записей о последних изменениях.' : 'No recent change entries available.'}
+        {t`No recent change entries available.`}
       </p>
     );
   }
@@ -36,8 +36,8 @@ export const ReleaseNotesList = ({ entries, isRussianLocale }: ReleaseNotesListP
           <header className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b pb-1">
             <h4 className="text-sm font-semibold text-foreground">
               {entry.version === 'Unreleased'
-                ? (isRussianLocale ? 'Готовится' : 'Unreleased')
-                : (isRussianLocale ? `Версия ${entry.version}` : `Version ${entry.version}`)}
+                ? t`Unreleased`
+                : t`Version ${entry.version}`}
             </h4>
             {entry.date && (
               <span className="text-xs text-muted-foreground">{entry.date}</span>

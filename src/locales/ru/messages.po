@@ -233,6 +233,10 @@ msgstr "{weeksAgo, plural, one {# неделю назад} few {# недели �
 msgid "+{0} more milestones"
 msgstr "+{0} ещё этапов"
 
+#: src/features/dashboard/components/DashboardWidgetCard.tsx
+msgid "+{groupedLegendCount} hidden"
+msgstr "+{groupedLegendCount} скрыто"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "🎯 Milestones calendar"
 msgstr "🎯 Календарь вех"
@@ -260,6 +264,10 @@ msgstr "Выбрано: 1"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зарезервированных слов."
+
+#: src/app/NotFoundPage.tsx
+msgid "404 - Page not found | Motio"
+msgstr "404 — Страница не найдена | Motio"
 
 #: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "A circle on the day; split when several people are away."
@@ -771,6 +779,10 @@ msgstr "В отпуске: {0} из {1}"
 msgid "Back"
 msgstr "Назад"
 
+#: src/app/NotFoundPage.tsx
+msgid "Back to home"
+msgstr "На главную"
+
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 msgid "Back to today"
 msgstr "Вернуться к сегодняшней дате"
@@ -1198,6 +1210,10 @@ msgstr "Тренд выполнения"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Configure widget type, display style, and filters."
 msgstr "Настройте тип виджета, стиль отображения и фильтры."
+
+#: src/features/planner/hooks/usePlannerLiveSync.ts
+msgid "Connection restored"
+msgstr "Соединение восстановлено"
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Contact"
@@ -2170,6 +2186,10 @@ msgstr "Равно"
 msgid "Error"
 msgstr "Ошибка"
 
+#: src/app/NotFoundPage.tsx
+msgid "Error 404. We checked everywhere, but nothing is here."
+msgstr "Ошибка 404. Мы всё проверили, но здесь пусто."
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Every 4 weeks"
 msgstr "Каждые 4 недели"
@@ -2534,6 +2554,10 @@ msgstr "Перейти к таймлайну"
 msgid "Good morning, {displayName}!"
 msgstr "Доброе утро, {displayName}!"
 
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Good morning!"
+msgstr "Доброе утро!"
+
 #: src/features/announcements/components/AnnouncementsHost.tsx
 msgid "Got it"
 msgstr "Понятно"
@@ -2831,6 +2855,10 @@ msgstr "Последняя в серии"
 msgid "Latest backup"
 msgstr "Последний бэкап"
 
+#: src/features/auth/components/ReleaseNotesDialog.tsx
+msgid "Latest changes"
+msgstr "Последние изменения"
+
 #: src/shared/lib/accentColor.ts
 msgid "Lavender"
 msgstr "Лавандовый"
@@ -2959,6 +2987,10 @@ msgstr "Загрузка задач..."
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Loading template..."
 msgstr "Загрузка шаблона..."
+
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "Loading the change history…"
+msgstr "Загружаем историю изменений…"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Loading users..."
@@ -3441,6 +3473,11 @@ msgstr "Без кода"
 msgid "No company"
 msgstr "Без компании"
 
+#: src/features/planner/hooks/usePlannerLiveSync.ts
+#: src/features/planner/hooks/usePlannerLiveSync.ts
+msgid "No connection"
+msgstr "Нет соединения"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No contacts found."
@@ -3718,6 +3755,10 @@ msgstr "Нет проектов под текущий поиск."
 msgid "No projects yet."
 msgstr "Проектов пока нет."
 
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "No recent change entries available."
+msgstr "Нет записей о последних изменениях."
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "No recipients match this audience."
 msgstr "Под эту аудиторию нет получателей."
@@ -3984,6 +4025,10 @@ msgstr "Доступ к админке есть только у супер-ад�
 msgid "Only this task"
 msgstr "Только эта задача"
 
+#: src/app/NotFoundPage.tsx
+msgid "Oops, this page took a coffee break."
+msgstr "Ой, эта страница ушла за кофе."
+
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/projectCard/ProjectTasksFiltersScreen.tsx
@@ -4053,6 +4098,10 @@ msgstr "Открыть демо →"
 msgid "Open this day"
 msgstr "Открыть этот день"
 
+#: src/app/NotFoundPage.tsx
+msgid "Open timeline"
+msgstr "Открыть таймлайн"
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Optional"
 msgstr "Необязательно"
@@ -4060,6 +4109,10 @@ msgstr "Необязательно"
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 msgid "Order"
 msgstr "Порядок"
+
+#: src/features/dashboard/components/DashboardWidgetCard.tsx
+msgid "Other"
+msgstr "Остальное"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
@@ -4611,6 +4664,10 @@ msgstr "Повторяется до выбранной даты."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Заменить отображаемое имя удалённого аккаунта. Изменение применится везде, где упоминается этот пользователь."
+
+#: src/app/NotFoundPage.tsx
+msgid "Requested path"
+msgstr "Запрошенный путь"
 
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/pages/PlannerPage.tsx
@@ -5640,10 +5697,6 @@ msgstr "Тепловая карта загрузки: нагрузка кома�
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "Рабочее пространство и все его данные будут удалены без возможности восстановления."
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx
-msgid "there"
-msgstr "там"
-
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "There are no other active members to transfer ownership to."
 msgstr "Нет других активных участников, которым можно передать владение."
@@ -5733,6 +5786,10 @@ msgstr "Этот месяц"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "This name is reserved."
 msgstr "Это имя зарезервировано."
+
+#: src/app/NotFoundPage.tsx
+msgid "This page does not exist. Return home or jump back to the timeline."
+msgstr "Такой страницы не существует. Вернитесь на главную или в таймлайн."
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this project"
@@ -5975,6 +6032,10 @@ msgstr "Попробовать демо — без регистрации"
 msgid "Try Motio now"
 msgstr "Попробуйте Motio сейчас"
 
+#: src/app/NotFoundPage.tsx
+msgid "Try returning home or jump back into the timeline."
+msgstr "Вернитесь на главную или сразу откройте таймлайн."
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6130,6 +6191,10 @@ msgstr "Не прочитано"
 msgid "Unread notifications"
 msgstr "Непрочитанные уведомления"
 
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "Unreleased"
+msgstr "Готовится"
+
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -6233,6 +6298,15 @@ msgstr "Пользователи"
 #: src/features/planner/components/TimeOffFields.tsx
 msgid "Vacation, day off, sick leave..."
 msgstr "Отпуск, отгул, больничный..."
+
+#. placeholder {0}: entry.version
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "Version {0}"
+msgstr "Версия {0}"
+
+#: src/features/auth/components/ReleaseNotesDialog.tsx
+msgid "Version {APP_VERSION}"
+msgstr "Версия {APP_VERSION}"
 
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
@@ -6609,16 +6683,3 @@ msgstr "Здесь живут ваши виджеты. Меняйте их ра�
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Z-A"
 msgstr "Я-А"
-
-#: src/features/planner/hooks/usePlannerLiveSync.ts
-#: src/features/planner/hooks/usePlannerLiveSync.ts
-msgid "Нет соединения"
-msgstr "Нет соединения"
-
-#: src/features/planner/hooks/usePlannerLiveSync.ts
-msgid "Соединение восстановлено"
-msgstr "Соединение восстановлено"
-
-#: src/features/auth/pages/InvitePage.tsx
-msgid "Я соглашаюсь с <0>Политикой конфиденциальности</0>"
-msgstr "Я соглашаюсь с <0>Политикой конфиденциальности</0>"

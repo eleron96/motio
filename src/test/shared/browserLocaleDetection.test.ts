@@ -24,17 +24,25 @@ describe('resolveLocaleFromLanguages', () => {
     expect(resolveLocaleFromLanguages(['en-US'])).toBe('en');
   });
 
+  it('maps German region variants to de', () => {
+    expect(resolveLocaleFromLanguages(['de'])).toBe('de');
+    expect(resolveLocaleFromLanguages(['de-DE'])).toBe('de');
+    expect(resolveLocaleFromLanguages(['de-AT'])).toBe('de');
+    expect(resolveLocaleFromLanguages(['de-CH'])).toBe('de');
+  });
+
   it('honours the order of preference — the first language we know wins', () => {
     expect(resolveLocaleFromLanguages(['ru-RU', 'en-US'])).toBe('ru');
     expect(resolveLocaleFromLanguages(['en-US', 'ru-RU'])).toBe('en');
   });
 
   it('skips languages we do not speak and takes the next known one', () => {
-    expect(resolveLocaleFromLanguages(['de-DE', 'fr', 'ru-RU'])).toBe('ru');
+    expect(resolveLocaleFromLanguages(['fr-FR', 'it', 'ru-RU'])).toBe('ru');
+    expect(resolveLocaleFromLanguages(['fr-FR', 'de-AT', 'en-US'])).toBe('de');
   });
 
   it('falls back to English for an unknown, empty or malformed list', () => {
-    expect(resolveLocaleFromLanguages(['de-DE', 'zh-CN'])).toBe(DEFAULT_LOCALE);
+    expect(resolveLocaleFromLanguages(['fr-FR', 'zh-CN'])).toBe(DEFAULT_LOCALE);
     expect(resolveLocaleFromLanguages([])).toBe(DEFAULT_LOCALE);
     expect(resolveLocaleFromLanguages(undefined)).toBe(DEFAULT_LOCALE);
     expect(resolveLocaleFromLanguages(null)).toBe(DEFAULT_LOCALE);

@@ -1,7 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ReleaseNotesList } from '@/features/auth/components/ReleaseNotesList';
 import type { ReleaseNotesEntry } from '@/shared/lib/releaseNotes';
+
+// Translations are covered by src/test/smoke/localeCatalogs.test.ts.
+vi.mock('@lingui/macro', () => ({
+  t: (strings: TemplateStringsArray, ...values: unknown[]) =>
+    strings.reduce((acc, str, idx) => acc + str + (values[idx] ?? ''), ''),
+}));
 
 const entries: ReleaseNotesEntry[] = [
   {
@@ -21,21 +27,21 @@ const entries: ReleaseNotesEntry[] = [
 
 describe('ReleaseNotesList', () => {
   it('shows a loading line while the notes chunk is still in flight', () => {
-    render(<ReleaseNotesList entries={null} isRussianLocale={false} />);
+    render(<ReleaseNotesList entries={null} />);
 
     expect(screen.getByText('Loading the change history…')).toBeInTheDocument();
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
   });
 
   it('distinguishes "still loading" from "loaded and empty"', () => {
-    render(<ReleaseNotesList entries={[]} isRussianLocale={false} />);
+    render(<ReleaseNotesList entries={[]} />);
 
     expect(screen.getByText('No recent change entries available.')).toBeInTheDocument();
     expect(screen.queryByText('Loading the change history…')).not.toBeInTheDocument();
   });
 
   it('renders every release with its sections and items', () => {
-    render(<ReleaseNotesList entries={entries} isRussianLocale={false} />);
+    render(<ReleaseNotesList entries={entries} />);
 
     expect(screen.getByText('Version 0.9.35')).toBeInTheDocument();
     expect(screen.getByText('2026-07-24')).toBeInTheDocument();
@@ -48,27 +54,14 @@ describe('ReleaseNotesList', () => {
   });
 
   it('labels an Unreleased entry instead of printing the word as a version', () => {
-    render(<ReleaseNotesList entries={entries} isRussianLocale={false} />);
+    render(<ReleaseNotesList entries={entries} />);
 
     expect(screen.getByText('Unreleased')).toBeInTheDocument();
     expect(screen.queryByText('Version Unreleased')).not.toBeInTheDocument();
   });
 
-  it('localizes headings and states for Russian', () => {
-    const { rerender } = render(<ReleaseNotesList entries={entries} isRussianLocale />);
-
-    expect(screen.getByText('Версия 0.9.35')).toBeInTheDocument();
-    expect(screen.getByText('Готовится')).toBeInTheDocument();
-
-    rerender(<ReleaseNotesList entries={null} isRussianLocale />);
-    expect(screen.getByText('Загружаем историю изменений…')).toBeInTheDocument();
-
-    rerender(<ReleaseNotesList entries={[]} isRussianLocale />);
-    expect(screen.getByText('Нет записей о последних изменениях.')).toBeInTheDocument();
-  });
-
   it('does not drop releases that repeat a section title', () => {
-    render(<ReleaseNotesList entries={entries} isRussianLocale={false} />);
+    render(<ReleaseNotesList entries={entries} />);
 
     // "Added" appears in both entries — keys are scoped per release, so both survive.
     expect(screen.getAllByText('Added')).toHaveLength(2);

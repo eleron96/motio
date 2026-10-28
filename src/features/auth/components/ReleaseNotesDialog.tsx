@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { t } from '@lingui/macro';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +25,6 @@ interface ReleaseNotesDialogProps {
  */
 export const ReleaseNotesDialog: React.FC<ReleaseNotesDialogProps> = ({ open, onOpenChange }) => {
   const locale = useLocaleStore((state) => state.locale);
-  const isRussianLocale = locale === 'ru';
 
   // Fetched only once the dialog is open: the module carries the full changelog.
   // `null` means "not loaded yet" and renders a loading line; `[]` means loaded
@@ -56,13 +56,13 @@ export const ReleaseNotesDialog: React.FC<ReleaseNotesDialogProps> = ({ open, on
       {/* rounded-2xl for phones — the stock styles only round from `sm:` up. */}
       <DialogContent className="w-[95vw] max-w-xl rounded-2xl">
         <DialogHeader>
-          <DialogTitle>{isRussianLocale ? 'Последние изменения' : 'Latest changes'}</DialogTitle>
+          <DialogTitle>{t`Latest changes`}</DialogTitle>
           <DialogDescription>
-            {isRussianLocale ? `Версия ${APP_VERSION}` : `Version ${APP_VERSION}`}
+            {t`Version ${APP_VERSION}`}
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-6 overflow-y-auto pr-1 text-left">
-          <ReleaseNotesList entries={releaseNotes} isRussianLocale={isRussianLocale} />
+          <ReleaseNotesList entries={releaseNotes} />
         </div>
       </DialogContent>
     </Dialog>

@@ -59,6 +59,7 @@ import { getBarPalette, getPeriodRange } from '@/features/dashboard/lib/dashboar
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import { localeIntlTags } from '@/shared/lib/locale';
 import { CHART_GRID_STROKE_COLOR, DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 import { buildPersonColorMap } from '@/features/planner/lib/timeOffPalette';
 
@@ -122,7 +123,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   onEdit,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
-  const otherLegendLabel = locale === 'ru' ? 'Остальное' : 'Other';
+  const otherLegendLabel = t`Other`;
   const isTechnicalLegendName = React.useCallback((name: string) => (
     !name.trim()
     || /^series_/i.test(name)
@@ -475,9 +476,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     return Math.max(10, Math.min(cap, widthBased));
   })();
   const groupedLegendHint = groupedLegendCount > 0
-    ? (locale === 'ru'
-      ? `+${groupedLegendCount} скрыто`
-      : `+${groupedLegendCount} hidden`)
+    ? t`+${groupedLegendCount} hidden`
     : null;
   const colorIndexBySeries = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -593,7 +592,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
               </span>
               {showLegendValue && (
                 <span className="shrink-0 font-medium tabular-nums text-foreground">
-                  {item.value.toLocaleString(locale === 'ru' ? 'ru-RU' : 'en-US')}
+                  {item.value.toLocaleString(localeIntlTags[locale])}
                 </span>
               )}
             </div>
@@ -648,7 +647,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
       end: milestoneRangeEnd,
     }))
     .sort((a, b) => {
-      if (a.date === b.date) return a.title.localeCompare(b.title, locale === 'ru' ? 'ru' : 'en');
+      if (a.date === b.date) return a.title.localeCompare(b.title, locale);
       return a.date.localeCompare(b.date);
     });
   const milestoneListViewportRef = React.useRef<HTMLDivElement | null>(null);

@@ -5,7 +5,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { toast } from '@/shared/ui/sonner';
 import { t, Trans } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
-import { useLocaleStore } from '@/shared/store/localeStore';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Label } from '@/shared/ui/label';
@@ -14,9 +13,6 @@ function ConsentCheckbox({ checked, onCheckedChange }: {
   checked: boolean;
   onCheckedChange: (v: boolean) => void;
 }) {
-  const locale = useLocaleStore((state) => state.locale);
-  const isRu = locale === 'ru';
-
   return (
     <div className="flex items-start gap-2">
       <Checkbox
@@ -26,21 +22,12 @@ function ConsentCheckbox({ checked, onCheckedChange }: {
         className="mt-0.5"
       />
       <Label htmlFor="privacy-consent" className="cursor-pointer text-xs leading-relaxed text-muted-foreground">
-        {isRu ? (
-          <Trans>
-            Я соглашаюсь с{' '}
-            <Link to="/privacy" target="_blank" className="underline underline-offset-4 hover:text-foreground">
-              Политикой конфиденциальности
-            </Link>
-          </Trans>
-        ) : (
-          <Trans>
-            I agree to the{' '}
-            <Link to="/privacy" target="_blank" className="underline underline-offset-4 hover:text-foreground">
-              Privacy Policy
-            </Link>
-          </Trans>
-        )}
+        <Trans>
+          I agree to the{' '}
+          <Link to="/privacy" target="_blank" className="underline underline-offset-4 hover:text-foreground">
+            Privacy Policy
+          </Link>
+        </Trans>
       </Label>
     </div>
   );

@@ -59,7 +59,7 @@ export const DailyBriefModal = ({ open, onDismiss, workspaceId, assigneeId }: Pr
     enabled: open,
   });
 
-  const displayName = profileDisplayName ?? t`there`;
+  const displayName = profileDisplayName;
 
   const handleTaskClick = (taskId: string) => {
     usePlannerStore.getState().setSelectedTaskId(taskId);
@@ -79,7 +79,7 @@ export const DailyBriefModal = ({ open, onDismiss, workspaceId, assigneeId }: Pr
         <EasterEggSlot active={open} /> {/* easter egg — safe to delete */}
         <DialogHeader className="space-y-1">
           <DialogTitle {...reveal(REVEAL_DELAY.title, 'text-primary text-xl')}>
-            {t`Good morning, ${displayName}!`}
+            {displayName ? t`Good morning, ${displayName}!` : t`Good morning!`}
           </DialogTitle>
           <DialogDescription
             {...reveal(REVEAL_DELAY.date, 'text-sm text-muted-foreground')}

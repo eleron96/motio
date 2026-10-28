@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { t, Trans } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
+import { SUPPORTED_LOCALES } from '@/shared/lib/locale';
 import { setPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { Button } from '@/shared/ui/button';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
@@ -374,7 +375,8 @@ const LandingPage = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                const nextLocale = locale === 'en' ? 'ru' : 'en';
+                // Cycles through every UI language: EN → RU → DE → EN.
+                const nextLocale = SUPPORTED_LOCALES[(SUPPORTED_LOCALES.indexOf(locale) + 1) % SUPPORTED_LOCALES.length];
                 setLocale(nextLocale);
                 // Только для гостя: его выбор должен пережить вход, иначе язык
                 // профиля перезапишет его обратно. У вошедшего человека язык
