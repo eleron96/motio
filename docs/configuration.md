@@ -160,6 +160,24 @@ counterpart, so one SMTP account is enough.
 - `MAILER_WELCOME_ENABLED` — welcome email after the first sign-in (`true` by default).
 - `MAILER_DRY_RUN` — `1` logs messages instead of sending them.
 
+## Site address and analytics
+
+Built into `web` at build time (`vite/siteIdentity.ts`):
+
+- `VITE_PUBLIC_SITE_URL` — the public address of this install, e.g.
+  `https://planner.example.com`, no path or trailing slash. It goes into the
+  canonical and link-preview tags of `index.html`, `robots.txt` and `sitemap.xml`.
+  Empty means `https://motio.nikog.net`.
+- `VITE_PLAUSIBLE_DOMAIN`, `VITE_PLAUSIBLE_SRC` — page-view analytics with a
+  Plausible-compatible script (`data-domain` and script URL). Set both or neither;
+  empty means the page loads no analytics script. A self-hosted install sends
+  nothing anywhere by default. If you turn it on behind your own Caddyfile, allow
+  the script host in its `Content-Security-Policy`.
+
+The motio.nikog.net deploy (`prod-compose.sh`) fills in its own analytics values when
+the server `.env` has no `VITE_PLAUSIBLE_*` keys; a key present in `.env`, even
+empty, wins.
+
 ## Error tracking
 
 - `GLITCHTIP_DSN` — server-side errors (Edge Functions, backup-service).
@@ -194,3 +212,6 @@ backup-service runs every scheduled job with `node-cron`. Defaults:
   `make seed-testing` adds to the QA playground workspace (see
   [Operations](operations.md)). Personal addresses stay in the server `.env`,
   never in the repository.
+
+- The testing deploy does not fill in `VITE_PLAUSIBLE_*`, so the testing site loads
+  no analytics script and its visits stay out of the public site's statistics.

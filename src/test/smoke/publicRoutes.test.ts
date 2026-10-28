@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { renderIndexHtml, renderSitemapXml, resolveSiteIdentity } from "../../../vite/siteIdentity";
+
 const repoRoot = process.cwd();
 const readRepoText = (...segments: string[]) => readFileSync(resolve(repoRoot, ...segments), "utf8");
 
@@ -41,14 +43,14 @@ describe.each(["infra/caddy/Caddyfile", "infra/caddy/Caddyfile.testing"])("%s", 
 
 describe("link preview card", () => {
   it("is what index.html points og:image and twitter:image at, and it exists", () => {
-    const indexHtml = readRepoText("index.html");
+    const indexHtml = renderIndexHtml(readRepoText("index.html"), resolveSiteIdentity({}));
     expect(indexHtml).toContain('<meta property="og:image" content="https://motio.nikog.net/og-image.png" />');
     expect(indexHtml).toContain('<meta name="twitter:image" content="https://motio.nikog.net/og-image.png" />');
     expect(existsSync(resolve(repoRoot, "public/og-image.png"))).toBe(true);
   });
 
   it("is listed in the sitemap next to the public pages", () => {
-    const sitemap = readRepoText("public/sitemap.xml");
+    const sitemap = renderSitemapXml(resolveSiteIdentity({}));
     for (const page of ["/", "/demo", "/privacy", "/terms"]) {
       expect(sitemap).toContain(`<loc>https://motio.nikog.net${page}</loc>`);
     }

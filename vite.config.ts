@@ -1,7 +1,8 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import path from "path";
+import { resolveSiteIdentity, siteIdentityPlugin } from "./vite/siteIdentity";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -13,6 +14,8 @@ export default defineConfig(({ mode }) => {
   // the shipped JS. The nginx "map -> 404" rule stays as a belt-and-suspenders
   // backstop.
   const sentryEnabled = mode === "production" && Boolean(process.env.SENTRY_AUTH_TOKEN);
+  // Site address (canonical/social tags, robots, sitemap) and opt-in analytics.
+  const siteIdentity = resolveSiteIdentity(loadEnv(mode, process.cwd(), "VITE_"));
 
   return {
     server: {
@@ -28,6 +31,7 @@ export default defineConfig(({ mode }) => {
           plugins: ["@lingui/babel-plugin-lingui-macro"],
         },
       }),
+      siteIdentityPlugin(siteIdentity),
       sentryEnabled && sentryVitePlugin({
         org: process.env.SENTRY_ORG || "motio",
         project: process.env.SENTRY_PROJECT || "motio-frontend",
