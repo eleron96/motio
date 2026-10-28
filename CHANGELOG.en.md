@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.28] - 2026-10-28
 ### Added
 - For self-hosted installs: a System section in the admin console shows the version and any newer release with the exact update command, whether each service answers, what is switched on, and sends a test email.
 
