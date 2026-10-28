@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.32] - 2026-10-28
 ### Added
 - For self-hosted installs: Motio can join the Docker network of your reverse proxy (Nginx Proxy Manager, for example) instead of opening a port.
 - For self-hosted installs: an update now first saves a copy of the whole install — data, sign-ins, uploaded files and settings — and if something goes wrong, one command takes you back to the previous release with that data. The same copy works as a manual backup or to move Motio to another server. It applies from the update after this one.
