@@ -269,7 +269,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 
 ## 5.6. Self-host: установка на чужие серверы
 
-Установщик для пользователей: `infra/scripts/install.sh` (install / update / up / `--env-only`), обёртка `infra/scripts/selfhost-compose.sh`, оверлеи `infra/docker-compose.selfhost.yml` (+ `docker-compose.selfhost-tls.yml`), `infra/caddy/Caddyfile.selfhost`, `infra/scripts/keycloak-ensure-realm-smtp.sh`. Документация — `docs/self-hosting.md`. **Прод и тест владельца ими не пользуются**: их путь — по-прежнему `make deploy` / `make deploy-testing` (§5.4). Клиенты ставят и обновляются с **тега релиза**, поэтому любая правка установщика доходит до них только после прод-релиза.
+Установщик для пользователей: `infra/scripts/install.sh` (install / update / rollback / backup / restore / up / status / `--env-only`), обёртка `infra/scripts/selfhost-compose.sh`, оверлеи `infra/docker-compose.selfhost.yml` (+ `docker-compose.selfhost-tls.yml`, `docker-compose.selfhost-proxy-network.yml` при `MOTIO_PROXY_NETWORK`, и свой незатреканный `docker-compose.selfhost.local.yml` пользователя), `infra/caddy/Caddyfile.selfhost`, `infra/scripts/keycloak-ensure-realm-smtp.sh`. Документация — `docs/self-hosting.md`. **Прод и тест владельца ими не пользуются**: их путь — по-прежнему `make deploy` / `make deploy-testing` (§5.4). Клиенты ставят и обновляются с **тега релиза**, поэтому любая правка установщика доходит до них только после прод-релиза.
 
 При изменениях держать self-host в согласии с продом:
 
@@ -282,6 +282,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 7. **Домен, аналитика и мониторинг владельца** в коде не вписывать: адрес сайта — `VITE_PUBLIC_SITE_URL` (`vite/siteIdentity.ts`), аналитика владельца подставляется только `prod-compose.sh`; чужая установка по умолчанию никуда ничего не шлёт (это проверяет `src/test/smoke/selfhostInstallEnv.test.ts`).
 8. **Пробная установка** — чистого VPS нет; владелец разрешил тест-сервер при строгой изоляции: свой каталог и `--instance`, режим `proxy` на `127.0.0.1` (порты 80/443 — nginx соседа), свои порты gateway/Keycloak, проверка через SSH-туннель, перед `up` — нет `external: true` томов. После проверки — `selfhost-compose.sh down -v`, удалить собранные образы `<instance>-*` и каталог; общие образы (`caddy:2.8` использует `motio-caddy`) не трогать.
 9. Резервный админ (`RESERVE_ADMIN_*`) — служебная учётка, сразу в `/app/admin`; первый человек на чужой установке регистрируется сам. Не делать почту установщика резервным админом.
+10. **Бэкап-наборы** (`infra/backups/install/<вид>-<время>/`) — холодная копия томов из `set_volumes` в `install.sh` + `.env` + коммит; `update` снимает набор перед миграциями, `rollback`/`restore` кладут тома обратно побайтно и переключают checkout. **Новый том с данными в `docker-compose.prod.yml` — сразу в `set_volumes`**, иначе откат вернёт всё, кроме него. Копирует `tar` из образа `db` (GNU tar: сохраняет владельцев и xattrs файлов storage-api).
 
 ## 6. Правила логирования
 

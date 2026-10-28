@@ -182,6 +182,23 @@ The motio.nikog.net deploy (`prod-compose.sh`) fills in its own analytics values
 the server `.env` has no `VITE_PLAUSIBLE_*` keys; a key present in `.env`, even
 empty, wins.
 
+## Self-hosted install (`install.sh`)
+
+Written by `infra/scripts/install.sh`; see [Self-hosting](self-hosting.md).
+
+- `MOTIO_INSTANCE` — compose project and volume prefix (`motio`).
+- `MOTIO_MODE` — `tls` (Caddy gets the certificate, ports 80/443) or `proxy`
+  (behind your own reverse proxy).
+- `MOTIO_HTTP_BIND` — where Caddy listens in mode `proxy`, e.g. `127.0.0.1:8088`.
+- `MOTIO_PROXY_NETWORK` — mode `proxy` only: the existing Docker network of your
+  reverse proxy, e.g. `npm_backend`. Caddy joins it under the name
+  `MOTIO_INSTANCE` and publishes no port; empty means `MOTIO_HTTP_BIND` is used.
+- `MOTIO_GATEWAY_PORT`, `MOTIO_KEYCLOAK_PORT` — loopback ports of the API gateway
+  and Keycloak, used by `install.sh` for setup and `status`.
+
+`infra/docker-compose.selfhost.local.yml`, if present, is applied on top of the
+compose files (labels, extra networks); it is not tracked in git.
+
 ## Admin → System
 
 - `MOTIO_UPDATE_CHECK` — the System section of the admin console asks GitHub for

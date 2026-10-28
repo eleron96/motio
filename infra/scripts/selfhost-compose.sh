@@ -3,7 +3,9 @@ set -euo pipefail
 
 # docker compose for a self-hosted install (see docs/self-hosting.md): the
 # production compose file + the self-host overlay (+ the TLS overlay when
-# MOTIO_MODE=tls), with the install's .env. Any compose arguments pass through:
+# MOTIO_MODE=tls, + the proxy-network overlay when MOTIO_PROXY_NETWORK is set,
+# + infra/docker-compose.selfhost.local.yml, your own additions, when it exists),
+# with the install's .env. Any compose arguments pass through:
 #
 #   infra/scripts/selfhost-compose.sh ps
 #   infra/scripts/selfhost-compose.sh logs -f --tail=100 auth
@@ -19,11 +21,21 @@ if [[ ! -f "$env_file" ]]; then
   exit 1
 fi
 
-mode="$(grep -E '^MOTIO_MODE=' "$env_file" | head -n1 | cut -d= -f2- || true)"
+env_value() { grep -E "^${1}=" "$env_file" | head -n1 | cut -d= -f2- || true; }
+
+mode="$(env_value MOTIO_MODE)"
+proxy_network="$(env_value MOTIO_PROXY_NETWORK)"
 
 files=(-f infra/docker-compose.prod.yml -f infra/docker-compose.selfhost.yml)
 if [[ "$mode" == "tls" ]]; then
   files+=(-f infra/docker-compose.selfhost-tls.yml)
+fi
+if [[ "$mode" == "proxy" && -n "$proxy_network" ]]; then
+  files+=(-f infra/docker-compose.selfhost-proxy-network.yml)
+fi
+# Labels, extra networks, limits…: kept out of git, so updates never touch it.
+if [[ -f infra/docker-compose.selfhost.local.yml ]]; then
+  files+=(-f infra/docker-compose.selfhost.local.yml)
 fi
 
 export COMPOSE_MENU=0

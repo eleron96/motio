@@ -29,6 +29,8 @@ dist-ssr
 .supabase-functions.log
 .supabase-functions.env
 infra/backups/
+# Your own additions to a self-hosted install (infra/scripts/selfhost-compose.sh)
+infra/docker-compose.selfhost.local.yml
 infra/seeds/
 notes/
 /marketing/

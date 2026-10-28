@@ -99,7 +99,8 @@ git checkout vX.Y.Z   # latest release
 infra/scripts/install.sh --domain planner.example.com --email you@example.com
 ```
 
-Updates are `infra/scripts/install.sh update --version vX.Y.Z`. Requirements, the
+Updates are `infra/scripts/install.sh update --version vX.Y.Z`: it backs up the whole
+install first, and `install.sh rollback` takes you back. Requirements, the
 reverse-proxy mode (Nginx Proxy Manager, Traefik, nginx), email, your own sign-in
 provider (Authentik, Entra ID…) and backups: **[docs/self-hosting.md](docs/self-hosting.md)**.
 The install sends nothing to motio.nikog.net. Self-hosting is community-supported —

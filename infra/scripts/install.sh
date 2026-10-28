@@ -6,7 +6,10 @@ set -euo pipefail
 #
 #   infra/scripts/install.sh --domain planner.example.com --email you@example.com
 #   infra/scripts/install.sh --domain planner.example.com --email you@example.com --mode proxy --http-port 8088
-#   infra/scripts/install.sh update [--version v0.11.0]
+#   infra/scripts/install.sh update [--version v0.11.0]   # backs everything up first
+#   infra/scripts/install.sh rollback    # back to the release and data from before the last update
+#   infra/scripts/install.sh backup      # full backup set now (Motio stops for the copy)
+#   infra/scripts/install.sh restore infra/backups/install/<set>
 #   infra/scripts/install.sh up          # re-apply config and (re)start everything
 #   infra/scripts/install.sh status      # read-only health report (no changes)
 #   infra/scripts/install.sh --env-only --domain … --email …   # only write .env, start nothing
@@ -22,7 +25,7 @@ env_file="${MOTIO_ENV_FILE:-.env}"
 compose=(infra/scripts/selfhost-compose.sh)
 
 usage() {
-  sed -n '4,15p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '4,19p' "$0" | sed 's/^# \{0,1\}//'
   cat <<'EOF'
 
 Options (install):
@@ -31,6 +34,8 @@ Options (install):
   --mode tls|proxy       tls: this server gets the certificate itself, ports 80/443 (default)
                          proxy: plain HTTP on 127.0.0.1:--http-port behind your own proxy
   --http-port PORT       local port for --mode proxy (default 8088)
+  --proxy-network NAME   --mode proxy: join this Docker network of your reverse proxy
+                         (e.g. npm_backend) instead of publishing a port
   --public-url URL       public address if it is not https://<domain> (e.g. behind a proxy on a port)
   --version TAG          release tag to install, e.g. v0.11.0 (default: the current checkout)
   --instance NAME        compose project / volume prefix (default motio)
@@ -38,6 +43,10 @@ Options (install):
   --keycloak-port PORT   loopback port for Keycloak (default 8081)
   --smtp-host HOST --smtp-port PORT --smtp-user USER --smtp-pass PASS --smtp-from EMAIL
                          outgoing mail (optional; without it no emails are sent)
+
+Options (rollback, restore):
+  --yes                  do not ask for confirmation
+  --no-safety-backup     skip the backup set of the current state taken before restoring
 EOF
 }
 
@@ -102,15 +111,18 @@ generate_env() {
   local domain="$1" email="$2" mode="$3" http_port="$4" public_url="$5" instance="$6"
   local gateway_port="$7" keycloak_port="$8"
   local smtp_host="$9" smtp_port="${10}" smtp_user="${11}" smtp_pass="${12}" smtp_from="${13}"
+  local proxy_network="${14}"
 
   log "Generating $env_file"
   python3 - "$env_file" "$domain" "$email" "$mode" "$http_port" "$public_url" "$instance" \
-    "$gateway_port" "$keycloak_port" "$smtp_host" "$smtp_port" "$smtp_user" "$smtp_pass" "$smtp_from" <<'PY'
+    "$gateway_port" "$keycloak_port" "$smtp_host" "$smtp_port" "$smtp_user" "$smtp_pass" "$smtp_from" \
+    "$proxy_network" <<'PY'
 import base64, hashlib, hmac, json, os, re, secrets, subprocess, sys, tempfile, time
 from urllib.parse import urlparse
 
 (env_path, domain, email, mode, http_port, public_url, instance,
- gateway_port, keycloak_port, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from) = sys.argv[1:15]
+ gateway_port, keycloak_port, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from,
+ proxy_network) = sys.argv[1:16]
 
 url = (public_url or f"https://{domain}").rstrip("/")
 parsed = urlparse(url)
@@ -167,6 +179,7 @@ values = {
     "MOTIO_DOMAIN": domain,
     "MOTIO_SITE_ADDRESS": domain if mode == "tls" else ":80",
     "MOTIO_HTTP_BIND": "80" if mode == "tls" else f"127.0.0.1:{http_port}",
+    "MOTIO_PROXY_NETWORK": proxy_network,
     "MOTIO_ACME_EMAIL": email,
     "MOTIO_GATEWAY_PORT": gateway_port,
     "MOTIO_KEYCLOAK_PORT": keycloak_port,
@@ -340,9 +353,23 @@ bring_up() {
   infra/scripts/check-prod-secrets.sh "$env_file"
 
   log "Checking the compose configuration"
+  local config_json
+  config_json="$("${compose[@]}" config --format json)" || fail "docker compose could not read the configuration."
   # Refuse to start if anything would attach to volumes of another install.
-  if "${compose[@]}" config 2>/dev/null | grep -qE '^\s+external: true'; then
+  # (Networks may be external: the reverse proxy network is meant to be shared.)
+  if ! python3 -c '
+import json, sys
+volumes = json.load(sys.stdin).get("volumes") or {}
+sys.exit(1 if any(volume.get("external") for volume in volumes.values()) else 0)
+' <<<"$config_json"; then
     fail "the compose configuration still references an external volume; refusing to start."
+  fi
+  local proxy_network
+  proxy_network="$(get_env_value MOTIO_PROXY_NETWORK)"
+  if [[ -n "$proxy_network" ]]; then
+    [[ "$(get_env_value MOTIO_MODE)" == "proxy" ]] || fail "MOTIO_PROXY_NETWORK needs MOTIO_MODE=proxy in $env_file."
+    docker network inspect "$proxy_network" >/dev/null 2>&1 \
+      || fail "the Docker network $proxy_network (MOTIO_PROXY_NETWORK) does not exist; see: docker network ls"
   fi
 
   log "Starting the database"
@@ -433,7 +460,11 @@ Motio is running at ${url}
   Login → User registration.
 
 EOF
-  if [[ "$mode" == "proxy" ]]; then
+  if [[ "$mode" == "proxy" && -n "$(get_env_value MOTIO_PROXY_NETWORK)" ]]; then
+    echo "  Point your reverse proxy at http://$(get_env_value MOTIO_INSTANCE):80 for ${url}"
+    echo "  (Docker network $(get_env_value MOTIO_PROXY_NETWORK); no port is published on the host)."
+    echo "  It must pass the Host header and X-Forwarded-For / X-Forwarded-Proto."
+  elif [[ "$mode" == "proxy" ]]; then
     echo "  Point your reverse proxy at http://$(get_env_value MOTIO_HTTP_BIND) for ${url}."
     echo "  It must pass the Host header and X-Forwarded-For / X-Forwarded-Proto."
   fi
@@ -445,27 +476,303 @@ EOF
   echo "  Guide: docs/self-hosting.md"
 }
 
-# The application schemas only, like the production pre-migration backup:
-# internal schemas (_realtime, …) belong to supabase_admin and hold nothing to keep.
-backup_database() {
-  local postgres_user postgres_db file schemas schema
-  postgres_user="$(get_env_value POSTGRES_USER)"
-  postgres_db="$(get_env_value POSTGRES_DB)"
-  schemas="$(get_env_value BACKUP_SCHEMAS)"
-  local schema_args=()
-  for schema in ${schemas//,/ }; do
-    schema_args+=(-n "$schema")
-  done
-  [[ "${#schema_args[@]}" -gt 0 ]] || schema_args=(-n public -n auth -n storage)
-  mkdir -p infra/backups
-  file="infra/backups/pre-update-$(date +%Y%m%d-%H%M%S).dump"
-  log "Backing up the database to $file"
-  if ! "${compose[@]}" exec -T db pg_dump --format=custom --no-owner "${schema_args[@]}" \
-    -U "$postgres_user" -d "$postgres_db" > "$file.partial"; then
-    rm -f "$file.partial"
-    fail "the database backup failed; nothing was changed."
+# ─────────────────────────── backup sets ───────────────────────────
+#
+# A backup set is one folder with everything this install needs to come back
+# exactly as it was: copies of the data volumes (database, Keycloak, uploaded
+# files, certificates), its .env and the release it ran. Motio is stopped while
+# the volumes are copied, so the copy is consistent, and restoring it puts the
+# volumes back byte for byte — whatever a newer release migrated since. The
+# nightly backups of the backup service stay as they are.
+
+backup_sets_dir="infra/backups/install"
+# compose volume key : archive name inside a set
+set_volumes=(supabase_db_data:database keycloak_db_data:keycloak storage_data:files caddy_data:caddy)
+pre_update_sets_kept=3
+backup_set_dir=""
+
+# "<volume key> <docker volume name>" lines plus "image <db image>", read from
+# the compose configuration of the current checkout and .env.
+compose_layout=""
+load_compose_layout() {
+  compose_layout="$("${compose[@]}" config --format json | python3 -c '
+import json, sys
+config = json.load(sys.stdin)
+for key, volume in (config.get("volumes") or {}).items():
+    print(key, volume.get("name") or key)
+print("image", config["services"]["db"]["image"])
+')" && [[ -n "$compose_layout" ]]
+}
+layout_value() { printf '%s\n' "$compose_layout" | awk -v key="$1" '$1 == key { print $2; exit }'; }
+
+# The database image carries GNU tar, which keeps numeric owners and the
+# extended attributes storage-api stores on uploaded files.
+volume_to_archive() {
+  local volume="$1" archive_dir="$2" archive_name="$3"
+  docker run --rm --entrypoint sh \
+    -v "$volume":/volume:ro -v "$archive_dir":/backup \
+    "$(layout_value image)" -c '
+      tar --create --gzip --numeric-owner --xattrs --xattrs-include="*" --file "/backup/$1" -C /volume . \
+        && chown "$2" "/backup/$1"' sh "$archive_name" "$(id -u):$(id -g)"
+}
+
+archive_to_volume() {
+  local volume="$1" archive_dir="$2" archive_name="$3"
+  docker run --rm --entrypoint sh \
+    -v "$volume":/volume -v "$archive_dir":/backup:ro \
+    "$(layout_value image)" -c '
+      find /volume -mindepth 1 -delete \
+        && tar --extract --gzip --numeric-owner --xattrs --xattrs-include="*" --same-permissions \
+          --file "/backup/$1" -C /volume' sh "$archive_name"
+}
+
+# Copies the volumes of the stopped stack into a new set. $1 kind (manual,
+# pre-update, pre-restore), $2 the .env to keep with it, $3 the git commit the
+# install runs. Sets backup_set_dir; on failure returns non-zero and leaves
+# nothing behind.
+create_backup_set() {
+  local kind="$1" env_source="$2" ref="$3"
+  local name partial
+  name="${kind}-$(date +%Y%m%d-%H%M%S)"
+  partial="$backup_sets_dir/$name.partial"
+  if ! write_backup_set "$partial" "$kind" "$env_source" "$ref"; then
+    rm -rf "$partial"
+    return 1
   fi
-  mv "$file.partial" "$file"
+  mv "$partial" "$backup_sets_dir/$name"
+  backup_set_dir="$backup_sets_dir/$name"
+  echo "  saved: $backup_set_dir ($(du -sh "$backup_set_dir" | cut -f1))"
+}
+
+# Every step is checked by hand: callers run this inside "if", where set -e is off.
+write_backup_set() {
+  local dir="$1" kind="$2" env_source="$3" ref="$4"
+  local dir_abs entry key archive volume tag
+  load_compose_layout || { warn "could not read the compose configuration."; return 1; }
+  mkdir -p "$dir" && chmod 700 "$dir" || return 1
+  dir_abs="$(cd "$dir" && pwd)" || return 1
+  log "Backing up to $backup_sets_dir/$(basename "$dir" .partial)"
+  for entry in "${set_volumes[@]}"; do
+    key="${entry%%:*}"
+    archive="${entry#*:}.tar.gz"
+    volume="$(layout_value "$key")"
+    if [[ -z "$volume" ]] || ! docker volume inspect "$volume" >/dev/null 2>&1; then
+      echo "  $key: no such volume, skipped"
+      continue
+    fi
+    echo "  $volume → $archive"
+    volume_to_archive "$volume" "$dir_abs" "$archive" || { warn "copying the volume $volume failed."; return 1; }
+  done
+  install -m 600 "$env_source" "$dir/env" || return 1
+  tag="$(git describe --tags --exact-match "$ref" 2>/dev/null || true)"
+  {
+    echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "kind=$kind"
+    echo "version=$(git show "$ref:VERSION" 2>/dev/null || echo unknown)"
+    echo "tag=$tag"
+    echo "commit=$(git rev-parse "$ref")"
+    echo "instance=$(get_env_value MOTIO_INSTANCE)"
+  } > "$dir/motio-backup.txt" || return 1
+}
+
+set_value() { grep -E "^${2}=" "$1/motio-backup.txt" | head -n1 | cut -d= -f2- || true; }
+
+# Finished sets, oldest first (names end in their time): of one kind, or all.
+list_backup_sets() {
+  local set kind="${1:-*}"
+  # shellcheck disable=SC2231  # $kind is a glob on purpose: one kind or all
+  for set in "$backup_sets_dir"/$kind-[0-9]*; do
+    [[ -d "$set" && "$set" != *.partial ]] || continue
+    printf '%s %s\n' "${set: -15}" "$set"
+  done | sort | cut -d' ' -f2-
+}
+
+newest_backup_set() { list_backup_sets "$1" | tail -n1; }
+
+prune_backup_sets() {
+  local kind="$1" keep="$2" old
+  list_backup_sets "$kind" | sort -r | tail -n +"$((keep + 1))" | while read -r old; do
+    echo "  removing the older backup set $old"
+    rm -rf "$old"
+  done
+}
+
+stop_stack() {
+  log "Stopping Motio"
+  "${compose[@]}" stop
+}
+
+# gateway resolves its upstreams at start (AGENTS.md §9.1): restart it last.
+start_stack() {
+  log "Starting Motio again"
+  "${compose[@]}" start
+  "${compose[@]}" restart gateway caddy
+  wait_for_url "http://127.0.0.1:$(get_env_value MOTIO_GATEWAY_PORT)/health" "the API gateway" 180
+  wait_for_url "http://127.0.0.1:$(get_env_value MOTIO_KEYCLOAK_PORT)/realms/timeline/.well-known/openid-configuration" "Keycloak" 420
+}
+
+require_clean_checkout() {
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    fail "the checkout has local changes; commit or stash them first."
+  fi
+}
+
+# Back to the commit (and branch, if it was on one) and the .env of an update
+# that did not get past preparing.
+revert_update_checkout() {
+  local ref="$1" branch="$2" saved_env="$3"
+  if [[ -n "$branch" ]]; then
+    git checkout --quiet "$branch"
+  else
+    git checkout --quiet --detach "$ref"
+  fi
+  install -m 600 "$saved_env" "$env_file"
+}
+
+# Pulls and builds everything the new release needs while the running install
+# keeps serving: the downtime is only the copy and the restart, and a network
+# error here changes nothing.
+prepare_images() {
+  log "Downloading and building the new release (Motio keeps running meanwhile)"
+  "${compose[@]}" pull --ignore-buildable --quiet && "${compose[@]}" build web backup
+}
+
+update_backup_set=""
+update_from_version=""
+
+# Step 1, run by the installed release: switch the checkout, then hand over to
+# the install.sh of the new release, so its own steps (new settings, Keycloak
+# scripts…) are the ones that run.
+run_update() {
+  require_clean_checkout
+  export MOTIO_UPDATE_FROM_REF MOTIO_UPDATE_FROM_BRANCH MOTIO_UPDATE_FROM_VERSION MOTIO_UPDATE_SAVED_ENV
+  MOTIO_UPDATE_FROM_REF="$(git rev-parse HEAD)"
+  MOTIO_UPDATE_FROM_BRANCH="$(git symbolic-ref --quiet --short HEAD || true)"
+  MOTIO_UPDATE_FROM_VERSION="$(cat VERSION 2>/dev/null || echo unknown)"
+  checkout_version "$version"
+  # .env is not in git: the checkout left it as it was.
+  MOTIO_UPDATE_SAVED_ENV="$(mktemp)"
+  cp "$env_file" "$MOTIO_UPDATE_SAVED_ENV"
+  exec infra/scripts/install.sh finish-update
+}
+
+# Step 2, run by the new release: prepare, back up, start.
+finish_update() {
+  local old_ref="${MOTIO_UPDATE_FROM_REF:?}" old_branch="${MOTIO_UPDATE_FROM_BRANCH:-}"
+  local saved_env="${MOTIO_UPDATE_SAVED_ENV:?}"
+  update_from_version="${MOTIO_UPDATE_FROM_VERSION:-unknown}"
+
+  add_missing_env_keys
+  if ! prepare_images; then
+    revert_update_checkout "$old_ref" "$old_branch" "$saved_env"
+    rm -f "$saved_env"
+    fail "preparing the update failed; nothing was changed, Motio ${update_from_version} keeps running."
+  fi
+
+  stop_stack
+  if ! create_backup_set pre-update "$saved_env" "$old_ref"; then
+    revert_update_checkout "$old_ref" "$old_branch" "$saved_env"
+    rm -f "$saved_env"
+    start_stack
+    fail "the backup before the update failed; nothing was changed, Motio ${update_from_version} is running again."
+  fi
+  rm -f "$saved_env"
+  update_backup_set="$backup_set_dir"
+
+  trap print_update_failed EXIT
+  bring_up
+  trap - EXIT
+  prune_backup_sets pre-update "$pre_update_sets_kept"
+}
+
+print_update_failed() {
+  local status=$?
+  (( status == 0 )) && return 0
+  cat >&2 <<EOF
+
+The update did not finish. Your data from before it is in ${update_backup_set}.
+  Look at the error above and: infra/scripts/selfhost-compose.sh logs --tail=100
+  To go back to Motio ${update_from_version} with that data: infra/scripts/install.sh rollback
+EOF
+}
+
+run_backup() {
+  require_clean_checkout
+  stop_stack
+  if ! create_backup_set manual "$env_file" HEAD; then
+    start_stack
+    fail "the backup failed (see above); Motio is running again."
+  fi
+  start_stack
+  echo
+  echo "  Backup set: ${backup_set_dir}"
+  echo "  Restore it with: infra/scripts/install.sh restore ${backup_set_dir}"
+}
+
+# Puts a backup set back — its release, its .env and its volumes — and starts
+# Motio. Works on a fresh checkout too (moving to another server).
+run_restore() {
+  local dir="${1%/}" commit label confirm entry key archive volume dir_abs kept_env
+  [[ -n "$dir" ]] || fail "which backup set? e.g. infra/scripts/install.sh restore ${backup_sets_dir}/manual-…"
+  [[ -f "$dir/motio-backup.txt" && -f "$dir/env" ]] || fail "$dir is not a Motio backup set."
+  commit="$(set_value "$dir" commit)"
+  label="$(set_value "$dir" tag)"
+  label="${label:-$(set_value "$dir" version)}"
+
+  cat <<EOF
+
+About to restore ${dir}
+  taken:   $(set_value "$dir" created) ($(set_value "$dir" kind))
+  release: ${label} (commit ${commit:0:12})
+Everything in this install goes back to that moment: data, sign-ins, uploaded files
+and settings. Changes made since then are lost; a copy of the current state is kept
+first (unless --no-safety-backup).
+
+EOF
+  if [[ "$assume_yes" != "true" ]]; then
+    [[ -t 0 ]] || fail "confirm with --yes when not running interactively."
+    read -r -p "Type 'restore' to continue: " confirm
+    [[ "$confirm" == "restore" ]] || fail "cancelled; nothing was changed."
+  fi
+
+  require_clean_checkout
+  if ! git cat-file -e "${commit}^{commit}" 2>/dev/null; then
+    git fetch --tags --quiet origin
+    git cat-file -e "${commit}^{commit}" 2>/dev/null || fail "commit ${commit} of this backup is not in the repository."
+  fi
+
+  if [[ -f "$env_file" ]]; then
+    stop_stack
+    if [[ "$safety_backup" == "true" ]]; then
+      create_backup_set pre-restore "$env_file" HEAD \
+        || fail "the copy of the current state failed; nothing was restored (--no-safety-backup skips it)."
+    fi
+    kept_env="${env_file}.before-restore-$(date +%Y%m%d-%H%M%S)"
+    install -m 600 "$env_file" "$kept_env"
+    echo "  the current .env is kept as ${kept_env}"
+  fi
+
+  log "Switching to the release of the backup (${label})"
+  git checkout --quiet --detach "$commit"
+  install -m 600 "$dir/env" "$env_file"
+
+  load_compose_layout || fail "docker compose could not read the configuration."
+  # Creates the volumes on a fresh server; the containers stay stopped.
+  "${compose[@]}" up --no-start --no-deps db keycloak-db storage caddy
+
+  log "Restoring the volumes"
+  dir_abs="$(cd "$dir" && pwd)"
+  for entry in "${set_volumes[@]}"; do
+    key="${entry%%:*}"
+    archive="${entry#*:}.tar.gz"
+    [[ -f "$dir/$archive" ]] || continue
+    volume="$(layout_value "$key")"
+    [[ -n "$volume" ]] || fail "this release has no volume ${key}."
+    echo "  $archive → $volume"
+    archive_to_volume "$volume" "$dir_abs" "$archive" || fail "restoring ${volume} failed."
+  done
+
+  bring_up
 }
 
 # Read-only report for troubleshooting over SSH: version, containers, the
@@ -499,9 +806,11 @@ print_status() {
 
   log "Disk and backups"
   df -h . | awk 'NR==2 {print "  disk: " $4 " free of " $2 " (" $5 " used)"}'
-  local last_backup
-  last_backup="$(ls -t infra/backups 2>/dev/null | head -n1 || true)"
-  echo "  last backup file: ${last_backup:-none in infra/backups}"
+  local last_backup last_set
+  last_backup="$(cd infra/backups 2>/dev/null && ls -t -- *.dump *.tar.gz 2>/dev/null | head -n1 || true)"
+  echo "  last nightly backup file: ${last_backup:-none in infra/backups}"
+  last_set="$(list_backup_sets | tail -n1)"
+  echo "  last backup set: ${last_set:-none in ${backup_sets_dir}}"
 
   log "Releases"
   latest="$(git ls-remote --tags --refs origin 'v*' 2>/dev/null | sed 's#.*refs/tags/##' | sort -V | tail -n1 || true)"
@@ -518,14 +827,14 @@ print_status() {
 
 command_name="install"
 case "${1:-}" in
-  install|update|up|status) command_name="$1"; shift ;;
+  install|update|finish-update|up|status|backup|restore|rollback) command_name="$1"; shift ;;
   -h|--help) usage; exit 0 ;;
 esac
 
 domain="" email="" mode="tls" http_port="8088" public_url="" version="" instance="motio"
-gateway_port="8080" keycloak_port="8081"
+gateway_port="8080" keycloak_port="8081" proxy_network=""
 smtp_host="" smtp_port="" smtp_user="" smtp_pass="" smtp_from=""
-env_only="false"
+env_only="false" assume_yes="false" safety_backup="true" restore_dir=""
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -533,6 +842,7 @@ while [[ "$#" -gt 0 ]]; do
     --email) email="$2"; shift 2 ;;
     --mode) mode="$2"; shift 2 ;;
     --http-port) http_port="$2"; shift 2 ;;
+    --proxy-network) proxy_network="$2"; shift 2 ;;
     --public-url) public_url="$2"; shift 2 ;;
     --version) version="$2"; shift 2 ;;
     --instance) instance="$2"; shift 2 ;;
@@ -544,8 +854,16 @@ while [[ "$#" -gt 0 ]]; do
     --smtp-pass) smtp_pass="$2"; shift 2 ;;
     --smtp-from) smtp_from="$2"; shift 2 ;;
     --env-only) env_only="true"; shift ;;
+    --yes|-y) assume_yes="true"; shift ;;
+    --no-safety-backup) safety_backup="false"; shift ;;
     -h|--help) usage; exit 0 ;;
-    *) fail "unknown option: $1 (see --help)" ;;
+    *)
+      if [[ "$command_name" == "restore" && -z "$restore_dir" && "$1" != -* ]]; then
+        restore_dir="$1"; shift
+      else
+        fail "unknown option: $1 (see --help)"
+      fi
+      ;;
   esac
 done
 
@@ -572,9 +890,14 @@ case "$command_name" in
       if [[ "$mode" == "tls" && -n "$public_url" && "$public_url" != https://* ]]; then
         fail "--mode tls serves https; drop --public-url or use --mode proxy."
       fi
+      if [[ -n "$proxy_network" ]]; then
+        [[ "$mode" == "proxy" ]] || fail "--proxy-network needs --mode proxy."
+        [[ "$proxy_network" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || fail "--proxy-network is not a Docker network name."
+      fi
       checkout_version "$version"
       generate_env "$domain" "$email" "$mode" "$http_port" "$public_url" "$instance" \
-        "$gateway_port" "$keycloak_port" "$smtp_host" "$smtp_port" "$smtp_user" "$smtp_pass" "$smtp_from"
+        "$gateway_port" "$keycloak_port" "$smtp_host" "$smtp_port" "$smtp_user" "$smtp_pass" "$smtp_from" \
+        "$proxy_network"
     fi
     if [[ "$env_only" == "true" ]]; then
       echo "Wrote $env_file. Review it, then run: infra/scripts/install.sh up"
@@ -585,10 +908,27 @@ case "$command_name" in
     ;;
   update)
     [[ -f "$env_file" ]] || fail "no $env_file here — this is not an installed Motio (run install first)."
-    backup_database
-    checkout_version "$version"
-    add_missing_env_keys
-    bring_up
+    run_update
+    ;;
+  finish-update)
+    finish_update
+    print_summary
+    echo "  The state from before the update: ${update_backup_set}"
+    echo "  Back to it, if needed: infra/scripts/install.sh rollback"
+    ;;
+  backup)
+    [[ -f "$env_file" ]] || fail "no $env_file here — this is not an installed Motio."
+    run_backup
+    ;;
+  rollback)
+    [[ -f "$env_file" ]] || fail "no $env_file here — this is not an installed Motio."
+    restore_dir="$(newest_backup_set pre-update)"
+    [[ -n "$restore_dir" ]] || fail "no backup from an update in ${backup_sets_dir}; nothing to go back to."
+    run_restore "$restore_dir"
+    print_summary
+    ;;
+  restore)
+    run_restore "$restore_dir"
     print_summary
     ;;
   up)
