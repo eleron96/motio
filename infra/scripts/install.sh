@@ -393,7 +393,7 @@ bring_up() {
 
   log "Creating the reserve admin account"
   wait_for_url "http://127.0.0.1:${gateway_port}/health" "the API gateway" 120
-  local attempt status_code=""
+  local status_code=""
   for _attempt in $(seq 1 30); do
     status_code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST \
       -H 'Content-Type: application/json' -H "Authorization: Bearer ${service_key}" \
