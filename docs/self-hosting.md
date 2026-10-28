@@ -111,6 +111,18 @@ infra/scripts/selfhost-compose.sh logs -f --tail=100
 infra/scripts/selfhost-compose.sh restart functions
 ```
 
+`infra/scripts/install.sh status` prints a read-only health report: version and
+checkout, containers, the gateway / sign-in / storage / backup / Keycloak probes,
+free disk, the last backup file and whether a newer release exists.
+
+The same picture is in the browser: sign in as the reserve admin and open
+**Admin → System** (`/app/admin/system`). It shows the version and a newer release
+with the exact update command, whether each service answers, which features and
+server settings are on (yes/no only), and sends a test email to check SMTP. It only
+reads: updating stays `install.sh update` on the server. The release check asks
+GitHub at most every 6 hours and sends nothing about your install; set
+`MOTIO_UPDATE_CHECK=false` in `.env` to turn it off.
+
 ## Settings
 
 Everything lives in `.env`; after a change run `infra/scripts/install.sh up`
