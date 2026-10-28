@@ -11,7 +11,7 @@ Running Motio locally, deploying to production and testing, releases, migrations
 - [Backup / Restore](#backup--restore)
 - [Security checklist](#security-checklist)
 
-See also: [Configuration](configuration.md) · [Architecture](architecture.md) · [Troubleshooting](troubleshooting.md) · [API](api.md)
+See also: [Configuration](configuration.md) · [Architecture](architecture.md) · [Troubleshooting](troubleshooting.md) · [API](api.md) · [Self-hosting](self-hosting.md)
 
 ---
 
