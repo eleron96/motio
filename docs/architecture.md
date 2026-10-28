@@ -13,7 +13,7 @@ See also: [Operations](operations.md) · [Configuration](configuration.md)
 | **Auth / SSO** | Keycloak (OIDC) · oauth2-proxy |
 | **DB migrations** | Liquibase |
 | **Infrastructure** | Docker Compose · Caddy (public TLS edge) · Nginx (internal Supabase gateway + built frontend) · standalone backup-service |
-| **i18n** | Lingui (ru / en) |
+| **i18n** | Lingui (en / ru / de) |
 
 ## Repository structure
 
