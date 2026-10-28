@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.30] - 2026-10-28
 ### Fixed
 - The holiday calendar country list in workspace settings scrolls with the mouse wheel again.
 
