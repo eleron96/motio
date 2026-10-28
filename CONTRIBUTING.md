@@ -82,6 +82,38 @@ are in [docs/troubleshooting.md](docs/troubleshooting.md).
 Merging deploys nothing: production only goes out through `make deploy`, run by the
 maintainer.
 
+## Adding a language
+
+Motio speaks English (the source text), Russian and German. A new language is
+more than a catalog: open an issue first, because every later string then needs a
+translation in it too. Then touch all of these, or part of the app stays English:
+
+1. `lingui.config.ts` — add the code to `locales`; run `npm run lingui:extract`
+   and translate the new `src/locales/<code>/messages.po` completely.
+2. `src/shared/lib/locale.ts` — `SUPPORTED_LOCALES`, `localeIntlTags`,
+   `localeLabels`; `src/shared/lib/i18n.ts` — load the compiled catalog.
+3. Dates and names: `src/shared/lib/dateFnsLocale.ts`, the date format in
+   `src/features/daily-brief/components/DailyBriefMilestones.tsx`, the first
+   workspace name in `src/features/auth/store/authStore.ts`, the account-deletion
+   phrase in `src/features/auth/components/DeleteAccountWizard.tsx`.
+4. A migration: allow the code in `profiles_locale_check`, add the deletion phrase
+   (same text as the wizard), and the starting statuses, types, tags and example
+   workspace (`seed_workspace`, `seed_workspace_sample_data`) — see
+   `0155_german_locale.sql`.
+5. Email and push: `infra/supabase/functions/_shared/welcomeEmail.ts`,
+   `pushPayload.ts`, the unsubscribe page in `infra/supabase/functions/mailer`.
+6. Sign-in: `messages_<code>.properties` in the login and email themes under
+   `infra/keycloak/themes/timeline`, the code in both `theme.properties`, the
+   texts in `login/resources/js/login.v*.js` (bump the version in the file name),
+   and the default of `KEYCLOAK_REALM_SUPPORTED_LOCALES`
+   (`infra/scripts/keycloak-ensure-realm-locales.sh`).
+7. The landing language switch cycles through `SUPPORTED_LOCALES` by itself.
+   Privacy and Terms stay English for new languages unless a lawyer-checked text
+   exists; release notes fall back to English.
+
+`src/test/smoke/localeCatalogs.test.ts` fails on any untranslated message or lost
+placeholder, so the catalog has to be complete before the change merges.
+
 ## Licence and your contribution
 
 Motio is free software under the [GNU Affero General Public License v3.0](./LICENSE)
