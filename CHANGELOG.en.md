@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.31] - 2026-10-28
 ### Fixed
 - Regional holidays no longer count as days off for the whole country: Corpus Christi in Germany, for example, is observed only in some states. Pick your region in workspace settings to add its own holidays to the calendar and the workload heatmap.
 
