@@ -1,0 +1,18 @@
+# Self-hosted install, mode "proxy" with MOTIO_PROXY_NETWORK set: Caddy joins the
+# Docker network of your reverse proxy (e.g. "npm_backend" of Nginx Proxy Manager)
+# and publishes no port at all. The proxy forwards to http://<MOTIO_INSTANCE>:80,
+# the alias below. The rest of the stack stays on its own network. Added by
+# selfhost-compose.sh; the network must exist already (install.sh checks it).
+services:
+  caddy:
+    ports: !reset []
+    networks:
+      default: {}
+      proxy:
+        aliases:
+          - ${MOTIO_INSTANCE:-motio}
+
+networks:
+  proxy:
+    name: ${MOTIO_PROXY_NETWORK:?MOTIO_PROXY_NETWORK is the reverse proxy network}
+    external: true

@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -13,25 +13,29 @@ import { afterAll, describe, expect, it } from "vitest";
 const dir = mkdtempSync(join(tmpdir(), "motio-install-"));
 const envPath = join(dir, ".env");
 
-execFileSync(
-  "bash",
-  [
-    resolve(process.cwd(), "infra/scripts/install.sh"),
-    "--env-only",
-    "--domain", "planner.example.com",
-    "--email", "ops@example.com",
-    "--mode", "proxy",
-    "--http-port", "8088",
-  ],
-  { env: { ...process.env, MOTIO_ENV_FILE: envPath }, stdio: "pipe" },
-);
+const writeEnv = (path: string, options: string[]) =>
+  execFileSync(
+    "bash",
+    [
+      resolve(process.cwd(), "infra/scripts/install.sh"),
+      "--env-only",
+      "--domain", "planner.example.com",
+      "--email", "ops@example.com",
+      ...options,
+    ],
+    { env: { ...process.env, MOTIO_ENV_FILE: path }, stdio: "pipe" },
+  );
 
-const env = Object.fromEntries(
-  readFileSync(envPath, "utf8")
-    .split("\n")
-    .filter((line) => /^[A-Z0-9_]+=/.test(line))
-    .map((line) => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1)]),
-);
+const readEnv = (path: string): Record<string, string> =>
+  Object.fromEntries(
+    readFileSync(path, "utf8")
+      .split("\n")
+      .filter((line) => /^[A-Z0-9_]+=/.test(line))
+      .map((line) => [line.slice(0, line.indexOf("=")), line.slice(line.indexOf("=") + 1)]),
+  );
+
+writeEnv(envPath, ["--mode", "proxy", "--http-port", "8088"]);
+const env = readEnv(envPath);
 
 const decodeSegment = (segment: string) =>
   JSON.parse(Buffer.from(segment, "base64url").toString("utf8")) as Record<string, unknown>;
@@ -72,7 +76,20 @@ describe("install.sh --env-only", () => {
       OAUTH2_PROXY_COOKIE_SECURE: "true",
       MOTIO_SITE_ADDRESS: ":80",
       MOTIO_HTTP_BIND: "127.0.0.1:8088",
+      MOTIO_PROXY_NETWORK: "",
     });
+  });
+
+  it("joins the reverse proxy's Docker network instead of a port when asked", () => {
+    const path = join(dir, "network.env");
+    writeEnv(path, ["--mode", "proxy", "--proxy-network", "npm_backend"]);
+    expect(readEnv(path)).toMatchObject({ MOTIO_MODE: "proxy", MOTIO_PROXY_NETWORK: "npm_backend" });
+  });
+
+  it("refuses a proxy network when Motio terminates TLS itself", () => {
+    const path = join(dir, "tls-network.env");
+    expect(() => writeEnv(path, ["--mode", "tls", "--proxy-network", "npm_backend"])).toThrow();
+    expect(existsSync(path)).toBe(false);
   });
 
   it("generates distinct secrets and one shared Keycloak client secret", () => {

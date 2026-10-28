@@ -14,7 +14,7 @@ Free and open source: use the hosted app, or run it on your own servers. The liv
 
 **[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Self-host it](#-self-host)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.10.31-blue.svg)](./CHANGELOG.en.md)
+[![Version](https://img.shields.io/badge/version-0.10.32-blue.svg)](./CHANGELOG.en.md)
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
 
@@ -99,7 +99,8 @@ git checkout vX.Y.Z   # latest release
 infra/scripts/install.sh --domain planner.example.com --email you@example.com
 ```
 
-Updates are `infra/scripts/install.sh update --version vX.Y.Z`. Requirements, the
+Updates are `infra/scripts/install.sh update --version vX.Y.Z`: it backs up the whole
+install first, and `install.sh rollback` takes you back. Requirements, the
 reverse-proxy mode (Nginx Proxy Manager, Traefik, nginx), email, your own sign-in
 provider (Authentik, Entra ID…) and backups: **[docs/self-hosting.md](docs/self-hosting.md)**.
 The install sends nothing to motio.nikog.net. Self-hosting is community-supported —
