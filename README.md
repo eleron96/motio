@@ -153,6 +153,7 @@ Details: [docs/architecture.md](docs/architecture.md).
 | [docs/configuration.md](docs/configuration.md) | environment variables, feature flags, push, email, scheduled jobs |
 | [docs/architecture.md](docs/architecture.md) | stack, auth flow, Edge Functions, admin console |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | common errors and fixes |
+| [docs/api.md](docs/api.md) | workspace API: importing absences from time tracking or HR |
 | [CHANGELOG.en.md](./CHANGELOG.en.md) · [CHANGELOG.md](./CHANGELOG.md) | change history (en / ru) |
 | [MANIFESTO.md](./MANIFESTO.md) | product principles |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | how to report a bug, propose an idea or send a pull request |

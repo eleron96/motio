@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
 import { handler as accountPurgeHandler } from "../account-purge/index.ts";
 import { handler as adminHandler } from "../admin/index.ts";
+import { handler as apiHandler } from "../api/index.ts";
 import { handler as dataExportHandler } from "../data-export/index.ts";
 import { handler as holidaysHandler } from "../holidays/index.ts";
 import { handler as inboxHandler } from "../inbox/index.ts";
@@ -20,6 +21,7 @@ const jsonNotFound = () =>
 const handlers: Record<string, (req: Request) => Promise<Response>> = {
   "account-purge": accountPurgeHandler,
   admin: adminHandler,
+  api: apiHandler,
   "data-export": dataExportHandler,
   holidays: holidaysHandler,
   inbox: inboxHandler,
