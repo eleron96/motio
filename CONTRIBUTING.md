@@ -67,9 +67,11 @@ are in [docs/troubleshooting.md](docs/troubleshooting.md).
    npm run test:integration
    ```
 
-4. New UI strings go through Lingui: `npm run lingui:extract && npm run lingui:compile`,
-   and both `en` and `ru` get a translation. Stale catalogs fail CI and the production
-   deploy.
+4. New UI strings go through Lingui: `npm run lingui:extract && npm run lingui:compile`.
+   The interface speaks English (the source text), Russian and German: fill the new
+   entries in `src/locales/ru/messages.po` and `src/locales/de/messages.po`. Can't write
+   one of them? Say so in the PR and a maintainer or another contributor will fill it
+   in. Stale or incomplete catalogs fail CI and the production deploy.
 5. Log user-facing changes with
    `make logchange RU="…" EN="…" [TYPE=added|changed|fixed|removed|security]` — it
    writes the entry into the `Unreleased` section of both changelogs. Keep the wording

@@ -196,6 +196,7 @@ const AuthPage: React.FC = () => {
               <SelectContent>
                 <SelectItem value="en">{localeLabels.en}</SelectItem>
                 <SelectItem value="ru">{localeLabels.ru}</SelectItem>
+                <SelectItem value="de">{localeLabels.de}</SelectItem>
               </SelectContent>
             </Select>
           </div>

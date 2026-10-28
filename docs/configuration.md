@@ -44,6 +44,9 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `KEYCLOAK_REALM_AUDIT_FILE` — path to the managed realm JSON for the drift audit.
 - `KEYCLOAK_REALM_AUDIT_ENABLED` · `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT` — control the
   audit behavior in `up-prod`.
+- `KEYCLOAK_REALM_SUPPORTED_LOCALES` — languages the realm offers on the sign-in page
+  and in account emails, applied by `keycloak-ensure-realm-locales.sh` on every deploy
+  (`en,ru,de` by default, the same as the app).
 - `OAUTH2_PROXY_*` — proxying sign-in to the frontend.
 - `OAUTH2_PROXY_BACKEND_LOGOUT_URL` — Keycloak end-session URL with
   `id_token_hint={id_token}`.
@@ -134,6 +137,7 @@ and rebuild `web`; no release is needed.
 | `VITE_FEATURE_KANBAN` | the board view (beta), an optional view next to the timeline: each person still turns it on in account settings → Appearance; `/demo` does not force it on, but follows the flag like the app |
 | `VITE_FEATURE_PUSH` | browser push notifications (needs the VAPID keys below) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | account self-deletion in account settings |
+| `VITE_FEATURE_WORKSPACE_API` | the API section in workspace settings, where admins create tokens for importing absences ([API](api.md)); hidden in `/demo` |
 
 The `/demo` sandbox always shows the project card, contacts, heatmap and time off,
 whatever the flags say.
@@ -159,6 +163,24 @@ counterpart, so one SMTP account is enough.
 - `MAILER_FROM_EMAIL`, `MAILER_FROM_NAME`
 - `MAILER_WELCOME_ENABLED` — welcome email after the first sign-in (`true` by default).
 - `MAILER_DRY_RUN` — `1` logs messages instead of sending them.
+
+## Site address and analytics
+
+Built into `web` at build time (`vite/siteIdentity.ts`):
+
+- `VITE_PUBLIC_SITE_URL` — the public address of this install, e.g.
+  `https://planner.example.com`, no path or trailing slash. It goes into the
+  canonical and link-preview tags of `index.html`, `robots.txt` and `sitemap.xml`.
+  Empty means `https://motio.nikog.net`.
+- `VITE_PLAUSIBLE_DOMAIN`, `VITE_PLAUSIBLE_SRC` — page-view analytics with a
+  Plausible-compatible script (`data-domain` and script URL). Set both or neither;
+  empty means the page loads no analytics script. A self-hosted install sends
+  nothing anywhere by default. If you turn it on behind your own Caddyfile, allow
+  the script host in its `Content-Security-Policy`.
+
+The motio.nikog.net deploy (`prod-compose.sh`) fills in its own analytics values when
+the server `.env` has no `VITE_PLAUSIBLE_*` keys; a key present in `.env`, even
+empty, wins.
 
 ## Error tracking
 
@@ -194,3 +216,6 @@ backup-service runs every scheduled job with `node-cron`. Defaults:
   `make seed-testing` adds to the QA playground workspace (see
   [Operations](operations.md)). Personal addresses stay in the server `.env`,
   never in the repository.
+
+- The testing deploy does not fill in `VITE_PLAUSIBLE_*`, so the testing site loads
+  no analytics script and its visits stay out of the public site's statistics.

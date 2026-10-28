@@ -1,0 +1,305 @@
+# Self-hosted Motio (infra/scripts/install.sh) — the public edge in front of the
+# stack. Routes mirror infra/caddy/Caddyfile (production) one to one; the
+# public-routes test keeps the Caddyfiles in step.
+#
+# MOTIO_SITE_ADDRESS (set by install.sh):
+#   planner.example.com — this Caddy terminates TLS and gets a certificate
+#                         from Let's Encrypt itself (ports 80/443, mode "tls").
+#   :80                 — plain HTTP behind your own reverse proxy (Nginx Proxy
+#                         Manager, Traefik, nginx…), published on 127.0.0.1 only
+#                         (mode "proxy"); X-Forwarded-* from private networks
+#                         are trusted.
+# MOTIO_CSP_SCRIPT_SRC / MOTIO_CSP_CONNECT_SRC: extra CSP hosts with a leading
+# space, e.g. " https://stats.example.com" when analytics is on. Empty by default.
+{
+  email {$MOTIO_ACME_EMAIL:admin@example.com}
+  servers {
+    trusted_proxies static private_ranges
+  }
+}
+
+{$MOTIO_SITE_ADDRESS} {
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "SAMEORIGIN"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  }
+
+  # CSP only on SPA entry points: Keycloak (/realms*, /admin*) ships its own
+  # policy and must not inherit this one.
+  @spa path / /app* /demo* /invite* /privacy* /terms*
+  header @spa Content-Security-Policy "default-src 'self'; script-src 'self'{$MOTIO_CSP_SCRIPT_SRC}; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' wss://{host}{$MOTIO_CSP_CONNECT_SRC}; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+
+  route {
+    encode zstd gzip
+
+    redir /realms /realms/timeline/account 302
+    redir /realms/ /realms/timeline/account 302
+    redir /realms/master /realms/master/account 302
+    redir /realms/master/ /realms/master/account 302
+    redir /realms/timeline /realms/timeline/account 302
+    redir /realms/timeline/ /realms/timeline/account 302
+    redir /admin /admin/master/console/ 302
+    redir /admin/master/console /admin/master/console/ 302
+
+    # --- Keycloak (no pooling needed, low traffic) ---
+    handle /resources* {
+      reverse_proxy keycloak:8080
+    }
+
+    handle /realms* {
+      reverse_proxy keycloak:8080
+    }
+
+    handle /admin* {
+      reverse_proxy keycloak:8080
+    }
+
+    handle /js* {
+      reverse_proxy keycloak:8080
+    }
+
+    handle /.well-known* {
+      reverse_proxy keycloak:8080
+    }
+
+    # --- Supabase Gateway (API, auth, storage, functions) ---
+    # Shared transport with higher keepalive pool to prevent
+    # connection queuing under concurrent browser requests.
+    handle /health {
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
+    }
+
+    handle /auth/v1* {
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
+    }
+
+    handle /auth* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /rest/v1* {
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
+    }
+
+    handle /realtime/v1* {
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
+    }
+
+    handle /storage/v1* {
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
+    }
+
+    handle /functions/v1* {
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
+    }
+
+    handle /backup* {
+      reverse_proxy gateway:8080 {
+        transport http {
+          keepalive_idle_conns_per_host 32
+        }
+      }
+    }
+
+    # --- Web frontend (static assets, SPA routes) ---
+    # Higher idle pool to handle burst of JS chunk requests
+    # during initial page load (9+ concurrent requests).
+    handle /assets* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /branding* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /favicon* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /logo.png {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    # Link previews (LinkedIn, Telegram, Slack…) fetch the card without a session;
+    # through the oauth2-proxy catch-all they would get the sign-in page instead.
+    handle /og-image.png {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    # The push service worker must be served publicly as static JS: a service
+    # worker script fetched through a redirect (the oauth2-proxy catch-all)
+    # fails registration. It carries no user data.
+    handle /sw.js {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    # PWA install assets: iOS fetches the manifest and icons without auth when
+    # adding the app to the Home Screen, so they must bypass oauth2-proxy.
+    handle /manifest.json {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /pwa-icon-192.png {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /pwa-icon-512.png {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /apple-touch-icon.png {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /placeholder.svg {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /robots.txt {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /sitemap.xml {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /invite* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /privacy* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    # Public like /privacy: the landing footer links here for visitors without an account.
+    handle /terms* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle /app* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    # Public demo sandbox SPA. Without this block /demo falls through to
+    # the catch-all → oauth2-proxy → Keycloak redirect, which defeats
+    # the whole "no signup" point of the demo.
+    handle /demo* {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle / {
+      reverse_proxy web:80 {
+        transport http {
+          keepalive_idle_conns_per_host 16
+        }
+      }
+    }
+
+    handle {
+      reverse_proxy oauth2-proxy:4180
+    }
+  }
+}

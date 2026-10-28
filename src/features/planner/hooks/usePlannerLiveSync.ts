@@ -658,7 +658,7 @@ export const usePlannerLiveSync = (
           clearTimeout(disconnectTimer);
           disconnectTimer = null;
         } else if (!channelHealthy) {
-          toast.success(t`Соединение восстановлено`, {
+          toast.success(t`Connection restored`, {
             id: 'sync-status',
             position: 'bottom-right',
             duration: 3000,
@@ -701,14 +701,14 @@ export const usePlannerLiveSync = (
                   {
                     className: 'flex h-10 w-10 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg',
                     role: 'status',
-                    'aria-label': t`Нет соединения`,
+                    'aria-label': t`No connection`,
                   },
                   createElement(WifiOff, { className: 'h-5 w-5' }),
                 ),
                 { id: 'sync-status', position: 'top-right', duration: Infinity },
               );
             } else {
-              toast.error(t`Нет соединения`, {
+              toast.error(t`No connection`, {
                 id: 'sync-status',
                 position: 'bottom-right',
                 duration: Infinity,

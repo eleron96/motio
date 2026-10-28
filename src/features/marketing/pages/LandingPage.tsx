@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { t, Trans } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
+import { SUPPORTED_LOCALES } from '@/shared/lib/locale';
 import { setPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { Button } from '@/shared/ui/button';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
@@ -374,7 +375,8 @@ const LandingPage = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                const nextLocale = locale === 'en' ? 'ru' : 'en';
+                // Cycles through every UI language: EN → RU → DE → EN.
+                const nextLocale = SUPPORTED_LOCALES[(SUPPORTED_LOCALES.indexOf(locale) + 1) % SUPPORTED_LOCALES.length];
                 setLocale(nextLocale);
                 // Только для гостя: его выбор должен пережить вход, иначе язык
                 // профиля перезапишет его обратно. У вошедшего человека язык
@@ -623,8 +625,8 @@ const LandingPage = () => {
             </p>
             <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-500">
               {([
-                t`Docker Compose`,
-                t`Postgres`,
+                t`One-command install`,
+                t`Behind your own reverse proxy`,
                 t`SSO via Keycloak`,
                 t`Backup & restore`,
                 t`Full data export`,
@@ -638,7 +640,7 @@ const LandingPage = () => {
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
               <span className="font-medium text-slate-700">{t`Open source under AGPL-3.0`}</span>
               <a
-                href="https://github.com/eleron96/motio#-self-host"
+                href="https://github.com/eleron96/motio/blob/main/docs/self-hosting.md"
                 target="_blank"
                 // noopener, not noreferrer: GitHub's traffic page should see this site as the referrer
                 rel="noopener"

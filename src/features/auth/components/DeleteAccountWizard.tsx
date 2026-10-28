@@ -23,6 +23,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 const CONFIRMATION_PHRASES = {
   ru: 'Я понимаю, что удаляю свой аккаунт навсегда и теряю доступ ко всем рабочим пространствам',
   en: 'I understand that I am permanently deleting my account and losing access to all workspaces',
+  de: 'Ich verstehe, dass ich mein Konto endgültig lösche und den Zugriff auf alle Arbeitsbereiche verliere',
 } as const;
 
 type WorkspaceDecision =

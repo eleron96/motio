@@ -4,6 +4,7 @@ import { differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { Flag } from 'lucide-react';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
+import type { Locale } from '@/shared/lib/locale';
 import type { Milestone, Project } from '@/features/planner/types/planner';
 import { reveal, rowDelay } from '../lib/dailyBriefReveal';
 
@@ -24,10 +25,16 @@ const getDaysLabel = (date: string): string => {
   return t`In ${diff} days`;
 };
 
+const DATE_TOKENS: Record<Locale, string> = {
+  en: 'EEE, MMM d',
+  ru: 'EEEEEE, d MMMM',
+  de: 'EEEEEE, d. MMMM',
+};
+
 export const DailyBriefMilestones = ({ milestones, projects, baseDelay }: Props) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
-  const dateToken = locale === 'ru' ? 'EEEEEE, d MMMM' : 'EEE, MMM d';
+  const dateToken = DATE_TOKENS[locale];
 
   if (milestones.length === 0) {
     return (

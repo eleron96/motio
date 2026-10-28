@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { renderIndexHtml, resolveSiteIdentity } from "../../../vite/siteIdentity";
+
 const repoRoot = process.cwd();
 
 function readRepoFile(...segments: string[]) {
@@ -15,7 +17,7 @@ function readRepoText(...segments: string[]) {
 
 describe("brand asset routing", () => {
   it("advertises light and dark favicons from the public app shell", () => {
-    const indexHtml = readRepoText("index.html");
+    const indexHtml = renderIndexHtml(readRepoText("index.html"), resolveSiteIdentity({}));
 
     expect(indexHtml).toContain('href="/favicon-theme-light.png"');
     expect(indexHtml).toContain('href="/favicon-theme-dark.png"');
@@ -73,7 +75,7 @@ describe("brand asset routing", () => {
       "login",
       "resources",
       "js",
-      "login.v5.js",
+      "login.v6.js",
     );
 
     expect(caddyFile).toContain("handle /favicon* {");

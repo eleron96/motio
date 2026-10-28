@@ -1,8 +1,14 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import NotFoundPage from "@/app/NotFoundPage";
 import { useLocaleStore } from "@/shared/store/localeStore";
+
+// Translations are covered by src/test/smoke/localeCatalogs.test.ts.
+vi.mock("@lingui/macro", () => ({
+  t: (strings: TemplateStringsArray, ...values: unknown[]) =>
+    strings.reduce((acc, str, idx) => acc + str + (values[idx] ?? ""), ""),
+}));
 
 describe("NotFoundPage", () => {
   beforeEach(() => {
@@ -22,22 +28,5 @@ describe("NotFoundPage", () => {
     expect(screen.getByText("/lost-route")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Open timeline" })).toHaveAttribute("href", "/app");
-  });
-
-  it("renders russian copy when locale is ru", () => {
-    useLocaleStore.getState().setLocale("ru");
-
-    render(
-      <MemoryRouter initialEntries={["/poteryannaya-stranitsa"]}>
-        <NotFoundPage />
-      </MemoryRouter>,
-    );
-
-    expect(screen.getByText("Ой, эта страница ушла за кофе.")).toBeInTheDocument();
-    expect(screen.getByText("Ошибка 404. Мы всё проверили, но здесь пусто.")).toBeInTheDocument();
-    expect(screen.getByText("Запрошенный путь:")).toBeInTheDocument();
-    expect(screen.getByText("/poteryannaya-stranitsa")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "На главную" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("link", { name: "Открыть таймлайн" })).toHaveAttribute("href", "/app");
   });
 });

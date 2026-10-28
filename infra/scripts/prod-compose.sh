@@ -42,6 +42,20 @@ fi
 
 infra/scripts/check-internal-port-binds.sh --env-file "$env_file" "$compose_file"
 
+# The public site's page-view analytics. A web build reports page views only when
+# both VITE_PLAUSIBLE_* are set (vite/siteIdentity.ts), so self-hosted installs send
+# nothing by default. This script is the motio.nikog.net deploy path: keep its
+# analytics on without a server .env edit. A key present in .env wins — set it to an
+# empty value there to turn analytics off.
+export_default_unless_in_env_file() {
+  local key="$1" value="$2"
+  if ! grep -qE "^[[:space:]]*${key}=" "$env_file"; then
+    export "${key}=${value}"
+  fi
+}
+export_default_unless_in_env_file VITE_PLAUSIBLE_DOMAIN "motio.nikog.net"
+export_default_unless_in_env_file VITE_PLAUSIBLE_SRC "https://analise.nikog.webtm.ru/js/script.js"
+
 if [[ ! -x "infra/scripts/keycloak-ensure-client-secret.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-ensure-client-secret.sh" >&2
   exit 1
@@ -84,6 +98,11 @@ fi
 
 if [[ ! -x "infra/scripts/keycloak-ensure-realm-user-profile.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-ensure-realm-user-profile.sh" >&2
+  exit 1
+fi
+
+if [[ ! -x "infra/scripts/keycloak-ensure-realm-locales.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-realm-locales.sh" >&2
   exit 1
 fi
 
@@ -360,6 +379,7 @@ infra/scripts/keycloak-ensure-realm-session-policy.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-bruteforce.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-passwordpolicy.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-user-profile.sh "$env_file"
+infra/scripts/keycloak-ensure-realm-locales.sh "$env_file"
 
 if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" == "true" ]]; then
   infra/scripts/keycloak-backup-db.sh "$env_file" "$compose_file"

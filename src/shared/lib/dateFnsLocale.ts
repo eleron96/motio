@@ -1,11 +1,11 @@
 import { format } from 'date-fns';
 import type { Locale as DateFnsLocale } from 'date-fns';
-import { enUS, ru } from 'date-fns/locale';
+import { de, enUS, ru } from 'date-fns/locale';
 import type { Locale } from '@/shared/lib/locale';
 
-export const resolveDateFnsLocale = (locale: Locale): DateFnsLocale => (
-  locale === 'ru' ? ru : enUS
-);
+const DATE_FNS_LOCALES: Record<Locale, DateFnsLocale> = { en: enUS, ru, de };
+
+export const resolveDateFnsLocale = (locale: Locale): DateFnsLocale => DATE_FNS_LOCALES[locale];
 
 const RU_WEEKDAY_SHORT_BY_INDEX: Record<number, string> = {
   0: 'Вс',

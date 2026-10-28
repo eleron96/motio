@@ -155,6 +155,14 @@
     formOptions.parentNode.insertBefore(headerHint, formOptions);
   }
 
+  // The page language Keycloak rendered: ru, de, or en for anything else.
+  function pageLanguage() {
+    var lang = (root.lang || '').toLowerCase();
+    if (lang.indexOf('ru') === 0) return 'ru';
+    if (lang.indexOf('de') === 0) return 'de';
+    return 'en';
+  }
+
   function injectPrivacyConsent() {
     var registerForm = doc.getElementById('kc-register-form');
     if (!registerForm) return;
@@ -168,13 +176,11 @@
     var submitButton = registerForm.querySelector('[type="submit"]');
     if (!submitButton) return;
 
-    var lang = (root.lang || '').toLowerCase();
-    var isRu = lang.indexOf('ru') === 0;
-
-    var prefix = isRu
-      ? 'Регистрируясь, вы соглашаетесь с нашей\u00a0'
-      : 'By registering, you agree to our\u00a0';
-    var linkText = isRu ? 'Политикой конфиденциальности' : 'Privacy Policy';
+    var copy = {
+      ru: { prefix: 'Регистрируясь, вы соглашаетесь с нашей\u00a0', link: 'Политикой конфиденциальности', suffix: '.' },
+      de: { prefix: 'Mit der Registrierung stimmen Sie unserer\u00a0', link: 'Datenschutzerklärung', suffix: '\u00a0zu.' },
+      en: { prefix: 'By registering, you agree to our\u00a0', link: 'Privacy Policy', suffix: '.' }
+    }[pageLanguage()];
 
     var consent = doc.createElement('div');
     consent.id = 'timeline-privacy-consent';
@@ -184,11 +190,11 @@
     link.href = '/privacy';
     link.target = '_blank';
     link.rel = 'noreferrer';
-    link.textContent = linkText;
+    link.textContent = copy.link;
 
-    consent.appendChild(doc.createTextNode(prefix));
+    consent.appendChild(doc.createTextNode(copy.prefix));
     consent.appendChild(link);
-    consent.appendChild(doc.createTextNode('.'));
+    consent.appendChild(doc.createTextNode(copy.suffix));
 
     var container = submitButton.closest('.pf-c-form__group') || submitButton.parentNode;
     if (container && container.parentNode) {
@@ -211,15 +217,14 @@
     var passwordInput = doc.getElementById('password');
     if (!passwordInput) return;
 
-    var lang = (root.lang || '').toLowerCase();
-    var isRu = lang.indexOf('ru') === 0;
-
     // Keep in sync with the realm password policy applied by
     // infra/scripts/keycloak-ensure-realm-passwordpolicy.sh
     // (length(12) and notUsername and notEmail).
-    var text = isRu
-      ? 'Не менее 12 символов. Не должен совпадать с email или именем пользователя.'
-      : 'At least 12 characters. Must not match your email or username.';
+    var text = {
+      ru: 'Не менее 12 символов. Не должен совпадать с email или именем пользователя.',
+      de: 'Mindestens 12 Zeichen. Darf nicht mit Ihrer E-Mail-Adresse oder Ihrem Benutzernamen übereinstimmen.',
+      en: 'At least 12 characters. Must not match your email or username.'
+    }[pageLanguage()];
 
     var hint = doc.createElement('div');
     hint.id = 'timeline-password-hint';
@@ -243,7 +248,9 @@
     }
 
     var pageTitle = ((doc.getElementById('kc-page-title') || {}).textContent || '').toLowerCase();
-    var hasReAuthTitle = pageTitle.indexOf('reauth') !== -1 || pageTitle.indexOf('повторно') !== -1;
+    var hasReAuthTitle = pageTitle.indexOf('reauth') !== -1
+      || pageTitle.indexOf('повторно') !== -1
+      || pageTitle.indexOf('erneut') !== -1;
     return hasReAuthTitle || Boolean(findRestartControl());
   }
 

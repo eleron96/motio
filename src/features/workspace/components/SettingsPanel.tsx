@@ -8,7 +8,7 @@ import { Label } from '@/shared/ui/label';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
 import { Badge } from '@/shared/ui/badge';
-import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
+import { isWorkloadHeatmapEnabled, isWorkspaceApiEnabled } from '@/shared/lib/featureFlags';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import {
@@ -35,6 +35,7 @@ import {
   Workflow,
   LayoutTemplate,
   AlertTriangle,
+  KeyRound,
 } from 'lucide-react';
 import { ColorPicker } from '@/shared/ui/color-picker';
 import { EmojiPicker } from '@/shared/ui/emoji-picker';
@@ -52,6 +53,7 @@ import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 import { Block, SettingRow } from '@/features/workspace/components/settingsBlocks';
 import { WorkspaceMembersSection } from '@/features/workspace/components/WorkspaceMembersSection';
+import { WorkspaceApiTokensSection } from '@/features/workspace/components/WorkspaceApiTokensSection';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SettingsPanelProps {
@@ -61,7 +63,7 @@ interface SettingsPanelProps {
 
 import { fetchHolidayCountries, type HolidayCountryOption } from '@/infrastructure/holidays/holidayApi';
 
-type SectionId = 'general' | 'display' | 'people' | 'workflow' | 'template' | 'danger';
+type SectionId = 'general' | 'display' | 'people' | 'workflow' | 'template' | 'api' | 'danger';
 
 const autoResize = (element: HTMLTextAreaElement | null) => {
   if (!element) return;
@@ -486,6 +488,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     { id: 'people', label: t`Members and access`, icon: Users },
     { id: 'workflow', label: t`Workflow`, icon: Workflow },
     { id: 'template', label: t`Template`, icon: LayoutTemplate },
+    // Absence import tokens: admins only, behind VITE_FEATURE_WORKSPACE_API.
+    ...(isAdmin && isWorkspaceApiEnabled()
+      ? [{ id: 'api' as const, label: t`API`, icon: KeyRound }]
+      : []),
     { id: 'danger', label: t`Danger zone`, icon: AlertTriangle },
   ];
 
@@ -1006,6 +1012,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     people: peopleContent,
     workflow: workflowContent,
     template: templateContent,
+    api: isAdmin && isWorkspaceApiEnabled()
+      ? <WorkspaceApiTokensSection workspaceId={currentWorkspaceId} />
+      : null,
     danger: dangerContent,
   };
 

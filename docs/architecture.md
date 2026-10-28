@@ -13,7 +13,7 @@ See also: [Operations](operations.md) · [Configuration](configuration.md)
 | **Auth / SSO** | Keycloak (OIDC) · oauth2-proxy |
 | **DB migrations** | Liquibase |
 | **Infrastructure** | Docker Compose · Caddy (public TLS edge) · Nginx (internal Supabase gateway + built frontend) · standalone backup-service |
-| **i18n** | Lingui (ru / en) |
+| **i18n** | Lingui (en / ru / de) |
 
 ## Repository structure
 
@@ -27,7 +27,7 @@ See also: [Operations](operations.md) · [Configuration](configuration.md)
 │   ├── supabase/
 │   │   ├── migrations/                  — SQL migrations
 │   │   ├── liquibase/changelog-master.xml
-│   │   ├── functions/                   — Edge Functions: main, account-purge, admin, data-export, holidays, inbox, invite, mailer, notifications, push, task-media
+│   │   ├── functions/                   — Edge Functions: main, account-purge, admin, api, data-export, holidays, inbox, invite, mailer, notifications, push, task-media
 │   │   └── nginx.conf                   — internal gateway: /auth/v1, /rest/v1, /functions/v1, /storage/v1, /realtime/v1, /backup
 │   ├── caddy/                           — public TLS edge (Caddyfile, Caddyfile.testing); runs outside docker-compose.prod.yml
 │   ├── keycloak/realm/
@@ -93,9 +93,18 @@ lets the testing stack stay self-contained when importing the production baselin
 
 ## Edge Functions
 
-Routed through `main` under `/functions/v1/`: `account-purge`, `admin`,
+Routed through `main` under `/functions/v1/`: `account-purge`, `admin`, `api`,
 `data-export`, `holidays`, `inbox`, `invite`, `mailer`, `notifications`, `push`,
 `task-media`. The subsections below cover the ones with a non-trivial contract.
+
+### `api`
+
+The workspace API for importing absences, called by other systems with a
+workspace token (`Authorization: Bearer motio_…`), not by the app. The gateway
+gives `/functions/v1/api/` its own rate limit (`public_api_limit`, 5 r/s per IP)
+and no CORS. The function hashes the token, resolves the workspace and calls the
+`api_*` database functions (migration 0156, EXECUTE for `service_role` only).
+Contract and examples: [API](api.md).
 
 ### `admin`
 

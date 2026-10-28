@@ -14,7 +14,7 @@ Free and open source: use the hosted app, or run it on your own servers. The liv
 
 **[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Self-host it](#-self-host)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.10.25-blue.svg)](./CHANGELOG.en.md)
+[![Version](https://img.shields.io/badge/version-0.10.26-blue.svg)](./CHANGELOG.en.md)
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
 
@@ -90,14 +90,20 @@ creates the reserve super-admin account — no manual setup needed.
 
 ### Run it for your team
 
-The production stack is `infra/docker-compose.prod.yml` behind Caddy (TLS), with Keycloak
-for sign-in. Fill in `.env` ([docs/configuration.md](docs/configuration.md)) and start it
-with `make up-prod`; remote deploy, releases, backups and disaster recovery are described
-in [docs/operations.md](docs/operations.md).
+One command on a Linux server with Docker, under your own domain — with its own
+Let's Encrypt certificate or behind the reverse proxy you already run:
 
-An honest caveat: there is no one-command installer for other domains yet. The Caddyfile
-and the production Keycloak realm still carry the `motio.nikog.net` domain, so expect to
-replace it with your own. Self-hosting is community-supported — questions are welcome in
+```bash
+git clone https://github.com/eleron96/motio.git && cd motio
+git checkout vX.Y.Z   # latest release
+infra/scripts/install.sh --domain planner.example.com --email you@example.com
+```
+
+Updates are `infra/scripts/install.sh update --version vX.Y.Z`. Requirements, the
+reverse-proxy mode (Nginx Proxy Manager, Traefik, nginx), email, your own sign-in
+provider (Authentik, Entra ID…) and backups: **[docs/self-hosting.md](docs/self-hosting.md)**.
+The install sends nothing to motio.nikog.net. Self-hosting is community-supported —
+questions are welcome in
 [Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a).
 
 ## 🏗 Architecture
@@ -153,6 +159,8 @@ Details: [docs/architecture.md](docs/architecture.md).
 | [docs/configuration.md](docs/configuration.md) | environment variables, feature flags, push, email, scheduled jobs |
 | [docs/architecture.md](docs/architecture.md) | stack, auth flow, Edge Functions, admin console |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | common errors and fixes |
+| [docs/self-hosting.md](docs/self-hosting.md) | install and update Motio on your own server, behind your proxy, with your own sign-in |
+| [docs/api.md](docs/api.md) | workspace API: importing absences from time tracking or HR |
 | [CHANGELOG.en.md](./CHANGELOG.en.md) · [CHANGELOG.md](./CHANGELOG.md) | change history (en / ru) |
 | [MANIFESTO.md](./MANIFESTO.md) | product principles |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | how to report a bug, propose an idea or send a pull request |

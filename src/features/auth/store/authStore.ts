@@ -327,6 +327,13 @@ const fetchWorkspaceMemberSnapshot = async (
 
 const POST_SIGN_OUT_LANDING_PATH = '/';
 
+/** Name of the first workspace, in the language of the person it is created for. */
+const DEFAULT_WORKSPACE_NAMES: Record<Locale, string> = {
+  en: 'My Workspace',
+  ru: 'Моё пространство',
+  de: 'Mein Arbeitsbereich',
+};
+
 export const getOauth2ProxySignOutPath = () => {
   const signOutPath = (import.meta.env.VITE_OAUTH2_PROXY_SIGN_OUT_PATH ?? '/oauth2/sign_out').trim();
   if (!signOutPath) return '/oauth2/sign_out';
@@ -581,7 +588,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // типы и теги создаются сразу на языке человека.
       const seedLocale = useLocaleStore.getState().locale;
       const { error: ensureError } = await supabase.rpc('ensure_initial_workspace', {
-        default_workspace_name: seedLocale === 'ru' ? 'Моё пространство' : 'My Workspace',
+        default_workspace_name: DEFAULT_WORKSPACE_NAMES[seedLocale],
         p_locale: seedLocale,
       });
       if (ensureError) {

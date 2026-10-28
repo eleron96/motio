@@ -226,6 +226,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   const languageOptions: Array<{ value: Locale; label: string }> = [
     { value: 'en', label: localeLabels.en },
     { value: 'ru', label: localeLabels.ru },
+    { value: 'de', label: localeLabels.de },
   ];
   const handleSave = async () => {
     if (!user) return;

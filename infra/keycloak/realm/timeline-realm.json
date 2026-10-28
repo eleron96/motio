@@ -30,7 +30,8 @@
   "internationalizationEnabled": true,
   "supportedLocales": [
     "en",
-    "ru"
+    "ru",
+    "de"
   ],
   "defaultLocale": "en",
   "clients": [

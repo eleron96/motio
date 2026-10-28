@@ -102,17 +102,21 @@
 
 При **любом** изменении набора переводимых строк — добавлении, удалении, переименовании или перемещении файла с `t\`...\`` / `<Trans>` — выполнить `npm run lingui:extract` и `npm run lingui:compile` и закоммитить `src/locales` тем же коммитом. Удаление компонента без extract оставляет в `.po` ссылки на несуществующие файлы: на этом падают и CI-шаг «i18n catalogs up to date», и гейт `make deploy`.
 
+Языки интерфейса: `en` (исходный, msgid — английский текст), `ru`, `de`. Немецкий — деловой, на «Sie», термины по глоссарию (Arbeitsbereich, Zeitachse, Aufgabe, Zuständig, Meilenstein, Abwesenheit, Label вместо Tag, Inhaber/Admin/Bearbeiter/Leser). Непереведённая строка показывается по-английски (`fallbackLocales`), но в репозиторий такие не попадают.
+
 Порядок:
 
-1. Открыть `src/locales/ru/messages.po`, найти новые записи с пустым `msgstr ""` и заполнить перевод.
-2. Проверить оба языка: незаполненный перевод показывает пользователю хеш-идентификатор вида `OUca2h` вместо текста.
+1. Открыть `src/locales/ru/messages.po` и `src/locales/de/messages.po`, найти новые записи с пустым `msgstr ""` и заполнить перевод в обоих.
+2. Проверить все три языка: плейсхолдеры (`{name}`, `{0}`) и теги (`<0>…</0>`) должны остаться как в msgid.
 3. Только после этого коммитить и деплоить: `lingui compile` при деплое отработает сам, но переводы в `.po` должны быть уже на месте.
+
+Полноту проверяет тест `src/test/smoke/localeCatalogs.test.ts` (часть `npm run test`, а значит CI и гейта деплоя): пустой `msgstr` или потерянный плейсхолдер в `ru`/`de` валит его.
 
 Проверка перед коммитом:
 ```bash
 npm run lingui:extract
-# Убедиться что в выводе Missing = 0 для ru, или проверить вручную
-grep -n 'msgstr ""' src/locales/ru/messages.po
+# В выводе Missing = 0 для ru и de
+npx vitest run src/test/smoke/localeCatalogs.test.ts
 ```
 
 ## 5. Правила деплоя
@@ -139,7 +143,7 @@ grep -n 'msgstr ""' src/locales/ru/messages.po
 - `make keycloak-backup-db`
 - `make keycloak-audit-realm`
 - `make keycloak-export-realm`
-4. Realm-настройки Keycloak применяются автоматически ensure-скриптами при каждом prod-деплое: `prod-compose.sh` вызывает `infra/scripts/keycloak-ensure-*.sh` (client-secret, client-urls, realm-ssl-required, realm-branding, realm-frontend-url, realm-session-policy, realm-bruteforce, realm-passwordpolicy, realm-user-profile). Новую realm-настройку вносить новым ensure-скриптом по этому же образцу, а не правкой realm-JSON: импорт JSON применяется только при первичной инициализации realm.
+4. Realm-настройки Keycloak применяются автоматически ensure-скриптами при каждом prod-деплое: `prod-compose.sh` вызывает `infra/scripts/keycloak-ensure-*.sh` (client-secret, client-urls, realm-ssl-required, realm-branding, realm-frontend-url, realm-session-policy, realm-bruteforce, realm-passwordpolicy, realm-user-profile, realm-locales). Новую realm-настройку вносить новым ensure-скриптом по этому же образцу, а не правкой realm-JSON: импорт JSON применяется только при первичной инициализации realm.
 
 Не обходить скрипт `infra/scripts/prod-compose.sh` ручными шагами.
 
@@ -282,7 +286,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 ## 6.5. Локализация UI
 
 1. Порядок работы с каталогами — в §4.2, повторять его здесь не нужно.
-2. Проверять оба языка, русский и английский, а не только тот, на котором работаешь.
+2. Проверять все три языка — русский, английский и немецкий, а не только тот, на котором работаешь. Немецкий текст длиннее на ~30%: смотреть обрезки и переносы на телефоне.
 3. После обновления каталогов убедиться, что в UI не отображаются hash/id вида `zT1YvU` вместо текста.
 
 ## 7. Правила коммитов

@@ -233,6 +233,10 @@ msgstr "{weeksAgo, plural, one {# неделю назад} few {# недели �
 msgid "+{0} more milestones"
 msgstr "+{0} ещё этапов"
 
+#: src/features/dashboard/components/DashboardWidgetCard.tsx
+msgid "+{groupedLegendCount} hidden"
+msgstr "+{groupedLegendCount} скрыто"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "🎯 Milestones calendar"
 msgstr "🎯 Календарь вех"
@@ -261,6 +265,10 @@ msgstr "Выбрано: 1"
 msgid "2–{DISPLAY_NAME_MAX_LENGTH} characters. No URLs, @, or reserved words."
 msgstr "2–{DISPLAY_NAME_MAX_LENGTH} символов. Без URL, @ и зарезервированных слов."
 
+#: src/app/NotFoundPage.tsx
+msgid "404 - Page not found | Motio"
+msgstr "404 — Страница не найдена | Motio"
+
 #: src/features/planner/components/timeline/calendarLegendRows.tsx
 msgid "A circle on the day; split when several people are away."
 msgstr "Кружок на дне; делится, если отсутствует несколько человек."
@@ -284,6 +292,14 @@ msgstr "Полоса над рабочей областью, её можно з�
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "A task is assigned to me"
 msgstr "Мне назначили задачу"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "A token lets another system, such as your time tracking, create, update and delete absences in this workspace. It can do nothing else."
+msgstr "Токен позволяет другой системе, например учёту времени, создавать, менять и удалять отсутствия в этом пространстве. Больше он ничего не может."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "A workspace can have at most 10 active tokens. Revoke one you no longer use."
+msgstr "В пространстве может быть не больше 10 действующих токенов. Отзовите тот, что больше не нужен."
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -386,6 +402,10 @@ msgstr "активен"
 #: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "Active"
 msgstr "Активен"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Active tokens"
+msgstr "Действующие токены"
 
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -619,6 +639,14 @@ msgstr "Анонс"
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 msgstr "Любая задача добавляется за 10 секунд. Не потому, что мы забыли выкатить больше функций. Это и есть позиция продукта."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "API"
+msgstr "API"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "API reference"
+msgstr "Описание API"
+
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
 msgstr "Версия приложения"
@@ -771,6 +799,10 @@ msgstr "В отпуске: {0} из {1}"
 msgid "Back"
 msgstr "Назад"
 
+#: src/app/NotFoundPage.tsx
+msgid "Back to home"
+msgstr "На главную"
+
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 msgid "Back to today"
 msgstr "Вернуться к сегодняшней дате"
@@ -800,6 +832,10 @@ msgstr "Столбчатая диаграмма"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Beer"
 msgstr "Пиво"
+
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Behind your own reverse proxy"
+msgstr "За вашим reverse proxy"
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "best week: {bestWeek}"
@@ -919,6 +955,8 @@ msgstr "Позвонить"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -1199,6 +1237,10 @@ msgstr "Тренд выполнения"
 msgid "Configure widget type, display style, and filters."
 msgstr "Настройте тип виджета, стиль отображения и фильтры."
 
+#: src/features/planner/hooks/usePlannerLiveSync.ts
+msgid "Connection restored"
+msgstr "Соединение восстановлено"
+
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Contact"
 msgstr "Контакт"
@@ -1239,6 +1281,7 @@ msgstr "Продолжите через Keycloak для доступа к раб
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copied"
 msgstr "Скопировано"
 
@@ -1257,6 +1300,14 @@ msgstr "Скопировать имя"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Скопировать телефон"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Copy token"
+msgstr "Скопировать токен"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Copy your token now"
+msgstr "Скопируйте токен сейчас"
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Could not check access"
@@ -1370,6 +1421,11 @@ msgstr "Создать проект"
 msgid "Create task"
 msgstr "Создать задачу"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Create token"
+msgstr "Создать токен"
+
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
@@ -1380,6 +1436,11 @@ msgstr "Создать пространство"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Создание аккаунта"
+
+#. placeholder {0}: formatDate(token.createdAt)
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "created {0}"
+msgstr "создан {0}"
 
 #. placeholder {0}: result.created ?? 0
 #: src/features/planner/components/TaskDetailPanel.tsx
@@ -1855,8 +1916,8 @@ msgid "Display style"
 msgstr "Стиль отображения"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Docker Compose"
-msgstr "Docker Compose"
+#~ msgid "Docker Compose"
+#~ msgstr "Docker Compose"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
@@ -1872,6 +1933,7 @@ msgstr "выполнено"
 #: src/features/projects/components/projectCard/ProjectTasksFiltersScreen.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Done"
 msgstr "Завершено"
 
@@ -1938,6 +2000,10 @@ msgstr "В течение этого периода вы можете войти
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "E.g. Real estate · Residential"
 msgstr "Напр. Девелопмент · Жилая"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "e.g. Time tracking sync"
+msgstr "напр. Синхронизация учёта времени"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -2169,6 +2235,10 @@ msgstr "Равно"
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "Error"
 msgstr "Ошибка"
+
+#: src/app/NotFoundPage.tsx
+msgid "Error 404. We checked everywhere, but nothing is here."
+msgstr "Ошибка 404. Мы всё проверили, но здесь пусто."
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Every 4 weeks"
@@ -2520,6 +2590,10 @@ msgstr "Сформировать новый экспорт"
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Получайте в этом браузере уведомления о задачах, даже когда Motio закрыт."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Give the token a name of 1 to 80 characters."
+msgstr "Название токена — от 1 до 80 символов."
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -2533,6 +2607,10 @@ msgstr "Перейти к таймлайну"
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "Good morning, {displayName}!"
 msgstr "Доброе утро, {displayName}!"
+
+#: src/features/daily-brief/components/DailyBriefModal.tsx
+msgid "Good morning!"
+msgstr "Доброе утро!"
 
 #: src/features/announcements/components/AnnouncementsHost.tsx
 msgid "Got it"
@@ -2685,6 +2763,10 @@ msgstr "Меня зовут Niko G. Много лет я веду команды
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в вашей команде, значит пора попробовать Motio."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Import absences"
+msgstr "Импорт отсутствий"
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
@@ -2827,9 +2909,18 @@ msgstr "Последний экспорт завершился с ошибкой
 msgid "Last in series"
 msgstr "Последняя в серии"
 
+#. placeholder {0}: formatDate(token.lastUsedAt)
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "last used {0}"
+msgstr "использован {0}"
+
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Latest backup"
 msgstr "Последний бэкап"
+
+#: src/features/auth/components/ReleaseNotesDialog.tsx
+msgid "Latest changes"
+msgstr "Последние изменения"
 
 #: src/shared/lib/accentColor.ts
 msgid "Lavender"
@@ -2960,6 +3051,10 @@ msgstr "Загрузка задач..."
 msgid "Loading template..."
 msgstr "Загрузка шаблона..."
 
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "Loading the change history…"
+msgstr "Загружаем историю изменений…"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Loading users..."
 msgstr "Загрузка пользователей..."
@@ -2989,6 +3084,7 @@ msgid "Loading..."
 msgstr "Загрузка..."
 
 #: src/features/demo/pages/DemoPage.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Loading…"
 msgstr "Загрузка…"
 
@@ -3226,6 +3322,7 @@ msgstr "Рабочее пространство моей команды"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Name"
 msgstr "Название"
 
@@ -3240,6 +3337,10 @@ msgstr "Имя не может содержать @."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Name cannot contain a URL."
 msgstr "Имя не может содержать URL."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Name it after the system that will use it."
+msgstr "Назовите его по системе, которая будет им пользоваться."
 
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Name must be at least 2 characters."
@@ -3263,9 +3364,17 @@ msgstr "Нужно на своих серверах? Так тоже можно.
 msgid "Never"
 msgstr "Никогда"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "never used"
+msgstr "ещё не использовался"
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "New announcement"
 msgstr "Новый анонс"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "New API token"
+msgstr "Новый API-токен"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "New broadcast"
@@ -3440,6 +3549,11 @@ msgstr "Без кода"
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "No company"
 msgstr "Без компании"
+
+#: src/features/planner/hooks/usePlannerLiveSync.ts
+#: src/features/planner/hooks/usePlannerLiveSync.ts
+msgid "No connection"
+msgstr "Нет соединения"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
@@ -3718,6 +3832,10 @@ msgstr "Нет проектов под текущий поиск."
 msgid "No projects yet."
 msgstr "Проектов пока нет."
 
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "No recent change entries available."
+msgstr "Нет записей о последних изменениях."
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "No recipients match this audience."
 msgstr "Под эту аудиторию нет получателей."
@@ -3798,6 +3916,10 @@ msgstr "Команд пока нет."
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "No template saved yet."
 msgstr "Шаблон еще не сохранен."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "No tokens yet."
+msgstr "Токенов пока нет."
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 msgid "No upcoming milestones in the next 7 days."
@@ -3963,6 +4085,10 @@ msgstr "Один человек"
 msgid "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 msgstr "Люди, проекты и загрузка — на одной общей шкале. Перегрузку видно раньше, чем она сорвёт срок."
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "One-command install"
+msgstr "Установка одной командой"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
 msgstr "Доступны только отключенные участники."
@@ -3983,6 +4109,14 @@ msgstr "Доступ к админке есть только у супер-ад�
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Only this task"
 msgstr "Только эта задача"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Only workspace admins can manage API tokens."
+msgstr "Управлять API-токенами может только администратор пространства."
+
+#: src/app/NotFoundPage.tsx
+msgid "Oops, this page took a coffee break."
+msgstr "Ой, эта страница ушла за кофе."
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -4053,6 +4187,10 @@ msgstr "Открыть демо →"
 msgid "Open this day"
 msgstr "Открыть этот день"
 
+#: src/app/NotFoundPage.tsx
+msgid "Open timeline"
+msgstr "Открыть таймлайн"
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Optional"
 msgstr "Необязательно"
@@ -4060,6 +4198,10 @@ msgstr "Необязательно"
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 msgid "Order"
 msgstr "Порядок"
+
+#: src/features/dashboard/components/DashboardWidgetCard.tsx
+msgid "Other"
+msgstr "Остальное"
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
@@ -4244,8 +4386,8 @@ msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Postgres"
-msgstr "Postgres"
+#~ msgid "Postgres"
+#~ msgstr "Postgres"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
@@ -4612,6 +4754,10 @@ msgstr "Повторяется до выбранной даты."
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
 msgstr "Заменить отображаемое имя удалённого аккаунта. Изменение применится везде, где упоминается этот пользователь."
 
+#: src/app/NotFoundPage.tsx
+msgid "Requested path"
+msgstr "Запрошенный путь"
+
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Reset"
@@ -4658,10 +4804,20 @@ msgstr "Повторить"
 msgid "Return to Home"
 msgstr "Вернуться на главную"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Revoke"
 msgstr "Отозвать"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Revoke this token?"
+msgstr "Отозвать токен?"
+
+#. placeholder {0}: token.name
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Revoke token {0}"
+msgstr "Отозвать токен {0}"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Right-click to add your first widget."
@@ -5245,6 +5401,10 @@ msgstr "Небесный"
 msgid "Something went wrong"
 msgstr "Что-то пошло не так"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Something went wrong. Please try again."
+msgstr "Что-то пошло не так. Попробуйте ещё раз."
+
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 msgid "Sort"
@@ -5389,6 +5549,11 @@ msgstr "Солнце"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
 msgstr "Здесь переключаются проекты, вехи, клиенты и контакты. Откройте проект — увидите его задачи, команду и заметки."
+
+#. placeholder {0}: revokeTarget?.name ?? ''
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Systems using \"{0}\" lose access right away. Absences already imported stay."
+msgstr "Системы, которые пользуются «{0}», сразу потеряют доступ. Уже загруженные отсутствия останутся."
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5640,10 +5805,6 @@ msgstr "Тепловая карта загрузки: нагрузка кома�
 msgid "The workspace and all its data will be deleted permanently."
 msgstr "Рабочее пространство и все его данные будут удалены без возможности восстановления."
 
-#: src/features/daily-brief/components/DailyBriefModal.tsx
-msgid "there"
-msgstr "там"
-
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "There are no other active members to transfer ownership to."
 msgstr "Нет других активных участников, которым можно передать владение."
@@ -5718,6 +5879,10 @@ msgstr "этот дашборд"
 msgid "This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history."
 msgstr "Это нагрузка, которая считается за 100%. Оставьте пустым — подстроится автоматически по недавней истории команды."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "This is the only time it is shown. Store it in the system that will use it; if it is lost, revoke it and create a new one."
+msgstr "Токен показывается только один раз. Сохраните его в системе, которая будет им пользоваться; если потеряете — отзовите и создайте новый."
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "This is where your workspace projects are listed and reviewed."
 msgstr "Здесь перечислены проекты рабочего пространства и их можно просматривать."
@@ -5733,6 +5898,10 @@ msgstr "Этот месяц"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "This name is reserved."
 msgstr "Это имя зарезервировано."
+
+#: src/app/NotFoundPage.tsx
+msgid "This page does not exist. Return home or jump back to the timeline."
+msgstr "Такой страницы не существует. Вернитесь на главную или в таймлайн."
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this project"
@@ -5975,6 +6144,10 @@ msgstr "Попробовать демо — без регистрации"
 msgid "Try Motio now"
 msgstr "Попробуйте Motio сейчас"
 
+#: src/app/NotFoundPage.tsx
+msgid "Try returning home or jump back into the timeline."
+msgstr "Вернитесь на главную или сразу откройте таймлайн."
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6130,6 +6303,10 @@ msgstr "Не прочитано"
 msgid "Unread notifications"
 msgstr "Непрочитанные уведомления"
 
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "Unreleased"
+msgstr "Готовится"
+
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -6233,6 +6410,15 @@ msgstr "Пользователи"
 #: src/features/planner/components/TimeOffFields.tsx
 msgid "Vacation, day off, sick leave..."
 msgstr "Отпуск, отгул, больничный..."
+
+#. placeholder {0}: entry.version
+#: src/features/auth/components/ReleaseNotesList.tsx
+msgid "Version {0}"
+msgstr "Версия {0}"
+
+#: src/features/auth/components/ReleaseNotesDialog.tsx
+msgid "Version {APP_VERSION}"
+msgstr "Версия {APP_VERSION}"
 
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
@@ -6609,16 +6795,3 @@ msgstr "Здесь живут ваши виджеты. Меняйте их ра�
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Z-A"
 msgstr "Я-А"
-
-#: src/features/planner/hooks/usePlannerLiveSync.ts
-#: src/features/planner/hooks/usePlannerLiveSync.ts
-msgid "Нет соединения"
-msgstr "Нет соединения"
-
-#: src/features/planner/hooks/usePlannerLiveSync.ts
-msgid "Соединение восстановлено"
-msgstr "Соединение восстановлено"
-
-#: src/features/auth/pages/InvitePage.tsx
-msgid "Я соглашаюсь с <0>Политикой конфиденциальности</0>"
-msgstr "Я соглашаюсь с <0>Политикой конфиденциальности</0>"
