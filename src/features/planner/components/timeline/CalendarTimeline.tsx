@@ -135,6 +135,9 @@ export const CalendarTimeline: React.FC = () => {
     const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
     return normalizeHolidayCountryCode(currentWorkspace?.holidayCountry);
   }, [workspaces, currentWorkspaceId]);
+  const holidayRegionCode = useMemo(() => (
+    workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.holidayRegion ?? null
+  ), [workspaces, currentWorkspaceId]);
 
   const assigneeGroupMap = useMemo(
     () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
@@ -241,6 +244,7 @@ export const CalendarTimeline: React.FC = () => {
   const { holidayMap, holidayDates } = useHolidayMap({
     years: holidayYears,
     holidayCountryCode,
+    holidayRegionCode,
     fallbackHolidayLabel,
     holidayLabel: t`Holiday`,
   });

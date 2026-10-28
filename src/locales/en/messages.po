@@ -622,6 +622,10 @@ msgstr "All tasks"
 msgid "Already undone"
 msgstr "Already undone"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Also counts: {regionHolidayList}."
+msgstr "Also counts: {regionHolidayList}."
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Always"
 msgstr "Always"
@@ -3094,6 +3098,10 @@ msgstr "Loading history..."
 msgid "Loading members..."
 msgstr "Loading members..."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Loading regions..."
+msgstr "Loading regions..."
+
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -3893,6 +3901,10 @@ msgstr "No recent change entries available."
 msgid "No recipients match this audience."
 msgstr "No recipients match this audience."
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "No regions found."
+msgstr "No regions found."
+
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -4161,6 +4173,10 @@ msgstr "Only disabled people are available."
 #: src/features/planner/components/timeline/TaskBarDeleteDialog.tsx
 msgid "Only for {scopedAssigneeName}"
 msgstr "Only for {scopedAssigneeName}"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Only holidays of the whole country count. Pick a region to add its own holidays."
+msgstr "Only holidays of the whole country count. Pick a region to add its own holidays."
 
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
@@ -4684,6 +4700,10 @@ msgstr "Recurring"
 msgid "Refresh"
 msgstr "Refresh"
 
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Region"
+msgstr "Region"
+
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
@@ -5103,6 +5123,10 @@ msgstr "Search projects"
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "Search projects..."
 msgstr "Search projects..."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Search regions..."
+msgstr "Search regions..."
 
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 msgid "Search roles..."
@@ -6656,6 +6680,12 @@ msgstr "Who changed roles, groups and access, and when."
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Who takes over?"
 msgstr "Who takes over?"
+
+#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "Whole country"
+msgstr "Whole country"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Why I built this"

@@ -98,6 +98,7 @@ const buildFreshState = (): DemoStore => {
         name: DEMO_WORKSPACE_NAME,
         owner_id: userId,
         holiday_country: null,
+        holiday_region: null,
         // Opt the demo workspace into the workload heatmap board (the env
         // flag is forced on for /demo in featureFlags.ts). Capacity is left
         // to auto-from-history so the gradient adapts to the seeded load.

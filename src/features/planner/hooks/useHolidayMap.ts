@@ -6,6 +6,7 @@ import {
   isEmptyProductionCalendar,
   russianStatutoryHolidays,
 } from '@/features/planner/lib/russianHolidays';
+import { isHolidayObservedInRegion } from '@/shared/domain/holidayRegion';
 
 const HOLIDAY_RETRY_DELAY_MS = 30000;
 const DEFAULT_HOLIDAY_COUNTRY_CODE = 'RU';
@@ -18,6 +19,8 @@ export const normalizeHolidayCountryCode = (value: string | null | undefined) =>
 type UseHolidayMapParams = {
   years: number[];
   holidayCountryCode: string;
+  /** Region whose own holidays count too; null = national holidays only. */
+  holidayRegionCode: string | null;
   fallbackHolidayLabel: string;
   holidayLabel: string;
 };
@@ -25,6 +28,7 @@ type UseHolidayMapParams = {
 export const useHolidayMap = ({
   years,
   holidayCountryCode,
+  holidayRegionCode,
   fallbackHolidayLabel,
   holidayLabel,
 }: UseHolidayMapParams) => {
@@ -37,7 +41,7 @@ export const useHolidayMap = ({
     loadedHolidayYears.current.clear();
     loadingHolidayYears.current.clear();
     setHolidayMap({});
-  }, [holidayCountryCode]);
+  }, [holidayCountryCode, holidayRegionCode]);
 
   useEffect(() => {
     const toLoad = years.filter((year) => (
@@ -102,9 +106,11 @@ export const useHolidayMap = ({
           }
         }
 
-        // Merge named holidays on top
+        // Merge named holidays on top. Regional ones count only for the
+        // workspace's region: Bavaria's Corpus Christi is a working day in Hamburg.
         response.holidays.forEach((holiday) => {
           if (!holiday.date) return;
+          if (!isHolidayObservedInRegion(holiday, holidayRegionCode)) return;
           const label = holiday.localName || holiday.name || holidayLabel;
           const existing = entries[holiday.date] ?? [];
           if (!existing.includes(label)) {
@@ -144,7 +150,7 @@ export const useHolidayMap = ({
         window.clearTimeout(retryTimer);
       }
     };
-  }, [years, holidayCountryCode, holidayReloadToken, fallbackHolidayLabel, holidayLabel]);
+  }, [years, holidayCountryCode, holidayRegionCode, holidayReloadToken, fallbackHolidayLabel, holidayLabel]);
 
   const holidayDates = useMemo(() => new Set(Object.keys(holidayMap)), [holidayMap]);
 

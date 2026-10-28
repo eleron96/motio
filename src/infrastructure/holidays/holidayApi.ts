@@ -11,6 +11,9 @@ export interface HolidayEntry {
   date: string;
   localName: string;
   name: string;
+  /** false = observed only in `counties`; missing in responses cached before regions. */
+  global?: boolean;
+  counties?: string[] | null;
 }
 
 export interface HolidayResponse {

@@ -34,7 +34,11 @@ const jsonResponse = (body: unknown, status = 200) =>
  *
  * Response shape:
  * {
- *   holidays: Array<{ date: string; localName: string; name: string }>;
+ *   holidays: Array<{
+ *     date: string; localName: string; name: string;
+ *     global: boolean;            // false = observed only in `counties`
+ *     counties: string[] | null;  // ISO 3166-2 regions, e.g. "DE-BY"
+ *   }>;
  *   productionCalendar: string | null;   // raw isdayoff.ru payload for RU
  * }
  *
@@ -118,8 +122,16 @@ async function handleCountries(): Promise<Response> {
   }
 }
 
+interface HolidayEntry {
+  date: string;
+  localName: string;
+  name: string;
+  global: boolean;
+  counties: string[] | null;
+}
+
 interface HolidayData {
-  holidays: Array<{ date: string; localName: string; name: string }>;
+  holidays: HolidayEntry[];
   productionCalendar: string | null;
 }
 
@@ -142,7 +154,7 @@ async function fetchHolidayData(
 async function fetchNager(
   country: string,
   year: number,
-): Promise<Array<{ date: string; localName: string; name: string }>> {
+): Promise<HolidayEntry[]> {
   const res = await fetch(
     `https://date.nager.at/api/v3/PublicHolidays/${year}/${country}`,
   );
@@ -153,6 +165,8 @@ async function fetchNager(
     date?: string;
     localName?: string;
     name?: string;
+    global?: boolean;
+    counties?: string[] | null;
   }>;
   return data
     .filter((h) => h.date)
@@ -160,6 +174,10 @@ async function fetchNager(
       date: h.date!,
       localName: h.localName ?? h.name ?? "",
       name: h.name ?? "",
+      // Regional holidays (Corpus Christi in Bavaria, say) must not reach the
+      // whole country: the client keeps them only for the workspace's region.
+      global: h.global !== false,
+      counties: Array.isArray(h.counties) ? h.counties : null,
     }));
 }
 

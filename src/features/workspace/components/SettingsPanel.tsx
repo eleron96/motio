@@ -62,6 +62,7 @@ interface SettingsPanelProps {
 }
 
 import { fetchHolidayCountries, type HolidayCountryOption } from '@/infrastructure/holidays/holidayApi';
+import { useHolidayRegionOptions } from '@/features/workspace/hooks/useHolidayRegionOptions';
 
 type SectionId = 'general' | 'display' | 'people' | 'workflow' | 'template' | 'api' | 'danger';
 
@@ -243,6 +244,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const [holidayCountryLoading, setHolidayCountryLoading] = useState(false);
   const [holidayCountryOpen, setHolidayCountryOpen] = useState(false);
   const [holidayCountryQuery, setHolidayCountryQuery] = useState('');
+  const [workspaceHolidayRegion, setWorkspaceHolidayRegion] = useState<string | null>(null);
+  const [holidayRegionOpen, setHolidayRegionOpen] = useState(false);
   const [workspaceError, setWorkspaceError] = useState('');
   const [workspaceSaving, setWorkspaceSaving] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -263,6 +266,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     setWorkspaceHolidayCountry((currentWorkspace?.holidayCountry ?? 'RU').toUpperCase());
     setHolidayCountryOpen(false);
     setHolidayCountryQuery('');
+    setWorkspaceHolidayRegion(currentWorkspace?.holidayRegion ?? null);
+    setHolidayRegionOpen(false);
     setHeatmapCapacityInput(
       currentWorkspace?.heatmapCapacityPerPerson != null
         ? String(currentWorkspace.heatmapCapacityPerPerson)
@@ -272,7 +277,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     setTemplateApplyError('');
     setTemplateApplied(false);
     setDeleteConfirmValue('');
-  }, [open, currentWorkspace?.name, currentWorkspace?.holidayCountry, currentWorkspace?.heatmapCapacityPerPerson]);
+  }, [
+    open,
+    currentWorkspace?.name,
+    currentWorkspace?.holidayCountry,
+    currentWorkspace?.holidayRegion,
+    currentWorkspace?.heatmapCapacityPerPerson,
+  ]);
+
+  const { options: holidayRegionOptions, loading: holidayRegionLoading } = useHolidayRegionOptions(
+    workspaceHolidayCountry,
+    open,
+  );
+  const selectedHolidayRegion = holidayRegionOptions.find((option) => option.code === workspaceHolidayRegion);
+  const regionHolidayList = selectedHolidayRegion?.holidayNames.join(', ') ?? '';
+  const holidayCalendarUnchanged = (
+    workspaceHolidayCountry.trim().toUpperCase() === (currentWorkspace?.holidayCountry ?? 'RU').toUpperCase()
+    && workspaceHolidayRegion === (currentWorkspace?.holidayRegion ?? null)
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -439,7 +461,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
     setWorkspaceError('');
     setWorkspaceSaving(true);
-    const result = await updateWorkspaceHolidayCountry(currentWorkspaceId, normalized);
+    const result = await updateWorkspaceHolidayCountry(currentWorkspaceId, normalized, workspaceHolidayRegion);
     if (result.error) {
       setWorkspaceError(result.error);
       setWorkspaceSaving(false);
@@ -568,6 +590,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
                         <CommandItem
                           key={option.countryCode}
                           onSelect={() => {
+                            if (option.countryCode !== workspaceHolidayCountry) {
+                              // A region belongs to its country.
+                              setWorkspaceHolidayRegion(null);
+                            }
                             setWorkspaceHolidayCountry(option.countryCode);
                             setHolidayCountryOpen(false);
                             setHolidayCountryQuery('');
@@ -589,6 +615,76 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
               ? t`Loading available countries...`
               : t`Use ISO code (for example RU, US, DE).`}
           </p>
+          {(holidayRegionOptions.length > 0 || workspaceHolidayRegion) && (
+            <div className="space-y-2 pt-2">
+              <Label htmlFor="workspace-holiday-region">{t`Region`}</Label>
+              <Popover open={holidayRegionOpen} onOpenChange={setHolidayRegionOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="workspace-holiday-region"
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between"
+                    disabled={!isAdmin || !currentWorkspaceId || workspaceSaving}
+                  >
+                    <span className="truncate">
+                      {workspaceHolidayRegion
+                        ? (selectedHolidayRegion?.name ?? workspaceHolidayRegion)
+                        : t`Whole country`}
+                    </span>
+                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-60" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" side="bottom">
+                  <Command>
+                    <CommandInput placeholder={t`Search regions...`} />
+                    <CommandList>
+                      <CommandEmpty>
+                        {holidayRegionLoading ? t`Loading regions...` : t`No regions found.`}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value={t`Whole country`}
+                          onSelect={() => {
+                            setWorkspaceHolidayRegion(null);
+                            setHolidayRegionOpen(false);
+                          }}
+                        >
+                          <Check className={cn('mr-2 h-4 w-4', workspaceHolidayRegion ? 'opacity-0' : 'opacity-100')} />
+                          <span className="truncate">{t`Whole country`}</span>
+                        </CommandItem>
+                        {holidayRegionOptions.map((option) => (
+                          <CommandItem
+                            key={option.code}
+                            value={`${option.name} ${option.code}`}
+                            onSelect={() => {
+                              setWorkspaceHolidayRegion(option.code);
+                              setHolidayRegionOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                option.code === workspaceHolidayRegion ? 'opacity-100' : 'opacity-0',
+                              )}
+                            />
+                            <span className="truncate">{option.name}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">{option.code}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <p className="text-xs text-muted-foreground">
+                {regionHolidayList
+                  ? t`Also counts: ${regionHolidayList}.`
+                  : t`Only holidays of the whole country count. Pick a region to add its own holidays.`}
+              </p>
+            </div>
+          )}
           {workspaceError && (
             <div className="text-sm text-destructive">{workspaceError}</div>
           )}
@@ -599,7 +695,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
               || !currentWorkspaceId
               || workspaceSaving
               || !workspaceHolidayCountry.trim()
-              || (workspaceHolidayCountry.trim().toUpperCase() === (currentWorkspace?.holidayCountry ?? 'RU').toUpperCase())
+              || holidayCalendarUnchanged
             }
           >
             {t`Save`}

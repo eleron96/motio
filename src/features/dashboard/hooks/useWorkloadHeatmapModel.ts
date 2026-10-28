@@ -152,6 +152,7 @@ export const useWorkloadHeatmapModel = () => {
     () => normalizeHolidayCountryCode(workspace?.holidayCountry),
     [workspace],
   );
+  const holidayRegionCode = workspace?.holidayRegion ?? null;
   const fallbackHolidayLabel = t`Non-working day`;
   const holidayLabel = t`Holiday`;
   const holidayYears = useMemo(() => {
@@ -164,6 +165,7 @@ export const useWorkloadHeatmapModel = () => {
   const { holidayMap } = useHolidayMap({
     years: holidayYears,
     holidayCountryCode,
+    holidayRegionCode,
     fallbackHolidayLabel,
     holidayLabel,
   });
