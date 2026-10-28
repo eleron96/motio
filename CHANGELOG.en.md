@@ -9,6 +9,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 - Motio now speaks German: the language follows your browser or can be picked in account settings. The sign-in page, welcome email, push notifications and the examples of a new workspace are in German too.
+- Motio can now be installed on your own server with one command — with your own domain and certificate, or behind the proxy you already run. Step-by-step guide on GitHub.
 
 ### Fixed
 - When no name is set, the morning brief now simply wishes you a good morning, without a stray word in the greeting.

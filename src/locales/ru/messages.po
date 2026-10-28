@@ -833,6 +833,10 @@ msgstr "Столбчатая диаграмма"
 msgid "Beer"
 msgstr "Пиво"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Behind your own reverse proxy"
+msgstr "За вашим reverse proxy"
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "best week: {bestWeek}"
 msgstr "лучшая неделя — {bestWeek}"
@@ -1912,8 +1916,8 @@ msgid "Display style"
 msgstr "Стиль отображения"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Docker Compose"
-msgstr "Docker Compose"
+#~ msgid "Docker Compose"
+#~ msgstr "Docker Compose"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
@@ -4081,6 +4085,10 @@ msgstr "Один человек"
 msgid "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 msgstr "Люди, проекты и загрузка — на одной общей шкале. Перегрузку видно раньше, чем она сорвёт срок."
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "One-command install"
+msgstr "Установка одной командой"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
 msgstr "Доступны только отключенные участники."
@@ -4378,8 +4386,8 @@ msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Postgres"
-msgstr "Postgres"
+#~ msgid "Postgres"
+#~ msgstr "Postgres"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"

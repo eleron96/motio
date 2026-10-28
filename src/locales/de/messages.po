@@ -833,6 +833,10 @@ msgstr "Balkendiagramm"
 msgid "Beer"
 msgstr "Bier"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Behind your own reverse proxy"
+msgstr "Hinter Ihrem eigenen Reverse Proxy"
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "best week: {bestWeek}"
 msgstr "beste Woche: {bestWeek}"
@@ -1912,8 +1916,8 @@ msgid "Display style"
 msgstr "Darstellung"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Docker Compose"
-msgstr "Docker Compose"
+#~ msgid "Docker Compose"
+#~ msgstr "Docker Compose"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
@@ -4081,6 +4085,10 @@ msgstr "Eine Person"
 msgid "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 msgstr "Eine gemeinsame Zeitachse für Personen, Projekte und Auslastung. Überlastung erkennen, bevor sie eine Frist gefährdet."
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "One-command install"
+msgstr "Installation mit einem Befehl"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
 msgstr "Es sind nur deaktivierte Personen verfügbar."
@@ -4378,8 +4386,8 @@ msgid "Please select an image file."
 msgstr "Bitte wählen Sie eine Bilddatei."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Postgres"
-msgstr "Postgres"
+#~ msgid "Postgres"
+#~ msgstr "Postgres"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"

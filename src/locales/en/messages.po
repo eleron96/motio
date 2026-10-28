@@ -833,6 +833,10 @@ msgstr "Bar chart"
 msgid "Beer"
 msgstr "Beer"
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "Behind your own reverse proxy"
+msgstr "Behind your own reverse proxy"
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "best week: {bestWeek}"
 msgstr "best week: {bestWeek}"
@@ -1912,8 +1916,8 @@ msgid "Display style"
 msgstr "Display style"
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Docker Compose"
-msgstr "Docker Compose"
+#~ msgid "Docker Compose"
+#~ msgstr "Docker Compose"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
@@ -4081,6 +4085,10 @@ msgstr "One person"
 msgid "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 msgstr "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 
+#: src/features/marketing/pages/LandingPage.tsx
+msgid "One-command install"
+msgstr "One-command install"
+
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Only disabled people are available."
 msgstr "Only disabled people are available."
@@ -4378,8 +4386,8 @@ msgid "Please select an image file."
 msgstr "Please select an image file."
 
 #: src/features/marketing/pages/LandingPage.tsx
-msgid "Postgres"
-msgstr "Postgres"
+#~ msgid "Postgres"
+#~ msgstr "Postgres"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
