@@ -120,7 +120,7 @@ does not help: pull the base images on the server first, retrying until they lan
 then deploy again.
 
 ```bash
-ssh root@<prod> 'for img in public.ecr.aws/docker/library/node:20-bookworm-slim public.ecr.aws/docker/library/nginx:1.27-alpine; do for i in $(seq 1 10); do docker pull "$img" && break; sleep 15; done; done'
+ssh root@<prod> 'for img in public.ecr.aws/docker/library/node:24-bookworm-slim public.ecr.aws/docker/library/nginx:1.27-alpine; do for i in $(seq 1 10); do docker pull "$img" && break; sleep 15; done; done'
 ```
 
 The tags above are the ones `infra/web/Dockerfile` uses today; take the exact names

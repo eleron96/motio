@@ -1,6 +1,6 @@
 # Official Docker library images via AWS ECR Public mirror: same images,
 # no anonymous Docker Hub pull limits (which repeatedly 429'd test deploys).
-FROM public.ecr.aws/docker/library/node:20-bookworm-slim AS builder
+FROM public.ecr.aws/docker/library/node:24-bookworm-slim AS builder
 
 WORKDIR /app
 

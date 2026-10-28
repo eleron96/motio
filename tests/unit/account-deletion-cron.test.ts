@@ -62,6 +62,8 @@ function makeCtx(overrides: Record<string, unknown> = {}) {
     captureException,
     captureMessage,
     logger,
+    // Own failure counter per test: frequent jobs report only repeated failures.
+    failureStreaks: new Map<string, number>(),
     ...overrides,
   };
 }
@@ -179,12 +181,16 @@ describe("tickDataExportWorker", () => {
     expect(ctx.logger.log.mock.calls[0]![0]).toContain("req-1");
   });
 
-  it("captures and re-throws on fetch failure", async () => {
+  it("re-throws on fetch failure and reports the second failure in a row", async () => {
     const ctx = makeCtx({
       fetchImpl: vi.fn(async () => {
         throw new Error("network fail");
       }),
     });
+    // One failed run (e.g. functions restarting during a deploy) is not reported.
+    await expect(cron.tickDataExportWorker(ctx)).rejects.toThrow(/network fail/);
+    expect(ctx.captureException).not.toHaveBeenCalled();
+
     await expect(cron.tickDataExportWorker(ctx)).rejects.toThrow(/network fail/);
     expect(ctx.captureException).toHaveBeenCalledOnce();
     expect(ctx.captureException.mock.calls[0]![1].tags.job).toBe("data-export-generate");

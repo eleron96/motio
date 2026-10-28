@@ -446,3 +446,4 @@
 2026-10-28T11:07:51Z | 0.10.27 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261028-110706.dump | Clearer wording on the home page about the workload heatmap and installing Motio on your own server.
 2026-10-28T13:01:03Z | 0.10.28 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261028-130016.dump | For self-hosted installs: a System section in the admin console shows the version and any newer release with the exact update command, whether each service answers, what is switched on, and sends a test email.
 2026-10-28T13:31:02Z | 0.10.29 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261028-133005.dump | In the demo, clicking a heatmap day, a milestone or Show on timeline no longer takes you out of the sandbox.
+2026-10-28T13:38:41Z | 0.10.30 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261028-133736.dump | The holiday calendar country list in workspace settings scrolls with the mouse wheel again.

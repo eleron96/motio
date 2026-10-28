@@ -61,10 +61,16 @@ CommandInput.displayName = CommandPrimitive.Input.displayName;
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => (
+>(({ className, onWheel, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden overscroll-contain", className)}
+    // A modal Dialog cancels wheel events outside its content, and a popover
+    // list is portalled outside it — stop the event here so the list scrolls.
+    onWheel={(event) => {
+      event.stopPropagation();
+      onWheel?.(event);
+    }}
     {...props}
   />
 ));

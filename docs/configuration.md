@@ -209,6 +209,12 @@ backup-service runs every scheduled job with `node-cron`. Defaults:
 | `PURGE_CRON` | `0 4 * * *` | purge accounts whose deletion grace period is over (`PURGE_CRON_ENABLED`, `true`) |
 | `ACCOUNT_DELETION_HEALTH_CRON` | `15 * * * *` | health check of the account-deletion pipeline |
 
+A failed job is reported to GlitchTip (tag `job`). The push, broadcast and
+data-export jobs call Edge Functions, which every deploy restarts for a few
+seconds, so they are reported only after several failed runs in a row (push and
+broadcast: 3, data export: 2; the event carries `consecutiveFailures`). A single
+failure is still written to the container log.
+
 ## Testing server only
 
 - The testing server uses a Keycloak shared with its neighbour (see

@@ -1,5 +1,5 @@
 # Official image via AWS ECR Public mirror — avoids Docker Hub pull limits.
-FROM public.ecr.aws/docker/library/node:20-bookworm-slim
+FROM public.ecr.aws/docker/library/node:24-bookworm-slim
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends postgresql-client tar gzip age \
