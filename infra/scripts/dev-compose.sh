@@ -248,7 +248,7 @@ if (updated) {
 }
 NODE
   else
-    docker run --rm -v "$root_dir":/app -w /app node:20-alpine node - <<'NODE'
+    docker run --rm -v "$root_dir":/app -w /app node:24-alpine node - <<'NODE'
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');

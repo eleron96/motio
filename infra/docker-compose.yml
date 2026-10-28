@@ -292,7 +292,7 @@ services:
       - ./supabase/nginx.conf:/etc/nginx/nginx.conf:ro
 
   web:
-    image: node:20-bookworm-slim
+    image: node:24-bookworm-slim
     container_name: timeline-web
     restart: unless-stopped
     working_dir: /app
