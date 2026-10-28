@@ -3,9 +3,11 @@ set -euo pipefail
 
 # Self-hosted installs only (infra/scripts/install.sh): gives the realm the same
 # SMTP account the app mails from (GOTRUE_SMTP_*), so Keycloak can send
-# invitation, verification and password-reset emails. Does nothing when
-# GOTRUE_SMTP_HOST is empty. Not called by the motio.nikog.net or testing
-# deploys, whose realm mail is set up by hand.
+# invitation, verification and password-reset emails, and requires email
+# verification at sign-up. Without GOTRUE_SMTP_HOST no mail can go out, so
+# verification is switched off instead — otherwise nobody could finish signing
+# up. Not called by the motio.nikog.net or testing deploys, whose realm mail is
+# set up by hand.
 
 if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
   root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -18,12 +20,6 @@ kc_base_url="${KEYCLOAK_ADMIN_BASE_URL:-http://127.0.0.1:8081}"
 if [[ ! -f "$env_file" ]]; then
   echo "Missing env file: $env_file" >&2
   exit 1
-fi
-
-smtp_host_line="$(grep -E "^GOTRUE_SMTP_HOST=" "$env_file" | head -n1 || true)"
-if [[ -z "${smtp_host_line#*=}" ]]; then
-  echo "No GOTRUE_SMTP_HOST in $env_file: Keycloak realm mail left as it is."
-  exit 0
 fi
 
 get_env_value() {
@@ -107,6 +103,18 @@ plan="$(python3 - "$tmp_realm" "$tmp_payload" \
   "$(get_env_value GOTRUE_SMTP_ADMIN_EMAIL)" "$(get_env_value GOTRUE_SMTP_SENDER_NAME)" <<'PY'
 import json, sys
 src, dst, host, port, user, password, sender, sender_name = sys.argv[1:9]
+with open(src, "r", encoding="utf-8") as fh:
+  realm = json.load(fh)
+if not host:
+  # No mail server: sign-up must not wait for a verification email.
+  if realm.get("verifyEmail") is False:
+    print("ok")
+    raise SystemExit(0)
+  realm["verifyEmail"] = False
+  with open(dst, "w", encoding="utf-8") as fh:
+    json.dump(realm, fh)
+  print("update")
+  raise SystemExit(0)
 port = port or "587"
 desired = {
   "host": host,
@@ -120,15 +128,15 @@ desired = {
   "ssl": "true" if port == "465" else "false",
   "starttls": "false" if port == "465" else "true",
 }
-with open(src, "r", encoding="utf-8") as fh:
-  realm = json.load(fh)
 current = realm.get("smtpServer") or {}
 # Keycloak masks the stored password as "**********" when reading it back.
 comparable = {k: v for k, v in desired.items() if k != "password"}
-if all(str(current.get(k, "")) == v for k, v in comparable.items()) and current.get("password"):
+if (all(str(current.get(k, "")) == v for k, v in comparable.items()) and current.get("password")
+    and realm.get("verifyEmail") is True):
   print("ok")
   raise SystemExit(0)
 realm["smtpServer"] = desired
+realm["verifyEmail"] = True
 with open(dst, "w", encoding="utf-8") as fh:
   json.dump(realm, fh)
 print("update")
@@ -136,7 +144,7 @@ PY
 )"
 
 if [[ "$plan" == "ok" ]]; then
-  echo "Keycloak realm '${realm}' SMTP already matches .env."
+  echo "Keycloak realm '${realm}' mail settings already match .env."
   exit 0
 fi
 
@@ -152,4 +160,4 @@ if [[ "$put_code" != "204" ]]; then
   fail "Failed to update Keycloak realm SMTP (HTTP ${put_code})."
 fi
 
-echo "Keycloak realm '${realm}' SMTP set from .env."
+echo "Keycloak realm '${realm}' mail settings applied from .env."

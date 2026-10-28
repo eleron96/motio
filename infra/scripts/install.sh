@@ -191,7 +191,9 @@ values = {
     "APP_URL": url,
 
     "GOTRUE_SMTP_HOST": smtp_host,
-    "GOTRUE_SMTP_PORT": smtp_port or ("587" if smtp_host else ""),
+    # GoTrue refuses to start with an empty port, even when no mail is sent.
+    "GOTRUE_SMTP_PORT": smtp_port or "587",
+    "GOTRUE_SMTP_SECURE": "true" if (smtp_port or "587") == "465" else "false",
     "GOTRUE_SMTP_USER": smtp_user,
     "GOTRUE_SMTP_PASS": smtp_pass,
     "GOTRUE_SMTP_ADMIN_EMAIL": smtp_from or (email if smtp_host else ""),
@@ -373,6 +375,19 @@ bring_up() {
     infra/scripts/keycloak-ensure-"$script".sh "$env_file"
   done
 
+  # The migrations build on the auth and storage schemas, which GoTrue and
+  # storage-api create on their first start.
+  log "Waiting for the auth and storage services"
+  started="$(date +%s)"
+  until [[ "$("${compose[@]}" exec -T db psql -U supabase_admin -d "$postgres_db" -tAc \
+    "select to_regclass('auth.identities') is not null and to_regclass('storage.buckets') is not null" 2>/dev/null | tr -d '[:space:]')" == "t" ]]; do
+    if (( $(date +%s) - started > 300 )); then
+      "${compose[@]}" logs --tail=20 auth storage || true
+      fail "the auth and storage services did not finish their setup."
+    fi
+    sleep 3
+  done
+
   log "Running database migrations"
   "${compose[@]}" run --rm migrate
 
@@ -390,7 +405,11 @@ bring_up() {
 
   log "Building the web app (a few minutes the first time)"
   "${compose[@]}" up -d --build web oauth2-proxy
-  "${compose[@]}" up -d caddy
+
+  # gateway and caddy mount single config files: a changed file (new release)
+  # is only seen by a new container, and nginx resolves upstream addresses at
+  # start (AGENTS.md §9.1). Recreate both last.
+  "${compose[@]}" up -d --force-recreate --no-deps gateway caddy
 }
 
 print_summary() {
@@ -425,14 +444,27 @@ EOF
   echo "  Guide: docs/self-hosting.md"
 }
 
+# The application schemas only, like the production pre-migration backup:
+# internal schemas (_realtime, …) belong to supabase_admin and hold nothing to keep.
 backup_database() {
-  local postgres_user postgres_db file
+  local postgres_user postgres_db file schemas schema
   postgres_user="$(get_env_value POSTGRES_USER)"
   postgres_db="$(get_env_value POSTGRES_DB)"
+  schemas="$(get_env_value BACKUP_SCHEMAS)"
+  local schema_args=()
+  for schema in ${schemas//,/ }; do
+    schema_args+=(-n "$schema")
+  done
+  [[ "${#schema_args[@]}" -gt 0 ]] || schema_args=(-n public -n auth -n storage)
   mkdir -p infra/backups
   file="infra/backups/pre-update-$(date +%Y%m%d-%H%M%S).dump"
   log "Backing up the database to $file"
-  "${compose[@]}" exec -T db pg_dump --format=custom --no-owner -U "$postgres_user" -d "$postgres_db" > "$file"
+  if ! "${compose[@]}" exec -T db pg_dump --format=custom --no-owner "${schema_args[@]}" \
+    -U "$postgres_user" -d "$postgres_db" > "$file.partial"; then
+    rm -f "$file.partial"
+    fail "the database backup failed; nothing was changed."
+  fi
+  mv "$file.partial" "$file"
 }
 
 # ─────────────────────────── commands ───────────────────────────
