@@ -137,6 +137,7 @@ and rebuild `web`; no release is needed.
 | `VITE_FEATURE_KANBAN` | the board view (beta), an optional view next to the timeline: each person still turns it on in account settings → Appearance; `/demo` does not force it on, but follows the flag like the app |
 | `VITE_FEATURE_PUSH` | browser push notifications (needs the VAPID keys below) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | account self-deletion in account settings |
+| `VITE_FEATURE_WORKSPACE_API` | the API section in workspace settings, where admins create tokens for importing absences ([API](api.md)); hidden in `/demo` |
 
 The `/demo` sandbox always shows the project card, contacts, heatmap and time off,
 whatever the flags say.

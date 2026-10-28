@@ -87,3 +87,14 @@ export const isTimeOffEnabled = (): boolean => (
 export const isBoardViewEnabled = (): boolean => (
   readFlag(import.meta.env.VITE_FEATURE_KANBAN)
 );
+
+/**
+ * When on, workspace admins see the "API" section in workspace settings, where
+ * they create and revoke tokens for importing absences from another system
+ * (Edge Function `api`, docs/api.md). The endpoint itself works without the
+ * flag but is useless without a token. Never in /demo: the sandbox has no
+ * backend to keep tokens.
+ */
+export const isWorkspaceApiEnabled = (): boolean => (
+  !isDemoRoute() && readFlag(import.meta.env.VITE_FEATURE_WORKSPACE_API)
+);

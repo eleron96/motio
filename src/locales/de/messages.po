@@ -293,6 +293,14 @@ msgstr "Ein Streifen über dem Arbeitsbereich, der sich schließen lässt."
 msgid "A task is assigned to me"
 msgstr "Mir wird eine Aufgabe zugewiesen"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "A token lets another system, such as your time tracking, create, update and delete absences in this workspace. It can do nothing else."
+msgstr "Mit einem Token kann ein anderes System, etwa Ihre Zeiterfassung, Abwesenheiten in diesem Arbeitsbereich anlegen, ändern und löschen. Sonst kann es nichts."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "A workspace can have at most 10 active tokens. Revoke one you no longer use."
+msgstr "Ein Arbeitsbereich kann höchstens 10 aktive Tokens haben. Widerrufen Sie eines, das Sie nicht mehr brauchen."
+
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -394,6 +402,10 @@ msgstr "aktiv"
 #: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "Active"
 msgstr "Aktiv"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Active tokens"
+msgstr "Aktive Tokens"
 
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -626,6 +638,14 @@ msgstr "Ankündigung"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 msgstr "Jede Aufgabe ist in 10 Sekunden angelegt. Nicht, weil wir vergessen haben, mehr Funktionen zu liefern. Das ist die Haltung des Produkts."
+
+#: src/features/workspace/components/SettingsPanel.tsx
+msgid "API"
+msgstr "API"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "API reference"
+msgstr "API-Referenz"
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
@@ -931,6 +951,8 @@ msgstr "Anrufen"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -1255,6 +1277,7 @@ msgstr "Melden Sie sich über Keycloak an, um auf den Arbeitsbereich zuzugreifen
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copied"
 msgstr "Kopiert"
 
@@ -1273,6 +1296,14 @@ msgstr "Namen kopieren"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Telefonnummer kopieren"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Copy token"
+msgstr "Token kopieren"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Copy your token now"
+msgstr "Kopieren Sie Ihr Token jetzt"
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Could not check access"
@@ -1386,6 +1417,11 @@ msgstr "Projekt erstellen"
 msgid "Create task"
 msgstr "Aufgabe erstellen"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Create token"
+msgstr "Token erstellen"
+
 #: src/features/marketing/pages/LandingPage.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
@@ -1396,6 +1432,11 @@ msgstr "Arbeitsbereich erstellen"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Konto erstellen"
+
+#. placeholder {0}: formatDate(token.createdAt)
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "created {0}"
+msgstr "erstellt am {0}"
 
 #. placeholder {0}: result.created ?? 0
 #: src/features/planner/components/TaskDetailPanel.tsx
@@ -1888,6 +1929,7 @@ msgstr "erledigt"
 #: src/features/projects/components/projectCard/ProjectTasksFiltersScreen.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Done"
 msgstr "Erledigt"
 
@@ -1954,6 +1996,10 @@ msgstr "In dieser Zeit können Sie sich anmelden, um das Konto wiederherzustelle
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "E.g. Real estate · Residential"
 msgstr "z. B. Immobilien · Wohnbau"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "e.g. Time tracking sync"
+msgstr "z. B. Zeiterfassung-Sync"
 
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -2540,6 +2586,10 @@ msgstr "Neuen Export erstellen"
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Lassen Sie sich in diesem Browser über Ihre Aufgaben benachrichtigen, auch wenn Motio nicht geöffnet ist."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Give the token a name of 1 to 80 characters."
+msgstr "Geben Sie dem Token einen Namen mit 1 bis 80 Zeichen."
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -2709,6 +2759,10 @@ msgstr "Ich bin Niko G. Seit Jahren leite ich Teams und Projekte rund um BIM –
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "Wenn in Ihrem Team immer wieder die Frage aufkommt, wer diese Woche woran arbeitet, ist es Zeit, Motio auszuprobieren."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Import absences"
+msgstr "Abwesenheiten importieren"
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
@@ -2850,6 +2904,11 @@ msgstr "Letzter Export fehlgeschlagen: {0}"
 #: src/shared/lib/repeatLabels.ts
 msgid "Last in series"
 msgstr "Letzte der Serie"
+
+#. placeholder {0}: formatDate(token.lastUsedAt)
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "last used {0}"
+msgstr "zuletzt genutzt am {0}"
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Latest backup"
@@ -3021,6 +3080,7 @@ msgid "Loading..."
 msgstr "Wird geladen …"
 
 #: src/features/demo/pages/DemoPage.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Loading…"
 msgstr "Wird geladen …"
 
@@ -3258,6 +3318,7 @@ msgstr "Arbeitsbereich meines Teams"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Name"
 msgstr "Name"
 
@@ -3272,6 +3333,10 @@ msgstr "Der Name darf kein @ enthalten."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Name cannot contain a URL."
 msgstr "Der Name darf keine URL enthalten."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Name it after the system that will use it."
+msgstr "Benennen Sie es nach dem System, das es nutzen wird."
 
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Name must be at least 2 characters."
@@ -3295,9 +3360,17 @@ msgstr "Auf eigenen Servern? Geht auch."
 msgid "Never"
 msgstr "Nie"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "never used"
+msgstr "noch nie genutzt"
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "New announcement"
 msgstr "Neue Ankündigung"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "New API token"
+msgstr "Neues API-Token"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "New broadcast"
@@ -3840,6 +3913,10 @@ msgstr "Noch keine Teams."
 msgid "No template saved yet."
 msgstr "Noch keine Vorlage gespeichert."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "No tokens yet."
+msgstr "Noch keine Tokens."
+
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 msgid "No upcoming milestones in the next 7 days."
 msgstr "Keine Meilensteine in den nächsten 7 Tagen."
@@ -4024,6 +4101,10 @@ msgstr "Nur Super-Admins haben Zugriff auf diese Seite."
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Only this task"
 msgstr "Nur diese Aufgabe"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Only workspace admins can manage API tokens."
+msgstr "Nur Admins des Arbeitsbereichs können API-Tokens verwalten."
 
 #: src/app/NotFoundPage.tsx
 msgid "Oops, this page took a coffee break."
@@ -4715,10 +4796,20 @@ msgstr "Erneut versuchen"
 msgid "Return to Home"
 msgstr "Zur Startseite"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Revoke"
 msgstr "Widerrufen"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Revoke this token?"
+msgstr "Dieses Token widerrufen?"
+
+#. placeholder {0}: token.name
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Revoke token {0}"
+msgstr "Token {0} widerrufen"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Right-click to add your first widget."
@@ -5302,6 +5393,10 @@ msgstr "Himmelblau"
 msgid "Something went wrong"
 msgstr "Etwas ist schiefgelaufen"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Something went wrong. Please try again."
+msgstr "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 msgid "Sort"
@@ -5446,6 +5541,11 @@ msgstr "Sonne"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
 msgstr "Hier wechseln Sie zwischen Projekten, Meilensteinen, Kunden und Kontakten. Öffnen Sie ein Projekt, um seine Aufgaben, sein Team und seine Notizen zu sehen."
+
+#. placeholder {0}: revokeTarget?.name ?? ''
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Systems using \"{0}\" lose access right away. Absences already imported stay."
+msgstr "Systeme, die „{0}“ nutzen, verlieren sofort den Zugriff. Bereits importierte Abwesenheiten bleiben erhalten."
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5770,6 +5870,10 @@ msgstr "dieses Dashboard"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history."
 msgstr "Diese Auslastung gilt als 100 %. Leer lassen, um sie automatisch aus dem jüngsten Verlauf Ihres Teams abzuleiten."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "This is the only time it is shown. Store it in the system that will use it; if it is lost, revoke it and create a new one."
+msgstr "Es wird nur dieses eine Mal angezeigt. Hinterlegen Sie es in dem System, das es nutzen wird; geht es verloren, widerrufen Sie es und erstellen Sie ein neues."
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "This is where your workspace projects are listed and reviewed."
