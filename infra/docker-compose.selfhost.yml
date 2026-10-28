@@ -1,0 +1,95 @@
+# Self-hosted install overlay — applied on top of docker-compose.prod.yml by
+# infra/scripts/install.sh (via selfhost-compose.sh). Never used by the
+# motio.nikog.net or testing deploys.
+#
+# What it changes against production:
+#   * Volumes get names of this install (MOTIO_INSTANCE). Production pins fixed,
+#     partly external names (supabase_db_data, …); without this a second install
+#     on the same machine would attach to someone else's database.
+#   * Only Caddy faces the network. Database, web and oauth2-proxy publish
+#     nothing; gateway and Keycloak only on 127.0.0.1 for the install scripts
+#     (bootstrap, Keycloak ensure-scripts), on ports chosen by install.sh.
+#   * The esm.sh IP pin of the production host is dropped: normal DNS.
+#   * Memory caps sized for a 4 GB server.
+#
+# Requires Docker Compose v2.24+ (!reset / !override).
+
+name: ${MOTIO_INSTANCE:-motio}
+
+services:
+  db:
+    ports: !reset []
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.5'
+
+  keycloak:
+    ports: !override
+      - "127.0.0.1:${MOTIO_KEYCLOAK_PORT:-8081}:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  functions:
+    extra_hosts: !reset []
+
+  gateway:
+    ports: !override
+      - "127.0.0.1:${MOTIO_GATEWAY_PORT:-8080}:8080"
+
+  web:
+    ports: !reset []
+
+  oauth2-proxy:
+    ports: !reset []
+
+  backup:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  caddy:
+    image: caddy:2.8
+    restart: unless-stopped
+    depends_on:
+      - gateway
+      - web
+      - keycloak
+      - oauth2-proxy
+    environment:
+      MOTIO_SITE_ADDRESS: ${MOTIO_SITE_ADDRESS:?MOTIO_SITE_ADDRESS is set by install.sh}
+      MOTIO_ACME_EMAIL: ${MOTIO_ACME_EMAIL:-}
+      MOTIO_CSP_SCRIPT_SRC: ${MOTIO_CSP_SCRIPT_SRC:-}
+      MOTIO_CSP_CONNECT_SRC: ${MOTIO_CSP_CONNECT_SRC:-}
+    ports:
+      - "${MOTIO_HTTP_BIND:-80}:80"
+    volumes:
+      - ./caddy/Caddyfile.selfhost:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+
+volumes:
+  supabase_db_data:
+    name: ${MOTIO_INSTANCE:-motio}_db_data
+    external: false
+  keycloak_db_data:
+    name: ${MOTIO_INSTANCE:-motio}_keycloak_db_data
+  storage_data:
+    name: ${MOTIO_INSTANCE:-motio}_storage_data
+  deno_cache:
+    name: ${MOTIO_INSTANCE:-motio}_deno_cache
+  caddy_data:
+    name: ${MOTIO_INSTANCE:-motio}_caddy_data
+  caddy_config:
+    name: ${MOTIO_INSTANCE:-motio}_caddy_config

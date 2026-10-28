@@ -26,7 +26,7 @@ const PUBLIC_HANDLES = [
 
 const escapeForRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-describe.each(["infra/caddy/Caddyfile", "infra/caddy/Caddyfile.testing"])("%s", (caddyfile) => {
+describe.each(["infra/caddy/Caddyfile", "infra/caddy/Caddyfile.testing", "infra/caddy/Caddyfile.selfhost"])("%s", (caddyfile) => {
   const text = readRepoText(caddyfile);
 
   it.each(PUBLIC_HANDLES)("serves %s without a session", (path) => {
@@ -56,3 +56,22 @@ describe("link preview card", () => {
     }
   });
 });
+
+// The self-hosted edge is a copy of the production site block; a route added to
+// one and forgotten in the other would break self-hosted installs silently.
+describe("self-hosted Caddyfile", () => {
+  const handles = (text: string) =>
+    text.split("\n").map((line) => line.trim()).filter((line) => /^handle\b/.test(line)).sort();
+
+  it("routes exactly the paths production routes", () => {
+    const production = readRepoText("infra/caddy/Caddyfile");
+    const site = production.slice(production.indexOf("\nmotio.nikog.net {"), production.indexOf("\n:80 {"));
+    expect(handles(readRepoText("infra/caddy/Caddyfile.selfhost"))).toEqual(handles(site));
+  });
+
+  it("names none of the public site's hosts", () => {
+    const text = readRepoText("infra/caddy/Caddyfile.selfhost");
+    expect(text).not.toMatch(/nikog|webtm/);
+  });
+});
+

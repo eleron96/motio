@@ -1,0 +1,7 @@
+# Self-hosted install, mode "tls": Caddy terminates TLS itself (Let's Encrypt)
+# and needs 443 as well as 80. Added by selfhost-compose.sh when MOTIO_MODE=tls.
+services:
+  caddy:
+    ports:
+      - "443:443"
+      - "443:443/udp"
