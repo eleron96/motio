@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- The holiday calendar country list in workspace settings scrolls with the mouse wheel again.
+
 ## [0.10.29] - 2026-10-28
 ### Fixed
 - In the demo, clicking a heatmap day, a milestone or Show on timeline no longer takes you out of the sandbox.
