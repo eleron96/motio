@@ -7,7 +7,9 @@
 //   * tickHealthCheck       — RPC _account_deletion_health_check(), алерт если что-то застряло.
 //
 // Все тики:
-//   - ловят ошибки и репортят через captureException (GlitchTip),
+//   - ловят ошибки и репортят через captureException (GlitchTip); частые
+//     (push, broadcast, data-export) — только после нескольких сбоев подряд,
+//     см. REPORT_AFTER_FAILED_TICKS,
 //   - ре-кидают ошибку наружу, чтобы index.js мог логировать в консоль.
 //
 // Конфиг берётся через ctx, чтобы в тестах удобно подменять fetch/pool/captureException.
@@ -17,6 +19,20 @@ const DATA_EXPORT_PATH = '/functions/v1/data-export';
 const ADMIN_PATH = '/functions/v1/admin';
 const PUSH_PATH = '/functions/v1/push';
 const EXPORT_BUCKET = 'user-exports';
+
+// Frequent jobs call Edge Functions through the gateway, and every deploy
+// restarts them for a few seconds — one failed tick then is expected. Such a
+// job is reported only after this many failed ticks in a row (a real outage
+// still shows up within minutes); any other job is reported on first failure.
+const REPORT_AFTER_FAILED_TICKS = {
+  'push-flush': 3, // every minute
+  'broadcast-tick': 3, // every minute
+  'data-export-generate': 2, // every 5 minutes
+};
+
+// Per process; a deploy restarts the service, which is fine — counts then
+// start from zero alongside the functions.
+const processFailureStreaks = new Map();
 
 const buildCtx = (ctx) => {
   if (!ctx) throw new Error('account-deletion cron: ctx is required');
@@ -32,6 +48,7 @@ const buildCtx = (ctx) => {
     exportCleanupBatchLimit = 100,
     healthCheckThresholds = {},
     now = () => new Date(),
+    failureStreaks = processFailureStreaks,
   } = ctx;
 
   if (!supabaseUrl) throw new Error('account-deletion cron: SUPABASE_URL is required');
@@ -49,6 +66,7 @@ const buildCtx = (ctx) => {
     cronEnabled,
     exportCleanupBatchLimit,
     now,
+    failureStreaks,
     healthCheckThresholds: {
       stuckPurges: healthCheckThresholds.stuckPurges ?? 0,
       // Purge крутится раз в сутки (PURGE_CRON, по умолчанию 04:00 UTC), а SQL
@@ -60,6 +78,18 @@ const buildCtx = (ctx) => {
       stuckExpiredFiles: healthCheckThresholds.stuckExpiredFiles ?? 10,
     },
   };
+};
+
+const reportTickFailure = (ctx, job, error) => {
+  const failedTicks = (ctx.failureStreaks.get(job) ?? 0) + 1;
+  ctx.failureStreaks.set(job, failedTicks);
+  const threshold = REPORT_AFTER_FAILED_TICKS[job] ?? 1;
+  if (failedTicks < threshold) return;
+  ctx.captureException(error, { tags: { job }, extra: { consecutiveFailures: failedTicks } });
+};
+
+const resetTickFailures = (ctx, job) => {
+  ctx.failureStreaks.delete(job);
 };
 
 const postFunction = async (ctx, path, body) => {
@@ -118,6 +148,7 @@ const tickDataExportWorker = async (rawCtx) => {
   const ctx = buildCtx(rawCtx);
   try {
     const result = await postFunction(ctx, DATA_EXPORT_PATH, { action: 'generate' });
+    resetTickFailures(ctx, 'data-export-generate');
     // `generate` возвращает 200 и на no-op (не было pending) — логируем только если реально обработали.
     if (result?.status && result.status !== 'idle') {
       ctx.logger.log(`[data-export cron] ${result.status}${result.request_id ? ` (${result.request_id})` : ''}`);
@@ -125,7 +156,7 @@ const tickDataExportWorker = async (rawCtx) => {
     return result ?? {};
   } catch (error) {
     ctx.logger.error(`[data-export cron] failed: ${error.message}`);
-    ctx.captureException(error, { tags: { job: 'data-export-generate' } });
+    reportTickFailure(ctx, 'data-export-generate', error);
     throw error;
   }
 };
@@ -136,13 +167,14 @@ const tickBroadcast = async (rawCtx) => {
     // Promotes due scheduled broadcasts and sends one queued batch. Safe no-op
     // when nothing is pending. Makes delivery independent of the admin tab.
     const result = await postFunction(ctx, ADMIN_PATH, { action: 'broadcasts.tick' });
+    resetTickFailures(ctx, 'broadcast-tick');
     if (result && (result.processed || result.promoted)) {
       ctx.logger.log(`[broadcast cron] promoted=${result.promoted ?? 0} sent=${result.sentCount ?? 0}`);
     }
     return result ?? {};
   } catch (error) {
     ctx.logger.error(`[broadcast cron] failed: ${error.message}`);
-    ctx.captureException(error, { tags: { job: 'broadcast-tick' } });
+    reportTickFailure(ctx, 'broadcast-tick', error);
     throw error;
   }
 };
@@ -153,13 +185,14 @@ const tickPush = async (rawCtx) => {
     // Drains one batch of pending user_notifications and delivers them as web
     // push. Safe no-op when the queue is empty.
     const result = await postFunction(ctx, PUSH_PATH, { action: 'push.flush' });
+    resetTickFailures(ctx, 'push-flush');
     if (result && result.sent) {
       ctx.logger.log(`[push cron] processed=${result.processed ?? 0} sent=${result.sent}`);
     }
     return result ?? {};
   } catch (error) {
     ctx.logger.error(`[push cron] failed: ${error.message}`);
-    ctx.captureException(error, { tags: { job: 'push-flush' } });
+    reportTickFailure(ctx, 'push-flush', error);
     throw error;
   }
 };
