@@ -107,7 +107,8 @@ if ! curl -fsS -o "$tmp_realm" -H "Authorization: Bearer ${token}" \
   fail "Failed to query Keycloak admin API for realm '${realm}'."
 fi
 
-# Prints "ok" when the realm already matches; otherwise writes the updated realm
+# Keycloak keeps supportedLocales as a set and returns it in any order, so the
+# lists are compared as sets. Prints "ok" when the realm already matches; otherwise writes the updated realm
 # representation to the payload file and prints "update".
 plan="$(python3 - "$tmp_realm" "$tmp_payload" "$desired_locales" <<'PY'
 import json, sys
@@ -121,7 +122,7 @@ default = realm.get("defaultLocale") or desired[0]
 if default not in desired:
   default = desired[0]
 if (realm.get("internationalizationEnabled") is True
-    and list(realm.get("supportedLocales") or []) == desired
+    and sorted(realm.get("supportedLocales") or []) == sorted(desired)
     and realm.get("defaultLocale") == default):
   print("ok")
   raise SystemExit(0)
@@ -159,11 +160,12 @@ fi
 applied="$(python3 - "$tmp_realm" <<'PY'
 import json, sys
 with open(sys.argv[1], "r", encoding="utf-8") as fh:
-  print(",".join(json.load(fh).get("supportedLocales") or []))
+  print(",".join(sorted(json.load(fh).get("supportedLocales") or [])))
 PY
 )"
 
-if [[ "$applied" != "$(printf '%s' "$desired_locales" | tr -d ' ')" ]]; then
+wanted="$(printf '%s' "$desired_locales" | tr -d ' ' | tr ',' '\n' | sed '/^$/d' | sort | paste -sd, -)"
+if [[ "$applied" != "$wanted" ]]; then
   fail "Realm locales did not apply cleanly (got '${applied}', wanted '${desired_locales}')."
 fi
 
