@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.29] - 2026-10-28
 ### Fixed
 - В демо клик по дню тепловой карты, по вехе или «показать на таймлайне» больше не уводит из песочницы.
 
