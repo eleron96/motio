@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Clearer wording on the home page about the workload heatmap and installing Motio on your own server.
+
 ## [0.10.26] - 2026-10-28
 ### Added
 - Motio now speaks German: the language follows your browser or can be picked in account settings. The sign-in page, welcome email, push notifications and the examples of a new workspace are in German too.
