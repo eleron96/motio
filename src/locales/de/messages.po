@@ -3281,7 +3281,7 @@ msgstr "Weitere Personen"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
-msgstr "Die meisten Teams registrieren sich einfach und legen los. Wenn Ihre Daten in Ihrem eigenen Netz bleiben müssen, läuft Motio auf Ihrer Infrastruktur – und Sie können jederzeit alles exportieren und gehen."
+msgstr "Die meisten Teams registrieren sich einfach und legen sofort los. Wenn Ihre Daten nur bei Ihnen liegen dürfen, installieren Sie Motio auf Ihrem eigenen Server. Und falls Sie einmal wechseln möchten: Alle Daten lassen sich jederzeit exportieren."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
@@ -5426,7 +5426,7 @@ msgstr "Sortierung"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Spot overload months ahead"
-msgstr "Überlastung Monate im Voraus erkennen"
+msgstr "Auslastung Monate im Voraus sehen"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "SSO via Keycloak"

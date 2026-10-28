@@ -3281,7 +3281,7 @@ msgstr "Ещё люди"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
-msgstr "Обычно команды просто регистрируются и начинают работать. Если данные должны оставаться внутри вашего периметра, Motio разворачивается на вашей инфраструктуре — и вы в любой момент можете выгрузить всё и уйти."
+msgstr "Большинство команд просто регистрируются и сразу начинают работать. Если данные должны храниться только у вас, Motio можно поставить на свой сервер. А если решите перейти на другой сервис — все данные можно выгрузить в любой момент."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
@@ -5426,7 +5426,7 @@ msgstr "Сортировка"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Spot overload months ahead"
-msgstr "Перегрузка видна за месяцы вперёд"
+msgstr "Загрузка видна за месяцы вперёд"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "SSO via Keycloak"
