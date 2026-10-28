@@ -248,6 +248,8 @@ services:
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@motio.nikog.net}
       GLITCHTIP_DSN: ${GLITCHTIP_DSN:-}
+      # Admin → System asks GitHub for the latest release (cached 6 h); false turns it off.
+      MOTIO_UPDATE_CHECK: ${MOTIO_UPDATE_CHECK:-true}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
       # Persist the Deno dependency cache across container recreates so cold

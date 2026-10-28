@@ -182,6 +182,12 @@ The motio.nikog.net deploy (`prod-compose.sh`) fills in its own analytics values
 the server `.env` has no `VITE_PLAUSIBLE_*` keys; a key present in `.env`, even
 empty, wins.
 
+## Admin → System
+
+- `MOTIO_UPDATE_CHECK` — the System section of the admin console asks GitHub for
+  the latest release at most every 6 hours (`true` by default). `false` turns it
+  off; nothing about the install is ever sent.
+
 ## Error tracking
 
 - `GLITCHTIP_DSN` — server-side errors (Edge Functions, backup-service).

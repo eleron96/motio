@@ -643,6 +643,10 @@ msgstr "Jede Aufgabe ist in 10 Sekunden angelegt. Nicht, weil wir vergessen habe
 msgid "API"
 msgstr "API"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "API gateway"
+msgstr "API-Gateway"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "API reference"
 msgstr "API-Referenz"
@@ -810,6 +814,10 @@ msgstr "Zurück zu heute"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Backup & restore"
 msgstr "Sicherung und Wiederherstellung"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Backup service"
+msgstr "Sicherungsdienst"
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Backups"
@@ -1039,6 +1047,10 @@ msgstr "Zugriff wird geprüft …"
 #: src/features/auth/pages/InvitePage.tsx
 msgid "Checking invite..."
 msgstr "Einladung wird geprüft …"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Checking…"
+msgstr "Wird geprüft …"
 
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Choose a customer to see their projects."
@@ -1313,6 +1325,15 @@ msgstr "Kopieren Sie Ihr Token jetzt"
 msgid "Could not check access"
 msgstr "Zugriff konnte nicht geprüft werden"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Could not check for updates right now."
+msgstr "Updates konnten gerade nicht geprüft werden."
+
+#. placeholder {0}: result.message
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Could not send: {0}"
+msgstr "Senden fehlgeschlagen: {0}"
+
 #: src/features/planner/hooks/useTaskWriteFailureToasts.ts
 msgid "Couldn't delete the task. It's back in place."
 msgstr "Die Aufgabe konnte nicht gelöscht werden. Sie ist wieder an ihrem Platz."
@@ -1577,6 +1598,10 @@ msgstr "Daten"
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Data export failed: {0}"
 msgstr "Datenexport fehlgeschlagen: {0}"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Database"
+msgstr "Datenbank"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
@@ -2141,11 +2166,23 @@ msgstr "Easter Egg"
 msgid "Email"
 msgstr "E-Mail"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Email (SMTP)"
+msgstr "E-Mail (SMTP)"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Email check"
+msgstr "E-Mail-Test"
+
 #: src/features/admin/components/AnnouncementFields.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Email domain"
 msgstr "E-Mail-Domain"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Email is not configured: no SMTP server in the settings."
+msgstr "E-Mail ist nicht eingerichtet: In den Einstellungen fehlt ein SMTP-Server."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Emoji"
@@ -2239,6 +2276,10 @@ msgstr "Fehler"
 #: src/app/NotFoundPage.tsx
 msgid "Error 404. We checked everywhere, but nothing is here."
 msgstr "Fehler 404. Wir haben überall nachgesehen, aber hier ist nichts."
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Error tracking"
+msgstr "Fehlerverfolgung"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Every 4 weeks"
@@ -2418,6 +2459,10 @@ msgstr "Bild konnte nicht hochgeladen werden"
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "File is too large"
 msgstr "Datei ist zu groß"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "File storage"
+msgstr "Dateispeicher"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Fill out task fields and create a new task."
@@ -2890,6 +2935,10 @@ msgstr "Weiter erkunden"
 msgid "Keep holding the widget header..."
 msgstr "Kopfzeile des Widgets weiter gedrückt halten …"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Keycloak"
+msgstr "Keycloak"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI-Widgets, Balken- und Flächendiagramme, Kreisdiagramme. Bauen Sie jedes Dashboard, das Sie brauchen. Filtern nach Zuständigen, Projekt oder Status."
@@ -2975,6 +3024,10 @@ msgstr "Liste"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Live"
 msgstr "Aktiv"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Live updates"
+msgstr "Live-Aktualisierung"
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
@@ -3969,6 +4022,10 @@ msgstr "Ist ungleich"
 msgid "Not on the team"
 msgstr "Nicht im Team"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "not responding"
+msgstr "antwortet nicht"
+
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Not tracked"
 msgstr "Nicht erfasst"
@@ -4055,6 +4112,10 @@ msgstr "Anzahl"
 msgid "of"
 msgstr "von"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "off"
+msgstr "aus"
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Off"
 msgstr "Aus"
@@ -4062,6 +4123,10 @@ msgstr "Aus"
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "OK"
 msgstr "OK"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "on"
+msgstr "an"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
@@ -4578,6 +4643,10 @@ msgstr "Jetzt löschen"
 msgid "purge_after"
 msgstr "purge_after"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Push notifications"
+msgstr "Push-Benachrichtigungen"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Push notifications aren't available right now."
 msgstr "Push-Benachrichtigungen sind derzeit nicht verfügbar."
@@ -4605,6 +4674,7 @@ msgstr "Empfänger: {0}"
 msgid "Recurring"
 msgstr "Wiederholung"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
 #: src/features/auth/components/DataExportButton.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -5203,6 +5273,10 @@ msgstr "Einladung senden"
 msgid "Send now"
 msgstr "Jetzt senden"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Send test email"
+msgstr "Test-E-Mail senden"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Send this broadcast?"
 msgstr "Dieses Rundschreiben senden?"
@@ -5221,6 +5295,10 @@ msgstr "Zum Versenden von Einladungen brauchen Sie ein echtes Konto. Registriere
 msgid "sending now: {0}"
 msgstr "wird gesendet: {0}"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Sends a short test email to the address of your admin account."
+msgstr "Sendet eine kurze Test-E-Mail an die Adresse Ihres Admin-Kontos."
+
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Sent"
@@ -5231,10 +5309,18 @@ msgstr "Gesendet"
 msgid "Sent invites"
 msgstr "Gesendete Einladungen"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Sent. Check the inbox of your admin account."
+msgstr "Gesendet. Prüfen Sie das Postfach Ihres Admin-Kontos."
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Service notice"
 msgstr "Servicemitteilung"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Services"
+msgstr "Dienste"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
@@ -5374,6 +5460,10 @@ msgstr "Abmelden"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Sign out?"
 msgstr "Abmelden?"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Sign-in (GoTrue)"
+msgstr "Anmeldung (GoTrue)"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Signed in"
@@ -5549,6 +5639,10 @@ msgstr "Sonne"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
 msgstr "Hier wechseln Sie zwischen Projekten, Meilensteinen, Kunden und Kontakten. Öffnen Sie ein Projekt, um seine Aufgaben, sein Team und seine Notizen zu sehen."
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "System"
+msgstr "System"
 
 #. placeholder {0}: revokeTarget?.name ?? ''
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -5875,6 +5969,10 @@ msgstr "diesen Kunden"
 msgid "this dashboard"
 msgstr "dieses Dashboard"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "This is the latest release."
+msgstr "Das ist die neueste Version."
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history."
 msgstr "Diese Auslastung gilt als 100 %. Leer lassen, um sie automatisch aus dem jüngsten Verlauf Ihres Teams abzuleiten."
@@ -6037,6 +6135,10 @@ msgstr "Bis"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 msgstr "Für Push-Benachrichtigungen unter iOS fügen Sie Motio zum Home-Bildschirm hinzu: Tippen Sie in Safari auf „Teilen“, wählen Sie „Zum Home-Bildschirm“ und aktivieren Sie dann hier in der installierten App die Benachrichtigungen."
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "To update, run on the server:"
+msgstr "Zum Aktualisieren auf dem Server ausführen:"
 
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "today"
@@ -6348,6 +6450,10 @@ msgstr "Anstehend"
 msgid "Update"
 msgstr "Aktualisieren"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Update check is off (MOTIO_UPDATE_CHECK=false)."
+msgstr "Update-Prüfung ist aus (MOTIO_UPDATE_CHECK=false)."
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Update customer name and industry."
 msgstr "Kundenname und Branche bearbeiten."
@@ -6411,10 +6517,19 @@ msgstr "Nutzer"
 msgid "Vacation, day off, sick leave..."
 msgstr "Urlaub, freier Tag, Krankheit …"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Version"
+msgstr "Version"
+
 #. placeholder {0}: entry.version
 #: src/features/auth/components/ReleaseNotesList.tsx
 msgid "Version {0}"
 msgstr "Version {0}"
+
+#. placeholder {0}: latest.tag
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Version {0} is available."
+msgstr "Version {0} ist verfügbar."
 
 #: src/features/auth/components/ReleaseNotesDialog.tsx
 msgid "Version {APP_VERSION}"
@@ -6472,6 +6587,11 @@ msgstr "Übersichtliche Zeitachse"
 msgid "vs last week"
 msgstr "ggü. Vorwoche"
 
+#. placeholder {0}: result.retryAfterSeconds
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "Wait {0} s before sending another one."
+msgstr "Warten Sie {0} s bis zum nächsten Versand."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Walk through the timeline, dashboard, projects and team again"
 msgstr "Zeitachse, Dashboard, Projekte und Team noch einmal durchgehen"
@@ -6509,9 +6629,17 @@ msgstr "Wöchentliche Wiederholung"
 msgid "Welcome to Motio!"
 msgstr "Willkommen bei Motio!"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "What is switched on"
+msgstr "Was eingeschaltet ist"
+
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "What the planner shows"
 msgstr "Was der Planer zeigt"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "What's new"
+msgstr "Was ist neu"
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Where your tasks are"
@@ -6565,6 +6693,10 @@ msgstr "Arbeitsablauf"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workload heatmap"
 msgstr "Auslastungskarte"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "works"
+msgstr "läuft"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx

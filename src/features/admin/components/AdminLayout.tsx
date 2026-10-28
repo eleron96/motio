@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Database, Egg, Gauge, LayoutGrid, Send, Users } from 'lucide-react';
+import { Activity, Database, Egg, Gauge, LayoutGrid, Send, Users } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -22,6 +22,7 @@ interface AdminNavItem {
 // Section list lives here: adding a page = one file + one entry below.
 const useNavItems = (): AdminNavItem[] => [
   { path: '/app/admin', label: t`Overview`, icon: <Gauge className="h-4 w-4" />, end: true },
+  { path: '/app/admin/system', label: t`System`, icon: <Activity className="h-4 w-4" /> },
   { path: '/app/admin/users', label: t`Users`, icon: <Users className="h-4 w-4" /> },
   { path: '/app/admin/workspaces', label: t`Workspaces`, icon: <LayoutGrid className="h-4 w-4" /> },
   { path: '/app/admin/easter-eggs', label: t`Easter eggs`, icon: <Egg className="h-4 w-4" /> },

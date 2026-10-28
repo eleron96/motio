@@ -4,6 +4,7 @@ import { ADMIN_ACTIONS } from "../_shared/actions.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
 import { buildUnsubscribeUrl, getMailerConfig, sendEmail } from "../_shared/mailer.ts";
 import { renderBroadcastEmail } from "../_shared/broadcastEmail.ts";
+import { getSystemStatus, sendTestEmail } from "./system.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -207,6 +208,12 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_RESET_READS),
     announcementId: z.string().uuid(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SYSTEM_STATUS),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SYSTEM_TEST_EMAIL),
   }).strict(),
 ]);
 
@@ -1724,6 +1731,12 @@ export const handler = async (req: Request) => {
   await ensureReserveAdminOnce();
 
   switch (action) {
+    case ADMIN_ACTIONS.SYSTEM_STATUS:
+      return jsonResponse({
+        status: await getSystemStatus(supabaseAdmin, supabaseUrl, keycloakConfig.baseUrl, keycloakConfig.realm),
+      });
+    case ADMIN_ACTIONS.SYSTEM_TEST_EMAIL:
+      return jsonResponse({ result: await sendTestEmail(authResult.user.id, authResult.user.email) });
     case ADMIN_ACTIONS.USERS_LIST:
       return handleUsersList(payload as { search?: string; includeSuperAdmins?: boolean });
     case ADMIN_ACTIONS.USERS_CREATE:

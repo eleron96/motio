@@ -111,6 +111,8 @@ Contract and examples: [API](api.md).
 | Action | Purpose |
 |---|---|
 | `bootstrap.sync` | makes sure the reserve super-admin account exists (called by the deploy scripts) |
+| `system.status` | Admin → System: service probes through the gateway, latest release from GitHub (cached 6 h, `MOTIO_UPDATE_CHECK`), server settings as yes/no |
+| `system.testEmail` | sends a test email to the calling admin (once a minute) |
 | `users.list` | user overview |
 | `workspaces.list` / `workspaces.update` / `workspaces.delete` | workspace management |
 | `superAdmins.list` | super-admin overview |

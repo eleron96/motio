@@ -202,6 +202,14 @@ const adminAnnouncementsResetReadsRequestSchema = z.object({
   announcementId: z.string().uuid(),
 }).strict();
 
+const adminSystemStatusRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SYSTEM_STATUS),
+}).strict();
+
+const adminSystemTestEmailRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SYSTEM_TEST_EMAIL),
+}).strict();
+
 export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBootstrapSyncRequestSchema,
   adminUsersListRequestSchema,
@@ -232,6 +240,8 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminAnnouncementsUpdateRequestSchema,
   adminAnnouncementsDeleteRequestSchema,
   adminAnnouncementsResetReadsRequestSchema,
+  adminSystemStatusRequestSchema,
+  adminSystemTestEmailRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;
