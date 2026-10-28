@@ -483,7 +483,8 @@ print_status() {
     || echo "  checkout: $(git rev-parse --short HEAD 2>/dev/null || echo unknown) (not a release tag)"
 
   log "Containers"
-  "${compose[@]}" ps --format '  {{.Service}}: {{.Status}}' 2>/dev/null || warn "docker compose ps failed"
+  # compose trims leading spaces from the template, so indent afterwards.
+  "${compose[@]}" ps --format '{{.Service}}: {{.Status}}' 2>/dev/null | sed 's/^/  /' || warn "docker compose ps failed"
 
   log "Probes"
   probe() {
