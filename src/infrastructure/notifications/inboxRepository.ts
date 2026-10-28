@@ -199,10 +199,16 @@ export const deleteAllTaskNotifications = async (): Promise<{ error?: string }> 
   return {};
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Subscribes to inbox-affecting changes for the user. `onChange` fires on every
 // relevant database event and on channel degradation (error/timeout/closed) so
 // the caller can fall back to a refresh. Returns an unsubscribe function.
 export const subscribeToInboxChanges = (userId: string, onChange: () => void): (() => void) => {
+  // recipient_user_id is a uuid: any other id (the /demo sandbox's
+  // "demo-user-…") can only make Realtime reject the filter, so never open it.
+  if (!UUID_RE.test(userId)) return () => {};
+
   const channel = supabase
     .channel(`notifications-inbox-${userId}`)
     .on(

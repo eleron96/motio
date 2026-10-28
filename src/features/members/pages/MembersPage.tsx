@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
@@ -170,6 +171,7 @@ const MembersPage = () => {
     viewer: t`Viewer`,
   };
   const navigate = useNavigate();
+  const basePath = useAppBasePath();
 
   useEffect(() => {
     if (currentWorkspaceId) {
@@ -490,8 +492,9 @@ const MembersPage = () => {
     setCurrentDate(timelineTask.startDate);
     requestScrollToDate(timelineTask.startDate);
     setSelectedTaskId(null);
-    navigate('/app');
+    navigate(basePath);
   }, [
+    basePath,
     assigneeTasks,
     clearFilters,
     navigate,

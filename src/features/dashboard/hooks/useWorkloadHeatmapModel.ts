@@ -13,6 +13,7 @@ import {
 } from 'date-fns';
 import { t } from '@lingui/macro';
 import { useNavigate } from 'react-router-dom';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useHolidayMap, normalizeHolidayCountryCode } from '@/features/planner/hooks/useHolidayMap';
@@ -82,6 +83,9 @@ export const useWorkloadHeatmapModel = () => {
   const projects = useDashboardStore((state) => state.projects);
   const locale = useLocaleStore((state) => state.locale);
   const navigate = useNavigate();
+  // /demo stays inside the sandbox: a hard-coded /app would leave it without a
+  // reload, with the demo user still in memory and the real client in charge.
+  const basePath = useAppBasePath();
   const requestScrollToDate = usePlannerStore((state) => state.requestScrollToDate);
   const setPlannerCurrentDate = usePlannerStore((state) => state.setCurrentDate);
   const setTimelineAttentionDate = usePlannerStore((state) => state.setTimelineAttentionDate);
@@ -92,13 +96,13 @@ export const useWorkloadHeatmapModel = () => {
     setPlannerCurrentDate(iso);
     setTimelineAttentionDate(iso);
     requestScrollToDate(iso);
-    navigate('/app');
-  }, [navigate, requestScrollToDate, setPlannerCurrentDate, setTimelineAttentionDate]);
+    navigate(basePath);
+  }, [basePath, navigate, requestScrollToDate, setPlannerCurrentDate, setTimelineAttentionDate]);
 
   // Open a specific milestone in the projects "milestones" submenu.
   const openMilestone = useCallback((milestoneId: string) => {
-    navigate(`/app/projects?milestone=${encodeURIComponent(milestoneId)}`);
-  }, [navigate]);
+    navigate(`${basePath}/projects?milestone=${encodeURIComponent(milestoneId)}`);
+  }, [basePath, navigate]);
 
   const now = useMemo(() => new Date(), []);
   const rangeStart = useMemo(
