@@ -15,7 +15,7 @@
 1. Обзор продукта простым языком: `notes/overview-for-ai.md` (что Motio делает, из чего состоит, как работает).
 2. Архитектурные границы: `notes/architecture/frontend-boundaries.md`.
 3. Поведенческие спецификации: `notes/specifications/*-behavior-by-example.md` (ядро — `planner-behavior-by-example.md`).
-4. Публичная документация (трекается в git): `README.md` (витрина), `CONTRIBUTING.md` (как прислать баг, идею или PR), `SECURITY.md` (приватный канал для сообщений об уязвимостях), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.0, контакт — inbox@nikog.net), шаблоны issue/PR в `.github/` и `docs/` (операционный справочник: деплой, конфигурация, backup/restore, troubleshooting). `docs/guides/` — пользовательские гайды «как получить пользу» (не эксплуатация): при изменении описанного в них поведения (кнопки, названия, жесты) править и гайд; скриншоты в `docs/guides/images/` сняты с публичного `/demo` в 1600×1000.
+4. Публичная документация (трекается в git): `README.md` (витрина), `CONTRIBUTING.md` (как прислать баг, идею или PR), `SECURITY.md` (приватный канал для сообщений об уязвимостях), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.0, контакт — inbox@nikog.net), шаблоны issue/PR в `.github/` и `docs/` (операционный справочник: деплой, конфигурация, backup/restore, troubleshooting; `docs/self-hosting.md` — установка на чужой сервер, §5.6; `docs/api.md` — контракт API пространства, §4.3). `docs/guides/` — пользовательские гайды «как получить пользу» (не эксплуатация): при изменении описанного в них поведения (кнопки, названия, жесты) править и гайд; скриншоты в `docs/guides/images/` сняты с публичного `/demo` в 1600×1000.
 5. Dev/Prod команды: `README.md` и `Makefile`.
 
 > Папка `notes/` — локальные рабочие материалы для агента: она в `.gitignore` и
@@ -112,12 +112,26 @@
 
 Полноту проверяет тест `src/test/smoke/localeCatalogs.test.ts` (часть `npm run test`, а значит CI и гейта деплоя): пустой `msgstr` или потерянный плейсхолдер в `ru`/`de` валит его.
 
+Язык выбирается не только каталогом: списки языков живут ещё в коде, БД, письмах и Keycloak. Новый язык добавлять только по чек-листу «Adding a language» в `CONTRIBUTING.md` — иначе часть интерфейса (даты, письма, пуши, примеры пространства, страница входа) останется на английском, а сохранение языка в профиль упадёт на `profiles_locale_check`. Новый язык — решение владельца: каждый следующий язык удорожает каждую новую строку.
+
 Проверка перед коммитом:
 ```bash
 npm run lingui:extract
 # В выводе Missing = 0 для ru и de
 npx vitest run src/test/smoke/localeCatalogs.test.ts
 ```
+
+## 4.3. API пространства (импорт отсутствий)
+
+Внешний API — Edge Function `api` (`/functions/v1/api/v1/...`), контракт и примеры — `docs/api.md`. Поверхность атаки, поэтому:
+
+1. Любое изменение контракта (поля, коды ошибок, лимиты) — тем же коммитом в `docs/api.md`; старые клиенты не ломать без нужды.
+2. Авторизация — только токеном пространства (`Authorization: Bearer motio_…`): в БД лишь SHA-256-хеш, таблица `workspace_api_tokens` закрыта для `anon`/`authenticated` (RLS без политик), управление — RPC с проверкой «админ пространства». Новый метод получает ровно те права, что описаны в `docs/api.md`, и ничего сверх.
+3. Бизнес-правила — в функциях `api_*` (SECURITY INVOKER, `EXECUTE` только `service_role`), Edge Function — тонкая (разбор запроса — `_shared/timeOffApi.ts`, покрыт юнит-тестом).
+4. API трогает только свои записи (`time_off.external_id is not null`); триггер `time_off_guard_external_id` не даёт клиенту поставить или сменить `external_id` — не снимать.
+5. У `/functions/v1/api/` своя зона лимита в gateway (`public_api_limit`) и нет CORS — не переносить API под общую зону.
+6. Логи — структурные (`module: api.time-off`), без токенов и почт.
+7. Раздел «API» в настройках — за флагом `VITE_FEATURE_WORKSPACE_API`; включение на проде — решение владельца.
 
 ## 5. Правила деплоя
 
@@ -243,6 +257,8 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
    - ✅ "fix(planner): исправлена синхронизация комментариев в реальном времени" → включать
 4. Передать итоговый текст в `make release ...` или `make release-testing ...`.
 5. Если пользовательских изменений нет — всё равно выполнить release-команду с кратким техническим описанием, пометив `[internal]`.
+6. Тот же текст уходит в окно «Последние изменения» в приложении и в публичный GitHub Release — писать для людей, без идентификаторов. При голом `make deploy` (без `make release`) release notes = то, что уже лежит в `Unreleased`: пустой раздел уйдёт как «Нет зафиксированных изменений», поэтому перед деплоем проверить `Unreleased` и при необходимости дописать запись `make logchange`.
+7. `make deploy` и `make release-sync` запускать из рабочего дерева, стоящего на `codex/main-current` (`release-sync` коммитит и пушит **текущую** ветку). Из worktree агента на своей ветке — нельзя: синк уйдёт не в ту ветку.
 
 ## 5.5. Post-deploy минимум
 
@@ -250,6 +266,22 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 2. Проверить auth flow (вход/выход).
 3. Проверить критичные сценарии: задачи, проекты, участники.
 4. Проверить логи на прод-сервере: `ssh root@94.141.162.237 "cd /opt/new_toggl && docker compose -f infra/docker-compose.prod.yml --env-file .env logs --since 15m"`. Локальная `make logs-prod` показывает только локальный prod-контур (§5.3), не сервер.
+
+## 5.6. Self-host: установка на чужие серверы
+
+Установщик для пользователей: `infra/scripts/install.sh` (install / update / up / `--env-only`), обёртка `infra/scripts/selfhost-compose.sh`, оверлеи `infra/docker-compose.selfhost.yml` (+ `docker-compose.selfhost-tls.yml`), `infra/caddy/Caddyfile.selfhost`, `infra/scripts/keycloak-ensure-realm-smtp.sh`. Документация — `docs/self-hosting.md`. **Прод и тест владельца ими не пользуются**: их путь — по-прежнему `make deploy` / `make deploy-testing` (§5.4). Клиенты ставят и обновляются с **тега релиза**, поэтому любая правка установщика доходит до них только после прод-релиза.
+
+При изменениях держать self-host в согласии с продом:
+
+1. **Новый публичный маршрут** (страница или файл без сессии) — во все три Caddyfile: `Caddyfile`, `Caddyfile.testing`, `Caddyfile.selfhost`. Паритет проверяет `src/test/smoke/publicRoutes.test.ts`.
+2. **Новая переменная в `.env.example`** — решить, нужно ли её генерировать или выводить из домена в `install.sh` (`generate_env`); описать в `docs/configuration.md`. При `install.sh update` новые ключи дописываются из `.env.example` с дефолтом — дефолт обязан быть рабочим для чужой установки.
+3. **Новый `VITE_*`** — `ARG`/`ENV` в `infra/web/Dockerfile` и `build.args` в `docker-compose.prod.yml`; новый флаг фичи — осознанный дефолт для self-host в `install.sh` и строка в таблице `docs/self-hosting.md`.
+4. **Новый ensure-скрипт Keycloak** — в `prod-compose.sh`, `test-compose.sh` **и** в список `bring_up` в `install.sh`.
+5. **Новый сервис, том или порт в `docker-compose.prod.yml`** — проверить оверлей self-host: имена томов через `MOTIO_INSTANCE`, наружу ничего, кроме Caddy, лимиты памяти под 4 ГБ. Проверка: `docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.selfhost.yml --env-file <тестовый .env> config`.
+6. **Изменение, требующее действия от self-host** (новая обязательная настройка, ручной шаг) — отдельной строкой в CHANGELOG простым языком: «Для своих серверов: …».
+7. **Домен, аналитика и мониторинг владельца** в коде не вписывать: адрес сайта — `VITE_PUBLIC_SITE_URL` (`vite/siteIdentity.ts`), аналитика владельца подставляется только `prod-compose.sh`; чужая установка по умолчанию никуда ничего не шлёт (это проверяет `src/test/smoke/selfhostInstallEnv.test.ts`).
+8. **Пробная установка** — чистого VPS нет; владелец разрешил тест-сервер при строгой изоляции: свой каталог и `--instance`, режим `proxy` на `127.0.0.1` (порты 80/443 — nginx соседа), свои порты gateway/Keycloak, проверка через SSH-туннель, перед `up` — нет `external: true` томов. После проверки — `selfhost-compose.sh down -v`, удалить собранные образы `<instance>-*` и каталог; общие образы (`caddy:2.8` использует `motio-caddy`) не трогать.
+9. Резервный админ (`RESERVE_ADMIN_*`) — служебная учётка, сразу в `/app/admin`; первый человек на чужой установке регистрируется сам. Не делать почту установщика резервным админом.
 
 ## 6. Правила логирования
 
@@ -364,6 +396,10 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request прог�
 5. **Edge Functions и `esm.sh`** — `edge-runtime` тянет зависимости с `esm.sh` на холодном старте; прод не маршрутизирует его anycast, пересоздание контейнера давало `502` на всех `/functions/v1/*`. Починено пином `extra_hosts` на IP Cloudflare и persistent-кэшем Deno (`motio_deno_cache`); при `502` после пересоздания проверять именно это.
 6. **`KEYCLOAK_ADMIN_PASSWORD` не менять через `.env`** — рассинхрон с realm даёт `401` на деплое. Пароль admin меняется в Keycloak, `.env` подгоняется следом.
 7. **Мёрж в `main` может зависнуть** — §5.4 п.5.
+8. **Тома в `docker-compose.prod.yml` с фиксированными именами** (`supabase_db_data` external, `keycloak_db_data`, `supabase_storage_data`, `motio_deno_cache`). Вторая копия стека на той же машине без оверлея с переименованием подключится к чужой базе. Self-host оверлей переименовывает (§5.6).
+9. **Конфиги gateway и Caddy смонтированы одним файлом.** rsync заменяет файл новым инодом — работающий контейнер видит старый, `reload` его не подхватит. Деплой прода и теста сравнивает хеш и пересоздаёт контейнер, `install.sh` пересоздаёт gateway и caddy в конце. Руками — `up -d --force-recreate --no-deps gateway`.
+10. **GoTrue не стартует с пустым `GOTRUE_SMTP_PORT`** (даже без почты) — падает `auth`, за ним `gateway` (не резолвит `auth`), а миграции падают на `auth.identities`. Порт всегда числом.
+11. **Realm с `verifyEmail` без SMTP** — регистрация застревает на «подтвердите почту». На self-host это переключает `keycloak-ensure-realm-smtp.sh`; на проде/тесте почта realm настроена руками.
 
 ### 9.1. Docker Compose — перезапуск контейнеров
 

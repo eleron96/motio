@@ -98,3 +98,20 @@ export const isBoardViewEnabled = (): boolean => (
 export const isWorkspaceApiEnabled = (): boolean => (
   !isDemoRoute() && readFlag(import.meta.env.VITE_FEATURE_WORKSPACE_API)
 );
+
+/**
+ * Every interface flag as this build has it, for the admin "System" section.
+ * Raw build values only — the /demo forcing above does not apply here.
+ */
+export const listBuildFeatureFlags = (): Array<{ name: string; enabled: boolean }> => [
+  { name: 'VITE_FEATURE_TIME_OFF', enabled: readFlag(import.meta.env.VITE_FEATURE_TIME_OFF) },
+  { name: 'VITE_FEATURE_WORKLOAD_HEATMAP', enabled: readFlag(import.meta.env.VITE_FEATURE_WORKLOAD_HEATMAP) },
+  { name: 'VITE_FEATURE_PROJECT_CARD', enabled: readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD) },
+  { name: 'VITE_FEATURE_PROJECT_CARD_MOBILE', enabled: readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD_MOBILE) },
+  { name: 'VITE_FEATURE_PEOPLE_SUGGEST', enabled: readFlag(import.meta.env.VITE_FEATURE_PEOPLE_SUGGEST) },
+  { name: 'VITE_FEATURE_PUSH', enabled: readFlag(import.meta.env.VITE_FEATURE_PUSH) },
+  { name: 'VITE_FEATURE_KANBAN', enabled: readFlag(import.meta.env.VITE_FEATURE_KANBAN) },
+  { name: 'VITE_FEATURE_ACCOUNT_DELETION', enabled: readFlag(import.meta.env.VITE_FEATURE_ACCOUNT_DELETION) },
+  { name: 'VITE_FEATURE_WORKSPACE_API', enabled: readFlag(import.meta.env.VITE_FEATURE_WORKSPACE_API) },
+];
+

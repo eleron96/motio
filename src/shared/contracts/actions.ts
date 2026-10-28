@@ -29,6 +29,9 @@ export const ADMIN_ACTIONS = {
   ANNOUNCEMENTS_UPDATE: 'announcements.update',
   ANNOUNCEMENTS_DELETE: 'announcements.delete',
   ANNOUNCEMENTS_RESET_READS: 'announcements.resetReads',
+  // System section: read-only status of the install and a test email.
+  SYSTEM_STATUS: 'system.status',
+  SYSTEM_TEST_EMAIL: 'system.testEmail',
 } as const;
 
 export const PUSH_ACTIONS = {

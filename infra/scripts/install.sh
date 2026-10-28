@@ -8,6 +8,7 @@ set -euo pipefail
 #   infra/scripts/install.sh --domain planner.example.com --email you@example.com --mode proxy --http-port 8088
 #   infra/scripts/install.sh update [--version v0.11.0]
 #   infra/scripts/install.sh up          # re-apply config and (re)start everything
+#   infra/scripts/install.sh status      # read-only health report (no changes)
 #   infra/scripts/install.sh --env-only --domain … --email …   # only write .env, start nothing
 #
 # Run it from the root of a Motio checkout (git clone of the repository). It never
@@ -21,7 +22,7 @@ env_file="${MOTIO_ENV_FILE:-.env}"
 compose=(infra/scripts/selfhost-compose.sh)
 
 usage() {
-  sed -n '4,14p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '4,15p' "$0" | sed 's/^# \{0,1\}//'
   cat <<'EOF'
 
 Options (install):
@@ -467,11 +468,57 @@ backup_database() {
   mv "$file.partial" "$file"
 }
 
+# Read-only report for troubleshooting over SSH: version, containers, the
+# probes the admin "System" section shows, disk, last backup, newer release.
+print_status() {
+  local gateway_port keycloak_port url version latest code
+  gateway_port="$(get_env_value MOTIO_GATEWAY_PORT)"
+  keycloak_port="$(get_env_value MOTIO_KEYCLOAK_PORT)"
+  url="$(get_env_value APP_URL)"
+  version="$(cat VERSION 2>/dev/null || echo unknown)"
+
+  log "Motio ${version} at ${url}"
+  git describe --tags --exact-match >/dev/null 2>&1 \
+    && echo "  checkout: release tag $(git describe --tags --exact-match)" \
+    || echo "  checkout: $(git rev-parse --short HEAD 2>/dev/null || echo unknown) (not a release tag)"
+
+  log "Containers"
+  # compose trims leading spaces from the template, so indent afterwards.
+  "${compose[@]}" ps --format '{{.Service}}: {{.Status}}' 2>/dev/null | sed 's/^/  /' || warn "docker compose ps failed"
+
+  log "Probes"
+  probe() {
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$2" || true)"
+    if [[ "$code" =~ ^[23] ]]; then echo "  $1: ok"; else echo "  $1: FAILED (HTTP ${code:-none})"; fi
+  }
+  probe "gateway" "http://127.0.0.1:${gateway_port}/health"
+  probe "sign-in (GoTrue)" "http://127.0.0.1:${gateway_port}/auth/v1/health"
+  probe "file storage" "http://127.0.0.1:${gateway_port}/storage/v1/status"
+  probe "backup service" "http://127.0.0.1:${gateway_port}/backup/health"
+  probe "keycloak" "http://127.0.0.1:${keycloak_port}/realms/timeline/.well-known/openid-configuration"
+
+  log "Disk and backups"
+  df -h . | awk 'NR==2 {print "  disk: " $4 " free of " $2 " (" $5 " used)"}'
+  local last_backup
+  last_backup="$(ls -t infra/backups 2>/dev/null | head -n1 || true)"
+  echo "  last backup file: ${last_backup:-none in infra/backups}"
+
+  log "Releases"
+  latest="$(git ls-remote --tags --refs origin 'v*' 2>/dev/null | sed 's#.*refs/tags/##' | sort -V | tail -n1 || true)"
+  if [[ -z "$latest" ]]; then
+    echo "  could not reach the repository to check for releases"
+  elif [[ "v${version}" == "$latest" ]]; then
+    echo "  ${latest} is the latest release"
+  else
+    echo "  latest release: ${latest} — update with: infra/scripts/install.sh update --version ${latest}"
+  fi
+}
+
 # ─────────────────────────── commands ───────────────────────────
 
 command_name="install"
 case "${1:-}" in
-  install|update|up) command_name="$1"; shift ;;
+  install|update|up|status) command_name="$1"; shift ;;
   -h|--help) usage; exit 0 ;;
 esac
 
@@ -501,6 +548,12 @@ while [[ "$#" -gt 0 ]]; do
     *) fail "unknown option: $1 (see --help)" ;;
   esac
 done
+
+if [[ "$command_name" == "status" ]]; then
+  [[ -f "$env_file" ]] || fail "no $env_file here — this is not an installed Motio."
+  print_status
+  exit 0
+fi
 
 preflight
 

@@ -8,9 +8,11 @@
  * Modes:
  *   - Dry run (MAILER_DRY_RUN=1, or SMTP host missing, e.g. local dev):
  *     renders and logs instead of sending, reports { dryRun: true }.
- *   - Real send: implicit-TLS SMTP (port 465) via denomailer.
+ *   - Real send via denomailer: implicit TLS on port 465, STARTTLS on any
+ *     other port (587 by default on self-hosted installs).
  */
 import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { usesImplicitTls } from "./smtpTransport.ts";
 
 export interface MailerConfig {
   host: string;
@@ -63,7 +65,9 @@ export const sendEmail = async (
     connection: {
       hostname: config.host,
       port: config.port,
-      tls: true,
+      // false = plain connection upgraded with STARTTLS (denomailer does it
+      // whenever the server offers it).
+      tls: usesImplicitTls(config.port),
       auth: {
         username: config.username,
         password: config.password,

@@ -36,6 +36,9 @@ services:
 
   functions:
     extra_hosts: !reset []
+    environment:
+      # Admin → System shows the install.sh update command on self-hosted installs.
+      MOTIO_SELF_HOSTED: "true"
 
   gateway:
     ports: !override
