@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -827,6 +828,7 @@ const ProjectsPage = () => {
   });
 
   const navigate = useNavigate();
+  const basePath = useAppBasePath();
 
   const {
     editingMilestone,
@@ -866,8 +868,9 @@ const ProjectsPage = () => {
     setCurrentDate(selectedTask.startDate);
     requestScrollToDate(selectedTask.startDate);
     setSelectedTaskId(null);
-    navigate('/app');
+    navigate(basePath);
   }, [
+    basePath,
     assignees,
     clearFilters,
     groupMode,

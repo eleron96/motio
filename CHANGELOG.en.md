@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.29] - 2026-10-28
+### Fixed
+- In the demo, clicking a heatmap day, a milestone or Show on timeline no longer takes you out of the sandbox.
+
 ## [0.10.28] - 2026-10-28
 ### Added
 - For self-hosted installs: a System section in the admin console shows the version and any newer release with the exact update command, whether each service answers, what is switched on, and sends a test email.
