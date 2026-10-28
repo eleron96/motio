@@ -44,6 +44,9 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `KEYCLOAK_REALM_AUDIT_FILE` — path to the managed realm JSON for the drift audit.
 - `KEYCLOAK_REALM_AUDIT_ENABLED` · `KEYCLOAK_REALM_AUDIT_FAIL_ON_DRIFT` — control the
   audit behavior in `up-prod`.
+- `KEYCLOAK_REALM_SUPPORTED_LOCALES` — languages the realm offers on the sign-in page
+  and in account emails, applied by `keycloak-ensure-realm-locales.sh` on every deploy
+  (`en,ru,de` by default, the same as the app).
 - `OAUTH2_PROXY_*` — proxying sign-in to the frontend.
 - `OAUTH2_PROXY_BACKEND_LOGOUT_URL` — Keycloak end-session URL with
   `id_token_hint={id_token}`.
