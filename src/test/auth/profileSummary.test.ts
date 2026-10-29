@@ -72,9 +72,55 @@ describe('computeProfileSummary', () => {
     expect(summary.active).toBe(2);
   });
 
-  it('derives completion rate from completed / total', () => {
+  it('derives completion rate from completed / total among started tasks', () => {
     // 4 of 7 of my tasks are final → 57%
     expect(summary.completionRate).toBe(57);
+  });
+
+  it('leaves future tasks out of the completion rate', () => {
+    const withFuture = computeProfileSummary({
+      tasks: [
+        ...TASKS,
+        task({ id: 'f1', statusId: 'open', startDate: '2026-06-15', endDate: '2026-06-20' }),
+        task({ id: 'f2', statusId: 'open', startDate: '2026-07-01', endDate: '2026-07-05' }),
+      ],
+      statuses: STATUSES,
+      projects: PROJECTS,
+      assignees: ASSIGNEES,
+      userId: 'u1',
+      accountCreatedAt: '2026-01-14T10:00:00',
+      todayKey: TODAY,
+    });
+    // Still 4 of 7 started tasks; the two future ones are only counted as in progress.
+    expect(withFuture.completionRate).toBe(57);
+    expect(withFuture.active).toBe(4);
+  });
+
+  it('counts a task that starts today', () => {
+    const startsToday = computeProfileSummary({
+      tasks: [task({ id: 'd1', statusId: 'done', startDate: TODAY }), task({ id: 'o1', statusId: 'open', startDate: TODAY })],
+      statuses: STATUSES,
+      projects: PROJECTS,
+      assignees: ASSIGNEES,
+      userId: 'u1',
+      accountCreatedAt: '2026-01-14T10:00:00',
+      todayKey: TODAY,
+    });
+    expect(startsToday.completionRate).toBe(50);
+  });
+
+  it('shows 0% when none of the user’s tasks have started yet', () => {
+    const allFuture = computeProfileSummary({
+      tasks: [task({ id: 'f1', statusId: 'open', startDate: '2026-06-20', endDate: '2026-06-25' })],
+      statuses: STATUSES,
+      projects: PROJECTS,
+      assignees: ASSIGNEES,
+      userId: 'u1',
+      accountCreatedAt: '2026-01-14T10:00:00',
+      todayKey: TODAY,
+    });
+    expect(allFuture.hasData).toBe(true);
+    expect(allFuture.completionRate).toBe(0);
   });
 
   it('flags overdue open tasks and ignores someone else’s overdue task', () => {
