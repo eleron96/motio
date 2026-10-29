@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.33] - 2026-10-29
 ### Fixed
 - The completion percentage in your profile now counts only tasks that have already started, so future tasks no longer pull it down.
 
