@@ -1,6 +1,7 @@
 import { addDays, differenceInCalendarDays, differenceInCalendarMonths, format, parseISO } from 'date-fns';
 import type { Assignee, Project, Status, Task } from '@/features/planner/types/planner';
 import { resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSelectors';
+import { isTaskStartedBy, toCompletionPercent } from '@/shared/domain/taskCompletionRate';
 
 /**
  * Personal at-a-glance numbers shown on the Account → Profile tab. Everything
@@ -12,7 +13,10 @@ export interface ProfileSummaryData {
   hasData: boolean;
   /** Tasks in a final status. */
   completed: number;
-  /** completed / total, rounded to a whole percent. */
+  /**
+   * Final / all among tasks that have already started (start date today or
+   * earlier), rounded to a whole percent. Future tasks don't lower it.
+   */
   completionRate: number;
   /** Open tasks — neither final nor cancelled. */
   active: number;
@@ -119,6 +123,8 @@ export const computeProfileSummary = ({
   const completionDayKeys = new Set<string>();
 
   let completed = 0;
+  let startedTotal = 0;
+  let startedCompleted = 0;
   let active = 0;
   let overdue = 0;
   // weekly[0] is the oldest window, weekly[PROFILE_WEEKS - 1] the current one.
@@ -128,6 +134,11 @@ export const computeProfileSummary = ({
     const status = statusById.get(task.statusId);
     const isFinal = status?.isFinal ?? false;
     const isCancelled = status?.isCancelled ?? false;
+
+    if (isTaskStartedBy(task.startDate, todayKey)) {
+      startedTotal += 1;
+      if (isFinal) startedCompleted += 1;
+    }
 
     if (isFinal) {
       completed += 1;
@@ -183,7 +194,7 @@ export const computeProfileSummary = ({
   return {
     hasData: true,
     completed,
-    completionRate: Math.round((completed / myTasks.length) * 100),
+    completionRate: toCompletionPercent(startedCompleted, startedTotal),
     active,
     overdue,
     completedThisWeek,
