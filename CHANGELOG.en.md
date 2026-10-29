@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- The completion percentage in your profile now counts only tasks that have already started, so future tasks no longer pull it down.
+
 ## [0.10.32] - 2026-10-28
 ### Added
 - For self-hosted installs: Motio can join the Docker network of your reverse proxy (Nginx Proxy Manager, for example) instead of opening a port.
