@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.39] - 2026-10-30
 ### Fixed
 - A subtask you tick no longer briefly unticks itself.
 

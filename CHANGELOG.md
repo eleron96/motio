@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.39] - 2026-10-30
 ### Fixed
 - Отмеченная подзадача больше не снимает галочку на мгновение сама по себе.
 
