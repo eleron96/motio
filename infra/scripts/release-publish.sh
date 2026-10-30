@@ -3,17 +3,19 @@ set -euo pipefail
 
 # release-publish.sh
 #
-# Tags the current release and, when there are real user-facing changes,
-# publishes a GitHub Release from the matching CHANGELOG.en.md section.
+# Tags the current VERSION and, when there are real user-facing changes,
+# publishes a GitHub Release from the CHANGELOG.en.md sections since the last
+# published Release (each version under its own heading).
 #
 # Design goals:
 #   - Runs on its own: the `Release` workflow (.github/workflows/release.yml) calls
 #     it on every push to main. `make release-publish` from main stays as the
 #     manual path — for a re-run, or when Actions is unavailable.
-#   - Low-noise: a git tag is created for EVERY version (rollback / bisect
-#     anchors are invisible and always useful), but a public GitHub Release is
-#     only created when the changelog section has real content. Versions whose
-#     only entry is "No documented changes." get a tag and nothing else.
+#   - Low-noise: the version being published always gets a git tag (rollback /
+#     bisect anchors are invisible and always useful); versions deployed between
+#     merges into main get none. A public GitHub Release is only created when the
+#     collected sections have real content — "No documented changes." alone gets
+#     a tag and nothing else.
 #   - Idempotent: re-running for an already-tagged / already-released version
 #     is a no-op, so it's safe to retry after a transient gh/network failure.
 #   - Non-fatal: a GitHub hiccup never fails the deploy pipeline (the tag is

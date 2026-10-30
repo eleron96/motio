@@ -138,15 +138,21 @@ Contract and examples: [API](api.md).
 
 **Storage:**
 
-- `tasks.description` stores the URL to the `task-media` endpoint;
+- `tasks.description` stores the URL to the `task-media` endpoint; a subtask keeps its
+  pictures as `{ id, token }` references in `task_subtasks.images` (at most 10), and the
+  client builds the URL, so a changed self-host domain doesn't break them;
 - metadata (`workspace_id`, `owner_id`, `byte_size`, `storage_path`, access token
   hash) lives in `public.task_media`;
 - binary data lives in the private bucket `task-media`.
 
 **Garbage collection:**
 
-- when a task description is saved, the frontend diffs `description` and deletes the
-  `task-media` that disappeared;
+- when a task description is saved, the frontend diffs it against the previous text and
+  offers the pictures that disappeared for deletion: for a one-off task that is the text
+  the person started from, never a teammate's newer one; for an occurrence of a repeating
+  series it is the copy the card holds, which live sync may already have replaced. A
+  picture is deleted only if no description or subtask in the workspace still references
+  it;
 - when a task is deleted (single / bulk / series), all linked images are removed with
   it;
 - cleanup calls are fire-and-forget — a GC failure does not block the main operation,
@@ -157,6 +163,40 @@ Contract and examples: [API](api.md).
 ```bash
 node infra/scripts/migrate-task-media-to-storage.mjs --env-file .env
 ```
+
+---
+
+## Live sync
+
+Teammates see each other's changes without reloading. Everything goes over one Realtime
+WebSocket per tab; row-level security decides what reaches whom, exactly as for reads.
+
+| Channel | Opened | Carries | On an event |
+|---|---|---|---|
+| `planner-live-<workspace>` | while the planner is open | Postgres changes on `tasks`, `milestones`, `time_off`, `task_comments` (counts only) | re-reads the changed rows in batches (~320 ms) |
+| open-card channels | while a task card is open | Postgres changes on that task's `task_subtasks` and `task_comments` | re-reads the subtask list, or the one comment |
+| `task-drafts:<task>` | while a task card is open, desktop, `VITE_FEATURE_TASK_LIVE_DRAFTS` | Presence: what each person is typing (a subtask, an edit of one, a comment — up to 500 characters, at most ~3 updates a second) and that someone edits the description | shows teammates' drafts semi-transparent; nothing is stored |
+
+- **Missed events are caught up, not lost.** After a reconnect and when the tab becomes
+  visible again, the planner reconciles what changed since its last sync, and an open card
+  re-reads its subtasks and newest comments.
+- **The drafts channel is private.** Migration 0159 puts the rules on `realtime.messages`:
+  members of the task's workspace may join and listen, editors may publish, and a private
+  channel with any other topic is refused (the public Postgres-changes channels are
+  governed by table RLS instead). Realtime creates `realtime.messages` only once a client first connects, so on
+  a brand-new self-hosted install the migration skips the rules and `install.sh` applies
+  the same file again on the next update.
+- **Deletes need a readable row.** Realtime sends an `UPDATE` only to subscribers who may
+  read the new row. Comments are soft-deleted, so members may read a deleted comment's
+  row (migration 0161) — a trigger empties its text, mentions and notification preview the
+  moment `deleted_at` is set. Every read in the app still filters `deleted_at is null`.
+- **Last write wins, except for the description.** Other fields are saved as soon as they
+  change (the title when its field loses focus), and the later save wins. The description of a non-repeating task is saved through
+  `update_task_description_if_unchanged` (migration 0162): only while the stored text is
+  still the one the person started from (compared by SHA-256). Otherwise nothing is
+  written, the draft stays, and the card asks which version to keep. Discard in the card
+  rolls back only the person's own edits, and only where a teammate hasn't changed the
+  field since.
 
 ---
 
