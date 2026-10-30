@@ -71,7 +71,7 @@ Most teams just [sign up](https://motio.nikog.net/?utm_source=github&utm_medium=
 
 ### Try it on your machine
 
-Requirements: **Node.js 22+**, **Docker Desktop**.
+Requirements: **Node.js 24** (the version CI and the Docker images use), **Docker Desktop**.
 
 ```bash
 make up      # full local stack: Postgres, Keycloak, Supabase services, web
