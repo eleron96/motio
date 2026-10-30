@@ -17,6 +17,7 @@ import {
 import {
   buildTaskCommentMentionCandidates,
 } from '@/shared/domain/taskCommentMentionCandidates';
+import { useTaskCommentsLiveSync } from '@/features/planner/hooks/useTaskCommentsLiveSync';
 import { CommentEditor } from './CommentEditor';
 import { TaskCommentItem } from './TaskCommentItem';
 
@@ -89,6 +90,8 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
 
     return () => { cancelled = true; };
   }, [refreshTaskCommentCounts, taskId, workspaceId]);
+
+  useTaskCommentsLiveSync(workspaceId, taskId, setComments);
 
   // ── load more (older) comments
   const handleLoadMore = async () => {

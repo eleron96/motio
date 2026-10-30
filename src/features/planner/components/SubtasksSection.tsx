@@ -102,6 +102,15 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
     return () => onEditingActiveChange?.(false);
   }, [isEditingActive, onEditingActiveChange]);
 
+  // A teammate deleted the subtask being edited: the row is gone, so close
+  // the edit instead of leaving an invisible one that still holds Escape.
+  const editingSubtaskExists = editingId === null || subtasks.some((subtask) => subtask.id === editingId);
+  useEffect(() => {
+    if (editingSubtaskExists) return;
+    setEditingId(null);
+    setEditingTitle('');
+  }, [editingSubtaskExists]);
+
   const startEditing = (subtaskId: string, title: string) => {
     setEditingId(subtaskId);
     setEditingTitle(title);

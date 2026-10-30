@@ -87,6 +87,22 @@ const mocks = vi.hoisted(() => ({
     updateTask: vi.fn(async () => ({})),
     updateTaskSubtaskCompletion: vi.fn(async () => ({})),
     updateTaskSubtaskTitle: vi.fn(async () => ({})),
+    revertTaskOwnEdits: vi.fn(async () => {}),
+  },
+  liveHandlers: [] as Array<{ table: string; onChange: (change: { type: string; rowId: string }) => void }>,
+}));
+
+vi.mock('@/infrastructure/tasks/openTaskLiveChannel', () => ({
+  subscribeToOpenTaskRows: (
+    table: string,
+    _taskId: string,
+    onChange: (change: { type: string; rowId: string }) => void,
+  ) => {
+    const handler = { table, onChange };
+    mocks.liveHandlers.push(handler);
+    return () => {
+      mocks.liveHandlers.splice(mocks.liveHandlers.indexOf(handler), 1);
+    };
   },
 }));
 

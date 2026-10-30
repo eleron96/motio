@@ -211,6 +211,31 @@ export const fetchTaskComments = async (
   };
 };
 
+/**
+ * One comment, for the open card following its feed live. `null` when it is
+ * gone or soft-deleted (the feed drops it then).
+ */
+export const fetchTaskCommentById = async (
+  workspaceId: string,
+  taskId: string,
+  commentId: string,
+): Promise<{ data: TaskComment | null } | { error: string }> => {
+  const { data, error } = await supabase
+    .from('task_comments')
+    .select(TASK_COMMENT_SELECT)
+    .eq('workspace_id', workspaceId)
+    .eq('task_id', taskId)
+    .eq('id', commentId)
+    .is('deleted_at', null)
+    .maybeSingle();
+
+  if (error) return { error: error.message };
+  if (!data) return { data: null };
+
+  const [comment] = await mapCommentRows([data as unknown as CommentRow]);
+  return { data: comment ?? null };
+};
+
 // ---------------------------------------------------------------------------
 // Create
 // ---------------------------------------------------------------------------

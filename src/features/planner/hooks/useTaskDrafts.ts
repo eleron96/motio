@@ -1,24 +1,17 @@
-import { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, MutableRefObject, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Task } from '@/features/planner/types/planner';
+import {
+  hasTaskOwnEditsToRevert,
+  recordTaskOwnEdits,
+  TaskOwnEdits,
+} from '@/shared/domain/taskOwnEdits';
 
 export const areArraysEqual = (left: string[], right: string[]) => {
   if (left.length !== right.length) return false;
   return left.every((value, index) => value === right[index]);
 };
 
-const areTasksEqual = (left: Task, right: Task) => (
-  left.title === right.title &&
-  left.projectId === right.projectId &&
-  areArraysEqual(left.assigneeIds, right.assigneeIds) &&
-  left.statusId === right.statusId &&
-  left.typeId === right.typeId &&
-  left.priority === right.priority &&
-  left.startDate === right.startDate &&
-  left.endDate === right.endDate &&
-  // Skip description comparison while it is being lazy-loaded.
-  (left.description === undefined || right.description === undefined || left.description === right.description) &&
-  areArraysEqual(left.tagIds, right.tagIds)
-);
+const NO_EDITS: TaskOwnEdits = {};
 
 interface UseTaskDraftsParams {
   task: Task | null | undefined;
@@ -26,7 +19,10 @@ interface UseTaskDraftsParams {
 }
 
 export interface UseTaskDraftsResult {
-  originalTaskRef: MutableRefObject<Task | null>;
+  /** This person's edits since the card opened — what Discard rolls back. */
+  ownEdits: TaskOwnEdits;
+  /** Call with the task as it was right before an edit we just saved. */
+  recordOwnEdits: (before: Task, updates: Partial<Task>) => void;
   titleDraftRef: MutableRefObject<string>;
   descriptionDraftRef: MutableRefObject<string>;
   draftTitle: string;
@@ -40,7 +36,10 @@ export const useTaskDrafts = ({
   task,
   selectedTaskId,
 }: UseTaskDraftsParams): UseTaskDraftsResult => {
-  const originalTaskRef = useRef<Task | null>(null);
+  const [ownEdits, setOwnEdits] = useState<{ taskId: string | null; edits: TaskOwnEdits }>({
+    taskId: null,
+    edits: {},
+  });
   const titleDraftRef = useRef('');
   const descriptionDraftRef = useRef('');
   const [draftTitle, setDraftTitle] = useState('');
@@ -51,27 +50,6 @@ export const useTaskDrafts = ({
   const initializedIdRef = useRef<string | null>(null);
   const lastSyncedTitleRef = useRef('');
   const lastSyncedDescriptionRef = useRef('');
-
-  useEffect(() => {
-    if (!selectedTaskId) {
-      originalTaskRef.current = null;
-      return;
-    }
-    if (originalTaskRef.current?.id === selectedTaskId) {
-      // Backfill description in originalRef when it was initially undefined (lazy-loaded).
-      if (originalTaskRef.current.description === undefined && task?.description !== undefined) {
-        originalTaskRef.current = { ...originalTaskRef.current, description: task.description };
-      }
-      return;
-    }
-    if (task) {
-      originalTaskRef.current = {
-        ...task,
-        assigneeIds: [...task.assigneeIds],
-        tagIds: [...task.tagIds],
-      };
-    }
-  }, [selectedTaskId, task]);
 
   useEffect(() => {
     if (!task || !selectedTaskId) {
@@ -121,13 +99,26 @@ export const useTaskDrafts = ({
     initializedIdRef.current = selectedTaskId;
   }, [task, selectedTaskId]);
 
-  const isDirty = useMemo(() => {
-    if (!task || !originalTaskRef.current) return false;
-    return !areTasksEqual(originalTaskRef.current, task);
-  }, [task]);
+  // Edits belong to the task they were made on: opening another task starts
+  // from a clean slate without a reset effect.
+  const currentEdits = ownEdits.taskId === selectedTaskId ? ownEdits.edits : NO_EDITS;
+
+  const recordOwnEdits = useCallback((before: Task, updates: Partial<Task>) => {
+    setOwnEdits((current) => ({
+      taskId: before.id,
+      edits: recordTaskOwnEdits(current.taskId === before.id ? current.edits : {}, before, updates),
+    }));
+  }, []);
+
+  // Dirty only while one of our own edits still stands. A teammate's change
+  // arriving through live sync is not ours to warn about or roll back.
+  const isDirty = useMemo(() => (
+    task ? hasTaskOwnEditsToRevert(currentEdits, task) : false
+  ), [currentEdits, task]);
 
   return {
-    originalTaskRef,
+    ownEdits: currentEdits,
+    recordOwnEdits,
     titleDraftRef,
     descriptionDraftRef,
     draftTitle,
