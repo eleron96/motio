@@ -1,3 +1,14 @@
+# The web container is recreated on every deploy. For the second it takes,
+# Caddy keeps retrying the connection instead of answering 502 at once —
+# uptime checks used to catch exactly that second as an incident.
+(web_upstream) {
+  lb_try_duration 15s
+  lb_try_interval 250ms
+  transport http {
+    keepalive_idle_conns_per_host 16
+  }
+}
+
 errors.motio.nikog.net {
   reverse_proxy glitchtip-web:8000
 }
@@ -82,9 +93,7 @@ motio.nikog.net {
 
     handle /auth* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
@@ -133,33 +142,25 @@ motio.nikog.net {
     # during initial page load (9+ concurrent requests).
     handle /assets* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /branding* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /favicon* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /logo.png {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
@@ -167,9 +168,7 @@ motio.nikog.net {
     # through the oauth2-proxy catch-all they would get the sign-in page instead.
     handle /og-image.png {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
@@ -178,9 +177,7 @@ motio.nikog.net {
     # fails registration. It carries no user data.
     handle /sw.js {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
@@ -188,90 +185,68 @@ motio.nikog.net {
     # adding the app to the Home Screen, so they must bypass oauth2-proxy.
     handle /manifest.json {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /pwa-icon-192.png {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /pwa-icon-512.png {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /apple-touch-icon.png {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /placeholder.svg {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /robots.txt {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /sitemap.xml {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /invite* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /privacy* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     # Public like /privacy: the landing footer links here for visitors without an account.
     handle /terms* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle /app* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
@@ -280,17 +255,13 @@ motio.nikog.net {
     # the whole "no signup" point of the demo.
     handle /demo* {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 
     handle / {
       reverse_proxy web:80 {
-        transport http {
-          keepalive_idle_conns_per_host 16
-        }
+        import web_upstream
       }
     }
 

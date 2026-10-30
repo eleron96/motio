@@ -7,6 +7,17 @@
   }
 }
 
+# The web container is recreated on every deploy. For the second it takes,
+# Caddy keeps retrying the connection instead of answering 502 at once —
+# uptime checks used to catch exactly that second as an incident.
+(web_upstream) {
+  lb_try_duration 15s
+  lb_try_interval 250ms
+  transport http {
+    keepalive_idle_conns_per_host 16
+  }
+}
+
 http://test.motio.nikog.net {
   header {
     Strict-Transport-Security "max-age=31536000; includeSubDomains"
@@ -65,7 +76,9 @@ http://test.motio.nikog.net {
     }
 
     handle /auth* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /rest/v1* {
@@ -89,87 +102,125 @@ http://test.motio.nikog.net {
     }
 
     handle /assets* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /branding* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /favicon* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /logo.png {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     # Link previews (LinkedIn, Telegram, Slack…) fetch the card without a session;
     # through the oauth2-proxy catch-all they would get the sign-in page instead.
     handle /og-image.png {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     # The push service worker must be served publicly as static JS: a service
     # worker script fetched through a redirect (the oauth2-proxy catch-all)
     # fails registration. It carries no user data.
     handle /sw.js {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     # PWA install assets: iOS fetches the manifest and icons without auth when
     # adding the app to the Home Screen, so they must bypass oauth2-proxy.
     handle /manifest.json {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /pwa-icon-192.png {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /pwa-icon-512.png {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /apple-touch-icon.png {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /placeholder.svg {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /robots.txt {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /sitemap.xml {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /invite* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /privacy* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     # Public like /privacy: the landing footer links here for visitors without an account.
     handle /terms* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /app* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle /demo* {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle / {
-      reverse_proxy web:80
+      reverse_proxy web:80 {
+        import web_upstream
+      }
     }
 
     handle {
