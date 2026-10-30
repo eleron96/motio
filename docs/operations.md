@@ -192,9 +192,12 @@ no integration tests. Check the pipeline separately after pushing:
 - **GitHub Releases publish themselves** when the working branch is merged into `main`:
   the `Release` workflow (`.github/workflows/release.yml`) runs
   `infra/scripts/release-publish.sh` on every push to `main`. It tags every version, but
-  creates a public GitHub Release only when the changelog section has real user-facing
-  content — one Release per version that reaches `main`. A Release that failed to publish
-  turns the run red: check `gh run list --workflow Release --limit 1` after the merge.
+  creates a public GitHub Release only when there is real user-facing content. The working
+  branch is merged into `main` when the owner decides to cut a release, not after every
+  deploy, so one Release collects every version deployed since the previous Release: its
+  notes are the changelog sections from the current version down to the last released one,
+  each under its own heading. A Release that failed to publish turns the run red: check
+  `gh run list --workflow Release --limit 1` after the merge.
 
   The manual path stays as a fallback (a retry, or Actions being down). Run it from
   `main`; it is idempotent and picks up a tag the workflow has already pushed:
