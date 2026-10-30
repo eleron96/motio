@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.35] - 2026-10-30
 ### Fixed
 - If a teammate changes a task while you have it open, their edits are no longer lost: closing it no longer shows a needless unsaved-changes warning, and Discard rolls back only your own edits. Subtasks and comments in an open task now update right away, without reopening it.
 
