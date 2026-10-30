@@ -139,6 +139,19 @@ describe('ImageLightbox from the task description', () => {
     expect(shown.style.transform).toContain('scale(1)');
   });
 
+  it('wheel events that arrive within one frame all count', () => {
+    const { image } = renderTaskCard();
+    const node = openLightbox(image);
+    const shown = node.querySelector('img') as HTMLImageElement;
+    const stage = shown.parentElement as HTMLElement;
+    act(() => {
+      stage.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }));
+      stage.dispatchEvent(new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }));
+    });
+    const scale = Number(/scale\(([\d.]+)\)/.exec(shown.style.transform)?.[1]);
+    expect(scale).toBeCloseTo(Math.exp(0.8), 3);
+  });
+
   it('on a phone it opens above the full-screen task and Back returns to it', async () => {
     const onTaskOpenChange = vi.fn();
     render(

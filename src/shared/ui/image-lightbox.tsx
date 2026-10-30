@@ -103,14 +103,24 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose }) 
     return { x: clientX - (rect.left + rect.width / 2), y: clientY - (rect.top + rect.height / 2) };
   }, []);
 
+  /**
+   * Multiplies the current scale. Applied to the latest state, not the last
+   * rendered one: a trackpad fires several wheel events within one frame.
+   */
+  const zoomBy = React.useCallback((factor: number, focus: Point = { x: 0, y: 0 }) => {
+    const sizes = measure();
+    if (!sizes) return;
+    setZoom((current) => zoomAt(current, current.scale * factor, focus, sizes.viewport, sizes.base));
+  }, [measure]);
+
   const zoomTo = React.useCallback((nextScale: number, focus: Point = { x: 0, y: 0 }) => {
     const sizes = measure();
     if (!sizes) return;
     setZoom((current) => zoomAt(current, nextScale, focus, sizes.viewport, sizes.base));
   }, [measure]);
 
-  const zoomIn = () => zoomTo(zoomRef.current.scale * ZOOM_STEP);
-  const zoomOut = () => zoomTo(zoomRef.current.scale / ZOOM_STEP);
+  const zoomIn = () => zoomBy(ZOOM_STEP);
+  const zoomOut = () => zoomBy(1 / ZOOM_STEP);
   const resetZoom = () => setZoom(RESTING_ZOOM);
 
   // Wheel and trackpad pinch (a wheel event with ctrlKey) zoom around the
@@ -122,11 +132,11 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose }) 
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
       const focus = toStagePoint(event.clientX, event.clientY);
-      zoomTo(zoomRef.current.scale * wheelZoomFactor(event.deltaY, event.deltaMode), focus);
+      zoomBy(wheelZoomFactor(event.deltaY, event.deltaMode), focus);
     };
     stage.addEventListener('wheel', handleWheel, { passive: false });
     return () => stage.removeEventListener('wheel', handleWheel);
-  }, [stageNode, toStagePoint, zoomTo]);
+  }, [stageNode, toStagePoint, zoomBy]);
 
   // A window resize or a phone rotation changes the room the picture has.
   React.useEffect(() => {
@@ -165,7 +175,12 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose }) 
       movedRef.current = false;
     }
     pointersRef.current.set(event.pointerId, point);
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    try {
+      // Keeps a drag going when the finger leaves the stage.
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Not an active pointer (a synthetic event): the gesture works without.
+    }
     if (pointersRef.current.size > 1) movedRef.current = true;
     beginGesture();
   };
