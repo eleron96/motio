@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Pictures in a task description or comment now open full screen and can be zoomed with the wheel, the buttons or a pinch on the phone. Escape, a click outside or Back returns you to the task.
+- Subtasks can now have pictures: add them from the subtask menu, the button next to the new subtask field, or by pasting a screenshot. They open full screen too.
+
 ## [0.10.35] - 2026-10-30
 ### Fixed
 - If a teammate changes a task while you have it open, their edits are no longer lost: closing it no longer shows a needless unsaved-changes warning, and Discard rolls back only your own edits. Subtasks and comments in an open task now update right away, without reopening it.
