@@ -31,6 +31,7 @@ const subtask: TaskSubtask = {
 
 const onEdit = vi.fn(async () => true);
 const onEditingActiveChange = vi.fn();
+const onCommitDraft = vi.fn();
 
 const Harness: React.FC = () => {
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -50,6 +51,7 @@ const Harness: React.FC = () => {
       onOpen={vi.fn()}
       onNewTitleChange={setNewSubtaskTitle}
       onAdd={vi.fn()}
+      onCommitDraft={onCommitDraft}
       onEdit={onEdit}
       onToggle={vi.fn()}
       onDelete={vi.fn()}
@@ -109,5 +111,32 @@ describe('SubtasksSection draft trimming', () => {
     await user.tab();
 
     expect(composer).toHaveValue('One\nTwo');
+  });
+});
+
+describe('SubtasksSection draft saving on blur', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('saves a typed draft when the composer loses focus', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.type(screen.getByPlaceholderText('Subtask title'), 'Call');
+    await user.tab();
+
+    expect(onCommitDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not save a blank draft on blur', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.type(screen.getByPlaceholderText('Subtask title'), '   ');
+    await user.tab();
+
+    expect(onCommitDraft).not.toHaveBeenCalled();
+    expect(screen.getByPlaceholderText('Subtask title')).toHaveValue('');
   });
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Task } from '@/features/planner/types/planner';
+import type { Task, TaskSubtask } from '@/features/planner/types/planner';
 
 vi.mock('@lingui/macro', () => ({
   t: (input: TemplateStringsArray | { message?: string }, ...values: unknown[]) => (
@@ -43,7 +43,7 @@ const mocks = vi.hoisted(() => ({
   plannerState: {
     assignees: [] as Array<{ id: string; isActive: boolean; name: string }>,
     createRepeats: vi.fn(async () => ({ created: 0 })),
-    createTaskSubtask: vi.fn(async () => ({ subtask: null })),
+    createTaskSubtask: vi.fn(async (): Promise<{ subtask: TaskSubtask | null }> => ({ subtask: null })),
     customers: [] as Array<{ id: string; name: string }>,
     deleteTask: vi.fn(async () => ({})),
     deleteTaskSeries: vi.fn(async () => ({})),
@@ -318,8 +318,6 @@ describe('TaskDetailPanel subtask Escape', () => {
 
     expect(composer).toHaveValue('');
     expect(mocks.plannerState.setSelectedTaskId).not.toHaveBeenCalled();
-    // A draft counts as unsaved work, so an unguarded Escape would pop the
-    // close confirmation instead of just emptying the field.
     expect(screen.queryByTestId('confirm-close')).not.toBeInTheDocument();
   });
 
@@ -332,5 +330,98 @@ describe('TaskDetailPanel subtask Escape', () => {
     await user.keyboard('{Escape}');
 
     expect(mocks.plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
+  });
+});
+
+describe('TaskDetailPanel subtask draft autosave', () => {
+  const createdSubtask: TaskSubtask = {
+    id: 'subtask-2',
+    taskId: 'task-1',
+    title: 'Call the client',
+    isDone: false,
+    doneAt: null,
+    position: 1,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask }];
+    mocks.plannerState.fetchTaskSubtasks = vi.fn(async () => ({
+      subtasks: [
+        {
+          id: 'subtask-1',
+          taskId: 'task-1',
+          title: 'Check the invoice',
+          isDone: false,
+          doneAt: null,
+          position: 0,
+        },
+      ],
+    }));
+    mocks.plannerState.createTaskSubtask = vi.fn(async () => ({ subtask: createdSubtask }));
+  });
+
+  it('saves the typed word as a subtask once the composer loses focus', async () => {
+    const user = userEvent.setup();
+
+    render(<TaskDetailPanel />);
+
+    const composer = await screen.findByPlaceholderText('Subtask title');
+    await user.type(composer, 'Call the client');
+    await user.tab();
+
+    await screen.findByRole('button', { name: 'Call the client' });
+    expect(mocks.plannerState.createTaskSubtask).toHaveBeenCalledTimes(1);
+    expect(mocks.plannerState.createTaskSubtask).toHaveBeenCalledWith(
+      'workspace-1',
+      'task-1',
+      'Call the client',
+      1,
+    );
+    expect(composer).toHaveValue('');
+  });
+
+  it('closes without a confirmation and saves the draft once on Done', async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = render(<TaskDetailPanel />);
+
+    await user.type(await screen.findByPlaceholderText('Subtask title'), 'Call the client');
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+
+    expect(mocks.plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
+    expect(screen.queryByTestId('confirm-close')).not.toBeInTheDocument();
+    unmount();
+    expect(mocks.plannerState.createTaskSubtask).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves a draft still in focus when the task is left', async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = render(<TaskDetailPanel />);
+
+    await user.type(await screen.findByPlaceholderText('Subtask title'), 'Call the client');
+    unmount();
+
+    expect(mocks.plannerState.createTaskSubtask).toHaveBeenCalledTimes(1);
+    expect(mocks.plannerState.createTaskSubtask).toHaveBeenCalledWith(
+      'workspace-1',
+      'task-1',
+      'Call the client',
+      1,
+    );
+  });
+
+  it('drops the draft cleared with Escape', async () => {
+    const user = userEvent.setup();
+
+    const { unmount } = render(<TaskDetailPanel />);
+
+    await user.type(await screen.findByPlaceholderText('Subtask title'), 'Call the client');
+    await user.keyboard('{Escape}');
+    unmount();
+
+    expect(mocks.plannerState.createTaskSubtask).not.toHaveBeenCalled();
   });
 });

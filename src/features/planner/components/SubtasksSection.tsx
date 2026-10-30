@@ -37,6 +37,11 @@ interface SubtasksSectionProps {
   onOpen: () => void;
   onNewTitleChange: (value: string) => void;
   onAdd: () => void;
+  /**
+   * Saves a typed draft when the composer loses focus, without pulling focus
+   * back into it — a word typed there is a subtask, not a draft to lose.
+   */
+  onCommitDraft: () => void;
   onEdit: (subtaskId: string, title: string) => Promise<boolean>;
   onToggle: (subtaskId: string, isDone: boolean) => void;
   onDelete: (subtaskId: string) => void;
@@ -65,6 +70,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onOpen,
   onNewTitleChange,
   onAdd,
+  onCommitDraft,
   onEdit,
   onToggle,
   onDelete,
@@ -251,11 +257,15 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
               event.preventDefault();
               onAdd();
             }}
-            onBlur={() => {
+            onBlur={(event) => {
+              // The window itself lost focus (another app, another tab): the
+              // field keeps it, so the draft stays a draft until the user is back.
+              if (event.currentTarget === document.activeElement) return;
               // Trailing blank lines never reach the saved subtask, so drop them
               // here instead of leaving the field stretched over empty rows.
               const trimmed = newSubtaskTitle.trim();
               if (trimmed !== newSubtaskTitle) onNewTitleChange(trimmed);
+              if (trimmed) onCommitDraft();
             }}
             rows={1}
             placeholder={t`Subtask title`}
@@ -266,6 +276,9 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
             type="button"
             variant="outline"
             className="h-9 shrink-0 px-3 text-xs"
+            // Keep focus in the composer: a blur would save the draft first and
+            // the field wouldn't get focus back for the next subtask.
+            onMouseDown={(event) => event.preventDefault()}
             onClick={onAdd}
             disabled={subtasksSaving || !newSubtaskTitle.trim()}
           >

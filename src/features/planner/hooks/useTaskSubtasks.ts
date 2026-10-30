@@ -1,5 +1,6 @@
 import { Dispatch, MutableRefObject, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
+import { toast } from '@/shared/ui/sonner';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { MutationResult } from '@/features/planner/store/plannerStore.helpers';
 
@@ -27,11 +28,15 @@ export interface UseTaskSubtasksResult {
   completedSubtasksCount: number;
   subtaskInputRef: MutableRefObject<HTMLTextAreaElement | null>;
   handleOpenSubtasks: () => void;
-  handleAddSubtask: () => Promise<void>;
+  handleAddSubtask: (options?: { refocus?: boolean }) => Promise<void>;
   handleEditSubtask: (subtaskId: string, title: string) => Promise<boolean>;
   handleToggleSubtask: (subtaskId: string, isDone: boolean) => Promise<void>;
   handleDeleteSubtask: (subtaskId: string) => Promise<void>;
 }
+
+const resolveNextSubtaskPosition = (subtasks: TaskSubtask[]) => (
+  subtasks.length > 0 ? Math.max(...subtasks.map((item) => item.position)) + 1 : 0
+);
 
 export const useTaskSubtasks = ({
   taskId,
@@ -50,6 +55,39 @@ export const useTaskSubtasks = ({
   const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const subtaskInputRef = useRef<HTMLTextAreaElement | null>(null);
+  // Which task a new subtask is being saved for right now, so a second save of
+  // the same draft (Enter, then the blur it causes) doesn't create it twice.
+  const addingForTaskIdRef = useRef<string | null>(null);
+  const activeTaskIdRef = useRef(taskId);
+  activeTaskIdRef.current = taskId;
+  // Latest values for the save that runs when the task is left (see below).
+  const draftTitleRef = useRef(newSubtaskTitle);
+  draftTitleRef.current = newSubtaskTitle;
+  const subtasksRef = useRef(subtasks);
+  subtasksRef.current = subtasks;
+  const canEditRef = useRef(canEdit);
+  canEditRef.current = canEdit;
+  const createTaskSubtaskRef = useRef(createTaskSubtask);
+  createTaskSubtaskRef.current = createTaskSubtask;
+
+  // Leaving a task (closing the panel, opening another one) must not lose a
+  // typed subtask: whatever is still in the composer is saved for the task it
+  // was typed in. Declared before the loading effect so this cleanup still
+  // sees the draft before that effect clears it.
+  useEffect(() => {
+    if (!taskId || !currentWorkspaceId) return;
+    return () => {
+      const title = draftTitleRef.current.trim();
+      if (!title || !canEditRef.current) return;
+      if (addingForTaskIdRef.current === taskId) return;
+      draftTitleRef.current = '';
+      const position = resolveNextSubtaskPosition(subtasksRef.current);
+      void createTaskSubtaskRef.current(currentWorkspaceId, taskId, title, position)
+        .then((result) => {
+          if (result.error || !result.subtask) toast.error(t`Failed to add subtask.`);
+        });
+    };
+  }, [currentWorkspaceId, taskId]);
 
   useEffect(() => {
     setSubtasksOpen(false);
@@ -100,19 +138,31 @@ export const useTaskSubtasks = ({
     }
   }, []);
 
-  const handleAddSubtask = useCallback(async () => {
+  const handleAddSubtask = useCallback(async ({ refocus = true }: { refocus?: boolean } = {}) => {
     if (!taskId || !currentWorkspaceId || !canEdit) return;
+    if (addingForTaskIdRef.current === taskId) return;
     const title = newSubtaskTitle.trim();
     if (!title) return;
 
-    const nextPosition = subtasks.length > 0
-      ? Math.max(...subtasks.map((item) => item.position)) + 1
-      : 0;
-
+    addingForTaskIdRef.current = taskId;
     setSubtasksSaving(true);
     setSubtasksError('');
 
-    const result = await createTaskSubtask(currentWorkspaceId, taskId, title, nextPosition);
+    const result = await createTaskSubtask(
+      currentWorkspaceId,
+      taskId,
+      title,
+      resolveNextSubtaskPosition(subtasks),
+    );
+    if (addingForTaskIdRef.current === taskId) addingForTaskIdRef.current = null;
+
+    // The panel moved on to another task (or closed) while this was saving:
+    // its state now belongs to that task, so only report a failure.
+    if (activeTaskIdRef.current !== taskId) {
+      if (result.error || !result.subtask) toast.error(t`Failed to add subtask.`);
+      return;
+    }
+
     if (result.error || !result.subtask) {
       setSubtasksError(result.error ?? t`Failed to add subtask.`);
       setSubtasksSaving(false);
@@ -123,7 +173,7 @@ export const useTaskSubtasks = ({
     setSubtasks((current) => [...current, createdSubtask]);
     setNewSubtaskTitle('');
     setSubtasksSaving(false);
-    subtaskInputRef.current?.focus();
+    if (refocus) subtaskInputRef.current?.focus();
   }, [canEdit, createTaskSubtask, currentWorkspaceId, newSubtaskTitle, subtasks, taskId]);
 
   const handleEditSubtask = useCallback(async (subtaskId: string, title: string) => {
