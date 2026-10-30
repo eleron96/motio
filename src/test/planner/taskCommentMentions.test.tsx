@@ -67,6 +67,10 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
   },
 }));
 
+vi.mock('@/infrastructure/tasks/openTaskLiveChannel', () => ({
+  subscribeToOpenTaskRows: () => () => {},
+}));
+
 vi.mock('@/infrastructure/tasks/taskCommentsRepository', () => ({
   COMMENT_MAX_PLAIN_LENGTH: 1000,
   fetchTaskComments: mocks.repo.fetchTaskComments,

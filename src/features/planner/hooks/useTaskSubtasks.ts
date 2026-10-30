@@ -1,6 +1,7 @@
 import { Dispatch, MutableRefObject, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
 import { toast } from '@/shared/ui/sonner';
+import { subscribeToOpenTaskRows } from '@/infrastructure/tasks/openTaskLiveChannel';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { MutationResult } from '@/features/planner/store/plannerStore.helpers';
 
@@ -33,6 +34,9 @@ export interface UseTaskSubtasksResult {
   handleToggleSubtask: (subtaskId: string, isDone: boolean) => Promise<void>;
   handleDeleteSubtask: (subtaskId: string) => Promise<void>;
 }
+
+/** Several changes in a row (a teammate ticking a few boxes) — one re-read. */
+const LIVE_REFETCH_DELAY_MS = 250;
 
 const resolveNextSubtaskPosition = (subtasks: TaskSubtask[]) => (
   subtasks.length > 0 ? Math.max(...subtasks.map((item) => item.position)) + 1 : 0
@@ -123,6 +127,34 @@ export const useTaskSubtasks = ({
     };
   }, [currentWorkspaceId, fetchTaskSubtasks, taskId]);
 
+  // A teammate's new, ticked, renamed or deleted subtask shows up while the
+  // card is open, instead of only after reopening it. The list is re-read
+  // rather than patched from the event, so it always matches the server.
+  useEffect(() => {
+    if (!taskId || !currentWorkspaceId) return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const refetch = async () => {
+      timer = null;
+      const result = await fetchTaskSubtasks(currentWorkspaceId, taskId);
+      if (!active || result.error) return;
+      setSubtasks(result.subtasks);
+      if (result.subtasks.length > 0) setSubtasksOpen(true);
+    };
+
+    const unsubscribe = subscribeToOpenTaskRows('task_subtasks', taskId, () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void refetch(), LIVE_REFETCH_DELAY_MS);
+    });
+
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+      unsubscribe();
+    };
+  }, [currentWorkspaceId, fetchTaskSubtasks, taskId]);
+
   const completedSubtasksCount = useMemo(
     () => subtasks.reduce((total, subtask) => total + (subtask.isDone ? 1 : 0), 0),
     [subtasks],
@@ -170,7 +202,10 @@ export const useTaskSubtasks = ({
     }
 
     const createdSubtask = result.subtask;
-    setSubtasks((current) => [...current, createdSubtask]);
+    // A live re-read may already have brought it in.
+    setSubtasks((current) => (
+      current.some((item) => item.id === createdSubtask.id) ? current : [...current, createdSubtask]
+    ));
     setNewSubtaskTitle('');
     setSubtasksSaving(false);
     if (refocus) subtaskInputRef.current?.focus();

@@ -87,6 +87,22 @@ const mocks = vi.hoisted(() => ({
     updateTask: vi.fn(async () => ({})),
     updateTaskSubtaskCompletion: vi.fn(async () => ({})),
     updateTaskSubtaskTitle: vi.fn(async () => ({})),
+    revertTaskOwnEdits: vi.fn(async () => {}),
+  },
+  liveHandlers: [] as Array<{ table: string; onChange: (change: { type: string; rowId: string }) => void }>,
+}));
+
+vi.mock('@/infrastructure/tasks/openTaskLiveChannel', () => ({
+  subscribeToOpenTaskRows: (
+    table: string,
+    _taskId: string,
+    onChange: (change: { type: string; rowId: string }) => void,
+  ) => {
+    const handler = { table, onChange };
+    mocks.liveHandlers.push(handler);
+    return () => {
+      mocks.liveHandlers.splice(mocks.liveHandlers.indexOf(handler), 1);
+    };
   },
 }));
 
@@ -139,18 +155,25 @@ vi.mock('@/features/planner/components/TaskDetailDialogs', () => ({
   TaskDetailAlerts: ({
     confirmOpen,
     onApplyPendingRepeatUpdate,
+    onDiscardAndClose,
     onSaveAndClose,
     repeatScopeOpen,
     repeatScopeOptions,
   }: {
     confirmOpen: boolean;
     onApplyPendingRepeatUpdate: (scope: 'single' | 'following' | 'all') => Promise<void> | void;
+    onDiscardAndClose: () => void;
     onSaveAndClose: () => Promise<void> | void;
     repeatScopeOpen: boolean;
     repeatScopeOptions?: Array<'single' | 'following' | 'all'>;
   }) => (
     <div>
       {confirmOpen && <span data-testid="confirm-close" />}
+      {confirmOpen && (
+        <button type="button" onClick={onDiscardAndClose}>
+          Discard
+        </button>
+      )}
       <button type="button" onClick={() => void onSaveAndClose()}>
         Save
       </button>
@@ -423,5 +446,84 @@ describe('TaskDetailPanel subtask draft autosave', () => {
     unmount();
 
     expect(mocks.plannerState.createTaskSubtask).not.toHaveBeenCalled();
+  });
+});
+
+describe('TaskDetailPanel teammate edits', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask }];
+    mocks.plannerState.fetchTaskSubtasks = vi.fn(async () => ({ subtasks: [] }));
+  });
+
+  it('closes without a warning when only a teammate changed the task', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<TaskDetailPanel />);
+    await screen.findByDisplayValue('Repeat task');
+
+    // Live sync brings in a teammate's status change.
+    mocks.plannerState.tasks = [{ ...baseTask, statusId: 'status-2' }];
+    rerender(<TaskDetailPanel />);
+    await user.keyboard('{Escape}');
+
+    expect(mocks.plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
+    expect(screen.queryByTestId('confirm-close')).not.toBeInTheDocument();
+  });
+
+  it('discards only our own edit, leaving the teammate change alone', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<TaskDetailPanel />);
+
+    const title = await screen.findByDisplayValue('Repeat task');
+    await user.clear(title);
+    await user.type(title, 'My title');
+    await user.tab();
+    expect(mocks.plannerState.updateTask).toHaveBeenCalledWith('task-1', { title: 'My title' }, 'single');
+
+    // Our save landed, and a teammate changed the status meanwhile.
+    mocks.plannerState.tasks = [{ ...baseTask, title: 'My title', statusId: 'status-2' }];
+    rerender(<TaskDetailPanel />);
+    await user.keyboard('{Escape}');
+    expect(screen.getByTestId('confirm-close')).toBeInTheDocument();
+    // The modal card hides the alerts mock from role queries.
+    fireEvent.click(screen.getByText('Discard'));
+
+    expect(mocks.plannerState.revertTaskOwnEdits).toHaveBeenCalledWith('task-1', {
+      title: { from: 'Repeat task', to: 'My title' },
+    });
+    // The old Discard wrote the whole opening snapshot back.
+    expect(mocks.plannerState.updateTask).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('TaskDetailPanel live subtasks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask }];
+  });
+
+  it('shows a subtask a teammate added while the card is open', async () => {
+    const teammateSubtask = {
+      id: 'subtask-9',
+      taskId: 'task-1',
+      title: 'Added by Sergey',
+      isDone: false,
+      doneAt: null,
+      position: 0,
+    };
+    mocks.plannerState.fetchTaskSubtasks = vi.fn()
+      .mockResolvedValueOnce({ subtasks: [] })
+      .mockResolvedValue({ subtasks: [teammateSubtask] });
+
+    render(<TaskDetailPanel />);
+    await screen.findByRole('button', { name: 'Add subtask' });
+
+    const handler = mocks.liveHandlers.find((item) => item.table === 'task_subtasks');
+    expect(handler).toBeDefined();
+    handler?.onChange({ type: 'INSERT', rowId: 'subtask-9' });
+
+    expect(await screen.findByRole('button', { name: 'Added by Sergey' })).toBeInTheDocument();
   });
 });

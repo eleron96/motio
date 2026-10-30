@@ -1,3 +1,4 @@
+import type { TaskOwnEdits } from '@/shared/domain/taskOwnEdits';
 import {
   Assignee,
   Customer,
@@ -98,6 +99,11 @@ export interface PlannerStore extends PlannerState {
   updateTask: (id: string, updates: Partial<Task>, scope?: RepeatTaskUpdateScope) => Promise<void>;
   /** Single-scope update that records an undo entry for status/priority/project changes. */
   updateTaskWithUndo: (id: string, updates: Partial<Task>) => Promise<void>;
+  /**
+   * Discard in the task card: rolls back only this person's edits, and only
+   * the ones a teammate hasn't overwritten since.
+   */
+  revertTaskOwnEdits: (id: string, edits: TaskOwnEdits) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   deleteTasks: (ids: string[]) => Promise<{ error?: string }>;
   duplicateTask: (id: string) => Promise<void>;

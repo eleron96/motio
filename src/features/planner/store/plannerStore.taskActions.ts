@@ -27,6 +27,7 @@ import {
   classifyDateChange,
   TaskUndoFieldValue,
 } from '@/shared/domain/taskUndo';
+import { resolveTaskOwnEditsRevert } from '@/shared/domain/taskOwnEdits';
 import type { Task } from '@/features/planner/types/planner';
 import type {
   PlannerGetState,
@@ -47,6 +48,7 @@ type TaskActions = Pick<
   | 'addTask'
   | 'updateTask'
   | 'updateTaskWithUndo'
+  | 'revertTaskOwnEdits'
   | 'deleteTask'
   | 'deleteTasks'
   | 'duplicateTask'
@@ -311,6 +313,60 @@ export const createTaskActions = (
       tasks: state.tasks.map((task) => (task.id === id ? updated : task)),
     }));
     scheduleTaskMediaCleanup(removedMediaIds);
+  },
+
+  revertTaskOwnEdits: async (id, edits) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return;
+
+    // First try against the task as live sync last delivered it. The write is
+    // conditional on that version (`updated_at`): if a teammate saved in the
+    // meantime, nothing is written, we re-read the row and decide again —
+    // a field they changed after us is then left alone.
+    let live = get().tasks.find((task) => task.id === id) ?? null;
+    for (let attempt = 0; attempt < 2 && live; attempt += 1) {
+      const restore = resolveTaskOwnEditsRevert(edits, live);
+      const payload = mapTaskUpdates(restore);
+      if (Object.keys(payload).length === 0) return;
+
+      let query = supabase
+        .from('tasks')
+        .update(payload)
+        .eq('id', id)
+        .eq('workspace_id', workspaceId);
+      if (live.updatedAt) query = query.eq('updated_at', live.updatedAt);
+
+      const { data, error } = await query.select('*');
+      if (error) {
+        get().reportTaskWriteFailure('save', 'revertTaskOwnEdits', error);
+        return;
+      }
+
+      const rows = (data ?? []) as TaskRow[];
+      if (rows.length > 0) {
+        applyUpdatedRows(rows);
+        scheduleTaskMediaCleanup(
+          'description' in restore && typeof live.description === 'string'
+            ? diffRemovedTaskMediaIds(live.description, restore.description ?? null)
+            : [],
+        );
+        return;
+      }
+
+      const { data: freshRow, error: freshError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .maybeSingle();
+      if (freshError) {
+        get().reportTaskWriteFailure('save', 'revertTaskOwnEdits', freshError);
+        return;
+      }
+      if (!freshRow) return;
+      applyUpdatedRows([freshRow as TaskRow]);
+      live = mapTaskRow(freshRow as TaskRow);
+    }
   },
 
   deleteTask: async (id) => {

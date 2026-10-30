@@ -114,6 +114,7 @@ export const TaskDetailPanel: React.FC = () => {
     tags,
     groupMode,
     updateTask,
+    revertTaskOwnEdits,
     deleteTaskDeferred,
     deleteTaskSeries,
     duplicateTask,
@@ -138,6 +139,7 @@ export const TaskDetailPanel: React.FC = () => {
     tags: state.tags,
     groupMode: state.groupMode,
     updateTask: state.updateTask,
+    revertTaskOwnEdits: state.revertTaskOwnEdits,
     deleteTaskDeferred: state.deleteTaskDeferred,
     deleteTaskSeries: state.deleteTaskSeries,
     duplicateTask: state.duplicateTask,
@@ -184,7 +186,8 @@ export const TaskDetailPanel: React.FC = () => {
   }, [descriptionLoading, taskId, fetchTaskDescription]);
 
   const {
-    originalTaskRef,
+    ownEdits,
+    recordOwnEdits,
     titleDraftRef,
     descriptionDraftRef,
     draftTitle, setDraftTitle,
@@ -382,6 +385,7 @@ export const TaskDetailPanel: React.FC = () => {
     if (canEdit && task && task.description !== undefined) {
       const pendingDescription = descriptionDraftRef.current || null;
       if (hasTaskUpdates(task, { description: pendingDescription })) {
+        recordOwnEdits(task, { description: pendingDescription });
         void updateTask(task.id, { description: pendingDescription }, 'single');
       }
     }
@@ -392,11 +396,9 @@ export const TaskDetailPanel: React.FC = () => {
   };
 
   const handleDiscardAndClose = () => {
-    const originalTask = originalTaskRef.current;
-    if (originalTask) {
-      const { id, ...updates } = originalTask;
-      updateTask(id, updates);
-    }
+    // Roll back only what this person changed here; a teammate's edits that
+    // live sync brought in meanwhile stay.
+    if (task) void revertTaskOwnEdits(task.id, ownEdits);
     setConfirmOpen(false);
     setSelectedTaskId(null);
   };
@@ -429,6 +431,7 @@ export const TaskDetailPanel: React.FC = () => {
       setRepeatScopeOpen(true);
       return;
     }
+    recordOwnEdits(task, updates);
     void updateTask(task.id, updates, 'single');
   };
 
@@ -443,6 +446,9 @@ export const TaskDetailPanel: React.FC = () => {
       const updates = scope === 'single'
         ? { ...(pending.updates ?? {}), repeatId: null }
         : (pending.updates ?? {});
+      // A series-wide change was confirmed in the scope dialog and spans other
+      // tasks, so Discard in this card doesn't roll it back.
+      if (scope === 'single' && task?.id === pending.taskId) recordOwnEdits(task, updates);
       await updateTask(pending.taskId, updates, scope);
       return;
     }
