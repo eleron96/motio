@@ -88,6 +88,7 @@ const mocks = vi.hoisted(() => ({
     updateTaskSubtaskCompletion: vi.fn(async () => ({})),
     updateTaskSubtaskTitle: vi.fn(async () => ({})),
     revertTaskOwnEdits: vi.fn(async () => {}),
+    saveTaskDescription: vi.fn(async (): Promise<'saved' | 'conflict' | 'failed'> => 'saved'),
   },
   liveHandlers: [] as Array<{ table: string; onChange: (change: { type: string; rowId: string }) => void }>,
 }));

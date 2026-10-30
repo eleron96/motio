@@ -165,29 +165,31 @@ export interface FetchCommentsResult {
 }
 
 // ---------------------------------------------------------------------------
-// Fetch (paginated, old → new, with profiles join)
+// Fetch (paginated: newest page first, shown old → new, with profiles join)
 // ---------------------------------------------------------------------------
 
+/**
+ * One page of a task's comments: the `limit` newest ones, or with `cursor`
+ * the `limit` just older than it. Returned oldest first, as the feed shows
+ * them; `nextCursor` is the oldest loaded comment's time while older ones
+ * remain. (It used to take the oldest page, so past the 20th comment the
+ * newest were never shown and "load older" found nothing.)
+ */
 export const fetchTaskComments = async (
   workspaceId: string,
   taskId: string,
   cursor?: string | null,
   limit = COMMENT_PAGE_SIZE,
 ): Promise<{ data: FetchCommentsResult } | { error: string }> => {
-  // We JOIN profiles to get the live display_name.
-  // Supabase PostgREST supports embedded resource selects for FK relations.
   let query = supabase
     .from('task_comments')
     .select(TASK_COMMENT_SELECT)
     .eq('workspace_id', workspaceId)
     .eq('task_id', taskId)
     .is('deleted_at', null)
-    .order('created_at', { ascending: true })
-    .limit(limit + 1); // fetch one extra to detect if more pages exist
+    .order('created_at', { ascending: false })
+    .limit(limit + 1); // one extra tells whether an older page exists
 
-  // Cursor: only fetch comments created after the cursor (for "load more older")
-  // We actually load old→new and want to load *more* items (going back in time).
-  // The cursor represents the earliest createdAt we have loaded so far.
   if (cursor) {
     query = query.lt('created_at', cursor);
   }
@@ -199,7 +201,7 @@ export const fetchTaskComments = async (
   const rows = (data ?? []) as CommentRow[];
 
   const hasMore = rows.length > limit;
-  const pageRows = hasMore ? rows.slice(0, limit) : rows;
+  const pageRows = (hasMore ? rows.slice(0, limit) : rows).reverse();
 
   const comments = await mapCommentRows(pageRows);
 

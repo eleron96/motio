@@ -105,17 +105,7 @@ describe('taskCommentsRepository', () => {
                     order: () => ({
                       limit: () => Promise.resolve({
                         data: [
-                          {
-                            id: 'comment-1',
-                            task_id: 'task-1',
-                            author_id: 'user-1',
-                            author_display_name_snapshot: 'Snapshot User',
-                            content: '<p>Hello</p>',
-                            mentioned_user_ids: ['user-2'],
-                            created_at: '2026-03-14T10:00:00.000Z',
-                            updated_at: '2026-03-14T10:00:00.000Z',
-                            deleted_at: null,
-                          },
+                          // Newest first, as the query orders them.
                           {
                             id: 'comment-2',
                             task_id: 'task-1',
@@ -125,6 +115,17 @@ describe('taskCommentsRepository', () => {
                             mentioned_user_ids: [],
                             created_at: '2026-03-14T10:01:00.000Z',
                             updated_at: '2026-03-14T10:01:00.000Z',
+                            deleted_at: null,
+                          },
+                          {
+                            id: 'comment-1',
+                            task_id: 'task-1',
+                            author_id: 'user-1',
+                            author_display_name_snapshot: 'Snapshot User',
+                            content: '<p>Hello</p>',
+                            mentioned_user_ids: ['user-2'],
+                            created_at: '2026-03-14T10:00:00.000Z',
+                            updated_at: '2026-03-14T10:00:00.000Z',
                             deleted_at: null,
                           },
                         ],

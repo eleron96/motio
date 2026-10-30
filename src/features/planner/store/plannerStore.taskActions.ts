@@ -29,6 +29,8 @@ import {
   TaskUndoFieldValue,
 } from '@/shared/domain/taskUndo';
 import { resolveTaskOwnEditsRevert } from '@/shared/domain/taskOwnEdits';
+import { sha256Hex } from '@/shared/lib/textHash';
+import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
 import type { Task } from '@/features/planner/types/planner';
 import type {
   PlannerGetState,
@@ -50,6 +52,7 @@ type TaskActions = Pick<
   | 'updateTask'
   | 'updateTaskWithUndo'
   | 'revertTaskOwnEdits'
+  | 'saveTaskDescription'
   | 'deleteTask'
   | 'deleteTasks'
   | 'duplicateTask'
@@ -384,6 +387,69 @@ export const createTaskActions = (
       applyUpdatedRows([freshRow as TaskRow]);
       live = mapTaskRow(freshRow as TaskRow);
     }
+  },
+
+  saveTaskDescription: async (id, description, baseDescription, options = {}) => {
+    const workspaceId = get().workspaceId;
+    if (!workspaceId) return 'failed';
+
+    // Only pictures that were in the text we edited and are gone from ours
+    // may be cleaned up — a teammate's pictures never were ours to drop.
+    const removedMediaIds = diffRemovedTaskMediaIds(baseDescription ?? '', description);
+
+    // The sandbox has no RPCs; a plain write is the whole story there.
+    if (options.force || isDemoRoute()) {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({ description })
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .select('*');
+      const forcedRows = (data ?? []) as TaskRow[];
+      if (error || forcedRows.length === 0) {
+        // No row back: the task is gone or this person may no longer edit it.
+        get().reportTaskWriteFailure('save', 'saveTaskDescription', error ?? { message: 'no row updated' });
+        return 'failed';
+      }
+      applyUpdatedRows(forcedRows);
+      scheduleTaskMediaCleanup(removedMediaIds);
+      return 'saved';
+    }
+
+    const { data, error } = await supabase.rpc('update_task_description_if_unchanged', {
+      target_task_id: id,
+      expected_description_sha256: await sha256Hex(baseDescription ?? ''),
+      new_description: description,
+    });
+    if (error) {
+      get().reportTaskWriteFailure('save', 'saveTaskDescription', error);
+      return 'failed';
+    }
+
+    const rows = (data ?? []) as TaskRow[];
+    if (rows.length === 0) {
+      // Nothing written. Either somebody saved another description meanwhile
+      // — bring theirs into the store (live sync may not have yet) so the
+      // card can offer it — or the row is out of reach (deleted, or editing
+      // rights gone), which is a failure, not a teammate's change.
+      const { data: freshRow, error: freshError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .maybeSingle();
+      const fresh = freshRow as TaskRow | null;
+      if (freshError || !fresh || (fresh.description ?? '') === (baseDescription ?? '')) {
+        get().reportTaskWriteFailure('save', 'saveTaskDescription', freshError ?? { message: 'no row updated' });
+        return 'failed';
+      }
+      applyUpdatedRows([fresh]);
+      return 'conflict';
+    }
+
+    applyUpdatedRows(rows);
+    scheduleTaskMediaCleanup(removedMediaIds);
+    return 'saved';
   },
 
   deleteTask: async (id) => {

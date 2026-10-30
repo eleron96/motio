@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
@@ -118,6 +118,7 @@ export const TaskDetailPanel: React.FC = () => {
     groupMode,
     updateTask,
     revertTaskOwnEdits,
+    saveTaskDescription,
     deleteTaskDeferred,
     deleteTaskSeries,
     duplicateTask,
@@ -145,6 +146,7 @@ export const TaskDetailPanel: React.FC = () => {
     groupMode: state.groupMode,
     updateTask: state.updateTask,
     revertTaskOwnEdits: state.revertTaskOwnEdits,
+    saveTaskDescription: state.saveTaskDescription,
     deleteTaskDeferred: state.deleteTaskDeferred,
     deleteTaskSeries: state.deleteTaskSeries,
     duplicateTask: state.duplicateTask,
@@ -197,6 +199,10 @@ export const TaskDetailPanel: React.FC = () => {
     recordOwnEdits,
     titleDraftRef,
     descriptionDraftRef,
+    descriptionBaseRef,
+    adoptDescription,
+    markDescriptionSaved,
+    forgetOwnEdits,
     draftTitle, setDraftTitle,
     draftDescription, setDraftDescription,
     isDirty,
@@ -297,7 +303,105 @@ export const TaskDetailPanel: React.FC = () => {
     const updated = formatTimestampLabel(taskUpdatedAt, now, locale);
     return t`Created ${created} · updated ${updated}`;
   }, [taskCreatedAt, taskUpdatedAt]);
+  // The description is saved only over the text the person started from; a
+  // teammate's newer one is never overwritten silently (migration 0162).
+  // Repeating tasks keep the scope dialog's path, which writes the series.
+  const [descriptionConflict, setDescriptionConflict] = useState(false);
+  const descriptionConflictRef = useRef<HTMLDivElement | null>(null);
+  // Saves run one after another, each checked against the base the previous
+  // one left: a second save started while the first is in flight would
+  // otherwise be checked against the old base and look like a teammate's.
+  const descriptionSaveChainRef = useRef<Promise<unknown>>(Promise.resolve());
+  const descriptionInFlightRef = useRef<{ text: string | null; promise: Promise<'saved' | 'conflict' | 'failed'> } | null>(null);
+  const selectedTaskIdRef = useRef(selectedTaskId);
+  selectedTaskIdRef.current = selectedTaskId;
+  const taskRef = useRef(task);
+  taskRef.current = task;
+  useEffect(() => {
+    setDescriptionConflict(false);
+    descriptionInFlightRef.current = null;
+  }, [selectedTaskId]);
+
+  const descriptionSavesConditionally = Boolean(task && !task.repeatId);
+  const isDescriptionDraftPending = () => (
+    Boolean(task && task.description !== undefined)
+    && (descriptionDraftRef.current || '') !== (descriptionBaseRef.current || '')
+  );
+
+  const saveDescriptionDraft = (options: { force?: boolean } = {}): Promise<'saved' | 'conflict' | 'failed'> => {
+    if (!canEdit || !task || task.description === undefined) return Promise.resolve('saved');
+    const taskIdAtCall = task.id;
+    const next = descriptionDraftRef.current || null;
+    // Blur and Done can both ask for the same text; one request answers both.
+    const inFlight = descriptionInFlightRef.current;
+    if (!options.force && inFlight && inFlight.text === next) return inFlight.promise;
+
+    const run = async (): Promise<'saved' | 'conflict' | 'failed'> => {
+      if (selectedTaskIdRef.current !== taskIdAtCall) return 'saved';
+      // Read the base only now, after any earlier save has moved it.
+      const base = descriptionBaseRef.current || null;
+      if (!options.force && (next ?? '') === (base ?? '')) return 'saved';
+      const before = taskRef.current;
+      const result = await saveTaskDescription(taskIdAtCall, next, base, options);
+      // The card moved on to another task: this answer is not its business.
+      if (selectedTaskIdRef.current !== taskIdAtCall) return result;
+      if (result === 'saved') {
+        markDescriptionSaved(next || '');
+        // Own edit from what was really overwritten: our base, or with
+        // "Keep mine" the teammate's text — so Discard brings that back.
+        if (before) {
+          recordOwnEdits(
+            { ...before, description: options.force ? (before.description ?? null) : base },
+            { description: next },
+          );
+        }
+        setDescriptionConflict(false);
+      } else if (result === 'conflict') {
+        setDescriptionConflict(true);
+      }
+      return result;
+    };
+    const promise = descriptionSaveChainRef.current.then(run, run);
+    descriptionSaveChainRef.current = promise.catch(() => undefined);
+    descriptionInFlightRef.current = { text: next, promise };
+    void promise.finally(() => {
+      if (descriptionInFlightRef.current?.promise === promise) descriptionInFlightRef.current = null;
+    });
+    return promise;
+  };
+
+  const takeTeammateDescription = () => {
+    adoptDescription(taskRef.current?.description || '');
+    // Their text is now what we start from: Discard must not roll it back.
+    forgetOwnEdits(['description']);
+    setDescriptionConflict(false);
+  };
+
+  // Closing is held while the description conflict is open; say why instead
+  // of a close button that silently does nothing.
+  const pointAtDescriptionConflict = () => {
+    const banner = descriptionConflictRef.current;
+    banner?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    banner?.querySelector<HTMLButtonElement>('button')?.focus();
+  };
+
   const requestClose = () => {
+    if (descriptionSavesConditionally && (descriptionConflict || isDescriptionDraftPending())) {
+      // Unsaved description text: save it first, and stay open if a teammate
+      // changed the description meanwhile — the banner asks what to keep.
+      if (descriptionConflict) {
+        pointAtDescriptionConflict();
+        return;
+      }
+      void saveDescriptionDraft().then((result) => {
+        if (result === 'saved') closeIfClean();
+      });
+      return;
+    }
+    closeIfClean();
+  };
+
+  const closeIfClean = () => {
     // A subtask edit in progress also counts as unsaved work — warn before
     // closing so the changes aren't lost. A typed new-subtask draft doesn't:
     // leaving the task saves it as a subtask (useTaskSubtasks).
@@ -399,7 +503,14 @@ export const TaskDetailPanel: React.FC = () => {
     // moving focus away from the editor.
     // Guard: only flush when description has already been lazy-loaded
     // (undefined means "not yet fetched" — flushing null would corrupt the DB).
-    if (canEdit && task && task.description !== undefined) {
+    if (descriptionSavesConditionally) {
+      if (descriptionConflict) {
+        pointAtDescriptionConflict();
+        return;
+      }
+      const saved = await saveDescriptionDraft();
+      if (saved !== 'saved') return;
+    } else if (canEdit && task && task.description !== undefined) {
       const pendingDescription = descriptionDraftRef.current || null;
       if (hasTaskUpdates(task, { description: pendingDescription })) {
         recordOwnEdits(task, { description: pendingDescription });
@@ -701,6 +812,32 @@ export const TaskDetailPanel: React.FC = () => {
             {descriptionDrafts.map((entry) => (
               <TeammateDraftLine key={entry.userId} entry={entry} />
             ))}
+            {descriptionConflict && (
+              <div
+                ref={descriptionConflictRef}
+                role="alert"
+                className="space-y-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100"
+              >
+                <p>{t`Someone changed the description while you were writing. Your text is kept here.`}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={takeTeammateDescription}
+                  >
+                    {t`Show their version`}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => void saveDescriptionDraft({ force: true })}
+                  >
+                    {t`Keep mine`}
+                  </Button>
+                </div>
+              </div>
+            )}
             {descriptionLoading ? (
               <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground animate-pulse" />
             ) : (
@@ -728,7 +865,8 @@ export const TaskDetailPanel: React.FC = () => {
                       setDraftDescription(nextDescription);
                     }}
                     onBlur={() => {
-                      requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
+                      if (descriptionSavesConditionally) void saveDescriptionDraft();
+                      else requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
                     }}
                     placeholder={t`Add a description...`}
                     disabled={isReadOnly}

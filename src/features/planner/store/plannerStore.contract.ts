@@ -105,6 +105,19 @@ export interface PlannerStore extends PlannerState {
    * the ones a teammate hasn't overwritten since.
    */
   revertTaskOwnEdits: (id: string, edits: TaskOwnEdits) => Promise<void>;
+  /**
+   * Saves a task card's description only while the stored one is still
+   * `baseDescription` (what the person started from); 'conflict' means a
+   * teammate changed it meanwhile and nothing was written. `force` writes
+   * anyway. Pictures are cleaned up against the base, never against a
+   * teammate's text.
+   */
+  saveTaskDescription: (
+    id: string,
+    description: string | null,
+    baseDescription: string | null,
+    options?: { force?: boolean },
+  ) => Promise<'saved' | 'conflict' | 'failed'>;
   deleteTask: (id: string) => Promise<void>;
   deleteTasks: (ids: string[]) => Promise<{ error?: string }>;
   duplicateTask: (id: string) => Promise<void>;
