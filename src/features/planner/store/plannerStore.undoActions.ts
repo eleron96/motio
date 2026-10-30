@@ -3,6 +3,7 @@ import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
 import { mapTaskRow } from '@/shared/domain/taskRowMapper';
 import { extractTaskMediaIds } from '@/shared/domain/taskMediaIds';
 import {
+  collectSubtaskMediaIds,
   deleteTaskMediaBatch,
   filterOrphanTaskMediaIds,
 } from '@/infrastructure/tasks/taskMediaRepository';
@@ -147,6 +148,11 @@ export const createUndoActions = (
           typeof row.description === 'string' ? extractTaskMediaIds(row.description) : []
         ));
     }
+    // Subtasks go with the task, and their pictures with them.
+    mediaIds = Array.from(new Set([
+      ...mediaIds,
+      ...await collectSubtaskMediaIds(pending.workspaceId, taskIds),
+    ]));
 
     const { error } = await supabase
       .from('tasks')

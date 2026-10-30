@@ -1,6 +1,6 @@
-import React, { MutableRefObject, useEffect, useState } from 'react';
+import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
-import { MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ImagePlus, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -23,6 +23,15 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { cn } from '@/shared/lib/classNames';
 import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
+import { SubtaskImageStrip } from '@/features/planner/components/SubtaskImages';
+import { pastedImageFiles } from '@/features/planner/lib/pastedImageFiles';
+import {
+  SUBTASK_DRAFT_IMAGES_KEY,
+  SubtaskImagesController,
+} from '@/features/planner/hooks/useSubtaskImages';
+import { MAX_SUBTASK_IMAGES } from '@/shared/domain/taskSubtaskImages';
+import { ImageLightbox } from '@/shared/ui/image-lightbox';
+import type { LightboxImage } from '@/shared/lib/lightboxImage';
 
 interface SubtasksSectionProps {
   isReadOnly: boolean;
@@ -55,6 +64,8 @@ interface SubtasksSectionProps {
    * Escape from closing the panel instead of just cancelling that edit.
    */
   onEditingActiveChange?: (active: boolean) => void;
+  /** Pictures on subtasks; without it the list is text-only. */
+  images?: SubtaskImagesController;
 }
 
 export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
@@ -76,8 +87,28 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onDelete,
   onEditingDirtyChange,
   onEditingActiveChange,
+  images,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  // Which subtask the file picker was opened for; null = the new subtask.
+  const imageTargetRef = useRef<string | null>(null);
+  const canAttachImages = Boolean(images?.canAttach) && !isReadOnly;
+  const draftImages = images?.draftImages ?? [];
+
+  const pickImages = (subtaskId: string | null) => {
+    imageTargetRef.current = subtaskId;
+    imageInputRef.current?.click();
+  };
+
+  const handleImagePaste = (subtaskId: string | null) => (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!canAttachImages || !images) return;
+    const files = pastedImageFiles(event.clipboardData);
+    if (files.length === 0) return;
+    event.preventDefault();
+    images.attach(subtaskId, files);
+  };
   const [editingTitle, setEditingTitle] = useState('');
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
@@ -174,9 +205,11 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                 }}
                 disabled={isReadOnly || editingId === subtask.id}
               />
+              <div className="min-w-0 flex-1 space-y-1.5">
               {editingId === subtask.id ? (
                 <AutoGrowTextarea
                   autoFocus
+                  onPaste={handleImagePaste(subtask.id)}
                   value={editingTitle}
                   onChange={(event) => setEditingTitle(event.target.value)}
                   onKeyDown={(event) => {
@@ -192,7 +225,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   onBlur={() => void commitEditing(subtask.id)}
                   disabled={isReadOnly}
                   rows={2}
-                  className="min-h-[56px] flex-1 text-sm"
+                  className="min-h-[56px] w-full text-sm"
                 />
               ) : (
                 <button
@@ -203,7 +236,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   }}
                   disabled={isReadOnly}
                   className={cn(
-                    'flex-1 whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]',
+                    'w-full whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]',
                     !isReadOnly && 'cursor-text',
                     subtask.isDone && 'line-through text-muted-foreground',
                   )}
@@ -211,6 +244,17 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   {subtask.title}
                 </button>
               )}
+              {images && (
+                <SubtaskImageStrip
+                  images={subtask.images}
+                  uploadingCount={images.uploading[subtask.id] ?? 0}
+                  resolveSrc={images.resolveSrc}
+                  canRemove={canAttachImages}
+                  onOpen={setLightboxImage}
+                  onRemove={(mediaId) => images.remove(subtask.id, mediaId)}
+                />
+              )}
+              </div>
               {editingId !== subtask.id && !isReadOnly && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -229,6 +273,12 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                       <Pencil className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
                       {t`Edit`}
                     </DropdownMenuItem>
+                    {canAttachImages && subtask.images.length < MAX_SUBTASK_IMAGES && (
+                      <DropdownMenuItem onSelect={() => pickImages(subtask.id)}>
+                        <ImagePlus className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                        {t`Add image`}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
                       onSelect={(event) => {
@@ -247,18 +297,31 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
         </div>
       )}
 
+      {!isReadOnly && images && (
+        <SubtaskImageStrip
+          images={draftImages}
+          uploadingCount={images.uploading[SUBTASK_DRAFT_IMAGES_KEY] ?? 0}
+          resolveSrc={images.resolveSrc}
+          canRemove={canAttachImages}
+          onOpen={setLightboxImage}
+          onRemove={(mediaId) => images.remove(null, mediaId)}
+        />
+      )}
+
       {!isReadOnly && (
         <div className="flex items-start gap-2 pt-0.5">
           <AutoGrowTextarea
             ref={subtaskInputRef}
             value={newSubtaskTitle}
             onChange={(event) => onNewTitleChange(event.target.value)}
+            onPaste={handleImagePaste(null)}
             onKeyDown={(event) => {
-              // Escape drops the draft; the task panel keeps that key from
-              // closing the whole task while a draft is unsent.
-              if (event.key === 'Escape' && newSubtaskTitle !== '') {
+              // Escape drops the draft (its pictures too); the task panel keeps
+              // that key from closing the whole task while a draft is unsent.
+              if (event.key === 'Escape' && (newSubtaskTitle !== '' || draftImages.length > 0)) {
                 event.preventDefault();
                 onNewTitleChange('');
+                images?.discardDraftImages();
                 return;
               }
               // Enter adds the subtask; Shift+Enter inserts a newline.
@@ -281,6 +344,22 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
             disabled={subtasksSaving}
             className="min-h-[36px] flex-1 text-sm"
           />
+          {canAttachImages && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground"
+              // Keep focus (and the typed draft) in the composer.
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => pickImages(null)}
+              disabled={subtasksSaving || draftImages.length >= MAX_SUBTASK_IMAGES}
+              aria-label={t`Add image`}
+              title={t`Add image`}
+            >
+              <ImagePlus className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -296,6 +375,24 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
           </Button>
         </div>
       )}
+
+      {canAttachImages && (
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          data-testid="subtask-image-input"
+          onChange={(event) => {
+            const files = Array.from(event.target.files ?? []);
+            event.target.value = '';
+            if (files.length > 0) images?.attach(imageTargetRef.current, files);
+          }}
+        />
+      )}
+
+      <ImageLightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
 
       <AlertDialog
         open={pendingDeleteId !== null}

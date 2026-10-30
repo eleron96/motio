@@ -10,6 +10,8 @@ const supabaseMocks = vi.hoisted(() => ({
 const mediaMocks = vi.hoisted(() => ({
   deleteTaskMedia: vi.fn(async () => true),
   deleteTaskMediaBatch: vi.fn(async () => undefined),
+  /** Pictures on the subtasks of each task (task_subtasks.images). */
+  subtaskMediaByTask: {} as Record<string, string[]>,
 }));
 
 vi.mock('@/shared/lib/supabaseClient', () => ({
@@ -25,6 +27,11 @@ vi.mock('@/infrastructure/tasks/taskMediaRepository', () => ({
   // кандидатов, так что ассерты про deleteTaskMediaBatch остаются прежними.
   filterOrphanTaskMediaIds: vi.fn(
     async (_workspaceId: string, candidateIds: string[]) => candidateIds,
+  ),
+  collectSubtaskMediaIds: vi.fn(
+    async (_workspaceId: string, taskIds: string[]) => (
+      taskIds.flatMap((taskId) => mediaMocks.subtaskMediaByTask[taskId] ?? [])
+    ),
   ),
 }));
 
@@ -151,6 +158,27 @@ const makeStoreHarness = (rows: TaskRow[]) => {
 describe('plannerStore task-media garbage collection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mediaMocks.subtaskMediaByTask = {};
+  });
+
+  it('deleteTask also releases the pictures of its subtasks', async () => {
+    const rows = [baseRow({ id: 'task-1', description: mediaUrl('m1') })];
+    mediaMocks.subtaskMediaByTask = { 'task-1': ['s1', 's2'] };
+    const { actions } = makeStoreHarness(rows);
+
+    await actions.deleteTask('task-1');
+
+    expect(mediaMocks.deleteTaskMediaBatch).toHaveBeenCalledTimes(1);
+    const argument = (mediaMocks.deleteTaskMediaBatch.mock.calls[0] as unknown[])[0] as string[];
+    expect([...argument].sort()).toEqual(['m1', 's1', 's2']);
+  });
+
+  it('releaseTaskMedia hands dropped subtask pictures to media GC', async () => {
+    const { actions } = makeStoreHarness([baseRow({ id: 'task-1' })]);
+
+    actions.releaseTaskMedia(['s1']);
+
+    await vi.waitFor(() => expect(mediaMocks.deleteTaskMediaBatch).toHaveBeenCalledWith(['s1']));
   });
 
   it('deleteTask removes orphaned task-media after successful delete', async () => {

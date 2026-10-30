@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/lib/supabaseClient';
 import { extractTaskMediaIds } from '@/shared/domain/taskMediaIds';
+import { parseTaskSubtaskImages, TaskSubtaskImage } from '@/shared/domain/taskSubtaskImages';
 
 const trimTrailingSlash = (v: string) => v.replace(/\/+$/, '');
 const UTF8_HEADER_PREFIX = 'utf8:';
@@ -10,12 +11,21 @@ const encodeFileNameHeader = (fileName: string) => {
   return `${UTF8_HEADER_PREFIX}${encodeURIComponent(normalized)}`;
 };
 
+const resolveSupabaseUrl = () => trimTrailingSlash(
+  (import.meta.env.VITE_SUPABASE_URL ?? '').trim(),
+);
+
+/** View URL of an uploaded picture — what an <img src> needs. */
+export const buildTaskMediaUrl = (image: TaskSubtaskImage): string => (
+  `${resolveSupabaseUrl()}/functions/v1/task-media/${encodeURIComponent(image.id)}?token=${encodeURIComponent(image.token)}`
+);
+
 /**
  * Uploads an image file to the task-media Supabase Function.
- * Returns the public download URL (includes a signed token).
+ * Returns the stored media reference (id + view token).
  * Throws an Error with a human-readable message on failure.
  */
-export const uploadTaskMedia = async (workspaceId: string, file: File): Promise<string> => {
+export const uploadTaskMediaFile = async (workspaceId: string, file: File): Promise<TaskSubtaskImage> => {
   const wsId = workspaceId.trim();
   if (!wsId) throw new Error('Workspace is not selected.');
 
@@ -48,8 +58,16 @@ export const uploadTaskMedia = async (workspaceId: string, file: File): Promise<
     throw new Error('Invalid upload response.');
   }
 
-  return `${supabaseUrl}/functions/v1/task-media/${encodeURIComponent(payload.id)}?token=${encodeURIComponent(payload.token)}`;
+  return { id: payload.id, token: payload.token };
 };
+
+/**
+ * Uploads an image file to the task-media Supabase Function.
+ * Returns the public download URL (includes a signed token).
+ */
+export const uploadTaskMedia = async (workspaceId: string, file: File): Promise<string> => (
+  buildTaskMediaUrl(await uploadTaskMediaFile(workspaceId, file))
+);
 
 /**
  * Deletes a single task-media record (and its Storage blob) via the edge function.
@@ -86,8 +104,38 @@ export const deleteTaskMedia = async (mediaId: string): Promise<boolean> => {
 };
 
 /**
+ * Every picture the subtasks of these tasks show — collected before the tasks
+ * are deleted, since the subtasks go with them. On a read failure nothing is
+ * collected: the blobs stay rather than risk deleting a live picture.
+ */
+export const collectSubtaskMediaIds = async (
+  workspaceId: string,
+  taskIds: string[],
+): Promise<string[]> => {
+  const wsId = workspaceId.trim();
+  const ids = Array.from(new Set(taskIds.filter(Boolean)));
+  if (!wsId || ids.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('task_subtasks')
+    .select('images')
+    .eq('workspace_id', wsId)
+    .in('task_id', ids);
+
+  if (error) {
+    console.warn('[taskMedia] subtask media lookup failed — keeping blobs', { error });
+    return [];
+  }
+
+  return Array.from(new Set(
+    ((data ?? []) as Array<{ images: unknown }>)
+      .flatMap((row) => parseTaskSubtaskImages(row.images).map((image) => image.id)),
+  ));
+};
+
+/**
  * Server-side orphan check for media GC: keeps only those candidates that no
- * live task of the workspace references anymore. The in-memory task list is
+ * live task description or subtask of the workspace references anymore. The in-memory task list is
  * just a viewport slice — a duplicate task far outside the loaded range may
  * embed the same image, so the DB is the only authority here. Fails closed:
  * on any error the id is treated as referenced and the blob survives.
@@ -115,9 +163,24 @@ export const filterOrphanTaskMediaIds = async (
 
     // LIKE — грубый префильтр; точным парсером подтверждаем, что найденные
     // описания действительно ссылаются на этот id, а не содержат его подстроку.
-    const referenced = ((data ?? []) as Array<{ description: string | null }>)
+    const inDescription = ((data ?? []) as Array<{ description: string | null }>)
       .some((row) => extractTaskMediaIds(row.description).includes(mediaId));
-    return { mediaId, referenced };
+    if (inDescription) return { mediaId, referenced: true };
+
+    // Картинки подзадач (0159): точное совпадение по id внутри jsonb.
+    const { data: subtaskRows, error: subtaskError } = await supabase
+      .from('task_subtasks')
+      .select('id')
+      .eq('workspace_id', wsId)
+      .contains('images', JSON.stringify([{ id: mediaId }]))
+      .limit(1);
+
+    if (subtaskError) {
+      console.warn('[taskMedia] subtask orphan check failed — keeping blob', { mediaId, error: subtaskError });
+      return { mediaId, referenced: true };
+    }
+
+    return { mediaId, referenced: (subtaskRows ?? []).length > 0 };
   }));
 
   return checks.filter((check) => !check.referenced).map((check) => check.mediaId);

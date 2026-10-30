@@ -1,4 +1,5 @@
 import type { TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
+import type { TaskSubtaskImage } from '@/shared/domain/taskSubtaskImages';
 
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type RepeatTaskUpdateScope = 'single' | 'following' | 'all';
@@ -35,6 +36,8 @@ export interface TaskSubtask {
   isDone: boolean;
   doneAt: string | null;
   position: number;
+  /** Attached pictures (task media references), oldest first. */
+  images: TaskSubtaskImage[];
 }
 
 export interface Project {

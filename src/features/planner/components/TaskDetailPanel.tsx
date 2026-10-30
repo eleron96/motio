@@ -125,6 +125,8 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
+    updateTaskSubtaskImages,
+    releaseTaskMedia,
     fetchTaskDescription,
   } = usePlannerStore(useShallow((state) => ({
     selectedTaskId: state.selectedTaskId,
@@ -150,6 +152,8 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskTitle: state.updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion: state.updateTaskSubtaskCompletion,
     deleteTaskSubtask: state.deleteTaskSubtask,
+    updateTaskSubtaskImages: state.updateTaskSubtaskImages,
+    releaseTaskMedia: state.releaseTaskMedia,
     fetchTaskDescription: state.fetchTaskDescription,
   })));
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
@@ -248,6 +252,7 @@ export const TaskDetailPanel: React.FC = () => {
     handleEditSubtask,
     handleToggleSubtask,
     handleDeleteSubtask,
+    subtaskImages,
   } = useTaskSubtasks({
     taskId,
     currentWorkspaceId,
@@ -257,6 +262,8 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
+    updateTaskSubtaskImages,
+    releaseTaskMedia,
   });
 
   const assigneeLabel = useMemo(() => {
@@ -728,6 +735,7 @@ export const TaskDetailPanel: React.FC = () => {
             onDelete={(id) => void handleDeleteSubtask(id)}
             onEditingDirtyChange={setSubtaskEditingDirty}
             onEditingActiveChange={setSubtaskEditingActive}
+            images={subtaskImages}
           />
 
           {/* ── Comments section */}
@@ -1033,7 +1041,7 @@ export const TaskDetailPanel: React.FC = () => {
             // While a subtask is being edited or a draft is typed, Escape
             // belongs to that field — it cancels the text, not the whole task.
             // The field's own handler still sees the key and clears itself.
-            if (subtaskEditingActive || newSubtaskTitle !== '') {
+            if (subtaskEditingActive || newSubtaskTitle !== '' || subtaskImages.draftImages.length > 0) {
               e.preventDefault();
             }
           }}

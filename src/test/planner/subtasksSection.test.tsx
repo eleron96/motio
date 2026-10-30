@@ -27,6 +27,7 @@ const subtask: TaskSubtask = {
   isDone: false,
   doneAt: null,
   position: 0,
+  images: [],
 };
 
 const onEdit = vi.fn(async () => true);
