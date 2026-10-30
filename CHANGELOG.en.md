@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.36] - 2026-10-30
 ### Added
 - In an open task you can see what teammates are writing: the subtask or comment someone is typing shows up semi-transparent, along with a note when someone edits the description. Desktop only for now.
 - Pictures in a task description or comment now open full screen and can be zoomed with the wheel, the buttons or a pinch on the phone. Escape, a click outside or Back returns you to the task.
