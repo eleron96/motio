@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.40] - 2026-10-30
 ### Fixed
 - Motio updates no longer cut the site off for a second: while one rolls out, a page simply takes a moment longer to open.
 
