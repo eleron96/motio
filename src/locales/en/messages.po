@@ -208,6 +208,22 @@ msgstr "{months} mo in Motio"
 msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 msgstr "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is editing the description"
+msgstr "{name} is editing the description"
+
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is editing this subtask"
+msgstr "{name} is editing this subtask"
+
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is writing a comment"
+msgstr "{name} is writing a comment"
+
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is writing a subtask"
+msgstr "{name} is writing a subtask"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{page} of {pageCount}"
 msgstr "{page} of {pageCount}"

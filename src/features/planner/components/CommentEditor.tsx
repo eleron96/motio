@@ -148,6 +148,8 @@ export interface CommentEditorProps {
   onSave: (html: string) => Promise<void>;
   onCancel?: () => void;
   saveLabel?: string;
+  /** Plain text of the draft as it changes ('' once saved), for live drafts. */
+  onDraftTextChange?: (text: string) => void;
 }
 
 type MentionAnchorSource = 'button' | 'caret';
@@ -162,12 +164,15 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   onSave,
   onCancel,
   saveLabel,
+  onDraftTextChange,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mentionButtonRef = useRef<HTMLButtonElement>(null);
   const savedSelectionRef = useRef<Range | null>(null);
   const lastValueRef = useRef(initialValue);
+  const onDraftTextChangeRef = useRef(onDraftTextChange);
+  onDraftTextChangeRef.current = onDraftTextChange;
   const dragDepthRef = useRef(0);
   const resizeStateRef = useRef<{
     img: HTMLImageElement; startX: number; startY: number; startWidth: number;
@@ -212,6 +217,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     lastValueRef.current = next;
     setPlainLength(getCommentPlainLength(next));
     setHasDraft(next.trim().length > 0);
+    onDraftTextChangeRef.current?.(editor.textContent ?? '');
   }, []);
 
   const saveSelection = useCallback(() => {
@@ -588,6 +594,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
       if (editor) { editor.innerHTML = ''; lastValueRef.current = ''; }
       setPlainLength(0);
       setHasDraft(false);
+      onDraftTextChangeRef.current?.('');
     } catch {
       // Keep the draft intact so the user can retry after a failed save.
     } finally {

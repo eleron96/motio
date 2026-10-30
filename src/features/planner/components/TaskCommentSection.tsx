@@ -18,6 +18,8 @@ import {
   buildTaskCommentMentionCandidates,
 } from '@/shared/domain/taskCommentMentionCandidates';
 import { useTaskCommentsLiveSync } from '@/features/planner/hooks/useTaskCommentsLiveSync';
+import type { ShareTaskDraft, TeammateDraftView } from '@/features/planner/hooks/useTaskDraftPresence';
+import { TeammateDraftLine } from '@/features/planner/components/TeammateDraftLine';
 import { CommentEditor } from './CommentEditor';
 import { TaskCommentItem } from './TaskCommentItem';
 
@@ -28,12 +30,20 @@ interface TaskCommentSectionProps {
   taskId: string;
   workspaceId: string;
   canEdit: boolean;
+  /** Teammates' live drafts; only comment drafts are shown here. */
+  teammateDrafts?: TeammateDraftView[];
+  /** Shares this person's comment draft with teammates who have the task open. */
+  onShareDraft?: ShareTaskDraft;
 }
+
+const NO_TEAMMATE_DRAFTS: TeammateDraftView[] = [];
 
 export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
   taskId,
   workspaceId,
   canEdit,
+  teammateDrafts = NO_TEAMMATE_DRAFTS,
+  onShareDraft,
 }) => {
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -92,6 +102,11 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
   }, [refreshTaskCommentCounts, taskId, workspaceId]);
 
   useTaskCommentsLiveSync(workspaceId, taskId, setComments);
+
+  const commentDrafts = teammateDrafts.filter((entry) => entry.draft.kind === 'comment');
+  const handleDraftTextChange = useCallback((text: string) => {
+    onShareDraft?.('comment', text.trim() ? { kind: 'comment', text } : null);
+  }, [onShareDraft]);
 
   // ── load more (older) comments
   const handleLoadMore = async () => {
@@ -224,6 +239,15 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
         </div>
       </ScrollArea>
 
+      {/* Teammates typing a comment right now */}
+      {commentDrafts.length > 0 && (
+        <div className="space-y-2">
+          {commentDrafts.map((entry) => (
+            <TeammateDraftLine key={entry.userId} entry={entry} />
+          ))}
+        </div>
+      )}
+
       {/* New comment editor */}
       {canEdit && (
         <CommentEditor
@@ -231,6 +255,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
           mentionCandidates={mentionCandidates}
           mentionsLoading={membersLoading}
           onSave={handleCreate}
+          onDraftTextChange={handleDraftTextChange}
           placeholder={t`Add a comment or update...`}
         />
       )}

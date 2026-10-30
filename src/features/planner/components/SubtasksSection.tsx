@@ -23,6 +23,8 @@ import {
 } from '@/shared/ui/alert-dialog';
 import { cn } from '@/shared/lib/classNames';
 import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
+import { TeammateDraftLine } from '@/features/planner/components/TeammateDraftLine';
+import type { ShareTaskDraft, TeammateDraftView } from '@/features/planner/hooks/useTaskDraftPresence';
 
 interface SubtasksSectionProps {
   isReadOnly: boolean;
@@ -55,7 +57,13 @@ interface SubtasksSectionProps {
    * Escape from closing the panel instead of just cancelling that edit.
    */
   onEditingActiveChange?: (active: boolean) => void;
+  /** Teammates' live subtask drafts (new ones and edits), shown semi-transparent. */
+  teammateDrafts?: TeammateDraftView[];
+  /** Shares what this person types here with teammates who have the task open. */
+  onShareDraft?: ShareTaskDraft;
 }
+
+const NO_TEAMMATE_DRAFTS: TeammateDraftView[] = [];
 
 export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   isReadOnly,
@@ -76,6 +84,8 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onDelete,
   onEditingDirtyChange,
   onEditingActiveChange,
+  teammateDrafts = NO_TEAMMATE_DRAFTS,
+  onShareDraft,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -111,6 +121,23 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
     setEditingTitle('');
   }, [editingSubtaskExists]);
 
+  // What this person types here, live for teammates: the new-subtask composer
+  // and an open edit, each in its own slot.
+  useEffect(() => {
+    onShareDraft?.('subtask-new', newSubtaskTitle.trim() ? { kind: 'subtask-new', text: newSubtaskTitle } : null);
+  }, [newSubtaskTitle, onShareDraft]);
+
+  useEffect(() => {
+    onShareDraft?.('subtask-edit', editingId && isEditingDirty
+      ? { kind: 'subtask-edit', subtaskId: editingId, text: editingTitle }
+      : null);
+  }, [editingId, editingTitle, isEditingDirty, onShareDraft]);
+
+  const newSubtaskDrafts = teammateDrafts.filter((entry) => entry.draft.kind === 'subtask-new');
+  const editDraftsFor = (subtaskId: string) => teammateDrafts.filter((entry) => (
+    entry.draft.kind === 'subtask-edit' && entry.draft.subtaskId === subtaskId
+  ));
+
   const startEditing = (subtaskId: string, title: string) => {
     setEditingId(subtaskId);
     setEditingTitle(title);
@@ -128,15 +155,20 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
 
   if (!subtasksOpen) {
     return (
-      <Button
-        type="button"
-        variant="ghost"
-        className="h-8 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
-        onClick={onOpen}
-      >
-        <Plus className="h-3.5 w-3.5" />
-        {t`Add subtask`}
-      </Button>
+      <div className="space-y-2">
+        {newSubtaskDrafts.map((entry) => (
+          <TeammateDraftLine key={entry.userId} entry={entry} className="px-1.5" />
+        ))}
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-8 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
+          onClick={onOpen}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {t`Add subtask`}
+        </Button>
+      </div>
     );
   }
 
@@ -162,87 +194,99 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
       ) : (
         <div className="space-y-0.5">
           {subtasks.map((subtask) => (
-            <div
-              key={subtask.id}
-              className="group flex items-start gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
-            >
-              <Checkbox
-                checked={subtask.isDone}
-                onCheckedChange={(value) => {
-                  if (value === 'indeterminate') return;
-                  onToggle(subtask.id, value === true);
-                }}
-                disabled={isReadOnly || editingId === subtask.id}
-              />
-              {editingId === subtask.id ? (
-                <AutoGrowTextarea
-                  autoFocus
-                  value={editingTitle}
-                  onChange={(event) => setEditingTitle(event.target.value)}
-                  onKeyDown={(event) => {
-                    // Enter saves; Shift+Enter inserts a newline.
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault();
-                      void commitEditing(subtask.id);
-                    } else if (event.key === 'Escape') {
-                      event.preventDefault();
-                      cancelEditing();
-                    }
+            <React.Fragment key={subtask.id}>
+              <div
+                className="group flex items-start gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
+              >
+                <Checkbox
+                  checked={subtask.isDone}
+                  onCheckedChange={(value) => {
+                    if (value === 'indeterminate') return;
+                    onToggle(subtask.id, value === true);
                   }}
-                  onBlur={() => void commitEditing(subtask.id)}
-                  disabled={isReadOnly}
-                  rows={2}
-                  className="min-h-[56px] flex-1 text-sm"
+                  disabled={isReadOnly || editingId === subtask.id}
                 />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isReadOnly) return;
-                    startEditing(subtask.id, subtask.title);
-                  }}
-                  disabled={isReadOnly}
-                  className={cn(
-                    'flex-1 whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]',
-                    !isReadOnly && 'cursor-text',
-                    subtask.isDone && 'line-through text-muted-foreground',
-                  )}
-                >
-                  {subtask.title}
-                </button>
-              )}
-              {editingId !== subtask.id && !isReadOnly && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0"
-                      aria-label={t`Subtask actions`}
-                    >
-                      <MoreHorizontal className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem onSelect={() => startEditing(subtask.id, subtask.title)}>
-                      <Pencil className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-                      {t`Edit`}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onSelect={(event) => {
+                {editingId === subtask.id ? (
+                  <AutoGrowTextarea
+                    autoFocus
+                    value={editingTitle}
+                    onChange={(event) => setEditingTitle(event.target.value)}
+                    onKeyDown={(event) => {
+                      // Enter saves; Shift+Enter inserts a newline.
+                      if (event.key === 'Enter' && !event.shiftKey) {
                         event.preventDefault();
-                        setPendingDeleteId(subtask.id);
-                      }}
-                    >
-                      <Trash2 className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-                      {t`Delete`}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+                        void commitEditing(subtask.id);
+                      } else if (event.key === 'Escape') {
+                        event.preventDefault();
+                        cancelEditing();
+                      }
+                    }}
+                    onBlur={() => void commitEditing(subtask.id)}
+                    disabled={isReadOnly}
+                    rows={2}
+                    className="min-h-[56px] flex-1 text-sm"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isReadOnly) return;
+                      startEditing(subtask.id, subtask.title);
+                    }}
+                    disabled={isReadOnly}
+                    className={cn(
+                      'flex-1 whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]',
+                      !isReadOnly && 'cursor-text',
+                      subtask.isDone && 'line-through text-muted-foreground',
+                    )}
+                  >
+                    {subtask.title}
+                  </button>
+                )}
+                {editingId !== subtask.id && !isReadOnly && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        aria-label={t`Subtask actions`}
+                      >
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuItem onSelect={() => startEditing(subtask.id, subtask.title)}>
+                        <Pencil className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                        {t`Edit`}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={(event) => {
+                          event.preventDefault();
+                          setPendingDeleteId(subtask.id);
+                        }}
+                      >
+                        <Trash2 className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                        {t`Delete`}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+              {editDraftsFor(subtask.id).map((entry) => (
+                <TeammateDraftLine key={entry.userId} entry={entry} className="pb-1 pl-8 pr-1.5" />
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+
+      {newSubtaskDrafts.length > 0 && (
+        <div className="space-y-1.5 px-1.5">
+          {newSubtaskDrafts.map((entry) => (
+            <TeammateDraftLine key={entry.userId} entry={entry} />
           ))}
         </div>
       )}
