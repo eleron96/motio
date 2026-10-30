@@ -69,8 +69,8 @@ describe('TaskDetailsDialog', () => {
 
     renderDialog({
       subtasks: [
-        { id: 's1', taskId: 'task-1', title: 'Export families', isDone: true, doneAt: '2026-03-11', position: 0 },
-        { id: 's2', taskId: 'task-1', title: 'Check IFC', isDone: false, doneAt: null, position: 1 },
+        { id: 's1', taskId: 'task-1', title: 'Export families', isDone: true, doneAt: '2026-03-11', position: 0, images: [] },
+        { id: 's2', taskId: 'task-1', title: 'Check IFC', isDone: false, doneAt: null, position: 1, images: [] },
       ],
     });
 

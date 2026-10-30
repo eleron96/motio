@@ -208,6 +208,22 @@ msgstr "В Motio {months} мес"
 msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 msgstr "{moreProjects, plural, one {и ещё # проект} few {и ещё # проекта} many {и ещё # проектов} other {и ещё # проекта}}"
 
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is editing the description"
+msgstr "{name} редактирует описание"
+
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is editing this subtask"
+msgstr "{name} редактирует эту подзадачу"
+
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is writing a comment"
+msgstr "{name} пишет комментарий"
+
+#: src/features/planner/components/TeammateDraftLine.tsx
+msgid "{name} is writing a subtask"
+msgstr "{name} пишет подзадачу"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{page} of {pageCount}"
 msgstr "{page} из {pageCount}"
@@ -288,6 +304,10 @@ msgstr "Цвет человека используется на графиках
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "A strip above the workspace that can be dismissed."
 msgstr "Полоса над рабочей областью, её можно закрыть."
+
+#: src/features/planner/hooks/useSubtaskImages.ts
+msgid "A subtask can have up to {MAX_SUBTASK_IMAGES} images."
+msgstr "У подзадачи может быть не больше {MAX_SUBTASK_IMAGES} изображений."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "A task is assigned to me"
@@ -455,6 +475,12 @@ msgstr "Добавить контакт клиента"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Add group"
 msgstr "Добавить группу"
+
+#: src/features/planner/components/SubtasksSection.tsx
+#: src/features/planner/components/SubtasksSection.tsx
+#: src/features/planner/components/SubtasksSection.tsx
+msgid "Add image"
+msgstr "Добавить изображение"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
@@ -1154,6 +1180,8 @@ msgstr "Нажмите эту кнопку или дважды кликните 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
 msgid "Close"
 msgstr "Закрыть"
@@ -2452,12 +2480,15 @@ msgstr "Не удалось запустить рассылку."
 msgid "Failed to update comment"
 msgstr "Не удалось обновить комментарий"
 
+#: src/features/planner/hooks/useSubtaskImages.ts
 #: src/features/planner/hooks/useTaskSubtasks.ts
 msgid "Failed to update subtask."
 msgstr "Не удалось обновить подзадачу."
 
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/hooks/useSubtaskImages.ts
+#: src/features/planner/hooks/useSubtaskImages.ts
 msgid "Failed to upload image"
 msgstr "Не удалось загрузить изображение"
 
@@ -2813,6 +2844,15 @@ msgstr "Меня зовут Niko G. Много лет я веду команды
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в вашей команде, значит пора попробовать Motio."
+
+#: src/shared/ui/image-lightbox.tsx
+msgid "Image"
+msgstr "Изображение"
+
+#. placeholder {0}: index + 1
+#: src/features/planner/components/SubtaskImages.tsx
+msgid "Image {0}"
+msgstr "Изображение {0}"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
@@ -3209,6 +3249,7 @@ msgstr "Совпадает любое правило (ИЛИ)"
 
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/hooks/useSubtaskImages.ts
 msgid "Maximum image size is 5 MB."
 msgstr "Максимальный размер изображения — 5 МБ."
 
@@ -4221,6 +4262,10 @@ msgstr "Открыть дашборд"
 msgid "Open fullscreen"
 msgstr "Открыть во весь экран"
 
+#: src/features/planner/components/SubtaskImages.tsx
+msgid "Open image"
+msgstr "Открыть изображение"
+
 #: src/features/auth/components/MobileNotificationsScreen.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Open invites and task updates."
@@ -4754,6 +4799,8 @@ msgid "Remove from workspace"
 msgstr "Убрать из пространства"
 
 #: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
 msgid "Remove image"
 msgstr "Удалить изображение"
 
@@ -6500,6 +6547,10 @@ msgstr "изменил(а) задачу"
 msgid "Upload or remove your profile photo."
 msgstr "Загрузите или удалите фото профиля."
 
+#: src/features/planner/components/SubtaskImages.tsx
+msgid "Uploading image..."
+msgstr "Загрузка изображения..."
+
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Use current workspace"
 msgstr "Использовать текущее пространство"
@@ -6959,3 +7010,13 @@ msgstr "Здесь живут ваши виджеты. Меняйте их ра�
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Z-A"
 msgstr "Я-А"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom in"
+msgstr "Приблизить"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom out"
+msgstr "Отдалить"

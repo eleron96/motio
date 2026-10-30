@@ -27,6 +27,7 @@ import {
   TaskType,
   ViewMode,
 } from '@/features/planner/types/planner';
+import { parseTaskSubtaskImages } from '@/shared/domain/taskSubtaskImages';
 
 export type TaskRow = TaskMappedRow & {
   workspace_id: string;
@@ -174,6 +175,7 @@ export type TaskSubtaskRow = {
   done_at: string | null;
   position: number;
   created_at: string;
+  images?: unknown;
 };
 
 export type SupabaseResult<T> = {
@@ -419,6 +421,7 @@ export const mapTaskSubtaskRow = (row: TaskSubtaskRow): TaskSubtask => ({
   isDone: row.is_done,
   doneAt: row.done_at,
   position: row.position,
+  images: parseTaskSubtaskImages(row.images),
 });
 
 export const mapTaskUpdates = (updates: Partial<Task>) => {

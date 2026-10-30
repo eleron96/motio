@@ -17,6 +17,7 @@ import {
   extractTaskMediaIds,
 } from '@/shared/domain/taskMediaIds';
 import {
+  collectSubtaskMediaIds,
   deleteTaskMediaBatch,
   filterOrphanTaskMediaIds,
 } from '@/infrastructure/tasks/taskMediaRepository';
@@ -64,9 +65,13 @@ type TaskActions = Pick<
   | 'createTaskSubtasks'
   | 'updateTaskSubtaskCompletion'
   | 'updateTaskSubtaskTitle'
+  | 'updateTaskSubtaskImages'
   | 'deleteTaskSubtask'
+  | 'releaseTaskMedia'
   | 'fetchTaskDescription'
 >;
+
+const TASK_SUBTASK_COLUMNS = 'id, task_id, title, is_done, done_at, position, created_at, images';
 
 export const createTaskActions = (
   set: PlannerSetState,
@@ -168,14 +173,26 @@ export const createTaskActions = (
 
   /**
    * Fetch descriptions for the given task IDs and return every task-media
-   * ID referenced inside them. Used before bulk task deletion to know which
-   * media blobs to GC. Falls back to the in-memory store if the fetch fails.
+   * ID referenced inside them, plus the pictures of their subtasks (which go
+   * with the task). Used before task deletion to know which media blobs to
+   * GC. Descriptions fall back to the in-memory store if the fetch fails.
    */
   const collectTaskMediaIdsForIds = async (
     workspaceId: string,
     taskIds: string[],
   ): Promise<string[]> => {
     if (taskIds.length === 0) return [];
+    const [descriptionIds, subtaskIds] = await Promise.all([
+      collectDescriptionMediaIdsForIds(workspaceId, taskIds),
+      collectSubtaskMediaIds(workspaceId, taskIds),
+    ]);
+    return Array.from(new Set([...descriptionIds, ...subtaskIds]));
+  };
+
+  const collectDescriptionMediaIdsForIds = async (
+    workspaceId: string,
+    taskIds: string[],
+  ): Promise<string[]> => {
 
     const { data, error } = await supabase
       .from('tasks')
@@ -1000,12 +1017,16 @@ export const createTaskActions = (
       .eq('repeat_id', repeatId)
       .gte('start_date', fromDate);
 
+    const seriesTaskRows = (seriesRows ?? []) as Array<{ id: string; description: string | null }>;
+    const subtaskMediaIds = seriesLookupError
+      ? []
+      : await collectSubtaskMediaIds(workspaceId, seriesTaskRows.map((row) => row.id));
     const mediaIds = seriesLookupError
       ? []
-      : Array.from(new Set(
-        ((seriesRows ?? []) as Array<{ description: string | null }>)
-          .flatMap((row) => extractTaskMediaIds(row.description)),
-      ));
+      : Array.from(new Set([
+        ...seriesTaskRows.flatMap((row) => extractTaskMediaIds(row.description)),
+        ...subtaskMediaIds,
+      ]));
 
     const { error } = await supabase
       .from('tasks')
@@ -1140,7 +1161,7 @@ export const createTaskActions = (
   fetchTaskSubtasks: async (workspaceId, taskId) => {
     const { data, error } = await supabase
       .from('task_subtasks')
-      .select('id, task_id, title, is_done, done_at, position, created_at')
+      .select(TASK_SUBTASK_COLUMNS)
       .eq('workspace_id', workspaceId)
       .eq('task_id', taskId)
       .order('position', { ascending: true })
@@ -1155,7 +1176,7 @@ export const createTaskActions = (
     };
   },
 
-  createTaskSubtask: async (workspaceId, taskId, title, position) => {
+  createTaskSubtask: async (workspaceId, taskId, title, position, images = []) => {
     const { data, error } = await supabase
       .from('task_subtasks')
       .insert({
@@ -1165,8 +1186,9 @@ export const createTaskActions = (
         is_done: false,
         done_at: null,
         position,
+        ...(images.length > 0 ? { images } : {}),
       })
-      .select('id, task_id, title, is_done, done_at, position, created_at')
+      .select(TASK_SUBTASK_COLUMNS)
       .single();
 
     if (error || !data) {
@@ -1228,6 +1250,25 @@ export const createTaskActions = (
     }
 
     return {};
+  },
+
+  updateTaskSubtaskImages: async (workspaceId, taskId, subtaskId, images) => {
+    const { error } = await supabase
+      .from('task_subtasks')
+      .update({ images })
+      .eq('workspace_id', workspaceId)
+      .eq('task_id', taskId)
+      .eq('id', subtaskId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return {};
+  },
+
+  releaseTaskMedia: (mediaIds) => {
+    scheduleTaskMediaCleanup(mediaIds);
   },
 
   deleteTaskSubtask: async (workspaceId, taskId, subtaskId) => {

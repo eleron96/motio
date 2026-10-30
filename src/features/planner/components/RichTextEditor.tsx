@@ -4,6 +4,8 @@ import { sanitizeTaskRichText } from '@/shared/lib/sanitizer';
 import { normalizePastedTaskHtml } from '@/shared/lib/pastedRichText';
 import { hasRichTags } from '@/shared/domain/taskDescription';
 import { Button } from '@/shared/ui/button';
+import { ImageLightbox } from '@/shared/ui/image-lightbox';
+import { LightboxImage, getClickedLightboxImage } from '@/shared/lib/lightboxImage';
 import { toast } from '@/shared/ui/sonner';
 import { cn } from '@/shared/lib/classNames';
 import { uploadTaskMedia } from '@/infrastructure/tasks/taskMediaRepository';
@@ -125,6 +127,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const lastValueRef = useRef(value);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
+  const closeLightbox = useCallback(() => setLightboxImage(null), []);
 
   const syncFromEditor = useCallback(() => {
     const editor = editorRef.current;
@@ -667,45 +671,22 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const handleOpenImage = () => {
     const image = contextImageRef.current;
-    if (!image?.src) return;
-    const popup = window.open('about:blank', '_blank');
-    const src = image.src.replace(/"/g, '&quot;');
-    if (!popup) {
-      const link = document.createElement('a');
-      link.href = image.src;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.click();
-      closeContextMenu();
-      return;
-    }
-    try {
-      popup.opener = null;
-    } catch {
-      // noop
-    }
-    try {
-      popup.document.open();
-      popup.document.write(
-        `<!doctype html><html><head><title>Image</title><style>
-          html, body { height: 100%; margin: 0; background: #0b0b0b; }
-          body { display: flex; align-items: center; justify-content: center; }
-          img { max-width: 100%; max-height: 100%; }
-        </style></head><body><img src="${src}" alt="Image" /></body></html>`,
-      );
-      popup.document.close();
-    } catch {
-      try {
-        popup.location.href = image.src;
-      } catch {
-        const link = document.createElement('a');
-        link.href = image.src;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.click();
-      }
-    }
     closeContextMenu();
+    if (!image?.src) return;
+    setLightboxImage({ src: image.src, alt: image.alt });
+  };
+
+  /**
+   * A click on a picture opens it in the lightbox — in the editable
+   * description as well as the read-only one. Text selection, the resize
+   * handle and drag-to-reorder never produce a click whose target is the
+   * <img> itself, so editing is untouched.
+   */
+  const handleEditorClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const image = getClickedLightboxImage(event);
+    if (!image) return;
+    event.preventDefault();
+    setLightboxImage(image);
   };
 
   const handleBlur = () => {
@@ -807,6 +788,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
         onContextMenu={handleContextMenu}
+        onClick={handleEditorClick}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         suppressContentEditableWarning
@@ -838,6 +820,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
         </div>
       )}
+      <ImageLightbox image={lightboxImage} onClose={closeLightbox} />
     </div>
   );
 };

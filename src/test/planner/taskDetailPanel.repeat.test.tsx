@@ -308,6 +308,7 @@ describe('TaskDetailPanel subtask Escape', () => {
           isDone: false,
           doneAt: null,
           position: 0,
+          images: [],
         },
       ],
     }));
@@ -364,6 +365,7 @@ describe('TaskDetailPanel subtask draft autosave', () => {
     isDone: false,
     doneAt: null,
     position: 1,
+    images: [],
   };
 
   beforeEach(() => {
@@ -379,6 +381,7 @@ describe('TaskDetailPanel subtask draft autosave', () => {
           isDone: false,
           doneAt: null,
           position: 0,
+          images: [],
         },
       ],
     }));
@@ -401,6 +404,7 @@ describe('TaskDetailPanel subtask draft autosave', () => {
       'task-1',
       'Call the client',
       1,
+      [],
     );
     expect(composer).toHaveValue('');
   });
@@ -433,6 +437,7 @@ describe('TaskDetailPanel subtask draft autosave', () => {
       'task-1',
       'Call the client',
       1,
+      [],
     );
   });
 
@@ -512,6 +517,7 @@ describe('TaskDetailPanel live subtasks', () => {
       isDone: false,
       doneAt: null,
       position: 0,
+      images: [],
     };
     mocks.plannerState.fetchTaskSubtasks = vi.fn()
       .mockResolvedValueOnce({ subtasks: [] })

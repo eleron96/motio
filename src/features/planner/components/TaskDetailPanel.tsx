@@ -46,6 +46,9 @@ import { useTaskRepeatConfig, PendingRepeatUpdate, buildRepeatConfigSignature } 
 import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
 import { useTaskDrafts, areArraysEqual } from '@/features/planner/hooks/useTaskDrafts';
 import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
+import { TeammateDraftLine } from '@/features/planner/components/TeammateDraftLine';
+import { useTaskDraftPresence } from '@/features/planner/hooks/useTaskDraftPresence';
+import { isTaskLiveDraftsEnabled } from '@/shared/lib/featureFlags';
 import { t } from '@lingui/macro';
 import { i18n } from '@lingui/core';
 import { format, isSameDay, isSameYear, parseISO, subDays } from 'date-fns';
@@ -125,6 +128,8 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
+    updateTaskSubtaskImages,
+    releaseTaskMedia,
     fetchTaskDescription,
   } = usePlannerStore(useShallow((state) => ({
     selectedTaskId: state.selectedTaskId,
@@ -150,6 +155,8 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskTitle: state.updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion: state.updateTaskSubtaskCompletion,
     deleteTaskSubtask: state.deleteTaskSubtask,
+    updateTaskSubtaskImages: state.updateTaskSubtaskImages,
+    releaseTaskMedia: state.releaseTaskMedia,
     fetchTaskDescription: state.fetchTaskDescription,
   })));
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
@@ -248,6 +255,7 @@ export const TaskDetailPanel: React.FC = () => {
     handleEditSubtask,
     handleToggleSubtask,
     handleDeleteSubtask,
+    subtaskImages,
   } = useTaskSubtasks({
     taskId,
     currentWorkspaceId,
@@ -257,7 +265,16 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskTitle,
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
+    updateTaskSubtaskImages,
+    releaseTaskMedia,
   });
+
+  // Teammates' drafts, live: desktop only for now (owner's call).
+  const { teammateDrafts, shareDraft } = useTaskDraftPresence({
+    taskId,
+    enabled: isTaskLiveDraftsEnabled() && !isMobile,
+  });
+  const descriptionDrafts = teammateDrafts.filter((entry) => entry.draft.kind === 'description');
 
   const assigneeLabel = useMemo(() => {
     if (!task || task.assigneeIds.length === 0) return t`Unassigned`;
@@ -681,6 +698,9 @@ export const TaskDetailPanel: React.FC = () => {
         <div className="min-w-0 space-y-5 px-6 pb-6 pt-1">
           <div className="space-y-2">
             <ComposerEyebrow>{t`Description`}</ComposerEyebrow>
+            {descriptionDrafts.map((entry) => (
+              <TeammateDraftLine key={entry.userId} entry={entry} />
+            ))}
             {descriptionLoading ? (
               <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground animate-pulse" />
             ) : (
@@ -689,22 +709,31 @@ export const TaskDetailPanel: React.FC = () => {
                   {t`Loading editor...`}
                 </div>
               }>
-                <LazyRichTextEditor
-                  id="description"
-                  framed
-                  value={draftDescription}
-                  workspaceId={currentWorkspaceId}
-                  onChange={(value) => {
-                    const nextDescription = value || '';
-                    descriptionDraftRef.current = nextDescription;
-                    setDraftDescription(nextDescription);
+                <div
+                  // Only that someone edits the description is shared, not its text.
+                  onFocus={() => { if (!isReadOnly) shareDraft('description', { kind: 'description' }); }}
+                  onBlur={(event) => {
+                    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+                    shareDraft('description', null);
                   }}
-                  onBlur={() => {
-                    requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
-                  }}
-                  placeholder={t`Add a description...`}
-                  disabled={isReadOnly}
-                />
+                >
+                  <LazyRichTextEditor
+                    id="description"
+                    framed
+                    value={draftDescription}
+                    workspaceId={currentWorkspaceId}
+                    onChange={(value) => {
+                      const nextDescription = value || '';
+                      descriptionDraftRef.current = nextDescription;
+                      setDraftDescription(nextDescription);
+                    }}
+                    onBlur={() => {
+                      requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
+                    }}
+                    placeholder={t`Add a description...`}
+                    disabled={isReadOnly}
+                  />
+                </div>
               </Suspense>
             )}
           </div>
@@ -728,6 +757,9 @@ export const TaskDetailPanel: React.FC = () => {
             onDelete={(id) => void handleDeleteSubtask(id)}
             onEditingDirtyChange={setSubtaskEditingDirty}
             onEditingActiveChange={setSubtaskEditingActive}
+            teammateDrafts={teammateDrafts}
+            onShareDraft={shareDraft}
+            images={subtaskImages}
           />
 
           {/* ── Comments section */}
@@ -740,6 +772,8 @@ export const TaskDetailPanel: React.FC = () => {
                   taskId={task.id}
                   workspaceId={currentWorkspaceId}
                   canEdit={canEdit}
+                  teammateDrafts={teammateDrafts}
+                  onShareDraft={shareDraft}
                 />
               </Suspense>
             </div>
@@ -1033,7 +1067,7 @@ export const TaskDetailPanel: React.FC = () => {
             // While a subtask is being edited or a draft is typed, Escape
             // belongs to that field — it cancels the text, not the whole task.
             // The field's own handler still sees the key and clears itself.
-            if (subtaskEditingActive || newSubtaskTitle !== '') {
+            if (subtaskEditingActive || newSubtaskTitle !== '' || subtaskImages.draftImages.length > 0) {
               e.preventDefault();
             }
           }}

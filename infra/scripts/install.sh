@@ -269,6 +269,7 @@ values = {
     "VITE_FEATURE_KANBAN": "false",
     "VITE_FEATURE_ACCOUNT_DELETION": "false",
     "VITE_FEATURE_WORKSPACE_API": "false",
+    "VITE_FEATURE_TASK_LIVE_DRAFTS": "false",
 
     "VAPID_PUBLIC_KEY": vapid_public,
     "VAPID_PRIVATE_KEY": vapid_private,
@@ -418,6 +419,11 @@ sys.exit(1 if any(volume.get("external") for volume in volumes.values()) else 0)
 
   log "Running database migrations"
   "${compose[@]}" run --rm migrate
+  # Access rules for live task drafts sit on realtime.messages, which Realtime
+  # creates only once a client first connects. On a brand-new install the
+  # migration skipped them; this idempotent re-run adds them on a later update.
+  "${compose[@]}" exec -T db psql -q -U supabase_admin -d "$postgres_db" -v ON_ERROR_STOP=1 \
+    < infra/supabase/migrations/0159_task_drafts_channel_policies.sql >/dev/null
 
   log "Creating the reserve admin account"
   wait_for_url "http://127.0.0.1:${gateway_port}/health" "the API gateway" 120

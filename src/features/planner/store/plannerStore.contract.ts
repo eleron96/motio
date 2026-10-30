@@ -33,6 +33,7 @@ import type { TaskBoardScope } from '@/shared/domain/taskLoadScopes';
 import { RepeatCreateOptions } from '@/features/planner/lib/taskFormRules';
 import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 import { TaskUndoEntry, TaskUndoOutcome } from '@/shared/domain/taskUndo';
+import type { TaskSubtaskImage } from '@/shared/domain/taskSubtaskImages';
 
 export type PlannerGroup = {
   id: string;
@@ -115,7 +116,13 @@ export interface PlannerStore extends PlannerState {
   deleteTaskSeries: (repeatId: string, fromDate: string) => Promise<void>;
   removeAssigneeFromTask: (id: string, assigneeId: string, mode: 'single' | 'following') => Promise<void>;
   fetchTaskSubtasks: (workspaceId: string, taskId: string) => Promise<{ subtasks: TaskSubtask[]; error?: string }>;
-  createTaskSubtask: (workspaceId: string, taskId: string, title: string, position: number) => Promise<{ subtask?: TaskSubtask; error?: string }>;
+  createTaskSubtask: (
+    workspaceId: string,
+    taskId: string,
+    title: string,
+    position: number,
+    images?: TaskSubtaskImage[],
+  ) => Promise<{ subtask?: TaskSubtask; error?: string }>;
   createTaskSubtasks: (workspaceId: string, taskId: string, titles: string[]) => Promise<MutationResult>;
   updateTaskSubtaskTitle: (
     workspaceId: string,
@@ -130,7 +137,19 @@ export interface PlannerStore extends PlannerState {
     isDone: boolean,
     doneAt: string | null,
   ) => Promise<MutationResult>;
+  updateTaskSubtaskImages: (
+    workspaceId: string,
+    taskId: string,
+    subtaskId: string,
+    images: TaskSubtaskImage[],
+  ) => Promise<MutationResult>;
   deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
+  /**
+   * Deletes these uploaded pictures unless a task description or a subtask of
+   * the workspace still shows them. Fire-and-forget media GC — call it only
+   * after the write that dropped the reference has succeeded.
+   */
+  releaseTaskMedia: (mediaIds: string[]) => void;
   fetchTaskDescription: (taskId: string) => Promise<void>;
 
   /**

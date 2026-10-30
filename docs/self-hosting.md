@@ -174,7 +174,7 @@ likely to touch:
 | Setting | Default for self-hosting |
 |---|---|
 | `VITE_FEATURE_TIME_OFF`, `VITE_FEATURE_WORKLOAD_HEATMAP`, `VITE_FEATURE_PROJECT_CARD`, `VITE_FEATURE_PROJECT_CARD_MOBILE`, `VITE_FEATURE_PEOPLE_SUGGEST`, `VITE_FEATURE_PUSH` | on |
-| `VITE_FEATURE_KANBAN` (board view, beta), `VITE_FEATURE_ACCOUNT_DELETION`, `VITE_FEATURE_WORKSPACE_API` ([API](api.md)) | off |
+| `VITE_FEATURE_KANBAN` (board view, beta), `VITE_FEATURE_ACCOUNT_DELETION`, `VITE_FEATURE_WORKSPACE_API` ([API](api.md)), `VITE_FEATURE_TASK_LIVE_DRAFTS` (teammates' live drafts in a task) | off |
 | `GOTRUE_SMTP_*` | empty — no email |
 | `VITE_PLAUSIBLE_*`, `GLITCHTIP_DSN`, `S3_*` | empty — no analytics, error tracking or off-site backups |
 
