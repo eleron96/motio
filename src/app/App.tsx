@@ -14,6 +14,7 @@ import { i18n } from "@/shared/lib/i18n";
 import { useLocaleStore } from "@/shared/store/localeStore";
 import { PageErrorBoundary } from "@/app/PageErrorBoundary";
 import { BackgroundSuspenseBoundary } from "@/app/BackgroundSuspenseBoundary";
+import { DemoExitGuard } from "@/features/demo/components/DemoExitGuard";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => {
                 v7_relativeSplatPath: true,
               }}
             >
+              <DemoExitGuard />
               <PageErrorBoundary>
                 <Suspense
                   fallback={(

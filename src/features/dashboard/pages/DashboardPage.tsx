@@ -77,6 +77,7 @@ import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
 import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 
 type DashboardView = 'dashboards' | 'heatmap';
 
@@ -140,6 +141,8 @@ const DashboardPage = () => {
     robots: 'noindex, nofollow',
   });
 
+  // Redirects stay in the section we are in: /demo in the sandbox.
+  const basePath = useAppBasePath();
   const [showSettings, setShowSettings] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
   const [view, setView] = useState<DashboardView>('dashboards');
@@ -652,7 +655,7 @@ const DashboardPage = () => {
   }
 
   if (isWorkspaceSwitching) {
-    return <Navigate to="/app" replace />;
+    return <Navigate to={basePath} replace />;
   }
 
   const handleLayoutChange = (_layout: Layout, allLayouts: Partial<Record<string, Layout>>) => {
