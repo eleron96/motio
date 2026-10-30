@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- A subtask you tick no longer briefly unticks itself.
+
 ## [0.10.38] - 2026-10-30
 ### Fixed
 - Working on one task together is more reliable: if a teammate changed the description while you were writing, your text no longer overwrites theirs — Motio asks which version to keep. A deleted comment disappears for teammates right away, long discussions show the latest comments again, and an open task catches up on changes after a lost connection.
