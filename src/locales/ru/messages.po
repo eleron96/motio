@@ -2395,6 +2395,8 @@ msgid "Failed to add project member."
 msgstr "Не удалось добавить участника проекта."
 
 #: src/features/planner/hooks/useTaskSubtasks.ts
+#: src/features/planner/hooks/useTaskSubtasks.ts
+#: src/features/planner/hooks/useTaskSubtasks.ts
 msgid "Failed to add subtask."
 msgstr "Не удалось добавить подзадачу."
 

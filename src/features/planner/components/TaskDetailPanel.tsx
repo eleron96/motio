@@ -278,10 +278,10 @@ export const TaskDetailPanel: React.FC = () => {
     return t`Created ${created} · updated ${updated}`;
   }, [taskCreatedAt, taskUpdatedAt]);
   const requestClose = () => {
-    // A subtask edit in progress, or an unsent new-subtask draft, also counts
-    // as unsaved work — warn before closing so the changes aren't lost.
-    const subtaskDirty = subtaskEditingDirty || newSubtaskTitle.trim().length > 0;
-    if (!isDirty && !repeatConfigDirty && !subtaskDirty) {
+    // A subtask edit in progress also counts as unsaved work — warn before
+    // closing so the changes aren't lost. A typed new-subtask draft doesn't:
+    // leaving the task saves it as a subtask (useTaskSubtasks).
+    if (!isDirty && !repeatConfigDirty && !subtaskEditingDirty) {
       setSelectedTaskId(null);
       return;
     }
@@ -716,6 +716,7 @@ export const TaskDetailPanel: React.FC = () => {
             onOpen={handleOpenSubtasks}
             onNewTitleChange={setNewSubtaskTitle}
             onAdd={() => void handleAddSubtask()}
+            onCommitDraft={() => void handleAddSubtask({ refocus: false })}
             onEdit={handleEditSubtask}
             onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
             onDelete={(id) => void handleDeleteSubtask(id)}
