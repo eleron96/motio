@@ -136,7 +136,13 @@ export interface PlannerStore extends PlannerState {
     position: number,
     images?: TaskSubtaskImage[],
   ) => Promise<{ subtask?: TaskSubtask; error?: string }>;
-  createTaskSubtasks: (workspaceId: string, taskId: string, titles: string[]) => Promise<MutationResult>;
+  /** `images[i]` are the pictures of `titles[i]` (new-task form drafts). */
+  createTaskSubtasks: (
+    workspaceId: string,
+    taskId: string,
+    titles: string[],
+    images?: TaskSubtaskImage[][],
+  ) => Promise<MutationResult>;
   updateTaskSubtaskTitle: (
     workspaceId: string,
     taskId: string,

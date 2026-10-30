@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('@lingui/macro', () => ({
@@ -62,7 +62,9 @@ const mocks = vi.hoisted(() => ({
     })),
     createRepeats: vi.fn(async () => ({})),
     createTaskSubtasks: vi.fn(async () => ({})),
+    releaseTaskMedia: vi.fn(),
   },
+  upload: vi.fn(async () => ({ id: 'm1', token: 't1' })),
   authState: {
     currentWorkspaceId: 'workspace-1',
   },
@@ -103,6 +105,11 @@ vi.mock('@/features/planner/components/RichTextEditor', () => ({
       onChange={(event) => onChange(event.target.value)}
     />
   ),
+}));
+
+vi.mock('@/infrastructure/tasks/taskMediaRepository', () => ({
+  uploadTaskMediaFile: mocks.upload,
+  buildTaskMediaUrl: (image: { id: string; token: string }) => `https://app.example/functions/v1/task-media/${image.id}?token=${image.token}`,
 }));
 
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
@@ -246,5 +253,114 @@ describe('AddTaskDialog draft subtasks', () => {
         ['Filled'],
       );
     });
+  });
+});
+
+describe('AddTaskDialog draft subtask pictures', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.upload.mockResolvedValue({ id: 'm1', token: 't1' });
+  });
+
+  const png = () => new File(['x'], 'shot.png', { type: 'image/png' });
+
+  it('a picture added before the task exists is saved with its subtask', async () => {
+    const user = userEvent.setup();
+    render(<AddTaskDialog open onOpenChange={vi.fn()} />);
+
+    await user.type(await screen.findByLabelText('Title *'), 'Fix the stairs');
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+    await user.type(screen.getByPlaceholderText('Subtask title'), 'Photo of the crack');
+    await user.click(screen.getByRole('button', { name: 'Add image' }));
+    await user.upload(screen.getByTestId('draft-subtask-image-input'), png());
+    expect(await screen.findByRole('button', { name: 'Open image' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Create task' }));
+
+    await waitFor(() => {
+      expect(mocks.plannerState.createTaskSubtasks).toHaveBeenCalledWith(
+        'workspace-1',
+        'task-1',
+        ['Photo of the crack'],
+        [[{ id: 'm1', token: 't1' }]],
+      );
+    });
+    expect(mocks.plannerState.releaseTaskMedia).not.toHaveBeenCalled();
+  });
+
+  it('a screenshot pasted into a draft subtask goes onto it', async () => {
+    const user = userEvent.setup();
+    render(<AddTaskDialog open onOpenChange={vi.fn()} />);
+
+    await user.click(await screen.findByRole('button', { name: 'Add subtask' }));
+    const field = screen.getByPlaceholderText('Subtask title');
+    const shot = png();
+    fireEvent.paste(field, {
+      clipboardData: {
+        getData: () => '',
+        items: [{ kind: 'file', type: 'image/png', getAsFile: () => shot }],
+        files: [shot],
+      },
+    });
+
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalledWith('workspace-1', shot));
+    expect(await screen.findByRole('button', { name: 'Open image' })).toBeInTheDocument();
+  });
+
+  it('asks for a title instead of silently dropping pictures on an untitled draft', async () => {
+    const user = userEvent.setup();
+    render(<AddTaskDialog open onOpenChange={vi.fn()} />);
+
+    await user.type(await screen.findByLabelText('Title *'), 'Fix the stairs');
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+    await user.click(screen.getByRole('button', { name: 'Add image' }));
+    await user.upload(screen.getByTestId('draft-subtask-image-input'), png());
+    await screen.findByRole('button', { name: 'Open image' });
+
+    await user.click(screen.getByRole('button', { name: 'Create task' }));
+
+    expect(await screen.findByText('Give the subtask with pictures a title, or remove it.')).toBeInTheDocument();
+    expect(mocks.plannerState.addTask).not.toHaveBeenCalled();
+    expect(mocks.plannerState.releaseTaskMedia).not.toHaveBeenCalled();
+  });
+
+  it('creates the task only after a picture still uploading has landed, and cancelling meanwhile creates nothing', async () => {
+    let finish: (value: { id: string; token: string }) => void = () => {};
+    mocks.upload.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    const { rerender } = render(<AddTaskDialog open onOpenChange={onOpenChange} />);
+
+    await user.type(await screen.findByLabelText('Title *'), 'Fix the stairs');
+    await user.click(screen.getByRole('button', { name: 'Add subtask' }));
+    await user.type(screen.getByPlaceholderText('Subtask title'), 'Photo');
+    await user.click(screen.getByRole('button', { name: 'Add image' }));
+    await user.upload(screen.getByTestId('draft-subtask-image-input'), png());
+
+    await user.click(screen.getByRole('button', { name: 'Create task' }));
+    expect(await screen.findByRole('button', { name: 'Uploading images…' })).toBeInTheDocument();
+    expect(mocks.plannerState.addTask).not.toHaveBeenCalled();
+
+    // The person gives up before the picture lands: the form closes.
+    rerender(<AddTaskDialog open={false} onOpenChange={onOpenChange} />);
+    finish({ id: 'm9', token: 't9' });
+
+    await waitFor(() => expect(mocks.plannerState.releaseTaskMedia).toHaveBeenCalledWith(['m9']));
+    expect(mocks.plannerState.addTask).not.toHaveBeenCalled();
+  });
+
+  it('closing the form without creating hands the uploaded pictures back', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<AddTaskDialog open onOpenChange={vi.fn()} />);
+
+    await user.click(await screen.findByRole('button', { name: 'Add subtask' }));
+    await user.click(screen.getByRole('button', { name: 'Add image' }));
+    await user.upload(screen.getByTestId('draft-subtask-image-input'), png());
+    await screen.findByRole('button', { name: 'Open image' });
+
+    rerender(<AddTaskDialog open={false} onOpenChange={vi.fn()} />);
+
+    await waitFor(() => expect(mocks.plannerState.releaseTaskMedia).toHaveBeenCalledWith(['m1']));
+    expect(mocks.plannerState.createTaskSubtasks).not.toHaveBeenCalled();
   });
 });

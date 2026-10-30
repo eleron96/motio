@@ -1264,7 +1264,7 @@ export const createTaskActions = (
     return { subtask: mapTaskSubtaskRow(data as TaskSubtaskRow) };
   },
 
-  createTaskSubtasks: async (workspaceId, taskId, titles) => {
+  createTaskSubtasks: async (workspaceId, taskId, titles, images) => {
     if (titles.length === 0) return {};
 
     const { error } = await supabase
@@ -1276,6 +1276,7 @@ export const createTaskActions = (
         is_done: false,
         done_at: null,
         position: index,
+        ...(images?.[index]?.length ? { images: images[index] } : {}),
       })));
 
     if (error) {

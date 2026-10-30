@@ -305,6 +305,7 @@ msgstr "Цвет человека используется на графиках
 msgid "A strip above the workspace that can be dismissed."
 msgstr "Полоса над рабочей областью, её можно закрыть."
 
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 msgid "A subtask can have up to {MAX_SUBTASK_IMAGES} images."
 msgstr "У подзадачи может быть не больше {MAX_SUBTASK_IMAGES} изображений."
@@ -476,6 +477,8 @@ msgstr "Добавить контакт клиента"
 msgid "Add group"
 msgstr "Добавить группу"
 
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/SubtasksSection.tsx
@@ -2487,6 +2490,8 @@ msgstr "Не удалось обновить подзадачу."
 
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 msgid "Failed to upload image"
@@ -2671,6 +2676,10 @@ msgstr "Сформировать новый экспорт"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Получайте в этом браузере уведомления о задачах, даже когда Motio закрыт."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Give the subtask with pictures a title, or remove it."
+msgstr "Дайте подзадаче с картинками название или удалите её."
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Give the token a name of 1 to 80 characters."
@@ -3259,6 +3268,7 @@ msgstr "Совпадает любое правило (ИЛИ)"
 
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 msgid "Maximum image size is 5 MB."
 msgstr "Максимальный размер изображения — 5 МБ."
@@ -6570,6 +6580,10 @@ msgstr "Загрузите или удалите фото профиля."
 #: src/features/planner/components/SubtaskImages.tsx
 msgid "Uploading image..."
 msgstr "Загрузка изображения..."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Uploading images…"
+msgstr "Загружаем картинки…"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Use current workspace"
