@@ -21,6 +21,8 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { toast } from '@/shared/ui/sonner';
+import { ImageLightbox } from '@/shared/ui/image-lightbox';
+import { LightboxImage, getClickedLightboxImage } from '@/shared/lib/lightboxImage';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import type { TaskComment } from '@/features/planner/types/planner';
@@ -52,6 +54,7 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
   const [editing, setEditing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
 
   const canEdit = comment.authorId === currentUserId;
   const canDelete = comment.authorId === currentUserId || isAdmin;
@@ -125,8 +128,12 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
           />
         ) : (
           <div
-            className="comment-body rich-text-editor border-0 ring-0 p-0 min-h-0 text-sm"
+            className="comment-body rich-text-editor border-0 ring-0 p-0 min-h-0 text-sm [&_img]:cursor-zoom-in"
             dangerouslySetInnerHTML={{ __html: sanitizeCommentHtml(comment.content) }}
+            onClick={(event) => {
+              const image = getClickedLightboxImage(event);
+              if (image) setLightboxImage(image);
+            }}
           />
         )}
       </div>
@@ -185,6 +192,7 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ImageLightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
     </div>
   );
 };

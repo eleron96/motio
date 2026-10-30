@@ -1154,6 +1154,8 @@ msgstr "Klicken Sie auf diese Schaltfläche oder doppelklicken Sie auf ein Datum
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
 msgid "Close"
 msgstr "Schließen"
@@ -2813,6 +2815,10 @@ msgstr "Ich bin Niko G. Seit Jahren leite ich Teams und Projekte rund um BIM –
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "Wenn in Ihrem Team immer wieder die Frage aufkommt, wer diese Woche woran arbeitet, ist es Zeit, Motio auszuprobieren."
+
+#: src/shared/ui/image-lightbox.tsx
+msgid "Image"
+msgstr "Bild"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
@@ -6959,3 +6965,13 @@ msgstr "Hier sind Ihre Widgets. Ändern Sie Größe und Anordnung, um Auslastung
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Z-A"
 msgstr "Z–A"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom in"
+msgstr "Vergrößern"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom out"
+msgstr "Verkleinern"

@@ -1154,6 +1154,8 @@ msgstr "Нажмите эту кнопку или дважды кликните 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
 msgid "Close"
 msgstr "Закрыть"
@@ -2813,6 +2815,10 @@ msgstr "Меня зовут Niko G. Много лет я веду команды
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в вашей команде, значит пора попробовать Motio."
+
+#: src/shared/ui/image-lightbox.tsx
+msgid "Image"
+msgstr "Изображение"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
@@ -6959,3 +6965,13 @@ msgstr "Здесь живут ваши виджеты. Меняйте их ра�
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Z-A"
 msgstr "Я-А"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom in"
+msgstr "Приблизить"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom out"
+msgstr "Отдалить"

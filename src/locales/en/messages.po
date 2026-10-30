@@ -1154,6 +1154,8 @@ msgstr "Click this button or double-click a date on the timeline to open the tas
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
 msgid "Close"
 msgstr "Close"
@@ -2813,6 +2815,10 @@ msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
+
+#: src/shared/ui/image-lightbox.tsx
+msgid "Image"
+msgstr "Image"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
@@ -6959,3 +6965,13 @@ msgstr "Your widgets live here. Resize and rearrange them to monitor workload, d
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Z-A"
 msgstr "Z-A"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom in"
+msgstr "Zoom in"
+
+#: src/shared/ui/image-lightbox.tsx
+#: src/shared/ui/image-lightbox.tsx
+msgid "Zoom out"
+msgstr "Zoom out"
