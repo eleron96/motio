@@ -1,9 +1,11 @@
 name: Release
 
 # Publishes the GitHub Release for the version that has just landed in main.
-# Runs the same idempotent script as `make release-publish`: every version gets a
-# tag, a public Release is created only when its changelog section has real
-# content, and a re-run never creates duplicates.
+# main is merged on the owner's word, so one Release collects every version
+# deployed since the previous one. Runs the same idempotent script as
+# `make release-publish`: the version gets a tag, a public Release is created only
+# when the collected changelog sections have real content, and a re-run never
+# creates duplicates.
 
 on:
   push:

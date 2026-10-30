@@ -191,7 +191,8 @@ no integration tests. Check the pipeline separately after pushing:
 
 - **GitHub Releases publish themselves** when the working branch is merged into `main`:
   the `Release` workflow (`.github/workflows/release.yml`) runs
-  `infra/scripts/release-publish.sh` on every push to `main`. It tags every version, but
+  `infra/scripts/release-publish.sh` on every push to `main`. It tags the version in
+  `VERSION` at each merge (versions deployed in between get no tag of their own) and
   creates a public GitHub Release only when there is real user-facing content. The working
   branch is merged into `main` when the owner decides to cut a release, not after every
   deploy, so one Release collects every version deployed since the previous Release: its

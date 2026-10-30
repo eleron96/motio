@@ -43,7 +43,8 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 
 - 📅 **Timeline** — drag-and-drop planner grouped by people or by project, at a day or week scale, plus a three-year calendar; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along. Moved, rescheduled or deleted something by mistake? Undo it from the toast or with Cmd/Ctrl+Z.
 - 🗂 **Board (beta)** — the same tasks as cards in columns by your own statuses, as an optional view next to the timeline. Drag a card to another column to change its status (undo included), filter by person, group, project or overdue in one click. On a phone it is one column per screen with a swipe between them. Each person turns it on in account settings.
-- ✅ **Tasks with depth** — subtasks, repeating series, priorities, tags, rich descriptions with pasted images, comments with @mentions and screenshots.
+- ✅ **Tasks with depth** — subtasks (with pictures), repeating series, priorities, tags, rich descriptions with pasted images, comments with @mentions and screenshots; pictures open full screen with zoom. A subtask you started typing is saved on its own.
+- 🤝 **Working together** — teammates' changes show up within a second, and an open task keeps its subtasks and comments live. On a computer, with live drafts switched on (on in the hosted app, off by default when self-hosting), you see what a teammate is typing — a subtask, a comment — semi-transparent as they write. If two people edit the description of a one-off task at once, nobody's text is silently overwritten: the card asks which version to keep.
 - 👥 **Team** — members and groups, each person's current and past tasks at a glance.
 - 📁 **Projects and customers** — project cards with their team and customer contacts, a workspace-wide contact list; people you have entered before are suggested as you type.
 - 📊 **Dashboard** — configurable widgets and a department workload heatmap, with one layout that scales to wide monitors; a daily brief once a day and release notes right in the app.
@@ -54,7 +55,7 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 - 💾 **Backups built in** — daily backups of the database, media and Keycloak with retention, upload/download and one-click restore from the admin console.
 - 🗄 **Super-admin console** — user overview, workspace management, backup/restore, announcements to every user.
 - 🧪 **Demo sandbox** — [`/demo`](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme) runs entirely in the browser on sample data, no sign-in needed.
-- 🌍 **Two languages** — English and Russian UI (Lingui).
+- 🌍 **Three languages** — English, Russian and German UI (Lingui).
 
 <div align="center">
 
