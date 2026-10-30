@@ -100,6 +100,16 @@ export const isWorkspaceApiEnabled = (): boolean => (
 );
 
 /**
+ * When on, an open task card shows teammates' drafts live and semi-transparent:
+ * the subtask or comment someone is typing, an edit of a subtask, that someone
+ * edits the description. Desktop only for now. Needs the realtime.messages
+ * policies of migration 0159. Never in /demo: the sandbox has no realtime.
+ */
+export const isTaskLiveDraftsEnabled = (): boolean => (
+  !isDemoRoute() && readFlag(import.meta.env.VITE_FEATURE_TASK_LIVE_DRAFTS)
+);
+
+/**
  * Every interface flag as this build has it, for the admin "System" section.
  * Raw build values only — the /demo forcing above does not apply here.
  */
@@ -113,5 +123,6 @@ export const listBuildFeatureFlags = (): Array<{ name: string; enabled: boolean 
   { name: 'VITE_FEATURE_KANBAN', enabled: readFlag(import.meta.env.VITE_FEATURE_KANBAN) },
   { name: 'VITE_FEATURE_ACCOUNT_DELETION', enabled: readFlag(import.meta.env.VITE_FEATURE_ACCOUNT_DELETION) },
   { name: 'VITE_FEATURE_WORKSPACE_API', enabled: readFlag(import.meta.env.VITE_FEATURE_WORKSPACE_API) },
+  { name: 'VITE_FEATURE_TASK_LIVE_DRAFTS', enabled: readFlag(import.meta.env.VITE_FEATURE_TASK_LIVE_DRAFTS) },
 ];
 

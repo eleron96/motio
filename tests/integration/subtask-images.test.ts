@@ -10,7 +10,7 @@ import {
   withRollback,
 } from "../helpers/setup-test-db";
 
-// Pictures on a subtask (0159): `task_subtasks.images` holds task-media
+// Pictures on a subtask (0160): `task_subtasks.images` holds task-media
 // references `{ id, token }`, at most 10, writable by the same editors who may
 // write the subtask, and findable by id for media GC.
 
@@ -64,7 +64,7 @@ async function errorCodeOf(client: PoolClient, sql: string, params: unknown[]): 
   }
 }
 
-describe("Subtask images (0159)", () => {
+describe("Subtask images (0160)", () => {
   beforeAll(async () => {
     const pool = getTestPool();
     const client = await pool.connect();

@@ -138,6 +138,7 @@ and rebuild `web`; no release is needed.
 | `VITE_FEATURE_PUSH` | browser push notifications (needs the VAPID keys below) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | account self-deletion in account settings |
 | `VITE_FEATURE_WORKSPACE_API` | the API section in workspace settings, where admins create tokens for importing absences ([API](api.md)); hidden in `/demo` |
+| `VITE_FEATURE_TASK_LIVE_DRAFTS` | teammates' drafts in an open task card, live and semi-transparent: the subtask or comment someone is typing, and that someone edits the description (desktop only). Shared through a private Realtime channel that only members of the workspace can join; nothing is stored. Off in `/demo`. On a brand-new self-hosted install the channel's access rules land with the first `install.sh update` (Realtime sets up its tables only once someone connects) |
 
 The `/demo` sandbox always shows the project card, contacts, heatmap and time off,
 whatever the flags say.

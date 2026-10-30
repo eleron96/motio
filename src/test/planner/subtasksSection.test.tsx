@@ -141,3 +141,75 @@ describe('SubtasksSection draft saving on blur', () => {
     expect(screen.getByPlaceholderText('Subtask title')).toHaveValue('');
   });
 });
+
+describe('SubtasksSection live drafts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows a teammate typing a new subtask and an edit under its subtask', () => {
+    render(
+      <SubtasksSection
+        isReadOnly={false}
+        subtasksOpen
+        subtasksLoading={false}
+        subtasksSaving={false}
+        subtasksError=""
+        subtasks={[subtask]}
+        newSubtaskTitle=""
+        completedSubtasksCount={0}
+        subtaskInputRef={{ current: null }}
+        onOpen={vi.fn()}
+        onNewTitleChange={vi.fn()}
+        onAdd={vi.fn()}
+        onCommitDraft={vi.fn()}
+        onEdit={onEdit}
+        onToggle={vi.fn()}
+        onDelete={vi.fn()}
+        teammateDrafts={[
+          { userId: 'anna', name: 'Anna', avatarUrl: null, draft: { kind: 'subtask-new', text: 'Book the room' } },
+          { userId: 'sergey', name: 'Sergey', avatarUrl: null, draft: { kind: 'subtask-edit', subtaskId: 'subtask-1', text: 'Check the invoice twice' } },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('Anna is writing a subtask')).toBeInTheDocument();
+    expect(screen.getByText('Book the room')).toBeInTheDocument();
+    expect(screen.getByText('Sergey is editing this subtask')).toBeInTheDocument();
+    expect(screen.getByText('Check the invoice twice')).toBeInTheDocument();
+  });
+
+  it('shares what this person types in the composer', async () => {
+    const onShareDraft = vi.fn();
+    const SharingHarness: React.FC = () => {
+      const [title, setTitle] = useState('');
+      return (
+        <SubtasksSection
+          isReadOnly={false}
+          subtasksOpen
+          subtasksLoading={false}
+          subtasksSaving={false}
+          subtasksError=""
+          subtasks={[subtask]}
+          newSubtaskTitle={title}
+          completedSubtasksCount={0}
+          subtaskInputRef={{ current: null }}
+          onOpen={vi.fn()}
+          onNewTitleChange={setTitle}
+          onAdd={vi.fn()}
+          onCommitDraft={vi.fn()}
+          onEdit={onEdit}
+          onToggle={vi.fn()}
+          onDelete={vi.fn()}
+          onShareDraft={onShareDraft}
+        />
+      );
+    };
+    const user = userEvent.setup();
+    render(<SharingHarness />);
+
+    await user.type(screen.getByPlaceholderText('Subtask title'), 'Hi');
+
+    expect(onShareDraft).toHaveBeenLastCalledWith('subtask-new', { kind: 'subtask-new', text: 'Hi' });
+  });
+});

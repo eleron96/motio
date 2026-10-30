@@ -1,6 +1,6 @@
 /**
  * Pictures on a subtask: references to task media (`task_subtasks.images`,
- * migration 0159). The subtask keeps only the media id and its view token;
+ * migration 0160). The subtask keeps only the media id and its view token;
  * the file itself lives with the description pictures.
  */
 export interface TaskSubtaskImage {

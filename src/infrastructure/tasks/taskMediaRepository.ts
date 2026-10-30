@@ -167,7 +167,7 @@ export const filterOrphanTaskMediaIds = async (
       .some((row) => extractTaskMediaIds(row.description).includes(mediaId));
     if (inDescription) return { mediaId, referenced: true };
 
-    // Картинки подзадач (0159): точное совпадение по id внутри jsonb.
+    // Картинки подзадач (0160): точное совпадение по id внутри jsonb.
     const { data: subtaskRows, error: subtaskError } = await supabase
       .from('task_subtasks')
       .select('id')

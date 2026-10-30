@@ -2184,17 +2184,30 @@
     </preConditions>
     <sqlFile path="../migrations/0158_task_subtasks_realtime.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
-  <changeSet id="0159_task_subtask_images.sql" author="timeline" runInTransaction="true">
+  <changeSet id="0159_task_drafts_channel_policies.sql" author="timeline" runInTransaction="true">
     <preConditions onFail="MARK_RAN" onError="HALT">
       <or>
         <not>
           <tableExists schemaName="public" tableName="schema_migrations"/>
         </not>
         <sqlCheck expectedResult="0">
-          select count(*) from public.schema_migrations where filename = '0159_task_subtask_images.sql'
+          select count(*) from public.schema_migrations where filename = '0159_task_drafts_channel_policies.sql'
         </sqlCheck>
       </or>
     </preConditions>
-    <sqlFile path="../migrations/0159_task_subtask_images.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+    <sqlFile path="../migrations/0159_task_drafts_channel_policies.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
+  <changeSet id="0160_task_subtask_images.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0160_task_subtask_images.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0160_task_subtask_images.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
 </databaseChangeLog>
