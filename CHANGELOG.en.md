@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Working on one task together is more reliable: if a teammate changed the description while you were writing, your text no longer overwrites theirs — Motio asks which version to keep. A deleted comment disappears for teammates right away, long discussions show the latest comments again, and an open task catches up on changes after a lost connection.
+
+
+### Changed
+- A picture in a subtask can no longer be deleted by an accidental tap: on a computer use the “⋯” on the picture, on a phone touch and hold it.
 ## [0.10.37] - 2026-10-30
 ### Fixed
 - On a computer, a picture in a task opens on top of the task card again instead of behind it.
