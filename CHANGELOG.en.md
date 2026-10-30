@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.37] - 2026-10-30
 ### Fixed
 - On a computer, a picture in a task opens on top of the task card again instead of behind it.
 
