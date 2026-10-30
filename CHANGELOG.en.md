@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- On a computer, a picture in a task opens on top of the task card again instead of behind it.
+
 ## [0.10.36] - 2026-10-30
 ### Added
 - In an open task you can see what teammates are writing: the subtask or comment someone is typing shows up semi-transparent, along with a note when someone edits the description. Desktop only for now.
