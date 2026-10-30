@@ -3,7 +3,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X, ZoomIn, ZoomOut } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
-import { useScreenLayer } from '@/shared/hooks/useScreenLayer';
+import { LAYER_ABOVE_MODAL_CLASS } from '@/shared/ui/layers';
 import { useCloseOnHistoryBack } from '@/shared/hooks/useCloseOnHistoryBack';
 import type { LightboxImage } from '@/shared/lib/lightboxImage';
 import {
@@ -50,7 +50,6 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose }) 
   const [shown, setShown] = React.useState<LightboxImage | null>(image);
   if (image && (image.src !== shown?.src || image.alt !== shown?.alt)) setShown(image);
 
-  const layer = useScreenLayer(open);
   useCloseOnHistoryBack(open, onClose);
 
   const [zoom, setZoom] = React.useState<ZoomState>(RESTING_ZOOM);
@@ -270,16 +269,18 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose }) 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <DialogPrimitive.Portal>
+        {/* One step above the layer overlays open on right now — over the task
+            card on a desktop and over the full-screen task on a phone. Not a
+            screen layer of its own: claiming one raises --layer-modal, which the
+            desktop card reads too, and the card jumped above the picture. */}
         <DialogPrimitive.Overlay
-          style={{ zIndex: layer }}
-          className="fixed inset-0 bg-black/90 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+          className={cn(LAYER_ABOVE_MODAL_CLASS, 'fixed inset-0 bg-black/90 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0')}
         />
         <DialogPrimitive.Content
           ref={contentRef}
           aria-describedby={undefined}
           data-testid="image-lightbox"
-          style={{ zIndex: layer }}
-          className="fixed inset-0 flex outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0"
+          className={cn(LAYER_ABOVE_MODAL_CLASS, 'fixed inset-0 flex outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0')}
           onOpenAutoFocus={(event) => {
             // Focus the viewer itself, not its first button: no ring on open,
             // and +/−/0 work from the keyboard straight away.

@@ -186,10 +186,12 @@ export const useTaskSubtasks = ({
       if (result.subtasks.length > 0) setSubtasksOpen(true);
     };
 
-    const unsubscribe = subscribeToOpenTaskRows('task_subtasks', taskId, () => {
+    const scheduleRefetch = () => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => void refetch(), LIVE_REFETCH_DELAY_MS);
-    });
+    };
+    // A change event, a reconnect or a return to the tab: one re-read.
+    const unsubscribe = subscribeToOpenTaskRows('task_subtasks', taskId, scheduleRefetch, scheduleRefetch);
 
     return () => {
       active = false;

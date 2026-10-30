@@ -2854,6 +2854,12 @@ msgstr "Bild"
 msgid "Image {0}"
 msgstr "Bild {0}"
 
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+msgid "Image actions"
+msgstr "Aktionen für Bild"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
 msgstr "Abwesenheiten importieren"
@@ -2980,6 +2986,10 @@ msgstr "Weiter erkunden"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Keep holding the widget header..."
 msgstr "Kopfzeile des Widgets weiter gedrückt halten …"
+
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Keep mine"
+msgstr "Meine behalten"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
@@ -4263,6 +4273,8 @@ msgid "Open fullscreen"
 msgstr "Im Vollbild öffnen"
 
 #: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
 msgid "Open image"
 msgstr "Bild öffnen"
 
@@ -5501,6 +5513,10 @@ msgstr "Aufgaben ohne Zuständige anzeigen."
 msgid "Show the department workload board on the dashboard"
 msgstr "Auslastungsboard der Abteilung im Dashboard anzeigen"
 
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Show their version"
+msgstr "Andere Version übernehmen"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show unassigned"
 msgstr "Ohne Zuständige anzeigen"
@@ -5559,6 +5575,10 @@ msgstr "Die 30-tägige Frist für ein Konto im Status PENDING_DELETION überspri
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
 msgstr "Himmelblau"
+
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Someone changed the description while you were writing. Your text is kept here."
+msgstr "Während Sie geschrieben haben, wurde die Beschreibung geändert. Ihr Text bleibt hier erhalten – wählen Sie, welche Version gilt."
 
 #: src/app/PageErrorBoundary.tsx
 msgid "Something went wrong"

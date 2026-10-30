@@ -101,7 +101,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     return () => { cancelled = true; };
   }, [refreshTaskCommentCounts, taskId, workspaceId]);
 
-  useTaskCommentsLiveSync(workspaceId, taskId, setComments);
+  useTaskCommentsLiveSync(workspaceId, taskId, comments, setComments, setNextCursor);
 
   const commentDrafts = teammateDrafts.filter((entry) => entry.draft.kind === 'comment');
   const handleDraftTextChange = useCallback((text: string) => {

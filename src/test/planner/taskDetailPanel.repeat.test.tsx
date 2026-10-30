@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Task, TaskSubtask } from '@/features/planner/types/planner';
 
@@ -88,6 +88,7 @@ const mocks = vi.hoisted(() => ({
     updateTaskSubtaskCompletion: vi.fn(async () => ({})),
     updateTaskSubtaskTitle: vi.fn(async () => ({})),
     revertTaskOwnEdits: vi.fn(async () => {}),
+    saveTaskDescription: vi.fn(async (): Promise<'saved' | 'conflict' | 'failed'> => 'saved'),
   },
   liveHandlers: [] as Array<{ table: string; onChange: (change: { type: string; rowId: string }) => void }>,
 }));
@@ -531,5 +532,112 @@ describe('TaskDetailPanel live subtasks', () => {
     handler?.onChange({ type: 'INSERT', rowId: 'subtask-9' });
 
     expect(await screen.findByRole('button', { name: 'Added by Sergey' })).toBeInTheDocument();
+  });
+});
+
+describe('TaskDetailPanel description conflicts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask, description: '<p>Base</p>' }];
+    mocks.plannerState.fetchTaskSubtasks = vi.fn(async () => ({ subtasks: [] }));
+  });
+
+  it('saves over the text it started from and, on a conflict, keeps the draft and asks', async () => {
+    mocks.plannerState.saveTaskDescription = vi.fn(async (): Promise<'saved' | 'conflict' | 'failed'> => 'saved')
+      .mockResolvedValueOnce('conflict');
+    const user = userEvent.setup();
+    render(<TaskDetailPanel />);
+
+    const editor = await screen.findByLabelText('description');
+    await user.clear(editor);
+    await user.type(editor, 'Mine');
+    await user.tab();
+
+    expect(mocks.plannerState.saveTaskDescription).toHaveBeenCalledWith('task-1', 'Mine', '<p>Base</p>', {});
+    expect(await screen.findByText(/changed the description while you were writing/)).toBeInTheDocument();
+    expect(editor).toHaveValue('Mine');
+
+    // Closing now would lose the text: the card stays open.
+    await user.keyboard('{Escape}');
+    expect(mocks.plannerState.setSelectedTaskId).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Keep mine' }));
+    expect(mocks.plannerState.saveTaskDescription).toHaveBeenCalledWith('task-1', 'Mine', '<p>Base</p>', { force: true });
+    await waitFor(() => expect(screen.queryByText(/changed the description while you were writing/)).not.toBeInTheDocument());
+  });
+
+  it('can take the teammate version instead', async () => {
+    mocks.plannerState.saveTaskDescription = vi.fn(async (): Promise<'saved' | 'conflict' | 'failed'> => 'conflict');
+    const user = userEvent.setup();
+    const { rerender } = render(<TaskDetailPanel />);
+
+    const editor = await screen.findByLabelText('description');
+    await user.clear(editor);
+    await user.type(editor, 'Mine');
+    await user.tab();
+    await screen.findByText(/changed the description while you were writing/);
+
+    mocks.plannerState.tasks = [{ ...baseTask, description: '<p>Theirs</p>' }];
+    rerender(<TaskDetailPanel />);
+    await user.click(screen.getByRole('button', { name: 'Show their version' }));
+
+    expect(editor).toHaveValue('<p>Theirs</p>');
+    expect(screen.queryByText(/changed the description while you were writing/)).not.toBeInTheDocument();
+  });
+});
+
+describe('TaskDetailPanel description saves in a row', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask, description: '<p>Base</p>' }];
+    mocks.plannerState.fetchTaskSubtasks = vi.fn(async () => ({ subtasks: [] }));
+  });
+
+  it('checks the next save against the text the previous one saved, not the old base', async () => {
+    let release: (value: 'saved') => void = () => {};
+    mocks.plannerState.saveTaskDescription = vi.fn()
+      .mockImplementationOnce(() => new Promise<'saved'>((resolve) => { release = resolve; }))
+      .mockResolvedValue('saved');
+    const user = userEvent.setup();
+    render(<TaskDetailPanel />);
+
+    const editor = await screen.findByLabelText('description');
+    await user.clear(editor);
+    await user.type(editor, 'B');
+    await user.tab();
+    // Still saving 'B' — the person keeps typing and leaves the field again.
+    await user.click(editor);
+    await user.type(editor, 'C');
+    await user.tab();
+    expect(mocks.plannerState.saveTaskDescription).toHaveBeenCalledTimes(1);
+
+    await act(async () => { release('saved'); });
+
+    await waitFor(() => expect(mocks.plannerState.saveTaskDescription).toHaveBeenCalledTimes(2));
+    expect(mocks.plannerState.saveTaskDescription).toHaveBeenLastCalledWith('task-1', 'BC', 'B', {});
+    expect(screen.queryByText(/changed the description while you were writing/)).not.toBeInTheDocument();
+  });
+
+  it('after taking the teammate version, Discard does not roll their text back', async () => {
+    mocks.plannerState.saveTaskDescription = vi.fn(async (): Promise<'saved' | 'conflict' | 'failed'> => 'conflict');
+    const user = userEvent.setup();
+    const { rerender } = render(<TaskDetailPanel />);
+
+    const editor = await screen.findByLabelText('description');
+    await user.clear(editor);
+    await user.type(editor, 'Mine');
+    await user.tab();
+    await screen.findByText(/changed the description while you were writing/);
+
+    mocks.plannerState.tasks = [{ ...baseTask, description: '<p>Theirs</p>' }];
+    rerender(<TaskDetailPanel />);
+    await user.click(screen.getByRole('button', { name: 'Show their version' }));
+    await user.keyboard('{Escape}');
+
+    // Nothing of ours stands: the card closes without offering a Discard.
+    expect(screen.queryByTestId('confirm-close')).not.toBeInTheDocument();
+    expect(mocks.plannerState.revertTaskOwnEdits).not.toHaveBeenCalled();
   });
 });

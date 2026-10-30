@@ -2854,6 +2854,12 @@ msgstr "Изображение"
 msgid "Image {0}"
 msgstr "Изображение {0}"
 
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+msgid "Image actions"
+msgstr "Действия с картинкой"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
 msgstr "Импорт отсутствий"
@@ -2980,6 +2986,10 @@ msgstr "Продолжить демо"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Keep holding the widget header..."
 msgstr "Продолжайте удерживать заголовок виджета..."
+
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Keep mine"
+msgstr "Оставить моё"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
@@ -4263,6 +4273,8 @@ msgid "Open fullscreen"
 msgstr "Открыть во весь экран"
 
 #: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
 msgid "Open image"
 msgstr "Открыть изображение"
 
@@ -5501,6 +5513,10 @@ msgstr "Показывать задачи без исполнителя."
 msgid "Show the department workload board on the dashboard"
 msgstr "Показывать борд загрузки отдела на дашборде"
 
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Show their version"
+msgstr "Взять их версию"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show unassigned"
 msgstr "Показывать без назначения"
@@ -5559,6 +5575,10 @@ msgstr "Пропустить 30-дневный буфер для аккаунт�
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
 msgstr "Небесный"
+
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Someone changed the description while you were writing. Your text is kept here."
+msgstr "Пока вы писали, описание изменил кто-то другой. Ваш текст сохранён здесь — выберите, какую версию оставить."
 
 #: src/app/PageErrorBoundary.tsx
 msgid "Something went wrong"

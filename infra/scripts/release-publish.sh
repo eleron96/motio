@@ -63,13 +63,44 @@ else
   echo "release-publish: pushed tag ${tag} to origin."
 fi
 
-# --- 2. Extract this version's changelog section ---------------------------
-# Everything between "## [<version>]" and the next "## [" heading.
-section="$(awk -v ver="${version}" '
-  index($0, "## [" ver "]") == 1 { capture = 1; next }
-  capture && /^## \[/             { exit }
-  capture                        { print }
+# --- 2. Extract the changelog since the last published Release -------------
+# Releases are cut on the owner's word, not on every deploy, so one Release
+# covers every version deployed since the previous one: the sections from
+# "## [<version>]" down to (not including) the last released version. With no
+# earlier Release known (no gh, first run, or its version missing from the
+# changelog) it is this version's section alone.
+previous_version=""
+if command -v gh >/dev/null 2>&1; then
+  previous_tag="$(gh release list --limit 20 --exclude-drafts --json tagName \
+    -q "[.[] | select(.tagName != \"${tag}\")][0].tagName" 2>/dev/null || true)"
+  previous_version="${previous_tag#v}"
+  if [[ -n "${previous_version}" ]] && ! grep -qF "## [${previous_version}]" "${changelog_file}"; then
+    previous_version=""
+  fi
+fi
+
+section="$(awk -v ver="${version}" -v prev="${previous_version}" '
+  /^## \[/ {
+    heading = $0; sub(/^## \[/, "", heading); sub(/\].*$/, "", heading)
+    if (heading == ver) { capture = 1; versions++; print "@@version " heading; next }
+    if (!capture) next
+    if (prev == "" || heading == prev) exit
+    versions++; print "@@version " heading; next
+  }
+  capture { print }
+  END { print "@@count " versions }
 ' "${changelog_file}")"
+
+# One version: its section as before. Several: each under its own heading.
+version_count="$(printf '%s\n' "${section}" | awk '/^@@count / { print $2 }')"
+section="$(printf '%s\n' "${section}" | awk -v many="$([[ "${version_count:-1}" -gt 1 ]] && echo 1 || echo 0)" '
+  /^@@count / { next }
+  /^@@version / { if (many) { if (seen++) print ""; print "## " substr($0, 11) } ; next }
+  { print }
+' | cat -s)"
+if [[ "${version_count:-1}" -gt 1 ]]; then
+  echo "release-publish: ${tag} collects ${version_count} versions since v${previous_version}."
+fi
 
 # Trim leading/trailing blank lines.
 section="$(printf '%s\n' "${section}" | awk '

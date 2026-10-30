@@ -2854,6 +2854,12 @@ msgstr "Image"
 msgid "Image {0}"
 msgstr "Image {0}"
 
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+msgid "Image actions"
+msgstr "Image actions"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
 msgstr "Import absences"
@@ -2980,6 +2986,10 @@ msgstr "Keep exploring"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Keep holding the widget header..."
 msgstr "Keep holding the widget header..."
+
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Keep mine"
+msgstr "Keep mine"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
@@ -4263,6 +4273,8 @@ msgid "Open fullscreen"
 msgstr "Open fullscreen"
 
 #: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
+#: src/features/planner/components/SubtaskImages.tsx
 msgid "Open image"
 msgstr "Open image"
 
@@ -5501,6 +5513,10 @@ msgstr "Show tasks without an assignee."
 msgid "Show the department workload board on the dashboard"
 msgstr "Show the department workload board on the dashboard"
 
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Show their version"
+msgstr "Show their version"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Show unassigned"
 msgstr "Show unassigned"
@@ -5559,6 +5575,10 @@ msgstr "Skip the 30-day grace period for a PENDING_DELETION account. The cron wi
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
 msgstr "Sky"
+
+#: src/features/planner/components/TaskDetailPanel.tsx
+msgid "Someone changed the description while you were writing. Your text is kept here."
+msgstr "Someone changed the description while you were writing. Your text is kept here."
 
 #: src/app/PageErrorBoundary.tsx
 msgid "Something went wrong"

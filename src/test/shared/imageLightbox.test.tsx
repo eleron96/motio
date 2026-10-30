@@ -3,7 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/shared/ui/dialog';
 import { RichTextEditor } from '@/features/planner/components/RichTextEditor';
-import { resetScreenLayers } from '@/shared/ui/layers';
+import {
+  LAYER_ABOVE_MODAL_CLASS,
+  LAYER_BASE,
+  LAYER_STEP,
+  MODAL_LAYER_VAR,
+  resetScreenLayers,
+} from '@/shared/ui/layers';
 import { MobileFormScreen } from '@/shared/ui/mobile-form-screen';
 
 vi.mock('@lingui/macro', () => ({
@@ -46,6 +52,15 @@ const openLightbox = (image: HTMLImageElement) => {
   const node = lightbox();
   expect(node).not.toBeNull();
   return node as HTMLElement;
+};
+
+/** The layer overlays open on now: --layer-modal on <body>, 50 by default. */
+const currentModalLayer = () => Number(document.body.style.getPropertyValue(MODAL_LAYER_VAR) || LAYER_BASE);
+
+/** The lightbox sits one step above that layer (its class, resolved by hand: jsdom has no CSS). */
+const lightboxLayer = (node: HTMLElement) => {
+  expect(node.className).toContain(LAYER_ABOVE_MODAL_CLASS);
+  return currentModalLayer() + LAYER_STEP;
 };
 
 describe('ImageLightbox from the task description', () => {
@@ -152,6 +167,16 @@ describe('ImageLightbox from the task description', () => {
     expect(scale).toBeCloseTo(Math.exp(0.8), 3);
   });
 
+  it('on a desktop it opens above the task card without lifting the card', () => {
+    const { image } = renderTaskCard();
+    const before = currentModalLayer();
+    const node = openLightbox(image);
+
+    // The desktop card reads --layer-modal: raising it put the card above the picture.
+    expect(currentModalLayer()).toBe(before);
+    expect(lightboxLayer(node)).toBeGreaterThan(before);
+  });
+
   it('on a phone it opens above the full-screen task and Back returns to it', async () => {
     const onTaskOpenChange = vi.fn();
     render(
@@ -162,7 +187,7 @@ describe('ImageLightbox from the task description', () => {
     const image = (document.getElementById('description') as HTMLDivElement).querySelector('img') as HTMLImageElement;
     const node = openLightbox(image);
     const screenLayer = Number((screen.getByText('Task details').closest('[role="dialog"]') as HTMLElement).style.zIndex);
-    expect(Number(node.style.zIndex)).toBeGreaterThan(screenLayer);
+    expect(lightboxLayer(node)).toBeGreaterThan(screenLayer);
 
     await act(async () => {
       window.history.back();

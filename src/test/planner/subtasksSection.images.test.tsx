@@ -115,16 +115,21 @@ describe('SubtasksSection pictures', () => {
     expect(screen.getByRole('button', { name: 'Photo of the crack' })).toBeInTheDocument();
   });
 
-  it('takes a picture off a subtask with ×', () => {
+  it('takes a picture off a subtask through its "⋯" menu, never with one stray click', async () => {
     const images = makeImages();
+    const user = userEvent.setup();
     render(<Harness images={images} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Remove image' }));
+
+    expect(screen.queryByRole('button', { name: 'Remove image' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Image actions' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Remove image' }));
+
     expect(images.remove).toHaveBeenCalledWith('subtask-1', 'm1');
   });
 
   it('a read-only viewer sees and opens pictures but cannot add or remove them', async () => {
     render(<Harness images={makeImages()} isReadOnly />);
-    expect(screen.queryByRole('button', { name: 'Remove image' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Image actions' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Add image' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Open image' }));
     expect(await screen.findByTestId('image-lightbox')).toBeInTheDocument();

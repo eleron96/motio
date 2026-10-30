@@ -3,6 +3,7 @@ import { Task } from '@/features/planner/types/planner';
 import {
   hasTaskOwnEditsToRevert,
   recordTaskOwnEdits,
+  TaskOwnEditField,
   TaskOwnEdits,
 } from '@/shared/domain/taskOwnEdits';
 
@@ -25,6 +26,18 @@ export interface UseTaskDraftsResult {
   recordOwnEdits: (before: Task, updates: Partial<Task>) => void;
   titleDraftRef: MutableRefObject<string>;
   descriptionDraftRef: MutableRefObject<string>;
+  /**
+   * The stored description the current draft started from. A teammate's
+   * change made while the person types isn't adopted, so this stays the base
+   * the save is checked against.
+   */
+  descriptionBaseRef: MutableRefObject<string>;
+  /** Replace the draft with a stored description (e.g. a teammate's newer one). */
+  adoptDescription: (description: string) => void;
+  /** Our save of `description` landed: it is the base from now on. */
+  markDescriptionSaved: (description: string) => void;
+  /** Forget own edits of these fields (the person took a teammate's version). */
+  forgetOwnEdits: (fields: TaskOwnEditField[]) => void;
   draftTitle: string;
   setDraftTitle: Dispatch<SetStateAction<string>>;
   draftDescription: string;
@@ -86,7 +99,13 @@ export const useTaskDrafts = ({
       lastSyncedDescriptionRef.current = task.description === undefined ? '' : initialDescription;
     } else if (
       task.description !== undefined
-      && descriptionDraftRef.current === lastSyncedDescriptionRef.current
+      && (
+        descriptionDraftRef.current === lastSyncedDescriptionRef.current
+        // The store caught up with the draft (our own save landed): the saved
+        // text is the new base, or the next save would be checked against an
+        // old one and look like a teammate's change.
+        || descriptionDraftRef.current === (task.description || '')
+      )
     ) {
       // Same task: adopt the lazy-loaded / externally-changed description unless
       // the user has an in-progress edit.
@@ -116,7 +135,29 @@ export const useTaskDrafts = ({
     task ? hasTaskOwnEditsToRevert(currentEdits, task) : false
   ), [currentEdits, task]);
 
+  const adoptDescription = useCallback((description: string) => {
+    descriptionDraftRef.current = description;
+    lastSyncedDescriptionRef.current = description;
+    setDraftDescription(description);
+  }, []);
+
+  const markDescriptionSaved = useCallback((description: string) => {
+    lastSyncedDescriptionRef.current = description;
+  }, []);
+
+  const forgetOwnEdits = useCallback((fields: TaskOwnEditField[]) => {
+    setOwnEdits((current) => {
+      const edits = { ...current.edits };
+      for (const field of fields) delete edits[field];
+      return { ...current, edits };
+    });
+  }, []);
+
   return {
+    descriptionBaseRef: lastSyncedDescriptionRef,
+    adoptDescription,
+    markDescriptionSaved,
+    forgetOwnEdits,
     ownEdits: currentEdits,
     recordOwnEdits,
     titleDraftRef,
