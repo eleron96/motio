@@ -62,13 +62,50 @@ export const useTaskSubtasks = ({
   currentWorkspaceId,
   canEdit,
   fetchTaskSubtasks,
-  createTaskSubtask,
-  updateTaskSubtaskTitle,
-  updateTaskSubtaskCompletion,
-  deleteTaskSubtask,
-  updateTaskSubtaskImages,
+  createTaskSubtask: createTaskSubtaskRaw,
+  updateTaskSubtaskTitle: updateTaskSubtaskTitleRaw,
+  updateTaskSubtaskCompletion: updateTaskSubtaskCompletionRaw,
+  deleteTaskSubtask: deleteTaskSubtaskRaw,
+  updateTaskSubtaskImages: updateTaskSubtaskImagesRaw,
   releaseTaskMedia,
 }: UseTaskSubtasksParams): UseTaskSubtasksResult => {
+  // Own writes in flight, and a counter bumped whenever one starts or ends.
+  // A live re-read that overlaps either would bring back the list as it was
+  // before our write — a ticked box unticks, then ticks again on the echo —
+  // so such a re-read is thrown away and asked again (see the live effect).
+  const ownWritesRef = useRef({ inFlight: 0, generation: 0 });
+  const trackOwnWrite = useCallback(async <T,>(write: () => Promise<T>): Promise<T> => {
+    const writes = ownWritesRef.current;
+    writes.inFlight += 1;
+    writes.generation += 1;
+    try {
+      return await write();
+    } finally {
+      writes.inFlight -= 1;
+      writes.generation += 1;
+    }
+  }, []);
+  const createTaskSubtask = useCallback<UseTaskSubtasksParams['createTaskSubtask']>(
+    (...args) => trackOwnWrite(() => createTaskSubtaskRaw(...args)),
+    [createTaskSubtaskRaw, trackOwnWrite],
+  );
+  const updateTaskSubtaskTitle = useCallback<UseTaskSubtasksParams['updateTaskSubtaskTitle']>(
+    (...args) => trackOwnWrite(() => updateTaskSubtaskTitleRaw(...args)),
+    [trackOwnWrite, updateTaskSubtaskTitleRaw],
+  );
+  const updateTaskSubtaskCompletion = useCallback<UseTaskSubtasksParams['updateTaskSubtaskCompletion']>(
+    (...args) => trackOwnWrite(() => updateTaskSubtaskCompletionRaw(...args)),
+    [trackOwnWrite, updateTaskSubtaskCompletionRaw],
+  );
+  const deleteTaskSubtask = useCallback<UseTaskSubtasksParams['deleteTaskSubtask']>(
+    (...args) => trackOwnWrite(() => deleteTaskSubtaskRaw(...args)),
+    [deleteTaskSubtaskRaw, trackOwnWrite],
+  );
+  const updateTaskSubtaskImages = useCallback<UseTaskSubtasksParams['updateTaskSubtaskImages']>(
+    (...args) => trackOwnWrite(() => updateTaskSubtaskImagesRaw(...args)),
+    [trackOwnWrite, updateTaskSubtaskImagesRaw],
+  );
+
   const [subtasksOpen, setSubtasksOpen] = useState(false);
   const [subtasksLoading, setSubtasksLoading] = useState(false);
   const [subtasksSaving, setSubtasksSaving] = useState(false);
@@ -180,8 +217,16 @@ export const useTaskSubtasks = ({
 
     const refetch = async () => {
       timer = null;
+      const writes = ownWritesRef.current;
+      const startedAt = writes.generation;
       const result = await fetchTaskSubtasks(currentWorkspaceId, taskId);
       if (!active || result.error) return;
+      // One of our own writes overlapped this read: its answer may predate
+      // the write. Ask again; the write's own echo will settle the list.
+      if (writes.inFlight > 0 || writes.generation !== startedAt) {
+        scheduleRefetch();
+        return;
+      }
       setSubtasks(result.subtasks);
       if (result.subtasks.length > 0) setSubtasksOpen(true);
     };
