@@ -7,12 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.41] - 2026-10-30
 ### Fixed
 - The sandbox no longer drops you into an empty app: the tour in the demo stays in the demo, and “Create account” opens registration straight away.
 
 
 ### Added
 - In the new-task form you can add a picture to a subtask right away — with the button or by pasting a screenshot — before you press “Create task”.
+
 ## [0.10.40] - 2026-10-30
 ### Fixed
 - Motio updates no longer cut the site off for a second: while one rolls out, a page simply takes a moment longer to open.
