@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import path from "path";
+import { readFileSync } from "fs";
 import { resolveSiteIdentity, siteIdentityPlugin } from "./vite/siteIdentity";
 
 // https://vitejs.dev/config/
@@ -37,6 +38,8 @@ export default defineConfig(({ mode }) => {
         project: process.env.SENTRY_PROJECT || "motio-frontend",
         authToken: process.env.SENTRY_AUTH_TOKEN,
         url: process.env.SENTRY_URL || "https://errors.motio.nikog.net",
+        // Same name the app reports (APP_VERSION, src/shared/lib/sentry.ts).
+        release: { name: readFileSync(path.resolve(__dirname, "VERSION"), "utf8").trim() },
         sourcemaps: {
           filesToDeleteAfterUpload: ["./dist/**/*.map"],
         },

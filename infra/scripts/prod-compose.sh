@@ -369,6 +369,10 @@ docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycl
 # Recreate edge runtime container to drop stale deno module cache between releases.
 # Plain restart keeps the writable layer and can preserve outdated import graphs.
 docker compose -f "$compose_file" --env-file "$env_file" up -d --force-recreate --no-deps functions
+# The recreated container has a new IP and nginx resolves upstream names only
+# on start/reload: re-resolve right away, or /functions/v1/* answers 502 for
+# the rest of the deploy. The full config reload further down still runs.
+docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -s reload >/dev/null 2>&1 || true
 
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
 infra/scripts/keycloak-ensure-client-urls.sh "$env_file"

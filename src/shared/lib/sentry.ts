@@ -6,6 +6,7 @@ import {
   useNavigationType,
 } from "react-router-dom";
 import * as Sentry from "@sentry/react";
+import { APP_VERSION } from "@/shared/lib/appVersion";
 
 const dsn = import.meta.env.VITE_GLITCHTIP_DSN;
 
@@ -50,6 +51,9 @@ export function initSentry() {
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
+    // Errors carry the version they came from, so a regression can be tied to
+    // a release. Matches the release the Vite plugin uploads source maps for.
+    release: APP_VERSION,
     enabled: import.meta.env.PROD,
     integrations: [
       Sentry.reactRouterV6BrowserTracingIntegration({

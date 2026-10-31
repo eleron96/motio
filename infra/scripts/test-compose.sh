@@ -200,6 +200,10 @@ $compose_cmd up -d auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache.
 $compose_cmd up -d --force-recreate --no-deps functions
+# The recreated container has a new IP and nginx resolves upstream names only
+# on start/reload: re-resolve right away, or /functions/v1/* answers 502 for
+# the rest of the deploy. The full config reload further down still runs.
+$compose_cmd exec -T gateway nginx -s reload >/dev/null 2>&1 || true
 
 # --- Keycloak configuration ---
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"

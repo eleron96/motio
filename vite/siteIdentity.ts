@@ -67,8 +67,11 @@ export const renderIndexHtml = (html: string, identity: SiteIdentity): string =>
   const withSiteUrl = html.split(SITE_URL_PLACEHOLDER).join(identity.siteUrl);
   if (identity.analytics) {
     const { domain, scriptSrc } = identity.analytics;
+    // async, not defer: a deferred script runs in order before the app's
+    // module entry, so a slow or unreachable analytics host would hold the
+    // app back. The counter doesn't care about order.
     const script =
-      `<script defer data-domain="${escapeHtmlAttribute(domain)}" ` +
+      `<script async data-domain="${escapeHtmlAttribute(domain)}" ` +
       `src="${escapeHtmlAttribute(scriptSrc)}"></script>`;
     return withSiteUrl.replace(ANALYTICS_MARKER, script);
   }

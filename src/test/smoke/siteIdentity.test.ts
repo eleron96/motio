@@ -29,7 +29,7 @@ describe("site identity: the public site keeps its pages as they were", () => {
 
   it("loads the public site's analytics script", () => {
     expect(html).toContain(
-      '    <script defer data-domain="motio.nikog.net" src="https://analise.nikog.webtm.ru/js/script.js"></script>\n  </head>',
+      '    <script async data-domain="motio.nikog.net" src="https://analise.nikog.webtm.ru/js/script.js"></script>\n  </head>',
     );
   });
 
@@ -70,7 +70,7 @@ describe("site identity: a self-hosted build", () => {
 
   it("sends page views nowhere", () => {
     expect(identity.analytics).toBeNull();
-    expect(html).not.toContain("<script defer data-domain");
+    expect(html).not.toContain("<script async data-domain");
     expect(html).not.toContain("analise.nikog.webtm.ru");
   });
 
