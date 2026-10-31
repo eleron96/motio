@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.44] - 2026-10-31
 ### Changed
 - Moving or resizing a task is instant: the bar no longer jumps back while the change is saved.
 - A repeating task moves as a whole series in one go — fast, and never left half-moved.
