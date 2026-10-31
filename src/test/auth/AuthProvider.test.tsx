@@ -20,6 +20,12 @@ const authStoreMocks = vi.hoisted(() => ({
 
 const plannerStoreMocks = vi.hoisted(() => ({
   reset: vi.fn(),
+  loadWorkspaceData: vi.fn(),
+}));
+
+const workspaceMocks = vi.hoisted(() => ({
+  storedId: null as string | null,
+  workspacesLoaded: false,
 }));
 
 const recentSignOutMocks = vi.hoisted(() => ({
@@ -37,18 +43,23 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
 }));
 
 vi.mock('@/features/auth/store/authStore', () => ({
-  useAuthStore: (selector: (state: unknown) => unknown) => selector({
+  useAuthStore: Object.assign((selector: (state: unknown) => unknown) => selector({
     setSession: authStoreMocks.setSession,
     setLoading: authStoreMocks.setLoading,
     resolveSuperAdmin: authStoreMocks.resolveSuperAdmin,
     fetchWorkspaces: authStoreMocks.fetchWorkspaces,
     fetchProfile: authStoreMocks.fetchProfile,
+  }), {
+    getState: () => ({ workspacesLoaded: workspaceMocks.workspacesLoaded }),
   }),
+  readStoredWorkspaceId: () => workspaceMocks.storedId,
 }));
 
 vi.mock('@/features/planner/store/plannerStore', () => ({
-  usePlannerStore: (selector: (state: unknown) => unknown) => selector({
+  usePlannerStore: Object.assign((selector: (state: unknown) => unknown) => selector({
     reset: plannerStoreMocks.reset,
+  }), {
+    getState: () => ({ loadWorkspaceData: plannerStoreMocks.loadWorkspaceData }),
   }),
 }));
 
@@ -64,6 +75,12 @@ describe('AuthProvider', () => {
     supabaseMocks.getSession.mockResolvedValue({ data: { session: null } });
     supabaseMocks.signOut.mockResolvedValue({ error: null });
     authStoreMocks.resolveSuperAdmin.mockResolvedValue(false);
+    authStoreMocks.fetchWorkspaces.mockResolvedValue(undefined);
+    authStoreMocks.fetchProfile.mockResolvedValue(undefined);
+    plannerStoreMocks.loadWorkspaceData.mockResolvedValue(undefined);
+    workspaceMocks.storedId = null;
+    workspaceMocks.workspacesLoaded = false;
+    window.history.replaceState(null, '', '/');
     supabaseMocks.onAuthStateChange.mockReturnValue({
       data: {
         subscription: {
@@ -99,5 +116,29 @@ describe('AuthProvider', () => {
     });
     expect(supabaseMocks.signOut).toHaveBeenCalledWith({ scope: 'local' });
     expect(authStoreMocks.setSession).toHaveBeenCalledWith(null);
+  });
+
+  const signedIn = { user: { id: 'user-1' }, access_token: 'token-1' };
+
+  it('starts loading the last opened workspace together with the workspace list', async () => {
+    window.history.replaceState(null, '', '/app');
+    workspaceMocks.storedId = 'ws-last';
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: signedIn } });
+
+    render(<AuthProvider><div>child</div></AuthProvider>);
+
+    await waitFor(() => expect(authStoreMocks.fetchWorkspaces).toHaveBeenCalled());
+    expect(plannerStoreMocks.loadWorkspaceData).toHaveBeenCalledWith('ws-last');
+  });
+
+  it('does not load workspace data for screens that do not show it', async () => {
+    window.history.replaceState(null, '', '/app/admin/users');
+    workspaceMocks.storedId = 'ws-last';
+    supabaseMocks.getSession.mockResolvedValue({ data: { session: signedIn } });
+
+    render(<AuthProvider><div>child</div></AuthProvider>);
+
+    await waitFor(() => expect(authStoreMocks.fetchWorkspaces).toHaveBeenCalled());
+    expect(plannerStoreMocks.loadWorkspaceData).not.toHaveBeenCalled();
   });
 });
