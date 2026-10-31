@@ -574,6 +574,23 @@ if ! finalize_changelog_release "$changelog_en_file" "$release_version" "$releas
   exit 1
 fi
 
+# Keep the running release's files before the new web image replaces them: a
+# tab opened before this release still loads its lazy chunks from the archive
+# (infra/web/nginx.conf falls back to it) instead of a 404 and a forced reload.
+# Files older than 7 days are dropped.
+archive_web_assets() {
+  local archive_dir="infra/web-assets-archive"
+  mkdir -p "$archive_dir"
+  local web_container
+  web_container="$(docker compose -f "$compose_file" --env-file "$env_file" ps -q web 2>/dev/null || true)"
+  if [[ -n "$web_container" ]]; then
+    docker cp "$web_container:/usr/share/nginx/html/assets/." "$archive_dir/" >/dev/null 2>&1 \
+      || echo "Warning: could not archive the current web assets." >&2
+  fi
+  find "$archive_dir" -type f -mtime +7 -delete 2>/dev/null || true
+}
+
+archive_web_assets
 if ! docker compose -f "$compose_file" --env-file "$env_file" up -d --build web oauth2-proxy; then
   restore_release_artifacts "$current_version"
   rm -rf "$release_backup_dir"

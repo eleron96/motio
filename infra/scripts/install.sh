@@ -438,6 +438,7 @@ sys.exit(1 if any(volume.get("external") for volume in volumes.values()) else 0)
   [[ "$status_code" == "200" ]] || warn "could not confirm the reserve admin account (HTTP ${status_code}); see: infra/scripts/selfhost-compose.sh logs functions"
 
   log "Building the web app (a few minutes the first time)"
+  archive_web_assets
   "${compose[@]}" up -d --build web oauth2-proxy
 
   # gateway and caddy mount single config files: a changed file (new release)
@@ -633,6 +634,21 @@ revert_update_checkout() {
     git checkout --quiet --detach "$ref"
   fi
   install -m 600 "$saved_env" "$env_file"
+}
+
+# Keeps the running release's web files before the new image replaces them: a
+# browser tab opened before the update still loads its lazy chunks from the
+# archive (infra/web/nginx.conf falls back to it). Files older than 7 days go.
+archive_web_assets() {
+  local archive_dir="infra/web-assets-archive"
+  mkdir -p "$archive_dir"
+  local web_container
+  web_container="$("${compose[@]}" ps -q web 2>/dev/null || true)"
+  if [[ -n "$web_container" ]]; then
+    docker cp "$web_container:/usr/share/nginx/html/assets/." "$archive_dir/" >/dev/null 2>&1 \
+      || warn "could not archive the current web assets"
+  fi
+  find "$archive_dir" -type f -mtime +7 -delete 2>/dev/null || true
 }
 
 # Pulls and builds everything the new release needs while the running install

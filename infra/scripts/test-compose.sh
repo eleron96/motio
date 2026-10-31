@@ -270,7 +270,24 @@ else
   echo "Warning: curl is not installed, skipping reserve admin bootstrap request." >&2
 fi
 
+# Keep the running release's files before the new web image replaces them: a
+# tab opened before this release still loads its lazy chunks from the archive
+# (infra/web/nginx.conf falls back to it) instead of a 404 and a forced reload.
+# Files older than 7 days are dropped.
+archive_web_assets() {
+  local archive_dir="infra/web-assets-archive"
+  mkdir -p "$archive_dir"
+  local web_container
+  web_container="$($compose_cmd ps -q web 2>/dev/null || true)"
+  if [[ -n "$web_container" ]]; then
+    docker cp "$web_container:/usr/share/nginx/html/assets/." "$archive_dir/" >/dev/null 2>&1 \
+      || echo "Warning: could not archive the current web assets." >&2
+  fi
+  find "$archive_dir" -type f -mtime +7 -delete 2>/dev/null || true
+}
+
 # --- Build and start web + oauth2-proxy ---
+archive_web_assets
 $compose_cmd up -d --build web oauth2-proxy
 
 echo "Testing stack is running."

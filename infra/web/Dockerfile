@@ -60,7 +60,7 @@ ENV VITE_PLAUSIBLE_DOMAIN=${VITE_PLAUSIBLE_DOMAIN}
 ENV VITE_PLAUSIBLE_SRC=${VITE_PLAUSIBLE_SRC}
 ENV NODE_OPTIONS=--max-old-space-size=2048
 
-RUN npm run lingui:compile && npm run build
+RUN npm run lingui:compile && npm run build && node infra/web/precompress.mjs dist
 
 FROM public.ecr.aws/docker/library/nginx:1.27-alpine
 
