@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { t } from '@lingui/macro';
 
@@ -49,6 +49,10 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
   onDraftDirtyChange,
 }) => {
   const [comments, setComments] = useState<TaskComment[]>([]);
+  // Comments sent but not yet saved: shown under the list right away, kept
+  // apart from `comments` so live re-reads of the list never drop them.
+  const [pendingComments, setPendingComments] = useState<TaskComment[]>([]);
+  const pendingCommentSeqRef = useRef(0);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -58,6 +62,8 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
   const currentUserDisplayName = useAuthStore(
     (s) => s.profileDisplayName ?? s.user?.email ?? '',
   );
+  const currentUserProfileName = useAuthStore((s) => s.profileDisplayName);
+  const currentUserAvatarUrl = useAuthStore((s) => s.profileAvatarUrl);
   const currentWorkspaceRole = useAuthStore((s) => s.currentWorkspaceRole);
   const workspaceMembers = useAuthStore((s) => s.members);
   const membersWorkspaceId = useAuthStore((s) => s.membersWorkspaceId);
@@ -87,6 +93,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
     let cancelled = false;
     setLoading(true);
     setComments([]);
+    setPendingComments([]);
     setNextCursor(null);
     void refreshTaskCommentCounts(workspaceId, [taskId]);
 
@@ -133,23 +140,43 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
       toast(t`Failed to add comment`, { description: message });
       throw new Error(message);
     }
-    const mentionedUserIds = extractMentionedUserIds(html);
+    // Shown at once (the editor empties too); swapped for the saved comment
+    // when the server answers, taken away again if it fails.
+    pendingCommentSeqRef.current += 1;
+    const now = new Date().toISOString();
+    const pending: TaskComment = {
+      id: `pending-comment:${pendingCommentSeqRef.current}`,
+      taskId,
+      authorId: currentUserId,
+      authorDisplayName: currentUserDisplayName,
+      authorAvatarUrl: currentUserAvatarUrl,
+      authorStatus: 'ACTIVE',
+      content: html,
+      mentionedUserIds: extractMentionedUserIds(html),
+      createdAt: now,
+      updatedAt: now,
+      isEdited: false,
+    };
+    setPendingComments((prev) => [...prev, pending]);
+    adjustTaskCommentCount(taskId, 1);
+
     const result = await createTaskComment({
       workspaceId,
       taskId,
       authorId: currentUserId,
       authorDisplayNameSnapshot: currentUserDisplayName,
       content: html,
+      author: { displayName: currentUserProfileName, avatarUrl: currentUserAvatarUrl },
     });
+    setPendingComments((prev) => prev.filter((item) => item.id !== pending.id));
     if ('error' in result) {
+      adjustTaskCommentCount(taskId, -1);
       toast(t`Failed to add comment`, { description: result.error });
       throw new Error(result.error);
     }
-    // Optimistic: append at the end (newest last)
-    setComments((prev) => [...prev, result.data]);
-    adjustTaskCommentCount(taskId, 1);
+    // Newest last; the live echo may have brought it in already.
+    setComments((prev) => (prev.some((item) => item.id === result.data.id) ? prev : [...prev, result.data]));
     void refreshTaskCommentCounts(workspaceId, [taskId]);
-    void mentionedUserIds; // handled server-side via trigger
   };
 
   // ── callbacks for child items
@@ -239,6 +266,24 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
                 <div className="border-b border-border/50 last:hidden" />
               </React.Fragment>
             ))}
+
+          {!loading &&
+            pendingComments.map((comment) => (
+              <React.Fragment key={comment.id}>
+                <TaskCommentItem
+                  comment={comment}
+                  currentUserId={currentUserId ?? null}
+                  isAdmin={isAdmin}
+                  workspaceId={workspaceId}
+                  mentionCandidates={mentionCandidates}
+                  mentionsLoading={membersLoading}
+                  onUpdated={handleUpdated}
+                  onDeleted={handleDeleted}
+                  pending
+                />
+                <div className="border-b border-border/50 last:hidden" />
+              </React.Fragment>
+            ))}
         </div>
       </ScrollArea>
 
@@ -258,6 +303,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
           mentionCandidates={mentionCandidates}
           mentionsLoading={membersLoading}
           onSave={handleCreate}
+          emptyWhileSaving
           onDraftTextChange={handleDraftTextChange}
           onDraftDirtyChange={onDraftDirtyChange}
           placeholder={t`Add a comment or update...`}

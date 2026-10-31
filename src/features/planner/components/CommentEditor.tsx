@@ -152,6 +152,12 @@ export interface CommentEditorProps {
   onDraftTextChange?: (text: string) => void;
   /** Whether the draft holds anything unsent (text or an image). */
   onDraftDirtyChange?: (dirty: boolean) => void;
+  /**
+   * Empty the editor as soon as Save is pressed, and put the text back if the
+   * save fails — for the new-comment box, whose comment is already shown in
+   * the list while it is on its way.
+   */
+  emptyWhileSaving?: boolean;
 }
 
 type MentionAnchorSource = 'button' | 'caret';
@@ -168,6 +174,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   saveLabel,
   onDraftTextChange,
   onDraftDirtyChange,
+  emptyWhileSaving = false,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -596,20 +603,30 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   const handleSave = useCallback(async () => {
     const html = lastValueRef.current;
     if (!html.trim() || plainLength > COMMENT_MAX_PLAIN_LENGTH) return;
-    setSaving(true);
-    try {
-      await onSave(html);
+    const clearDraft = () => {
       const editor = editorRef.current;
       if (editor) { editor.innerHTML = ''; lastValueRef.current = ''; }
       setPlainLength(0);
       setHasDraft(false);
       onDraftTextChangeRef.current?.('');
+    };
+    setSaving(true);
+    if (emptyWhileSaving) clearDraft();
+    try {
+      await onSave(html);
+      if (!emptyWhileSaving) clearDraft();
     } catch {
-      // Keep the draft intact so the user can retry after a failed save.
+      // Keep the draft so the user can retry after a failed save: put it back,
+      // unless the next comment is being typed already.
+      const editor = editorRef.current;
+      if (emptyWhileSaving && editor && !lastValueRef.current.trim()) {
+        setEditorValue(editor, html);
+        syncFromEditor();
+      }
     } finally {
       setSaving(false);
     }
-  }, [onSave, plainLength]);
+  }, [emptyWhileSaving, onSave, plainLength, syncFromEditor]);
 
   // Same grouping as the description editor toolbar: formatting | lists | blocks.
   const toolbarGroups = [

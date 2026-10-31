@@ -248,6 +248,12 @@ export interface CreateCommentParams {
   authorId: string;
   authorDisplayNameSnapshot: string;
   content: string;
+  /**
+   * The author's profile as the caller already knows it (the signed-in
+   * person): saves the profile lookup, a second round-trip before the
+   * comment can be shown.
+   */
+  author?: { displayName: string | null; avatarUrl: string | null };
 }
 
 export const createTaskComment = async (
@@ -272,7 +278,14 @@ export const createTaskComment = async (
   if (error) return { error: error.message };
   if (!data) return { error: 'No data returned' };
 
-  const [comment] = await mapCommentRows([data as CommentRow]);
+  const [comment] = params.author
+    ? [mapCommentRow({
+      ...(data as CommentRow),
+      author_display_name: params.author.displayName,
+      author_avatar_url: params.author.avatarUrl,
+      author_status: 'ACTIVE',
+    })]
+    : await mapCommentRows([data as CommentRow]);
 
   return {
     data: comment,
