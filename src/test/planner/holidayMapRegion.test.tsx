@@ -4,7 +4,7 @@ import { useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 
 const fetchHolidays = vi.hoisted(() => vi.fn());
 
-vi.mock('@/infrastructure/holidays/holidayApi', () => ({ fetchHolidays }));
+vi.mock('@/infrastructure/holidays/holidayApi', () => ({ fetchHolidays, readCachedHolidays: () => null }));
 
 fetchHolidays.mockResolvedValue({
   productionCalendar: null,
