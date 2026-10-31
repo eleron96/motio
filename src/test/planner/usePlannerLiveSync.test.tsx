@@ -853,4 +853,75 @@ describe('usePlannerLiveSync', () => {
 
     view.unmount();
   });
+
+  it('runs one reconcile per return to the tab and skips quick switches while the channel is healthy', async () => {
+    usePlannerStore.setState({ timelineInteractingUntil: 0, workspaceId: workspaceOne });
+    let taskDeltaCalls = 0;
+    supabaseMocks.from.mockImplementation(createRealtimeFromMock({
+      taskDelta: async () => {
+        taskDeltaCalls += 1;
+        return emptyResult;
+      },
+      taskIds: async () => emptyResult,
+      milestoneDelta: async () => emptyResult,
+      milestoneIds: async () => emptyResult,
+    }));
+
+    const view = render(
+      <LiveSyncProbe
+        workspaceId={workspaceOne}
+        loadedRange={rangeFor(workspaceOne)}
+      />,
+    );
+    act(() => {
+      supabaseMocks.emitStatus('SUBSCRIBED');
+    });
+
+    // One return to the tab = focus + visibilitychange + pageshow.
+    const returnToTab = async () => {
+      await act(async () => {
+        window.dispatchEvent(new Event('focus'));
+        document.dispatchEvent(new Event('visibilitychange'));
+        window.dispatchEvent(new Event('pageshow'));
+        await vi.advanceTimersByTimeAsync(10);
+      });
+    };
+
+    // Right after the load the window is fresh: no reconcile.
+    await returnToTab();
+    expect(taskDeltaCalls).toBe(0);
+
+    // The initial reconcile still runs on schedule.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(INITIAL_RECONCILE_DELAY_MS + 50);
+    });
+    expect(taskDeltaCalls).toBe(1);
+
+    // A minute later a return to the tab reconciles exactly once.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(61_000);
+    });
+    await returnToTab();
+    expect(taskDeltaCalls).toBe(2);
+
+    // Switching back again a few seconds later is covered by realtime.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3_000);
+    });
+    await returnToTab();
+    expect(taskDeltaCalls).toBe(2);
+
+    // With the channel down every return reconciles (after the coalescing gap).
+    act(() => {
+      supabaseMocks.emitStatus('CHANNEL_ERROR');
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_100);
+    });
+    const beforeUnhealthyReturn = taskDeltaCalls;
+    await returnToTab();
+    expect(taskDeltaCalls).toBe(beforeUnhealthyReturn + 1);
+
+    view.unmount();
+  });
 });
