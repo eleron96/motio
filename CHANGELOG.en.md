@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- For self-hosted servers: Keycloak can no longer take all of its container's memory, and the database keeps per-query statistics for finding slow spots. Both apply on their own with the update.
+
 ## [0.10.46] - 2026-10-31
 ### Changed
 - Comment badges on tasks and holidays now appear together with the tasks instead of a moment later.
