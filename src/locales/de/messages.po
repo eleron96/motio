@@ -70,7 +70,7 @@ msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 msgstr "{0, plural, one {Serie verschoben (# Aufgabe)} other {Serie verschoben (# Aufgaben)}}"
 
 #. placeholder {0}: assigneeIds.length
-#. placeholder {0}: task.assigneeIds.length
+#. placeholder {0}: pickedAssigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "{0} assignees"
@@ -1265,6 +1265,10 @@ msgstr "Farben"
 msgid "Comment actions"
 msgstr "Kommentaraktionen"
 
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Comment not sent"
+msgstr "Kommentar nicht gesendet"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/board/BoardCard.tsx
@@ -1969,6 +1973,10 @@ msgstr "Deaktivierte Personen werden in den Filtern ausgeblendet."
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Discard"
 msgstr "Verwerfen"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Discard comment"
+msgstr "Kommentar verwerfen"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Discard task?"
@@ -3038,6 +3046,10 @@ msgstr "Kopfzeile des Widgets weiter gedrückt halten …"
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Keep mine"
 msgstr "Meine behalten"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Keep writing"
+msgstr "Weiterschreiben"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
@@ -7072,6 +7084,10 @@ msgstr "Ihr Konto ist zur Löschung vorgemerkt"
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Ihr Konto wird in {0} Tagen zur Löschung vorgemerkt."
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Your comment hasn't been sent yet. Close and discard it?"
+msgstr "Ihr Kommentar wurde noch nicht gesendet. Schließen und verwerfen?"
 
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Your data export failed."

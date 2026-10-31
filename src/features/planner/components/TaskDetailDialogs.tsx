@@ -37,6 +37,9 @@ type TaskDetailAlertsProps = {
   setConfirmOpen: (open: boolean) => void;
   onDiscardAndClose: () => void;
   onSaveAndClose: () => Promise<void> | void;
+  commentConfirmOpen: boolean;
+  setCommentConfirmOpen: (open: boolean) => void;
+  onDiscardComment: () => void;
   repeatCreating: boolean;
   repeatScopeOpen: boolean;
   setRepeatScopeOpen: (open: boolean) => void;
@@ -58,6 +61,9 @@ export const TaskDetailAlerts = ({
   setConfirmOpen,
   onDiscardAndClose,
   onSaveAndClose,
+  commentConfirmOpen,
+  setCommentConfirmOpen,
+  onDiscardComment,
   repeatCreating,
   repeatScopeOpen,
   setRepeatScopeOpen,
@@ -92,6 +98,21 @@ export const TaskDetailAlerts = ({
           >
             {t`Save`}
           </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog open={commentConfirmOpen} onOpenChange={setCommentConfirmOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t`Comment not sent`}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t`Your comment hasn't been sent yet. Close and discard it?`}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t`Keep writing`}</AlertDialogCancel>
+          <AlertDialogAction onClick={onDiscardComment}>{t`Discard comment`}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

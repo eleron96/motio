@@ -34,6 +34,8 @@ interface TaskCommentSectionProps {
   teammateDrafts?: TeammateDraftView[];
   /** Shares this person's comment draft with teammates who have the task open. */
   onShareDraft?: ShareTaskDraft;
+  /** Whether a typed but unsent comment is waiting in the editor. */
+  onDraftDirtyChange?: (dirty: boolean) => void;
 }
 
 const NO_TEAMMATE_DRAFTS: TeammateDraftView[] = [];
@@ -44,6 +46,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
   canEdit,
   teammateDrafts = NO_TEAMMATE_DRAFTS,
   onShareDraft,
+  onDraftDirtyChange,
 }) => {
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -256,6 +259,7 @@ export const TaskCommentSection: React.FC<TaskCommentSectionProps> = ({
           mentionsLoading={membersLoading}
           onSave={handleCreate}
           onDraftTextChange={handleDraftTextChange}
+          onDraftDirtyChange={onDraftDirtyChange}
           placeholder={t`Add a comment or update...`}
         />
       )}

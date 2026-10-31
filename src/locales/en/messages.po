@@ -70,7 +70,7 @@ msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 msgstr "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 
 #. placeholder {0}: assigneeIds.length
-#. placeholder {0}: task.assigneeIds.length
+#. placeholder {0}: pickedAssigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "{0} assignees"
@@ -1265,6 +1265,10 @@ msgstr "Colours"
 msgid "Comment actions"
 msgstr "Comment actions"
 
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Comment not sent"
+msgstr "Comment not sent"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/board/BoardCard.tsx
@@ -1969,6 +1973,10 @@ msgstr "Disabled people are hidden from filters."
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Discard"
 msgstr "Discard"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Discard comment"
+msgstr "Discard comment"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Discard task?"
@@ -3038,6 +3046,10 @@ msgstr "Keep holding the widget header..."
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Keep mine"
 msgstr "Keep mine"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Keep writing"
+msgstr "Keep writing"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
@@ -7072,6 +7084,10 @@ msgstr "Your account is scheduled for deletion"
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Your account will be scheduled for deletion in {0} days."
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Your comment hasn't been sent yet. Close and discard it?"
+msgstr "Your comment hasn't been sent yet. Close and discard it?"
 
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Your data export failed."

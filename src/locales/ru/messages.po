@@ -70,7 +70,7 @@ msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 msgstr "{0, plural, one {Серия перенесена (# задача)} few {Серия перенесена (# задачи)} many {Серия перенесена (# задач)} other {Серия перенесена (# задачи)}}"
 
 #. placeholder {0}: assigneeIds.length
-#. placeholder {0}: task.assigneeIds.length
+#. placeholder {0}: pickedAssigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "{0} assignees"
@@ -1265,6 +1265,10 @@ msgstr "Цвета"
 msgid "Comment actions"
 msgstr "Действия с комментарием"
 
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Comment not sent"
+msgstr "Комментарий не отправлен"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/board/BoardCard.tsx
@@ -1969,6 +1973,10 @@ msgstr "Отключенные участники скрыты в фильтра
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Discard"
 msgstr "Сбросить"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Discard comment"
+msgstr "Сбросить комментарий"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Discard task?"
@@ -3038,6 +3046,10 @@ msgstr "Продолжайте удерживать заголовок видж�
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Keep mine"
 msgstr "Оставить моё"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Keep writing"
+msgstr "Продолжить"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
@@ -7072,6 +7084,10 @@ msgstr "Ваш аккаунт запланирован к удалению"
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Ваш аккаунт будет запланирован к удалению через {0} дн."
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Your comment hasn't been sent yet. Close and discard it?"
+msgstr "Комментарий ещё не отправлен. Закрыть и сбросить его?"
 
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Your data export failed."

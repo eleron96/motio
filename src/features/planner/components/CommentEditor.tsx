@@ -150,6 +150,8 @@ export interface CommentEditorProps {
   saveLabel?: string;
   /** Plain text of the draft as it changes ('' once saved), for live drafts. */
   onDraftTextChange?: (text: string) => void;
+  /** Whether the draft holds anything unsent (text or an image). */
+  onDraftDirtyChange?: (dirty: boolean) => void;
 }
 
 type MentionAnchorSource = 'button' | 'caret';
@@ -165,6 +167,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   onCancel,
   saveLabel,
   onDraftTextChange,
+  onDraftDirtyChange,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -184,6 +187,12 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   // the save button instead of the plain-text count, which is 0 for a
   // screenshot-only comment and used to leave that button dead.
   const [hasDraft, setHasDraft] = useState(initialValue.trim().length > 0);
+  const onDraftDirtyChangeRef = useRef(onDraftDirtyChange);
+  onDraftDirtyChangeRef.current = onDraftDirtyChange;
+  useEffect(() => {
+    onDraftDirtyChangeRef.current?.(hasDraft);
+  }, [hasDraft]);
+  useEffect(() => () => onDraftDirtyChangeRef.current?.(false), []);
   const [saving, setSaving] = useState(false);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
 
