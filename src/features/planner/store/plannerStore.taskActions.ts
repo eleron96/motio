@@ -63,6 +63,7 @@ type TaskActions = Pick<
   | 'reassignTask'
   | 'deleteTaskSeries'
   | 'removeAssigneeFromTask'
+  | 'searchTasks'
   | 'fetchTaskSubtasks'
   | 'createTaskSubtask'
   | 'createTaskSubtasks'
@@ -75,6 +76,9 @@ type TaskActions = Pick<
   | 'fetchTaskDescription'
 >;
 
+// Search results never show the description, so it isn't fetched.
+const TASK_SEARCH_COLUMNS = 'id, title, project_id, assignee_id, assignee_ids, start_date, end_date, status_id, type_id, priority, tag_ids, repeat_id, updated_at';
+const TASK_SEARCH_LIMIT = 200;
 const TASK_SUBTASK_COLUMNS = 'id, task_id, title, is_done, done_at, position, created_at, images';
 
 export const createTaskActions = (
@@ -1223,6 +1227,28 @@ export const createTaskActions = (
           : state.selectedTaskId,
       };
     });
+  },
+
+  searchTasks: async (workspaceId, query) => {
+    const needle = query.trim();
+    if (!needle) return { tasks: [] };
+    // `%` and `_` are wildcards in ILIKE: a title with them is searched literally.
+    const pattern = `%${needle.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(TASK_SEARCH_COLUMNS)
+      .eq('workspace_id', workspaceId)
+      .ilike('title', pattern)
+      .order('start_date', { ascending: true })
+      .limit(TASK_SEARCH_LIMIT);
+
+    if (error) {
+      return { tasks: [], error: error.message };
+    }
+
+    return {
+      tasks: ((data ?? []) as unknown as TaskRow[]).map(mapTaskRow),
+    };
   },
 
   fetchTaskSubtasks: async (workspaceId, taskId) => {

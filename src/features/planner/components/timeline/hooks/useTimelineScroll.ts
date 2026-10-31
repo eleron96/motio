@@ -312,10 +312,16 @@ export function useTimelineScroll({
       if (taskElement) {
         const containerRect = container.getBoundingClientRect();
         const taskRect = taskElement.getBoundingClientRect();
-        const taskCenter = taskRect.left - containerRect.left + container.scrollLeft + taskRect.width / 2;
+        const taskLeft = taskRect.left - containerRect.left + container.scrollLeft;
+        const taskCenter = taskLeft + taskRect.width / 2;
         const effectiveViewportWidth = viewportWidth || Math.max(0, container.clientWidth - sidebarViewportWidth);
         const viewportCenter = sidebarViewportWidth + effectiveViewportWidth / 2;
-        const targetLeft = Math.max(0, taskCenter - viewportCenter);
+        // A bar wider than the screen is shown from its start (where its title
+        // is), with half a day of air; a shorter one is centred.
+        const startPadding = dayWidth / 2;
+        const targetLeft = Math.max(0, taskRect.width > effectiveViewportWidth - startPadding * 2
+          ? taskLeft - sidebarViewportWidth - startPadding
+          : taskCenter - viewportCenter);
         const taskCenterY = taskRect.top - containerRect.top + container.scrollTop + taskRect.height / 2;
         const targetTop = Math.max(0, taskCenterY - container.clientHeight / 2);
         container.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' });

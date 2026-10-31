@@ -6,6 +6,8 @@ import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
 import { useUsageBeacon } from '@/features/planner/hooks/useUsageBeacon';
 import { isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
+import { TimelineSearchStrip } from '@/features/planner/components/timeline/TimelineSearchStrip';
+import { TimelineSearchOverlay } from '@/features/planner/components/timeline/TimelineSearchOverlay';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
 import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
@@ -94,6 +96,7 @@ const PlannerTimelineArea = React.memo(({
 }: PlannerTimelineAreaProps) => (
   <div className="flex-1 flex flex-col overflow-hidden min-h-0 timeline-surface">
     <TimelineControls />
+    {surface === 'timeline' && viewMode !== 'calendar' && <TimelineSearchStrip />}
     <div className="relative flex-1 overflow-hidden min-h-0">
       {surface === 'board' && (
         <Suspense
@@ -116,6 +119,9 @@ const PlannerTimelineArea = React.memo(({
             onSidebarWidthReset={onTimelineSidebarWidthReset}
           />
         )
+      )}
+      {surface === 'timeline' && viewMode !== 'calendar' && (
+        <TimelineSearchOverlay />
       )}
       {showLoadingOverlay && (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-background/60">

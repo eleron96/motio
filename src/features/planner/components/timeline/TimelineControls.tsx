@@ -5,6 +5,7 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobilePlannerViewButton, PlannerViewSwitcher } from './PlannerViewSwitcher';
+import { TimelineSearch } from './TimelineSearch';
 import { Button } from '@/shared/ui/button';
 import { Calendar as CalendarComponent } from '@/shared/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
@@ -215,6 +216,14 @@ export const TimelineControls: React.FC = () => {
           </Popover>
         )}
       </div>
+
+      {/* Search lives on the desktop day/week timeline: the timeline itself
+          shows what was found. */}
+      {!onBoard && !isMobile && viewMode !== 'calendar' && (
+        <div className="flex flex-1 justify-center">
+          <TimelineSearch />
+        </div>
+      )}
 
       {/* What is shown, then only that view's own settings: no disabled
           buttons. The phone gets one "View" button with a sheet instead. */}
