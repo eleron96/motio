@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.46] - 2026-10-31
 ### Changed
 - Comment badges on tasks and holidays now appear together with the tasks instead of a moment later.
 - A workspace opens faster after signing in.
