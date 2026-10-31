@@ -1,6 +1,6 @@
 import React, { MutableRefObject, useEffect, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
-import { ImagePlus, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ImagePlus, Menu, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react';
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { Button } from '@/shared/ui/button';
 import { Checkbox } from '@/shared/ui/checkbox';
@@ -34,6 +34,7 @@ import {
 import { MAX_SUBTASK_IMAGES } from '@/shared/domain/taskSubtaskImages';
 import { ImageLightbox } from '@/shared/ui/image-lightbox';
 import type { LightboxImage } from '@/shared/lib/lightboxImage';
+import { useSubtaskDragReorder } from '@/features/planner/hooks/useSubtaskDragReorder';
 
 interface SubtasksSectionProps {
   isReadOnly: boolean;
@@ -56,6 +57,8 @@ interface SubtasksSectionProps {
   onEdit: (subtaskId: string, title: string) => Promise<boolean>;
   onToggle: (subtaskId: string, isDone: boolean) => void;
   onDelete: (subtaskId: string) => void;
+  /** Moves a subtask to another place; without it rows have no drag handle. */
+  onReorder?: (subtaskId: string, toIndex: number) => void;
   /**
    * Fires whenever an inline subtask edit has uncommitted changes, so the
    * parent (task panel) can warn before closing and losing them.
@@ -93,6 +96,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   onEdit,
   onToggle,
   onDelete,
+  onReorder,
   onEditingDirtyChange,
   onEditingActiveChange,
   teammateDrafts = NO_TEAMMATE_DRAFTS,
@@ -121,6 +125,14 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   };
   const [editingTitle, setEditingTitle] = useState('');
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const canReorder = Boolean(onReorder) && !isReadOnly;
+  const reorder = useSubtaskDragReorder({
+    ids: subtasks.map((subtask) => subtask.id),
+    enabled: canReorder && subtasks.length > 1,
+    onReorder: (subtaskId, toIndex) => onReorder?.(subtaskId, toIndex),
+  });
+  // Numbers are as wide as the longest one, so titles stay in one column.
+  const numberWidth = `${String(subtasks.length).length + 0.5}ch`;
 
   // An inline edit is "dirty" while it's open and the text differs from the
   // saved subtask title. Reported upward so the task panel can warn before a
@@ -227,8 +239,31 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
           {subtasks.map((subtask) => (
             <React.Fragment key={subtask.id}>
               <div
-                className="group flex items-start gap-2.5 rounded-md px-1.5 py-1 hover:bg-muted/60"
+                ref={reorder.registerRow(subtask.id)}
+                style={reorder.rowStyle(subtask.id)}
+                data-testid="subtask-row"
+                className={cn(
+                  'group flex items-start gap-2.5 rounded-md px-1.5 py-1',
+                  reorder.draggingId === null && 'hover:bg-muted/60',
+                  reorder.draggingId === subtask.id && 'bg-card shadow-md ring-1 ring-border',
+                )}
               >
+                {canReorder && (
+                  <button
+                    type="button"
+                    {...reorder.handleProps(subtask.id)}
+                    className={cn(
+                      '-my-1 -mr-1.5 flex h-6 w-5 shrink-0 touch-none items-center justify-center rounded-sm text-muted-foreground/50',
+                      'hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                      subtasks.length > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default',
+                      reorder.draggingId === subtask.id && 'cursor-grabbing text-foreground',
+                    )}
+                    aria-label={t`Reorder subtask`}
+                    title={t`Drag to reorder`}
+                  >
+                    <Menu className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                )}
                 <Checkbox
                   checked={subtask.isDone}
                   onCheckedChange={(value) => {
@@ -237,6 +272,16 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   }}
                   disabled={isReadOnly || editingId === subtask.id}
                 />
+                <span
+                  className={cn(
+                    '-mr-1 shrink-0 text-right text-sm leading-snug tabular-nums text-muted-foreground',
+                    subtask.isDone && 'text-muted-foreground/60',
+                  )}
+                  style={{ minWidth: numberWidth }}
+                  aria-hidden="true"
+                >
+                  {reorder.displayIndex(subtask.id) + 1}.
+                </span>
                 <div className="min-w-0 flex-1 space-y-1.5">
                 {editingId === subtask.id ? (
                   <AutoGrowTextarea
@@ -326,7 +371,11 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                 )}
               </div>
               {editDraftsFor(subtask.id).map((entry) => (
-                <TeammateDraftLine key={entry.userId} entry={entry} className="pb-1 pl-8 pr-1.5" />
+                <TeammateDraftLine
+                  key={entry.userId}
+                  entry={entry}
+                  className={cn('pb-1 pr-1.5', canReorder ? 'pl-[4.5rem]' : 'pl-14')}
+                />
               ))}
             </React.Fragment>
           ))}

@@ -2024,6 +2024,10 @@ msgstr "Foto hierher ziehen oder klicken, um eines auszuwählen"
 msgid "Drag and drop image files into the description area."
 msgstr "Ziehen Sie Bilddateien in den Beschreibungsbereich."
 
+#: src/features/planner/components/SubtasksSection.tsx
+msgid "Drag to reorder"
+msgstr "Zum Umsortieren ziehen"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw every project in its own colour instead of the palette."
 msgstr "Jedes Projekt in seiner eigenen Farbe statt in der Palette darstellen."
@@ -2468,6 +2472,10 @@ msgstr "Aufgaben konnten nicht geladen werden."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Failed to publish note."
 msgstr "Notiz konnte nicht veröffentlicht werden."
+
+#: src/features/planner/hooks/useTaskSubtasks.ts
+msgid "Failed to reorder subtasks."
+msgstr "Die Reihenfolge der Unteraufgaben konnte nicht geändert werden."
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/timeline/TimeOffBar.tsx
@@ -4870,6 +4878,10 @@ msgstr "Gelöschtes Mitglied umbenennen"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Rename failed"
 msgstr "Umbenennen fehlgeschlagen"
+
+#: src/features/planner/components/SubtasksSection.tsx
+msgid "Reorder subtask"
+msgstr "Unteraufgabe verschieben"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/MobileRepeatScreen.tsx

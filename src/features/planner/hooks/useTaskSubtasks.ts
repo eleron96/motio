@@ -5,6 +5,7 @@ import { subscribeToOpenTaskRows } from '@/infrastructure/tasks/openTaskLiveChan
 import { TaskSubtask } from '@/features/planner/types/planner';
 import { MutationResult } from '@/features/planner/store/plannerStore.helpers';
 import { TaskSubtaskImage } from '@/shared/domain/taskSubtaskImages';
+import { reorderSubtasks, SubtaskPositionUpdate } from '@/shared/domain/taskSubtaskOrder';
 import {
   SUBTASK_DRAFT_IMAGES_KEY,
   SubtaskImagesController,
@@ -27,6 +28,7 @@ interface UseTaskSubtasksParams {
   updateTaskSubtaskCompletion: (workspaceId: string, taskId: string, subtaskId: string, isDone: boolean, doneAt: string | null) => Promise<MutationResult>;
   deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
   updateTaskSubtaskImages: (workspaceId: string, taskId: string, subtaskId: string, images: TaskSubtaskImage[]) => Promise<MutationResult>;
+  updateTaskSubtaskPositions: (workspaceId: string, taskId: string, updates: SubtaskPositionUpdate[]) => Promise<MutationResult>;
   releaseTaskMedia: (mediaIds: string[]) => void;
 }
 
@@ -47,6 +49,8 @@ export interface UseTaskSubtasksResult {
   handleEditSubtask: (subtaskId: string, title: string) => Promise<boolean>;
   handleToggleSubtask: (subtaskId: string, isDone: boolean) => Promise<void>;
   handleDeleteSubtask: (subtaskId: string) => Promise<void>;
+  /** Moves a subtask to `toIndex` in the list (drag by its handle). */
+  handleReorderSubtask: (subtaskId: string, toIndex: number) => Promise<void>;
   subtaskImages: SubtaskImagesController;
 }
 
@@ -67,6 +71,7 @@ export const useTaskSubtasks = ({
   updateTaskSubtaskCompletion: updateTaskSubtaskCompletionRaw,
   deleteTaskSubtask: deleteTaskSubtaskRaw,
   updateTaskSubtaskImages: updateTaskSubtaskImagesRaw,
+  updateTaskSubtaskPositions: updateTaskSubtaskPositionsRaw,
   releaseTaskMedia,
 }: UseTaskSubtasksParams): UseTaskSubtasksResult => {
   // Own writes in flight, and a counter bumped whenever one starts or ends.
@@ -104,6 +109,10 @@ export const useTaskSubtasks = ({
   const updateTaskSubtaskImages = useCallback<UseTaskSubtasksParams['updateTaskSubtaskImages']>(
     (...args) => trackOwnWrite(() => updateTaskSubtaskImagesRaw(...args)),
     [trackOwnWrite, updateTaskSubtaskImagesRaw],
+  );
+  const updateTaskSubtaskPositions = useCallback<UseTaskSubtasksParams['updateTaskSubtaskPositions']>(
+    (...args) => trackOwnWrite(() => updateTaskSubtaskPositionsRaw(...args)),
+    [trackOwnWrite, updateTaskSubtaskPositionsRaw],
   );
 
   const [subtasksOpen, setSubtasksOpen] = useState(false);
@@ -390,6 +399,25 @@ export const useTaskSubtasks = ({
     if (previous.images.length > 0) releaseTaskMedia(previous.images.map((image) => image.id));
   }, [canEdit, currentWorkspaceId, deleteTaskSubtask, releaseTaskMedia, subtasks, taskId]);
 
+  const handleReorderSubtask = useCallback(async (subtaskId: string, toIndex: number) => {
+    if (!taskId || !currentWorkspaceId || !canEdit) return;
+    const previous = subtasks;
+    const reordered = reorderSubtasks(previous, subtaskId, toIndex);
+    if (!reordered) return;
+
+    setSubtasksError('');
+    setSubtasks(reordered.items);
+
+    const result = await updateTaskSubtaskPositions(currentWorkspaceId, taskId, reordered.updates);
+    if (result.error) {
+      // Some rows may have been written: re-read the list instead of guessing.
+      const fresh = await fetchTaskSubtasks(currentWorkspaceId, taskId);
+      if (activeTaskIdRef.current !== taskId) return;
+      setSubtasks(fresh.error ? previous : fresh.subtasks);
+      setSubtasksError(t`Failed to reorder subtasks.`);
+    }
+  }, [canEdit, currentWorkspaceId, fetchTaskSubtasks, subtasks, taskId, updateTaskSubtaskPositions]);
+
   return {
     subtasksOpen,
     setSubtasksOpen,
@@ -407,6 +435,7 @@ export const useTaskSubtasks = ({
     handleEditSubtask,
     handleToggleSubtask,
     handleDeleteSubtask,
+    handleReorderSubtask,
     subtaskImages,
   };
 };

@@ -54,6 +54,7 @@ describe('useTaskSubtasks live re-read and own ticks', () => {
       })),
       deleteTaskSubtask: vi.fn(async () => ({})),
       updateTaskSubtaskImages: vi.fn(async () => ({})),
+      updateTaskSubtaskPositions: vi.fn(async () => ({})),
       releaseTaskMedia: vi.fn(),
     };
     const { result } = renderHook(() => useTaskSubtasks({

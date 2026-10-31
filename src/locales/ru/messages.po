@@ -2024,6 +2024,10 @@ msgstr "Перетащите или нажмите, чтобы выбрать ф
 msgid "Drag and drop image files into the description area."
 msgstr "Перетащите изображения в область описания."
 
+#: src/features/planner/components/SubtasksSection.tsx
+msgid "Drag to reorder"
+msgstr "Перетащите, чтобы изменить порядок"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw every project in its own colour instead of the palette."
 msgstr "Рисовать каждый проект его цветом, а не цветом палитры."
@@ -2468,6 +2472,10 @@ msgstr "Не удалось загрузить задачи."
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "Failed to publish note."
 msgstr "Не удалось опубликовать заметку."
+
+#: src/features/planner/hooks/useTaskSubtasks.ts
+msgid "Failed to reorder subtasks."
+msgstr "Не удалось изменить порядок подзадач."
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/timeline/TimeOffBar.tsx
@@ -4870,6 +4878,10 @@ msgstr "Переименовать удалённого участника"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Rename failed"
 msgstr "Не удалось переименовать"
+
+#: src/features/planner/components/SubtasksSection.tsx
+msgid "Reorder subtask"
+msgstr "Изменить порядок подзадачи"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/MobileRepeatScreen.tsx
