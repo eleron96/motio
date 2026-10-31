@@ -458,3 +458,4 @@
 2026-10-30T12:26:04Z | 0.10.39 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261030-122517.dump | A subtask you tick no longer briefly unticks itself.
 2026-10-30T12:56:15Z | 0.10.40 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261030-125530.dump | Motio updates no longer cut the site off for a second: while one rolls out, a page simply takes a moment longer to open.
 2026-10-30T14:38:42Z | 0.10.41 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261030-143758.dump | The sandbox no longer drops you into an empty app: the tour in the demo stays in the demo, and “Create account” opens registration straight away.
+2026-10-31T09:38:23Z | 0.10.42 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261031-093740.dump | Subtasks can be reordered: drag them by the “≡” handle next to the checkbox. Each subtask is now numbered automatically.

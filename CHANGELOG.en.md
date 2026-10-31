@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.42] - 2026-10-31
 ### Added
 - Subtasks can be reordered: drag them by the “≡” handle next to the checkbox. Each subtask is now numbered automatically.
 
