@@ -36,7 +36,6 @@ export interface UseTaskSubtasksResult {
   subtasksOpen: boolean;
   setSubtasksOpen: Dispatch<SetStateAction<boolean>>;
   subtasksLoading: boolean;
-  subtasksSaving: boolean;
   subtasksError: string;
   setSubtasksError: Dispatch<SetStateAction<string>>;
   subtasks: TaskSubtask[];
@@ -60,6 +59,11 @@ const LIVE_REFETCH_DELAY_MS = 250;
 const resolveNextSubtaskPosition = (subtasks: TaskSubtask[]) => (
   subtasks.length > 0 ? Math.max(...subtasks.map((item) => item.position)) + 1 : 0
 );
+
+const PENDING_SUBTASK_ID_PREFIX = 'pending-subtask:';
+
+/** A subtask shown before the server has it: nothing can be done to it yet. */
+export const isPendingSubtaskId = (subtaskId: string) => subtaskId.startsWith(PENDING_SUBTASK_ID_PREFIX);
 
 export const useTaskSubtasks = ({
   taskId,
@@ -117,14 +121,12 @@ export const useTaskSubtasks = ({
 
   const [subtasksOpen, setSubtasksOpen] = useState(false);
   const [subtasksLoading, setSubtasksLoading] = useState(false);
-  const [subtasksSaving, setSubtasksSaving] = useState(false);
   const [subtasksError, setSubtasksError] = useState('');
   const [subtasks, setSubtasks] = useState<TaskSubtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const subtaskInputRef = useRef<HTMLTextAreaElement | null>(null);
-  // Which task a new subtask is being saved for right now, so a second save of
-  // the same draft (Enter, then the blur it causes) doesn't create it twice.
-  const addingForTaskIdRef = useRef<string | null>(null);
+  // Numbers the rows shown before the server has them (see handleAddSubtask).
+  const pendingSubtaskSeqRef = useRef(0);
   const activeTaskIdRef = useRef(taskId);
   activeTaskIdRef.current = taskId;
   // Latest values for the save that runs when the task is left (see below).
@@ -143,6 +145,7 @@ export const useTaskSubtasks = ({
     controller: subtaskImages,
     draftImagesRef,
     clearDraftImages,
+    restoreDraftImages,
   } = useSubtaskImages({
     taskId,
     currentWorkspaceId,
@@ -164,7 +167,6 @@ export const useTaskSubtasks = ({
       // The pictures in the composer right now, not when the task opened.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       const images = draftImagesRef.current;
-      if (addingForTaskIdRef.current === taskId) return;
       // Pictures pasted without a title never become a subtask: let them go.
       if (!title || !canEditRef.current) {
         if (images.length > 0) releaseTaskMediaRef.current(images.map((image) => image.id));
@@ -188,7 +190,6 @@ export const useTaskSubtasks = ({
     setNewSubtaskTitle('');
     setSubtasksError('');
     setSubtasksLoading(false);
-    setSubtasksSaving(false);
     if (!taskId || !currentWorkspaceId) return;
     let active = true;
 
@@ -271,62 +272,81 @@ export const useTaskSubtasks = ({
 
   const handleAddSubtask = useCallback(async ({ refocus = true }: { refocus?: boolean } = {}) => {
     if (!taskId || !currentWorkspaceId || !canEdit) return;
-    if (addingForTaskIdRef.current === taskId) return;
-    const title = newSubtaskTitle.trim();
+    // Read from the ref and cleared there at once: Enter followed by the blur
+    // it causes must not create the same subtask twice.
+    const title = draftTitleRef.current.trim();
     if (!title) return;
     // A picture still uploading belongs to this subtask: wait for it.
     if ((subtaskImages.uploading[SUBTASK_DRAFT_IMAGES_KEY] ?? 0) > 0) return;
     const images = draftImagesRef.current;
+    const position = resolveNextSubtaskPosition(subtasksRef.current);
 
-    addingForTaskIdRef.current = taskId;
-    setSubtasksSaving(true);
+    // The subtask shows up at once and the composer is free for the next one;
+    // its row stays read-only until the server has it.
+    pendingSubtaskSeqRef.current += 1;
+    const pendingId = `${PENDING_SUBTASK_ID_PREFIX}${pendingSubtaskSeqRef.current}`;
+    draftTitleRef.current = '';
+    setNewSubtaskTitle('');
+    clearDraftImages();
     setSubtasksError('');
-
-    const result = await createTaskSubtask(
-      currentWorkspaceId,
+    setSubtasks((current) => [...current, {
+      id: pendingId,
       taskId,
       title,
-      resolveNextSubtaskPosition(subtasks),
+      isDone: false,
+      doneAt: null,
+      position,
       images,
-    );
-    if (addingForTaskIdRef.current === taskId) addingForTaskIdRef.current = null;
+    }]);
+    if (refocus) subtaskInputRef.current?.focus();
+
+    const result = await createTaskSubtask(currentWorkspaceId, taskId, title, position, images);
 
     // The panel moved on to another task (or closed) while this was saving:
     // its state now belongs to that task, so only report a failure.
     if (activeTaskIdRef.current !== taskId) {
-      if (result.error || !result.subtask) toast.error(t`Failed to add subtask.`);
+      if (result.error || !result.subtask) {
+        toast.error(t`Failed to add subtask.`);
+        if (images.length > 0) releaseTaskMediaRef.current(images.map((image) => image.id));
+      }
       return;
     }
 
     if (result.error || !result.subtask) {
+      setSubtasks((current) => current.filter((item) => item.id !== pendingId));
       setSubtasksError(result.error ?? t`Failed to add subtask.`);
-      setSubtasksSaving(false);
+      // Give the text back to the composer, unless the next one is being typed.
+      if (!draftTitleRef.current.trim() && draftImagesRef.current.length === 0) {
+        draftTitleRef.current = title;
+        setNewSubtaskTitle(title);
+        restoreDraftImages(images);
+      } else if (images.length > 0) {
+        releaseTaskMediaRef.current(images.map((image) => image.id));
+      }
       return;
     }
 
     const createdSubtask = result.subtask;
     // A live re-read may already have brought it in.
     setSubtasks((current) => (
-      current.some((item) => item.id === createdSubtask.id) ? current : [...current, createdSubtask]
+      current.some((item) => item.id === createdSubtask.id)
+        ? current.filter((item) => item.id !== pendingId)
+        : current.map((item) => (item.id === pendingId ? createdSubtask : item))
     ));
-    setNewSubtaskTitle('');
-    clearDraftImages();
-    setSubtasksSaving(false);
-    if (refocus) subtaskInputRef.current?.focus();
   }, [
     canEdit,
     clearDraftImages,
     createTaskSubtask,
     currentWorkspaceId,
     draftImagesRef,
-    newSubtaskTitle,
+    restoreDraftImages,
     subtaskImages.uploading,
-    subtasks,
     taskId,
   ]);
 
   const handleEditSubtask = useCallback(async (subtaskId: string, title: string) => {
     if (!taskId || !currentWorkspaceId || !canEdit) return false;
+    if (isPendingSubtaskId(subtaskId)) return false;
     const previous = subtasks.find((item) => item.id === subtaskId);
     if (!previous) return false;
 
@@ -352,6 +372,7 @@ export const useTaskSubtasks = ({
 
   const handleToggleSubtask = useCallback(async (subtaskId: string, isDone: boolean) => {
     if (!taskId || !currentWorkspaceId || !canEdit) return;
+    if (isPendingSubtaskId(subtaskId)) return;
     const previous = subtasks.find((item) => item.id === subtaskId);
     if (!previous) return;
 
@@ -382,6 +403,7 @@ export const useTaskSubtasks = ({
 
   const handleDeleteSubtask = useCallback(async (subtaskId: string) => {
     if (!taskId || !currentWorkspaceId || !canEdit) return;
+    if (isPendingSubtaskId(subtaskId)) return;
     const previous = subtasks.find((item) => item.id === subtaskId);
     if (!previous) return;
 
@@ -401,6 +423,8 @@ export const useTaskSubtasks = ({
 
   const handleReorderSubtask = useCallback(async (subtaskId: string, toIndex: number) => {
     if (!taskId || !currentWorkspaceId || !canEdit) return;
+    // Positions are written for the whole list: wait until every row exists.
+    if (subtasks.some((item) => isPendingSubtaskId(item.id))) return;
     const previous = subtasks;
     const reordered = reorderSubtasks(previous, subtaskId, toIndex);
     if (!reordered) return;
@@ -422,7 +446,6 @@ export const useTaskSubtasks = ({
     subtasksOpen,
     setSubtasksOpen,
     subtasksLoading,
-    subtasksSaving,
     subtasksError,
     setSubtasksError,
     subtasks,

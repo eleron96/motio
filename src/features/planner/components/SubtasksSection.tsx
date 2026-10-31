@@ -35,12 +35,12 @@ import { MAX_SUBTASK_IMAGES } from '@/shared/domain/taskSubtaskImages';
 import { ImageLightbox } from '@/shared/ui/image-lightbox';
 import type { LightboxImage } from '@/shared/lib/lightboxImage';
 import { useSubtaskDragReorder } from '@/features/planner/hooks/useSubtaskDragReorder';
+import { isPendingSubtaskId } from '@/features/planner/hooks/useTaskSubtasks';
 
 interface SubtasksSectionProps {
   isReadOnly: boolean;
   subtasksOpen: boolean;
   subtasksLoading: boolean;
-  subtasksSaving: boolean;
   subtasksError: string;
   subtasks: TaskSubtask[];
   newSubtaskTitle: string;
@@ -83,7 +83,6 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
   isReadOnly,
   subtasksOpen,
   subtasksLoading,
-  subtasksSaving,
   subtasksError,
   subtasks,
   newSubtaskTitle,
@@ -236,7 +235,11 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
         <div className="text-xs text-muted-foreground">{t`No subtasks yet.`}</div>
       ) : (
         <div className="space-y-0.5">
-          {subtasks.map((subtask) => (
+          {subtasks.map((subtask) => {
+            // Shown before the server has it (a moment after Enter): read-only.
+            const isPending = isPendingSubtaskId(subtask.id);
+            const rowReadOnly = isReadOnly || isPending;
+            return (
             <React.Fragment key={subtask.id}>
               <div
                 ref={reorder.registerRow(subtask.id)}
@@ -245,12 +248,14 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                 className={cn(
                   'group flex items-start gap-2.5 rounded-md px-1.5 py-1',
                   reorder.draggingId === null && 'hover:bg-muted/60',
+                  isPending && 'opacity-60',
                   reorder.draggingId === subtask.id && 'bg-card shadow-md ring-1 ring-border',
                 )}
               >
                 {canReorder && (
                   <button
                     type="button"
+                    disabled={isPending}
                     {...reorder.handleProps(subtask.id)}
                     className={cn(
                       '-my-1 -mr-1.5 flex h-6 w-5 shrink-0 touch-none items-center justify-center rounded-sm text-muted-foreground/50',
@@ -270,7 +275,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                     if (value === 'indeterminate') return;
                     onToggle(subtask.id, value === true);
                   }}
-                  disabled={isReadOnly || editingId === subtask.id}
+                  disabled={rowReadOnly || editingId === subtask.id}
                 />
                 <span
                   className={cn(
@@ -308,13 +313,13 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      if (isReadOnly) return;
+                      if (rowReadOnly) return;
                       startEditing(subtask.id, subtask.title);
                     }}
-                    disabled={isReadOnly}
+                    disabled={rowReadOnly}
                     className={cn(
                       'w-full whitespace-pre-wrap break-words text-left text-sm leading-snug text-foreground [overflow-wrap:anywhere]',
-                      !isReadOnly && 'cursor-text',
+                      !rowReadOnly && 'cursor-text',
                       subtask.isDone && 'line-through text-muted-foreground',
                     )}
                   >
@@ -326,13 +331,13 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                     images={subtask.images}
                     uploadingCount={images.uploading[subtask.id] ?? 0}
                     resolveSrc={images.resolveSrc}
-                    canRemove={canAttachImages}
+                    canRemove={canAttachImages && !isPending}
                     onOpen={setLightboxImage}
                     onRemove={(mediaId) => images.remove(subtask.id, mediaId)}
                   />
                 )}
                 </div>
-                {editingId !== subtask.id && !isReadOnly && (
+                {editingId !== subtask.id && !rowReadOnly && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -378,7 +383,8 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
                 />
               ))}
             </React.Fragment>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -434,7 +440,6 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
             }}
             rows={1}
             placeholder={t`Subtask title`}
-            disabled={subtasksSaving}
             className="min-h-[36px] flex-1 text-sm"
           />
           {canAttachImages && (
@@ -446,7 +451,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
               // Keep focus (and the typed draft) in the composer.
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => pickImages(null)}
-              disabled={subtasksSaving || draftImages.length >= MAX_SUBTASK_IMAGES}
+              disabled={draftImages.length >= MAX_SUBTASK_IMAGES}
               aria-label={t`Add image`}
               title={t`Add image`}
             >
@@ -461,7 +466,7 @@ export const SubtasksSection: React.FC<SubtasksSectionProps> = ({
             // the field wouldn't get focus back for the next subtask.
             onMouseDown={(event) => event.preventDefault()}
             onClick={onAdd}
-            disabled={subtasksSaving || !newSubtaskTitle.trim()}
+            disabled={!newSubtaskTitle.trim()}
           >
             <Plus className="mr-1 h-3.5 w-3.5" />
             {t`Add`}

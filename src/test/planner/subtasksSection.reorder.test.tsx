@@ -36,7 +36,6 @@ const renderSection = (props: Partial<React.ComponentProps<typeof SubtasksSectio
     isReadOnly={false}
     subtasksOpen
     subtasksLoading={false}
-    subtasksSaving={false}
     subtasksError=""
     subtasks={subtasks}
     newSubtaskTitle=""

@@ -287,7 +287,6 @@ export const TaskDetailPanel: React.FC = () => {
   const {
     subtasksOpen, setSubtasksOpen,
     subtasksLoading,
-    subtasksSaving,
     subtasksError, setSubtasksError,
     subtasks,
     newSubtaskTitle, setNewSubtaskTitle,
@@ -945,7 +944,6 @@ export const TaskDetailPanel: React.FC = () => {
             isReadOnly={isReadOnly}
             subtasksOpen={subtasksOpen}
             subtasksLoading={subtasksLoading}
-            subtasksSaving={subtasksSaving}
             subtasksError={subtasksError}
             subtasks={subtasks}
             newSubtaskTitle={newSubtaskTitle}
