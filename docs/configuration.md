@@ -47,6 +47,10 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `KEYCLOAK_REALM_SUPPORTED_LOCALES` — languages the realm offers on the sign-in page
   and in account emails, applied by `keycloak-ensure-realm-locales.sh` on every deploy
   (`en,ru,de` by default, the same as the app).
+- `KEYCLOAK_JAVA_OPTS_APPEND` (default `-Xms512m`; `install.sh` writes `-Xms256m`) — extra
+  JVM options for Keycloak. Leave out `-Xmx`: Keycloak caps its heap at 70% of the
+  container's memory limit, and a heap as large as the limit gets the container killed
+  for memory.
 - `OAUTH2_PROXY_*` — proxying sign-in to the frontend.
 - `OAUTH2_PROXY_BACKEND_LOGOUT_URL` — Keycloak end-session URL with
   `id_token_hint={id_token}`.
@@ -59,6 +63,9 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `SUPABASE_DB_URL`, `SUPABASE_INTERNAL_URL`
 - `PGRST_DB_URI`, `GOTRUE_DB_DATABASE_URL`
 - `POSTGRES_WAL_LEVEL` — must be `logical` for Supabase Realtime CDC.
+- `POSTGRES_SHARED_PRELOAD_LIBRARIES` (default `pg_stat_statements`) — libraries loaded at
+  database start; the default enables the `pg_stat_statements` view (per-query time and
+  calls) for finding slow queries. A change applies only after the database restarts.
 
 ## Backup / Restore
 

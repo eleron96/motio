@@ -225,7 +225,7 @@ values = {
     "KEYCLOAK_PUBLIC_URL": url,
     "KEYCLOAK_HOSTNAME_STRICT": "true",
     "KEYCLOAK_ADMIN_BASE_URL": f"http://127.0.0.1:{keycloak_port}",
-    "KEYCLOAK_JAVA_OPTS_APPEND": "-Xms256m -Xmx768m",
+    "KEYCLOAK_JAVA_OPTS_APPEND": "-Xms256m",
     "KEYCLOAK_REALM_AUDIT_ENABLED": "false",
 
     "OAUTH2_PROXY_OIDC_ISSUER_URL": realm,
