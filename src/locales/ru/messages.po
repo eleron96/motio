@@ -312,6 +312,10 @@ msgstr "Кружок на дне; делится, если отсутствуе�
 msgid "A future date schedules it."
 msgstr "Дата в будущем — покажем позже."
 
+#: src/features/workspace/hooks/useNewVersionNotice.ts
+msgid "A new version of Motio is available"
+msgstr "Вышла новая версия Motio"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
 msgstr "Человек, которого можно переиспользовать в проектах."
@@ -6630,6 +6634,7 @@ msgid "Upcoming"
 msgstr "Предстоящая"
 
 #: src/features/planner/components/TaskCommentItem.tsx
+#: src/features/workspace/hooks/useNewVersionNotice.ts
 msgid "Update"
 msgstr "Обновить"
 

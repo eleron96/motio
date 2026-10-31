@@ -17,18 +17,4 @@ export type TestEmailResult =
   | { status: 'throttled'; retryAfterSeconds: number }
   | { status: 'failed'; message: string };
 
-const parseVersion = (value: string): number[] | null => {
-  const match = value.trim().replace(/^v/, '').match(/^(\d+)\.(\d+)\.(\d+)/);
-  return match ? match.slice(1, 4).map(Number) : null;
-};
-
-/** True when `latestTag` (e.g. "v0.11.0") is newer than the running `current` version. */
-export const isNewerVersion = (current: string, latestTag: string): boolean => {
-  const a = parseVersion(current);
-  const b = parseVersion(latestTag);
-  if (!a || !b) return false;
-  for (let index = 0; index < 3; index += 1) {
-    if (b[index] !== a[index]) return b[index] > a[index];
-  }
-  return false;
-};
+export { isNewerVersion } from '@/shared/domain/versionCompare';

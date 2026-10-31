@@ -312,6 +312,10 @@ msgstr "Ein Kreis am Tag; geteilt, wenn mehrere Personen abwesend sind."
 msgid "A future date schedules it."
 msgstr "Ein Datum in der Zukunft plant die Anzeige."
 
+#: src/features/workspace/hooks/useNewVersionNotice.ts
+msgid "A new version of Motio is available"
+msgstr "Eine neue Version von Motio ist verfügbar"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
 msgstr "Eine Person, die Sie in mehreren Projekten verwenden können."
@@ -6630,6 +6634,7 @@ msgid "Upcoming"
 msgstr "Anstehend"
 
 #: src/features/planner/components/TaskCommentItem.tsx
+#: src/features/workspace/hooks/useNewVersionNotice.ts
 msgid "Update"
 msgstr "Aktualisieren"
 
