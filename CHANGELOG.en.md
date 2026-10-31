@@ -7,6 +7,16 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Comment badges on tasks and holidays now appear together with the tasks instead of a moment later.
+- A workspace opens faster after signing in.
+- A new subtask or comment shows up the moment you add it, and the field is ready for the next one without waiting for the save.
+- Undoing a move of a repeating task and removing a person from a whole series are much faster.
+- Pictures in tasks are no longer downloaded again every time you open the task.
+
+### Fixed
+- Scrolling the timeline toward its edge no longer shows empty days without tasks, and no longer closes the task you have open.
+
 ## [0.10.45] - 2026-10-31
 ### Added
 - If a tab was open when a new version came out, Motio shows “A new version of Motio is available” with an “Update” button instead of reloading on its own.
