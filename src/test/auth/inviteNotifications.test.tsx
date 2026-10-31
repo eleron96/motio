@@ -52,6 +52,13 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
     functions: {
       invoke: mocks.invoke,
     },
+    // The bell reads through the inbox_list RPC (0166); the tests describe the
+    // list with the old 'inbox' mock, so the RPC answers from it.
+    rpc: async (name: string) => {
+      if (name !== 'inbox_list') return { data: null, error: null };
+      const result = await mocks.invoke('inbox', { body: { action: 'list' } });
+      return { data: result?.data ?? null, error: result?.error ?? null };
+    },
     channel: () => {
       const channel = {
         on: vi.fn(() => channel),

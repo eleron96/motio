@@ -656,6 +656,8 @@ const rpcHandlers: Record<string, (args: Record<string, unknown>) => Result> = {
     demoStore.touch();
     return ok(null);
   },
+  // The bell (migration 0166): the sandbox has no invites or notifications.
+  inbox_list: () => ok({ invites: [], notifications: [], sentInvites: [] }),
   // Series move (migration 0164): apply the client-computed dates to the
   // series rows and return them, like the real function.
   shift_repeat_series: (args) => {

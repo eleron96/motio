@@ -120,18 +120,17 @@ export const fetchInbox = async (options: {
   sentLimit: number;
   includeSentUpdates: boolean;
 }): Promise<{ data?: InboxSnapshot; error?: string }> => {
-  const { data, error, response } = await supabase.functions.invoke('inbox', {
-    body: {
-      action: 'list',
-      limit: options.limit,
-      pendingInviteLimit: options.pendingInviteLimit,
-      sentLimit: options.sentLimit,
-      includeSentUpdates: options.includeSentUpdates,
-    },
+  // One SQL call (migration 0166) instead of the inbox edge function, which
+  // made 6–7 internal round-trips per poll. Same lists, same shape.
+  const { data, error } = await supabase.rpc('inbox_list', {
+    p_limit: options.limit,
+    p_pending_invite_limit: options.pendingInviteLimit,
+    p_sent_limit: options.sentLimit,
+    p_include_sent: options.includeSentUpdates,
   });
 
   if (error) {
-    return { error: await parseInvokeError(error, response) };
+    return { error: error.message };
   }
 
   const payload = (data as {
