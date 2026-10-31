@@ -656,6 +656,21 @@ const rpcHandlers: Record<string, (args: Record<string, unknown>) => Result> = {
     demoStore.touch();
     return ok(null);
   },
+  // Comment badges of the loaded window (migration 0167), from the sandbox's comments.
+  task_comment_counts_in_window: (args) => {
+    const taskIds = new Set(scopedTasks(
+      asStr(args.p_workspace_id) ?? '',
+      asStr(args.p_start_date) ?? '',
+      asStr(args.p_end_date) ?? '',
+    ).map((task) => task.id));
+    const counts = new Map<string, number>();
+    for (const comment of demoStore.table('task_comments')) {
+      const taskId = asStr(comment.task_id);
+      if (!taskId || comment.deleted_at != null || !taskIds.has(taskId)) continue;
+      counts.set(taskId, (counts.get(taskId) ?? 0) + 1);
+    }
+    return ok([...counts].map(([task_id, comment_count]) => ({ task_id, comment_count })));
+  },
   // The bell (migration 0166): the sandbox has no invites or notifications.
   inbox_list: () => ok({ invites: [], notifications: [], sentInvites: [] }),
   // Series move (migration 0164): apply the client-computed dates to the

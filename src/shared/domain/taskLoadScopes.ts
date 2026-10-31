@@ -73,18 +73,24 @@ export const buildBoardScope = (
 
 /**
  * Result of a fresh window load: the window rows replace whatever the cache
- * held, except tasks another scope (the board) still claims. Without a board
- * scope this is exactly the incoming list — the pre-scope behaviour.
+ * held, except tasks another scope (the board) still claims. A row the cache
+ * already holds unchanged (same `updatedAt`) keeps the cached object, so the
+ * bars of untouched tasks don't re-render when the window moves.
  */
 export const mergeWindowLoad = (
   existing: Task[],
   incoming: Task[],
   board: TaskBoardScope | null,
 ): Task[] => {
-  if (!board) return incoming;
+  const existingById = new Map(existing.map((task) => [task.id, task]));
+  const fresh = incoming.map((task) => {
+    const cached = existingById.get(task.id);
+    return cached && cached.updatedAt && cached.updatedAt === task.updatedAt ? cached : task;
+  });
+  if (!board) return fresh;
   const incomingIds = new Set(incoming.map((task) => task.id));
   const kept = existing.filter((task) => !incomingIds.has(task.id) && isTaskInBoardScope(task, board));
-  return kept.length > 0 ? [...incoming, ...kept] : incoming;
+  return kept.length > 0 ? [...fresh, ...kept] : fresh;
 };
 
 /**

@@ -80,7 +80,19 @@ describe('taskLoadScopes', () => {
 
   it('replaces the cache with the window rows when there is no board', () => {
     const incoming = [makeTask({ id: 'a' })];
-    expect(mergeWindowLoad([makeTask({ id: 'old' })], incoming, null)).toBe(incoming);
+    expect(mergeWindowLoad([makeTask({ id: 'old' })], incoming, null)).toEqual(incoming);
+  });
+
+  it('keeps the cached object of a row that has not changed, and takes changed rows', () => {
+    const unchanged = makeTask({ id: 'same', description: 'loaded with the panel' });
+    const changed = makeTask({ id: 'moved', startDate: '2026-03-01', endDate: '2026-03-01' });
+    const incoming = [
+      makeTask({ id: 'same' }),
+      makeTask({ id: 'moved', startDate: '2026-03-02', endDate: '2026-03-02', updatedAt: '2026-01-02T00:00:00.000Z' }),
+    ];
+    const merged = mergeWindowLoad([unchanged, changed], incoming, null);
+    expect(merged[0]).toBe(unchanged);
+    expect(merged[1]).toBe(incoming[1]);
   });
 
   it('keeps board-claimed tasks across a window reload, preferring fresh rows', () => {
@@ -89,7 +101,7 @@ describe('taskLoadScopes', () => {
       makeTask({ id: 'board-only', startDate: '2027-01-01', endDate: '2027-01-01' }),
       makeTask({ id: 'dropped', statusId: 'status-done', startDate: '2025-01-01', endDate: '2025-01-01' }),
     ];
-    const incoming = [makeTask({ id: 'shared', title: 'fresh' })];
+    const incoming = [makeTask({ id: 'shared', title: 'fresh', updatedAt: '2026-01-02T00:00:00.000Z' })];
     const merged = mergeWindowLoad(existing, incoming, board);
     expect(merged.map((task) => task.id)).toEqual(['shared', 'board-only']);
     expect(merged[0].title).toBe('fresh');

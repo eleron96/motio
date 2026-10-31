@@ -31,21 +31,27 @@ export const HEADER_HEIGHT = 56; // pixels for timeline header (day row only)
 export const SIDEBAR_WIDTH = 200; // pixels for left sidebar
 const TIMELINE_VISIBLE_MONTHS = 2;
 
+/** First and last day the Day/Week timeline renders around `currentDate`. */
+export const getVisibleRange = (
+  currentDate: string,
+  viewMode: ViewMode,
+): { start: Date; end: Date } => {
+  const date = parseISO(currentDate);
+  let start = subMonths(date, TIMELINE_VISIBLE_MONTHS);
+  let end = addMonths(date, TIMELINE_VISIBLE_MONTHS);
+
+  if (viewMode === 'week') {
+    start = startOfWeek(start, { weekStartsOn: 1 });
+    end = endOfWeek(end, { weekStartsOn: 1 });
+  }
+
+  return { start, end };
+};
+
 export const getVisibleDays = (
   currentDate: string,
   viewMode: ViewMode,
-): Date[] => {
-  const date = parseISO(currentDate);
-  let rangeStart = subMonths(date, TIMELINE_VISIBLE_MONTHS);
-  let rangeEnd = addMonths(date, TIMELINE_VISIBLE_MONTHS);
-
-  if (viewMode === 'week') {
-    rangeStart = startOfWeek(rangeStart, { weekStartsOn: 1 });
-    rangeEnd = endOfWeek(rangeEnd, { weekStartsOn: 1 });
-  }
-
-  return eachDayOfInterval({ start: rangeStart, end: rangeEnd });
-};
+): Date[] => eachDayOfInterval(getVisibleRange(currentDate, viewMode));
 
 export const getDayWidth = (viewMode: ViewMode): number => {
   if (viewMode === 'day') return DAY_WIDTH;

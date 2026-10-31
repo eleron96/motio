@@ -374,3 +374,28 @@ export const fetchTaskCommentCounts = async (
 
   return { data: counts };
 };
+
+/**
+ * Comment counts of the tasks in a date window (migration 0167): the same
+ * window as the planner's task query, so both go out at once. Every task
+ * without comments is absent from the answer — read it as zero.
+ */
+export const fetchTaskCommentCountsInWindow = async (
+  workspaceId: string,
+  startDate: string,
+  endDate: string,
+): Promise<{ data: Record<string, number> } | { error: string }> => {
+  const { data, error } = await supabase.rpc('task_comment_counts_in_window', {
+    p_workspace_id: workspaceId,
+    p_start_date: startDate,
+    p_end_date: endDate,
+  });
+
+  if (error) return { error: error.message };
+
+  const counts: Record<string, number> = {};
+  for (const row of (data ?? []) as Array<{ task_id: string; comment_count: number }>) {
+    counts[row.task_id] = Number(row.comment_count);
+  }
+  return { data: counts };
+};
