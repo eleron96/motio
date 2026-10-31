@@ -45,6 +45,14 @@ import {
   TaskRow,
   uniqueAssigneeIds,
 } from '@/features/planner/store/plannerStore.helpers';
+import {
+  beginTaskWrite,
+  confirmTaskWrite,
+  finishTaskWrite,
+  getConfirmedTask,
+  isLatestTaskWrite,
+  queueTaskWrite,
+} from '@/features/planner/store/plannerStore.pendingWrites';
 
 type TaskActions = Pick<
   PlannerStore,
@@ -320,24 +328,57 @@ export const createTaskActions = (
       return;
     }
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .update(payload)
-      .eq('id', id)
-      .eq('workspace_id', workspaceId)
-      .select('*')
-      .single();
-
-    if (error || !data) {
-      get().reportTaskWriteFailure('save', 'updateTask', error);
-      return;
+    // A single-task change shows at once (moving a bar no longer snaps back
+    // for a round-trip); the write follows, queued behind earlier writes to
+    // the same task (plannerStore.pendingWrites). Only the answer to the
+    // latest write lands in the store; a failure rolls the task back to what
+    // the server last confirmed and shows the usual write-failure toast.
+    const seq = beginTaskWrite(id, baseTask);
+    if (baseTask) {
+      const patch: Partial<Task> = 'assigneeIds' in updates
+        ? { ...updates, assigneeIds: uniqueAssigneeIds(updates.assigneeIds) }
+        : updates;
+      set((state) => ({
+        tasks: state.tasks.map((task) => (task.id === id ? { ...task, ...patch } : task)),
+      }));
     }
 
-    const updated = mapTaskRow(data as TaskRow);
-    set((state) => ({
-      tasks: state.tasks.map((task) => (task.id === id ? updated : task)),
-    }));
-    scheduleTaskMediaCleanup(removedMediaIds);
+    await queueTaskWrite(id, async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(payload)
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .select('*')
+        .single();
+
+      const latest = isLatestTaskWrite(id, seq);
+      if (error || !data) {
+        if (latest) {
+          const confirmed = getConfirmedTask(id);
+          if (confirmed) {
+            set((state) => ({
+              tasks: state.tasks.map((task) => (task.id === id ? confirmed : task)),
+            }));
+          }
+          const newer = finishTaskWrite(id, seq, confirmed);
+          if (newer) get().upsertTasks([newer]);
+        }
+        get().reportTaskWriteFailure('save', 'updateTask', error);
+        return;
+      }
+
+      const updated = mapTaskRow(data as TaskRow);
+      confirmTaskWrite(id, updated);
+      if (latest) {
+        set((state) => ({
+          tasks: state.tasks.map((task) => (task.id === id ? updated : task)),
+        }));
+        const newer = finishTaskWrite(id, seq, updated);
+        if (newer) get().upsertTasks([newer]);
+      }
+      scheduleTaskMediaCleanup(removedMediaIds);
+    });
   },
 
   revertTaskOwnEdits: async (id, edits) => {
@@ -880,27 +921,53 @@ export const createTaskActions = (
       return;
     }
 
+    const anchor = baseTask;
+    const repeatId = anchor.repeatId;
+    const baseRange = { startDate: anchor.startDate, endDate: anchor.endDate };
+    const nextRange = { startDate, endDate };
+    const applyShifted = (shifted: Array<{ id: string; startDate: string; endDate: string }>) => {
+      const shiftedById = new Map(shifted.map((item) => [item.id, item]));
+      set((state) => ({
+        tasks: state.tasks.map((task) => {
+          const next = shiftedById.get(task.id);
+          return next ? { ...task, startDate: next.startDate, endDate: next.endDate } : task;
+        }),
+      }));
+    };
+
+    // The occurrences on screen move at once (each one shifts on its own, so
+    // the loaded rows are enough); the whole series follows in one call.
+    const loadedBefore = get().tasks.filter((task) => (
+      task.repeatId === repeatId && (scope !== 'following' || task.startDate >= anchor.startDate)
+    ));
+    applyShifted(buildShiftedRepeatTasks(baseRange, nextRange, loadedBefore));
+    const restoreLoaded = () => applyShifted(loadedBefore);
+
     const seriesQuery = supabase
       .from('tasks')
       .select('*')
       .eq('workspace_id', workspaceId)
-      .eq('repeat_id', baseTask.repeatId);
+      .eq('repeat_id', repeatId);
 
     const { data: targetRows, error: targetRowsError } = await (scope === 'following'
-      ? seriesQuery.gte('start_date', baseTask.startDate)
+      ? seriesQuery.gte('start_date', anchor.startDate)
       : seriesQuery);
 
     if (targetRowsError) {
+      restoreLoaded();
       get().reportTaskWriteFailure('save', 'moveTask', targetRowsError);
       return;
     }
 
     const seriesRows = (targetRows ?? []) as TaskRow[];
-    if (seriesRows.length === 0) return;
+    if (seriesRows.length === 0) {
+      restoreLoaded();
+      return;
+    }
 
     const shiftedTasks = buildShiftedRepeatTasks(
-      { startDate: baseTask.startDate, endDate: baseTask.endDate },
-      { startDate, endDate },
+      baseRange,
+      nextRange,
       seriesRows.map((row) => ({
         id: row.id,
         startDate: row.start_date,
@@ -908,50 +975,29 @@ export const createTaskActions = (
       })),
     );
 
-    const updatedRows: TaskRow[] = [];
+    // One transaction (migration 0164) instead of an UPDATE per occurrence:
+    // the series never ends up half-moved.
+    const { data: movedRows, error: moveError } = await supabase.rpc('shift_repeat_series', {
+      p_workspace_id: workspaceId,
+      p_repeat_id: repeatId,
+      p_rows: shiftedTasks.map((item) => ({
+        id: item.id,
+        start_date: item.startDate,
+        end_date: item.endDate,
+      })),
+    });
 
-    for (const shiftedTask of shiftedTasks) {
-      const { data: updatedRow, error: updateError } = await supabase
-        .from('tasks')
-        .update({
-          start_date: shiftedTask.startDate,
-          end_date: shiftedTask.endDate,
-        })
-        .eq('workspace_id', workspaceId)
-        .eq('id', shiftedTask.id)
-        .select('*')
-        .single();
-
-      if (updateError || !updatedRow) {
-        get().reportTaskWriteFailure('save', 'moveTask', updateError);
-
-        const refreshQuery = supabase
-          .from('tasks')
-          .select('*')
-          .eq('workspace_id', workspaceId)
-          .eq('repeat_id', baseTask.repeatId);
-
-        const { data: refreshedRows, error: refreshError } = await (scope === 'following'
-          ? refreshQuery.gte('start_date', baseTask.startDate)
-          : refreshQuery);
-
-        if (refreshError) {
-          console.error(refreshError);
-          return;
-        }
-
-        applyUpdatedRows((refreshedRows ?? []) as TaskRow[]);
-        return;
-      }
-
-      updatedRows.push(updatedRow as TaskRow);
+    if (moveError) {
+      get().reportTaskWriteFailure('save', 'moveTask', moveError);
+      // Nothing moved in the database: show the series as it is there.
+      applyUpdatedRows(seriesRows);
+      return;
     }
 
+    const updatedRows = (movedRows ?? []) as TaskRow[];
     applyUpdatedRows(updatedRows);
 
-    // Все строки серии обновились — фиксируем обратный ход. При частичном
-    // сбое выше мы вышли через reconcile: состояние неоднозначно, и обещать
-    // отмену для него нельзя.
+    // Серия сдвинулась целиком (одна транзакция) — фиксируем обратный ход.
     const seriesBeforeById = new Map(seriesRows.map((row) => [row.id, row]));
     const seriesUndoRows = updatedRows.flatMap((row) => {
       const beforeRow = seriesBeforeById.get(row.id);

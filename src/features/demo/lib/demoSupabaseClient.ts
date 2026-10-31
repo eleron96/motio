@@ -656,6 +656,23 @@ const rpcHandlers: Record<string, (args: Record<string, unknown>) => Result> = {
     demoStore.touch();
     return ok(null);
   },
+  // Series move (migration 0164): apply the client-computed dates to the
+  // series rows and return them, like the real function.
+  shift_repeat_series: (args) => {
+    const repeatId = asStr(args.p_repeat_id);
+    const rows = Array.isArray(args.p_rows) ? args.p_rows as Array<{ id?: unknown; start_date?: unknown; end_date?: unknown }> : [];
+    const now = new Date().toISOString();
+    const moved = rows.flatMap((item) => {
+      const task = demoStore.table('tasks').find((row) => row.id === item.id && row.repeat_id === repeatId);
+      if (!task || typeof item.start_date !== 'string' || typeof item.end_date !== 'string') return [];
+      task.start_date = item.start_date;
+      task.end_date = item.end_date;
+      task.updated_at = now;
+      return [cloneRow(task)];
+    });
+    demoStore.touch();
+    return ok(moved);
+  },
   // Account / admin — should never fire on demo (UI is hidden), but
   // return a clear error if they somehow do.
   request_data_export: () => fail('Disabled on demo'),

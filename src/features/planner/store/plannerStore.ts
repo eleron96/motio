@@ -11,6 +11,7 @@ import { createTimeOffActions } from '@/features/planner/store/plannerStore.time
 import { createUndoActions } from '@/features/planner/store/plannerStore.undoActions';
 import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
 import { applyTaskCommentCountDelta } from '@/shared/domain/taskCommentCount';
+import { deferTaskRowIfWriting, resetTaskWrites } from '@/features/planner/store/plannerStore.pendingWrites';
 
 export const usePlannerStore = create<PlannerStore>()(
   persist(
@@ -76,48 +77,51 @@ export const usePlannerStore = create<PlannerStore>()(
       setPendingRevealTaskId: (taskId) => set({ pendingRevealTaskId: taskId }),
       setSyncHealthy: (healthy) => set({ syncHealthy: healthy }),
 
-      reset: () => set({
-        tasks: [],
-        milestones: [],
-        timeOff: [],
-        timeOffDragPreview: null,
-        projects: [],
-        trackedProjectIds: [],
-        customers: [],
-        customerContacts: [],
-        assignees: [],
-        projectMembers: [],
-        projectActivity: [],
-        memberGroups: [],
-        memberGroupAssignments: [],
-        statuses: [],
-        taskTypes: [],
-        tags: [],
-        selectedTaskId: null,
-        highlightedTaskId: null,
-        highlightedTaskRowAssigneeId: null,
-        peekedTaskId: null,
-        timelineAttentionDate: null,
-        workspaceId: null,
-        loading: false,
-        error: null,
-        dataRequestId: 0,
-        loadedRange: null,
-        boardScope: null,
-        assigneeTaskCounts: {},
-        taskCommentCounts: {},
-        assigneeCountsDate: null,
-        assigneeCountsWorkspaceId: null,
-        scrollRequestId: 0,
-        scrollTargetDate: null,
-        timelineInteractingUntil: 0,
-        syncHealthy: true,
-        taskUndoStack: [],
-        pendingDeleteTaskIds: [],
-        taskWriteFailure: null,
-        pendingRevealTaskId: null,
-        hasSampleData: false,
-      }),
+      reset: () => {
+        resetTaskWrites();
+        set({
+          tasks: [],
+          milestones: [],
+          timeOff: [],
+          timeOffDragPreview: null,
+          projects: [],
+          trackedProjectIds: [],
+          customers: [],
+          customerContacts: [],
+          assignees: [],
+          projectMembers: [],
+          projectActivity: [],
+          memberGroups: [],
+          memberGroupAssignments: [],
+          statuses: [],
+          taskTypes: [],
+          tags: [],
+          selectedTaskId: null,
+          highlightedTaskId: null,
+          highlightedTaskRowAssigneeId: null,
+          peekedTaskId: null,
+          timelineAttentionDate: null,
+          workspaceId: null,
+          loading: false,
+          error: null,
+          dataRequestId: 0,
+          loadedRange: null,
+          boardScope: null,
+          assigneeTaskCounts: {},
+          taskCommentCounts: {},
+          assigneeCountsDate: null,
+          assigneeCountsWorkspaceId: null,
+          scrollRequestId: 0,
+          scrollTargetDate: null,
+          timelineInteractingUntil: 0,
+          syncHealthy: true,
+          taskUndoStack: [],
+          pendingDeleteTaskIds: [],
+          taskWriteFailure: null,
+          pendingRevealTaskId: null,
+          hasSampleData: false,
+        });
+      },
 
       markTimelineInteraction: (durationMs = 650) => set((state) => {
         const now = Date.now();
@@ -134,16 +138,27 @@ export const usePlannerStore = create<PlannerStore>()(
         // Пока id числится в pendingDeleteTaskIds — входящие апдейты по нему
         // отбрасываются; отмена удаления сначала снимает id из списка.
         const blockedIds = new Set(state.pendingDeleteTaskIds);
-        const acceptedTasks = blockedIds.size > 0
-          ? tasks.filter((task) => !blockedIds.has(task.id))
-          : tasks;
+        // A task with its own write in flight keeps the optimistic value on
+        // screen; the incoming row is held back and applied after the write
+        // if it turns out newer (plannerStore.pendingWrites).
+        const acceptedTasks = tasks.filter((task) => (
+          !blockedIds.has(task.id) && !deferTaskRowIfWriting(task)
+        ));
         if (acceptedTasks.length === 0) return state;
-        const incoming = new Map(acceptedTasks.map((task) => [task.id, task]));
-        const existingIds = new Set(state.tasks.map((task) => task.id));
+        const existingById = new Map(state.tasks.map((task) => [task.id, task]));
+        // An echo of a row we already hold (same updated_at, nothing new in the
+        // description) keeps the old object, so the timeline doesn't recompute.
+        const changedTasks = acceptedTasks.filter((task) => {
+          const existing = existingById.get(task.id);
+          if (!existing || !existing.updatedAt || existing.updatedAt !== task.updatedAt) return true;
+          return task.description !== undefined && task.description !== existing.description;
+        });
+        if (changedTasks.length === 0) return state;
+        const incoming = new Map(changedTasks.map((task) => [task.id, task]));
         const nextTasks = state.tasks.map((task) => incoming.get(task.id) ?? task);
 
-        acceptedTasks.forEach((task) => {
-          if (!existingIds.has(task.id)) {
+        changedTasks.forEach((task) => {
+          if (!existingById.has(task.id)) {
             nextTasks.push(task);
           }
         });
