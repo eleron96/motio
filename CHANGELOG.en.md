@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Subtasks can be reordered: drag them by the “≡” handle next to the checkbox. Each subtask is now numbered automatically.
+
 ## [0.10.41] - 2026-10-30
 ### Fixed
 - The sandbox no longer drops you into an empty app: the tour in the demo stays in the demo, and “Create account” opens registration straight away.
