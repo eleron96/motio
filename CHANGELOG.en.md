@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- The timeline now has task search: press ⌘K (or /) and start typing a title. Other tasks fade, matches stay in view, and a strip above shows matches on any date — use the arrows or click to jump to each one.
+
 ## [0.10.42] - 2026-10-31
 ### Added
 - Subtasks can be reordered: drag them by the “≡” handle next to the checkbox. Each subtask is now numbered automatically.
