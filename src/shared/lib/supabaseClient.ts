@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
 import { demoSupabaseClient } from '@/features/demo/lib/demoSupabaseClient';
+import { createResilientFetch } from '@/shared/lib/resilientFetch';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -21,6 +22,9 @@ const getSupabaseProd = (): SupabaseClient => {
   if (!supabaseProdCache) {
     supabaseProdCache = createClient(supabaseUrl, supabaseAnonKey, {
       auth: { flowType: 'pkce' },
+      // Database requests get a timeout and retries of safe requests
+      // (shared/lib/resilientFetch); everything else goes through as is.
+      global: { fetch: createResilientFetch() },
     });
   }
   return supabaseProdCache;

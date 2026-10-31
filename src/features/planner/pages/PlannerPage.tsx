@@ -14,6 +14,7 @@ import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
+import { useWorkspaceLoadRetry } from '@/features/planner/hooks/useWorkspaceLoadRetry';
 import { useTaskUndoToasts } from '@/features/planner/hooks/useTaskUndoToasts';
 import { useTaskWriteFailureToasts } from '@/features/planner/hooks/useTaskWriteFailureToasts';
 import { useRevealPendingTask } from '@/features/planner/hooks/useRevealPendingTask';
@@ -284,6 +285,7 @@ const PlannerPage = () => {
   const showLoadingOverlay = plannerLoading && (!loadedRange || loadedRange.workspaceId !== currentWorkspaceId) && !hasInitialData;
 
   usePlannerLiveSync(currentWorkspaceId, loadedRange);
+  useWorkspaceLoadRetry(currentWorkspaceId);
   useTaskUndoToasts();
   useTaskWriteFailureToasts();
   useRevealPendingTask();
