@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.45] - 2026-10-31
 ### Added
 - Если вкладка была открыта во время выхода новой версии, Motio покажет «Вышла новая версия Motio» с кнопкой «Обновить» и не будет перезагружать страницу сам.
 

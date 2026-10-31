@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.45] - 2026-10-31
 ### Added
 - If a tab was open when a new version came out, Motio shows “A new version of Motio is available” with an “Update” button instead of reloading on its own.
 
