@@ -35,6 +35,8 @@ export type TaskUndoEntry = {
   workspaceId: string;
   kind: TaskUndoKind;
   rows: TaskUndoRow[];
+  /** 'series-move': the series, so its undo goes back in one call. */
+  repeatId?: string;
 };
 
 export type TaskUndoOutcome = {

@@ -1017,6 +1017,7 @@ export const createTaskActions = (
         workspaceId,
         kind: 'series-move',
         rows: seriesUndoRows,
+        repeatId: repeatId ?? undefined,
       });
     }
   },
@@ -1208,6 +1209,10 @@ export const createTaskActions = (
 
     const updatedRows: TaskRow[] = [];
     const deleteIds: string[] = [];
+    // Occurrences of a series usually share their assignees, so rows left with
+    // the same list go out as one UPDATE: one request for the whole series
+    // instead of one per occurrence, sent one after another.
+    const updateGroups = new Map<string, { assigneeIds: string[]; ids: string[] }>();
 
     for (const row of rows) {
       const currentAssignees = normalizeAssigneeIds(row.assignee_ids, row.assignee_id);
@@ -1219,27 +1224,36 @@ export const createTaskActions = (
         continue;
       }
 
-      const { data: updatedRow, error: updateError } = await supabase
+      const groupKey = nextAssignees.join(',');
+      const group = updateGroups.get(groupKey);
+      if (group) {
+        group.ids.push(row.id);
+      } else {
+        updateGroups.set(groupKey, { assigneeIds: nextAssignees, ids: [row.id] });
+      }
+    }
+
+    for (const group of updateGroups.values()) {
+      const { data: groupRows, error: updateError } = await supabase
         .from('tasks')
         .update({
-          assignee_ids: nextAssignees,
-          assignee_id: nextAssignees[0] ?? null,
+          assignee_ids: group.assigneeIds,
+          assignee_id: group.assigneeIds[0] ?? null,
         })
         .eq('workspace_id', workspaceId)
-        .eq('id', row.id)
-        .select('*')
-        .single();
+        .in('id', group.ids)
+        .select('*');
 
-      if (updateError || !updatedRow) {
+      if (updateError) {
         get().reportTaskWriteFailure('save', 'removeAssigneeFromTask', updateError);
-        // Earlier rows may already be updated in the DB; resync from the DB so
-        // the store doesn't silently diverge from the persisted state.
+        // Earlier groups may already be updated in the DB; resync from the DB
+        // so the store doesn't silently diverge from the persisted state.
         const { data: refreshed } = await fetchTargetRows();
         applyUpdatedRows((refreshed ?? []) as TaskRow[]);
         return;
       }
 
-      updatedRows.push(updatedRow as TaskRow);
+      updatedRows.push(...((groupRows ?? []) as TaskRow[]));
     }
 
     if (deleteIds.length > 0) {

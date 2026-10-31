@@ -2301,4 +2301,17 @@
     </preConditions>
     <sqlFile path="../migrations/0167_task_comment_counts_in_window.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
+  <changeSet id="0168_shift_repeat_series_expected_dates.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0168_shift_repeat_series_expected_dates.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0168_shift_repeat_series_expected_dates.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
 </databaseChangeLog>

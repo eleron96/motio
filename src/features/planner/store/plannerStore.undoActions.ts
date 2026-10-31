@@ -225,6 +225,41 @@ export const createUndoActions = (
   };
 
   /**
+   * Undo of a series move: every occurrence back in one call (migration
+   * 0168), each only while it still has the dates the move gave it — the
+   * same guard applyUndoRow puts on a single row. Rows the call did not move
+   * were changed by someone else since: stale.
+   */
+  const applySeriesUndo = async (
+    workspaceId: string,
+    repeatId: string,
+    rows: TaskUndoRow[],
+  ): Promise<{ restored: number; stale: number; failedRows: TaskUndoRow[] }> => {
+    const { data, error } = await supabase.rpc('shift_repeat_series', {
+      p_workspace_id: workspaceId,
+      p_repeat_id: repeatId,
+      p_rows: rows.map((row) => ({
+        id: row.taskId,
+        start_date: row.restore.start_date,
+        end_date: row.restore.end_date,
+        expect_start_date: row.expect.start_date,
+        expect_end_date: row.expect.end_date,
+      })),
+    });
+    if (error) {
+      console.error(error);
+      return { restored: 0, stale: 0, failedRows: rows };
+    }
+    const restoredRows = (data ?? []) as TaskRow[];
+    applyRows(restoredRows);
+    return {
+      restored: restoredRows.length,
+      stale: Math.max(0, rows.length - restoredRows.length),
+      failedRows: [],
+    };
+  };
+
+  /**
    * Undo of a deferred delete. Purely local while the window is open — cancel
    * the timer — but the tasks are restored from a fresh DB read, NOT from the
    * snapshot: a teammate may have edited (their version must win) or deleted
@@ -310,12 +345,21 @@ export const createUndoActions = (
 
         if (entry.workspaceId !== workspaceId) continue;
 
-        const failedRows: TaskUndoRow[] = [];
-        for (const row of entry.rows) {
-          outcome.total += 1;
-          const result = await applyUndoRow(workspaceId, row);
-          outcome[result] += 1;
-          if (result === 'failed') failedRows.push(row);
+        let failedRows: TaskUndoRow[] = [];
+        if (entry.kind === 'series-move' && entry.repeatId) {
+          const result = await applySeriesUndo(workspaceId, entry.repeatId, entry.rows);
+          outcome.total += entry.rows.length;
+          outcome.restored += result.restored;
+          outcome.stale += result.stale;
+          outcome.failed += result.failedRows.length;
+          failedRows = result.failedRows;
+        } else {
+          for (const row of entry.rows) {
+            outcome.total += 1;
+            const result = await applyUndoRow(workspaceId, row);
+            outcome[result] += 1;
+            if (result === 'failed') failedRows.push(row);
+          }
         }
 
         // Сетевые сбои (не stale!) возвращаются в стек той же записью:

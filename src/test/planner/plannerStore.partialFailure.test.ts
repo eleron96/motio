@@ -183,7 +183,7 @@ describe('plannerStore partial-failure resync', () => {
       makeRow({ id: 'task-2', assignee_id: 'u1', assignee_ids: ['u1', 'u2'], start_date: '2026-02-08' }),
     ];
 
-    // Following-mode removal walks both rows; force the SECOND (task-2) to fail.
+    // Following-mode removal updates both rows in one request; force task-2 to fail.
     supabaseMocks.from.mockImplementation((table: string) => {
       if (table !== 'tasks') throw new Error(`Unexpected table ${table}`);
       return makeTasksQueryBuilder(dbRows, { failUpdateForId: 'task-2' });
@@ -200,5 +200,29 @@ describe('plannerStore partial-failure resync', () => {
     // task-2's update failed, so it keeps both assignees in DB and store.
     expect(state.tasks.find((task) => task.id === 'task-2')?.assigneeIds).toEqual(['u1', 'u2']);
     expect(dbRows.find((row) => row.id === 'task-1')?.assignee_ids).toEqual(['u2']);
+  });
+
+  it('removeAssigneeFromTask: removes the person from a whole series in one update', async () => {
+    const dbRows: TaskRow[] = Array.from({ length: 5 }, (_, week) => makeRow({
+      id: `task-${week + 1}`,
+      assignee_id: 'u1',
+      assignee_ids: ['u1', 'u2'],
+      start_date: `2026-02-0${week + 1}`,
+    }));
+    const builders: Array<ReturnType<typeof makeTasksQueryBuilder>> = [];
+    supabaseMocks.from.mockImplementation(() => {
+      const builder = makeTasksQueryBuilder(dbRows);
+      builders.push(builder);
+      return builder;
+    });
+
+    const harness = makeHarness(dbRows);
+    const actions = createTaskActions(harness.set as never, harness.get as never);
+
+    await actions.removeAssigneeFromTask('task-1', 'u1', 'following');
+
+    expect(builders.filter((builder) => builder.update.mock.calls.length > 0)).toHaveLength(1);
+    expect(dbRows.every((row) => row.assignee_ids?.join(',') === 'u2' && row.assignee_id === 'u2')).toBe(true);
+    expect(harness.getState().tasks.every((task) => task.assigneeIds.join(',') === 'u2')).toBe(true);
   });
 });

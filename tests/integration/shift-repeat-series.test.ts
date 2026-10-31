@@ -91,7 +91,7 @@ async function shiftAs(
   userId: string,
   workspaceId: string,
   repeatId: string,
-  rows: Array<{ id: string; start_date: string; end_date: string }>,
+  rows: Array<{ id: string; start_date: string; end_date: string; expect_start_date?: string; expect_end_date?: string }>,
 ) {
   await client.query("select set_config('request.jwt.claim.sub', $1, true)", [userId]);
   await client.query("set local role authenticated");
@@ -145,6 +145,36 @@ describe("shift_repeat_series (0164)", () => {
 
       expect(returned).toEqual(shifted);
       expect(await datesOf(client, ids)).toEqual(shifted);
+    });
+  });
+
+  it("moves a row with expected dates only while it still has them (undo, 0168)", async () => {
+    await withRollback(async (client) => {
+      await loadFixture(client, "account-deletion.sql");
+      const ids = await createSeries(client, { workspaceId: WORKSPACE_ID, repeatId: REPEAT_ID, count: 2 });
+      const [first, second] = await datesOf(client, ids);
+      // A teammate moved the second occurrence after our move.
+      await client.query(
+        "update public.tasks set start_date = start_date + 1, end_date = end_date + 1 where id = $1",
+        [second.id],
+      );
+      const secondNow = (await datesOf(client, [second.id]))[0];
+
+      const returned = await shiftAs(client, EDITOR_ID, WORKSPACE_ID, REPEAT_ID, [first, second].map((row) => ({
+        id: row.id,
+        start_date: plusDays(row.start_date, -7),
+        end_date: plusDays(row.end_date, -7),
+        expect_start_date: row.start_date,
+        expect_end_date: row.end_date,
+      })));
+
+      expect(returned.map((row) => row.id)).toEqual([first.id]);
+      expect(await datesOf(client, [first.id])).toEqual([{
+        id: first.id,
+        start_date: plusDays(first.start_date, -7),
+        end_date: plusDays(first.end_date, -7),
+      }]);
+      expect(await datesOf(client, [second.id])).toEqual([secondNow]);
     });
   });
 
