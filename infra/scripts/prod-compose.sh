@@ -364,11 +364,32 @@ until docker compose -f "$compose_file" --env-file "$env_file" exec -T \
   sleep 2
 done
 
+# GoTrue keeps its pooled database connections across a database restart and
+# fails the first request on each of them (57P01 "terminating connection"):
+# sign-ins and session refreshes right after a deploy that recreated the
+# database (a changed db command) answered 500. Restart auth when it is older
+# than the running database; the gateway reload further down picks up its
+# address. Self-hosted updates stop the whole stack first, so they never hit it.
+db_container="$(docker compose -f "$compose_file" --env-file "$env_file" ps -q db)"
+auth_container="$(docker compose -f "$compose_file" --env-file "$env_file" ps -q auth)"
+if [[ -n "$db_container" && -n "$auth_container" ]]; then
+  db_started_at="$(date -d "$(docker inspect -f '{{.State.StartedAt}}' "$db_container")" +%s)"
+  auth_started_at="$(date -d "$(docker inspect -f '{{.State.StartedAt}}' "$auth_container")" +%s)"
+  if (( auth_started_at < db_started_at )); then
+    echo "The database restarted after auth: restarting auth to drop its stale connections."
+    docker compose -f "$compose_file" --env-file "$env_file" restart auth
+  fi
+fi
+
 docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache between releases.
 # Plain restart keeps the writable layer and can preserve outdated import graphs.
 docker compose -f "$compose_file" --env-file "$env_file" up -d --force-recreate --no-deps functions
+# The recreated container has a new IP and nginx resolves upstream names only
+# on start/reload: re-resolve right away, or /functions/v1/* answers 502 for
+# the rest of the deploy. The full config reload further down still runs.
+docker compose -f "$compose_file" --env-file "$env_file" exec -T gateway nginx -s reload >/dev/null 2>&1 || true
 
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
 infra/scripts/keycloak-ensure-client-urls.sh "$env_file"
@@ -570,6 +591,23 @@ if ! finalize_changelog_release "$changelog_en_file" "$release_version" "$releas
   exit 1
 fi
 
+# Keep the running release's files before the new web image replaces them: a
+# tab opened before this release still loads its lazy chunks from the archive
+# (infra/web/nginx.conf falls back to it) instead of a 404 and a forced reload.
+# Files older than 7 days are dropped.
+archive_web_assets() {
+  local archive_dir="infra/web-assets-archive"
+  mkdir -p "$archive_dir"
+  local web_container
+  web_container="$(docker compose -f "$compose_file" --env-file "$env_file" ps -q web 2>/dev/null || true)"
+  if [[ -n "$web_container" ]]; then
+    docker cp "$web_container:/usr/share/nginx/html/assets/." "$archive_dir/" >/dev/null 2>&1 \
+      || echo "Warning: could not archive the current web assets." >&2
+  fi
+  find "$archive_dir" -type f -mtime +7 -delete 2>/dev/null || true
+}
+
+archive_web_assets
 if ! docker compose -f "$compose_file" --env-file "$env_file" up -d --build web oauth2-proxy; then
   restore_release_artifacts "$current_version"
   rm -rf "$release_backup_dir"

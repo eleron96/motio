@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import path from "path";
 import { resolveSiteIdentity, siteIdentityPlugin } from "./vite/siteIdentity";
+import { readAppVersion, releaseArtifactsPlugin } from "./vite/releaseArtifacts";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -32,11 +33,14 @@ export default defineConfig(({ mode }) => {
         },
       }),
       siteIdentityPlugin(siteIdentity),
+      releaseArtifactsPlugin(__dirname),
       sentryEnabled && sentryVitePlugin({
         org: process.env.SENTRY_ORG || "motio",
         project: process.env.SENTRY_PROJECT || "motio-frontend",
         authToken: process.env.SENTRY_AUTH_TOKEN,
         url: process.env.SENTRY_URL || "https://errors.motio.nikog.net",
+        // Same name the app reports (APP_VERSION, src/shared/lib/sentry.ts).
+        release: { name: readAppVersion(__dirname) },
         sourcemaps: {
           filesToDeleteAfterUpload: ["./dist/**/*.map"],
         },
@@ -56,9 +60,14 @@ export default defineConfig(({ mode }) => {
       modulePreload: { polyfill: false },
       rollupOptions: {
         output: {
+          // Libraries change only with dependency updates, so their chunks keep
+          // their hashes across releases and stay in returning visitors' cache.
           manualChunks: {
             'vendor-supabase': ['@supabase/supabase-js'],
             'vendor-date': ['date-fns'],
+            'vendor-react': ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler'],
+            'vendor-ui': ['@radix-ui/react-menu', '@radix-ui/react-tooltip', '@radix-ui/react-dialog', '@floating-ui/dom', '@floating-ui/core', 'sonner', 'tailwind-merge', 'lucide-react'],
+            'vendor-misc': ['zod', 'dompurify', '@tanstack/react-query', '@sentry/react'],
           },
         },
       },

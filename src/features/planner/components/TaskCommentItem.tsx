@@ -28,6 +28,7 @@ import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import type { TaskComment } from '@/features/planner/types/planner';
 import { sanitizeCommentHtml, deleteTaskComment, updateTaskComment } from '@/infrastructure/tasks/taskCommentsRepository';
 import { type TaskCommentMentionCandidate } from '@/shared/domain/taskCommentMentionCandidates';
+import { cn } from '@/shared/lib/classNames';
 import { CommentEditor } from './CommentEditor';
 
 export interface TaskCommentItemProps {
@@ -39,6 +40,8 @@ export interface TaskCommentItemProps {
   mentionsLoading: boolean;
   onUpdated: (updated: TaskComment) => void;
   onDeleted: (id: string) => void;
+  /** Sent, not saved yet: shown dimmed, without edit or delete. */
+  pending?: boolean;
 }
 
 export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
@@ -50,14 +53,15 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
   mentionsLoading,
   onUpdated,
   onDeleted,
+  pending = false,
 }) => {
   const [editing, setEditing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
 
-  const canEdit = comment.authorId === currentUserId;
-  const canDelete = comment.authorId === currentUserId || isAdmin;
+  const canEdit = !pending && comment.authorId === currentUserId;
+  const canDelete = !pending && (comment.authorId === currentUserId || isAdmin);
 
   const timeAgo = formatDistanceToNow(parseISO(comment.createdAt), {
     addSuffix: true,
@@ -86,7 +90,7 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
   };
 
   return (
-    <div className="group relative flex gap-2.5 py-2.5">
+    <div className={cn('group relative flex gap-2.5 py-2.5', pending && 'opacity-60')}>
       {/* Avatar */}
       <PersonAvatar
         userId={comment.authorId}

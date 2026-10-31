@@ -21,6 +21,16 @@ const TOKEN_TTL_SECONDS = parsePositiveInt(Deno.env.get("TASK_MEDIA_TOKEN_TTL_SE
 
 const STORAGE_BUCKET = "task-media";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour for signed download URLs
+// How long a browser may reuse a view answer (the redirect or the bytes)
+// without asking again: shorter than the signed URL's life, so a reused
+// redirect never points at an expired link. The view URL carries the image's
+// own token, so the answer is per image and kept out of shared caches
+// (private); a revoked token keeps working only where the image was already
+// seen, for at most this long.
+const VIEW_CACHE_SECONDS = 50 * 60;
+// last_accessed_at is a coarse "still in use" mark: refreshed at most daily
+// instead of a write on every view of every picture.
+const LAST_ACCESS_REFRESH_MS = 24 * 60 * 60 * 1000;
 const UTF8_HEADER_PREFIX = "utf8:";
 
 // Strict allowlist of RASTER image types only. Never accept image/svg+xml: an
@@ -353,7 +363,7 @@ const handleDownload = async (req: Request, mediaId: string) => {
 
   const { data, error } = await supabaseAdmin
     .from("task_media")
-    .select("id, mime_type, storage_path, content, access_token_hash, access_token_expires_at, access_token_revoked_at")
+    .select("id, mime_type, storage_path, content, access_token_hash, access_token_expires_at, access_token_revoked_at, last_accessed_at")
     .eq("id", mediaId)
     .maybeSingle();
 
@@ -379,13 +389,16 @@ const handleDownload = async (req: Request, mediaId: string) => {
     return jsonResponse({ error: "Token expired." }, 401);
   }
 
-  // Track last access (fire-and-forget)
-  supabaseAdmin
-    .from("task_media")
-    .update({ last_accessed_at: new Date().toISOString() })
-    .eq("id", data.id)
-    .then(() => undefined)
-    .catch(() => undefined);
+  // Track last access (fire-and-forget), at most once a day per image.
+  const lastAccessedAt = parseTimestamp(data.last_accessed_at);
+  if (!lastAccessedAt || Date.now() - lastAccessedAt.getTime() >= LAST_ACCESS_REFRESH_MS) {
+    supabaseAdmin
+      .from("task_media")
+      .update({ last_accessed_at: new Date().toISOString() })
+      .eq("id", data.id)
+      .then(() => undefined)
+      .catch(() => undefined);
+  }
 
   // Path A: file is in Supabase Storage (new uploads)
   if (data.storage_path) {
@@ -398,7 +411,13 @@ const handleDownload = async (req: Request, mediaId: string) => {
         publicBaseUrl: allowedOrigin,
         requestUrl: req.url,
       });
-      return Response.redirect(publicSignedUrl, 302);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: publicSignedUrl,
+          "Cache-Control": `private, max-age=${VIEW_CACHE_SECONDS}`,
+        },
+      });
     }
 
     if (typeof data.content !== "string") {
@@ -426,7 +445,7 @@ const handleDownload = async (req: Request, mediaId: string) => {
       "Content-Disposition": isSafeRaster ? "inline" : "attachment",
       "X-Content-Type-Options": "nosniff",
       "Content-Length": String(bytes.byteLength),
-      "Cache-Control": "private, no-store, max-age=0",
+      "Cache-Control": `private, max-age=${VIEW_CACHE_SECONDS}`,
     },
   });
 };

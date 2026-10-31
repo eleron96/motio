@@ -93,6 +93,7 @@ rsync_output="$(
     --exclude 'notes/' \
     --exclude 'infra/seeds/' \
     --exclude 'infra/backups' \
+    --exclude 'infra/web-assets-archive/' \
     --exclude 'infra/caddy/Caddyfile' \
     "${root_dir}/" "${host}:${remote_dir}/"
 )"

@@ -676,6 +676,28 @@
   opacity: 1;
 }
 
+/* Timeline search ("lens"): what doesn't match fades to a grey ghost, matches
+   keep their colour with the found letters underlined, the focused one gets a
+   ring. Opacity/filter only, so typing stays cheap on a busy timeline. */
+.task-search-mode .task-bar:not(.task-search-match) {
+  opacity: 0.22;
+  filter: grayscale(1);
+}
+
+.task-search-mode .task-bar.task-search-focus {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--foreground)), 0 8px 22px rgb(30 30 25 / 0.18);
+}
+
+.task-search-hit {
+  background: none;
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: #ef9f27;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
 .timeline-drag-scroll-active .task-bar,
 .timeline-drag-scroll-active .milestone-dot,
 .timeline-drag-scroll-active .milestone-cell {

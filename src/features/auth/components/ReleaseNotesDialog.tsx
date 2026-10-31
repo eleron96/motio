@@ -11,6 +11,7 @@ import { APP_VERSION } from '@/shared/lib/appVersion';
 // Type-only: the module inlines both CHANGELOG files, so it is loaded on demand
 // when the dialog opens (see the effect below), never with this component.
 import type { ReleaseNotesEntry } from '@/shared/lib/releaseNotes';
+import { loadReleaseNotesModule } from '@/shared/lib/releaseNotesLoader';
 import { ReleaseNotesList } from './ReleaseNotesList';
 import { useLocaleStore } from '@/shared/store/localeStore';
 
@@ -35,7 +36,7 @@ export const ReleaseNotesDialog: React.FC<ReleaseNotesDialogProps> = ({ open, on
     if (!open) return;
 
     let cancelled = false;
-    void import('@/shared/lib/releaseNotes')
+    void loadReleaseNotesModule()
       .then(({ getRecentReleaseNotes }) => {
         if (cancelled) return;
         setReleaseNotes(getRecentReleaseNotes(locale));

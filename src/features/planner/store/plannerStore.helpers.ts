@@ -28,6 +28,7 @@ import {
   ViewMode,
 } from '@/features/planner/types/planner';
 import { parseTaskSubtaskImages } from '@/shared/domain/taskSubtaskImages';
+import { getVisibleRange } from '@/features/planner/lib/dateUtils';
 
 export type TaskRow = TaskMappedRow & {
   workspace_id: string;
@@ -260,24 +261,40 @@ export type LoadedTaskWindow = {
 const loadWindowFamily = (viewMode: ViewMode) => (viewMode === 'calendar' ? 'year' : 'months');
 
 /**
- * Whether the already loaded task window serves the requested view, so
- * loadWorkspaceData can skip a full refetch: same workspace, `currentDate`
- * still inside the loaded window (the window is re-anchored only once the date
- * leaves it), and a mode that requests the same kind of window.
+ * What loadWorkspaceData has to do for the requested view:
+ * - `reuse` — the loaded window already serves it;
+ * - `shift` — same workspace and kind of window, but the view has moved past
+ *   it: only the windowed data (tasks, time off, comment counts) is reloaded,
+ *   around the new date;
+ * - `full` — nothing loaded yet, another workspace, or another kind of window.
  *
- * Day↔Week share a window, so switching between them no longer refetches all
- * workspace data. Calendar is deliberately NOT reused for Day/Week even though
- * its ±1 year covers them: the timeline lays out every cached task of a row
- * (row heights, bars), so a year of tasks would grow rows and add off-screen
- * bars compared with the usual ±3 months.
+ * Day and Week need the window to cover every day the timeline renders
+ * (getVisibleRange), not just `currentDate`: the timeline renders ±2 months
+ * around it, and with only the date checked, a timeline scrolled toward the
+ * edge drew empty days where tasks were never loaded. Calendar keeps the old
+ * rule — its ±1 year window is far wider than anything it shows.
+ *
+ * Day↔Week share a window, so switching between them refetches nothing.
+ * Calendar is deliberately NOT reused for Day/Week even though its ±1 year
+ * covers them: the timeline lays out every cached task of a row (row heights,
+ * bars), so a year of tasks would grow rows and add off-screen bars compared
+ * with the usual ±3 months.
  */
-export const shouldReuseLoadedWindow = (
+export type TaskWindowLoadPlan = 'reuse' | 'shift' | 'full';
+
+export const planTaskWindowLoad = (
   loaded: LoadedTaskWindow | null,
   request: { workspaceId: string; currentDate: string; viewMode: ViewMode },
-): boolean => {
-  if (!loaded || loaded.workspaceId !== request.workspaceId) return false;
-  if (!isDateWithinRange(request.currentDate, loaded.start, loaded.end)) return false;
-  return loadWindowFamily(loaded.viewMode) === loadWindowFamily(request.viewMode);
+): TaskWindowLoadPlan => {
+  if (!loaded || loaded.workspaceId !== request.workspaceId) return 'full';
+  if (loadWindowFamily(loaded.viewMode) !== loadWindowFamily(request.viewMode)) return 'full';
+  if (request.viewMode === 'calendar') {
+    return isDateWithinRange(request.currentDate, loaded.start, loaded.end) ? 'reuse' : 'shift';
+  }
+  const visible = getVisibleRange(request.currentDate, request.viewMode);
+  const covered = format(visible.start, 'yyyy-MM-dd') >= loaded.start
+    && format(visible.end, 'yyyy-MM-dd') <= loaded.end;
+  return covered ? 'reuse' : 'shift';
 };
 
 export const uniqueAssigneeIds = (assigneeIds: string[] | null | undefined) => (

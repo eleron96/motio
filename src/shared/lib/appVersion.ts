@@ -7,7 +7,15 @@
 // path of every authenticated page for the sake of a 7-byte string.
 //
 // Keep this module free of CHANGELOG imports.
-import versionRaw from '../../../VERSION?raw';
+//
+// The version itself comes from <meta name="motio-version"> in index.html,
+// written at build time (vite/releaseArtifacts), not from the bundle: baked into
+// the entry chunk it changed the hash of nearly every chunk on every release.
+const readVersionMeta = () => (
+  typeof document === 'undefined'
+    ? ''
+    : document.querySelector('meta[name="motio-version"]')?.getAttribute('content') ?? ''
+);
 
 const VERSION_PATTERN = /^(\d+)\.(\d+)\.(\d+)$/;
 
@@ -18,4 +26,4 @@ const normalizeVersion = (raw: string) => {
   return normalized;
 };
 
-export const APP_VERSION = normalizeVersion(versionRaw);
+export const APP_VERSION = normalizeVersion(readVersionMeta());

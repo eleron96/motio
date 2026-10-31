@@ -65,7 +65,6 @@ const Harness: React.FC<{
           isReadOnly={isReadOnly}
           subtasksOpen
           subtasksLoading={false}
-          subtasksSaving={false}
           subtasksError=""
           subtasks={[subtask]}
           newSubtaskTitle={newSubtaskTitle}

@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const supabaseState = vi.hoisted(() => ({
   queue: [] as Array<{ data: unknown; error: unknown }>,
   calls: [] as Array<{ table: string; ops: Array<[string, unknown[]]> }>,
+  rpcCalls: [] as Array<{ name: string; args: Record<string, unknown> }>,
 }));
 
 vi.mock('@/shared/lib/supabaseClient', () => {
@@ -56,6 +57,12 @@ vi.mock('@/shared/lib/supabaseClient', () => {
   return {
     supabase: {
       from: (table: string) => new MockQueryBuilder(table),
+      rpc: (name: string, args: Record<string, unknown>) => {
+        supabaseState.rpcCalls.push({ name, args });
+        return Promise.resolve(
+          supabaseState.queue.shift() ?? { data: null, error: { message: 'no mock response queued' } },
+        );
+      },
       auth: {
         getSession: () => Promise.resolve({ data: { session: null } }),
       },
@@ -111,6 +118,7 @@ const flattenOps = (call: { ops: Array<[string, unknown[]]> }) => call.ops.map((
 beforeEach(() => {
   supabaseState.queue.length = 0;
   supabaseState.calls.length = 0;
+  supabaseState.rpcCalls.length = 0;
   usePlannerStore.setState({
     workspaceId: WS,
     tasks: [],
@@ -213,6 +221,65 @@ describe('undoTaskEntry (conditional update)', () => {
     expect(stack[0].id).toBe('entry-1');
     expect(stack[0].rows).toHaveLength(1);
     expect(stack[0].rows[0].taskId).toBe('task-2');
+  });
+});
+
+describe('undo of a series move', () => {
+  const seriesEntry = () => ({
+    id: 'entry-series',
+    workspaceId: WS,
+    kind: 'series-move' as const,
+    repeatId: 'repeat-1',
+    rows: [
+      {
+        taskId: 'task-1',
+        restore: { start_date: '2026-08-01', end_date: '2026-08-01' },
+        expect: { start_date: '2026-08-03', end_date: '2026-08-03' },
+      },
+      {
+        taskId: 'task-2',
+        restore: { start_date: '2026-08-08', end_date: '2026-08-08' },
+        expect: { start_date: '2026-08-10', end_date: '2026-08-10' },
+      },
+    ],
+  });
+
+  it('moves the whole series back in one call, guarded by the dates the move set', async () => {
+    usePlannerStore.setState({ taskUndoStack: [seriesEntry()] });
+    // A teammate moved task-2 meanwhile: the call leaves it alone.
+    supabaseState.queue.push({
+      data: [taskRow({ start_date: '2026-08-01', end_date: '2026-08-01', repeat_id: 'repeat-1' })],
+      error: null,
+    });
+
+    const outcome = await usePlannerStore.getState().undoTaskEntry('entry-series');
+
+    expect(outcome).toEqual({ restored: 1, stale: 1, failed: 0, total: 2 });
+    expect(supabaseState.calls).toHaveLength(0);
+    expect(supabaseState.rpcCalls).toEqual([{
+      name: 'shift_repeat_series',
+      args: {
+        p_workspace_id: WS,
+        p_repeat_id: 'repeat-1',
+        p_rows: [
+          { id: 'task-1', start_date: '2026-08-01', end_date: '2026-08-01', expect_start_date: '2026-08-03', expect_end_date: '2026-08-03' },
+          { id: 'task-2', start_date: '2026-08-08', end_date: '2026-08-08', expect_start_date: '2026-08-10', expect_end_date: '2026-08-10' },
+        ],
+      },
+    }]);
+    expect(usePlannerStore.getState().taskUndoStack).toHaveLength(0);
+  });
+
+  it('keeps the whole entry for a retry when the call fails', async () => {
+    usePlannerStore.setState({ taskUndoStack: [seriesEntry()] });
+    supabaseState.queue.push({ data: null, error: { message: 'network down' } });
+
+    const outcome = await usePlannerStore.getState().undoTaskEntry('entry-series');
+
+    expect(outcome).toEqual({ restored: 0, stale: 0, failed: 2, total: 2 });
+    const stack = usePlannerStore.getState().taskUndoStack;
+    expect(stack).toHaveLength(1);
+    expect(stack[0].rows.map((row) => row.taskId)).toEqual(['task-1', 'task-2']);
   });
 });
 

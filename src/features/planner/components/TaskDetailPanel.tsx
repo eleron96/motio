@@ -48,6 +48,7 @@ import { useTaskDrafts, areArraysEqual } from '@/features/planner/hooks/useTaskD
 import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
 import { TeammateDraftLine } from '@/features/planner/components/TeammateDraftLine';
 import { useTaskDraftPresence } from '@/features/planner/hooks/useTaskDraftPresence';
+import { useSerialFieldWrite } from '@/features/planner/hooks/useSerialFieldWrite';
 import { isTaskLiveDraftsEnabled } from '@/shared/lib/featureFlags';
 import { t } from '@lingui/macro';
 import { i18n } from '@lingui/core';
@@ -73,6 +74,8 @@ const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
   );
 };
 
+
+const NO_IDS: string[] = [];
 
 const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
   Object.entries(updates).some(([key, value]) => {
@@ -185,9 +188,41 @@ export const TaskDetailPanel: React.FC = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subtaskEditingDirty, setSubtaskEditingDirty] = useState(false);
   const [subtaskEditingActive, setSubtaskEditingActive] = useState(false);
+  const [commentDraftDirty, setCommentDraftDirty] = useState(false);
+  const [commentConfirmOpen, setCommentConfirmOpen] = useState(false);
 
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
+
+  // Assignees and tags are picked with several taps in a row; each tap is
+  // counted from the last picked value and written one at a time
+  // (useSerialFieldWrite). A tap for a task that is no longer open still goes
+  // out, straight through the store.
+  const requestTaskUpdateRef = useRef<((updates: Partial<Task>) => Promise<void> | void) | null>(null);
+  const writePickedField = (pickedTaskId: string, updates: Partial<Task>) => {
+    const state = usePlannerStore.getState();
+    if (state.selectedTaskId === pickedTaskId && requestTaskUpdateRef.current) {
+      return requestTaskUpdateRef.current(updates);
+    }
+    const live = state.tasks.find((item) => item.id === pickedTaskId);
+    if (!live || live.repeatId || !hasTaskUpdates(live, updates)) return undefined;
+    return state.updateTask(pickedTaskId, updates, 'single');
+  };
+  const [pickedAssigneeIds, setPickedAssigneeIds] = useSerialFieldWrite(
+    task?.assigneeIds ?? NO_IDS,
+    (assigneeIds, pickedTaskId) => writePickedField(pickedTaskId, { assigneeIds }),
+    taskId,
+  );
+  const [pickedTagIds, setPickedTagIds] = useSerialFieldWrite(
+    task?.tagIds ?? NO_IDS,
+    (tagIds, pickedTaskId) => writePickedField(pickedTaskId, { tagIds }),
+    taskId,
+  );
+
+  useEffect(() => {
+    setCommentDraftDirty(false);
+    setCommentConfirmOpen(false);
+  }, [taskId]);
   const descriptionLoading = task !== undefined && task.description === undefined;
 
   useEffect(() => {
@@ -224,9 +259,9 @@ export const TaskDetailPanel: React.FC = () => {
   const selectableAssignees = useMemo(() => {
     if (!task) return filteredAssignees.filter((assignee) => assignee.isActive);
     return filteredAssignees.filter(
-      (assignee) => assignee.isActive || task.assigneeIds.includes(assignee.id),
+      (assignee) => assignee.isActive || pickedAssigneeIds.includes(assignee.id),
     );
-  }, [filteredAssignees, task]);
+  }, [filteredAssignees, task, pickedAssigneeIds]);
   const noProjectDisabled = groupMode === 'project';
 
   const {
@@ -252,7 +287,6 @@ export const TaskDetailPanel: React.FC = () => {
   const {
     subtasksOpen, setSubtasksOpen,
     subtasksLoading,
-    subtasksSaving,
     subtasksError, setSubtasksError,
     subtasks,
     newSubtaskTitle, setNewSubtaskTitle,
@@ -287,13 +321,13 @@ export const TaskDetailPanel: React.FC = () => {
   const descriptionDrafts = teammateDrafts.filter((entry) => entry.draft.kind === 'description');
 
   const assigneeLabel = useMemo(() => {
-    if (!task || task.assigneeIds.length === 0) return t`Unassigned`;
+    if (!task || pickedAssigneeIds.length === 0) return t`Unassigned`;
     const selected = filteredAssignees
-      .filter((assignee) => task.assigneeIds.includes(assignee.id))
+      .filter((assignee) => pickedAssigneeIds.includes(assignee.id))
       .map((assignee) => assignee.name);
-    if (selected.length === 1 && task.assigneeIds.length === 1) return selected[0];
-    return t`${task.assigneeIds.length} assignees`;
-  }, [filteredAssignees, task]);
+    if (selected.length === 1 && pickedAssigneeIds.length === 1) return selected[0];
+    return t`${pickedAssigneeIds.length} assignees`;
+  }, [filteredAssignees, task, pickedAssigneeIds]);
 
   // Mockup-style footer meta: «Создано 9 июня · обновлено сегодня».
   const taskCreatedAt = task?.createdAt;
@@ -405,7 +439,25 @@ export const TaskDetailPanel: React.FC = () => {
     closeIfClean();
   };
 
-  const closeIfClean = () => {
+  // An unsent comment would vanish with the card: closing asks first, and
+  // «Discard» carries on with whatever close was asked for.
+  const commentDiscardContinueRef = useRef<(() => void) | null>(null);
+  const askAboutUnsentComment = (proceed: () => void) => {
+    commentDiscardContinueRef.current = proceed;
+    setCommentConfirmOpen(true);
+  };
+  const handleDiscardCommentAndContinue = () => {
+    setCommentConfirmOpen(false);
+    const proceed = commentDiscardContinueRef.current;
+    commentDiscardContinueRef.current = null;
+    proceed?.();
+  };
+
+  const closeIfClean = (commentChecked = false) => {
+    if (!commentChecked && commentDraftDirty) {
+      askAboutUnsentComment(() => closeIfClean(true));
+      return;
+    }
     // A subtask edit in progress also counts as unsaved work — warn before
     // closing so the changes aren't lost. A typed new-subtask draft doesn't:
     // leaving the task saves it as a subtask (useTaskSubtasks).
@@ -499,8 +551,12 @@ export const TaskDetailPanel: React.FC = () => {
     return true;
   };
 
-  const handleSaveAndClose = async () => {
+  const handleSaveAndClose = async (commentChecked = false) => {
     if (repeatScopeOpen || pendingRepeatUpdate) return;
+    if (!commentChecked && commentDraftDirty) {
+      askAboutUnsentComment(() => { void handleSaveAndClose(true); });
+      return;
+    }
     // Flush unsaved description draft before closing.
     // onBlur of the rich-text editor is the normal save path, but it can be
     // skipped (React event batching) when the user clicks OK without first
@@ -552,8 +608,11 @@ export const TaskDetailPanel: React.FC = () => {
 
   const requestTaskUpdate = (updates: Partial<Task>, resetDraftOnCancel = false) => {
     if (!canEdit) return;
-    if (!hasTaskUpdates(task, updates)) return;
-    if (task.repeatId) {
+    // Compare with the store, not this render: a write that just landed may
+    // not have re-rendered the card yet.
+    const base = usePlannerStore.getState().tasks.find((item) => item.id === task.id) ?? task;
+    if (!hasTaskUpdates(base, updates)) return;
+    if (base.repeatId) {
       setPendingRepeatUpdate({
         kind: 'task-update',
         taskId: task.id,
@@ -563,9 +622,10 @@ export const TaskDetailPanel: React.FC = () => {
       setRepeatScopeOpen(true);
       return;
     }
-    recordOwnEdits(task, updates);
-    void updateTask(task.id, updates, 'single');
+    recordOwnEdits(base, updates);
+    return updateTask(task.id, updates, 'single');
   };
+  requestTaskUpdateRef.current = requestTaskUpdate;
 
   const applyPendingRepeatUpdate = async (scope: RepeatTaskUpdateScope) => {
     const pending = pendingRepeatUpdate;
@@ -661,37 +721,37 @@ export const TaskDetailPanel: React.FC = () => {
     const allowed = nextIds.filter((id) => {
       const assignee = assignees.find((candidate) => candidate.id === id);
       if (!assignee) return false;
-      return assignee.isActive || task.assigneeIds.includes(id);
+      return assignee.isActive || pickedAssigneeIds.includes(id);
     });
     const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
     const sorted = [...new Set(allowed)].sort((left, right) => (
       (order.get(left) ?? 0) - (order.get(right) ?? 0)
     ));
-    requestTaskUpdate({ assigneeIds: sorted });
+    setPickedAssigneeIds(sorted);
   };
 
   const handleAssigneeToggle = (assigneeId: string) => {
     if (!canEdit) return;
     const targetAssignee = assignees.find((assignee) => assignee.id === assigneeId);
-    if (targetAssignee && !targetAssignee.isActive && !task.assigneeIds.includes(assigneeId)) {
+    if (targetAssignee && !targetAssignee.isActive && !pickedAssigneeIds.includes(assigneeId)) {
       return;
     }
-    const next = task.assigneeIds.includes(assigneeId)
-      ? task.assigneeIds.filter((id) => id !== assigneeId)
-      : [...task.assigneeIds, assigneeId];
+    const next = pickedAssigneeIds.includes(assigneeId)
+      ? pickedAssigneeIds.filter((id) => id !== assigneeId)
+      : [...pickedAssigneeIds, assigneeId];
     const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
     const sorted = [...new Set(next)].sort((left, right) => (
       (order.get(left) ?? 0) - (order.get(right) ?? 0)
     ));
-    requestTaskUpdate({ assigneeIds: sorted });
+    setPickedAssigneeIds(sorted);
   };
 
   const handleTagToggle = (tagId: string) => {
     if (!canEdit) return;
-    const newTagIds = task.tagIds.includes(tagId)
-      ? task.tagIds.filter(id => id !== tagId)
-      : [...task.tagIds, tagId];
-    requestTaskUpdate({ tagIds: newTagIds });
+    const newTagIds = pickedTagIds.includes(tagId)
+      ? pickedTagIds.filter(id => id !== tagId)
+      : [...pickedTagIds, tagId];
+    setPickedTagIds(newTagIds);
   };
 
   const handleDelete = () => {
@@ -884,7 +944,6 @@ export const TaskDetailPanel: React.FC = () => {
             isReadOnly={isReadOnly}
             subtasksOpen={subtasksOpen}
             subtasksLoading={subtasksLoading}
-            subtasksSaving={subtasksSaving}
             subtasksError={subtasksError}
             subtasks={subtasks}
             newSubtaskTitle={newSubtaskTitle}
@@ -917,6 +976,7 @@ export const TaskDetailPanel: React.FC = () => {
                   canEdit={canEdit}
                   teammateDrafts={teammateDrafts}
                   onShareDraft={shareDraft}
+                  onDraftDirtyChange={setCommentDraftDirty}
                 />
               </Suspense>
             </div>
@@ -949,7 +1009,7 @@ export const TaskDetailPanel: React.FC = () => {
               <MobileAssigneeField
                 label={assigneeLabel}
                 assignees={selectableAssignees}
-                selectedIds={task.assigneeIds}
+                selectedIds={pickedAssigneeIds}
                 disabled={isReadOnly}
                 onChange={handleAssigneesChange}
                 emptyLabel={t`No assignees available.`}
@@ -976,7 +1036,7 @@ export const TaskDetailPanel: React.FC = () => {
                   >
                     <div className="space-y-1">
                       {selectableAssignees.map((assignee) => {
-                        const isAssigned = task.assigneeIds.includes(assignee.id);
+                        const isAssigned = pickedAssigneeIds.includes(assignee.id);
                         const isDisabled = isReadOnly || (!assignee.isActive && !isAssigned);
                         return (
                           <label key={assignee.id} className="flex items-center gap-2 py-1 cursor-pointer">
@@ -1113,7 +1173,7 @@ export const TaskDetailPanel: React.FC = () => {
             <Label>{t`Tags`}</Label>
             <TagMultiSelect
               tags={tags}
-              selectedTagIds={task.tagIds}
+              selectedTagIds={pickedTagIds}
               onToggleTag={handleTagToggle}
               disabled={isReadOnly}
             />
@@ -1129,7 +1189,10 @@ export const TaskDetailPanel: React.FC = () => {
       confirmOpen={confirmOpen}
       setConfirmOpen={setConfirmOpen}
       onDiscardAndClose={handleDiscardAndClose}
-      onSaveAndClose={handleSaveAndClose}
+      onSaveAndClose={() => handleSaveAndClose(true)}
+      commentConfirmOpen={commentConfirmOpen}
+      setCommentConfirmOpen={setCommentConfirmOpen}
+      onDiscardComment={handleDiscardCommentAndContinue}
       repeatCreating={repeatCreating}
       repeatScopeOpen={repeatScopeOpen}
       setRepeatScopeOpen={setRepeatScopeOpen}

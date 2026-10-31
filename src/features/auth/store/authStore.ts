@@ -265,6 +265,16 @@ interface AuthState {
 
 const getWorkspaceStorageKey = (userId: string) => `current-workspace-${userId}`;
 
+/** The workspace this browser last opened for the user, before the list confirms it. */
+export const readStoredWorkspaceId = (userId: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(getWorkspaceStorageKey(userId));
+  } catch {
+    return null;
+  }
+};
+
 const isTransientSchemaAuthError = (message: string) => (
   message.toLowerCase().includes('database error querying schema')
 );
@@ -611,8 +621,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!workspaces || workspaces.length === 0) return;
     }
 
-    const storageKey = getWorkspaceStorageKey(user.id);
-    const storedId = typeof window !== 'undefined' ? window.localStorage.getItem(storageKey) : null;
+    const storedId = readStoredWorkspaceId(user.id);
     const nextId = storedId && workspaces.some((workspace) => workspace.id === storedId)
       ? storedId
       : workspaces[0]?.id ?? null;

@@ -45,6 +45,14 @@ import {
   TaskRow,
   uniqueAssigneeIds,
 } from '@/features/planner/store/plannerStore.helpers';
+import {
+  beginTaskWrite,
+  confirmTaskWrite,
+  finishTaskWrite,
+  getConfirmedTask,
+  isLatestTaskWrite,
+  queueTaskWrite,
+} from '@/features/planner/store/plannerStore.pendingWrites';
 
 type TaskActions = Pick<
   PlannerStore,
@@ -63,6 +71,7 @@ type TaskActions = Pick<
   | 'reassignTask'
   | 'deleteTaskSeries'
   | 'removeAssigneeFromTask'
+  | 'searchTasks'
   | 'fetchTaskSubtasks'
   | 'createTaskSubtask'
   | 'createTaskSubtasks'
@@ -75,6 +84,9 @@ type TaskActions = Pick<
   | 'fetchTaskDescription'
 >;
 
+// Search results never show the description, so it isn't fetched.
+const TASK_SEARCH_COLUMNS = 'id, title, project_id, assignee_id, assignee_ids, start_date, end_date, status_id, type_id, priority, tag_ids, repeat_id, updated_at';
+const TASK_SEARCH_LIMIT = 200;
 const TASK_SUBTASK_COLUMNS = 'id, task_id, title, is_done, done_at, position, created_at, images';
 
 export const createTaskActions = (
@@ -316,24 +328,57 @@ export const createTaskActions = (
       return;
     }
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .update(payload)
-      .eq('id', id)
-      .eq('workspace_id', workspaceId)
-      .select('*')
-      .single();
-
-    if (error || !data) {
-      get().reportTaskWriteFailure('save', 'updateTask', error);
-      return;
+    // A single-task change shows at once (moving a bar no longer snaps back
+    // for a round-trip); the write follows, queued behind earlier writes to
+    // the same task (plannerStore.pendingWrites). Only the answer to the
+    // latest write lands in the store; a failure rolls the task back to what
+    // the server last confirmed and shows the usual write-failure toast.
+    const seq = beginTaskWrite(id, baseTask);
+    if (baseTask) {
+      const patch: Partial<Task> = 'assigneeIds' in updates
+        ? { ...updates, assigneeIds: uniqueAssigneeIds(updates.assigneeIds) }
+        : updates;
+      set((state) => ({
+        tasks: state.tasks.map((task) => (task.id === id ? { ...task, ...patch } : task)),
+      }));
     }
 
-    const updated = mapTaskRow(data as TaskRow);
-    set((state) => ({
-      tasks: state.tasks.map((task) => (task.id === id ? updated : task)),
-    }));
-    scheduleTaskMediaCleanup(removedMediaIds);
+    await queueTaskWrite(id, async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(payload)
+        .eq('id', id)
+        .eq('workspace_id', workspaceId)
+        .select('*')
+        .single();
+
+      const latest = isLatestTaskWrite(id, seq);
+      if (error || !data) {
+        if (latest) {
+          const confirmed = getConfirmedTask(id);
+          if (confirmed) {
+            set((state) => ({
+              tasks: state.tasks.map((task) => (task.id === id ? confirmed : task)),
+            }));
+          }
+          const newer = finishTaskWrite(id, seq, confirmed);
+          if (newer) get().upsertTasks([newer]);
+        }
+        get().reportTaskWriteFailure('save', 'updateTask', error);
+        return;
+      }
+
+      const updated = mapTaskRow(data as TaskRow);
+      confirmTaskWrite(id, updated);
+      if (latest) {
+        set((state) => ({
+          tasks: state.tasks.map((task) => (task.id === id ? updated : task)),
+        }));
+        const newer = finishTaskWrite(id, seq, updated);
+        if (newer) get().upsertTasks([newer]);
+      }
+      scheduleTaskMediaCleanup(removedMediaIds);
+    });
   },
 
   revertTaskOwnEdits: async (id, edits) => {
@@ -876,27 +921,53 @@ export const createTaskActions = (
       return;
     }
 
+    const anchor = baseTask;
+    const repeatId = anchor.repeatId;
+    const baseRange = { startDate: anchor.startDate, endDate: anchor.endDate };
+    const nextRange = { startDate, endDate };
+    const applyShifted = (shifted: Array<{ id: string; startDate: string; endDate: string }>) => {
+      const shiftedById = new Map(shifted.map((item) => [item.id, item]));
+      set((state) => ({
+        tasks: state.tasks.map((task) => {
+          const next = shiftedById.get(task.id);
+          return next ? { ...task, startDate: next.startDate, endDate: next.endDate } : task;
+        }),
+      }));
+    };
+
+    // The occurrences on screen move at once (each one shifts on its own, so
+    // the loaded rows are enough); the whole series follows in one call.
+    const loadedBefore = get().tasks.filter((task) => (
+      task.repeatId === repeatId && (scope !== 'following' || task.startDate >= anchor.startDate)
+    ));
+    applyShifted(buildShiftedRepeatTasks(baseRange, nextRange, loadedBefore));
+    const restoreLoaded = () => applyShifted(loadedBefore);
+
     const seriesQuery = supabase
       .from('tasks')
       .select('*')
       .eq('workspace_id', workspaceId)
-      .eq('repeat_id', baseTask.repeatId);
+      .eq('repeat_id', repeatId);
 
     const { data: targetRows, error: targetRowsError } = await (scope === 'following'
-      ? seriesQuery.gte('start_date', baseTask.startDate)
+      ? seriesQuery.gte('start_date', anchor.startDate)
       : seriesQuery);
 
     if (targetRowsError) {
+      restoreLoaded();
       get().reportTaskWriteFailure('save', 'moveTask', targetRowsError);
       return;
     }
 
     const seriesRows = (targetRows ?? []) as TaskRow[];
-    if (seriesRows.length === 0) return;
+    if (seriesRows.length === 0) {
+      restoreLoaded();
+      return;
+    }
 
     const shiftedTasks = buildShiftedRepeatTasks(
-      { startDate: baseTask.startDate, endDate: baseTask.endDate },
-      { startDate, endDate },
+      baseRange,
+      nextRange,
       seriesRows.map((row) => ({
         id: row.id,
         startDate: row.start_date,
@@ -904,50 +975,29 @@ export const createTaskActions = (
       })),
     );
 
-    const updatedRows: TaskRow[] = [];
+    // One transaction (migration 0164) instead of an UPDATE per occurrence:
+    // the series never ends up half-moved.
+    const { data: movedRows, error: moveError } = await supabase.rpc('shift_repeat_series', {
+      p_workspace_id: workspaceId,
+      p_repeat_id: repeatId,
+      p_rows: shiftedTasks.map((item) => ({
+        id: item.id,
+        start_date: item.startDate,
+        end_date: item.endDate,
+      })),
+    });
 
-    for (const shiftedTask of shiftedTasks) {
-      const { data: updatedRow, error: updateError } = await supabase
-        .from('tasks')
-        .update({
-          start_date: shiftedTask.startDate,
-          end_date: shiftedTask.endDate,
-        })
-        .eq('workspace_id', workspaceId)
-        .eq('id', shiftedTask.id)
-        .select('*')
-        .single();
-
-      if (updateError || !updatedRow) {
-        get().reportTaskWriteFailure('save', 'moveTask', updateError);
-
-        const refreshQuery = supabase
-          .from('tasks')
-          .select('*')
-          .eq('workspace_id', workspaceId)
-          .eq('repeat_id', baseTask.repeatId);
-
-        const { data: refreshedRows, error: refreshError } = await (scope === 'following'
-          ? refreshQuery.gte('start_date', baseTask.startDate)
-          : refreshQuery);
-
-        if (refreshError) {
-          console.error(refreshError);
-          return;
-        }
-
-        applyUpdatedRows((refreshedRows ?? []) as TaskRow[]);
-        return;
-      }
-
-      updatedRows.push(updatedRow as TaskRow);
+    if (moveError) {
+      get().reportTaskWriteFailure('save', 'moveTask', moveError);
+      // Nothing moved in the database: show the series as it is there.
+      applyUpdatedRows(seriesRows);
+      return;
     }
 
+    const updatedRows = (movedRows ?? []) as TaskRow[];
     applyUpdatedRows(updatedRows);
 
-    // Все строки серии обновились — фиксируем обратный ход. При частичном
-    // сбое выше мы вышли через reconcile: состояние неоднозначно, и обещать
-    // отмену для него нельзя.
+    // Серия сдвинулась целиком (одна транзакция) — фиксируем обратный ход.
     const seriesBeforeById = new Map(seriesRows.map((row) => [row.id, row]));
     const seriesUndoRows = updatedRows.flatMap((row) => {
       const beforeRow = seriesBeforeById.get(row.id);
@@ -967,6 +1017,7 @@ export const createTaskActions = (
         workspaceId,
         kind: 'series-move',
         rows: seriesUndoRows,
+        repeatId: repeatId ?? undefined,
       });
     }
   },
@@ -1158,6 +1209,10 @@ export const createTaskActions = (
 
     const updatedRows: TaskRow[] = [];
     const deleteIds: string[] = [];
+    // Occurrences of a series usually share their assignees, so rows left with
+    // the same list go out as one UPDATE: one request for the whole series
+    // instead of one per occurrence, sent one after another.
+    const updateGroups = new Map<string, { assigneeIds: string[]; ids: string[] }>();
 
     for (const row of rows) {
       const currentAssignees = normalizeAssigneeIds(row.assignee_ids, row.assignee_id);
@@ -1169,27 +1224,36 @@ export const createTaskActions = (
         continue;
       }
 
-      const { data: updatedRow, error: updateError } = await supabase
+      const groupKey = nextAssignees.join(',');
+      const group = updateGroups.get(groupKey);
+      if (group) {
+        group.ids.push(row.id);
+      } else {
+        updateGroups.set(groupKey, { assigneeIds: nextAssignees, ids: [row.id] });
+      }
+    }
+
+    for (const group of updateGroups.values()) {
+      const { data: groupRows, error: updateError } = await supabase
         .from('tasks')
         .update({
-          assignee_ids: nextAssignees,
-          assignee_id: nextAssignees[0] ?? null,
+          assignee_ids: group.assigneeIds,
+          assignee_id: group.assigneeIds[0] ?? null,
         })
         .eq('workspace_id', workspaceId)
-        .eq('id', row.id)
-        .select('*')
-        .single();
+        .in('id', group.ids)
+        .select('*');
 
-      if (updateError || !updatedRow) {
+      if (updateError) {
         get().reportTaskWriteFailure('save', 'removeAssigneeFromTask', updateError);
-        // Earlier rows may already be updated in the DB; resync from the DB so
-        // the store doesn't silently diverge from the persisted state.
+        // Earlier groups may already be updated in the DB; resync from the DB
+        // so the store doesn't silently diverge from the persisted state.
         const { data: refreshed } = await fetchTargetRows();
         applyUpdatedRows((refreshed ?? []) as TaskRow[]);
         return;
       }
 
-      updatedRows.push(updatedRow as TaskRow);
+      updatedRows.push(...((groupRows ?? []) as TaskRow[]));
     }
 
     if (deleteIds.length > 0) {
@@ -1223,6 +1287,28 @@ export const createTaskActions = (
           : state.selectedTaskId,
       };
     });
+  },
+
+  searchTasks: async (workspaceId, query) => {
+    const needle = query.trim();
+    if (!needle) return { tasks: [] };
+    // `%` and `_` are wildcards in ILIKE: a title with them is searched literally.
+    const pattern = `%${needle.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(TASK_SEARCH_COLUMNS)
+      .eq('workspace_id', workspaceId)
+      .ilike('title', pattern)
+      .order('start_date', { ascending: true })
+      .limit(TASK_SEARCH_LIMIT);
+
+    if (error) {
+      return { tasks: [], error: error.message };
+    }
+
+    return {
+      tasks: ((data ?? []) as unknown as TaskRow[]).map(mapTaskRow),
+    };
   },
 
   fetchTaskSubtasks: async (workspaceId, taskId) => {

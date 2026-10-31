@@ -6,12 +6,15 @@ import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
 import { useUsageBeacon } from '@/features/planner/hooks/useUsageBeacon';
 import { isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
 import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
+import { TimelineSearchStrip } from '@/features/planner/components/timeline/TimelineSearchStrip';
+import { TimelineSearchOverlay } from '@/features/planner/components/timeline/TimelineSearchOverlay';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
 import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
 import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
+import { useWorkspaceLoadRetry } from '@/features/planner/hooks/useWorkspaceLoadRetry';
 import { useTaskUndoToasts } from '@/features/planner/hooks/useTaskUndoToasts';
 import { useTaskWriteFailureToasts } from '@/features/planner/hooks/useTaskWriteFailureToasts';
 import { useRevealPendingTask } from '@/features/planner/hooks/useRevealPendingTask';
@@ -94,6 +97,7 @@ const PlannerTimelineArea = React.memo(({
 }: PlannerTimelineAreaProps) => (
   <div className="flex-1 flex flex-col overflow-hidden min-h-0 timeline-surface">
     <TimelineControls />
+    {surface === 'timeline' && viewMode !== 'calendar' && <TimelineSearchStrip />}
     <div className="relative flex-1 overflow-hidden min-h-0">
       {surface === 'board' && (
         <Suspense
@@ -116,6 +120,9 @@ const PlannerTimelineArea = React.memo(({
             onSidebarWidthReset={onTimelineSidebarWidthReset}
           />
         )
+      )}
+      {surface === 'timeline' && viewMode !== 'calendar' && (
+        <TimelineSearchOverlay />
       )}
       {showLoadingOverlay && (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-background/60">
@@ -183,6 +190,24 @@ const PlannerPage = () => {
     const timer = window.setTimeout(prefetch, 1500);
     return () => window.clearTimeout(timer);
   }, [boardAvailable]);
+
+  // Opening a task is the most common action: once the timeline is drawn, the
+  // card's editor and comments are fetched while the browser is idle, so the
+  // first open shows them at once instead of «Loading editor...».
+  const timelineReady = Boolean(loadedRange) && !plannerLoading;
+  useEffect(() => {
+    if (!timelineReady || typeof window === 'undefined') return undefined;
+    const prefetch = () => {
+      void import('@/features/planner/components/RichTextEditor').catch(() => undefined);
+      void import('@/features/planner/components/TaskCommentSection').catch(() => undefined);
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(prefetch, { timeout: 4000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const timer = window.setTimeout(prefetch, 1500);
+    return () => window.clearTimeout(timer);
+  }, [timelineReady]);
   const groupMode = usePlannerStore((state) => state.groupMode);
   const currentDate = usePlannerStore((state) => state.currentDate);
   const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
@@ -260,6 +285,7 @@ const PlannerPage = () => {
   const showLoadingOverlay = plannerLoading && (!loadedRange || loadedRange.workspaceId !== currentWorkspaceId) && !hasInitialData;
 
   usePlannerLiveSync(currentWorkspaceId, loadedRange);
+  useWorkspaceLoadRetry(currentWorkspaceId);
   useTaskUndoToasts();
   useTaskWriteFailureToasts();
   useRevealPendingTask();

@@ -97,6 +97,10 @@ Routed through `main` under `/functions/v1/`: `account-purge`, `admin`, `api`,
 `data-export`, `holidays`, `inbox`, `invite`, `mailer`, `notifications`, `push`,
 `task-media`. The subsections below cover the ones with a non-trivial contract.
 
+The notification bell reads through the `inbox_list` database function (migration
+0166, one PostgREST call); the `inbox` function returns the same lists and stays
+only for tabs still running an older build.
+
 ### `api`
 
 The workspace API for importing absences, called by other systems with a
@@ -179,7 +183,11 @@ WebSocket per tab; row-level security decides what reaches whom, exactly as for 
 
 - **Missed events are caught up, not lost.** After a reconnect and when the tab becomes
   visible again, the planner reconciles what changed since its last sync, and an open card
-  re-reads its subtasks and newest comments.
+  re-reads its subtasks and newest comments. One return to the tab is one reconcile; while
+  the channel is healthy it runs at most once a minute, since realtime already delivers changes.
+- **Deletes arrive live too.** The subscriptions filter on `workspace_id`, so `tasks`,
+  `milestones`, `time_off` and `task_subtasks` use `REPLICA IDENTITY FULL` (0131, 0158, 0163):
+  with the default identity a DELETE carries only the primary key and never matches the filter.
 - **The drafts channel is private.** Migration 0159 puts the rules on `realtime.messages`:
   members of the task's workspace may join and listen, editors may publish, and a private
   channel with any other topic is refused (the public Postgres-changes channels are

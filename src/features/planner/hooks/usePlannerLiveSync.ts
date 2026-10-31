@@ -91,6 +91,11 @@ const FALLBACK_POLL_BASE_MS = 45_000;
 const FALLBACK_POLL_MAX_MS = 180_000;
 const FALLBACK_FAILURE_MAX = 6;
 const POLL_JITTER_RATIO = 0.18;
+// One return to the tab fires focus, pageshow and visibilitychange together.
+const FOCUS_RECONCILE_COALESCE_MS = 2_000;
+// While the channel is healthy realtime already delivers changes, so quick
+// switching between tabs doesn't need a full reconcile every time.
+const FOCUS_RECONCILE_MIN_INTERVAL_MS = 60_000;
 
 const mapMilestoneRow = (row: MilestoneSyncRow): Milestone => ({
   id: row.id,
@@ -174,6 +179,9 @@ export const usePlannerLiveSync = (
     let channelEpoch = 0;
     let reconnectInFlight = false;
     let lastReconnectAttemptAt = 0;
+    let lastFocusReconcileAt = 0;
+    // The window was just loaded, which counts as a fresh reconcile.
+    let lastReconcileCompletedAt = Date.now();
     const rangeRef: LoadedRange = loadedRange;
     const workspaceRef = workspaceId;
     // The window is fixed for this subscription's lifetime (a new window
@@ -538,6 +546,7 @@ export const usePlannerLiveSync = (
             lastTaskSyncAtRef.current = nowIso;
             lastMilestoneSyncAtRef.current = nowIso;
             lastTaskCommentSyncAtRef.current = nowIso;
+            lastReconcileCompletedAt = Date.now();
             resetFallbackFailures();
           }
         }
@@ -840,6 +849,10 @@ export const usePlannerLiveSync = (
 
     const handleVisibilityOrFocus = () => {
       if (!canRunReconcileNow()) return;
+      const now = Date.now();
+      if (now - lastFocusReconcileAt < FOCUS_RECONCILE_COALESCE_MS) return;
+      if (channelHealthy && now - lastReconcileCompletedAt < FOCUS_RECONCILE_MIN_INTERVAL_MS) return;
+      lastFocusReconcileAt = now;
       requestReconcile('focus');
       if (!channelHealthy) {
         void forceReconnectChannel();

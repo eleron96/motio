@@ -43,7 +43,6 @@ const Harness: React.FC = () => {
       isReadOnly={false}
       subtasksOpen
       subtasksLoading={false}
-      subtasksSaving={false}
       subtasksError=""
       subtasks={[subtask]}
       newSubtaskTitle={newSubtaskTitle}
@@ -153,7 +152,6 @@ describe('SubtasksSection live drafts', () => {
         isReadOnly={false}
         subtasksOpen
         subtasksLoading={false}
-        subtasksSaving={false}
         subtasksError=""
         subtasks={[subtask]}
         newSubtaskTitle=""
@@ -188,7 +186,6 @@ describe('SubtasksSection live drafts', () => {
           isReadOnly={false}
           subtasksOpen
           subtasksLoading={false}
-          subtasksSaving={false}
           subtasksError=""
           subtasks={[subtask]}
           newSubtaskTitle={title}

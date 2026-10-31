@@ -108,8 +108,11 @@ vi.mock('@/infrastructure/tasks/openTaskLiveChannel', () => ({
 }));
 
 vi.mock('@/features/planner/store/plannerStore', () => ({
-  usePlannerStore: (selector?: (state: typeof mocks.plannerState) => unknown) => (
-    typeof selector === 'function' ? selector(mocks.plannerState) : mocks.plannerState
+  usePlannerStore: Object.assign(
+    (selector?: (state: typeof mocks.plannerState) => unknown) => (
+      typeof selector === 'function' ? selector(mocks.plannerState) : mocks.plannerState
+    ),
+    { getState: () => mocks.plannerState },
   ),
 }));
 
@@ -149,26 +152,40 @@ vi.mock('@/features/planner/components/RichTextEditor', () => ({
 }));
 
 vi.mock('@/features/planner/components/TaskCommentSection', () => ({
-  TaskCommentSection: () => <div data-testid="task-comments" />,
+  TaskCommentSection: ({ onDraftDirtyChange }: { onDraftDirtyChange?: (dirty: boolean) => void }) => (
+    <div data-testid="task-comments">
+      <button type="button" onClick={() => onDraftDirtyChange?.(true)}>Type a comment</button>
+    </div>
+  ),
 }));
 
 vi.mock('@/features/planner/components/TaskDetailDialogs', () => ({
   TaskDetailAlerts: ({
+    commentConfirmOpen,
     confirmOpen,
     onApplyPendingRepeatUpdate,
     onDiscardAndClose,
+    onDiscardComment,
     onSaveAndClose,
     repeatScopeOpen,
     repeatScopeOptions,
   }: {
+    commentConfirmOpen: boolean;
     confirmOpen: boolean;
     onApplyPendingRepeatUpdate: (scope: 'single' | 'following' | 'all') => Promise<void> | void;
     onDiscardAndClose: () => void;
+    onDiscardComment: () => void;
     onSaveAndClose: () => Promise<void> | void;
     repeatScopeOpen: boolean;
     repeatScopeOptions?: Array<'single' | 'following' | 'all'>;
   }) => (
     <div>
+      {commentConfirmOpen && <span data-testid="confirm-unsent-comment" />}
+      {commentConfirmOpen && (
+        <button type="button" onClick={onDiscardComment}>
+          Discard comment
+        </button>
+      )}
       {confirmOpen && <span data-testid="confirm-close" />}
       {confirmOpen && (
         <button type="button" onClick={onDiscardAndClose}>
@@ -639,5 +656,92 @@ describe('TaskDetailPanel description saves in a row', () => {
     // Nothing of ours stands: the card closes without offering a Discard.
     expect(screen.queryByTestId('confirm-close')).not.toBeInTheDocument();
     expect(mocks.plannerState.revertTaskOwnEdits).not.toHaveBeenCalled();
+  });
+});
+
+describe('TaskDetailPanel quick multi-select', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask }];
+    mocks.plannerState.assignees = [
+      { id: 'a-1', isActive: true, name: 'Anna' },
+      { id: 'a-2', isActive: true, name: 'Boris' },
+      { id: 'a-3', isActive: true, name: 'Vera' },
+    ];
+  });
+
+  it('keeps every quick tap: each counts from the last picked value and writes go one at a time', async () => {
+    const user = userEvent.setup();
+    const pendingWrites: Array<() => void> = [];
+    mocks.plannerState.updateTask = vi.fn((taskId: string, updates: Partial<Task>) => new Promise<void>((resolve) => {
+      pendingWrites.push(() => {
+        // The server answered: the store now holds what was sent.
+        mocks.plannerState.tasks = mocks.plannerState.tasks.map((item) => (
+          item.id === taskId ? { ...item, ...updates } : item
+        ));
+        resolve();
+      });
+    })) as never;
+
+    render(<TaskDetailPanel />);
+    await user.click(screen.getByRole('button', { name: /Unassigned/ }));
+    const anna = await screen.findByRole('checkbox', { name: /Anna/ });
+    const boris = screen.getByRole('checkbox', { name: /Boris/ });
+    const vera = screen.getByRole('checkbox', { name: /Vera/ });
+
+    await user.click(anna);
+    await user.click(boris);
+    await user.click(vera);
+
+    // All three show as picked at once, though only the first write is out.
+    expect(anna).toHaveAttribute('data-state', 'checked');
+    expect(boris).toHaveAttribute('data-state', 'checked');
+    expect(vera).toHaveAttribute('data-state', 'checked');
+    expect(mocks.plannerState.updateTask).toHaveBeenCalledTimes(1);
+    expect(mocks.plannerState.updateTask).toHaveBeenLastCalledWith('task-1', { assigneeIds: ['a-1'] }, 'single');
+
+    // When it lands, the latest pick goes out — nothing in between is lost.
+    await act(async () => { pendingWrites.shift()?.(); });
+    expect(mocks.plannerState.updateTask).toHaveBeenCalledTimes(2);
+    expect(mocks.plannerState.updateTask).toHaveBeenLastCalledWith('task-1', { assigneeIds: ['a-1', 'a-2', 'a-3'] }, 'single');
+
+    await act(async () => { pendingWrites.shift()?.(); });
+    expect(mocks.plannerState.updateTask).toHaveBeenCalledTimes(2);
+    expect(mocks.plannerState.tasks[0].assigneeIds).toEqual(['a-1', 'a-2', 'a-3']);
+  });
+});
+
+describe('TaskDetailPanel unsent comment', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.plannerState.selectedTaskId = 'task-1';
+    mocks.plannerState.tasks = [{ ...baseTask }];
+    mocks.plannerState.updateTask = vi.fn(async () => ({})) as never;
+  });
+
+  it('asks before closing over an unsent comment and closes only after Discard', async () => {
+    const user = userEvent.setup();
+    render(<TaskDetailPanel />);
+
+    await user.click(await screen.findByRole('button', { name: 'Type a comment' }));
+    await user.keyboard('{Escape}');
+
+    expect(screen.getByTestId('confirm-unsent-comment')).toBeInTheDocument();
+    expect(mocks.plannerState.setSelectedTaskId).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText('Discard comment'));
+    expect(mocks.plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
+  });
+
+  it('closes at once when no comment is typed', async () => {
+    const user = userEvent.setup();
+    render(<TaskDetailPanel />);
+    await screen.findByRole('button', { name: 'Type a comment' });
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByTestId('confirm-unsent-comment')).not.toBeInTheDocument();
+    expect(mocks.plannerState.setSelectedTaskId).toHaveBeenCalledWith(null);
   });
 });

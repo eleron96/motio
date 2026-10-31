@@ -195,11 +195,32 @@ $compose_cmd exec -T db \
 $compose_cmd exec -T db \
   psql -U supabase_admin -d "$POSTGRES_DB" -c "CREATE SCHEMA IF NOT EXISTS _realtime;" >/dev/null 2>&1
 
+# GoTrue keeps its pooled database connections across a database restart and
+# fails the first request on each of them (57P01 "terminating connection"):
+# sign-ins and session refreshes right after a deploy that recreated the
+# database (a changed db command) answered 500. Restart auth when it is older
+# than the running database; the gateway reload further down picks up its
+# address. Self-hosted updates stop the whole stack first, so they never hit it.
+db_container="$($compose_cmd ps -q db)"
+auth_container="$($compose_cmd ps -q auth)"
+if [[ -n "$db_container" && -n "$auth_container" ]]; then
+  db_started_at="$(date -d "$(docker inspect -f '{{.State.StartedAt}}' "$db_container")" +%s)"
+  auth_started_at="$(date -d "$(docker inspect -f '{{.State.StartedAt}}' "$auth_container")" +%s)"
+  if (( auth_started_at < db_started_at )); then
+    echo "The database restarted after auth: restarting auth to drop its stale connections."
+    $compose_cmd restart auth
+  fi
+fi
+
 # --- Start remaining services ---
 $compose_cmd up -d auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache.
 $compose_cmd up -d --force-recreate --no-deps functions
+# The recreated container has a new IP and nginx resolves upstream names only
+# on start/reload: re-resolve right away, or /functions/v1/* answers 502 for
+# the rest of the deploy. The full config reload further down still runs.
+$compose_cmd exec -T gateway nginx -s reload >/dev/null 2>&1 || true
 
 # --- Keycloak configuration ---
 infra/scripts/keycloak-ensure-client-secret.sh "$env_file"
@@ -266,7 +287,24 @@ else
   echo "Warning: curl is not installed, skipping reserve admin bootstrap request." >&2
 fi
 
+# Keep the running release's files before the new web image replaces them: a
+# tab opened before this release still loads its lazy chunks from the archive
+# (infra/web/nginx.conf falls back to it) instead of a 404 and a forced reload.
+# Files older than 7 days are dropped.
+archive_web_assets() {
+  local archive_dir="infra/web-assets-archive"
+  mkdir -p "$archive_dir"
+  local web_container
+  web_container="$($compose_cmd ps -q web 2>/dev/null || true)"
+  if [[ -n "$web_container" ]]; then
+    docker cp "$web_container:/usr/share/nginx/html/assets/." "$archive_dir/" >/dev/null 2>&1 \
+      || echo "Warning: could not archive the current web assets." >&2
+  fi
+  find "$archive_dir" -type f -mtime +7 -delete 2>/dev/null || true
+}
+
 # --- Build and start web + oauth2-proxy ---
+archive_web_assets
 $compose_cmd up -d --build web oauth2-proxy
 
 echo "Testing stack is running."

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/shared/lib/supabaseClient';
-import { useAuthStore } from '@/features/auth/store/authStore';
+import { readStoredWorkspaceId, useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import {
   broadcastAuthSessionSync,
@@ -9,6 +9,23 @@ import {
   isSupabaseAuthStorageKey,
 } from '@/features/auth/lib/authSessionSync';
 import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
+
+// Screens that show the workspace's data (they all call loadWorkspaceData).
+const WORKSPACE_DATA_ROUTE = /^\/app(\/(dashboard|projects|members))?\/?$/;
+
+/**
+ * The workspace list and the workspace data used to load one after the other.
+ * The workspace last opened in this browser is almost always the one the list
+ * picks, so its data starts loading together with the list; when the list
+ * confirms it, loadWorkspaceData joins the request already on its way. A
+ * stale id costs one wasted batch and is replaced by the real one.
+ */
+const prefetchLastWorkspaceData = (userId: string) => {
+  if (useAuthStore.getState().workspacesLoaded) return;
+  if (typeof window === 'undefined' || !WORKSPACE_DATA_ROUTE.test(window.location.pathname)) return;
+  const workspaceId = readStoredWorkspaceId(userId);
+  if (workspaceId) void usePlannerStore.getState().loadWorkspaceData(workspaceId);
+};
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -61,6 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       if (session?.user) {
+        prefetchLastWorkspaceData(session.user.id);
         // Do not block workspace bootstrap on super-admin probe.
         void fetchWorkspaces().catch(() => undefined);
         void fetchProfile().catch(() => undefined);

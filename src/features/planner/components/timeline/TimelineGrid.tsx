@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
+import { useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
+import { isSearchableQuery } from '@/shared/domain/taskSearch';
 import { useTimelineTasks } from '@/features/planner/hooks/useTimelineTasks';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -120,6 +122,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const setTimelineAttentionDate = usePlannerStore((state) => state.setTimelineAttentionDate);
   const markTimelineInteraction = usePlannerStore((state) => state.markTimelineInteraction);
   const setVisibleCenterDate = usePlannerStore((state) => state.setVisibleCenterDate);
+  const searchActive = useTaskSearchStore((state) => state.open && isSearchableQuery(state.query));
+  const searchFocusedId = useTaskSearchStore((state) => (state.open ? state.focusedId : null));
+  const setSearchViewport = useTaskSearchStore((state) => state.setViewport);
   const user = useAuthStore((state) => state.user);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
   const workspaces = useAuthStore((state) => state.workspaces);
@@ -289,8 +294,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     viewMode,
     dayWidth,
     visibleDays,
-    highlightedTaskId,
-    highlightedTaskRowAssigneeId,
+    // A deep link's highlight wins; otherwise the focused search match.
+    highlightedTaskId: highlightedTaskId ?? searchFocusedId,
+    highlightedTaskRowAssigneeId: highlightedTaskId ? highlightedTaskRowAssigneeId : null,
     tasksLength: tasks.length,
     scrollTargetDate,
     scrollRequestId,
@@ -316,6 +322,18 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       setVisibleCenterDate(format(visibleDays[focusIndex], 'yyyy-MM-dd'));
     }
   }, [focusIndex, visibleDays, setVisibleCenterDate]);
+
+  // The search strip and its "earlier / later" chips need the days on screen.
+  useEffect(() => {
+    if (!viewportWidth || dayWidth === 0 || visibleDays.length === 0) return;
+    const first = Math.min(visibleDays.length - 1, Math.max(0, Math.floor(scrollLeft / dayWidth)));
+    const last = Math.min(visibleDays.length - 1, Math.max(first, Math.floor((scrollLeft + viewportWidth - 1) / dayWidth)));
+    setSearchViewport(
+      { start: format(visibleDays[first], 'yyyy-MM-dd'), end: format(visibleDays[last], 'yyyy-MM-dd') },
+      { start: format(visibleDays[0], 'yyyy-MM-dd'), end: format(visibleDays[visibleDays.length - 1], 'yyyy-MM-dd') },
+      sidebarViewportWidth,
+    );
+  }, [dayWidth, scrollLeft, setSearchViewport, sidebarViewportWidth, viewportWidth, visibleDays]);
 
   const showTodayButton = useMemo(() => {
     if (!viewportWidth || dayWidth === 0 || visibleDays.length === 0) return false;
@@ -486,6 +504,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
       // bars' own long-press menu is JS-driven and unaffected.
       'max-md:select-none max-md:[-webkit-touch-callout:none]',
       highlightedTaskId && 'task-highlight-mode',
+      searchActive && !highlightedTaskId && 'task-search-mode',
       isDragScrolling && 'timeline-drag-scroll-active',
     )}
     onPointerDownCapture={clearTimelineAttention}
@@ -644,6 +663,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 </div>
               </div>
             ))}
+
+            {/* While searching, room under the last row so a match there can be
+                scrolled up to the middle instead of sitting cut off at the edge. */}
+            {searchActive && <div aria-hidden="true" className="h-[40vh]" />}
 
             {/* Пустой таймлайн иначе молчит: одна строка со своим именем и
                 никакого намёка, что задача заводится двойным кликом по дню. */}

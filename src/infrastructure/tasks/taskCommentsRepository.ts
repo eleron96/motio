@@ -248,6 +248,12 @@ export interface CreateCommentParams {
   authorId: string;
   authorDisplayNameSnapshot: string;
   content: string;
+  /**
+   * The author's profile as the caller already knows it (the signed-in
+   * person): saves the profile lookup, a second round-trip before the
+   * comment can be shown.
+   */
+  author?: { displayName: string | null; avatarUrl: string | null };
 }
 
 export const createTaskComment = async (
@@ -272,7 +278,14 @@ export const createTaskComment = async (
   if (error) return { error: error.message };
   if (!data) return { error: 'No data returned' };
 
-  const [comment] = await mapCommentRows([data as CommentRow]);
+  const [comment] = params.author
+    ? [mapCommentRow({
+      ...(data as CommentRow),
+      author_display_name: params.author.displayName,
+      author_avatar_url: params.author.avatarUrl,
+      author_status: 'ACTIVE',
+    })]
+    : await mapCommentRows([data as CommentRow]);
 
   return {
     data: comment,
@@ -372,5 +385,30 @@ export const fetchTaskCommentCounts = async (
     counts[row.task_id] = Number(row.comment_count);
   }
 
+  return { data: counts };
+};
+
+/**
+ * Comment counts of the tasks in a date window (migration 0167): the same
+ * window as the planner's task query, so both go out at once. Every task
+ * without comments is absent from the answer — read it as zero.
+ */
+export const fetchTaskCommentCountsInWindow = async (
+  workspaceId: string,
+  startDate: string,
+  endDate: string,
+): Promise<{ data: Record<string, number> } | { error: string }> => {
+  const { data, error } = await supabase.rpc('task_comment_counts_in_window', {
+    p_workspace_id: workspaceId,
+    p_start_date: startDate,
+    p_end_date: endDate,
+  });
+
+  if (error) return { error: error.message };
+
+  const counts: Record<string, number> = {};
+  for (const row of (data ?? []) as Array<{ task_id: string; comment_count: number }>) {
+    counts[row.task_id] = Number(row.comment_count);
+  }
   return { data: counts };
 };

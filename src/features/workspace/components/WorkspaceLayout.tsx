@@ -5,6 +5,7 @@ import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePa
 import { MobileMenuProvider } from '@/features/workspace/components/MobileMenuContext';
 import { AnnouncementsHost } from '@/features/announcements/components/AnnouncementsHost';
 import { PendingDeletionBanner } from '@/shared/components/PendingDeletionBanner';
+import { useNewVersionNotice } from '@/features/workspace/hooks/useNewVersionNotice';
 
 /**
  * Header configuration a page contributes to the persistent workspace header.
@@ -57,6 +58,7 @@ export const WorkspaceLayout: React.FC = () => {
     () => ({ open: mobileMenuOpen, openMenu, closeMenu }),
     [mobileMenuOpen, openMenu, closeMenu],
   );
+  useNewVersionNotice();
 
   return (
     <HeaderConfigContext.Provider value={setConfig}>

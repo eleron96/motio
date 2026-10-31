@@ -44,6 +44,7 @@ export interface UseSubtaskImagesResult {
   draftImagesRef: MutableRefObject<TaskSubtaskImage[]>;
   /** Clears the draft's pictures once they have been saved with a subtask. */
   clearDraftImages: () => void;
+  restoreDraftImages: (images: TaskSubtaskImage[]) => void;
 }
 
 const reportRejectedFiles = (selection: ReturnType<typeof selectSubtaskImageFiles<File>>) => {
@@ -215,6 +216,8 @@ export const useSubtaskImages = ({
   }, [releaseTaskMedia, setDraftImages]);
 
   const clearDraftImages = useCallback(() => setDraftImages([]), [setDraftImages]);
+  /** Puts pictures back into the composer (a subtask that failed to save). */
+  const restoreDraftImages = useCallback((next: TaskSubtaskImage[]) => setDraftImages(next), [setDraftImages]);
 
   return {
     controller: {
@@ -228,5 +231,6 @@ export const useSubtaskImages = ({
     },
     draftImagesRef,
     clearDraftImages,
+    restoreDraftImages,
   };
 };

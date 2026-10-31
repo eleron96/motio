@@ -137,6 +137,18 @@ NEXT_VERSION=0.10.0 make deploy   # with an explicit version
 5. pulls the updated `VERSION`, `CHANGELOG.md`, `CHANGELOG.en.md` and
    `infra/releases.log` back into the local repo.
 
+**What a release costs returning visitors.** The version and the release-notes chunk
+reach the app through `<meta>` tags in `index.html` (written at build time by
+`vite/releaseArtifacts.ts`), not through the JavaScript, and libraries live in their
+own `vendor-*` chunks — so a release that changes no frontend code leaves every
+cached file valid, and a frontend release keeps the vendor chunks. Before the
+new web image starts, the deploy copies the running release's `/assets` into
+`infra/web-assets-archive/` on the server (files older than 7 days are dropped;
+rsync never touches it) and nginx falls back to it, so a tab opened before the
+release still loads its lazy chunks; an open tab is offered «Update» once the new
+version is out. Text assets are pre-compressed at build time (`.br`, `.gz`,
+`infra/web/precompress.mjs`) and served as is.
+
 After a successful deploy, commit the synced release artifacts:
 
 ```bash

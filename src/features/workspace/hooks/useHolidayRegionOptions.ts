@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { fetchHolidays, type HolidayEntry } from '@/infrastructure/holidays/holidayApi';
-import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import {
   getHolidayRegionName,
   listHolidayRegions,
@@ -28,10 +27,10 @@ export const useHolidayRegionOptions = (countryCode: string, enabled: boolean) =
     if (!enabled || !/^[A-Z]{2}$/.test(countryCode)) return;
 
     let active = true;
-    const controller = new AbortController();
     setLoading(true);
 
-    fetchHolidays(countryCode, new Date().getFullYear(), controller.signal)
+    // Shared with the timeline: the same answer is asked once per session.
+    fetchHolidays(countryCode, new Date().getFullYear())
       .then((response) => {
         if (!active) return;
         const holidays: HolidayEntry[] = response.holidays ?? [];
@@ -42,7 +41,7 @@ export const useHolidayRegionOptions = (countryCode: string, enabled: boolean) =
         })));
       })
       .catch((error) => {
-        if (!isAbortError(error)) console.error(error);
+        if (active) console.error(error);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -50,7 +49,6 @@ export const useHolidayRegionOptions = (countryCode: string, enabled: boolean) =
 
     return () => {
       active = false;
-      controller.abort();
     };
   }, [countryCode, enabled]);
 

@@ -70,7 +70,7 @@ msgid "{0, plural, one {Series moved (# task)} other {Series moved (# tasks)}}"
 msgstr "{0, plural, one {Serie verschoben (# Aufgabe)} other {Serie verschoben (# Aufgaben)}}"
 
 #. placeholder {0}: assigneeIds.length
-#. placeholder {0}: task.assigneeIds.length
+#. placeholder {0}: pickedAssigneeIds.length
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "{0} assignees"
@@ -91,6 +91,12 @@ msgstr "{0} verlässt „{1}“ und ist danach ohne Gruppe. Die Aufgaben bleiben
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 msgid "{0} milestones"
 msgstr "{0} Meilensteine"
+
+#. placeholder {0}: focusedIndex + 1
+#. placeholder {1}: hits.length
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+msgid "{0} of {1}"
+msgstr "{0} von {1}"
 
 #. placeholder {0}: pastItems.length
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
@@ -176,6 +182,10 @@ msgstr "{customersCount} Kunden"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# Tag} other {# Tage}}"
 
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+msgid "{earlierCount} earlier"
+msgstr "{earlierCount} früher"
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{firstRow}–{lastRow} of {total}"
 msgstr "{firstRow}–{lastRow} von {total}"
@@ -183,6 +193,10 @@ msgstr "{firstRow}–{lastRow} von {total}"
 #: src/features/daily-brief/components/DailyBriefTaskList.tsx
 msgid "{hiddenCount, plural, one {and # more} other {and # more}}"
 msgstr "{hiddenCount, plural, one {und # weitere} other {und # weitere}}"
+
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+msgid "{laterCount} later"
+msgstr "{laterCount} später"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 msgid "{milestoneCount} milestone"
@@ -223,6 +237,11 @@ msgstr "{name} schreibt einen Kommentar"
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is writing a subtask"
 msgstr "{name} schreibt eine Unteraufgabe"
+
+#. placeholder {0}: hits.length
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+msgid "{onScreen} of {0} on screen"
+msgstr "{onScreen} von {0} sichtbar"
 
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{page} of {pageCount}"
@@ -292,6 +311,10 @@ msgstr "Ein Kreis am Tag; geteilt, wenn mehrere Personen abwesend sind."
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "A future date schedules it."
 msgstr "Ein Datum in der Zukunft plant die Anzeige."
+
+#: src/features/workspace/hooks/useNewVersionNotice.ts
+msgid "A new version of Motio is available"
+msgstr "Eine neue Version von Motio ist verfügbar"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "A person you can reuse across projects."
@@ -1193,6 +1216,10 @@ msgstr "Schließen"
 msgid "Close menu"
 msgstr "Menü schließen"
 
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+msgid "Close search"
+msgstr "Suche schließen"
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "closed"
 msgstr "erledigt"
@@ -1241,6 +1268,10 @@ msgstr "Farben"
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Comment actions"
 msgstr "Kommentaraktionen"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Comment not sent"
+msgstr "Kommentar nicht gesendet"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -1947,6 +1978,10 @@ msgstr "Deaktivierte Personen werden in den Filtern ausgeblendet."
 msgid "Discard"
 msgstr "Verwerfen"
 
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Discard comment"
+msgstr "Kommentar verwerfen"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Discard task?"
 msgstr "Aufgabe verwerfen?"
@@ -2603,6 +2638,10 @@ msgstr "Person suchen"
 msgid "Find a project"
 msgstr "Projekt suchen"
 
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+msgid "Find a task"
+msgstr "Aufgabe finden"
+
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
 msgstr "Kunden suchen oder hinzufügen …"
@@ -2792,6 +2831,10 @@ msgstr "Auslastungskarte"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
 msgstr "Hier sehen Sie alle Aufgaben auf einer Zeitachse. Verschieben, in der Länge ändern und die Arbeit im ganzen Team planen."
+
+#: src/features/planner/components/timeline/TimelineSearchStrip.tsx
+msgid "hidden by filters"
+msgstr "durch Filter ausgeblendet"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
@@ -3007,6 +3050,10 @@ msgstr "Kopfzeile des Widgets weiter gedrückt halten …"
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Keep mine"
 msgstr "Meine behalten"
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Keep writing"
+msgstr "Weiterschreiben"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
@@ -3273,6 +3320,10 @@ msgstr "Alle Regeln erfüllt (UND)"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Match any rule (OR)"
 msgstr "Eine Regel erfüllt (ODER)"
+
+#: src/features/planner/components/timeline/TimelineSearchStrip.tsx
+msgid "Matches over time"
+msgstr "Treffer im Zeitverlauf"
 
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
@@ -3590,10 +3641,15 @@ msgstr "Neues Widget"
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/timeline/TimelineControls.tsx
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 msgid "Next"
 msgstr "Weiter"
+
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+msgid "Next match"
+msgstr "Nächster Treffer"
 
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Next page"
@@ -3933,6 +3989,7 @@ msgstr "Keine Priorität"
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "No project"
 msgstr "Kein Projekt"
@@ -4134,6 +4191,7 @@ msgstr "Notizen"
 msgid "Nothing due today."
 msgstr "Heute ist nichts fällig."
 
+#: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/shared/ui/mobile-picker-screen.tsx
 msgid "Nothing found"
 msgstr "Nichts gefunden"
@@ -4328,6 +4386,10 @@ msgstr "Open Source (AGPL-3.0)"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Open source under AGPL-3.0"
 msgstr "Open Source unter AGPL-3.0"
+
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+msgid "Open task"
+msgstr "Öffnen"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Open team"
@@ -4560,6 +4622,10 @@ msgstr "Zurück"
 #: src/features/planner/components/timeline/TimelineControls.tsx
 msgid "Previous"
 msgstr "Zurück"
+
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+msgid "Previous match"
+msgstr "Vorheriger Treffer"
 
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Previous page"
@@ -5227,6 +5293,12 @@ msgstr "Labels suchen"
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 msgid "Search tags..."
 msgstr "Labels suchen …"
+
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+#: src/features/planner/components/timeline/TimelineSearch.tsx
+msgid "Search tasks"
+msgstr "Aufgaben suchen"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -6562,6 +6634,7 @@ msgid "Upcoming"
 msgstr "Anstehend"
 
 #: src/features/planner/components/TaskCommentItem.tsx
+#: src/features/workspace/hooks/useNewVersionNotice.ts
 msgid "Update"
 msgstr "Aktualisieren"
 
@@ -7016,6 +7089,10 @@ msgstr "Ihr Konto ist zur Löschung vorgemerkt"
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Your account will be scheduled for deletion in {0} days."
 msgstr "Ihr Konto wird in {0} Tagen zur Löschung vorgemerkt."
+
+#: src/features/planner/components/TaskDetailDialogs.tsx
+msgid "Your comment hasn't been sent yet. Close and discard it?"
+msgstr "Ihr Kommentar wurde noch nicht gesendet. Schließen und verwerfen?"
 
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Your data export failed."

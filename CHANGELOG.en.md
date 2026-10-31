@@ -7,6 +7,47 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.47] - 2026-10-31
+### Changed
+- For self-hosted servers: Keycloak can no longer take all of its container's memory, and the database keeps per-query statistics for finding slow spots. Both apply on their own with the update.
+
+## [0.10.46] - 2026-10-31
+### Changed
+- Comment badges on tasks and holidays now appear together with the tasks instead of a moment later.
+- A workspace opens faster after signing in.
+- A new subtask or comment shows up the moment you add it, and the field is ready for the next one without waiting for the save.
+- Undoing a move of a repeating task and removing a person from a whole series are much faster.
+- Pictures in tasks are no longer downloaded again every time you open the task.
+
+### Fixed
+- Scrolling the timeline toward its edge no longer shows empty days without tasks, and no longer closes the task you have open.
+
+## [0.10.45] - 2026-10-31
+### Added
+- If a tab was open when a new version came out, Motio shows “A new version of Motio is available” with an “Update” button instead of reloading on its own.
+
+### Changed
+- After updates Motio opens faster: the browser doesn't re-download what didn't change, and files arrive better compressed.
+
+### Fixed
+- An open tab no longer reloads by itself after an update when you open a task or a section.
+
+## [0.10.44] - 2026-10-31
+### Changed
+- Moving or resizing a task is instant: the bar no longer jumps back while the change is saved.
+- A repeating task moves as a whole series in one go — fast, and never left half-moved.
+- The timeline and the notification bell load faster, a task card opens without “Loading editor...”, and search keeps up with typing.
+- On a short connection drop the app retries by itself, and if the workspace didn't load, it loads again once the connection is back.
+
+### Fixed
+- Ticking several assignees or tags in a row in a task card now saves all of them, not just the last one.
+- Closing a task card with an unsent comment now asks first, so the text isn't lost by accident.
+- Tasks and milestones a teammate deletes now disappear from your timeline right away.
+
+## [0.10.43] - 2026-10-31
+### Added
+- The timeline now has task search: press ⌘K (or /) and start typing a title. Other tasks fade, matches stay in view, and a strip above shows matches on any date — use the arrows or click to jump to each one.
+
 ## [0.10.42] - 2026-10-31
 ### Added
 - Subtasks can be reordered: drag them by the “≡” handle next to the checkbox. Each subtask is now numbered automatically.
