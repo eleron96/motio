@@ -287,12 +287,21 @@ export const usePlannerStore = create<PlannerStore>()(
       // preference. PlannerPage resets viewMode to 'day' once the profile loads
       // if the user lands on 'week' without the preference enabled, so we no
       // longer coerce the persisted value here.
+      // The day/week timeline always opens on today (PlannerPage centres it),
+      // so only the calendar keeps its date. A remembered day-view date used
+      // to load the whole workspace once for that date and again for today.
       partialize: (state) => ({
         viewMode: state.viewMode,
         groupMode: state.groupMode,
         plannerSurface: state.plannerSurface,
-        currentDate: state.currentDate,
+        ...(state.viewMode === 'calendar' ? { currentDate: state.currentDate } : {}),
       }),
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<PlannerStore>;
+        const { currentDate, ...rest } = saved;
+        const keepDate = rest.viewMode === 'calendar' && typeof currentDate === 'string';
+        return { ...current, ...rest, ...(keepDate ? { currentDate } : {}) };
+      },
     },
   ),
 );

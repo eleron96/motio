@@ -81,40 +81,44 @@ const mapAssigneeTaskCounts = (rows: AssigneeUniqueTaskCountRow[] | null | undef
   return totals;
 };
 
-// The assignees table has no FK to profiles, so we can't embed avatar_url in the
-// assignees query. Fetch the profile bits separately by user_id and merge them in.
-// Best-effort: on error the people just keep their initials monogram and the
-// default time-off motif.
-const attachAssigneeProfiles = async (assignees: Assignee[]): Promise<void> => {
-  const ids = Array.from(
-    new Set(assignees.map((a) => a.userId).filter((id): id is string => Boolean(id))),
-  );
-  if (ids.length === 0) return;
+type AssigneeProfileBits = { avatar: string | null; timeOffMotif: TimeOffMotifId };
+type AssigneeProfileRow = { id?: unknown; avatar_url?: unknown; preferences?: unknown };
+
+// Narrow the value HERE and never keep a teammate's raw preferences object:
+// the row also carries their digest and push settings, which this client has
+// no business holding on to.
+const readAssigneeProfileBits = (row: AssigneeProfileRow): AssigneeProfileBits => ({
+  avatar: typeof row.avatar_url === 'string' && row.avatar_url ? row.avatar_url : null,
+  timeOffMotif: getTimeOffMotifId(row.preferences as Record<string, unknown> | null | undefined),
+});
+
+const withAssigneeProfile = (assignee: Assignee, bits: AssigneeProfileBits | undefined): Assignee => {
+  if (!bits) return assignee;
+  return {
+    ...assignee,
+    ...(bits.avatar ? { avatar: bits.avatar } : {}),
+    timeOffMotif: bits.timeOffMotif,
+  };
+};
+
+// The assignees table has no FK to profiles. Current members' avatar and
+// time-off motif come embedded in the workspace_members query of the same
+// batch; only people who left the workspace but still have tasks are looked
+// up afterwards. Best-effort: on error they keep their initials monogram and
+// the default motif.
+const fetchAssigneeProfiles = async (userIds: string[]): Promise<Map<string, AssigneeProfileBits>> => {
+  const bitsByUserId = new Map<string, AssigneeProfileBits>();
+  if (userIds.length === 0) return bitsByUserId;
   const { data, error } = await supabase
     .from('profiles')
     .select('id, avatar_url, preferences')
-    .in('id', ids);
-  if (error || !data) return;
-  const avatarById = new Map<string, string>();
-  const motifById = new Map<string, TimeOffMotifId>();
-  for (const row of data) {
+    .in('id', userIds);
+  if (error || !data) return bitsByUserId;
+  for (const row of data as AssigneeProfileRow[]) {
     if (typeof row.id !== 'string') continue;
-    if (row.avatar_url) {
-      avatarById.set(row.id, row.avatar_url as string);
-    }
-    // Narrow the value HERE and never keep a teammate's raw preferences object:
-    // the row also carries their digest and push settings, which this client has
-    // no business holding on to.
-    const preferences = row.preferences as Record<string, unknown> | null | undefined;
-    motifById.set(row.id, getTimeOffMotifId(preferences));
+    bitsByUserId.set(row.id, readAssigneeProfileBits(row));
   }
-  for (const assignee of assignees) {
-    if (!assignee.userId) continue;
-    const url = avatarById.get(assignee.userId);
-    if (url) assignee.avatar = url;
-    const motif = motifById.get(assignee.userId);
-    if (motif) assignee.timeOffMotif = motif;
-  }
+  return bitsByUserId;
 };
 
 // Guards board loads against stale responses: a newer load or a release bumps
@@ -174,9 +178,11 @@ export const createWorkspaceActions = (
       : Promise.resolve({ data: null, error: null });
 
     // Не блокируем first paint: tracked-projects не критичны для первичной отрисовки.
+    // The signed-in user comes from the auth store: supabase.auth.getUser()
+    // would hold the shared auth lock for a network round-trip, and every
+    // query of this batch waits on that lock for its token.
     const trackedPromise: Promise<SupabaseResult<unknown[] | null>> = (async () => {
-      const { data: authData } = await supabase.auth.getUser();
-      const userId = authData?.user?.id ?? null;
+      const userId = useAuthStore.getState().user?.id ?? null;
       if (!userId) return { data: [], error: null };
       return supabase
         .from('project_tracking')
@@ -258,7 +264,7 @@ export const createWorkspaceActions = (
       .eq('workspace_id', workspaceId);
     const memberAssignmentsQuery = supabase
       .from('workspace_members')
-      .select('user_id, group_id')
+      .select('user_id, group_id, profiles(id, avatar_url, preferences)')
       .eq('workspace_id', workspaceId);
     const statusesQuery = supabase
       .from('statuses')
@@ -374,16 +380,25 @@ export const createWorkspaceActions = (
     // Anti-stale guard: если пользователь переключил workspace, этот ответ игнорируем.
     if (get().dataRequestId !== requestId) return;
 
+    const memberProfileBits = new Map<string, AssigneeProfileBits>();
+    for (const row of (memberAssignmentsRes.data ?? []) as unknown as Array<{ user_id: string; profiles?: AssigneeProfileRow | null }>) {
+      if (row.profiles) memberProfileBits.set(row.user_id, readAssigneeProfileBits(row.profiles));
+    }
     const assignees = assigneeRows
       .filter((row) => {
         if (adminUserId && row.user_id === adminUserId) return false;
         return row.user_id !== null || taskAssigneeIds.has(row.id);
       })
       .sort((left, right) => left.name.localeCompare(right.name))
-      .map(mapAssigneeRow);
-
-    await attachAssigneeProfiles(assignees);
-    if (get().dataRequestId !== requestId) return;
+      .map(mapAssigneeRow)
+      .map((assignee) => (
+        assignee.userId ? withAssigneeProfile(assignee, memberProfileBits.get(assignee.userId)) : assignee
+      ));
+    const formerMemberUserIds = Array.from(new Set(
+      assignees
+        .map((assignee) => assignee.userId)
+        .filter((userId): userId is string => Boolean(userId) && !memberProfileBits.has(userId as string)),
+    ));
 
     const memberGroups = (memberGroupsRes.data ?? [])
       .map((row) => ({
@@ -454,6 +469,17 @@ export const createWorkspaceActions = (
         loading: false,
       };
     });
+
+    if (formerMemberUserIds.length > 0) {
+      void fetchAssigneeProfiles(formerMemberUserIds).then((bitsByUserId) => {
+        if (get().dataRequestId !== requestId || bitsByUserId.size === 0) return;
+        set((state) => ({
+          assignees: state.assignees.map((assignee) => (
+            assignee.userId ? withAssigneeProfile(assignee, bitsByUserId.get(assignee.userId)) : assignee
+          )),
+        }));
+      });
+    }
 
     fetchTaskCommentCounts(workspaceId, taskRows.map((row) => row.id))
       .then((commentCountsRes) => {
@@ -573,7 +599,7 @@ export const createWorkspaceActions = (
       get().tasks.flatMap((task) => task.assigneeIds),
     );
 
-    const assignees = ((data ?? []) as AssigneeRow[])
+    const mappedAssignees = ((data ?? []) as AssigneeRow[])
       .filter((row) => {
         if (adminUserId && row.user_id === adminUserId) return false;
         return row.user_id !== null || taskAssigneeIds.has(row.id);
@@ -581,7 +607,12 @@ export const createWorkspaceActions = (
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);
 
-    await attachAssigneeProfiles(assignees);
+    const bitsByUserId = await fetchAssigneeProfiles(Array.from(new Set(
+      mappedAssignees.map((assignee) => assignee.userId).filter((userId): userId is string => Boolean(userId)),
+    )));
+    const assignees = mappedAssignees.map((assignee) => (
+      assignee.userId ? withAssigneeProfile(assignee, bitsByUserId.get(assignee.userId)) : assignee
+    ));
 
     const activeAssigneeIds = new Set(assignees.filter((assignee) => assignee.isActive).map((assignee) => assignee.id));
 
