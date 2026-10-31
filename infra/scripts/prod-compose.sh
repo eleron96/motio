@@ -364,6 +364,23 @@ until docker compose -f "$compose_file" --env-file "$env_file" exec -T \
   sleep 2
 done
 
+# GoTrue keeps its pooled database connections across a database restart and
+# fails the first request on each of them (57P01 "terminating connection"):
+# sign-ins and session refreshes right after a deploy that recreated the
+# database (a changed db command) answered 500. Restart auth when it is older
+# than the running database; the gateway reload further down picks up its
+# address. Self-hosted updates stop the whole stack first, so they never hit it.
+db_container="$(docker compose -f "$compose_file" --env-file "$env_file" ps -q db)"
+auth_container="$(docker compose -f "$compose_file" --env-file "$env_file" ps -q auth)"
+if [[ -n "$db_container" && -n "$auth_container" ]]; then
+  db_started_at="$(date -d "$(docker inspect -f '{{.State.StartedAt}}' "$db_container")" +%s)"
+  auth_started_at="$(date -d "$(docker inspect -f '{{.State.StartedAt}}' "$auth_container")" +%s)"
+  if (( auth_started_at < db_started_at )); then
+    echo "The database restarted after auth: restarting auth to drop its stale connections."
+    docker compose -f "$compose_file" --env-file "$env_file" restart auth
+  fi
+fi
+
 docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache between releases.
