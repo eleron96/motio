@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Task } from '@/features/planner/types/planner';
-import type { TaskSearchDateRange } from '@/shared/domain/taskSearch';
+import { findTitleMatch, type TaskSearchDateRange } from '@/shared/domain/taskSearch';
 
 /**
  * State of the timeline "lens" search, shared by the field in the toolbar, the
@@ -74,5 +74,11 @@ export const useTaskSearchStore = create<TaskSearchState>((set) => ({
   )),
 }));
 
-/** The query the bars should react to: empty while search is closed. */
-export const selectActiveSearchQuery = (state: TaskSearchState) => (state.open ? state.query : '');
+/**
+ * The active query for one bar, or '' when its title doesn't contain it. A bar
+ * that doesn't match keeps getting '' while the person types, so it doesn't
+ * re-render on every keystroke — only the matching bars do.
+ */
+export const selectSearchQueryForTitle = (title: string) => (state: TaskSearchState) => (
+  state.open && state.query && findTitleMatch(title, state.query) ? state.query : ''
+);

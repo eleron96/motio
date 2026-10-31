@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { selectActiveSearchQuery, useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
+import { selectSearchQueryForTitle, useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
 import { splitTitleAtMatch } from '@/shared/domain/taskSearch';
 import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
 import { RepeatTaskScopeDialog } from '@/features/planner/components/RepeatTaskScopeDialog';
@@ -72,7 +72,8 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   // highlighted state flips, not on every selection change across the board.
   const isSelected = usePlannerStore((state) => state.selectedTaskId === task.id);
   const isHighlighted = usePlannerStore((state) => state.highlightedTaskId === task.id);
-  const searchQuery = useTaskSearchStore(selectActiveSearchQuery);
+  const searchQuerySelector = useMemo(() => selectSearchQueryForTitle(task.title), [task.title]);
+  const searchQuery = useTaskSearchStore(searchQuerySelector);
   const isSearchFocused = useTaskSearchStore((state) => state.open && state.focusedId === task.id);
   const titleParts = searchQuery ? splitTitleAtMatch(task.title, searchQuery) : null;
   const commentCount = usePlannerStore((state) => state.taskCommentCounts?.[task.id] ?? 0);

@@ -189,6 +189,24 @@ const PlannerPage = () => {
     const timer = window.setTimeout(prefetch, 1500);
     return () => window.clearTimeout(timer);
   }, [boardAvailable]);
+
+  // Opening a task is the most common action: once the timeline is drawn, the
+  // card's editor and comments are fetched while the browser is idle, so the
+  // first open shows them at once instead of «Loading editor...».
+  const timelineReady = Boolean(loadedRange) && !plannerLoading;
+  useEffect(() => {
+    if (!timelineReady || typeof window === 'undefined') return undefined;
+    const prefetch = () => {
+      void import('@/features/planner/components/RichTextEditor').catch(() => undefined);
+      void import('@/features/planner/components/TaskCommentSection').catch(() => undefined);
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(prefetch, { timeout: 4000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const timer = window.setTimeout(prefetch, 1500);
+    return () => window.clearTimeout(timer);
+  }, [timelineReady]);
   const groupMode = usePlannerStore((state) => state.groupMode);
   const currentDate = usePlannerStore((state) => state.currentDate);
   const setCurrentDate = usePlannerStore((state) => state.setCurrentDate);
