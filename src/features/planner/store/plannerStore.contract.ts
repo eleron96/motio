@@ -34,6 +34,7 @@ import { RepeatCreateOptions } from '@/features/planner/lib/taskFormRules';
 import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 import { TaskUndoEntry, TaskUndoOutcome } from '@/shared/domain/taskUndo';
 import type { TaskSubtaskImage } from '@/shared/domain/taskSubtaskImages';
+import type { SubtaskPositionUpdate } from '@/shared/domain/taskSubtaskOrder';
 
 export type PlannerGroup = {
   id: string;
@@ -136,7 +137,13 @@ export interface PlannerStore extends PlannerState {
     position: number,
     images?: TaskSubtaskImage[],
   ) => Promise<{ subtask?: TaskSubtask; error?: string }>;
-  createTaskSubtasks: (workspaceId: string, taskId: string, titles: string[]) => Promise<MutationResult>;
+  /** `images[i]` are the pictures of `titles[i]` (new-task form drafts). */
+  createTaskSubtasks: (
+    workspaceId: string,
+    taskId: string,
+    titles: string[],
+    images?: TaskSubtaskImage[][],
+  ) => Promise<MutationResult>;
   updateTaskSubtaskTitle: (
     workspaceId: string,
     taskId: string,
@@ -155,6 +162,12 @@ export interface PlannerStore extends PlannerState {
     taskId: string,
     subtaskId: string,
     images: TaskSubtaskImage[],
+  ) => Promise<MutationResult>;
+  /** Writes new `position`s after a subtask was dragged to another place. */
+  updateTaskSubtaskPositions: (
+    workspaceId: string,
+    taskId: string,
+    updates: SubtaskPositionUpdate[],
   ) => Promise<MutationResult>;
   deleteTaskSubtask: (workspaceId: string, taskId: string, subtaskId: string) => Promise<MutationResult>;
   /**

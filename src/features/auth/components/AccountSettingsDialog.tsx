@@ -59,7 +59,7 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
 } from '@/shared/lib/push/pushClient';
-import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
+import { useIsDemo, useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { demoStore } from '@/features/demo/lib/demoDataStore';
 import { isWeekViewEnabled, WEEK_VIEW_PREFERENCE_KEY } from '@/features/planner/lib/weekViewPreference';
 import { BOARD_VIEW_PREFERENCE_KEY, isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
@@ -129,6 +129,7 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
   // Phones ask before signing out — one stray tap otherwise ends the session.
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const isDemo = useIsDemo();
+  const basePath = useAppBasePath();
   const isMobile = useIsMobile();
   // The data tab (account deletion + export) is meaningless for an anon
   // demo session — the cleanup cron handles "deletion" automatically.
@@ -414,8 +415,9 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
     // тур решает, показываться ли, один раз при своём монтировании. Поэтому
     // уходим на таймлайн полной перезагрузкой — иначе кнопка выглядела бы
     // нажатой, а тур бы не появился.
+    // In the sandbox that is the sandbox's timeline, not the real app.
     if (typeof window !== 'undefined') {
-      window.location.assign('/app');
+      window.location.assign(basePath);
     }
   };
 

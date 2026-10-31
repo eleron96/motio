@@ -1,5 +1,4 @@
 import { Trans, t } from '@lingui/macro';
-import { Link } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -56,9 +55,12 @@ export const DemoConversionModal = () => {
             <Trans>Keep exploring</Trans>
           </Button>
           <Button asChild>
-            <Link to="/auth?from=demo">
+            {/* A real page load, straight to the registration form: a client-side
+                route change would carry the demo user and the sandbox state into
+                the real app (the sign-in page saw a "user" and sent it to /app). */}
+            <a href="/auth?intent=register&from=demo">
               <Trans>Create account</Trans>
-            </Link>
+            </a>
           </Button>
         </DialogFooter>
       </DialogContent>

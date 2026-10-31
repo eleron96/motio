@@ -26,8 +26,18 @@ const getSupabaseProd = (): SupabaseClient => {
   return supabaseProdCache;
 };
 
+// A page that started in the sandbox stays on the mock for its whole life,
+// even after a client-side route change takes it out of /demo: such a change
+// carries the fake demo user, and sending that to production only fails (the
+// DB rejects "demo-user-…" ids, the calls run as anon). DemoExitGuard then
+// reloads the page so the real app boots cleanly.
+const bootedInDemo = isDemoRoute();
+
+/** True while this page talks to the demo mock — for code that reaches the network around the client. */
+export const isDemoClientActive = (): boolean => bootedInDemo || isDemoRoute();
+
 export const getSupabase = (): SupabaseClient => {
-  if (isDemoRoute()) {
+  if (isDemoClientActive()) {
     return demoSupabaseClient as unknown as SupabaseClient;
   }
   return getSupabaseProd();

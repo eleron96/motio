@@ -130,6 +130,7 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
     updateTaskSubtaskImages,
+    updateTaskSubtaskPositions,
     releaseTaskMedia,
     fetchTaskDescription,
   } = usePlannerStore(useShallow((state) => ({
@@ -158,6 +159,7 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskCompletion: state.updateTaskSubtaskCompletion,
     deleteTaskSubtask: state.deleteTaskSubtask,
     updateTaskSubtaskImages: state.updateTaskSubtaskImages,
+    updateTaskSubtaskPositions: state.updateTaskSubtaskPositions,
     releaseTaskMedia: state.releaseTaskMedia,
     fetchTaskDescription: state.fetchTaskDescription,
   })));
@@ -261,6 +263,7 @@ export const TaskDetailPanel: React.FC = () => {
     handleEditSubtask,
     handleToggleSubtask,
     handleDeleteSubtask,
+    handleReorderSubtask,
     subtaskImages,
   } = useTaskSubtasks({
     taskId,
@@ -272,6 +275,7 @@ export const TaskDetailPanel: React.FC = () => {
     updateTaskSubtaskCompletion,
     deleteTaskSubtask,
     updateTaskSubtaskImages,
+    updateTaskSubtaskPositions,
     releaseTaskMedia,
   });
 
@@ -893,6 +897,7 @@ export const TaskDetailPanel: React.FC = () => {
             onEdit={handleEditSubtask}
             onToggle={(id, isDone) => void handleToggleSubtask(id, isDone)}
             onDelete={(id) => void handleDeleteSubtask(id)}
+            onReorder={(id, toIndex) => void handleReorderSubtask(id, toIndex)}
             onEditingDirtyChange={setSubtaskEditingDirty}
             onEditingActiveChange={setSubtaskEditingActive}
             teammateDrafts={teammateDrafts}

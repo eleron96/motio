@@ -305,6 +305,7 @@ msgstr "A person's colour is used on dashboard charts, on their day-off circles 
 msgid "A strip above the workspace that can be dismissed."
 msgstr "A strip above the workspace that can be dismissed."
 
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 msgid "A subtask can have up to {MAX_SUBTASK_IMAGES} images."
 msgstr "A subtask can have up to {MAX_SUBTASK_IMAGES} images."
@@ -476,6 +477,8 @@ msgstr "Add customer contact"
 msgid "Add group"
 msgstr "Add group"
 
+#: src/features/planner/components/AddTaskDialog.tsx
+#: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/SubtasksSection.tsx
@@ -2021,6 +2024,10 @@ msgstr "Drag & drop or click to select a photo"
 msgid "Drag and drop image files into the description area."
 msgstr "Drag and drop image files into the description area."
 
+#: src/features/planner/components/SubtasksSection.tsx
+msgid "Drag to reorder"
+msgstr "Drag to reorder"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw every project in its own colour instead of the palette."
 msgstr "Draw every project in its own colour instead of the palette."
@@ -2466,6 +2473,10 @@ msgstr "Failed to load tasks."
 msgid "Failed to publish note."
 msgstr "Failed to publish note."
 
+#: src/features/planner/hooks/useTaskSubtasks.ts
+msgid "Failed to reorder subtasks."
+msgstr "Failed to reorder subtasks."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/timeline/TimeOffBar.tsx
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
@@ -2487,6 +2498,8 @@ msgstr "Failed to update subtask."
 
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 msgid "Failed to upload image"
@@ -2671,6 +2684,10 @@ msgstr "Generate a new export"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Get notified in this browser about your tasks, even when Motio isn't open."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Give the subtask with pictures a title, or remove it."
+msgstr "Give the subtask with pictures a title, or remove it."
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Give the token a name of 1 to 80 characters."
@@ -3259,6 +3276,7 @@ msgstr "Match any rule (OR)"
 
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/hooks/useDraftSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
 msgid "Maximum image size is 5 MB."
 msgstr "Maximum image size is 5 MB."
@@ -4860,6 +4878,10 @@ msgstr "Rename deleted member"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Rename failed"
 msgstr "Rename failed"
+
+#: src/features/planner/components/SubtasksSection.tsx
+msgid "Reorder subtask"
+msgstr "Reorder subtask"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/MobileRepeatScreen.tsx
@@ -6570,6 +6592,10 @@ msgstr "Upload or remove your profile photo."
 #: src/features/planner/components/SubtaskImages.tsx
 msgid "Uploading image..."
 msgstr "Uploading image..."
+
+#: src/features/planner/components/AddTaskDialog.tsx
+msgid "Uploading images…"
+msgstr "Uploading images…"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Use current workspace"

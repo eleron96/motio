@@ -1,5 +1,4 @@
-import { supabase } from '@/shared/lib/supabaseClient';
-import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
+import { isDemoClientActive, supabase } from '@/shared/lib/supabaseClient';
 import { mapTaskRow } from '@/shared/domain/taskRowMapper';
 import { extractTaskMediaIds } from '@/shared/domain/taskMediaIds';
 import {
@@ -91,7 +90,9 @@ export const createUndoActions = (
    */
   const flushPendingDeletes = () => {
     if (pendingDeletes.size === 0) return;
-    if (isDemoRoute()) return;
+    // Not "on /demo right now": a page that started in the sandbox and is being
+    // reloaded out of it still holds demo deletes and the mock's token.
+    if (isDemoClientActive()) return;
     const url = import.meta.env.VITE_SUPABASE_URL;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!url || !anonKey || !cachedAccessToken) return;

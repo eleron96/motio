@@ -9,10 +9,18 @@ import {
 describe('onboardingFlow', () => {
   it('keeps the expected page order and routes', () => {
     expect(ONBOARDING_PAGE_ORDER).toEqual(['planner', 'dashboard', 'projects', 'members']);
-    expect(getOnboardingPagePath('planner')).toBe('/app');
-    expect(getOnboardingPagePath('dashboard')).toBe('/app/dashboard');
-    expect(getOnboardingPagePath('projects')).toBe('/app/projects');
-    expect(getOnboardingPagePath('members')).toBe('/app/members');
+    expect(getOnboardingPagePath('planner', '/app')).toBe('/app');
+    expect(getOnboardingPagePath('dashboard', '/app')).toBe('/app/dashboard');
+    expect(getOnboardingPagePath('projects', '/app')).toBe('/app/projects');
+    expect(getOnboardingPagePath('members', '/app')).toBe('/app/members');
+  });
+
+  it('keeps a tour started in the sandbox inside the sandbox', () => {
+    // A hard '/app/…' walked demo visitors into the real app as the fake demo user.
+    expect(getOnboardingPagePath('planner', '/demo')).toBe('/demo');
+    expect(getOnboardingPagePath('dashboard', '/demo')).toBe('/demo/dashboard');
+    expect(getOnboardingPagePath('projects', '/demo')).toBe('/demo/projects');
+    expect(getOnboardingPagePath('members', '/demo')).toBe('/demo/members');
   });
 
   it('resolves the next onboarding page in sequence', () => {

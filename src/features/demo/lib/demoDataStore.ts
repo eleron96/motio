@@ -23,10 +23,10 @@ import {
   DEMO_SEED_DASHBOARDS,
   buildDemoDashboardLayouts,
 } from './demoSeed';
+import { DEMO_USER_ID_PREFIX } from '@/features/demo/lib/demoIdentity';
 
 const STORAGE_KEY = 'motio.demo.state.v1';
 const TTL_MS = 24 * 60 * 60 * 1000;
-const DEMO_USER_ID_PREFIX = 'demo-user-';
 const DEMO_WORKSPACE_NAME = 'Demo Sandbox';
 
 type Row = Record<string, unknown>;

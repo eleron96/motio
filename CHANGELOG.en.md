@@ -7,6 +7,26 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.42] - 2026-10-31
+### Added
+- Subtasks can be reordered: drag them by the “≡” handle next to the checkbox. Each subtask is now numbered automatically.
+
+## [0.10.41] - 2026-10-30
+### Fixed
+- The sandbox no longer drops you into an empty app: the tour in the demo stays in the demo, and “Create account” opens registration straight away.
+
+
+### Added
+- In the new-task form you can add a picture to a subtask right away — with the button or by pasting a screenshot — before you press “Create task”.
+
+## [0.10.40] - 2026-10-30
+### Fixed
+- Motio updates no longer cut the site off for a second: while one rolls out, a page simply takes a moment longer to open.
+
+## [0.10.39] - 2026-10-30
+### Fixed
+- A subtask you tick no longer briefly unticks itself.
+
 ## [0.10.38] - 2026-10-30
 ### Fixed
 - Working on one task together is more reliable: if a teammate changed the description while you were writing, your text no longer overwrites theirs — Motio asks which version to keep. A deleted comment disappears for teammates right away, long discussions show the latest comments again, and an open task catches up on changes after a lost connection.

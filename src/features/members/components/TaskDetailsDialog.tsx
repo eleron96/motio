@@ -108,9 +108,16 @@ export const TaskDetailsDialog: React.FC<TaskDetailsDialogProps> = ({
       )}
       {selectedTaskSubtasks && selectedTaskSubtasks.length > 0 && (
         <ul className="mt-1 space-y-1">
-          {selectedTaskSubtasks.map((subtask) => (
+          {selectedTaskSubtasks.map((subtask, index) => (
             <li key={subtask.id} className="flex items-start gap-2.5">
               <Checkbox checked={subtask.isDone} disabled aria-label={subtask.title} />
+              <span
+                className="-mr-1 shrink-0 text-right text-sm leading-snug tabular-nums text-muted-foreground"
+                style={{ minWidth: `${String(selectedTaskSubtasks.length).length + 0.5}ch` }}
+                aria-hidden="true"
+              >
+                {index + 1}.
+              </span>
               <span
                 className={cn(
                   'whitespace-pre-wrap break-words text-sm leading-snug [overflow-wrap:anywhere]',

@@ -49,15 +49,32 @@ describe('screens the sandbox renders', () => {
   // Navigation inside these features must use useAppBasePath(): /demo/... in the
   // sandbox, /app/... in the app. (Redirects of super admins to /app/admin are
   // fine — the demo user is never one.)
-  const roots = ['planner', 'dashboard', 'projects', 'members'].map((feature) =>
+  // The onboarding tour, the bell (auth/hooks) and account settings
+  // (auth/components) run inside the sandbox too; a hard /app in any of them is
+  // what walked demo visitors out of the sandbox.
+  const roots = ['planner', 'dashboard', 'projects', 'members', 'onboarding'].map((feature) =>
     resolve(process.cwd(), 'src/features', feature),
+  ).concat(
+    resolve(process.cwd(), 'src/features/auth/hooks'),
+    resolve(process.cwd(), 'src/features/auth/components'),
   );
+  // Screens the sandbox never shows: a demo visitor has no account to restore.
+  const notInSandbox = new Set(['src/features/auth/components/AccountRestoreScreen.tsx']);
+  const hardAppNavigation = [
+    String.raw`navigate\(\s*`,
+    String.raw`<Navigate\s+to=\{?\s*`,
+    String.raw`<(?:Link|NavLink)\s+[^>]*?to=\{?\s*`,
+    String.raw`location\.(?:assign|replace)\(\s*`,
+    String.raw`location\.href\s*=\s*`,
+  ].join('|');
+  const hardAppPath = new RegExp(`(?:${hardAppNavigation})${String.raw`['"\x60]\/app(?!\/admin)`}`);
 
   it('do not navigate to a hard-coded /app path', () => {
     const offenders = roots
       .flatMap(listSources)
-      .filter((file) => /navigate\(\s*['"`]\/app(?!\/admin)/.test(readFileSync(file, 'utf8')))
-      .map((file) => file.slice(process.cwd().length + 1));
+      .map((file) => file.slice(process.cwd().length + 1))
+      .filter((file) => !notInSandbox.has(file))
+      .filter((file) => hardAppPath.test(readFileSync(resolve(process.cwd(), file), 'utf8')));
     expect(offenders).toEqual([]);
   });
 });

@@ -69,6 +69,7 @@ type TaskActions = Pick<
   | 'updateTaskSubtaskCompletion'
   | 'updateTaskSubtaskTitle'
   | 'updateTaskSubtaskImages'
+  | 'updateTaskSubtaskPositions'
   | 'deleteTaskSubtask'
   | 'releaseTaskMedia'
   | 'fetchTaskDescription'
@@ -1264,7 +1265,7 @@ export const createTaskActions = (
     return { subtask: mapTaskSubtaskRow(data as TaskSubtaskRow) };
   },
 
-  createTaskSubtasks: async (workspaceId, taskId, titles) => {
+  createTaskSubtasks: async (workspaceId, taskId, titles, images) => {
     if (titles.length === 0) return {};
 
     const { error } = await supabase
@@ -1276,6 +1277,7 @@ export const createTaskActions = (
         is_done: false,
         done_at: null,
         position: index,
+        ...(images?.[index]?.length ? { images: images[index] } : {}),
       })));
 
     if (error) {
@@ -1328,6 +1330,26 @@ export const createTaskActions = (
 
     if (error) {
       return { error: error.message };
+    }
+
+    return {};
+  },
+
+  updateTaskSubtaskPositions: async (workspaceId, taskId, updates) => {
+    if (updates.length === 0) return {};
+    // One row per write: a subtask list is short, and an upsert would need
+    // every not-null column of the row.
+    const results = await Promise.all(updates.map(({ id, position }) => (
+      supabase
+        .from('task_subtasks')
+        .update({ position })
+        .eq('workspace_id', workspaceId)
+        .eq('task_id', taskId)
+        .eq('id', id)
+    )));
+    const failed = results.find((result) => result.error);
+    if (failed?.error) {
+      return { error: failed.error.message };
     }
 
     return {};

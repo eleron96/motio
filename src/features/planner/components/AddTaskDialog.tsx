@@ -29,7 +29,7 @@ import { Checkbox } from '@/shared/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
-import { ChevronDown, Plus, X } from 'lucide-react';
+import { ChevronDown, ImagePlus, Plus, X } from 'lucide-react';
 import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';
 import { TaskPriority } from '@/features/planner/types/planner';
 import { TimeOffFields } from '@/features/planner/components/TimeOffFields';
@@ -45,6 +45,11 @@ import { orderAssigneesForPopover } from '@/features/planner/lib/assigneePopover
 import { t } from '@lingui/macro';
 import { Status } from '@/features/planner/types/planner';
 import { toast } from 'sonner';
+import { useDraftSubtaskImages } from '@/features/planner/hooks/useDraftSubtaskImages';
+import { SubtaskImageStrip } from '@/features/planner/components/SubtaskImages';
+import { pastedImageFiles } from '@/features/planner/lib/pastedImageFiles';
+import { ImageLightbox } from '@/shared/ui/image-lightbox';
+import type { LightboxImage } from '@/shared/lib/lightboxImage';
 import {
   buildCreateRepeatsOptions,
   getAutoRepeatUntilOnEndsChange,
@@ -146,6 +151,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     addTask,
     createRepeats,
     createTaskSubtasks,
+    releaseTaskMedia,
     timeOff,
     addTimeOff,
   } = usePlannerStore(useShallow((state) => ({
@@ -159,6 +165,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     addTask: state.addTask,
     createRepeats: state.createRepeats,
     createTaskSubtasks: state.createTaskSubtasks,
+    releaseTaskMedia: state.releaseTaskMedia,
     timeOff: state.timeOff ?? NO_TIME_OFF,
     addTimeOff: state.addTimeOff,
   })));
@@ -223,6 +230,20 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
   const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
   const focusSubtaskIdRef = useRef<string | null>(null);
+  // Pictures of the draft subtasks: uploaded right away, written with the
+  // subtasks once the task exists.
+  const draftSubtaskImages = useDraftSubtaskImages({
+    workspaceId: currentWorkspaceId,
+    enabled: Boolean(currentWorkspaceId),
+    releaseTaskMedia,
+  });
+  const [subtaskImagesError, setSubtaskImagesError] = useState('');
+  const [waitingForImages, setWaitingForImages] = useState(false);
+  const openRef = useRef(open);
+  openRef.current = open;
+  const subtaskImageInputRef = useRef<HTMLInputElement | null>(null);
+  const subtaskImageTargetRef = useRef<string | null>(null);
+  const [subtaskLightboxImage, setSubtaskLightboxImage] = useState<LightboxImage | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const sortAssigneeIds = useCallback((ids: string[]) => {
@@ -319,6 +340,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   };
 
   const requestClose = () => {
+    // The task exists but its subtasks aren't written yet: closing now would
+    // leave it half made. While only waiting for pictures, nothing exists
+    // yet and closing simply cancels (a stuck upload can't lock the form).
+    if (repeatCreating && !waitingForImages) return;
     if (hasChanges) {
       setConfirmCloseOpen(true);
       return;
@@ -356,6 +381,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
 
   const handleDraftSubtaskTitleChange = (subtaskId: string, value: string) => {
     markChanged();
+    if (subtaskImagesError) setSubtaskImagesError('');
     setSubtasks((current) => (
       current.map((item) => (item.id === subtaskId ? { ...item, title: value } : item))
     ));
@@ -364,6 +390,21 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   const handleRemoveSubtask = (subtaskId: string) => {
     markChanged();
     setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
+    draftSubtaskImages.discardDraft(subtaskId);
+  };
+
+  const handlePickSubtaskImages = (subtaskId: string) => {
+    subtaskImageTargetRef.current = subtaskId;
+    subtaskImageInputRef.current?.click();
+  };
+
+  const handleSubtaskImagePaste = (subtaskId: string) => (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!draftSubtaskImages.canAttachTo(subtaskId)) return;
+    const files = pastedImageFiles(event.clipboardData);
+    if (files.length === 0) return;
+    event.preventDefault();
+    markChanged();
+    draftSubtaskImages.attach(subtaskId, files);
   };
 
   const handleAssigneePopoverOpenChange = useCallback((nextOpen: boolean) => {
@@ -452,7 +493,31 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       return;
     }
 
+    // A subtask needs a title; pictures on an untitled draft would be dropped
+    // without a word. Ask for the title instead.
+    setSubtaskImagesError('');
+    const untitledWithPictures = subtasks.find((subtask) => (
+      !subtask.title.trim()
+      && (draftSubtaskImages.imagesFor(subtask.id).length > 0 || draftSubtaskImages.uploadingFor(subtask.id) > 0)
+    ));
+    if (untitledWithPictures) {
+      setSubtaskImagesError(t`Give the subtask with pictures a title, or remove it.`);
+      focusSubtaskIdRef.current = untitledWithPictures.id;
+      setSubtasks((current) => [...current]);
+      return;
+    }
+
     setRepeatCreating(true);
+    // Pictures still uploading land first: the task is created only once
+    // its subtasks can be written whole.
+    setWaitingForImages(true);
+    await draftSubtaskImages.waitForUploads();
+    setWaitingForImages(false);
+    // Closed while waiting: the person cancelled before anything was created.
+    if (!openRef.current) {
+      setRepeatCreating(false);
+      return;
+    }
     const safeDates = clampTaskDates(startDate, endDate);
     const createdTask = await addTask({
       title: title.trim(),
@@ -474,20 +539,31 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       return;
     }
 
-    const subtaskTitles = subtasks
-      .map((subtask) => subtask.title.trim())
-      .filter(Boolean);
-    if (subtaskTitles.length > 0 && currentWorkspaceId) {
-      const subtaskResult = await createTaskSubtasks(
-        currentWorkspaceId,
-        createdTask.id,
-        subtaskTitles,
-      );
+    const imagesByDraft = draftSubtaskImages.snapshot();
+    const savedDrafts = subtasks
+      .map((subtask) => ({ title: subtask.title.trim(), images: imagesByDraft[subtask.id] ?? [] }))
+      .filter((draft) => draft.title);
+    // A draft with pictures but no title never becomes a subtask.
+    const savedDraftIds = new Set(subtasks.filter((subtask) => subtask.title.trim()).map((subtask) => subtask.id));
+    const orphanedImages = Object.entries(imagesByDraft)
+      .filter(([draftId]) => !savedDraftIds.has(draftId))
+      .flatMap(([, images]) => images.map((image) => image.id));
+    if (orphanedImages.length > 0) releaseTaskMedia(orphanedImages);
+    if (savedDrafts.length > 0 && currentWorkspaceId) {
+      const titles = savedDrafts.map((draft) => draft.title);
+      const hasImages = savedDrafts.some((draft) => draft.images.length > 0);
+      const subtaskResult = hasImages
+        ? await createTaskSubtasks(currentWorkspaceId, createdTask.id, titles, savedDrafts.map((draft) => draft.images))
+        : await createTaskSubtasks(currentWorkspaceId, createdTask.id, titles);
       if (subtaskResult.error) {
         console.error(subtaskResult.error);
         toast(t`Task was created, but subtasks were not saved.`);
+        const unsaved = savedDrafts.flatMap((draft) => draft.images.map((image) => image.id));
+        if (unsaved.length > 0) releaseTaskMedia(unsaved);
       }
     }
+    // Written (or released above): the form no longer owns these pictures.
+    draftSubtaskImages.forget();
 
     if (repeatFrequency !== 'none') {
       const result = await createRepeats(
@@ -543,6 +619,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     }
   }, [defaultStatusId, statusId]);
 
+  const { discardAll: discardDraftSubtaskImages } = draftSubtaskImages;
   useEffect(() => {
     if (!open) {
       setProjectInitialized(false);
@@ -551,6 +628,10 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       setAssigneePopoverOpen(false);
       setAssigneePopoverFrozenOrderIds(null);
       setSubtasks([]);
+      // Closed without creating: nothing will show these pictures.
+      discardDraftSubtaskImages();
+      setSubtaskLightboxImage(null);
+      setSubtaskImagesError('');
       setTimeOffError('');
       setTimeOffSaving(false);
       return;
@@ -599,6 +680,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
     setProjectInitialized(true);
   }, [
     canPickTimeOffAssignee,
+    discardDraftSubtaskImages,
     myAssigneeId,
     timeOffOnly,
     defaultStart,
@@ -745,34 +827,63 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                       className="mt-2.5 h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
                       aria-hidden="true"
                     />
-                    <AutoGrowTextarea
-                      ref={(element) => {
-                        if (element && focusSubtaskIdRef.current === subtask.id) {
-                          element.focus();
-                          focusSubtaskIdRef.current = null;
-                        }
-                      }}
-                      value={subtask.title}
-                      onChange={(event) => handleDraftSubtaskTitleChange(subtask.id, event.target.value)}
-                      onKeyDown={(event) => {
-                        // Enter breaks the line; a new subtask comes from the button below.
-                        if (event.key === 'Backspace' && subtask.title === '') {
-                          event.preventDefault();
-                          handleRemoveSubtask(subtask.id);
-                        }
-                      }}
-                      onBlur={() => {
-                        // Trailing blank lines are dropped on save anyway; shed
-                        // them here so the field stops showing phantom height.
-                        const trimmed = subtask.title.trim();
-                        if (trimmed !== subtask.title) {
-                          handleDraftSubtaskTitleChange(subtask.id, trimmed);
-                        }
-                      }}
-                      rows={1}
-                      placeholder={t`Subtask title`}
-                      className="min-h-[36px] min-w-0 flex-1 text-sm"
-                    />
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <AutoGrowTextarea
+                        ref={(element) => {
+                          if (element && focusSubtaskIdRef.current === subtask.id) {
+                            element.focus();
+                            focusSubtaskIdRef.current = null;
+                          }
+                        }}
+                        onPaste={handleSubtaskImagePaste(subtask.id)}
+                        value={subtask.title}
+                        onChange={(event) => handleDraftSubtaskTitleChange(subtask.id, event.target.value)}
+                        onKeyDown={(event) => {
+                          // Enter breaks the line; a new subtask comes from the button below.
+                          // A draft holding pictures is not removed by a stray Backspace.
+                          if (
+                            event.key === 'Backspace'
+                            && subtask.title === ''
+                            && draftSubtaskImages.imagesFor(subtask.id).length === 0
+                          ) {
+                            event.preventDefault();
+                            handleRemoveSubtask(subtask.id);
+                          }
+                        }}
+                        onBlur={() => {
+                          // Trailing blank lines are dropped on save anyway; shed
+                          // them here so the field stops showing phantom height.
+                          const trimmed = subtask.title.trim();
+                          if (trimmed !== subtask.title) {
+                            handleDraftSubtaskTitleChange(subtask.id, trimmed);
+                          }
+                        }}
+                        rows={1}
+                        placeholder={t`Subtask title`}
+                        className="min-h-[36px] min-w-0 w-full text-sm"
+                      />
+                      <SubtaskImageStrip
+                        images={draftSubtaskImages.imagesFor(subtask.id)}
+                        uploadingCount={draftSubtaskImages.uploadingFor(subtask.id)}
+                        resolveSrc={draftSubtaskImages.resolveSrc}
+                        canRemove
+                        onOpen={setSubtaskLightboxImage}
+                        onRemove={(mediaId) => draftSubtaskImages.remove(subtask.id, mediaId)}
+                      />
+                    </div>
+                    {draftSubtaskImages.canAttachTo(subtask.id) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="mt-1.5 h-6 w-6 shrink-0 opacity-100 md:opacity-0 md:focus-visible:opacity-100 md:group-hover:opacity-100"
+                        onClick={() => handlePickSubtaskImages(subtask.id)}
+                        aria-label={t`Add image`}
+                        title={t`Add image`}
+                      >
+                        <ImagePlus className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       variant="ghost"
@@ -787,6 +898,9 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
                 ))}
               </div>
             )}
+            {subtaskImagesError && (
+              <p className="text-xs text-destructive" role="alert">{subtaskImagesError}</p>
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -796,6 +910,24 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
               <Plus className="h-3.5 w-3.5" />
               {t`Add subtask`}
             </Button>
+            <input
+              ref={subtaskImageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              data-testid="draft-subtask-image-input"
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                event.target.value = '';
+                const target = subtaskImageTargetRef.current;
+                if (files.length > 0 && target) {
+                  markChanged();
+                  draftSubtaskImages.attach(target, files);
+                }
+              }}
+            />
+            <ImageLightbox image={subtaskLightboxImage} onClose={() => setSubtaskLightboxImage(null)} />
           </div>
         </div>
 
@@ -1060,7 +1192,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
       disabled={!title.trim() || !statusId || !typeId || repeatCreating}
     >
       <Plus className="w-4 h-4 mr-2" />
-      {t`Create task`}
+      {waitingForImages ? t`Uploading images…` : t`Create task`}
     </Button>
   );
 

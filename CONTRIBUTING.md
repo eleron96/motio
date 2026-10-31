@@ -30,7 +30,7 @@ three questions:
 
 ## Development setup
 
-Requirements: **Node.js 22+**, **Docker Desktop**.
+Requirements: **Node.js 24** (the version CI and the Docker images use), **Docker Desktop**.
 
 ```bash
 npm install

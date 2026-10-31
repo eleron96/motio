@@ -51,6 +51,7 @@ const setup = (initial: TaskSubtask[] = [subtask()]) => {
     updateTaskSubtaskCompletion: vi.fn(async () => ({})),
     deleteTaskSubtask: vi.fn(async () => ({})),
     updateTaskSubtaskImages: vi.fn(async () => ({})),
+    updateTaskSubtaskPositions: vi.fn(async () => ({})),
     releaseTaskMedia: vi.fn(),
   };
   const hook = renderHook(

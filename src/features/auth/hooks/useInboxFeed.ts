@@ -25,6 +25,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { toast } from '@/shared/ui/sonner';
 import { roleLabel } from '@/features/auth/lib/inboxLabels';
+import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 
 const getTodayIso = () => new Date().toISOString().slice(0, 10);
 const VISIBLE_POLL_BASE_MS = 75_000;
@@ -91,6 +92,8 @@ interface UseInboxFeedOptions {
  */
 export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions = {}): InboxFeed {
   const navigate = useNavigate();
+  // The bell lives in the sandbox too: open the timeline of the section we are in.
+  const basePath = useAppBasePath();
   const currentUser = useAuthStore((state) => state.user);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const fetchWorkspaces = useAuthStore((state) => state.fetchWorkspaces);
@@ -651,9 +654,10 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
     }
 
     dismissRef.current?.();
-    navigate('/app');
+    navigate(basePath);
     setOpeningNotificationId(null);
   }, [
+    basePath,
     clearFilters,
     currentWorkspaceId,
     navigate,

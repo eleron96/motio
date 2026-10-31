@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { isDemoRoute, useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import {
@@ -61,20 +62,26 @@ const isWorkspaceReady = (pageId: OnboardingPageId): boolean => {
   return usePlannerStore.getState().loadedRange?.workspaceId === currentWorkspaceId;
 };
 
+// The sandbox keeps its own "continue the tour on…" mark: one left in the
+// tab by the demo must not hold back the tour of the account made right after.
+const pendingPageKey = () => (
+  isDemoRoute() ? `${ONBOARDING_PENDING_PAGE_STORAGE_KEY}:demo` : ONBOARDING_PENDING_PAGE_STORAGE_KEY
+);
+
 const readPendingPage = (): OnboardingPageId | null => {
   if (typeof window === 'undefined') return null;
-  const rawValue = window.sessionStorage.getItem(ONBOARDING_PENDING_PAGE_STORAGE_KEY);
+  const rawValue = window.sessionStorage.getItem(pendingPageKey());
   return isOnboardingPageId(rawValue) ? rawValue : null;
 };
 
 const writePendingPage = (pageId: OnboardingPageId) => {
   if (typeof window === 'undefined') return;
-  window.sessionStorage.setItem(ONBOARDING_PENDING_PAGE_STORAGE_KEY, pageId);
+  window.sessionStorage.setItem(pendingPageKey(), pageId);
 };
 
 const clearPendingPage = () => {
   if (typeof window === 'undefined') return;
-  window.sessionStorage.removeItem(ONBOARDING_PENDING_PAGE_STORAGE_KEY);
+  window.sessionStorage.removeItem(pendingPageKey());
 };
 
 export const useOnboardingTour = ({
@@ -84,6 +91,10 @@ export const useOnboardingTour = ({
 }: UseOnboardingTourOptions) => {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
+  // The next page of the tour lives in the same section: /demo stays /demo.
+  const basePath = useAppBasePath();
+  const basePathRef = useRef(basePath);
+  basePathRef.current = basePath;
   // Половина якорей тура живёт только в десктопной вёрстке: на телефоне
   // навигация, настройки и вкладки «Команды» — другие компоненты. driver.js в
   // таком случае не падает и не пропускает шаг, а вешает подсказку по центру
@@ -164,7 +175,7 @@ export const useOnboardingTour = ({
             onAdvance: (nextPage) => {
               writePendingPage(nextPage);
               startTransition(() => {
-                navigate(getOnboardingPagePath(nextPage));
+                navigate(getOnboardingPagePath(nextPage, basePathRef.current));
               });
             },
             // Про примеры больше не спрашиваем окном: над экраном и так висит
