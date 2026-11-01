@@ -57,10 +57,19 @@ const overlapsReserved = (
  * rendered outside this packer). A task is kept out of lane 0 only while it
  * overlaps one of them: on every other day lane 0 stays available, so a row with
  * a two-week vacation does not push its whole year of tasks down a lane.
+ *
+ * `previousLanes` (task id → lane in this row's last layout) keeps bars where
+ * they are. Packing from scratch is greedy from the earliest task, so a task
+ * that came or went on the left reshuffled every lane after it: scrolling the
+ * timeline far, each window load made the bars on screen hop between lanes.
+ * With it, a task keeps its lane while that lane is free over its days; only
+ * new tasks, and tasks whose lane became taken, are placed in the first free
+ * lane.
  */
 export const calculateTaskLanes = (
   tasks: Task[],
   reservedLaneZero: ReservedPeriod[] = [],
+  previousLanes?: ReadonlyMap<string, number>,
 ): TaskWithLane[] => {
   if (tasks.length === 0) return [];
 
@@ -70,6 +79,10 @@ export const calculateTaskLanes = (
     if (startCompare !== 0) return startCompare;
     return a.endDate.localeCompare(b.endDate);
   });
+
+  if (previousLanes && previousLanes.size > 0) {
+    return packKeepingLanes(sortedTasks, reservedLaneZero, previousLanes);
+  }
 
   const result: TaskWithLane[] = [];
   const lanes: { endDate: string }[] = [];
@@ -109,6 +122,68 @@ export const calculateTaskLanes = (
   }
 
   return result;
+};
+
+type LaneSpan = { startDate: string; endDate: string };
+
+/** Index of the first span in `spans` (sorted by start) starting after `startDate`. */
+const upperBound = (spans: LaneSpan[], startDate: string) => {
+  let low = 0;
+  let high = spans.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (spans[middle].startDate <= startDate) low = middle + 1;
+    else high = middle;
+  }
+  return low;
+};
+
+/**
+ * Packing that honours `previousLanes` (see calculateTaskLanes). Each lane keeps
+ * its spans sorted by start and never overlapping, so whether a task fits is
+ * decided by its two neighbours. Days are inclusive: a task ending on a day and
+ * another starting that day share it.
+ */
+const packKeepingLanes = (
+  sortedTasks: Task[],
+  reservedLaneZero: ReservedPeriod[],
+  previousLanes: ReadonlyMap<string, number>,
+): TaskWithLane[] => {
+  const lanes: LaneSpan[][] = [];
+  const assigned = new Map<Task, number>();
+
+  const fits = (lane: number, task: Task) => {
+    if (lane === 0 && reservedLaneZero.length > 0 && overlapsReserved(task, reservedLaneZero)) return false;
+    const spans = lanes[lane];
+    if (!spans || spans.length === 0) return true;
+    const index = upperBound(spans, task.startDate);
+    const before = spans[index - 1];
+    const after = spans[index];
+    if (before && before.endDate >= task.startDate) return false;
+    if (after && after.startDate <= task.endDate) return false;
+    return true;
+  };
+  const place = (lane: number, task: Task) => {
+    while (lanes.length <= lane) lanes.push([]);
+    const spans = lanes[lane];
+    spans.splice(upperBound(spans, task.startDate), 0, { startDate: task.startDate, endDate: task.endDate });
+    assigned.set(task, lane);
+  };
+
+  // Tasks that were laid out before keep their lane while it is free.
+  for (const task of sortedTasks) {
+    const lane = previousLanes.get(task.id);
+    if (lane !== undefined && lane >= 0 && fits(lane, task)) place(lane, task);
+  }
+  // Everything else takes the first free lane.
+  for (const task of sortedTasks) {
+    if (assigned.has(task)) continue;
+    let lane = 0;
+    while (!fits(lane, task)) lane += 1;
+    place(lane, task);
+  }
+
+  return sortedTasks.map((task) => wrapWithLane(task, assigned.get(task) as number));
 };
 
 /**

@@ -180,6 +180,7 @@ export const groupTasksByTimelineRow = ({
   groupItems,
   groupMode,
   reservedLaneZeroByRow,
+  previousLanesByRow,
 }: {
   filteredTasks: Task[];
   groupItems: TimelineGroupItem[];
@@ -189,6 +190,8 @@ export const groupTasksByTimelineRow = ({
    * grouping passes them — a project row has no person to be away.
    */
   reservedLaneZeroByRow?: Record<string, ReservedPeriod[]>;
+  /** Per row, task id → lane in the last layout: bars keep their lanes (calculateTaskLanes). */
+  previousLanesByRow?: ReadonlyMap<string, ReadonlyMap<string, number>>;
 }): Record<string, TaskWithLane[]> => {
   const grouped: Record<string, TaskWithLane[]> = {};
   groupItems.forEach((item) => {
@@ -227,7 +230,11 @@ export const groupTasksByTimelineRow = ({
   });
 
   Object.entries(tasksPerGroup).forEach(([groupId, rowTasks]) => {
-    grouped[groupId] = calculateTaskLanes(rowTasks, reservedLaneZeroByRow?.[groupId]);
+    grouped[groupId] = calculateTaskLanes(
+      rowTasks,
+      reservedLaneZeroByRow?.[groupId],
+      previousLanesByRow?.get(groupId),
+    );
   });
 
   return grouped;

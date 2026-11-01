@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { format } from 'date-fns';
 import { t } from '@lingui/macro';
 import { Assignee, Filters, GroupMode, Project, Task } from '@/features/planner/types/planner';
 import { EMPTY_TIME_OFF_INDEX, timeOffMinLanes, timeOffReservedPeriods, type TimeOffIndex } from '@/features/planner/lib/timeOff';
@@ -36,7 +37,18 @@ interface UseTaskDisplayRowsParams {
   myAssigneeIdForTimeOff?: string | null;
   canManageAnyTimeOff?: boolean;
   onOpenTimeOff?: (id: string) => void;
+  /**
+   * What the layout belongs to (workspace, view). While it, the grouping and
+   * the filters stay the same, bars keep their lanes and rows do not shrink.
+   */
+  layoutScope?: string;
 }
+
+type LayoutMemory = {
+  key: string;
+  lanesByRow: Map<string, Map<string, number>>;
+  heights: Record<string, number>;
+};
 
 export const useTaskDisplayRows = ({
   tasks,
@@ -55,7 +67,45 @@ export const useTaskDisplayRows = ({
   myAssigneeIdForTimeOff = null,
   canManageAnyTimeOff = false,
   onOpenTimeOff,
+  layoutScope = '',
 }: UseTaskDisplayRowsParams) => {
+  // Lanes and row heights are laid out from the tasks of the days the timeline
+  // renders, not from everything loaded: loading the next stretch of dates
+  // while the timeline is scrolled far (planTaskWindowLoad) then changes
+  // nothing on screen.
+  const rangeStart = visibleDays.length > 0 ? format(visibleDays[0], 'yyyy-MM-dd') : '';
+  const rangeEnd = visibleDays.length > 0 ? format(visibleDays[visibleDays.length - 1], 'yyyy-MM-dd') : '';
+  // The same tasks in range keep the same array: a load that changed only
+  // dates off screen then re-renders none of the rows (each row redraws all
+  // its day cells when its bars array changes).
+  const lastRangeTasksRef = useRef<Task[]>([]);
+  const rangeTasks = useMemo(() => {
+    const inRange = rangeStart && rangeEnd
+      ? tasks.filter((task) => task.endDate >= rangeStart && task.startDate <= rangeEnd)
+      : tasks;
+    // Compared as sets: a window load returns the rows in no particular order.
+    const last = lastRangeTasksRef.current;
+    if (last.length === inRange.length) {
+      const lastSet = new Set(last);
+      if (inRange.every((task) => lastSet.has(task))) return last;
+    }
+    lastRangeTasksRef.current = inRange;
+    return inRange;
+  }, [rangeEnd, rangeStart, tasks]);
+
+  // The last layout, kept while the scope, the grouping and the filters stay:
+  // bars keep their lanes (calculateTaskLanes) and rows only grow. Scrolling
+  // brings other tasks into the laid out range; repacking from scratch and
+  // fitting rows to them made the rows on screen jump at every step.
+  // Read inside the layout memos rather than listed as their dependency: the
+  // memory changes after every layout, and depending on it would redo the
+  // layout on every render (each scroll step re-renders the grid).
+  const layoutKey = `${layoutScope}|${groupMode}|${JSON.stringify(filters)}`;
+  const layoutMemoryRef = useRef<LayoutMemory>({ key: '', lanesByRow: new Map(), heights: {} });
+  const readLayoutMemory = () => (
+    layoutMemoryRef.current.key === layoutKey ? layoutMemoryRef.current : null
+  );
+
   // Архив прячется только на доске проектов: там у архивного проекта нет строки,
   // поэтому и его задачам показываться негде. В группировке по участникам ничего
   // не скрываем — там задача принадлежит человеку, а не проекту.
@@ -67,8 +117,8 @@ export const useTaskDisplayRows = ({
   }, [groupMode, projects]);
 
   const filteredTasks = useMemo(
-    () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees, { hiddenProjectIds }),
-    [tasks, filters, assigneeGroupMap, assignees, hiddenProjectIds],
+    () => selectFilteredTasks(rangeTasks, filters, assigneeGroupMap, assignees, { hiddenProjectIds }),
+    [rangeTasks, filters, assigneeGroupMap, assignees, hiddenProjectIds],
   );
 
   const visibleAssignees = useMemo(
@@ -108,8 +158,10 @@ export const useTaskDisplayRows = ({
       groupItems,
       groupMode,
       reservedLaneZeroByRow,
+      previousLanesByRow: readLayoutMemory()?.lanesByRow,
     }),
-    [filteredTasks, groupItems, groupMode, reservedLaneZeroByRow],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the memory is read, not tracked (see above)
+    [filteredTasks, groupItems, groupMode, reservedLaneZeroByRow, layoutKey],
   );
 
   const effectiveMinRowHeight = groupMode === 'assignee'
@@ -127,15 +179,31 @@ export const useTaskDisplayRows = ({
     return minimums;
   }, [timeOffIndex]);
 
-  const rowHeights = useMemo(
-    () => calculateTimelineRowHeights(tasksByRow, {
+  const rowHeights = useMemo(() => {
+    const heights = calculateTimelineRowHeights(tasksByRow, {
       minRowHeight: effectiveMinRowHeight,
       taskHeight: TASK_HEIGHT,
       taskGap: TASK_GAP,
       minLanesByRow,
-    }),
-    [tasksByRow, effectiveMinRowHeight, minLanesByRow],
-  );
+    });
+    const previousHeights = readLayoutMemory()?.heights;
+    if (!previousHeights) return heights;
+    Object.keys(heights).forEach((rowId) => {
+      const previous = previousHeights[rowId];
+      if (previous !== undefined && previous > heights[rowId]) heights[rowId] = previous;
+    });
+    return heights;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the memory is read, not tracked (see above)
+  }, [tasksByRow, effectiveMinRowHeight, minLanesByRow, layoutKey]);
+
+  useEffect(() => {
+    const lanesByRow = new Map<string, Map<string, number>>();
+    Object.entries(tasksByRow).forEach(([rowId, rowTasks]) => {
+      if (rowTasks.length === 0) return;
+      lanesByRow.set(rowId, new Map(rowTasks.map((task) => [task.id, task.lane])));
+    });
+    layoutMemoryRef.current = { key: layoutKey, lanesByRow, heights: rowHeights };
+  }, [layoutKey, rowHeights, tasksByRow]);
 
   const displayRows = useMemo(
     () => buildTimelineDisplayRows({

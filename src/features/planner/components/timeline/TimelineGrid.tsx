@@ -401,6 +401,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     myAssigneeIdForTimeOff: myAssigneeId,
     canManageAnyTimeOff: currentWorkspaceRole === 'admin',
     onOpenTimeOff: setEditingTimeOffId,
+    layoutScope: `${currentWorkspaceId ?? ''}|${viewMode}`,
   });
 
   // ─── Other handlers ────────────────────────────────────────────────────────

@@ -121,7 +121,7 @@ describe('task window shift', () => {
     await loadAt('2026-03-15');
 
     const call = db.rpcCalls.find((item) => item.name === 'task_comment_counts_in_window');
-    expect(call?.args).toEqual({ p_workspace_id: WS, p_start_date: '2025-12-15', p_end_date: '2026-06-15' });
+    expect(call?.args).toEqual({ p_workspace_id: WS, p_start_date: '2025-10-15', p_end_date: '2026-08-15' });
     expect(db.rpcCalls.some((item) => item.name === 'task_comment_counts_batch')).toBe(false);
     expect(usePlannerStore.getState().taskCommentCounts).toEqual({ march: 2, june: 0 });
   });
@@ -133,17 +133,18 @@ describe('task window shift', () => {
     const projectsBefore = usePlannerStore.getState().projects;
     db.requests = [];
 
-    // Still inside the loaded window, but the timeline now renders up to 15 July.
+    // Still inside the loaded window, but the timeline now renders up to 15 July
+    // and the next two months past that are not loaded.
     const shift = loadAt('2026-05-15');
     expect(usePlannerStore.getState().loading).toBe(false);
     await shift;
 
     expect(tablesRequested().sort()).toEqual(['tasks', 'time_off']);
     expect(usePlannerStore.getState().loadedRange).toEqual({
-      start: '2026-02-15', end: '2026-08-15', viewMode: 'day', workspaceId: WS,
+      start: '2025-12-15', end: '2026-10-15', viewMode: 'day', workspaceId: WS,
     });
-    expect(taskIds()).toEqual(['june', 'march']);
-    expect(usePlannerStore.getState().timeOff.map((item) => item.id)).toEqual(['off-march']);
+    expect(taskIds()).toEqual(['august', 'june', 'march']);
+    expect(usePlannerStore.getState().timeOff.map((item) => item.id)).toEqual(['off-march', 'off-september']);
     expect(usePlannerStore.getState().selectedTaskId).toBe('march');
     expect(usePlannerStore.getState().projects).toBe(projectsBefore);
   });
@@ -153,7 +154,8 @@ describe('task window shift', () => {
     const juneBefore = usePlannerStore.getState().tasks.find((task) => task.id === 'june');
     usePlannerStore.setState({ selectedTaskId: 'march' });
 
-    await loadAt('2026-07-20');
+    // The new window (2026-04-20 … 2027-02-20) no longer holds March.
+    await loadAt('2026-09-20');
 
     expect(taskIds()).toEqual(['august', 'june', 'march']);
     expect(usePlannerStore.getState().selectedTaskId).toBe('march');
@@ -173,7 +175,7 @@ describe('task window shift', () => {
 
     await loadAt('2026-05-15');
 
-    expect(taskIds()).toEqual(['march']);
+    expect(taskIds()).toEqual(['august', 'march']);
     expect(usePlannerStore.getState().tasks[0].startDate).toBe('2026-03-16');
   });
 
@@ -195,4 +197,17 @@ describe('task window shift', () => {
     expect(tablesRequested()).toContain('projects');
     expect(usePlannerStore.getState().loadedRange?.workspaceId).toBe('ws-2');
   });
+
+  it('keeps the same time-off list when a shift reads it unchanged', async () => {
+    db.tables.time_off = db.tables.time_off.filter((record) => (record as { id: string }).id === 'off-march');
+    await loadAt('2026-03-15');
+    const before = usePlannerStore.getState().timeOff;
+
+    // The only record stays inside the new window: nothing changed.
+    await loadAt('2026-04-20');
+
+    expect(usePlannerStore.getState().loadedRange?.start).toBe('2025-11-20');
+    expect(usePlannerStore.getState().timeOff).toBe(before);
+  });
 });
+
