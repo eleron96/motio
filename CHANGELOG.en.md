@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- In the Motio app opened from the iPhone Home Screen, the top menu sits a little lower and no longer hides under the blur by the status bar.
+
 ## [0.10.52] - 2026-11-01
 ### Fixed
 - After you stop scrolling the timeline, task bars and milestone lines no longer fly across the screen; they stay on their days.
