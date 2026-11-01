@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.50] - 2026-11-01
 ### Fixed
 - При прокрутке таймлайна далеко полоски задач больше не перескакивают, а строки не прыгают, когда подгружаются новые даты.
 

@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.50] - 2026-11-01
 ### Fixed
 - Scrolling the timeline far no longer makes task bars hop or rows jump while new dates load.
 

@@ -466,3 +466,4 @@
 2026-10-31T21:44:20Z | 0.10.47 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261031-214330.dump | For self-hosted servers: Keycloak can no longer take all of its container's memory, and the database keeps per-query statistics for finding slow spots. Both apply on their own with the update.
 2026-11-01T14:57:00Z | 0.10.48 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261101-145607.dump | Charts on the dashboard no longer twitch nonstop at some window sizes.
 2026-11-01T15:45:09Z | 0.10.49 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261101-154420.dump | The dashboard no longer shakes at some window widths, and switching from it to the timeline is quick again.
+2026-11-01T16:49:30Z | 0.10.50 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261101-164841.dump | Scrolling the timeline far no longer makes task bars hop or rows jump while new dates load.
