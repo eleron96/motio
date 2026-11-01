@@ -8,6 +8,7 @@ import {
   timeOffMinLanes,
   timeOffReservedPeriods,
   withTimeOffPreview,
+  keepTimeOffIfSame,
 } from '@/features/planner/lib/timeOff';
 import type { TimeOff } from '@/features/planner/types/planner';
 
@@ -138,5 +139,22 @@ describe('buildTimeOffIndex', () => {
 
     expect([...(index.daysByRowId.get('a1') ?? new Map()).keys()])
       .toEqual(['2026-08-03', '2026-08-04', '2026-08-05']);
+  });
+});
+
+describe('keepTimeOffIfSame', () => {
+  const record = (id: string, endDate = '2026-03-05') => ({ id, assigneeId: 'a-1', startDate: '2026-03-01', endDate, note: null });
+
+  it('keeps the current list when the new one holds the same records in any order', () => {
+    const current = [record('x'), record('y')];
+    expect(keepTimeOffIfSame(current, [record('y'), record('x')])).toBe(current);
+  });
+
+  it('takes the new list when a record changed, came or went', () => {
+    const current = [record('x'), record('y')];
+    const changed = [record('x'), record('y', '2026-03-06')];
+    expect(keepTimeOffIfSame(current, changed)).toBe(changed);
+    const fewer = [record('x')];
+    expect(keepTimeOffIfSame(current, fewer)).toBe(fewer);
   });
 });

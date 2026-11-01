@@ -1,4 +1,5 @@
 import { supabase } from '@/shared/lib/supabaseClient';
+import { keepTimeOffIfSame } from '@/features/planner/lib/timeOff';
 import type {
   PlannerGetState,
   PlannerSetState,
@@ -112,7 +113,10 @@ export const createTimeOffActions = (set: PlannerSetState, get: PlannerGetState)
 
   // Realtime refetches the whole window: the table is sparse, so a full replace
   // is cheaper and simpler than the per-id reconcile the tasks pipeline needs.
-  setTimeOff: (records) => set({ timeOff: records }),
+  setTimeOff: (records) => set((state) => {
+    const timeOff = keepTimeOffIfSame(state.timeOff, records);
+    return timeOff === state.timeOff ? state : { timeOff };
+  }),
 
   setTimeOffDragPreview: (preview) => set({ timeOffDragPreview: preview }),
 });
