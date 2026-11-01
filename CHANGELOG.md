@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.52] - 2026-11-01
 ### Fixed
 - После остановки прокрутки таймлайна полоски задач и линии вех больше не пролетают через экран, а сразу стоят на своих днях.
 
