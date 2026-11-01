@@ -50,7 +50,11 @@ import {
   type DashboardBreakpoint,
   type DashboardViewportProfile,
 } from '@/features/dashboard/lib/dashboardResponsive';
-import { compactLegendItems, resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
+import {
+  compactLegendItems,
+  resolveCompactChartHeight,
+  resolveLegendRenderState,
+} from '@/features/dashboard/lib/dashboardLegend';
 import {
   formatDashboardChartTooltipLabel,
   getDashboardChartLabelDataKey,
@@ -253,6 +257,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
   const chartAspectRatio = chartViewport.height > 0
     ? chartViewport.width / chartViewport.height
     : 0;
+  // Side or bottom legend is decided on the whole chart area. The plot alone
+  // is shorter while the legend sits below it and taller once the legend moves
+  // aside, so deciding on the plot could flip a chart near the threshold back
+  // and forth; the area holding both does not change with the choice.
+  const sideLegendAspectRatio = chartShellViewport.height > 0
+    ? chartShellViewport.width / chartShellViewport.height
+    : chartAspectRatio;
   const isUltraWideChart = chartViewport.width >= CHART_ULTRAWIDE_MIN_WIDTH_PX
     || chartAspectRatio >= CHART_ULTRAWIDE_MIN_ASPECT;
   const forceBottomLegend = isTouchViewport;
@@ -268,8 +279,13 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
     && canUseSideLegend
     && !isSmall
     && chartViewport.width >= Math.max(CHART_SIDE_LEGEND_MIN_WIDTH_PX, sideLegendWidthThreshold)
-    && chartAspectRatio >= Math.max(CHART_SIDE_LEGEND_MIN_ASPECT, sideLegendAspectThreshold);
-  const isCompactChartHeight = chartViewport.height > 0 && chartViewport.height < 210;
+    && sideLegendAspectRatio >= Math.max(CHART_SIDE_LEGEND_MIN_ASPECT, sideLegendAspectThreshold);
+  // Compact or not follows the plot's height with a margin (see
+  // resolveCompactChartHeight): the switch itself moves that height.
+  const [isCompactChartHeight, setIsCompactChartHeight] = React.useState(false);
+  React.useLayoutEffect(() => {
+    setIsCompactChartHeight((wasCompact) => resolveCompactChartHeight(wasCompact, chartViewport.height));
+  }, [chartViewport.height]);
   const isCompactChartWidth = chartViewport.width > 0 && chartViewport.width < 380;
   const axisMinWidth = isLaptopViewport ? 300 : 280;
   const showAxes = canShowAxesBySize
