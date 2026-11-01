@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- The dashboard no longer shakes at some window widths, and switching from it to the timeline is quick again.
+
 ## [0.10.48] - 2026-11-01
 ### Fixed
 - Charts on the dashboard no longer twitch nonstop at some window sizes.
