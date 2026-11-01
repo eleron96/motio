@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.53] - 2026-11-01
 ### Fixed
 - В приложении Motio, открытом с экрана «Домой» на iPhone, верхнее меню стоит чуть ниже и больше не прячется под размытием у строки состояния.
 

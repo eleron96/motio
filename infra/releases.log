@@ -469,3 +469,4 @@
 2026-11-01T16:49:30Z | 0.10.50 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261101-164841.dump | Scrolling the timeline far no longer makes task bars hop or rows jump while new dates load.
 2026-11-01T20:16:22Z | 0.10.51 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261101-201531.dump | Scrolling the timeline to far-off dates is faster: when the neighbouring months load, the day grid is no longer redrawn from scratch.
 2026-11-01T21:05:47Z | 0.10.52 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261101-210454.dump | After you stop scrolling the timeline, task bars and milestone lines no longer fly across the screen; they stay on their days.
+2026-11-01T21:52:41Z | 0.10.53 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261101-215152.dump | In the Motio app opened from the iPhone Home Screen, the top menu sits a little lower and no longer hides under the blur by the status bar.

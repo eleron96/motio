@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.53] - 2026-11-01
 ### Fixed
 - In the Motio app opened from the iPhone Home Screen, the top menu sits a little lower and no longer hides under the blur by the status bar.
 
