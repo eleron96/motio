@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- After you stop scrolling the timeline, task bars and milestone lines no longer fly across the screen; they stay on their days.
+
 ## [0.10.51] - 2026-11-01
 ### Changed
 - Scrolling the timeline to far-off dates is faster: when the neighbouring months load, the day grid is no longer redrawn from scratch.
