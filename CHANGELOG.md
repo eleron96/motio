@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.48] - 2026-11-01
 ### Fixed
 - Графики на дашборде больше не дёргаются без остановки при некоторых размерах окна.
 
