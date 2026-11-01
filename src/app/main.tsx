@@ -5,9 +5,11 @@ import { syncBrowserThemeFavicons } from "@/shared/lib/themeFavicon";
 import { installPreloadErrorReload } from "@/shared/lib/preloadErrorReload";
 import { isPushEnabled } from "@/shared/lib/featureFlags";
 import { preloadLandingHero } from "@/features/marketing/lib/preloadLandingHero";
+import { markIosHomeScreenApp } from "@/shared/lib/iosHomeScreenApp";
 import "./index.css";
 
 initSentry();
+markIosHomeScreenApp();
 syncBrowserThemeFavicons();
 installPreloadErrorReload();
 preloadLandingHero();

@@ -95,7 +95,7 @@ export const MobileStackScreen: React.FC<MobileStackScreenProps> = ({
           {/* min-h, not h: where the top inset is non-zero (installed PWA) a
               fixed height would let the notch eat the row instead of moving it
               down. */}
-          <header className="flex min-h-14 shrink-0 items-center gap-1 border-b border-border bg-card px-1.5 pt-[env(safe-area-inset-top,0px)]">
+          <header className="flex min-h-14 shrink-0 items-center gap-1 border-b border-border bg-card px-1.5 pt-safe-top">
             {onBack ? (
               <button
                 type="button"
