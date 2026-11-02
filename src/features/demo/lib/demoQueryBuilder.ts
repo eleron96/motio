@@ -32,12 +32,94 @@ const matchesValue = (cell: unknown, value: unknown): boolean => {
   return cell === value;
 };
 
+// One condition of a PostgREST `or=(...)` filter, as the app writes it in
+// `.or(...)`: `assignee_id.eq.<id>`, `assignee_ids.cs.{<id>}`. Values arrive as
+// URL text, so cells are compared with them as strings.
+interface OrCondition {
+  column: string;
+  operator: 'eq' | 'neq' | 'is' | 'in' | 'cs';
+  value: string | string[] | null | boolean;
+}
+
+// Splits on the commas between conditions, not those inside `{a,b}` or `(a,b)`.
+const splitOrConditions = (expr: string): string[] => {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const char of expr) {
+    if (char === '(' || char === '{') depth += 1;
+    if (char === ')' || char === '}') depth -= 1;
+    if (char === ',' && depth === 0) {
+      parts.push(current);
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+  parts.push(current);
+  return parts;
+};
+
+const parseListValue = (raw: string, open: string, close: string): string[] | null => {
+  if (!raw.startsWith(open) || !raw.endsWith(close)) return null;
+  const inner = raw.slice(1, -1);
+  return inner === '' ? [] : inner.split(',');
+};
+
+/**
+ * The subset of PostgREST's logic tree the app sends. Anything else — nested
+ * and()/or(), not., other operators — gives null, and the query then fails as
+ * PostgREST would rather than quietly matching every row.
+ */
+const parseOrExpression = (expr: string): OrCondition[] | null => {
+  const conditions: OrCondition[] = [];
+  for (const part of splitOrConditions(expr)) {
+    const match = /^([A-Za-z_][A-Za-z0-9_]*)\.(eq|neq|is|in|cs)\.(.+)$/.exec(part.trim());
+    if (!match) return null;
+    const [, column, operatorText, raw] = match;
+    const operator = operatorText as OrCondition['operator'];
+    if (operator === 'in' || operator === 'cs') {
+      const list = operator === 'in' ? parseListValue(raw, '(', ')') : parseListValue(raw, '{', '}');
+      if (!list) return null;
+      conditions.push({ column, operator, value: list });
+    } else if (operator === 'is') {
+      if (raw !== 'null' && raw !== 'true' && raw !== 'false') return null;
+      conditions.push({ column, operator, value: raw === 'null' ? null : raw === 'true' });
+    } else {
+      conditions.push({ column, operator, value: raw });
+    }
+  }
+  return conditions;
+};
+
+const cellEqualsText = (cell: unknown, text: string): boolean => {
+  if (Array.isArray(cell)) return cell.some((item) => String(item) === text);
+  return cell !== null && cell !== undefined && String(cell) === text;
+};
+
+const matchesOrCondition = (row: Row, condition: OrCondition): boolean => {
+  const cell = row[condition.column];
+  switch (condition.operator) {
+    case 'eq': return cellEqualsText(cell, condition.value as string);
+    case 'neq': return !cellEqualsText(cell, condition.value as string);
+    case 'is': return condition.value === null ? cell === null || cell === undefined : cell === condition.value;
+    case 'in': return (condition.value as string[]).some((text) => cellEqualsText(cell, text));
+    case 'cs': {
+      if (!Array.isArray(cell)) return false;
+      const cellTexts = cell.map(String);
+      return (condition.value as string[]).every((text) => cellTexts.includes(text));
+    }
+  }
+};
+
 interface FilterOp {
   type: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'is' | 'like' | 'ilike' | 'contains' | 'or';
   column?: string;
   value?: unknown;
   values?: unknown[];
   expr?: string;
+  /** For `or`: the parsed conditions, or null when `expr` could not be parsed. */
+  conditions?: OrCondition[] | null;
 }
 
 interface OrderSpec {
@@ -56,7 +138,7 @@ const compare = (a: unknown, b: unknown): number => {
 
 const applyFilters = (rows: Row[], filters: FilterOp[]): Row[] => {
   return rows.filter((row) => filters.every((f) => {
-    if (f.type === 'or') return true; // unsupported — keep row
+    if (f.type === 'or') return (f.conditions ?? []).some((condition) => matchesOrCondition(row, condition));
     const cell = row[f.column ?? ''];
     switch (f.type) {
       case 'eq': return matchesValue(cell, f.value);
@@ -119,7 +201,10 @@ export class QueryBuilder<T = Row> {
     this.filters.push({ type: 'neq', column, value });
     return this;
   }
-  or(_expr: string): this { this.filters.push({ type: 'or' }); return this; }
+  or(expr: string): this {
+    this.filters.push({ type: 'or', expr, conditions: parseOrExpression(expr) });
+    return this;
+  }
   filter(column: string, op: string, value: unknown): this {
     const known = ['eq','neq','gt','gte','lt','lte','in','is','like','ilike','contains'] as const;
     if ((known as readonly string[]).includes(op)) {
@@ -147,6 +232,11 @@ export class QueryBuilder<T = Row> {
   }
 
   private execute(): Result<T> {
+    const unparsedOr = this.filters.find((f) => f.type === 'or' && !f.conditions);
+    if (unparsedOr) {
+      // PostgREST answers an unreadable logic tree with PGRST100; so does the demo.
+      return fail(`Demo client cannot parse or filter "${unparsedOr.expr}"`, 'PGRST100') as Result<T>;
+    }
     const tbl = demoStore.table(this.tableName);
 
     let result: Row[] = [];
