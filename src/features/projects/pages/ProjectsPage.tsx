@@ -62,7 +62,6 @@ import { MilestonesMobileSection } from '@/features/projects/components/Mileston
 import { CustomersMobileList } from '@/features/projects/components/CustomersMobileList';
 import { ProjectsMobileFiltersScreen } from '@/features/projects/components/ProjectsMobileFiltersScreen';
 import { cn } from '@/shared/lib/classNames';
-import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 /**
  * Phone sections, in the order they are swiped through. The pill strip, the
@@ -820,11 +819,6 @@ const ProjectsPage = () => {
     customerById,
     tagById,
     trackedProjectIds,
-  });
-
-  useOnboardingTour({
-    pageId: 'projects',
-    canEdit,
   });
 
   const navigate = useNavigate();

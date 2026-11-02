@@ -482,9 +482,9 @@ msgstr "Добавьте комментарий или обновление..."
 msgid "Add a description..."
 msgstr "Добавьте описание..."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Add a widget"
-msgstr "Добавить виджет"
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Add a task"
+msgstr "Новая задача"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
@@ -650,11 +650,6 @@ msgstr "Все проекты"
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "All results"
 msgstr "Все результаты"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "All set!"
-msgstr "Всё готово!"
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -837,21 +832,6 @@ msgid "Away: {0} of {1}"
 msgstr "В отпуске: {0} из {1}"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/shared/ui/mobile-form-screen.tsx
 #: src/shared/ui/mobile-screen-shell.tsx
@@ -1199,8 +1179,8 @@ msgid "Clearing…"
 msgstr "Очищаем…"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Click this button or double-click a date on the timeline to open the task form."
-msgstr "Нажмите эту кнопку или дважды кликните по дате на таймлайне, чтобы открыть форму задачи."
+msgid "Click a task to open it"
+msgstr "Щёлкните по задаче"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -1344,7 +1324,6 @@ msgid "Contains an image"
 msgstr "Есть вложенная картинка"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 msgid "Continue"
 msgstr "Продолжить"
 
@@ -1468,14 +1447,6 @@ msgstr "Создайте новую веху для выбранной даты.
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Create a new project and assign customer, code, and color."
 msgstr "Создайте проект и задайте клиента, код и цвет."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Create a new project here, then group tasks and milestones inside it."
-msgstr "Создайте здесь новый проект, а затем объединяйте в нём задачи и вехи."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Create a task"
-msgstr "Создайте задачу"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Create account"
@@ -1628,14 +1599,9 @@ msgid "Danger zone"
 msgstr "Опасная зона"
 
 #: src/features/marketing/pages/LandingPage.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Dashboard"
 msgstr "Дашборд"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Dashboard canvas"
-msgstr "Полотно дашборда"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboard limit reached (10)."
@@ -1650,6 +1616,14 @@ msgstr "Название дашборда"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboard settings"
 msgstr "Настройки дашборда"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups."
+msgstr "Дашборд — графики загрузки, Проекты — клиенты и вехи, Команда — люди и группы."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups. To invite colleagues, open the gear next to the workspace name."
+msgstr "Дашборд — графики загрузки, Проекты — клиенты и вехи, Команда — люди и группы. Пригласить коллег — шестерёнка рядом с названием пространства."
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/dashboard/pages/DashboardPage.tsx
@@ -2037,6 +2011,26 @@ msgstr "Завершено"
 msgid "taskDetail.footer.done"
 msgstr "Готово"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click a day in this row to add a project milestone. Everyone sees it above their own tasks."
+msgstr "Двойной клик по дню в этой строке ставит веху проекта. Её видят все — над своими задачами."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click a day to add a task"
+msgstr "Двойной клик по дню — новая задача"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click any day in a person's row: the form opens with that person and date already filled in. The Add task button at the top does the same."
+msgstr "Дважды щёлкните по любому дню в строке человека — форма откроется сразу с ним и этой датой. Кнопка «Добавить задачу» сверху делает то же самое."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click any day in a project's row: the form opens with that project and date already filled in. The Add task button at the top does the same."
+msgstr "Дважды щёлкните по любому дню в строке проекта — форма откроется сразу с ним и этой датой. Кнопка «Добавить задачу» сверху делает то же самое."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Double-tap to open it"
+msgstr "Двойной тап — открыть задачу"
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Download export"
 msgstr "Скачать экспорт"
@@ -2054,6 +2048,10 @@ msgstr "черновиков: {0}"
 msgid "Drag & drop or click to select a photo"
 msgstr "Перетащите или нажмите, чтобы выбрать фото"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Drag a bar to move its dates, drag its edge to make it longer or shorter. Moved it by mistake? {undoShortcut}. Click a task to open it: assignees, subtasks, comments."
+msgstr "Потяните полоску — сдвинутся даты, потяните за край — изменится длительность. Ошиблись — {undoShortcut}. Щелчок по задаче открывает её: исполнители, подзадачи, комментарии."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Drag and drop image files into the description area."
@@ -2062,6 +2060,10 @@ msgstr "Перетащите изображения в область описа
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Drag to reorder"
 msgstr "Перетащите, чтобы изменить порядок"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Drag to reschedule"
+msgstr "Тяните, чтобы перенести"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw every project in its own colour instead of the palette."
@@ -2120,6 +2122,18 @@ msgstr "Каждый день окрашен по тому, насколько �
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Каждое утро начинается с короткого брифа. Что на вас сегодня, какие вехи на этой неделе, где команде нужна ваша помощь. До того как вы откроете что-то ещё."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Each row is a person, each bar is one of their tasks, and its colour is the project. The red-striped column is today."
+msgstr "Каждая строка — человек, каждая полоска — его задача, цвет — проект. Столбец в красную штриховку — сегодня."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Each row is a person, each bar is one of their tasks. Scroll down for the whole team, sideways for other days."
+msgstr "Каждая строка — человек, каждая полоска — его задача. Листайте вниз — вся команда, вбок — другие дни."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Each row is a project, each bar is one of its tasks. The red-striped column is today."
+msgstr "Каждая строка — проект, каждая полоска — его задача. Столбец в красную штриховку — сегодня."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Easter eggs"
@@ -2223,10 +2237,6 @@ msgstr "редактор"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Editor"
 msgstr "Редактор"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Editors and admins add widgets here to build the dashboard."
-msgstr "Редакторы и администраторы добавляют здесь виджеты, чтобы собрать дашборд."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -2587,10 +2597,6 @@ msgstr "Фильтр вех по команде"
 msgid "Filter settings"
 msgstr "Настройки фильтра"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Filter tasks by project, people, groups, statuses and tags."
-msgstr "Фильтруйте задачи по проектам, людям, группам, статусам и тегам."
-
 #. placeholder {0}: filterLabels[widget.statusFilter]
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
@@ -2602,7 +2608,6 @@ msgstr "Фильтр: {0}"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -2645,12 +2650,6 @@ msgstr "Найти задачу"
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
 msgstr "Найти или добавить клиента..."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Finish"
-msgstr "Завершить"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -2724,6 +2723,10 @@ msgstr "Сформировать новый экспорт"
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Получайте в этом браузере уведомления о задачах, даже когда Motio закрыт."
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Getting started"
+msgstr "Знакомство с Motio"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Give the subtask with pictures a title, or remove it."
 msgstr "Дайте подзадаче с картинками название или удалите её."
@@ -2751,6 +2754,8 @@ msgid "Good morning!"
 msgstr "Доброе утро!"
 
 #: src/features/announcements/components/AnnouncementsHost.tsx
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+#: src/features/onboarding/lib/onboardingTour.ts
 msgid "Got it"
 msgstr "Понятно"
 
@@ -2828,10 +2833,6 @@ msgstr "Группы: {0}"
 msgid "Heatmap"
 msgstr "Тепловая карта"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
-msgstr "Здесь вы видите все задачи на таймлайне. Перетаскивайте, растягивайте и планируйте работу команды."
-
 #: src/features/planner/components/timeline/TimelineSearchStrip.tsx
 msgid "hidden by filters"
 msgstr "скрыта фильтром"
@@ -2861,6 +2862,10 @@ msgstr "Высокий приоритет"
 #: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "History"
 msgstr "История"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Hold for quick actions"
+msgstr "Удержание — меню действий"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Hold the widget header to enable moving."
@@ -3015,10 +3020,6 @@ msgstr "Пригласил"
 msgid "Invites"
 msgstr "Приглашения"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Invites, roles and workspace access live in workspace settings, under \"Members and access\"."
-msgstr "Приглашения, роли и доступ к пространству живут в настройках рабочего пространства, в разделе «Участники и доступ»."
-
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
 msgstr "Он не пытается быть всем сразу. В нём нет кастомных полей, сложных автоматизаций и формул. Один главный экран — таймлайн — и возможность быстро понять, кто чем занят. Доска с колонками по статусам тоже есть, если она вам нужна."
@@ -3118,10 +3119,6 @@ msgstr "Покинуть рабочее пространство"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Leave workspace?"
 msgstr "Покинуть рабочее пространство?"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
-msgstr "Давайте быстро посмотрим на ключевые места в рабочем пространстве. Тур можно пропустить в любой момент."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
@@ -3424,6 +3421,10 @@ msgstr "Вехи"
 msgid "Milestones still ahead"
 msgstr "Предстоящие вехи"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Milestones: deadlines for everyone"
+msgstr "Вехи — общие сроки"
+
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
@@ -3602,7 +3603,6 @@ msgstr "Новый владелец"
 msgid "New owner: {0}"
 msgstr "Новый владелец: {0}"
 
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "New project"
@@ -3629,16 +3629,7 @@ msgid "New widget"
 msgstr "Новый виджет"
 
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
@@ -3654,14 +3645,6 @@ msgstr "Следующее совпадение"
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Next page"
 msgstr "Следующая страница"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Next, we'll open Projects to show where project details, tasks and assignees are visible."
-msgstr "Дальше откроем «Проекты» и покажем, где видны детали проекта, задачи и исполнители."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Next, we'll open the dashboard and show where widgets are added and arranged."
-msgstr "Дальше откроем дашборд и покажем, где добавляются и расставляются виджеты."
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "No active members match the search."
@@ -4340,10 +4323,6 @@ msgstr "Открытые"
 msgid "Open Account settings to download the file."
 msgstr "Откройте Настройки аккаунта, чтобы скачать файл."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open dashboard"
-msgstr "Открыть дашборд"
-
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Open fullscreen"
 msgstr "Открыть во весь экран"
@@ -4375,10 +4354,6 @@ msgstr "Открыть на таймлайне"
 msgid "Open project"
 msgstr "Перейти к проекту"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open projects"
-msgstr "Открыть проекты"
-
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Open source (AGPL-3.0)"
 msgstr "Открытый код (AGPL-3.0)"
@@ -4390,10 +4365,6 @@ msgstr "Открытый код под лицензией AGPL-3.0"
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
 msgid "Open task"
 msgstr "Открыть"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open team"
-msgstr "Открыть команду"
 
 #: src/features/marketing/components/HeroClip.tsx
 msgid "Open the live demo"
@@ -4530,9 +4501,8 @@ msgid "People access"
 msgstr "Участники"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "People and groups"
-msgstr "Люди и группы"
+msgid "People or projects"
+msgstr "Участники или проекты"
 
 #: src/features/members/pages/MembersPage.tsx
 msgid "People sections"
@@ -4708,6 +4678,10 @@ msgstr "Проект изменён"
 msgid "Project colours"
 msgstr "Цвета проектов"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Project deadlines live in this row, above everyone's tasks."
+msgstr "В этой строке — сроки проектов, над задачами всей команды."
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Project name"
@@ -4745,8 +4719,6 @@ msgid "Project: all"
 msgstr "Проект: все"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
@@ -4764,10 +4736,6 @@ msgstr "Проекты"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Projects & milestones"
 msgstr "Проекты и вехи"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Projects, milestones and clients"
-msgstr "Проекты, вехи и клиенты"
 
 #. placeholder {0}: selectedProjects.length
 #: src/features/planner/components/board/BoardQuickFilters.tsx
@@ -5312,6 +5280,10 @@ msgstr "Поиск задач..."
 msgid "Search types..."
 msgstr "Поиск типов..."
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Sections"
+msgstr "Разделы"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "Все задачи на одном таймлайне. Сразу видно, кто и когда занят."
@@ -5591,6 +5563,10 @@ msgstr "Показать объявление всем заново?"
 msgid "Show legend"
 msgstr "Показывать легенду"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Show me"
+msgstr "Показать"
+
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 msgid "Show only this person"
 msgstr "Показать только его"
@@ -5657,6 +5633,7 @@ msgstr "Вы вошли"
 msgid "Signed in as {0}"
 msgstr "Вы вошли как {0}"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Skip"
@@ -5712,10 +5689,6 @@ msgstr "SSO через Keycloak"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Star"
 msgstr "Звезда"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Start"
-msgstr "Начать"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TimeOffFields.tsx
@@ -5824,8 +5797,12 @@ msgid "Sun"
 msgstr "Солнце"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
-msgstr "Здесь переключаются проекты, вехи, клиенты и контакты. Откройте проект — увидите его задачи, команду и заметки."
+msgid "Switch to People to see the same tasks with one row per person — a quick way to spot who is overloaded."
+msgstr "Переключитесь на «Участники» — те же задачи, по строке на человека. Так сразу видно, кто перегружен."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Switch to Projects to see the same tasks with one row per project — a quick way to check that every project has someone on it."
+msgstr "Переключитесь на «Проекты» — те же задачи, по строке на проект. Так быстро видно, у каждого ли проекта есть исполнитель."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "System"
@@ -5860,9 +5837,21 @@ msgstr "Тег"
 msgid "Tags"
 msgstr "Теги"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap a task for a quick look"
+msgstr "Тап по задаче — краткая подсказка"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap the pencil button at the bottom, or double-tap an empty day in someone's row."
+msgstr "Нажмите кнопку с карандашом внизу или дважды коснитесь пустого дня в строке человека."
+
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Tap to copy"
 msgstr "Нажмите, чтобы скопировать"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap, double-tap, hold"
+msgstr "Тап, двойной тап, удержание"
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -5970,8 +5959,6 @@ msgstr "Бирюзовый"
 msgid "Team"
 msgstr "Команда"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Team access"
 msgstr "Доступ команды"
@@ -6052,6 +6039,10 @@ msgstr "Узор, которым отмечаются ваши выходные.
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
 msgstr "Срок действия предыдущего файла экспорта истёк. Запросите его ещё раз."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "The rest is up here"
+msgstr "Остальное — здесь"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "The sandbox will be cleared and you will return to the home page."
@@ -6168,10 +6159,6 @@ msgstr "Это нагрузка, которая считается за 100%. О
 msgid "This is the only time it is shown. Store it in the system that will use it; if it is lost, revoke it and create a new one."
 msgstr "Токен показывается только один раз. Сохраните его в системе, которая будет им пользоваться; если потеряете — отзовите и создайте новый."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "This is where your workspace projects are listed and reviewed."
-msgstr "Здесь перечислены проекты рабочего пространства и их можно просматривать."
-
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this milestone"
 msgstr "эту веху"
@@ -6286,6 +6273,10 @@ msgstr "Узор выходных"
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Timeline"
 msgstr "Таймлайн"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Timeline, Dashboard, Projects and Team are at the top: tap one or swipe along the header. Your avatar opens the menu and settings."
+msgstr "Таймлайн, Дашборд, Проекты и Команда — вверху: нажмите на нужный раздел или проведите пальцем по шапке. Ваш аватар открывает меню и настройки."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6678,18 +6669,9 @@ msgstr "Использовать текущее пространство"
 msgid "Use ISO code (for example RU, US, DE)."
 msgstr "Используйте ISO-код (например RU, US, DE)."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Use Team to browse people, groups and task ownership inside the workspace."
-msgstr "Используйте раздел Team, чтобы просматривать людей, группы и распределение задач внутри рабочего пространства."
-
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Use the Widget button to add your first widget."
 msgstr "Используйте кнопку «Виджет», чтобы добавить первый виджет."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Use this button to add KPI, chart and milestone widgets to the dashboard."
-msgstr "Используйте эту кнопку, чтобы добавить на дашборд KPI, графики и виджеты вех."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6800,10 +6782,6 @@ msgstr "Волны"
 msgid "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 msgstr "Мы работаем с небольшими командами, которым нужно одно: видеть, кто занят, кто свободен и как работа распределена по неделе. Регистрация занимает минуту, карта не нужна."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."
-msgstr "Следом откроем Team, чтобы показать, где управляются приглашения, роли и доступ к рабочему пространству."
-
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Week"
@@ -6820,10 +6798,6 @@ msgstr "Еженедельно"
 #: src/shared/lib/repeatLabels.ts
 msgid "Weekly recurring"
 msgstr "Еженедельный повтор"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Welcome to Motio!"
-msgstr "Добро пожаловать в Motio!"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "What is switched on"
@@ -6870,10 +6844,6 @@ msgstr "Почему Motio"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Widget"
 msgstr "Виджет"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Widgets"
-msgstr "Виджеты"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Will start on the timeline"
@@ -7051,14 +7021,6 @@ msgstr "У вас доступ только для просмотра, и вы �
 msgid "You need to sign in again before adding comments."
 msgstr "Войдите снова, чтобы добавлять комментарии."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "You now know where to create work, track progress and add people across Motio."
-msgstr "Теперь вы знаете, где создавать задачи, отслеживать прогресс и добавлять людей в Motio."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "You now know where to find timelines, dashboards, projects and team members in Motio."
-msgstr "Теперь вы знаете, где в Motio находятся таймлайн, дашборды, проекты и участники команды."
-
 #: src/features/auth/hooks/useInboxFeed.ts
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You were added to a new workspace."
@@ -7072,6 +7034,10 @@ msgstr "Вы потеряете доступ к этому рабочему пр
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "You will need to sign in again to get back to your workspace."
 msgstr "Чтобы вернуться в рабочее пространство, нужно будет войти заново."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "You'll see its description, subtasks and comments. You have view access: editors and admins change the plan."
+msgstr "Откроются описание, подзадачи и комментарии. У вас доступ на просмотр: план меняют редакторы и администраторы."
 
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You've been invited to Motio"
@@ -7118,13 +7084,10 @@ msgstr "Срок действия сессии истёк. Пожалуйста,
 msgid "Your team's progress, always in view"
 msgstr "Прогресс команды всегда на виду"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Your timeline"
-msgstr "Ваш таймлайн"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
-msgstr "Здесь живут ваши виджеты. Меняйте их размер и порядок, чтобы следить за нагрузкой, сроками и прогрессом."
+msgid "Your team's shared timeline"
+msgstr "Общий таймлайн команды"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx

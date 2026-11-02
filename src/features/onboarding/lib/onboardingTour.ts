@@ -1,201 +1,132 @@
 import { driver, type DriveStep, type Driver, type PopoverDOM } from 'driver.js';
 import { t } from '@lingui/macro';
-import { getNextOnboardingPage, type OnboardingPageId } from '@/features/onboarding/lib/onboardingFlow';
+import type { GroupMode } from '@/features/planner/types/planner';
+import {
+  findVisibleTaskBar,
+  removeTourSpotlight,
+  spotlightAround,
+  spotlightTimelineRow,
+} from '@/features/onboarding/lib/tourTargets';
 
-type CreateOnboardingTourArgs = {
-  pageId: OnboardingPageId;
-  canEdit?: boolean;
-  isAdmin?: boolean;
-  onAdvance: (nextPage: OnboardingPageId) => void;
-  onDismiss: () => void;
-  onComplete: () => void;
+export type OnboardingTourArgs = {
+  canEdit: boolean;
+  isAdmin: boolean;
+  /** Rows show people or projects: the tour describes the rows on screen. */
+  groupMode: GroupMode;
+  /** ⌘Z on Apple devices, Ctrl+Z elsewhere. */
+  undoShortcut: string;
 };
 
-type TourDestroyAction =
-  | { type: 'dismiss' }
-  | { type: 'advance'; nextPage: OnboardingPageId }
-  | { type: 'complete' }
-  | null;
+type CreateOnboardingTourArgs = OnboardingTourArgs & {
+  /** Finished, skipped or closed — the tour is over either way. */
+  onClose: () => void;
+};
 
-const buildPlannerSteps = (advanceToNextPage: (nextPage: OnboardingPageId) => void): DriveStep[] => [
-  {
+/**
+ * A step whose element may be missing (the timeline scrolled, no task on
+ * screen). driver.js handles that — the text shows in the middle of the
+ * screen — but its type promises an element every time.
+ */
+const findOrCenter = (find: () => Element | undefined) => find as () => Element;
+
+/**
+ * The tour stays on the timeline and teaches what to do there — read the rows,
+ * add a task, move it, find the deadlines — instead of walking the newcomer
+ * through every section and leaving them on the Team page. It used to: four
+ * pages, fourteen steps, and most of them only named a place ("this is the
+ * dashboard"). Sections other than the timeline get one sentence each at the
+ * end, pointing at the menu where they live.
+ *
+ * Viewers get the same tour without the steps about changing the plan.
+ */
+export const buildOnboardingSteps = ({
+  canEdit,
+  isAdmin,
+  groupMode,
+  undoShortcut,
+}: OnboardingTourArgs): DriveStep[] => {
+  const byProject = groupMode === 'project';
+  const steps: DriveStep[] = [];
+
+  steps.push({
     popover: {
-      title: t`Welcome to Motio!`,
-      description: t`Let's quickly walk through the key places in your workspace. You can skip this tour at any time.`,
-      nextBtnText: t`Start`,
+      title: t`Your team's shared timeline`,
+      description: byProject
+        ? t`Each row is a project, each bar is one of its tasks. The red-striped column is today.`
+        : t`Each row is a person, each bar is one of their tasks, and its colour is the project. The red-striped column is today.`,
+      nextBtnText: t`Show me`,
       showButtons: ['next', 'close'],
     },
-  },
-  {
-    element: '[data-tour="timeline-grid"]',
-    popover: {
-      title: t`Your timeline`,
-      description: t`Here you can see all tasks on a timeline. Drag, resize and plan work across the team.`,
-      nextBtnText: t`Next`,
-      prevBtnText: t`Back`,
-    },
-  },
-  {
-    element: '[data-tour="add-task-btn"]',
-    popover: {
-      title: t`Create a task`,
-      description: t`Click this button or double-click a date on the timeline to open the task form.`,
-      nextBtnText: t`Next`,
-      prevBtnText: t`Back`,
-    },
-  },
-  {
-    element: '[data-tour="filter-toggle"]',
-    popover: {
-      title: t`Filters`,
-      description: t`Filter tasks by project, people, groups, statuses and tags.`,
-      nextBtnText: t`Next`,
-      prevBtnText: t`Back`,
-    },
-  },
-  {
-    element: '[data-tour="nav-dashboard"]',
-    popover: {
-      title: t`Dashboard`,
-      description: t`Next, we'll open the dashboard and show where widgets are added and arranged.`,
-      prevBtnText: t`Back`,
-      doneBtnText: t`Open dashboard`,
-      onNextClick: () => advanceToNextPage('dashboard'),
-    },
-  },
-];
+  });
 
-const buildDashboardSteps = (
-  canEdit: boolean,
-  advanceToNextPage: (nextPage: OnboardingPageId) => void,
-): DriveStep[] => [
-  {
-    element: '[data-tour="dashboard-add-widget"]',
-    popover: {
-      title: canEdit ? t`Add a widget` : t`Widgets`,
-      description: canEdit
-        ? t`Use this button to add KPI, chart and milestone widgets to the dashboard.`
-        : t`Editors and admins add widgets here to build the dashboard.`,
-      nextBtnText: t`Next`,
-      prevBtnText: t`Back`,
-    },
-  },
-  {
-    element: '[data-tour="dashboard-canvas"]',
-    popover: {
-      title: t`Dashboard canvas`,
-      description: t`Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress.`,
-      nextBtnText: t`Next`,
-      prevBtnText: t`Back`,
-    },
-  },
-  {
-    element: '[data-tour="nav-projects"]',
-    popover: {
-      title: t`Projects`,
-      description: t`Next, we'll open Projects to show where project details, tasks and assignees are visible.`,
-      prevBtnText: t`Back`,
-      doneBtnText: t`Open projects`,
-      onNextClick: () => advanceToNextPage('projects'),
-    },
-  },
-];
-
-const buildProjectsSteps = (
-  canEdit: boolean,
-  advanceToNextPage: (nextPage: OnboardingPageId) => void,
-): DriveStep[] => [
-  {
-    element: '[data-tour="projects-primary-action"]',
-    popover: {
-      title: canEdit ? t`New project` : t`Projects`,
-      description: canEdit
-        ? t`Create a new project here, then group tasks and milestones inside it.`
-        : t`This is where your workspace projects are listed and reviewed.`,
-      nextBtnText: t`Next`,
-      prevBtnText: t`Back`,
-    },
-  },
-  {
-    // Раньше шаг целился в фильтр исполнителей внутри панели проекта. Новая
-    // карточка проекта его убрала, и подсказка повисала в пустоте. Сайдбар —
-    // единственный якорь этой страницы, который есть в любом её состоянии.
-    element: '[data-tour="projects-sidebar"]',
-    popover: {
-      title: t`Projects, milestones and clients`,
-      description: t`Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes.`,
-      nextBtnText: t`Next`,
-      prevBtnText: t`Back`,
-    },
-  },
-  {
-    element: '[data-tour="nav-team"]',
-    popover: {
-      title: t`Team access`,
-      description: t`We'll open Team next so you can see where invitations, roles and workspace access are managed.`,
-      prevBtnText: t`Back`,
-      doneBtnText: t`Open team`,
-      onNextClick: () => advanceToNextPage('members'),
-    },
-  },
-];
-
-const buildMembersSteps = (
-  isAdmin: boolean,
-  completeTour: () => void,
-): DriveStep[] => {
-  if (!isAdmin) {
-    return [
-      {
-        element: '[data-tour="members-people-tab"]',
-        popover: {
-          title: t`People and groups`,
-          description: t`Use Team to browse people, groups and task ownership inside the workspace.`,
-          nextBtnText: t`Next`,
-          prevBtnText: t`Back`,
-        },
+  if (canEdit) {
+    steps.push({
+      element: findOrCenter(() => spotlightTimelineRow('[data-tour="timeline-first-row"]')),
+      popover: {
+        title: t`Double-click a day to add a task`,
+        description: byProject
+          ? t`Double-click any day in a project's row: the form opens with that project and date already filled in. The Add task button at the top does the same.`
+          : t`Double-click any day in a person's row: the form opens with that person and date already filled in. The Add task button at the top does the same.`,
+        side: 'bottom',
+        align: 'start',
       },
-      {
-        popover: {
-          title: t`All set!`,
-          description: t`You now know where to find timelines, dashboards, projects and team members in Motio.`,
-          prevBtnText: t`Back`,
-          doneBtnText: t`Finish`,
-          onNextClick: () => completeTour(),
-        },
-      },
-    ];
+    });
   }
 
-  return [
-    {
-      element: '[data-tour="members-people-tab"]',
-      popover: {
-        title: t`People and groups`,
-        description: t`Use Team to browse people, groups and task ownership inside the workspace.`,
-        nextBtnText: t`Next`,
-        prevBtnText: t`Back`,
+  steps.push({
+    element: findOrCenter(findVisibleTaskBar),
+    popover: canEdit
+      ? {
+        title: t`Drag to reschedule`,
+        description: t`Drag a bar to move its dates, drag its edge to make it longer or shorter. Moved it by mistake? ${undoShortcut}. Click a task to open it: assignees, subtasks, comments.`,
+      }
+      : {
+        title: t`Click a task to open it`,
+        description: t`You'll see its description, subtasks and comments. You have view access: editors and admins change the plan.`,
       },
+  });
+
+  steps.push({
+    element: findOrCenter(() => spotlightTimelineRow('[data-tour="milestones-row"]')),
+    popover: {
+      title: t`Milestones: deadlines for everyone`,
+      description: canEdit
+        ? t`Double-click a day in this row to add a project milestone. Everyone sees it above their own tasks.`
+        : t`Project deadlines live in this row, above everyone's tasks.`,
+      side: 'bottom',
+      align: 'start',
     },
-    {
-      element: '[data-tour="settings-btn"]',
-      popover: {
-        title: t`Team access`,
-        description: t`Invites, roles and workspace access live in workspace settings, under "Members and access".`,
-        nextBtnText: t`Next`,
-        prevBtnText: t`Back`,
-      },
+  });
+
+  steps.push({
+    element: '[data-tour="group-mode-toggle"]',
+    popover: {
+      title: t`People or projects`,
+      description: byProject
+        ? t`Switch to People to see the same tasks with one row per person — a quick way to spot who is overloaded.`
+        : t`Switch to Projects to see the same tasks with one row per project — a quick way to check that every project has someone on it.`,
+      side: 'bottom',
+      align: 'end',
     },
-    {
-      popover: {
-        title: t`All set!`,
-        description: t`You now know where to create work, track progress and add people across Motio.`,
-        prevBtnText: t`Back`,
-        doneBtnText: t`Finish`,
-        onNextClick: () => completeTour(),
-      },
+  });
+
+  steps.push({
+    // The admin's tip also sends them to the gear beside the menu: light both.
+    element: isAdmin
+      ? findOrCenter(() => spotlightAround(['[data-tour="settings-btn"]', '[data-tour="nav-bar"]']))
+      : '[data-tour="nav-bar"]',
+    popover: {
+      title: t`The rest is up here`,
+      description: isAdmin
+        ? t`Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups. To invite colleagues, open the gear next to the workspace name.`
+        : t`Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups.`,
+      side: 'bottom',
+      align: 'start',
+      doneBtnText: t`Got it`,
     },
-  ];
+  });
+
+  return steps;
 };
 
 const createSkipButton = (popover: PopoverDOM, handleDismiss: () => void) => {
@@ -213,61 +144,7 @@ const createSkipButton = (popover: PopoverDOM, handleDismiss: () => void) => {
   skipButton.onclick = () => handleDismiss();
 };
 
-const buildSteps = ({
-  canEdit,
-  isAdmin,
-  onAdvance,
-  onComplete,
-  pageId,
-}: Omit<CreateOnboardingTourArgs, 'onDismiss'>) => {
-  switch (pageId) {
-    case 'planner':
-      return buildPlannerSteps(onAdvance);
-    case 'dashboard':
-      return buildDashboardSteps(Boolean(canEdit), onAdvance);
-    case 'projects':
-      return buildProjectsSteps(Boolean(canEdit), onAdvance);
-    case 'members':
-      return buildMembersSteps(Boolean(isAdmin), onComplete);
-    default:
-      return [];
-  }
-};
-
-export const createOnboardingTour = ({
-  pageId,
-  canEdit = false,
-  isAdmin = false,
-  onAdvance,
-  onDismiss,
-  onComplete,
-}: CreateOnboardingTourArgs): Driver => {
-  let destroyAction: TourDestroyAction = null;
-
-  const dismissTour = () => {
-    destroyAction = { type: 'dismiss' };
-    tourDriver.destroy();
-  };
-
-  const advanceToNextPage = (nextPage: OnboardingPageId) => {
-    destroyAction = { type: 'advance', nextPage };
-    tourDriver.destroy();
-  };
-
-  const completeTour = () => {
-    destroyAction = { type: 'complete' };
-    tourDriver.destroy();
-  };
-
-  const lastPage = getNextOnboardingPage(pageId) === null;
-  const steps = buildSteps({
-    pageId,
-    canEdit,
-    isAdmin,
-    onAdvance: advanceToNextPage,
-    onComplete: completeTour,
-  });
-
+export const createOnboardingTour = ({ onClose, ...args }: CreateOnboardingTourArgs): Driver => {
   const tourDriver = driver({
     showProgress: true,
     showButtons: ['next', 'previous', 'close'],
@@ -275,40 +152,31 @@ export const createOnboardingTour = ({
     allowClose: true,
     // Клик по затемнению не делает ничего. Раньше он засчитывал весь тур
     // пройденным навсегда; «листать вперёд» тоже не годится — несколько
-    // случайных промахов пролистывают страницу целиком и уносят человека на
-    // другой экран. Тур двигается и закрывается только кнопками.
+    // случайных промахов пролистывают тур целиком. Тур двигается и
+    // закрывается только кнопками.
     overlayClickBehavior: () => {},
+    // Подсказки рассказывают, что делать, а не просят делать это сейчас:
+    // двойной клик по подсвеченной строке открыл бы форму задачи под
+    // затемнением тура, где её не закрыть.
+    disableActiveInteraction: true,
     overlayColor: 'rgba(0, 0, 0, 0.7)',
     stagePadding: 8,
     stageRadius: 8,
     popoverClass: 'motio-tour-popover',
     progressText: '{{current}} / {{total}}',
-    doneBtnText: lastPage ? t`Finish` : t`Continue`,
     nextBtnText: t`Next`,
     prevBtnText: t`Back`,
-    steps,
+    steps: buildOnboardingSteps(args),
     onPopoverRender: (popover) => {
-      createSkipButton(popover, dismissTour);
+      createSkipButton(popover, () => tourDriver.destroy());
       // Ensure the popover is always wide enough to fit all footer buttons.
       // driver.js sets width via inline styles which override CSS rules.
       popover.wrapper.style.minWidth = 'fit-content';
       popover.wrapper.style.width = 'fit-content';
     },
     onDestroyed: () => {
-      const action = destroyAction;
-      destroyAction = null;
-
-      if (action?.type === 'advance') {
-        onAdvance(action.nextPage);
-        return;
-      }
-
-      if (action?.type === 'complete') {
-        onComplete();
-        return;
-      }
-
-      onDismiss();
+      removeTourSpotlight();
+      onClose();
     },
   });
 

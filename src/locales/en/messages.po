@@ -482,9 +482,9 @@ msgstr "Add a comment or update..."
 msgid "Add a description..."
 msgstr "Add a description..."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Add a widget"
-msgstr "Add a widget"
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Add a task"
+msgstr "Add a task"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
@@ -650,11 +650,6 @@ msgstr "All projects"
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "All results"
 msgstr "All results"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "All set!"
-msgstr "All set!"
 
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/members/pages/MembersPage.tsx
@@ -837,21 +832,6 @@ msgid "Away: {0} of {1}"
 msgstr "Away: {0} of {1}"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/shared/ui/mobile-form-screen.tsx
 #: src/shared/ui/mobile-screen-shell.tsx
@@ -1199,8 +1179,8 @@ msgid "Clearing…"
 msgstr "Clearing…"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Click this button or double-click a date on the timeline to open the task form."
-msgstr "Click this button or double-click a date on the timeline to open the task form."
+msgid "Click a task to open it"
+msgstr "Click a task to open it"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -1344,7 +1324,6 @@ msgid "Contains an image"
 msgstr "Contains an image"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 msgid "Continue"
 msgstr "Continue"
 
@@ -1468,14 +1447,6 @@ msgstr "Create a new milestone for the selected date."
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Create a new project and assign customer, code, and color."
 msgstr "Create a new project and assign customer, code, and color."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Create a new project here, then group tasks and milestones inside it."
-msgstr "Create a new project here, then group tasks and milestones inside it."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Create a task"
-msgstr "Create a task"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Create account"
@@ -1628,14 +1599,9 @@ msgid "Danger zone"
 msgstr "Danger zone"
 
 #: src/features/marketing/pages/LandingPage.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Dashboard"
 msgstr "Dashboard"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Dashboard canvas"
-msgstr "Dashboard canvas"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboard limit reached (10)."
@@ -1650,6 +1616,14 @@ msgstr "Dashboard name"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboard settings"
 msgstr "Dashboard settings"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups."
+msgstr "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups. To invite colleagues, open the gear next to the workspace name."
+msgstr "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups. To invite colleagues, open the gear next to the workspace name."
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/dashboard/pages/DashboardPage.tsx
@@ -2037,6 +2011,26 @@ msgstr "Done"
 msgid "taskDetail.footer.done"
 msgstr "Done"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click a day in this row to add a project milestone. Everyone sees it above their own tasks."
+msgstr "Double-click a day in this row to add a project milestone. Everyone sees it above their own tasks."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click a day to add a task"
+msgstr "Double-click a day to add a task"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click any day in a person's row: the form opens with that person and date already filled in. The Add task button at the top does the same."
+msgstr "Double-click any day in a person's row: the form opens with that person and date already filled in. The Add task button at the top does the same."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click any day in a project's row: the form opens with that project and date already filled in. The Add task button at the top does the same."
+msgstr "Double-click any day in a project's row: the form opens with that project and date already filled in. The Add task button at the top does the same."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Double-tap to open it"
+msgstr "Double-tap to open it"
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Download export"
 msgstr "Download export"
@@ -2054,6 +2048,10 @@ msgstr "drafts: {0}"
 msgid "Drag & drop or click to select a photo"
 msgstr "Drag & drop or click to select a photo"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Drag a bar to move its dates, drag its edge to make it longer or shorter. Moved it by mistake? {undoShortcut}. Click a task to open it: assignees, subtasks, comments."
+msgstr "Drag a bar to move its dates, drag its edge to make it longer or shorter. Moved it by mistake? {undoShortcut}. Click a task to open it: assignees, subtasks, comments."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Drag and drop image files into the description area."
@@ -2062,6 +2060,10 @@ msgstr "Drag and drop image files into the description area."
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Drag to reorder"
 msgstr "Drag to reorder"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Drag to reschedule"
+msgstr "Drag to reschedule"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw every project in its own colour instead of the palette."
@@ -2120,6 +2122,18 @@ msgstr "Each day is coloured by how busy the team is: tasks per person who is ac
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Each row is a person, each bar is one of their tasks, and its colour is the project. The red-striped column is today."
+msgstr "Each row is a person, each bar is one of their tasks, and its colour is the project. The red-striped column is today."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Each row is a person, each bar is one of their tasks. Scroll down for the whole team, sideways for other days."
+msgstr "Each row is a person, each bar is one of their tasks. Scroll down for the whole team, sideways for other days."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Each row is a project, each bar is one of its tasks. The red-striped column is today."
+msgstr "Each row is a project, each bar is one of its tasks. The red-striped column is today."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Easter eggs"
@@ -2223,10 +2237,6 @@ msgstr "editor"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Editor"
 msgstr "Editor"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Editors and admins add widgets here to build the dashboard."
-msgstr "Editors and admins add widgets here to build the dashboard."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -2587,10 +2597,6 @@ msgstr "Filter milestones by team"
 msgid "Filter settings"
 msgstr "Filter settings"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Filter tasks by project, people, groups, statuses and tags."
-msgstr "Filter tasks by project, people, groups, statuses and tags."
-
 #. placeholder {0}: filterLabels[widget.statusFilter]
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
@@ -2602,7 +2608,6 @@ msgstr "Filter: {0}"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -2645,12 +2650,6 @@ msgstr "Find a task"
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
 msgstr "Find or add customer..."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Finish"
-msgstr "Finish"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -2724,6 +2723,10 @@ msgstr "Generate a new export"
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Get notified in this browser about your tasks, even when Motio isn't open."
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Getting started"
+msgstr "Getting started"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Give the subtask with pictures a title, or remove it."
 msgstr "Give the subtask with pictures a title, or remove it."
@@ -2751,6 +2754,8 @@ msgid "Good morning!"
 msgstr "Good morning!"
 
 #: src/features/announcements/components/AnnouncementsHost.tsx
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+#: src/features/onboarding/lib/onboardingTour.ts
 msgid "Got it"
 msgstr "Got it"
 
@@ -2828,10 +2833,6 @@ msgstr "Groups: {0}"
 msgid "Heatmap"
 msgstr "Heatmap"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
-msgstr "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
-
 #: src/features/planner/components/timeline/TimelineSearchStrip.tsx
 msgid "hidden by filters"
 msgstr "hidden by filters"
@@ -2861,6 +2862,10 @@ msgstr "High priority"
 #: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "History"
 msgstr "History"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Hold for quick actions"
+msgstr "Hold for quick actions"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Hold the widget header to enable moving."
@@ -3015,10 +3020,6 @@ msgstr "Invited by"
 msgid "Invites"
 msgstr "Invites"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Invites, roles and workspace access live in workspace settings, under \"Members and access\"."
-msgstr "Invites, roles and workspace access live in workspace settings, under \"Members and access\"."
-
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
 msgstr "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
@@ -3118,10 +3119,6 @@ msgstr "Leave workspace"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Leave workspace?"
 msgstr "Leave workspace?"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
-msgstr "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
@@ -3424,6 +3421,10 @@ msgstr "Milestones"
 msgid "Milestones still ahead"
 msgstr "Milestones still ahead"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Milestones: deadlines for everyone"
+msgstr "Milestones: deadlines for everyone"
+
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
@@ -3602,7 +3603,6 @@ msgstr "New owner"
 msgid "New owner: {0}"
 msgstr "New owner: {0}"
 
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "New project"
@@ -3629,16 +3629,7 @@ msgid "New widget"
 msgstr "New widget"
 
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
@@ -3654,14 +3645,6 @@ msgstr "Next match"
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Next page"
 msgstr "Next page"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Next, we'll open Projects to show where project details, tasks and assignees are visible."
-msgstr "Next, we'll open Projects to show where project details, tasks and assignees are visible."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Next, we'll open the dashboard and show where widgets are added and arranged."
-msgstr "Next, we'll open the dashboard and show where widgets are added and arranged."
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "No active members match the search."
@@ -4340,10 +4323,6 @@ msgstr "Open"
 msgid "Open Account settings to download the file."
 msgstr "Open Account settings to download the file."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open dashboard"
-msgstr "Open dashboard"
-
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Open fullscreen"
 msgstr "Open fullscreen"
@@ -4375,10 +4354,6 @@ msgstr "Open on timeline"
 msgid "Open project"
 msgstr "Open project"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open projects"
-msgstr "Open projects"
-
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Open source (AGPL-3.0)"
 msgstr "Open source (AGPL-3.0)"
@@ -4390,10 +4365,6 @@ msgstr "Open source under AGPL-3.0"
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
 msgid "Open task"
 msgstr "Open task"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open team"
-msgstr "Open team"
 
 #: src/features/marketing/components/HeroClip.tsx
 msgid "Open the live demo"
@@ -4530,9 +4501,8 @@ msgid "People access"
 msgstr "People access"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "People and groups"
-msgstr "People and groups"
+msgid "People or projects"
+msgstr "People or projects"
 
 #: src/features/members/pages/MembersPage.tsx
 msgid "People sections"
@@ -4708,6 +4678,10 @@ msgstr "Project changed"
 msgid "Project colours"
 msgstr "Project colours"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Project deadlines live in this row, above everyone's tasks."
+msgstr "Project deadlines live in this row, above everyone's tasks."
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Project name"
@@ -4745,8 +4719,6 @@ msgid "Project: all"
 msgstr "Project: all"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
@@ -4764,10 +4736,6 @@ msgstr "Projects"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Projects & milestones"
 msgstr "Projects & milestones"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Projects, milestones and clients"
-msgstr "Projects, milestones and clients"
 
 #. placeholder {0}: selectedProjects.length
 #: src/features/planner/components/board/BoardQuickFilters.tsx
@@ -5312,6 +5280,10 @@ msgstr "Search tasks..."
 msgid "Search types..."
 msgstr "Search types..."
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Sections"
+msgstr "Sections"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
@@ -5591,6 +5563,10 @@ msgstr "Show it to everyone again?"
 msgid "Show legend"
 msgstr "Show legend"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Show me"
+msgstr "Show me"
+
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 msgid "Show only this person"
 msgstr "Show only this person"
@@ -5657,6 +5633,7 @@ msgstr "Signed in"
 msgid "Signed in as {0}"
 msgstr "Signed in as {0}"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Skip"
@@ -5712,10 +5689,6 @@ msgstr "SSO via Keycloak"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Star"
 msgstr "Star"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Start"
-msgstr "Start"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TimeOffFields.tsx
@@ -5824,8 +5797,12 @@ msgid "Sun"
 msgstr "Sun"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
-msgstr "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
+msgid "Switch to People to see the same tasks with one row per person — a quick way to spot who is overloaded."
+msgstr "Switch to People to see the same tasks with one row per person — a quick way to spot who is overloaded."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Switch to Projects to see the same tasks with one row per project — a quick way to check that every project has someone on it."
+msgstr "Switch to Projects to see the same tasks with one row per project — a quick way to check that every project has someone on it."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "System"
@@ -5860,9 +5837,21 @@ msgstr "Tag"
 msgid "Tags"
 msgstr "Tags"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap a task for a quick look"
+msgstr "Tap a task for a quick look"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap the pencil button at the bottom, or double-tap an empty day in someone's row."
+msgstr "Tap the pencil button at the bottom, or double-tap an empty day in someone's row."
+
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Tap to copy"
 msgstr "Tap to copy"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap, double-tap, hold"
+msgstr "Tap, double-tap, hold"
 
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -5970,8 +5959,6 @@ msgstr "Teal"
 msgid "Team"
 msgstr "Team"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Team access"
 msgstr "Team access"
@@ -6052,6 +6039,10 @@ msgstr "The pattern drawn on your days off. Your teammates see it too"
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
 msgstr "The previous export file has expired. Request it again."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "The rest is up here"
+msgstr "The rest is up here"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "The sandbox will be cleared and you will return to the home page."
@@ -6168,10 +6159,6 @@ msgstr "This is the load that counts as 100%. Leave empty to auto-tune it from y
 msgid "This is the only time it is shown. Store it in the system that will use it; if it is lost, revoke it and create a new one."
 msgstr "This is the only time it is shown. Store it in the system that will use it; if it is lost, revoke it and create a new one."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "This is where your workspace projects are listed and reviewed."
-msgstr "This is where your workspace projects are listed and reviewed."
-
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this milestone"
 msgstr "this milestone"
@@ -6286,6 +6273,10 @@ msgstr "Time off pattern"
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Timeline"
 msgstr "Timeline"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Timeline, Dashboard, Projects and Team are at the top: tap one or swipe along the header. Your avatar opens the menu and settings."
+msgstr "Timeline, Dashboard, Projects and Team are at the top: tap one or swipe along the header. Your avatar opens the menu and settings."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6678,18 +6669,9 @@ msgstr "Use current workspace"
 msgid "Use ISO code (for example RU, US, DE)."
 msgstr "Use ISO code (for example RU, US, DE)."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Use Team to browse people, groups and task ownership inside the workspace."
-msgstr "Use Team to browse people, groups and task ownership inside the workspace."
-
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Use the Widget button to add your first widget."
 msgstr "Use the Widget button to add your first widget."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Use this button to add KPI, chart and milestone widgets to the dashboard."
-msgstr "Use this button to add KPI, chart and milestone widgets to the dashboard."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6800,10 +6782,6 @@ msgstr "Waves"
 msgid "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 msgstr "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."
-msgstr "We'll open Team next so you can see where invitations, roles and workspace access are managed."
-
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Week"
@@ -6820,10 +6798,6 @@ msgstr "Weekly"
 #: src/shared/lib/repeatLabels.ts
 msgid "Weekly recurring"
 msgstr "Weekly recurring"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Welcome to Motio!"
-msgstr "Welcome to Motio!"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "What is switched on"
@@ -6870,10 +6844,6 @@ msgstr "Why Motio"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Widget"
 msgstr "Widget"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Widgets"
-msgstr "Widgets"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Will start on the timeline"
@@ -7051,14 +7021,6 @@ msgstr "You have view access and cannot manage members."
 msgid "You need to sign in again before adding comments."
 msgstr "You need to sign in again before adding comments."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "You now know where to create work, track progress and add people across Motio."
-msgstr "You now know where to create work, track progress and add people across Motio."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "You now know where to find timelines, dashboards, projects and team members in Motio."
-msgstr "You now know where to find timelines, dashboards, projects and team members in Motio."
-
 #: src/features/auth/hooks/useInboxFeed.ts
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You were added to a new workspace."
@@ -7072,6 +7034,10 @@ msgstr "You will lose access to this workspace. Your tasks stay and reattach to 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "You will need to sign in again to get back to your workspace."
 msgstr "You will need to sign in again to get back to your workspace."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "You'll see its description, subtasks and comments. You have view access: editors and admins change the plan."
+msgstr "You'll see its description, subtasks and comments. You have view access: editors and admins change the plan."
 
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You've been invited to Motio"
@@ -7118,13 +7084,10 @@ msgstr "Your sign-in session expired. Please continue with Keycloak again."
 msgid "Your team's progress, always in view"
 msgstr "Your team's progress, always in view"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Your timeline"
-msgstr "Your timeline"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
-msgstr "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
+msgid "Your team's shared timeline"
+msgstr "Your team's shared timeline"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx

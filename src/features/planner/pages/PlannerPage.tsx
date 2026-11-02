@@ -36,7 +36,7 @@ import {
   readTimelineSidebarWidth,
   writeTimelineSidebarWidth,
 } from '@/features/planner/lib/timelineSidebarWidthStorage';
-import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
+import { OnboardingTour } from '@/features/onboarding/components/OnboardingTour';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 
@@ -261,10 +261,6 @@ const PlannerPage = () => {
     }
   }, [profilePreferences, storedSurface, setPlannerSurface]);
 
-  useOnboardingTour({
-    pageId: 'planner',
-    canEdit,
-  });
   const filtersHydratedRef = useRef(false);
   const timelineSidebarWidthHydratedRef = useRef(false);
   const centeredOnLoadRef = useRef(false);
@@ -609,6 +605,7 @@ const PlannerPage = () => {
       
       {/* Panels */}
       <TaskDetailPanel />
+      <OnboardingTour canEdit={canEdit} isAdmin={currentWorkspaceRole === 'admin'} />
       <WorkspaceCommonDialogs
         showSettings={showSettings}
         onShowSettingsChange={setShowSettings}

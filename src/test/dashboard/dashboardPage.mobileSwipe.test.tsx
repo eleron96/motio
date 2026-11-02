@@ -20,10 +20,6 @@ vi.mock('@/shared/lib/seo/usePageSeo', () => ({
   usePageSeo: vi.fn(),
 }));
 
-vi.mock('@/features/onboarding/hooks/useOnboardingTour', () => ({
-  useOnboardingTour: vi.fn(),
-}));
-
 vi.mock('@/features/workspace/components/WorkspaceLayout', () => ({
   useWorkspaceHeader: vi.fn(),
 }));
