@@ -66,10 +66,18 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
  * OVERLAY scrolls (mockup-style backdrop scrolling) instead of pinning the
  * card to the viewport and scrolling inside it.
  */
+interface DialogScrollContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  /**
+   * Drop the corner close button: for a step that must end in a choice, where
+   * a stray "close" would leave the person with nothing.
+   */
+  hideCloseButton?: boolean;
+}
+
 const DialogScrollContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  DialogScrollContentProps
+>(({ className, children, hideCloseButton = false, ...props }, ref) => (
   <DialogPortal>
     <DialogPrimitive.Overlay className="fixed inset-0 z-[var(--layer-modal)] overflow-y-auto bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
       {/* Non-scrolling wrapper: scroll containers collapse their own bottom
@@ -91,10 +99,12 @@ const DialogScrollContent = React.forwardRef<
           {/* right-1.5/top-1.5 with a 36px box puts the glyph exactly where
           right-4/top-4 put it, so nothing moves — but the target stops being
           16px, which on a phone is a coin toss. */}
-      <DialogPrimitive.Close className="absolute right-1.5 top-1.5 grid h-9 w-9 place-items-center rounded-md opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
+          {!hideCloseButton && (
+            <DialogPrimitive.Close className="absolute right-1.5 top-1.5 grid h-9 w-9 place-items-center rounded-md opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
         </DialogPrimitive.Content>
       </div>
     </DialogPrimitive.Overlay>

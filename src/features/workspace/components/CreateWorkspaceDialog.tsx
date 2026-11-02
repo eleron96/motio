@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Bookmark, Plus } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@/shared/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
+import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogScrollContent, DialogTitle } from '@/shared/ui/dialog';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/shared/ui/accordion';
@@ -14,6 +14,10 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { buildWorkspaceTemplateFromCatalog, type WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
+import type { WorkspaceStart } from '@/shared/domain/starterTemplate';
+import { STARTER_TEMPLATES } from '@/features/workspace/lib/starterTemplates';
+import { STARTER_TEMPLATE_ICONS } from '@/features/workspace/components/starterTemplateIcons';
+import { StarterTemplateOption } from '@/features/workspace/components/StarterTemplateOption';
 
 interface CreateWorkspaceDialogProps {
   open: boolean;
@@ -21,9 +25,11 @@ interface CreateWorkspaceDialogProps {
 }
 
 /**
- * "Create workspace" — the name plus the reusable template that seeds statuses,
- * task types and tags. Lives on its own so both the desktop workspace switcher
- * and the mobile workspaces screen open the same dialog.
+ * "Create workspace" — the name and what the workspace starts from: one of the
+ * starter templates (statuses, types, tags and a few examples, laid in right
+ * after creating) or the person's own saved set, which is edited further down.
+ * Lives on its own so both the desktop workspace switcher and the mobile
+ * workspaces screen open the same dialog.
  */
 export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ open, onOpenChange }) => {
   const { workspaces, createWorkspace } = useAuthStore(useShallow((state) => ({
@@ -45,6 +51,8 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
   })));
 
   const [workspaceName, setWorkspaceName] = useState('');
+  const [start, setStart] = useState<WorkspaceStart | null>(null);
+  const [ownSetSaved, setOwnSetSaved] = useState(false);
   const [createError, setCreateError] = useState('');
   const [creating, setCreating] = useState(false);
   const [templateStatuses, setTemplateStatuses] = useState<WorkspaceTemplate['statuses']>([]);
@@ -66,6 +74,7 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
     let active = true;
 
     const loadTemplate = async () => {
+      setStart(null);
       setTemplateLoading(true);
       setTemplateError('');
       setTemplateSaved(false);
@@ -73,19 +82,23 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
 
       if (!active) return;
       if (result.error) {
-        if (result.error !== t`No template saved yet.`) {
-          setTemplateError(result.error);
-        }
+        setTemplateError(result.error);
         setTemplateStatuses([]);
         setTemplateTypes([]);
         setTemplateTags([]);
+        setOwnSetSaved(false);
         setTemplateLoading(false);
         return;
       }
 
-      setTemplateStatuses(result.template?.statuses ?? []);
-      setTemplateTypes(result.template?.taskTypes ?? []);
-      setTemplateTags(result.template?.tags ?? []);
+      const saved = result.template;
+      const hasSaved = Boolean(saved && (saved.statuses.length + saved.taskTypes.length + saved.tags.length > 0));
+      setTemplateStatuses(saved?.statuses ?? []);
+      setTemplateTypes(saved?.taskTypes ?? []);
+      setTemplateTags(saved?.tags ?? []);
+      setOwnSetSaved(hasSaved);
+      // Someone who saved their own set most likely wants it again.
+      setStart(hasSaved ? 'own' : null);
       setTemplateLoading(false);
     };
 
@@ -109,6 +122,10 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
       return;
     }
     setTemplateSaved(true);
+    if (templateStatuses.length + templateTypes.length + templateTags.length > 0) {
+      setOwnSetSaved(true);
+      setStart('own');
+    }
   };
 
   const handleCopyWorkspaceToTemplate = () => {
@@ -158,10 +175,10 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
       setCreateError(t`Workspace limit reached (5).`);
       return;
     }
-    if (!workspaceName.trim()) return;
+    if (!workspaceName.trim() || !start) return;
 
     setCreating(true);
-    const result = await createWorkspace(workspaceName.trim());
+    const result = await createWorkspace(workspaceName.trim(), start);
     if (result.error) {
       setCreateError(result.error);
     } else {
@@ -173,8 +190,8 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogScrollContent className="max-w-2xl p-5 sm:p-6">
+        <DialogHeader className="mb-4">
           <DialogTitle>{t`Create workspace`}</DialogTitle>
           <DialogDescription className="sr-only">
             {t`Enter workspace name and optionally configure a template.`}
@@ -195,9 +212,37 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label id="workspace-start-label">{t`What does your team do?`}</Label>
+            <div role="radiogroup" aria-labelledby="workspace-start-label" className="grid gap-2 sm:grid-cols-2">
+              {ownSetSaved && (
+                <StarterTemplateOption
+                  icon={Bookmark}
+                  title={t`My own set`}
+                  summary={t`The statuses, types and tags you saved, without examples.`}
+                  selected={start === 'own'}
+                  onSelect={() => setStart('own')}
+                />
+              )}
+              {STARTER_TEMPLATES.map((template) => (
+                <StarterTemplateOption
+                  key={template.id}
+                  icon={STARTER_TEMPLATE_ICONS[template.id]}
+                  title={template.title()}
+                  summary={template.summary()}
+                  selected={start === template.id}
+                  onSelect={() => setStart(template.id)}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t`Industry templates come with a few examples that go away with one button.`}
+            </p>
+          </div>
+
           <Accordion type="single" collapsible className="rounded-md border px-3">
             <AccordionItem value="template" className="border-none">
-              <AccordionTrigger type="button" className="py-2 text-sm">{t`Workspace template`}</AccordionTrigger>
+              <AccordionTrigger type="button" className="py-2 text-sm">{t`Your own set of statuses, types and tags`}</AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-2">
@@ -425,12 +470,12 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t`Cancel`}
             </Button>
-            <Button type="submit" disabled={creating || !workspaceName.trim()}>
+            <Button type="submit" disabled={creating || !workspaceName.trim() || !start}>
               {t`Create`}
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
+      </DialogScrollContent>
     </Dialog>
   );
 };

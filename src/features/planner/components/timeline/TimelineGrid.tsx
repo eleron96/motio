@@ -599,6 +599,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 >
                   <div className="flex-shrink-0 border-b border-border" style={{ height: effectiveHeaderHeight }} />
                   <div
+                    data-tour="milestones-row"
                     className="flex flex-shrink-0 items-center justify-center gap-1.5 border-b border-border px-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
                     style={{ height: milestoneRowHeight }}
                   >
@@ -632,7 +633,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
             {/* Timeline rows */}
             {displayRows.map((row, rowIndex) => (
-              <div key={row.id} className="flex">
+              <div
+                key={row.id}
+                className="flex"
+                data-tour={rowIndex === 0 ? 'timeline-first-row' : undefined}
+              >
                 <TimelineSidebarRow
                   row={row}
                   width={resolvedSidebarWidth}

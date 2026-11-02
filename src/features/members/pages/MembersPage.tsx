@@ -41,7 +41,6 @@ import { useMembersFilter } from '@/features/members/hooks/useMembersFilter';
 import { useMemberGroups } from '@/features/members/hooks/useMemberGroups';
 import { useMembersPageMode } from '@/features/members/hooks/useMembersPageMode';
 import { useMemberTaskFetcher } from '@/features/members/hooks/useMemberTaskFetcher';
-import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 
 /**
  * Order of the phone sections. The pill strip, the swipe deck and the dots all
@@ -159,11 +158,6 @@ const MembersPage = () => {
 
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const isAdmin = currentWorkspaceRole === 'admin';
-
-  useOnboardingTour({
-    pageId: 'members',
-    isAdmin,
-  });
 
   const roleLabels: Record<WorkspaceRole, string> = {
     admin: t`Admin`,

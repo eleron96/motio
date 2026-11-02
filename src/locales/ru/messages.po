@@ -457,6 +457,7 @@ msgstr "Действующие токены"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
 msgid "Add"
 msgstr "Добавить"
 
@@ -482,9 +483,9 @@ msgstr "Добавьте комментарий или обновление..."
 msgid "Add a description..."
 msgstr "Добавьте описание..."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Add a widget"
-msgstr "Добавить виджет"
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Add a task"
+msgstr "Новая задача"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
@@ -495,6 +496,11 @@ msgstr "Добавьте активных исполнителей, чтобы �
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "Add customer contact"
 msgstr "Добавить контакт клиента"
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Add from a template"
+msgstr "Добавить из шаблона"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Add group"
@@ -569,6 +575,14 @@ msgstr "Добавить виджет"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Add your name"
 msgstr "Добавьте имя"
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Added — statuses: {statuses}, task types: {taskTypes}, tags: {tags}."
+msgstr "Добавлено — статусов: {statuses}, типов задач: {taskTypes}, тегов: {tags}."
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Adds the statuses, task types and tags this workspace lacks. Nothing is removed and no examples are added."
+msgstr "Добавит статусы, типы задач и теги, которых в пространстве ещё нет. Ничего не удаляется, примеры не добавляются."
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 msgid "Adds this delivery to the workload heatmap. Untick for milestones that don't occupy the team."
@@ -651,11 +665,6 @@ msgstr "Все проекты"
 msgid "All results"
 msgstr "Все результаты"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "All set!"
-msgstr "Всё готово!"
-
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -686,10 +695,18 @@ msgstr "Всегда"
 msgid "Analytics"
 msgstr "Аналитика"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Anna Peters"
+msgstr "Анна Петрова"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Announcement"
 msgstr "Анонс"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Answer client comments"
+msgstr "Ответить на замечания заказчика"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
@@ -702,6 +719,10 @@ msgstr "API"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "API gateway"
 msgstr "API-шлюз"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "API rate limits"
+msgstr "Лимиты запросов к API"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "API reference"
@@ -719,13 +740,17 @@ msgstr "Оформление"
 msgid "Apply changes to repeating tasks?"
 msgstr "Применить изменения к повторяющимся задачам?"
 
-#: src/features/workspace/components/SettingsPanel.tsx
-msgid "Apply template"
-msgstr "Применить шаблон"
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Architects, engineers, interior designers: several buildings at once, handovers to the client."
+msgstr "Архитекторы, инженеры, дизайнеры интерьеров: несколько объектов сразу, сдачи заказчику."
 
-#: src/features/workspace/components/SettingsPanel.tsx
-msgid "Apply your saved template to this workspace (adds missing items by name)."
-msgstr "Применить сохраненный шаблон к этому рабочему пространству (добавит отсутствующие элементы по имени)."
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Architecture"
+msgstr "Архитектура"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Architecture and design"
+msgstr "Архитектура и проектирование"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -760,6 +785,10 @@ msgstr "Архивные проекты скрыты в фильтрах."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Area chart"
 msgstr "Площадная диаграмма"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "As-built documents"
+msgstr "Исполнительная документация"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Assign"
@@ -804,6 +833,10 @@ msgstr "Исполнители"
 msgid "Audience"
 msgstr "Аудитория"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Audit the architectural model"
+msgstr "Аудит архитектурной модели"
+
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Authentication error"
 msgstr "Ошибка аутентификации"
@@ -838,21 +871,6 @@ msgstr "В отпуске: {0} из {1}"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/shared/ui/mobile-form-screen.tsx
 #: src/shared/ui/mobile-screen-shell.tsx
 #: src/shared/ui/mobile-stack-screen.tsx
@@ -866,6 +884,10 @@ msgstr "На главную"
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 msgid "Back to today"
 msgstr "Вернуться к сегодняшней дате"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Backend"
+msgstr "Бэкенд"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Backup & restore"
@@ -905,6 +927,22 @@ msgstr "За вашим reverse proxy"
 msgid "best week: {bestWeek}"
 msgstr "лучшая неделя — {bestWeek}"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Beta for partners"
+msgstr "Бета для партнёров"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "BIM and project support"
+msgstr "BIM и сопровождение проектов"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "BIM teams, technical support, quality control: requests from many projects and regular checks."
+msgstr "BIM-отделы, техподдержка, контроль качества: запросы от разных проектов и регулярные проверки."
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "BIM weekly sync"
+msgstr "Еженедельная BIM-планёрка"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Двухнедельная (раз в две недели)"
@@ -925,6 +963,18 @@ msgstr "Рассылка"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Browser notifications"
 msgstr "Уведомления в браузере"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Bug"
+msgstr "Ошибка"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Building enclosed"
+msgstr "Коробка закрыта"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Building services"
+msgstr "Инженерные системы"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "By email domain"
@@ -1044,6 +1094,11 @@ msgstr "Отменено"
 msgid "Cancelled"
 msgstr "Отменен"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "Cancelled"
+msgstr "Отменена"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Cancelled status"
 msgstr "Отмененный статус"
@@ -1086,6 +1141,10 @@ msgstr "Палитра графика"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Chart style"
 msgstr "Стиль графика"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Check the coordinate system"
+msgstr "Проверить систему координат"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Check your inbox"
@@ -1140,6 +1199,10 @@ msgstr "Выберите группу для {memberName}."
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Choose where to apply this change."
 msgstr "Выберите, к каким задачам применить это изменение."
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Clash detection: structure and services"
+msgstr "Поиск коллизий: конструкции и инженерия"
 
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
@@ -1199,8 +1262,16 @@ msgid "Clearing…"
 msgstr "Очищаем…"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Click this button or double-click a date on the timeline to open the task form."
-msgstr "Нажмите эту кнопку или дважды кликните по дате на таймлайне, чтобы открыть форму задачи."
+msgid "Click a task to open it"
+msgstr "Щёлкните по задаче"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Client correspondence"
+msgstr "Переписка с заказчиком"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Client review"
+msgstr "На согласовании"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -1311,6 +1382,10 @@ msgstr "Выполнено"
 msgid "Completion trend"
 msgstr "Тренд выполнения"
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Concept presentation"
+msgstr "Презентация концепции"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Configure widget type, display style, and filters."
 msgstr "Настройте тип виджета, стиль отображения и фильтры."
@@ -1318,6 +1393,10 @@ msgstr "Настройте тип виджета, стиль отображен�
 #: src/features/planner/hooks/usePlannerLiveSync.ts
 msgid "Connection restored"
 msgstr "Соединение восстановлено"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Construction and installation"
+msgstr "Строительство и монтаж"
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Contact"
@@ -1344,7 +1423,6 @@ msgid "Contains an image"
 msgstr "Есть вложенная картинка"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 msgid "Continue"
 msgstr "Продолжить"
 
@@ -1355,6 +1433,18 @@ msgstr "Продолжить через Keycloak"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Continue with Keycloak to access the workspace."
 msgstr "Продолжите через Keycloak для доступа к рабочему пространству."
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Coordinate the structural grid"
+msgstr "Согласовать сетку осей с конструктором"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Coordinated model handover"
+msgstr "Передача сводной модели"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Coordination"
+msgstr "Координация"
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ContactPopup.tsx
@@ -1412,6 +1502,10 @@ msgstr "Не удалось включить уведомления. Попро�
 msgid "Couldn't save the task. Check your connection and try again."
 msgstr "Не удалось сохранить задачу. Проверьте соединение и попробуйте ещё раз."
 
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "Couldn't set up the workspace. Try again."
+msgstr "Не получилось подготовить пространство. Попробуйте ещё раз."
+
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — the task was already changed"
 msgstr "Не удалось отменить: задачу уже изменили"
@@ -1436,6 +1530,10 @@ msgstr "Код страны должен состоять из 2 букв."
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 msgid "Counts toward department workload"
 msgstr "Влияет на загрузку отдела"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Crash on older Android phones"
+msgstr "Падение на старых Android-телефонах"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/members/components/MembersDialogs.tsx
@@ -1468,14 +1566,6 @@ msgstr "Создайте новую веху для выбранной даты.
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Create a new project and assign customer, code, and color."
 msgstr "Создайте проект и задайте клиента, код и цвет."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Create a new project here, then group tasks and milestones inside it."
-msgstr "Создайте здесь новый проект, а затем объединяйте в нём задачи и вехи."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Create a task"
-msgstr "Создайте задачу"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Create account"
@@ -1549,6 +1639,10 @@ msgstr "Создает повторы на следующие 12 месяцев.
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Creates the specified number of repeats."
 msgstr "Создает указанное количество повторов."
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Crews on sites and field work: who is where this week."
+msgstr "Бригады на объектах и выездные работы: кто где на этой неделе."
 
 #: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/AssignGroupDialog.tsx
@@ -1628,14 +1722,9 @@ msgid "Danger zone"
 msgstr "Опасная зона"
 
 #: src/features/marketing/pages/LandingPage.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Dashboard"
 msgstr "Дашборд"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Dashboard canvas"
-msgstr "Полотно дашборда"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboard limit reached (10)."
@@ -1650,6 +1739,14 @@ msgstr "Название дашборда"
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboard settings"
 msgstr "Настройки дашборда"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups."
+msgstr "Дашборд — графики загрузки, Проекты — клиенты и вехи, Команда — люди и группы."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups. To invite colleagues, open the gear next to the workspace name."
+msgstr "Дашборд — графики загрузки, Проекты — клиенты и вехи, Команда — люди и группы. Пригласить коллег — шестерёнка рядом с названием пространства."
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/dashboard/pages/DashboardPage.tsx
@@ -1910,6 +2007,10 @@ msgstr "доставлено {0} из {1}"
 msgid "Deliveries, coloured by project."
 msgstr "Сдачи, цвет — по проекту."
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Delivery"
+msgstr "Поставка"
+
 #: src/features/demo/components/DemoBanner.tsx
 msgid "Demo sandbox"
 msgstr "Демо-песочница"
@@ -1920,6 +2021,18 @@ msgstr "Демо-песочница"
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Description"
 msgstr "Описание"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Design"
+msgstr "Дизайн"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Design review"
+msgstr "Проверка проекта"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Design work"
+msgstr "Проектирование"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Designed and developed by <0>NIKO G.</0>"
@@ -2037,6 +2150,31 @@ msgstr "Завершено"
 msgid "taskDetail.footer.done"
 msgstr "Готово"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "Done"
+msgstr "Готово"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click a day in this row to add a project milestone. Everyone sees it above their own tasks."
+msgstr "Двойной клик по дню в этой строке ставит веху проекта. Её видят все — над своими задачами."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click a day to add a task"
+msgstr "Двойной клик по дню — новая задача"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click any day in a person's row: the form opens with that person and date already filled in. The Add task button at the top does the same."
+msgstr "Дважды щёлкните по любому дню в строке человека — форма откроется сразу с ним и этой датой. Кнопка «Добавить задачу» сверху делает то же самое."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Double-click any day in a project's row: the form opens with that project and date already filled in. The Add task button at the top does the same."
+msgstr "Дважды щёлкните по любому дню в строке проекта — форма откроется сразу с ним и этой датой. Кнопка «Добавить задачу» сверху делает то же самое."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Double-tap to open it"
+msgstr "Двойной тап — открыть задачу"
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Download export"
 msgstr "Скачать экспорт"
@@ -2054,6 +2192,10 @@ msgstr "черновиков: {0}"
 msgid "Drag & drop or click to select a photo"
 msgstr "Перетащите или нажмите, чтобы выбрать фото"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Drag a bar to move its dates, drag its edge to make it longer or shorter. Moved it by mistake? {undoShortcut}. Click a task to open it: assignees, subtasks, comments."
+msgstr "Потяните полоску — сдвинутся даты, потяните за край — изменится длительность. Ошиблись — {undoShortcut}. Щелчок по задаче открывает её: исполнители, подзадачи, комментарии."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Drag and drop image files into the description area."
@@ -2062,6 +2204,10 @@ msgstr "Перетащите изображения в область описа
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Drag to reorder"
 msgstr "Перетащите, чтобы изменить порядок"
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Drag to reschedule"
+msgstr "Тяните, чтобы перенести"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw every project in its own colour instead of the palette."
@@ -2074,6 +2220,10 @@ msgstr "Рисовать каждый статус его цветом, а не 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw everyone in their own colour from workspace settings instead of the palette."
 msgstr "Рисовать каждого его цветом из настроек пространства, а не цветом палитры."
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Drawing set for the client"
+msgstr "Комплект чертежей для заказчика"
 
 #: src/features/planner/components/board/BoardCard.tsx
 msgid "Due date"
@@ -2120,6 +2270,18 @@ msgstr "Каждый день окрашен по тому, насколько �
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Каждое утро начинается с короткого брифа. Что на вас сегодня, какие вехи на этой неделе, где команде нужна ваша помощь. До того как вы откроете что-то ещё."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Each row is a person, each bar is one of their tasks, and its colour is the project. The red-striped column is today."
+msgstr "Каждая строка — человек, каждая полоска — его задача, цвет — проект. Столбец в красную штриховку — сегодня."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Each row is a person, each bar is one of their tasks. Scroll down for the whole team, sideways for other days."
+msgstr "Каждая строка — человек, каждая полоска — его задача. Листайте вниз — вся команда, вбок — другие дни."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Each row is a project, each bar is one of its tasks. The red-striped column is today."
+msgstr "Каждая строка — проект, каждая полоска — его задача. Столбец в красную штриховку — сегодня."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Easter eggs"
@@ -2224,14 +2386,14 @@ msgstr "редактор"
 msgid "Editor"
 msgstr "Редактор"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Editors and admins add widgets here to build the dashboard."
-msgstr "Редакторы и администраторы добавляют здесь виджеты, чтобы собрать дашборд."
-
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Egg"
 msgstr "Пасхалка"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Electrical"
+msgstr "Электрика"
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -2266,6 +2428,10 @@ msgstr "Эмодзи"
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Empty means it stays until each person dismisses it."
 msgstr "Пусто — висит, пока каждый не закроет сам."
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Empty workspace"
+msgstr "Пустое пространство"
 
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -2420,6 +2586,10 @@ msgstr "Экспериментальная функция — её включа�
 msgid "Expired"
 msgstr "Истекло"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Export"
+msgstr "Выгрузка"
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Export my data"
 msgstr "Экспортировать мои данные"
@@ -2440,6 +2610,10 @@ msgstr "Внешний"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "External (not in Motio)"
 msgstr "Внешний (не в Motio)"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Facade model"
+msgstr "Модель фасада"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -2540,6 +2714,14 @@ msgstr "Не удалось обновить подзадачу."
 msgid "Failed to upload image"
 msgstr "Не удалось загрузить изображение"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Feature"
+msgstr "Доработка"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Federated model for the design review"
+msgstr "Сводная модель к проверке проекта"
+
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "File is too large"
@@ -2587,10 +2769,6 @@ msgstr "Фильтр вех по команде"
 msgid "Filter settings"
 msgstr "Настройки фильтра"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Filter tasks by project, people, groups, statuses and tags."
-msgstr "Фильтруйте задачи по проектам, людям, группам, статусам и тегам."
-
 #. placeholder {0}: filterLabels[widget.statusFilter]
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
@@ -2602,7 +2780,6 @@ msgstr "Фильтр: {0}"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/pages/PlannerPage.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -2619,6 +2796,10 @@ msgstr "Фильтры"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Final"
 msgstr "Финальный"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Final inspection"
+msgstr "Итоговая приёмка"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Final status"
@@ -2646,16 +2827,22 @@ msgstr "Найти задачу"
 msgid "Find or add customer..."
 msgstr "Найти или добавить клиента..."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Finish"
-msgstr "Завершить"
-
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Finished"
 msgstr "Завершено"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Fix issues after the audit"
+msgstr "Исправить замечания по аудиту"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Fix slow search"
+msgstr "Ускорить медленный поиск"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Floor plans, levels 1–4"
+msgstr "Планировки 1–4 этажей"
 
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "For grouping — e.g. a field or department: Design, Development, АР"
@@ -2686,6 +2873,10 @@ msgstr "Бесплатный планировщик с открытым кодо
 msgid "From"
 msgstr "С"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Frontend"
+msgstr "Фронтенд"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Full data export"
 msgstr "Полная выгрузка данных"
@@ -2712,6 +2903,10 @@ msgstr "Имя и фамилия"
 msgid "Full working day (tasks per person)"
 msgstr "Полный рабочий день (задач на человека)"
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Furniture layout"
+msgstr "Расстановка мебели"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "General"
 msgstr "Общие"
@@ -2723,6 +2918,10 @@ msgstr "Сформировать новый экспорт"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Получайте в этом браузере уведомления о задачах, даже когда Motio закрыт."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Getting started"
+msgstr "Знакомство с Motio"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Give the subtask with pictures a title, or remove it."
@@ -2751,6 +2950,8 @@ msgid "Good morning!"
 msgstr "Доброе утро!"
 
 #: src/features/announcements/components/AnnouncementsHost.tsx
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+#: src/features/onboarding/lib/onboardingTour.ts
 msgid "Got it"
 msgstr "Понятно"
 
@@ -2824,13 +3025,21 @@ msgstr "Группы"
 msgid "Groups: {0}"
 msgstr "Группы: {0}"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Handover to the client"
+msgstr "Сдача заказчику"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Handover to the contractor"
+msgstr "Передача подрядчику"
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Heatmap"
 msgstr "Тепловая карта"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Here you can see all tasks on a timeline. Drag, resize and plan work across the team."
-msgstr "Здесь вы видите все задачи на таймлайне. Перетаскивайте, растягивайте и планируйте работу команды."
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Help set up drawing sheets"
+msgstr "Помочь настроить листы чертежей"
 
 #: src/features/planner/components/timeline/TimelineSearchStrip.tsx
 msgid "hidden by filters"
@@ -2862,6 +3071,10 @@ msgstr "Высокий приоритет"
 msgid "History"
 msgstr "История"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Hold for quick actions"
+msgstr "Удержание — меню действий"
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Hold the widget header to enable moving."
 msgstr "Удерживайте заголовок виджета, чтобы включить перемещение."
@@ -2889,6 +3102,10 @@ msgstr "Праздник:"
 msgid "Holidays"
 msgstr "Праздники"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Hospital wing"
+msgstr "Корпус больницы"
+
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "Я соглашаюсь с <0>Политикой конфиденциальности</0>"
@@ -2904,6 +3121,14 @@ msgstr "Меня зовут Niko G. Много лет я веду команды
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "Если вопрос «кто чем занят на этой неделе» регулярно всплывает в вашей команде, значит пора попробовать Motio."
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "IFC delivery to the client"
+msgstr "Сдача IFC заказчику"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "IFC export for the client"
+msgstr "Выгрузка IFC для заказчика"
 
 #: src/shared/ui/image-lightbox.tsx
 msgid "Image"
@@ -2942,6 +3167,15 @@ msgstr "в работе"
 msgid "In progress"
 msgstr "В работе"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "In progress"
+msgstr "В работе"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "In review"
+msgstr "На ревью"
+
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "In the app"
@@ -2959,6 +3193,10 @@ msgstr "Включить без исполнителя"
 msgid "Industry / segment"
 msgstr "Индустрия / сегмент"
 
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+msgid "Industry templates come with a few examples that go away with one button."
+msgstr "В отраслевых шаблонах есть несколько примеров, они убираются одной кнопкой."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Information"
 msgstr "Информация"
@@ -2971,10 +3209,22 @@ msgstr "Чернильно-чёрный"
 msgid "Insert image"
 msgstr "Вставить изображение"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Inspection"
+msgstr "Осмотр"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Install ventilation units"
+msgstr "Монтаж вентустановок"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Interface color"
 msgstr "Цвет интерфейса"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Interior"
+msgstr "Интерьер"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Interrupts once with a dialog. Use for maintenance and outages."
@@ -3014,10 +3264,6 @@ msgstr "Пригласил"
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Invites"
 msgstr "Приглашения"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Invites, roles and workspace access live in workspace settings, under \"Members and access\"."
-msgstr "Приглашения, роли и доступ к пространству живут в настройках рабочего пространства, в разделе «Участники и доступ»."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
@@ -3119,14 +3365,18 @@ msgstr "Покинуть рабочее пространство"
 msgid "Leave workspace?"
 msgstr "Покинуть рабочее пространство?"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Let's quickly walk through the key places in your workspace. You can skip this tour at any time."
-msgstr "Давайте быстро посмотрим на ключевые места в рабочем пространстве. Тур можно пропустить в любой момент."
-
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Level"
 msgstr "Уровень"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Lighting installation"
+msgstr "Монтаж освещения"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Lighting plan"
+msgstr "План освещения"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Like what you see? Save your work."
@@ -3298,6 +3548,10 @@ msgstr "Отметить как прочитанное"
 msgid "Mark as unread"
 msgstr "Отметить как непрочитанное"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Mark Collins"
+msgstr "Игорь Соколов"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -3325,6 +3579,10 @@ msgstr "Совпадает любое правило (ИЛИ)"
 msgid "Matches over time"
 msgstr "Совпадения по времени"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Material delivery"
+msgstr "Поставка материалов"
+
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
 #: src/features/planner/hooks/useDraftSubtaskImages.ts
@@ -3342,6 +3600,10 @@ msgstr "Средний"
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Medium priority"
 msgstr "Средний приоритет"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Meeting"
+msgstr "Совещание"
 
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -3424,12 +3686,40 @@ msgstr "Вехи"
 msgid "Milestones still ahead"
 msgstr "Предстоящие вехи"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Milestones: deadlines for everyone"
+msgstr "Вехи — общие сроки"
+
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Mine"
 msgstr "Мои"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Mobile app"
+msgstr "Мобильное приложение"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Model audit"
+msgstr "Аудит модели"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Model check before handover"
+msgstr "Проверка модели перед сдачей"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Model exchange with the contractor"
+msgstr "Обмен моделями с подрядчиком"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Modelling"
+msgstr "Моделирование"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Monday crew briefing"
+msgstr "Планёрка бригад в понедельник"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Monochrome"
@@ -3451,6 +3741,10 @@ msgstr "Ежемесячно"
 #: src/shared/lib/repeatLabels.ts
 msgid "Monthly recurring"
 msgstr "Ежемесячный повтор"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Mood board and materials"
+msgstr "Мудборд и материалы"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -3498,6 +3792,12 @@ msgstr "Режим перемещения включен. Перетащите �
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Move to another group"
 msgstr "Перенести в другую группу"
+
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "My own set"
+msgstr "Свой набор"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "My team workspace"
@@ -3602,7 +3902,6 @@ msgstr "Новый владелец"
 msgid "New owner: {0}"
 msgstr "Новый владелец: {0}"
 
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "New project"
@@ -3629,16 +3928,7 @@ msgid "New widget"
 msgstr "Новый виджет"
 
 #: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/timeline/TimelineControls.tsx
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
@@ -3655,13 +3945,9 @@ msgstr "Следующее совпадение"
 msgid "Next page"
 msgstr "Следующая страница"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Next, we'll open Projects to show where project details, tasks and assignees are visible."
-msgstr "Дальше откроем «Проекты» и покажем, где видны детали проекта, задачи и исполнители."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Next, we'll open the dashboard and show where widgets are added and arranged."
-msgstr "Дальше откроем дашборд и покажем, где добавляются и расставляются виджеты."
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Nina Clarke"
+msgstr "Нина Орлова"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "No active members match the search."
@@ -3830,6 +4116,10 @@ msgstr "У контакта пока нет email или телефона."
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "No end date"
 msgstr "Без даты окончания"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "No examples, just basic statuses to start from."
+msgstr "Без примеров — только базовые статусы для начала."
 
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -4106,10 +4396,6 @@ msgstr "В команде пока никого нет. Нажмите +, что
 msgid "No teams yet."
 msgstr "Команд пока нет."
 
-#: src/features/workspace/components/CreateWorkspaceDialog.tsx
-msgid "No template saved yet."
-msgstr "Шаблон еще не сохранен."
-
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "No tokens yet."
 msgstr "Токенов пока нет."
@@ -4261,6 +4547,14 @@ msgstr "выкл."
 msgid "Off"
 msgstr "Выключено"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Office building"
+msgstr "Офисное здание"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Office renovation"
+msgstr "Ремонт офиса"
+
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "OK"
 msgstr "ОК"
@@ -4268,6 +4562,10 @@ msgstr "ОК"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "on"
 msgstr "вкл."
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "On hold"
+msgstr "Приостановлено"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
@@ -4340,10 +4638,6 @@ msgstr "Открытые"
 msgid "Open Account settings to download the file."
 msgstr "Откройте Настройки аккаунта, чтобы скачать файл."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open dashboard"
-msgstr "Открыть дашборд"
-
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "Open fullscreen"
 msgstr "Открыть во весь экран"
@@ -4375,10 +4669,6 @@ msgstr "Открыть на таймлайне"
 msgid "Open project"
 msgstr "Перейти к проекту"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open projects"
-msgstr "Открыть проекты"
-
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Open source (AGPL-3.0)"
 msgstr "Открытый код (AGPL-3.0)"
@@ -4390,10 +4680,6 @@ msgstr "Открытый код под лицензией AGPL-3.0"
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
 msgid "Open task"
 msgstr "Открыть"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Open team"
-msgstr "Открыть команду"
 
 #: src/features/marketing/components/HeroClip.tsx
 msgid "Open the live demo"
@@ -4477,6 +4763,10 @@ msgstr "Страница {pageIndex} из {totalPages}"
 msgid "Palm"
 msgstr "Пальма"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Paperwork"
+msgstr "Документы"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Parameters"
@@ -4530,9 +4820,8 @@ msgid "People access"
 msgstr "Участники"
 
 #: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "People and groups"
-msgstr "Люди и группы"
+msgid "People or projects"
+msgstr "Участники или проекты"
 
 #: src/features/members/pages/MembersPage.tsx
 msgid "People sections"
@@ -4601,9 +4890,21 @@ msgstr "Разместите задачи на таймлайне. Назнач�
 msgid "Plain text. Blank line starts a new paragraph."
 msgstr "Обычный текст. Пустая строка — новый абзац."
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Platform API"
+msgstr "API платформы"
+
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Please select an image file."
 msgstr "Пожалуйста, выберите файл изображения."
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Plumbing"
+msgstr "Сантехника"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Plumbing rough-in"
+msgstr "Черновая сантехника"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Postgres"
@@ -4635,6 +4936,14 @@ msgstr "Предыдущая страница"
 msgid "Previously entered"
 msgstr "Вводили ранее"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Pricing page build"
+msgstr "Вёрстка страницы цен"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Pricing page design"
+msgstr "Дизайн страницы цен"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4655,9 +4964,17 @@ msgstr "Приоритет изменён"
 msgid "Privacy Policy"
 msgstr "Политика конфиденциальности"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Private house"
+msgstr "Частный дом"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Product news by email"
 msgstr "Новости продукта на почту"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Product teams and studios: features, bugs and releases."
+msgstr "Продуктовые команды и студии: доработки, ошибки, релизы."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Product tour"
@@ -4708,6 +5025,10 @@ msgstr "Проект изменён"
 msgid "Project colours"
 msgstr "Цвета проектов"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Project deadlines live in this row, above everyone's tasks."
+msgstr "В этой строке — сроки проектов, над задачами всей команды."
+
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 msgid "Project name"
@@ -4745,8 +5066,6 @@ msgid "Project: all"
 msgstr "Проект: все"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
@@ -4764,10 +5083,6 @@ msgstr "Проекты"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Projects & milestones"
 msgstr "Проекты и вехи"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Projects, milestones and clients"
-msgstr "Проекты, вехи и клиенты"
 
 #. placeholder {0}: selectedProjects.length
 #: src/features/planner/components/board/BoardQuickFilters.tsx
@@ -4790,6 +5105,10 @@ msgstr "Опубликовать заново"
 msgid "Publish again…"
 msgstr "Опубликовать заново…"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Punch list"
+msgstr "Список недоделок"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Purge"
 msgstr "Удалить"
@@ -4803,12 +5122,17 @@ msgid "purge_after"
 msgstr "purge_after"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
 msgid "Push notifications"
 msgstr "Пуш-уведомления"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Push notifications aren't available right now."
 msgstr "Push-уведомления сейчас недоступны."
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Quality check"
+msgstr "Проверка"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Reaches {reach} people"
@@ -4846,6 +5170,18 @@ msgstr "Обновить"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Region"
 msgstr "Регион"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Regression testing"
+msgstr "Регрессионное тестирование"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Release 2.0"
+msgstr "Релиз 2.0"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Release notes"
+msgstr "Описание релиза"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -4912,6 +5248,10 @@ msgstr "Удалить подзадачу"
 #: src/features/planner/components/TagMultiSelect.tsx
 msgid "Remove tag"
 msgstr "Убрать тег"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Remove the old partitions"
+msgstr "Демонтаж старых перегородок"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Remove the sample projects, people and tasks this workspace started with"
@@ -5014,6 +5354,14 @@ msgstr "Не удалось сбросить. Попробуйте ещё раз
 msgid "Resetting…"
 msgstr "Сбрасываем…"
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Residential building by the park"
+msgstr "Жилой дом у парка"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Residential quarter"
+msgstr "Жилой квартал"
+
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Resize filters"
 msgstr "Изменить размер фильтров"
@@ -5062,6 +5410,10 @@ msgstr "Отозвать токен {0}"
 msgid "Right-click to add your first widget."
 msgstr "Щелкните правой кнопкой, чтобы добавить первый виджет."
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Riverside restaurant interior"
+msgstr "Интерьер ресторана на набережной"
+
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5088,6 +5440,10 @@ msgstr "Роль"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Role / job title"
 msgstr "Роль"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Roof membrane delivery"
+msgstr "Поставка кровельной мембраны"
 
 #: src/shared/lib/accentColor.ts
 msgid "Rose"
@@ -5138,13 +5494,25 @@ msgstr "Сохранить"
 msgid "Save as draft"
 msgstr "Сохранить черновиком"
 
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Save as my own set"
+msgstr "Сохранить как свой набор"
+
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Save template"
 msgstr "Сохранить шаблон"
 
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Save this workspace's statuses, task types and tags as your own set. It is offered when you create a new workspace."
+msgstr "Сохраните статусы, типы задач и теги этого пространства как свой набор — его можно будет выбрать при создании нового пространства."
+
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Save your work — create an account"
 msgstr "Сохраните работу — создайте аккаунт"
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Saved as your own set."
+msgstr "Сохранено как свой набор."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Saved."
@@ -5186,6 +5554,10 @@ msgstr "Запланировано на"
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "scheduled: {0}"
 msgstr "запланировано: {0}"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "School for 600 pupils"
+msgstr "Школа на 600 учеников"
 
 #: src/shared/ui/mobile-picker-screen.tsx
 msgid "Search"
@@ -5311,6 +5683,10 @@ msgstr "Поиск задач..."
 #: src/features/planner/components/FilterPanel.tsx
 msgid "Search types..."
 msgstr "Поиск типов..."
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Sections"
+msgstr "Разделы"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
@@ -5591,6 +5967,10 @@ msgstr "Показать объявление всем заново?"
 msgid "Show legend"
 msgstr "Показывать легенду"
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Show me"
+msgstr "Показать"
+
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
 msgid "Show only this person"
 msgstr "Показать только его"
@@ -5648,6 +6028,10 @@ msgstr "Выйти из аккаунта?"
 msgid "Sign-in (GoTrue)"
 msgstr "Вход (GoTrue)"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Sign-in screen"
+msgstr "Экран входа"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Signed in"
 msgstr "Вы вошли"
@@ -5657,6 +6041,19 @@ msgstr "Вы вошли"
 msgid "Signed in as {0}"
 msgstr "Вы вошли как {0}"
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Site plan and landscaping"
+msgstr "Генплан и благоустройство"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Site walk with the client"
+msgstr "Обход объекта с заказчиком"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Site work"
+msgstr "Работы на объекте"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Skip"
@@ -5669,6 +6066,14 @@ msgstr "Пропустить 30-дневный буфер для аккаунт�
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
 msgstr "Небесный"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Sofia Reyes"
+msgstr "Мария Ким"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Software development"
+msgstr "Разработка ПО"
 
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Someone changed the description while you were writing. Your text is kept here."
@@ -5712,10 +6117,6 @@ msgstr "SSO через Keycloak"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Star"
 msgstr "Звезда"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Start"
-msgstr "Начать"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TimeOffFields.tsx
@@ -5786,6 +6187,10 @@ msgstr "Цвета статусов"
 msgid "Statuses"
 msgstr "Статусы"
 
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "Statuses, task types and tags can be changed later in workspace settings."
+msgstr "Статусы, типы задач и теги можно поменять позже в настройках пространства."
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -5799,10 +6204,18 @@ msgstr "Перестать отслеживать"
 msgid "Storage used"
 msgstr "Занято места"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Structure"
+msgstr "Конструкции"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Subject"
 msgstr "Тема"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Submission for approval"
+msgstr "Подача на согласование"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask actions"
@@ -5823,9 +6236,17 @@ msgstr "Подзадачи"
 msgid "Sun"
 msgstr "Солнце"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Support"
+msgstr "Поддержка"
+
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Switch between projects, milestones, clients and contacts here. Open a project to see its tasks, team and notes."
-msgstr "Здесь переключаются проекты, вехи, клиенты и контакты. Откройте проект — увидите его задачи, команду и заметки."
+msgid "Switch to People to see the same tasks with one row per person — a quick way to spot who is overloaded."
+msgstr "Переключитесь на «Участники» — те же задачи, по строке на человека. Так сразу видно, кто перегружен."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "Switch to Projects to see the same tasks with one row per project — a quick way to check that every project has someone on it."
+msgstr "Переключитесь на «Проекты» — те же задачи, по строке на проект. Так быстро видно, у каждого ли проекта есть исполнитель."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "System"
@@ -5860,13 +6281,27 @@ msgstr "Тег"
 msgid "Tags"
 msgstr "Теги"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap a task for a quick look"
+msgstr "Тап по задаче — краткая подсказка"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap the pencil button at the bottom, or double-tap an empty day in someone's row."
+msgstr "Нажмите кнопку с карандашом внизу или дважды коснитесь пустого дня в строке человека."
+
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Tap to copy"
 msgstr "Нажмите, чтобы скопировать"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Tap, double-tap, hold"
+msgstr "Тап, двойной тап, удержание"
+
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
+#: src/features/workspace/lib/starterTemplates/index.ts
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
 msgid "Task"
 msgstr "Задача"
 
@@ -5970,8 +6405,6 @@ msgstr "Бирюзовый"
 msgid "Team"
 msgstr "Команда"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Team access"
 msgstr "Доступ команды"
@@ -5992,13 +6425,8 @@ msgid "Team workload"
 msgstr "Нагрузка команды"
 
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Template"
 msgstr "Шаблон"
-
-#: src/features/workspace/components/SettingsPanel.tsx
-msgid "Template applied."
-msgstr "Шаблон применен."
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Template is used for all new workspaces."
@@ -6053,6 +6481,10 @@ msgstr "Узор, которым отмечаются ваши выходные.
 msgid "The previous export file has expired. Request it again."
 msgstr "Срок действия предыдущего файла экспорта истёк. Запросите его ещё раз."
 
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "The rest is up here"
+msgstr "Остальное — здесь"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "The sandbox will be cleared and you will return to the home page."
 msgstr "Песочница очистится, и вы вернётесь на главную страницу."
@@ -6068,6 +6500,11 @@ msgstr "Выбранная задача не существует или был�
 #: src/features/admin/components/AdminLayout.tsx
 msgid "The server did not answer. This usually passes on its own — try again in a moment."
 msgstr "Сервер не ответил. Обычно это проходит само — попробуйте ещё раз через минуту."
+
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "The statuses, types and tags you saved, without examples."
+msgstr "Сохранённые вами статусы, типы и теги, без примеров."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "The tool I wanted to use"
@@ -6168,10 +6605,6 @@ msgstr "Это нагрузка, которая считается за 100%. О
 msgid "This is the only time it is shown. Store it in the system that will use it; if it is lost, revoke it and create a new one."
 msgstr "Токен показывается только один раз. Сохраните его в системе, которая будет им пользоваться; если потеряете — отзовите и создайте новый."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "This is where your workspace projects are listed and reviewed."
-msgstr "Здесь перечислены проекты рабочего пространства и их можно просматривать."
-
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this milestone"
 msgstr "эту веху"
@@ -6212,6 +6645,10 @@ msgstr "«{0}» будет удалён из всех проектов, где �
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "This removes \"{0}\" from your contacts."
 msgstr "«{0}» будет удалён из контактов."
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "This replaces the set you saved before."
+msgstr "Это заменит набор, сохранённый раньше."
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "This sandbox resets soon. Create a free account to keep this timeline and start your own."
@@ -6276,6 +6713,10 @@ msgstr "Для пользователя {forcePurgeTrimmed} будет запл�
 msgid "this workspace"
 msgstr "это рабочее пространство"
 
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "This workspace already has all of them."
+msgstr "Всё это в пространстве уже есть."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Time off pattern"
@@ -6286,6 +6727,10 @@ msgstr "Узор выходных"
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Timeline"
 msgstr "Таймлайн"
+
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
+msgid "Timeline, Dashboard, Projects and Team are at the top: tap one or swipe along the header. Your avatar opens the menu and settings."
+msgstr "Таймлайн, Дашборд, Проекты и Команда — вверху: нажмите на нужный раздел или проведите пальцем по шапке. Ваш аватар открывает меню и настройки."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6319,6 +6764,11 @@ msgstr "Название Я–А"
 msgid "To"
 msgstr "По"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "To do"
+msgstr "К выполнению"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 msgstr "Чтобы получать пуш-уведомления на iOS, добавьте Motio на экран «Домой»: нажмите «Поделиться» в Safari, выберите «На экран “Домой”», затем включите уведомления здесь, уже в установленном приложении."
@@ -6347,6 +6797,10 @@ msgstr "Переключить пасхалку"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Toggle workload heatmap"
 msgstr "Переключить тепловую карту загрузки"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Tom Bennett"
+msgstr "Олег Белов"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 msgid "Tomorrow"
@@ -6654,6 +7108,10 @@ msgstr "Обновите данные вехи."
 msgid "Update the current dashboard name."
 msgstr "Обновите название текущей панели."
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Update the element library"
+msgstr "Обновить библиотеку элементов"
+
 #: src/features/auth/components/InboxPanel.tsx
 msgid "updated a task"
 msgstr "изменил(а) задачу"
@@ -6670,6 +7128,10 @@ msgstr "Загрузка изображения..."
 msgid "Uploading images…"
 msgstr "Загружаем картинки…"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Urgent"
+msgstr "Срочно"
+
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Use current workspace"
 msgstr "Использовать текущее пространство"
@@ -6678,18 +7140,9 @@ msgstr "Использовать текущее пространство"
 msgid "Use ISO code (for example RU, US, DE)."
 msgstr "Используйте ISO-код (например RU, US, DE)."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Use Team to browse people, groups and task ownership inside the workspace."
-msgstr "Используйте раздел Team, чтобы просматривать людей, группы и распределение задач внутри рабочего пространства."
-
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Use the Widget button to add your first widget."
 msgstr "Используйте кнопку «Виджет», чтобы добавить первый виджет."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Use this button to add KPI, chart and milestone widgets to the dashboard."
-msgstr "Используйте эту кнопку, чтобы добавить на дашборд KPI, графики и виджеты вех."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -6709,9 +7162,21 @@ msgstr "Рабочие пространства пользователя"
 msgid "Users"
 msgstr "Пользователи"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Vacation"
+msgstr "Отпуск"
+
 #: src/features/planner/components/TimeOffFields.tsx
 msgid "Vacation, day off, sick leave..."
 msgstr "Отпуск, отгул, больничный..."
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Ventilation"
+msgstr "Вентиляция"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Ventilation routing"
+msgstr "Трассировка вентиляции"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Version"
@@ -6788,9 +7253,17 @@ msgstr "к прошлой неделе"
 msgid "Wait {0} s before sending another one."
 msgstr "Подождите {0} с перед следующей отправкой."
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Waiting for input"
+msgstr "Ждём данные"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Walk through the timeline, dashboard, projects and team again"
 msgstr "Ещё раз пройтись по таймлайну, дашборду, проектам и команде"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Warehouse fit-out"
+msgstr "Оснащение склада"
 
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Waves"
@@ -6800,9 +7273,17 @@ msgstr "Волны"
 msgid "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 msgstr "Мы работаем с небольшими командами, которым нужно одно: видеть, кто занят, кто свободен и как работа распределена по неделе. Регистрация занимает минуту, карта не нужна."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "We'll open Team next so you can see where invitations, roles and workspace access are managed."
-msgstr "Следом откроем Team, чтобы показать, где управляются приглашения, роли и доступ к рабочему пространству."
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "We'll set up matching statuses, task types and a few examples. The examples go away with one button whenever you're ready."
+msgstr "Подставим подходящие статусы, типы задач и несколько примеров. Примеры убираются одной кнопкой, когда будете готовы."
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Website"
+msgstr "Сайт"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Website launch"
+msgstr "Запуск сайта"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
@@ -6821,9 +7302,15 @@ msgstr "Еженедельно"
 msgid "Weekly recurring"
 msgstr "Еженедельный повтор"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Welcome to Motio!"
-msgstr "Добро пожаловать в Motio!"
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Weekly team meeting"
+msgstr "Еженедельная планёрка"
+
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "What does your team do?"
+msgstr "Чем занимается ваша команда?"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "What is switched on"
@@ -6871,10 +7358,6 @@ msgstr "Почему Motio"
 msgid "Widget"
 msgstr "Виджет"
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Widgets"
-msgstr "Виджеты"
-
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Will start on the timeline"
 msgstr "Начнётся на таймлайне"
@@ -6882,6 +7365,10 @@ msgstr "Начнётся на таймлайне"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Window"
 msgstr "Окно"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Wiring, second floor"
+msgstr "Электропроводка на 2-м этаже"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "Without this, only people who have not seen it yet will get it."
@@ -6928,7 +7415,6 @@ msgstr "Название рабочего пространства"
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workspace not selected."
 msgstr "Рабочее пространство не выбрано."
 
@@ -6941,10 +7427,6 @@ msgstr "Разделы рабочего пространства"
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Workspace settings"
 msgstr "Настройки рабочего пространства"
-
-#: src/features/workspace/components/CreateWorkspaceDialog.tsx
-msgid "Workspace template"
-msgstr "Шаблон рабочего пространства"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/pages/AdminOverviewPage.tsx
@@ -7051,14 +7533,6 @@ msgstr "У вас доступ только для просмотра, и вы �
 msgid "You need to sign in again before adding comments."
 msgstr "Войдите снова, чтобы добавлять комментарии."
 
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "You now know where to create work, track progress and add people across Motio."
-msgstr "Теперь вы знаете, где создавать задачи, отслеживать прогресс и добавлять людей в Motio."
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "You now know where to find timelines, dashboards, projects and team members in Motio."
-msgstr "Теперь вы знаете, где в Motio находятся таймлайн, дашборды, проекты и участники команды."
-
 #: src/features/auth/hooks/useInboxFeed.ts
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You were added to a new workspace."
@@ -7072,6 +7546,10 @@ msgstr "Вы потеряете доступ к этому рабочему пр
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "You will need to sign in again to get back to your workspace."
 msgstr "Чтобы вернуться в рабочее пространство, нужно будет войти заново."
+
+#: src/features/onboarding/lib/onboardingTour.ts
+msgid "You'll see its description, subtasks and comments. You have view access: editors and admins change the plan."
+msgstr "Откроются описание, подзадачи и комментарии. У вас доступ на просмотр: план меняют редакторы и администраторы."
 
 #: src/features/auth/pages/InvitePage.tsx
 msgid "You've been invited to Motio"
@@ -7110,6 +7588,10 @@ msgstr "Ваш экспорт данных готов."
 msgid "Your display name stays visible in historical comments:"
 msgstr "Ваше отображаемое имя останется видимым в старых комментариях:"
 
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+msgid "Your own set of statuses, types and tags"
+msgstr "Свой набор статусов, типов и тегов"
+
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Your sign-in session expired. Please continue with Keycloak again."
 msgstr "Срок действия сессии истёк. Пожалуйста, войдите снова через Keycloak."
@@ -7118,13 +7600,10 @@ msgstr "Срок действия сессии истёк. Пожалуйста,
 msgid "Your team's progress, always in view"
 msgstr "Прогресс команды всегда на виду"
 
+#: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
-msgid "Your timeline"
-msgstr "Ваш таймлайн"
-
-#: src/features/onboarding/lib/onboardingTour.ts
-msgid "Your widgets live here. Resize and rearrange them to monitor workload, deadlines and progress."
-msgstr "Здесь живут ваши виджеты. Меняйте их размер и порядок, чтобы следить за нагрузкой, сроками и прогрессом."
+msgid "Your team's shared timeline"
+msgstr "Общий таймлайн команды"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/members/pages/MembersPage.tsx

@@ -11,6 +11,9 @@ import { broadcastAuthSessionSync } from '@/features/auth/lib/authSessionSync';
 import { workspaceSyncService } from '@/application/workspace/workspaceSyncService';
 import { ADMIN_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
 import { normalizeHolidayRegionCode } from '@/shared/domain/holidayRegion';
+import type { WorkspaceStart } from '@/shared/domain/starterTemplate';
+import { buildStarterTemplatePayloadFor } from '@/features/workspace/lib/starterTemplates';
+import { applyStarterTemplatePayload } from '@/infrastructure/workspace/starterTemplateRepository';
 import { invokeAdminFunction, invokeInviteFunction } from '@/infrastructure/auth/functionsGateway';
 import {
   fetchWorkspaceGroupNameMap,
@@ -87,6 +90,8 @@ interface WorkspaceSummary {
   heatmapCapacityPerPerson: number | null;
   role: WorkspaceRole;
   ownerId: string;
+  /** New and still waiting for its owner to pick a starter template (0169). */
+  templatePending: boolean;
 }
 
 interface WorkspaceMember {
@@ -110,6 +115,7 @@ interface WorkspaceMemberRow {
     heatmap_enabled: boolean | null;
     heatmap_capacity_per_person: number | string | null;
     owner_id: string | null;
+    template_pending?: boolean | null;
   } | null;
 }
 
@@ -163,6 +169,7 @@ const mapWorkspaceRows = (rows: WorkspaceMemberRow[]): WorkspaceSummary[] => row
     heatmapCapacityPerPerson: normalizeCapacity(row.workspaces?.heatmap_capacity_per_person),
     role: row.role as WorkspaceRole,
     ownerId: row.workspaces?.owner_id ?? '',
+    templatePending: row.workspaces?.template_pending ?? false,
   }))
   .filter((workspace) => Boolean(workspace.id));
 
@@ -205,7 +212,13 @@ interface AuthState {
   fetchWorkspaces: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   setCurrentWorkspaceId: (id: string | null) => void;
-  createWorkspace: (name: string) => Promise<{ error?: string }>;
+  /**
+   * `start` — what the "Create workspace" dialog chose. Without it the new
+   * workspace waits for a template and the chooser asks for one.
+   */
+  createWorkspace: (name: string, start?: WorkspaceStart | null) => Promise<{ error?: string }>;
+  /** The starter template is in: stop offering the choice (no refetch needed). */
+  markWorkspaceTemplateApplied: (workspaceId: string) => void;
   deleteWorkspace: (workspaceId?: string) => Promise<{ error?: string }>;
   updateWorkspaceName: (workspaceId: string, name: string) => Promise<{ error?: string }>;
   updateWorkspaceHolidayCountry: (
@@ -569,7 +582,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const loadWorkspaces = async () => {
       const { data, error } = await supabase
         .from('workspace_members')
-        .select('workspace_id, role, workspaces(id, name, holiday_country, holiday_region, heatmap_enabled, heatmap_capacity_per_person, owner_id)')
+        .select('workspace_id, role, workspaces(id, name, holiday_country, holiday_region, heatmap_enabled, heatmap_capacity_per_person, owner_id, template_pending)')
         .eq('user_id', user.id);
 
       if (error) {
@@ -737,18 +750,44 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       membersLoading: state.currentWorkspaceId === id ? state.membersLoading : false,
     }));
   },
-  createWorkspace: async (name) => {
+  createWorkspace: async (name, start = null) => {
     const { data, error } = await supabase.rpc('create_workspace', {
       workspace_name: name,
       p_locale: useLocaleStore.getState().locale,
+      p_await_template: start === null ? null : start !== 'own',
     });
     if (error) return { error: error.message };
-    await get().fetchWorkspaces();
     const createdId = typeof data === 'string' ? data : null;
+
+    // Template first, switch second: the new workspace opens already filled
+    // in instead of flashing the chooser. Should laying the template in fail,
+    // the workspace keeps waiting for one and the chooser offers it again.
+    if (createdId && start && start !== 'own') {
+      const payload = buildStarterTemplatePayloadFor(start, new Date());
+      const applied = payload ? await applyStarterTemplatePayload(createdId, payload) : {};
+      if (applied.error) {
+        console.error({
+          module: 'auth.store',
+          action: 'createWorkspace',
+          workspaceId: createdId,
+          result: 'error',
+          message: applied.error,
+        });
+      }
+    }
+
+    await get().fetchWorkspaces();
     if (createdId) {
       get().setCurrentWorkspaceId(createdId);
     }
     return {};
+  },
+  markWorkspaceTemplateApplied: (workspaceId) => {
+    set((state) => ({
+      workspaces: state.workspaces.map((workspace) => (
+        workspace.id === workspaceId ? { ...workspace, templatePending: false } : workspace
+      )),
+    }));
   },
   deleteWorkspace: async (workspaceId) => {
     const targetWorkspaceId = workspaceId ?? get().currentWorkspaceId;

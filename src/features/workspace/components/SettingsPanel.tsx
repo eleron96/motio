@@ -52,6 +52,7 @@ import { useMobileMenu } from '@/features/workspace/components/MobileMenuContext
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 import { Block, SettingRow } from '@/features/workspace/components/settingsBlocks';
+import { WorkspaceTemplateSettings } from '@/features/workspace/components/WorkspaceTemplateSettings';
 import { WorkspaceMembersSection } from '@/features/workspace/components/WorkspaceMembersSection';
 import { WorkspaceApiTokensSection } from '@/features/workspace/components/WorkspaceApiTokensSection';
 import { useShallow } from 'zustand/react/shallow';
@@ -99,8 +100,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     statuses, addStatus: addStatusAction, updateStatus: updateStatusAction, deleteStatus: deleteStatusAction,
     taskTypes, addTaskType: addTaskTypeAction, updateTaskType: updateTaskTypeAction, deleteTaskType: deleteTaskTypeAction,
     tags, addTag: addTagAction, updateTag: updateTagAction, deleteTag: deleteTagAction,
-    workspaceId,
-    applyWorkspaceTemplate,
     filters,
     setFilters,
   } = usePlannerStore(useShallow((state) => ({
@@ -116,8 +115,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     addTag: state.addTag,
     updateTag: state.updateTag,
     deleteTag: state.deleteTag,
-    workspaceId: state.workspaceId,
-    applyWorkspaceTemplate: state.applyWorkspaceTemplate,
     filters: state.filters,
     setFilters: state.setFilters,
   })));
@@ -253,9 +250,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const [transferTargetId, setTransferTargetId] = useState('');
   const [transferring, setTransferring] = useState(false);
   const [transferError, setTransferError] = useState('');
-  const [templateApplyError, setTemplateApplyError] = useState('');
-  const [templateApplying, setTemplateApplying] = useState(false);
-  const [templateApplied, setTemplateApplied] = useState(false);
   const [deleteConfirmValue, setDeleteConfirmValue] = useState('');
 
 
@@ -274,8 +268,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
         : '',
     );
     setWorkspaceError('');
-    setTemplateApplyError('');
-    setTemplateApplied(false);
     setDeleteConfirmValue('');
   }, [
     open,
@@ -482,26 +474,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
       return;
     }
     setDeleteOpen(false);
-  };
-
-  const handleApplyTemplate = async () => {
-    if (!workspaceId) {
-      setTemplateApplyError(t`Workspace not selected.`);
-      return;
-    }
-
-    setTemplateApplying(true);
-    setTemplateApplyError('');
-    setTemplateApplied(false);
-    const result = await applyWorkspaceTemplate();
-    if (result.error) {
-      setTemplateApplyError(result.error);
-      setTemplateApplying(false);
-      return;
-    }
-
-    setTemplateApplied(true);
-    setTemplateApplying(false);
   };
 
   const sections: Array<{ id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
@@ -1018,30 +990,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     </div>
   );
 
-  const templateContent = (
-    <div className="space-y-5">
-      <Block
-        title={t`Template`}
-        description={t`Apply your saved template to this workspace (adds missing items by name).`}
-      >
-        <div className="space-y-2">
-          {templateApplyError && (
-            <div className="text-sm text-destructive">{templateApplyError}</div>
-          )}
-          {templateApplied && (
-            <div className="text-sm text-emerald-600">{t`Template applied.`}</div>
-          )}
-          <Button
-            variant="secondary"
-            onClick={handleApplyTemplate}
-            disabled={!currentWorkspaceId || templateApplying}
-          >
-            {t`Apply template`}
-          </Button>
-        </div>
-      </Block>
-    </div>
-  );
+  const templateContent = <WorkspaceTemplateSettings />;
 
   const openTransferDialog = () => {
     setTransferError('');

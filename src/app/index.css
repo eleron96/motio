@@ -819,6 +819,13 @@
   margin-bottom: 0;
 }
 
+/* The popover sizes to its content: without a cap a two-sentence tip ran
+   in one line across half the screen. The footer still sets the minimum. */
+.motio-tour-popover .driver-popover-title,
+.motio-tour-popover .driver-popover-description {
+  max-width: 22rem;
+}
+
 /* Divider before footer */
 .motio-tour-popover .driver-popover-footer {
   align-items: center;

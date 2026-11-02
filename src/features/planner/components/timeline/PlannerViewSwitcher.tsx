@@ -115,12 +115,15 @@ function SlidingSegmented<K extends string>({
   value,
   onChange,
   tabbable = true,
+  tourAnchor,
 }: {
   options: SlidingOption<K>[];
   value: K;
   onChange: (key: K) => void;
   /** False while the pill is folded away, so Tab skips its buttons. */
   tabbable?: boolean;
+  /** `data-tour` name, for the onboarding tour to point at this pill. */
+  tourAnchor?: string;
 }) {
   const itemRefs = useRef(new Map<K, HTMLButtonElement>());
   const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null);
@@ -149,7 +152,7 @@ function SlidingSegmented<K extends string>({
   }, [indicator, animate]);
 
   return (
-    <div className="relative inline-flex items-center rounded-lg bg-muted p-0.5">
+    <div data-tour={tourAnchor} className="relative inline-flex items-center rounded-lg bg-muted p-0.5">
       {indicator && (
         <span
           aria-hidden
@@ -233,6 +236,7 @@ export const PlannerViewSwitcher: React.FC = () => {
             value={state.groupMode}
             onChange={state.selectGroup}
             tabbable={showTimelineSettings}
+            tourAnchor="group-mode-toggle"
           />
           <span aria-hidden className="h-5 w-px flex-shrink-0 bg-border" />
         </div>

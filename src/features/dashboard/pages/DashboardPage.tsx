@@ -75,7 +75,6 @@ import { Navigate } from 'react-router-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
-import { useOnboardingTour } from '@/features/onboarding/hooks/useOnboardingTour';
 import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
 import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 
@@ -233,11 +232,6 @@ const DashboardPage = () => {
   useEffect(() => {
     if (isHeatmapView) setHeatmapMounted(true);
   }, [isHeatmapView]);
-
-  useOnboardingTour({
-    pageId: 'dashboard',
-    canEdit,
-  });
 
   const viewRestoredRef = useRef<string | null>(null);
   const selectView = useCallback((next: DashboardView) => {
