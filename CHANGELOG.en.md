@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.57] - 2026-11-02
 ### Added
 - A new workspace starts by asking what your team does — architecture and design, BIM, construction or software — and comes with matching statuses, task types and a few examples in your language. In workspace settings you can add catalogs from a template or save your own set.
 
