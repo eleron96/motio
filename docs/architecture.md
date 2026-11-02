@@ -27,7 +27,7 @@ See also: [Operations](operations.md) · [Configuration](configuration.md)
 │   ├── supabase/
 │   │   ├── migrations/                  — SQL migrations
 │   │   ├── liquibase/changelog-master.xml
-│   │   ├── functions/                   — Edge Functions: main, account-purge, admin, api, data-export, holidays, inbox, invite, mailer, notifications, push, task-media
+│   │   ├── functions/                   — Edge Functions: main, account-purge, admin, api, data-export, holidays, invite, mailer, notifications, push, task-media
 │   │   └── nginx.conf                   — internal gateway: /auth/v1, /rest/v1, /functions/v1, /storage/v1, /realtime/v1, /backup
 │   ├── caddy/                           — public TLS edge (Caddyfile, Caddyfile.testing); runs outside docker-compose.prod.yml
 │   ├── keycloak/realm/
@@ -94,12 +94,12 @@ lets the testing stack stay self-contained when importing the production baselin
 ## Edge Functions
 
 Routed through `main` under `/functions/v1/`: `account-purge`, `admin`, `api`,
-`data-export`, `holidays`, `inbox`, `invite`, `mailer`, `notifications`, `push`,
+`data-export`, `holidays`, `invite`, `mailer`, `notifications`, `push`,
 `task-media`. The subsections below cover the ones with a non-trivial contract.
 
 The notification bell reads through the `inbox_list` database function (migration
-0166, one PostgREST call); the `inbox` function returns the same lists and stays
-only for tabs still running an older build.
+0166, one PostgREST call); `notifications` only changes them (read, unread,
+delete).
 
 ### `api`
 

@@ -5,7 +5,6 @@ import { handler as adminHandler } from "../admin/index.ts";
 import { handler as apiHandler } from "../api/index.ts";
 import { handler as dataExportHandler } from "../data-export/index.ts";
 import { handler as holidaysHandler } from "../holidays/index.ts";
-import { handler as inboxHandler } from "../inbox/index.ts";
 import { handler as inviteHandler } from "../invite/index.ts";
 import { handler as mailerHandler } from "../mailer/index.ts";
 import { handler as notificationsHandler } from "../notifications/index.ts";
@@ -24,7 +23,6 @@ const handlers: Record<string, (req: Request) => Promise<Response>> = {
   api: apiHandler,
   "data-export": dataExportHandler,
   holidays: holidaysHandler,
-  inbox: inboxHandler,
   invite: inviteHandler,
   mailer: mailerHandler,
   notifications: notificationsHandler,

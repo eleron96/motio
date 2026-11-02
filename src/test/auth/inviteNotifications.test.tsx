@@ -52,11 +52,10 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
     functions: {
       invoke: mocks.invoke,
     },
-    // The bell reads through the inbox_list RPC (0166); the tests describe the
-    // list with the old 'inbox' mock, so the RPC answers from it.
-    rpc: async (name: string) => {
-      if (name !== 'inbox_list') return { data: null, error: null };
-      const result = await mocks.invoke('inbox', { body: { action: 'list' } });
+    // One mock answers every backend call, keyed by its name: Edge Functions
+    // through functions.invoke, RPCs (the bell's inbox_list, 0166) through rpc.
+    rpc: async (name: string, params?: Record<string, unknown>) => {
+      const result = await mocks.invoke(name, { body: params });
       return { data: result?.data ?? null, error: result?.error ?? null };
     },
     channel: () => {
@@ -115,7 +114,7 @@ describe('InviteNotifications', () => {
     mocks.tasks.current = [];
 
     mocks.invoke.mockImplementation(async (name: string, options?: { body?: { action?: string } }) => {
-      if (name === 'inbox') {
+      if (name === 'inbox_list') {
         return {
           data: {
             invites: [],
@@ -228,7 +227,7 @@ describe('InviteNotifications', () => {
         return { data: { success: true, updated: 1 }, error: null, response: new Response() };
       }
       const result = await listImplementation(name, options);
-      if (name === 'inbox' && task1ReadAt) {
+      if (name === 'inbox_list' && task1ReadAt) {
         result.data.notifications = result.data.notifications.map((n: { taskId: string }) => (
           n.taskId === 'task-1' ? { ...n, readAt: task1ReadAt } : n
         ));
@@ -369,7 +368,7 @@ describe('InviteNotifications', () => {
   it('accents unread rows and leaves read ones plain', async () => {
     const user = userEvent.setup();
     mocks.invoke.mockImplementation(async (name: string) => {
-      if (name === 'inbox') {
+      if (name === 'inbox_list') {
         return {
           data: {
             invites: [],
