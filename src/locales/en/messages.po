@@ -457,6 +457,7 @@ msgstr "Active tokens"
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
 msgid "Add"
 msgstr "Add"
 
@@ -495,6 +496,11 @@ msgstr "Add active assignees to see the workload gradient. Milestones are still 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 msgid "Add customer contact"
 msgstr "Add customer contact"
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Add from a template"
+msgstr "Add from a template"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Add group"
@@ -569,6 +575,14 @@ msgstr "Add widget"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Add your name"
 msgstr "Add your name"
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Added — statuses: {statuses}, task types: {taskTypes}, tags: {tags}."
+msgstr "Added — statuses: {statuses}, task types: {taskTypes}, tags: {tags}."
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Adds the statuses, task types and tags this workspace lacks. Nothing is removed and no examples are added."
+msgstr "Adds the statuses, task types and tags this workspace lacks. Nothing is removed and no examples are added."
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 msgid "Adds this delivery to the workload heatmap. Untick for milestones that don't occupy the team."
@@ -681,10 +695,18 @@ msgstr "Always"
 msgid "Analytics"
 msgstr "Analytics"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Anna Peters"
+msgstr "Anna Peters"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Announcement"
 msgstr "Announcement"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Answer client comments"
+msgstr "Answer client comments"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
@@ -697,6 +719,10 @@ msgstr "API"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "API gateway"
 msgstr "API gateway"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "API rate limits"
+msgstr "API rate limits"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "API reference"
@@ -714,13 +740,17 @@ msgstr "Appearance"
 msgid "Apply changes to repeating tasks?"
 msgstr "Apply changes to repeating tasks?"
 
-#: src/features/workspace/components/SettingsPanel.tsx
-msgid "Apply template"
-msgstr "Apply template"
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Architects, engineers, interior designers: several buildings at once, handovers to the client."
+msgstr "Architects, engineers, interior designers: several buildings at once, handovers to the client."
 
-#: src/features/workspace/components/SettingsPanel.tsx
-msgid "Apply your saved template to this workspace (adds missing items by name)."
-msgstr "Apply your saved template to this workspace (adds missing items by name)."
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Architecture"
+msgstr "Architecture"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Architecture and design"
+msgstr "Architecture and design"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -755,6 +785,10 @@ msgstr "Archived projects are hidden from filters."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Area chart"
 msgstr "Area chart"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "As-built documents"
+msgstr "As-built documents"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Assign"
@@ -798,6 +832,10 @@ msgstr "Assignees"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Audience"
 msgstr "Audience"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Audit the architectural model"
+msgstr "Audit the architectural model"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Authentication error"
@@ -847,6 +885,10 @@ msgstr "Back to home"
 msgid "Back to today"
 msgstr "Back to today"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Backend"
+msgstr "Backend"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Backup & restore"
 msgstr "Backup & restore"
@@ -885,6 +927,22 @@ msgstr "Behind your own reverse proxy"
 msgid "best week: {bestWeek}"
 msgstr "best week: {bestWeek}"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Beta for partners"
+msgstr "Beta for partners"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "BIM and project support"
+msgstr "BIM and project support"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "BIM teams, technical support, quality control: requests from many projects and regular checks."
+msgstr "BIM teams, technical support, quality control: requests from many projects and regular checks."
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "BIM weekly sync"
+msgstr "BIM weekly sync"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Biweekly (every 2 weeks)"
 msgstr "Biweekly (every 2 weeks)"
@@ -905,6 +963,18 @@ msgstr "Broadcast"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Browser notifications"
 msgstr "Browser notifications"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Bug"
+msgstr "Bug"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Building enclosed"
+msgstr "Building enclosed"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Building services"
+msgstr "Building services"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "By email domain"
@@ -1024,6 +1094,11 @@ msgstr "Canceled"
 msgid "Cancelled"
 msgstr "Cancelled"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "Cancelled"
+msgstr "Cancelled"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Cancelled status"
 msgstr "Cancelled status"
@@ -1066,6 +1141,10 @@ msgstr "Chart palette"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Chart style"
 msgstr "Chart style"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Check the coordinate system"
+msgstr "Check the coordinate system"
 
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Check your inbox"
@@ -1120,6 +1199,10 @@ msgstr "Choose the group for {memberName}."
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Choose where to apply this change."
 msgstr "Choose where to apply this change."
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Clash detection: structure and services"
+msgstr "Clash detection: structure and services"
 
 #: src/features/planner/components/FilterPanel.tsx
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
@@ -1181,6 +1264,14 @@ msgstr "Clearing…"
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Click a task to open it"
 msgstr "Click a task to open it"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Client correspondence"
+msgstr "Client correspondence"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Client review"
+msgstr "Client review"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -1291,6 +1382,10 @@ msgstr "Completed"
 msgid "Completion trend"
 msgstr "Completion trend"
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Concept presentation"
+msgstr "Concept presentation"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Configure widget type, display style, and filters."
 msgstr "Configure widget type, display style, and filters."
@@ -1298,6 +1393,10 @@ msgstr "Configure widget type, display style, and filters."
 #: src/features/planner/hooks/usePlannerLiveSync.ts
 msgid "Connection restored"
 msgstr "Connection restored"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Construction and installation"
+msgstr "Construction and installation"
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Contact"
@@ -1334,6 +1433,18 @@ msgstr "Continue with Keycloak"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Continue with Keycloak to access the workspace."
 msgstr "Continue with Keycloak to access the workspace."
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Coordinate the structural grid"
+msgstr "Coordinate the structural grid"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Coordinated model handover"
+msgstr "Coordinated model handover"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Coordination"
+msgstr "Coordination"
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ContactPopup.tsx
@@ -1391,6 +1502,10 @@ msgstr "Couldn't enable notifications. Please try again."
 msgid "Couldn't save the task. Check your connection and try again."
 msgstr "Couldn't save the task. Check your connection and try again."
 
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "Couldn't set up the workspace. Try again."
+msgstr "Couldn't set up the workspace. Try again."
+
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Couldn't undo — the task was already changed"
 msgstr "Couldn't undo — the task was already changed"
@@ -1415,6 +1530,10 @@ msgstr "Country code must contain 2 letters."
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 msgid "Counts toward department workload"
 msgstr "Counts toward department workload"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Crash on older Android phones"
+msgstr "Crash on older Android phones"
 
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/members/components/MembersDialogs.tsx
@@ -1520,6 +1639,10 @@ msgstr "Creates repeats for the next 12 months."
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Creates the specified number of repeats."
 msgstr "Creates the specified number of repeats."
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Crews on sites and field work: who is where this week."
+msgstr "Crews on sites and field work: who is where this week."
 
 #: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/AssignGroupDialog.tsx
@@ -1884,6 +2007,10 @@ msgstr "delivered {0} of {1}"
 msgid "Deliveries, coloured by project."
 msgstr "Deliveries, coloured by project."
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Delivery"
+msgstr "Delivery"
+
 #: src/features/demo/components/DemoBanner.tsx
 msgid "Demo sandbox"
 msgstr "Demo sandbox"
@@ -1894,6 +2021,18 @@ msgstr "Demo sandbox"
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Description"
 msgstr "Description"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Design"
+msgstr "Design"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Design review"
+msgstr "Design review"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Design work"
+msgstr "Design work"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Designed and developed by <0>NIKO G.</0>"
@@ -2011,6 +2150,11 @@ msgstr "Done"
 msgid "taskDetail.footer.done"
 msgstr "Done"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "Done"
+msgstr "Done"
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Double-click a day in this row to add a project milestone. Everyone sees it above their own tasks."
 msgstr "Double-click a day in this row to add a project milestone. Everyone sees it above their own tasks."
@@ -2076,6 +2220,10 @@ msgstr "Draw every status in its own colour instead of the palette."
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Draw everyone in their own colour from workspace settings instead of the palette."
 msgstr "Draw everyone in their own colour from workspace settings instead of the palette."
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Drawing set for the client"
+msgstr "Drawing set for the client"
 
 #: src/features/planner/components/board/BoardCard.tsx
 msgid "Due date"
@@ -2243,6 +2391,10 @@ msgstr "Editor"
 msgid "Egg"
 msgstr "Egg"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Electrical"
+msgstr "Electrical"
+
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
@@ -2276,6 +2428,10 @@ msgstr "Emoji"
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Empty means it stays until each person dismisses it."
 msgstr "Empty means it stays until each person dismisses it."
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Empty workspace"
+msgstr "Empty workspace"
 
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -2430,6 +2586,10 @@ msgstr "Experimental — a workspace admin switches it on in settings."
 msgid "Expired"
 msgstr "Expired"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Export"
+msgstr "Export"
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Export my data"
 msgstr "Export my data"
@@ -2450,6 +2610,10 @@ msgstr "External"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "External (not in Motio)"
 msgstr "External (not in Motio)"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Facade model"
+msgstr "Facade model"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -2550,6 +2714,14 @@ msgstr "Failed to update subtask."
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Feature"
+msgstr "Feature"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Federated model for the design review"
+msgstr "Federated model for the design review"
+
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
 msgid "File is too large"
@@ -2625,6 +2797,10 @@ msgstr "Filters"
 msgid "Final"
 msgstr "Final"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Final inspection"
+msgstr "Final inspection"
+
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Final status"
 msgstr "Final status"
@@ -2656,6 +2832,18 @@ msgstr "Find or add customer..."
 msgid "Finished"
 msgstr "Finished"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Fix issues after the audit"
+msgstr "Fix issues after the audit"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Fix slow search"
+msgstr "Fix slow search"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Floor plans, levels 1–4"
+msgstr "Floor plans, levels 1–4"
+
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "For grouping — e.g. a field or department: Design, Development, АР"
 msgstr "For grouping — e.g. a field or department: Design, Development, АР"
@@ -2685,6 +2873,10 @@ msgstr "Free, open-source team planner: people, projects and workload on one sha
 msgid "From"
 msgstr "From"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Frontend"
+msgstr "Frontend"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Full data export"
 msgstr "Full data export"
@@ -2710,6 +2902,10 @@ msgstr "Full name"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Full working day (tasks per person)"
 msgstr "Full working day (tasks per person)"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Furniture layout"
+msgstr "Furniture layout"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "General"
@@ -2829,9 +3025,21 @@ msgstr "Groups"
 msgid "Groups: {0}"
 msgstr "Groups: {0}"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Handover to the client"
+msgstr "Handover to the client"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Handover to the contractor"
+msgstr "Handover to the contractor"
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Heatmap"
 msgstr "Heatmap"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Help set up drawing sheets"
+msgstr "Help set up drawing sheets"
 
 #: src/features/planner/components/timeline/TimelineSearchStrip.tsx
 msgid "hidden by filters"
@@ -2894,6 +3102,10 @@ msgstr "Holiday:"
 msgid "Holidays"
 msgstr "Holidays"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Hospital wing"
+msgstr "Hospital wing"
+
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "I agree to the <0>Privacy Policy</0>"
@@ -2909,6 +3121,14 @@ msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "IFC delivery to the client"
+msgstr "IFC delivery to the client"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "IFC export for the client"
+msgstr "IFC export for the client"
 
 #: src/shared/ui/image-lightbox.tsx
 msgid "Image"
@@ -2947,6 +3167,15 @@ msgstr "in progress"
 msgid "In progress"
 msgstr "In progress"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "In progress"
+msgstr "In progress"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "In review"
+msgstr "In review"
+
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "In the app"
@@ -2964,6 +3193,10 @@ msgstr "Include unassigned"
 msgid "Industry / segment"
 msgstr "Industry / segment"
 
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+msgid "Industry templates come with a few examples that go away with one button."
+msgstr "Industry templates come with a few examples that go away with one button."
+
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Information"
 msgstr "Information"
@@ -2976,10 +3209,22 @@ msgstr "Ink"
 msgid "Insert image"
 msgstr "Insert image"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Inspection"
+msgstr "Inspection"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Install ventilation units"
+msgstr "Install ventilation units"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Interface color"
 msgstr "Interface color"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Interior"
+msgstr "Interior"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Interrupts once with a dialog. Use for maintenance and outages."
@@ -3124,6 +3369,14 @@ msgstr "Leave workspace?"
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Level"
 msgstr "Level"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Lighting installation"
+msgstr "Lighting installation"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Lighting plan"
+msgstr "Lighting plan"
 
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Like what you see? Save your work."
@@ -3295,6 +3548,10 @@ msgstr "Mark as read"
 msgid "Mark as unread"
 msgstr "Mark as unread"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Mark Collins"
+msgstr "Mark Collins"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -3322,6 +3579,10 @@ msgstr "Match any rule (OR)"
 msgid "Matches over time"
 msgstr "Matches over time"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Material delivery"
+msgstr "Material delivery"
+
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/RichTextEditor.tsx
 #: src/features/planner/hooks/useDraftSubtaskImages.ts
@@ -3339,6 +3600,10 @@ msgstr "Medium"
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "Medium priority"
 msgstr "Medium priority"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Meeting"
+msgstr "Meeting"
 
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -3432,6 +3697,30 @@ msgstr "Milestones: deadlines for everyone"
 msgid "Mine"
 msgstr "Mine"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Mobile app"
+msgstr "Mobile app"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Model audit"
+msgstr "Model audit"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Model check before handover"
+msgstr "Model check before handover"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Model exchange with the contractor"
+msgstr "Model exchange with the contractor"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Modelling"
+msgstr "Modelling"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Monday crew briefing"
+msgstr "Monday crew briefing"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Monochrome"
 msgstr "Monochrome"
@@ -3452,6 +3741,10 @@ msgstr "Monthly"
 #: src/shared/lib/repeatLabels.ts
 msgid "Monthly recurring"
 msgstr "Monthly recurring"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Mood board and materials"
+msgstr "Mood board and materials"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
@@ -3499,6 +3792,12 @@ msgstr "Move mode is enabled. Drag the widget header."
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Move to another group"
 msgstr "Move to another group"
+
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "My own set"
+msgstr "My own set"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "My team workspace"
@@ -3645,6 +3944,10 @@ msgstr "Next match"
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "Next page"
 msgstr "Next page"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Nina Clarke"
+msgstr "Nina Clarke"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "No active members match the search."
@@ -3813,6 +4116,10 @@ msgstr "No email or phone for this contact yet."
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "No end date"
 msgstr "No end date"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "No examples, just basic statuses to start from."
+msgstr "No examples, just basic statuses to start from."
 
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -4089,10 +4396,6 @@ msgstr "No team members yet. Use + to add one."
 msgid "No teams yet."
 msgstr "No teams yet."
 
-#: src/features/workspace/components/CreateWorkspaceDialog.tsx
-msgid "No template saved yet."
-msgstr "No template saved yet."
-
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "No tokens yet."
 msgstr "No tokens yet."
@@ -4244,6 +4547,14 @@ msgstr "off"
 msgid "Off"
 msgstr "Off"
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Office building"
+msgstr "Office building"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Office renovation"
+msgstr "Office renovation"
+
 #: src/features/daily-brief/components/DailyBriefModal.tsx
 msgid "OK"
 msgstr "OK"
@@ -4251,6 +4562,10 @@ msgstr "OK"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "on"
 msgstr "on"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "On hold"
+msgstr "On hold"
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
@@ -4448,6 +4763,10 @@ msgstr "Page {pageIndex} of {totalPages}"
 msgid "Palm"
 msgstr "Palm"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Paperwork"
+msgstr "Paperwork"
+
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Parameters"
@@ -4571,9 +4890,21 @@ msgstr "Place tasks on the timeline. Assign them to people and projects."
 msgid "Plain text. Blank line starts a new paragraph."
 msgstr "Plain text. Blank line starts a new paragraph."
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Platform API"
+msgstr "Platform API"
+
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Please select an image file."
 msgstr "Please select an image file."
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Plumbing"
+msgstr "Plumbing"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Plumbing rough-in"
+msgstr "Plumbing rough-in"
 
 #: src/features/marketing/pages/LandingPage.tsx
 #~ msgid "Postgres"
@@ -4605,6 +4936,14 @@ msgstr "Previous page"
 msgid "Previously entered"
 msgstr "Previously entered"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Pricing page build"
+msgstr "Pricing page build"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Pricing page design"
+msgstr "Pricing page design"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -4625,9 +4964,17 @@ msgstr "Priority changed"
 msgid "Privacy Policy"
 msgstr "Privacy Policy"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Private house"
+msgstr "Private house"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Product news by email"
 msgstr "Product news by email"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Product teams and studios: features, bugs and releases."
+msgstr "Product teams and studios: features, bugs and releases."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Product tour"
@@ -4758,6 +5105,10 @@ msgstr "Publish again"
 msgid "Publish again…"
 msgstr "Publish again…"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Punch list"
+msgstr "Punch list"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Purge"
 msgstr "Purge"
@@ -4771,12 +5122,17 @@ msgid "purge_after"
 msgstr "purge_after"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
 msgid "Push notifications"
 msgstr "Push notifications"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Push notifications aren't available right now."
 msgstr "Push notifications aren't available right now."
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Quality check"
+msgstr "Quality check"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Reaches {reach} people"
@@ -4814,6 +5170,18 @@ msgstr "Refresh"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Region"
 msgstr "Region"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Regression testing"
+msgstr "Regression testing"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Release 2.0"
+msgstr "Release 2.0"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Release notes"
+msgstr "Release notes"
 
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -4880,6 +5248,10 @@ msgstr "Remove subtask"
 #: src/features/planner/components/TagMultiSelect.tsx
 msgid "Remove tag"
 msgstr "Remove tag"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Remove the old partitions"
+msgstr "Remove the old partitions"
 
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Remove the sample projects, people and tasks this workspace started with"
@@ -4982,6 +5354,14 @@ msgstr "Reset failed. Try again in a moment."
 msgid "Resetting…"
 msgstr "Resetting…"
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Residential building by the park"
+msgstr "Residential building by the park"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Residential quarter"
+msgstr "Residential quarter"
+
 #: src/features/planner/pages/PlannerPage.tsx
 msgid "Resize filters"
 msgstr "Resize filters"
@@ -5030,6 +5410,10 @@ msgstr "Revoke token {0}"
 msgid "Right-click to add your first widget."
 msgstr "Right-click to add your first widget."
 
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Riverside restaurant interior"
+msgstr "Riverside restaurant interior"
+
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5056,6 +5440,10 @@ msgstr "Role"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 msgid "Role / job title"
 msgstr "Role / job title"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Roof membrane delivery"
+msgstr "Roof membrane delivery"
 
 #: src/shared/lib/accentColor.ts
 msgid "Rose"
@@ -5106,13 +5494,25 @@ msgstr "Save"
 msgid "Save as draft"
 msgstr "Save as draft"
 
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Save as my own set"
+msgstr "Save as my own set"
+
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Save template"
 msgstr "Save template"
 
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Save this workspace's statuses, task types and tags as your own set. It is offered when you create a new workspace."
+msgstr "Save this workspace's statuses, task types and tags as your own set. It is offered when you create a new workspace."
+
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Save your work — create an account"
 msgstr "Save your work — create an account"
+
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "Saved as your own set."
+msgstr "Saved as your own set."
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Saved."
@@ -5154,6 +5554,10 @@ msgstr "Scheduled for"
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "scheduled: {0}"
 msgstr "scheduled: {0}"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "School for 600 pupils"
+msgstr "School for 600 pupils"
 
 #: src/shared/ui/mobile-picker-screen.tsx
 msgid "Search"
@@ -5624,6 +6028,10 @@ msgstr "Sign out?"
 msgid "Sign-in (GoTrue)"
 msgstr "Sign-in (GoTrue)"
 
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Sign-in screen"
+msgstr "Sign-in screen"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Signed in"
 msgstr "Signed in"
@@ -5632,6 +6040,18 @@ msgstr "Signed in"
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "Signed in as {0}"
 msgstr "Signed in as {0}"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Site plan and landscaping"
+msgstr "Site plan and landscaping"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Site walk with the client"
+msgstr "Site walk with the client"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Site work"
+msgstr "Site work"
 
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -5646,6 +6066,14 @@ msgstr "Skip the 30-day grace period for a PENDING_DELETION account. The cron wi
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
 msgstr "Sky"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Sofia Reyes"
+msgstr "Sofia Reyes"
+
+#: src/features/workspace/lib/starterTemplates/index.ts
+msgid "Software development"
+msgstr "Software development"
 
 #: src/features/planner/components/TaskDetailPanel.tsx
 msgid "Someone changed the description while you were writing. Your text is kept here."
@@ -5759,6 +6187,10 @@ msgstr "Status colours"
 msgid "Statuses"
 msgstr "Statuses"
 
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "Statuses, task types and tags can be changed later in workspace settings."
+msgstr "Statuses, task types and tags can be changed later in workspace settings."
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -5772,10 +6204,18 @@ msgstr "Stop tracking"
 msgid "Storage used"
 msgstr "Storage used"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Structure"
+msgstr "Structure"
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Subject"
 msgstr "Subject"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Submission for approval"
+msgstr "Submission for approval"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask actions"
@@ -5795,6 +6235,10 @@ msgstr "Subtasks"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Sun"
 msgstr "Sun"
+
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Support"
+msgstr "Support"
 
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Switch to People to see the same tasks with one row per person — a quick way to spot who is overloaded."
@@ -5856,6 +6300,8 @@ msgstr "Tap, double-tap, hold"
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
+#: src/features/workspace/lib/starterTemplates/index.ts
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
 msgid "Task"
 msgstr "Task"
 
@@ -5979,13 +6425,8 @@ msgid "Team workload"
 msgstr "Team workload"
 
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Template"
 msgstr "Template"
-
-#: src/features/workspace/components/SettingsPanel.tsx
-msgid "Template applied."
-msgstr "Template applied."
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Template is used for all new workspaces."
@@ -6059,6 +6500,11 @@ msgstr "The selected task does not exist or was deleted."
 #: src/features/admin/components/AdminLayout.tsx
 msgid "The server did not answer. This usually passes on its own — try again in a moment."
 msgstr "The server did not answer. This usually passes on its own — try again in a moment."
+
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "The statuses, types and tags you saved, without examples."
+msgstr "The statuses, types and tags you saved, without examples."
 
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "The tool I wanted to use"
@@ -6200,6 +6646,10 @@ msgstr "This removes \"{0}\" from every project they're on."
 msgid "This removes \"{0}\" from your contacts."
 msgstr "This removes \"{0}\" from your contacts."
 
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "This replaces the set you saved before."
+msgstr "This replaces the set you saved before."
+
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "This sandbox resets soon. Create a free account to keep this timeline and start your own."
 msgstr "This sandbox resets soon. Create a free account to keep this timeline and start your own."
@@ -6263,6 +6713,10 @@ msgstr "This will schedule immediate purge for user {forcePurgeTrimmed}. The use
 msgid "this workspace"
 msgstr "this workspace"
 
+#: src/features/workspace/components/WorkspaceTemplateSettings.tsx
+msgid "This workspace already has all of them."
+msgstr "This workspace already has all of them."
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Time off pattern"
@@ -6310,6 +6764,11 @@ msgstr "Title Z–A"
 msgid "To"
 msgstr "To"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgctxt "task status"
+msgid "To do"
+msgstr "To do"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 msgstr "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
@@ -6338,6 +6797,10 @@ msgstr "Toggle easter egg"
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Toggle workload heatmap"
 msgstr "Toggle workload heatmap"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Tom Bennett"
+msgstr "Tom Bennett"
 
 #: src/features/daily-brief/components/DailyBriefMilestones.tsx
 msgid "Tomorrow"
@@ -6645,6 +7108,10 @@ msgstr "Update milestone details."
 msgid "Update the current dashboard name."
 msgstr "Update the current dashboard name."
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Update the element library"
+msgstr "Update the element library"
+
 #: src/features/auth/components/InboxPanel.tsx
 msgid "updated a task"
 msgstr "updated a task"
@@ -6660,6 +7127,10 @@ msgstr "Uploading image..."
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Uploading images…"
 msgstr "Uploading images…"
+
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Urgent"
+msgstr "Urgent"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Use current workspace"
@@ -6691,9 +7162,21 @@ msgstr "User workspaces"
 msgid "Users"
 msgstr "Users"
 
+#: src/features/workspace/lib/starterTemplates/common.ts
+msgid "Vacation"
+msgstr "Vacation"
+
 #: src/features/planner/components/TimeOffFields.tsx
 msgid "Vacation, day off, sick leave..."
 msgstr "Vacation, day off, sick leave..."
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Ventilation"
+msgstr "Ventilation"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+msgid "Ventilation routing"
+msgstr "Ventilation routing"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Version"
@@ -6770,9 +7253,17 @@ msgstr "vs last week"
 msgid "Wait {0} s before sending another one."
 msgstr "Wait {0} s before sending another one."
 
+#: src/features/workspace/lib/starterTemplates/bimTemplate.ts
+msgid "Waiting for input"
+msgstr "Waiting for input"
+
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Walk through the timeline, dashboard, projects and team again"
 msgstr "Walk through the timeline, dashboard, projects and team again"
+
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Warehouse fit-out"
+msgstr "Warehouse fit-out"
 
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Waves"
@@ -6781,6 +7272,18 @@ msgstr "Waves"
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 msgstr "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
+
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "We'll set up matching statuses, task types and a few examples. The examples go away with one button whenever you're ready."
+msgstr "We'll set up matching statuses, task types and a few examples. The examples go away with one button whenever you're ready."
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Website"
+msgstr "Website"
+
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Website launch"
+msgstr "Website launch"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
@@ -6798,6 +7301,16 @@ msgstr "Weekly"
 #: src/shared/lib/repeatLabels.ts
 msgid "Weekly recurring"
 msgstr "Weekly recurring"
+
+#: src/features/workspace/lib/starterTemplates/designTemplate.ts
+#: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
+msgid "Weekly team meeting"
+msgstr "Weekly team meeting"
+
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/StarterTemplateChooser.tsx
+msgid "What does your team do?"
+msgstr "What does your team do?"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "What is switched on"
@@ -6853,6 +7366,10 @@ msgstr "Will start on the timeline"
 msgid "Window"
 msgstr "Window"
 
+#: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
+msgid "Wiring, second floor"
+msgstr "Wiring, second floor"
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "Without this, only people who have not seen it yet will get it."
 msgstr "Without this, only people who have not seen it yet will get it."
@@ -6898,7 +7415,6 @@ msgstr "Workspace name"
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workspace not selected."
 msgstr "Workspace not selected."
 
@@ -6911,10 +7427,6 @@ msgstr "Workspace sections"
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Workspace settings"
 msgstr "Workspace settings"
-
-#: src/features/workspace/components/CreateWorkspaceDialog.tsx
-msgid "Workspace template"
-msgstr "Workspace template"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/pages/AdminOverviewPage.tsx
@@ -7075,6 +7587,10 @@ msgstr "Your data export is ready."
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Your display name stays visible in historical comments:"
 msgstr "Your display name stays visible in historical comments:"
+
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+msgid "Your own set of statuses, types and tags"
+msgstr "Your own set of statuses, types and tags"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Your sign-in session expired. Please continue with Keycloak again."

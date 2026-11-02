@@ -42,6 +42,8 @@ import {
   buildWorkspaceMemberActivityTargetLabel,
 } from '@/shared/domain/workspaceMemberActivity';
 import { DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
+import { starterCatalogAsWorkspaceTemplate } from '@/shared/domain/starterTemplate';
+import { findStarterTemplate } from '@/features/workspace/lib/starterTemplates';
 
 type CatalogActions = Pick<
   PlannerStore,
@@ -1010,8 +1012,10 @@ export const createCatalogActions = (
       return { error: error.message };
     }
 
+    // Nothing saved is the usual state, not a failure: the dialog used to show
+    // this as a red, untranslated "No template saved yet." to everyone.
     if (!data) {
-      return { error: 'No template saved yet.' };
+      return { template: null };
     }
 
     return {
@@ -1049,16 +1053,25 @@ export const createCatalogActions = (
     return emptyMutationResult;
   },
 
-  applyWorkspaceTemplate: async () => {
+  applyWorkspaceTemplate: async (source = 'own') => {
     const workspaceId = get().workspaceId;
     if (!workspaceId) return { error: 'Workspace not selected.' };
 
-    const templateResult = await get().loadWorkspaceTemplate();
-    if (templateResult.error || !templateResult.template) {
-      return { error: templateResult.error ?? 'No template saved yet.' };
+    let template: WorkspaceTemplate;
+    if (source === 'own') {
+      const templateResult = await get().loadWorkspaceTemplate();
+      if (templateResult.error || !templateResult.template) {
+        return { error: templateResult.error ?? 'No template saved yet.' };
+      }
+      template = templateResult.template;
+    } else {
+      // Built now, so the names come in the interface language of this moment.
+      const starter = findStarterTemplate(source);
+      if (!starter) return { error: 'Unknown template.' };
+      template = starterCatalogAsWorkspaceTemplate(starter.build());
     }
 
-    const diff = diffWorkspaceTemplate(templateResult.template, {
+    const diff = diffWorkspaceTemplate(template, {
       statuses: get().statuses,
       taskTypes: get().taskTypes,
       tags: get().tags,
@@ -1100,13 +1113,14 @@ export const createCatalogActions = (
       if (error) return { error: error.message };
     }
 
-    if (diff.statuses.length === 0 && diff.taskTypes.length === 0 && diff.tags.length === 0) {
-      return emptyMutationResult;
+    const added = { statuses: diff.statuses.length, taskTypes: diff.taskTypes.length, tags: diff.tags.length };
+    if (added.statuses === 0 && added.taskTypes === 0 && added.tags === 0) {
+      return { added };
     }
 
     set({ loadedRange: null });
     await get().loadWorkspaceData(workspaceId);
-    return emptyMutationResult;
+    return { added };
   },
 
   addMilestone: async (milestone) => {

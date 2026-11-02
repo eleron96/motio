@@ -32,6 +32,13 @@ import {
 import type { TaskBoardScope } from '@/shared/domain/taskLoadScopes';
 import { RepeatCreateOptions } from '@/features/planner/lib/taskFormRules';
 import { WorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
+import type { StarterTemplateId, WorkspaceStart } from '@/shared/domain/starterTemplate';
+
+export type WorkspaceTemplateApplyResult = {
+  error?: string;
+  /** How many of each were missing and are now added. */
+  added?: { statuses: number; taskTypes: number; tags: number };
+};
 import { TaskUndoEntry, TaskUndoOutcome } from '@/shared/domain/taskUndo';
 import type { TaskSubtaskImage } from '@/shared/domain/taskSubtaskImages';
 import type { SubtaskPositionUpdate } from '@/shared/domain/taskSubtaskOrder';
@@ -204,6 +211,8 @@ export interface PlannerStore extends PlannerState {
   hasSampleData: boolean;
   refreshSampleDataFlag: (workspaceId: string) => Promise<void>;
   clearSampleData: (workspaceId: string) => Promise<MutationResult>;
+  /** Fills a new workspace from a starter template, in the interface language. */
+  applyStarterTemplate: (workspaceId: string, templateId: StarterTemplateId) => Promise<MutationResult>;
 
   taskUndoStack: TaskUndoEntry[];
   /**
@@ -286,9 +295,14 @@ export interface PlannerStore extends PlannerState {
   addTag: (tag: Omit<Tag, 'id'>) => Promise<void>;
   updateTag: (id: string, updates: Partial<Tag>) => Promise<void>;
   deleteTag: (id: string) => Promise<void>;
-  loadWorkspaceTemplate: () => Promise<{ template?: WorkspaceTemplate; error?: string }>;
+  /** `template: null` — nothing saved yet, which is not an error. */
+  loadWorkspaceTemplate: () => Promise<{ template?: WorkspaceTemplate | null; error?: string }>;
   saveWorkspaceTemplate: (template: WorkspaceTemplate) => Promise<MutationResult>;
-  applyWorkspaceTemplate: () => Promise<MutationResult>;
+  /**
+   * Adds the statuses, types and tags the workspace lacks (by name) from the
+   * own saved set or from a starter template's catalogs. Never removes anything.
+   */
+  applyWorkspaceTemplate: (source?: WorkspaceStart) => Promise<WorkspaceTemplateApplyResult>;
 
   addMilestone: (milestone: Omit<Milestone, 'id'>) => Promise<MutationResult>;
   updateMilestone: (id: string, updates: Partial<Milestone>) => Promise<MutationResult>;

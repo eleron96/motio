@@ -23,6 +23,7 @@ const { authState, plannerState, mobileState } = vi.hoisted(() => ({
     user: { id: 'user-1' },
     workspacesLoaded: true,
     currentWorkspaceId: 'ws-1' as string | null,
+    workspaces: [{ id: 'ws-1', templatePending: false }],
   },
   plannerState: {
     loadedRange: { workspaceId: 'ws-1' } as { workspaceId: string } | null,
@@ -98,6 +99,7 @@ describe('useOnboardingTour', () => {
     fetchProfilePreferencesMock.mockResolvedValue({ onboarding_completed: false, theme: 'warm' });
     authState.workspacesLoaded = true;
     authState.currentWorkspaceId = 'ws-1';
+    authState.workspaces = [{ id: 'ws-1', templatePending: false }];
     plannerState.loadedRange = { workspaceId: 'ws-1' };
     plannerState.plannerSurface = 'timeline';
     plannerState.viewMode = 'day';
@@ -215,6 +217,24 @@ describe('useOnboardingTour', () => {
     expect(createOnboardingTourMock).not.toHaveBeenCalled();
     // Флаг «пройден» не выставлен — тур придёт в следующий заход.
     expect(updateProfilePreferencesMock).not.toHaveBeenCalled();
+  });
+
+  /**
+   * A new workspace first asks its owner to pick a starter template. The tour
+   * is about rows and tasks that appear only after that choice, and waits for
+   * it however long it takes — past the limit it gives a slow workspace load.
+   */
+  it('waits for the starter template to be chosen, with no time limit', async () => {
+    authState.workspaces = [{ id: 'ws-1', templatePending: true }];
+    render(<TestComponent />);
+    await flush(60000);
+
+    expect(createOnboardingTourMock).not.toHaveBeenCalled();
+    expect(updateProfilePreferencesMock).not.toHaveBeenCalled();
+
+    authState.workspaces = [{ id: 'ws-1', templatePending: false }];
+    await flush(400);
+    expect(createOnboardingTourMock).toHaveBeenCalledTimes(1);
   });
 
   it('waits for an open dialog such as the daily brief to close', async () => {

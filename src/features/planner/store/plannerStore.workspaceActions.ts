@@ -5,6 +5,8 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { isProjectCardEnabled, isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { fetchTaskCommentCountsInWindow } from '@/infrastructure/tasks/taskCommentsRepository';
+import { applyStarterTemplatePayload } from '@/infrastructure/workspace/starterTemplateRepository';
+import { buildStarterTemplatePayloadFor } from '@/features/workspace/lib/starterTemplates';
 import { deferTaskRowIfWriting } from '@/features/planner/store/plannerStore.pendingWrites';
 import type {
   PlannerGetState,
@@ -57,6 +59,7 @@ type WorkspaceActions = Pick<
   | 'refreshMemberGroups'
   | 'refreshSampleDataFlag'
   | 'clearSampleData'
+  | 'applyStarterTemplate'
   | 'fetchAssigneeTaskCounts'
   | 'fetchMemberGroups'
   | 'fetchGroupMembers'
@@ -816,6 +819,35 @@ export const createWorkspaceActions = (
     // сразу, и удалённые задачи останутся висеть на экране.
     set({ hasSampleData: false, loadedRange: null });
     await get().loadWorkspaceData(workspaceId);
+    return {};
+  },
+
+  /**
+   * Новое пространство начинается с шаблона, который выбрал его владелец.
+   * Шаблон собирается здесь, в момент выбора, — поэтому тексты примеров на
+   * языке интерфейса. База кладёт его одной транзакцией (0169), после чего
+   * окно перечитывается целиком: справочники тоже стали другими.
+   */
+  applyStarterTemplate: async (workspaceId, templateId) => {
+    const payload = buildStarterTemplatePayloadFor(templateId, new Date());
+    if (!payload) return { error: 'Unknown template.' };
+
+    const { error } = await applyStarterTemplatePayload(workspaceId, payload);
+    if (error) {
+      console.error({
+        module: 'planner.store',
+        action: 'applyStarterTemplate',
+        workspaceId,
+        result: 'error',
+        message: error,
+      });
+      return { error };
+    }
+
+    useAuthStore.getState().markWorkspaceTemplateApplied(workspaceId);
+    set({ loadedRange: null });
+    await get().loadWorkspaceData(workspaceId);
+    await get().refreshSampleDataFlag(workspaceId);
     return {};
   },
 

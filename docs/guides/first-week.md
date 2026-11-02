@@ -14,8 +14,11 @@ which needs no sign-up and resets on its own, or in your own workspace at
 
 ## Monday: put this week on the timeline
 
-A new workspace starts with a few example tasks, so the screen isn't empty. Look around
-with them, then press **Remove examples** in the banner to clear them in one go.
+A new workspace first asks what your team does — architecture and design, BIM and
+project support, construction and installation, software development, or nothing in
+particular — and starts with matching statuses, task types and a few example tasks, so
+the screen isn't empty. Look around with them, then press **Remove examples** in the
+banner to clear them in one go; the statuses and task types stay.
 
 Now add the work that is really on the table this week:
 

@@ -104,6 +104,8 @@ const buildFreshState = (): DemoStore => {
         // to auto-from-history so the gradient adapts to the seeded load.
         heatmap_enabled: true,
         heatmap_capacity_per_person: null,
+        // The sandbox comes filled in: no starter template to choose.
+        template_pending: false,
         created_at: nowIso,
       },
     ],

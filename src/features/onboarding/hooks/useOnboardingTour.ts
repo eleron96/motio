@@ -60,6 +60,17 @@ const isWorkspaceReady = (): boolean => {
 };
 
 /**
+ * Новое пространство сначала ждёт, пока владелец выберет шаблон (окно
+ * StarterTemplateChooser). Тур рассказывает про строки и задачи, которые
+ * появятся только после выбора, — поэтому ждёт его без ограничения по времени:
+ * сколько человек думает над шаблоном, не наше дело.
+ */
+const isTemplatePending = (): boolean => {
+  const { workspaces, currentWorkspaceId } = useAuthStore.getState();
+  return workspaces.some((workspace) => workspace.id === currentWorkspaceId && workspace.templatePending);
+};
+
+/**
  * Тур показывает строки, полоски и вехи таймлайна. Человек, который вернулся
  * к туру из настроек, мог оставить планировщик на календаре или доске — там
  * этих элементов нет, и подсказки повисли бы в пустоте. Возвращаем таймлайн;
@@ -175,6 +186,11 @@ export const useOnboardingTour = ({
       let waitedForWorkspace = 0;
       const startWhenScreenIsFree = () => {
         if (cancelled) return;
+
+        if (isTemplatePending()) {
+          startTimeout = setTimeout(startWhenScreenIsFree, MODAL_POLL_MS);
+          return;
+        }
 
         // Сначала данные, потом подсказки о них.
         if (!isWorkspaceReady()) {
