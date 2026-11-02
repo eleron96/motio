@@ -254,6 +254,18 @@ const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
       };
     }
 
+    if (table === 'time_off') {
+      // The sync re-reads the window's absences on reconnect and on time_off
+      // events; no absences unless a test supplies its own.
+      const builder = {
+        select: () => builder,
+        eq: () => builder,
+        gte: () => builder,
+        lte: () => Promise.resolve({ data: [], error: null }),
+      };
+      return builder;
+    }
+
     throw new Error(`Unexpected table: ${table}`);
   };
 };
