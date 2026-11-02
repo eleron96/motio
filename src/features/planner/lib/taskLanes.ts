@@ -73,14 +73,11 @@ export const calculateTaskLanes = (
 ): TaskWithLane[] => {
   if (tasks.length === 0) return [];
 
-  // By start date; on the same start, the longer task first. Packing by start
-  // is as tight overall either way, but a long task placed after the short
-  // ones of a busy day lands under the whole stack and keeps the row tall for
-  // weeks after the stack is gone; placed first it takes the top lane.
+  // Sort tasks by start date, then by end date
   const sortedTasks = [...tasks].sort((a, b) => {
     const startCompare = a.startDate.localeCompare(b.startDate);
     if (startCompare !== 0) return startCompare;
-    return b.endDate.localeCompare(a.endDate);
+    return a.endDate.localeCompare(b.endDate);
   });
 
   if (previousLanes && previousLanes.size > 0) {

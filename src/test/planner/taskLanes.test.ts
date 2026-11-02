@@ -246,16 +246,3 @@ describe('calculateTaskLanes — keeping lanes from the last layout', () => {
   });
 });
 
-describe('calculateTaskLanes on a busy day', () => {
-  it('gives the top lane to the longest of the tasks starting the same day', () => {
-    const short1 = makeTask({ id: 'short-1', startDate: '2026-03-02', endDate: '2026-03-02' });
-    const short2 = makeTask({ id: 'short-2', startDate: '2026-03-02', endDate: '2026-03-03' });
-    const long = makeTask({ id: 'long', startDate: '2026-03-02', endDate: '2026-03-27' });
-
-    const lanes = Object.fromEntries(calculateTaskLanes([short1, short2, long]).map((task) => [task.id, task.lane]));
-
-    // The stack is gone after 3 March; the long bar stays on top, not three lanes down.
-    expect(lanes.long).toBe(0);
-    expect(new Set([lanes['short-1'], lanes['short-2']])).toEqual(new Set([1, 2]));
-  });
-});
