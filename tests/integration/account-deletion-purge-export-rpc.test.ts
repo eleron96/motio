@@ -3,8 +3,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   TEST_USER_IDS,
   assertCoreSchemaReady,
-  assertPhase1SchemaReady,
-  assertPhase3SchemaReady,
+  assertAccountDeletionSchemaReady,
+  assertPurgeExportRpcsReady,
   closeTestPool,
   getTestPool,
   loadFixture,
@@ -59,13 +59,13 @@ async function markPending(client: PoolClient, userId: string, purgeAfterSql: st
   );
 }
 
-describe("Phase 3 — purge & export helper RPCs (0075)", () => {
+describe("Account deletion — purge & export helper RPCs (0075)", () => {
   beforeAll(async () => {
     const client = await getTestPool().connect();
     try {
       await assertCoreSchemaReady(client);
-      await assertPhase1SchemaReady(client);
-      await assertPhase3SchemaReady(client);
+      await assertAccountDeletionSchemaReady(client);
+      await assertPurgeExportRpcsReady(client);
     } finally {
       client.release();
     }

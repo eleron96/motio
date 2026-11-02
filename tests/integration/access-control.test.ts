@@ -4,7 +4,7 @@ import {
   TEST_USER_IDS,
   TEST_WORKSPACE_IDS,
   assertCoreSchemaReady,
-  assertPhase1SchemaReady,
+  assertAccountDeletionSchemaReady,
   closeTestPool,
   getTestPool,
   loadFixture,
@@ -67,7 +67,7 @@ describe("Access control — ownership lock & transfer (0093)", () => {
     const client = await getTestPool().connect();
     try {
       await assertCoreSchemaReady(client);
-      await assertPhase1SchemaReady(client);
+      await assertAccountDeletionSchemaReady(client);
       // sanity: migration 0093 loaded
       const { rowCount } = await client.query(
         `select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace

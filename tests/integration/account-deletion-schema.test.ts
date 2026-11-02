@@ -3,19 +3,19 @@ import {
   TEST_USER_IDS,
   TEST_WORKSPACE_IDS,
   assertCoreSchemaReady,
-  assertPhase1SchemaReady,
+  assertAccountDeletionSchemaReady,
   closeTestPool,
   getTestPool,
   loadFixture,
   withRollback,
 } from "../helpers/setup-test-db";
 
-describe("Phase 1 — schema migrations 0069-0073", () => {
+describe("Account deletion — schema migrations 0069-0073", () => {
   beforeAll(async () => {
     const client = await getTestPool().connect();
     try {
       await assertCoreSchemaReady(client);
-      await assertPhase1SchemaReady(client);
+      await assertAccountDeletionSchemaReady(client);
     } finally {
       client.release();
     }
@@ -420,7 +420,7 @@ describe("Phase 1 — schema migrations 0069-0073", () => {
       );
     });
 
-    it("fixture loads identically to Phase 0 smoke", async () => {
+    it("fixture loads identically to the plumbing smoke test", async () => {
       await withRollback(async (client) => {
         await loadFixture(client, "account-deletion.sql");
         const { rows } = await client.query<{ count: string }>(

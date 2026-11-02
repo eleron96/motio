@@ -3,9 +3,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   TEST_USER_IDS,
   assertCoreSchemaReady,
-  assertPhase1SchemaReady,
-  assertPhase3SchemaReady,
-  assertPhase5SchemaReady,
+  assertAccountDeletionSchemaReady,
+  assertPurgeExportRpcsReady,
+  assertDeletionCronRpcsReady,
   closeTestPool,
   getTestPool,
   loadFixture,
@@ -66,14 +66,14 @@ async function insertReadyExport(
   return rows[0]!.id;
 }
 
-describe("Phase 5 — cron + monitoring helper RPCs (0076)", () => {
+describe("Account deletion — cron + monitoring helper RPCs (0076)", () => {
   beforeAll(async () => {
     const client = await getTestPool().connect();
     try {
       await assertCoreSchemaReady(client);
-      await assertPhase1SchemaReady(client);
-      await assertPhase3SchemaReady(client);
-      await assertPhase5SchemaReady(client);
+      await assertAccountDeletionSchemaReady(client);
+      await assertPurgeExportRpcsReady(client);
+      await assertDeletionCronRpcsReady(client);
     } finally {
       client.release();
     }

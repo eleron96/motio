@@ -9,7 +9,7 @@ import {
   withRollback,
 } from "../helpers/setup-test-db";
 
-describe("Phase 0 smoke — integration test plumbing", () => {
+describe("Integration test plumbing", () => {
   beforeAll(async () => {
     const client = await getTestPool().connect();
     try {

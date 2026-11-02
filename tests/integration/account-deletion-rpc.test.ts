@@ -4,7 +4,7 @@ import {
   TEST_USER_IDS,
   TEST_WORKSPACE_IDS,
   assertCoreSchemaReady,
-  assertPhase1SchemaReady,
+  assertAccountDeletionSchemaReady,
   closeTestPool,
   getTestPool,
   loadFixture,
@@ -61,12 +61,12 @@ async function withFixture<T>(
   });
 }
 
-describe("Phase 2 — account deletion RPCs (0074)", () => {
+describe("Account deletion — RPCs (0074)", () => {
   beforeAll(async () => {
     const client = await getTestPool().connect();
     try {
       await assertCoreSchemaReady(client);
-      await assertPhase1SchemaReady(client);
+      await assertAccountDeletionSchemaReady(client);
       // sanity: migration 0074 loaded
       const { rowCount } = await client.query(
         `select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
@@ -243,7 +243,7 @@ describe("Phase 2 — account deletion RPCs (0074)", () => {
         );
         expect(prof.rows[0].status).toBe("PENDING_DELETION");
 
-        // Architectural decision (Phase 1): membership rows are preserved.
+        // Architectural decision (account deletion schema, 0069-0073): membership rows are preserved.
         const wm = await client.query(
           `select 1 from public.workspace_members where workspace_id=$1 and user_id=$2`,
           [TEST_WORKSPACE_IDS.bobShared, TEST_USER_IDS.bob],
