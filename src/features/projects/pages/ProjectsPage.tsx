@@ -30,9 +30,7 @@ import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
 import { needsAssigneeGroupingToRevealTask } from '@/shared/domain/timelineTaskReveal';
 import { format, parseISO } from 'date-fns';
-import {
-  Plus,
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Assignee, Milestone, Project } from '@/features/planner/types/planner';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';

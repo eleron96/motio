@@ -269,19 +269,19 @@ msgstr "+{0} more milestones"
 msgid "+{groupedLegendCount} hidden"
 msgstr "+{groupedLegendCount} hidden"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "🎯 Milestones calendar"
 msgstr "🎯 Milestones calendar"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "📈 Completion trends over time"
 msgstr "📈 Completion trends over time"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "📊 Tasks by project & assignee"
 msgstr "📊 Tasks by project & assignee"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "🥧 Status & workload breakdown"
 msgstr "🥧 Status & workload breakdown"
 
@@ -362,7 +362,7 @@ msgstr "Accept & Join"
 msgid "Accept the invitation to join your team workspace."
 msgstr "Accept the invitation to join your team workspace."
 
-#: src/features/auth/hooks/useInboxFeed.ts
+#: src/features/auth/hooks/useInviteReactionToasts.ts
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Accepted"
@@ -552,7 +552,7 @@ msgstr "Add subtask"
 msgid "Add task"
 msgstr "Add task"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Add tasks & dates"
 msgstr "Add tasks & dates"
 
@@ -685,7 +685,7 @@ msgstr "Also counts: {regionHolidayList}."
 msgid "Always"
 msgstr "Always"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "Analytics"
 msgstr "Analytics"
 
@@ -702,7 +702,7 @@ msgstr "Announcement"
 msgid "Answer client comments"
 msgstr "Answer client comments"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 msgstr "Any task takes 10 seconds to add. Not because we forgot to ship more features. That's the product's position."
 
@@ -752,8 +752,7 @@ msgstr "Architecture and design"
 msgid "Archive"
 msgstr "Archive"
 
-#: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
@@ -878,7 +877,7 @@ msgstr "Back to today"
 msgid "Backend"
 msgstr "Backend"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Backup & restore"
 msgstr "Backup & restore"
 
@@ -908,7 +907,7 @@ msgstr "Bar chart"
 msgid "Beer"
 msgstr "Beer"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Behind your own reverse proxy"
 msgstr "Behind your own reverse proxy"
 
@@ -974,7 +973,7 @@ msgid "By project"
 msgstr "By project"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "By status"
 msgstr "By status"
 
@@ -986,7 +985,7 @@ msgstr "By user"
 msgid "By workspace"
 msgstr "By workspace"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Calendar"
 msgstr "Calendar"
@@ -1037,9 +1036,9 @@ msgstr "Call"
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/MobileFormSheet.tsx
@@ -1260,7 +1259,7 @@ msgstr "Client review"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 #: src/shared/ui/image-lightbox.tsx
 #: src/shared/ui/image-lightbox.tsx
@@ -1359,11 +1358,11 @@ msgstr "Company"
 msgid "Company / contractor"
 msgstr "Company / contractor"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "Completed"
 msgstr "Completed"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "Completion trend"
 msgstr "Completion trend"
 
@@ -1375,7 +1374,7 @@ msgstr "Concept presentation"
 msgid "Configure widget type, display style, and filters."
 msgstr "Configure widget type, display style, and filters."
 
-#: src/features/planner/hooks/usePlannerLiveSync.ts
+#: src/features/planner/lib/syncStatusToasts.ts
 msgid "Connection restored"
 msgstr "Connection restored"
 
@@ -1588,7 +1587,7 @@ msgstr "Create task"
 msgid "Create token"
 msgstr "Create token"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
@@ -1691,7 +1690,7 @@ msgstr "Daily"
 msgid "Daily brief"
 msgstr "Daily brief"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Daily Brief"
 msgstr "Daily Brief"
 
@@ -1705,7 +1704,7 @@ msgstr "Daily recurring"
 msgid "Danger zone"
 msgstr "Danger zone"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Dashboard"
 msgstr "Dashboard"
@@ -1756,7 +1755,7 @@ msgstr "Database"
 msgid "Date"
 msgstr "Date"
 
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -1782,7 +1781,7 @@ msgstr "Deadlines this week"
 msgid "Decline"
 msgstr "Decline"
 
-#: src/features/auth/hooks/useInboxFeed.ts
+#: src/features/auth/hooks/useInviteReactionToasts.ts
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Declined"
@@ -1812,9 +1811,9 @@ msgstr "default"
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/MilestonesMobileSection.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -1937,7 +1936,7 @@ msgstr "Delete this"
 msgid "Delete this & following"
 msgstr "Delete this & following"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Delete this note? This cannot be undone."
 msgstr "Delete this note? This cannot be undone."
 
@@ -2016,7 +2015,7 @@ msgstr "Design review"
 msgid "Design work"
 msgstr "Design work"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingFooter.tsx
 msgid "Designed and developed by <0>NIKO G.</0>"
 msgstr "Designed and developed by <0>NIKO G.</0>"
 
@@ -2240,11 +2239,11 @@ msgstr "E.g. В работе, Заморожен, Завершен"
 msgid "E.g. Передано заказчику"
 msgstr "E.g. Передано заказчику"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Each day is coloured by how busy the team is: tasks per person who is actually there, with milestones and time off counted in. Click a hot day to jump straight to it on the timeline."
 msgstr "Each day is coloured by how busy the team is: tasks per person who is actually there, with milestones and time off counted in. Click a hot day to jump straight to it on the timeline."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 msgstr "Each morning starts with a short brief. What's on you today, which milestones are this week, where the team needs you. Before you open anything else."
 
@@ -2269,8 +2268,8 @@ msgstr "Easter eggs"
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
@@ -2513,7 +2512,7 @@ msgstr "Every active account, including people who join later."
 msgid "Everyone"
 msgstr "Everyone"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Everyone sees the same picture. Plan together, ship together."
 msgstr "Everyone sees the same picture. Plan together, ship together."
 
@@ -2521,7 +2520,7 @@ msgstr "Everyone sees the same picture. Plan together, ship together."
 msgid "Everyone who already closed this announcement will see it once more."
 msgstr "Everyone who already closed this announcement will see it once more."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Everything your team needs to stay aligned"
 msgstr "Everything your team needs to stay aligned"
 
@@ -2551,7 +2550,7 @@ msgstr "Expand filters"
 msgid "experimental"
 msgstr "experimental"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Experimental — a workspace admin switches it on in settings."
 msgstr "Experimental — a workspace admin switches it on in settings."
 
@@ -2850,7 +2849,7 @@ msgstr "From"
 msgid "Frontend"
 msgstr "Frontend"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Full data export"
 msgstr "Full data export"
 
@@ -2910,7 +2909,7 @@ msgstr "Give the token a name of 1 to 80 characters."
 msgid "Go to task"
 msgstr "Go to task"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingHeader.tsx
 msgid "Go to timeline"
 msgstr "Go to timeline"
 
@@ -2977,7 +2976,7 @@ msgstr "Group milestones"
 msgid "Group name"
 msgstr "Group name"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Group tasks by project, set milestones, and track progress without switching tools."
 msgstr "Group tasks by project, set milestones, and track progress without switching tools."
 
@@ -3086,11 +3085,11 @@ msgstr "I agree to the <0>Privacy Policy</0>"
 msgid "I'm mentioned in a comment"
 msgstr "I'm mentioned in a comment"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
 msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 msgstr "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
 
@@ -3135,7 +3134,7 @@ msgstr "In {diff} days"
 msgid "in progress"
 msgstr "in progress"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "In progress"
 msgstr "In progress"
 
@@ -3218,11 +3217,11 @@ msgstr "Invite people and share access."
 msgid "Invite teammates after you sign up"
 msgstr "Invite teammates after you sign up"
 
-#: src/features/auth/hooks/useInboxFeed.ts
+#: src/features/auth/hooks/useInviteReactionToasts.ts
 msgid "Invite update"
 msgstr "Invite update"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Invite your team"
 msgstr "Invite your team"
 
@@ -3237,7 +3236,7 @@ msgstr "Invited by"
 msgid "Invites"
 msgstr "Invites"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
 msgstr "It doesn't try to be everything at once. No custom fields, no complex automations, no formulas. One main screen, the timeline, and a quick way to see who's working on what. A board of status columns is there too, if you want it."
 
@@ -3277,7 +3276,7 @@ msgstr "Keep writing"
 msgid "Keycloak"
 msgstr "Keycloak"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 
@@ -3391,7 +3390,7 @@ msgstr "Loading available countries..."
 msgid "Loading backups..."
 msgstr "Loading backups..."
 
-#: src/features/planner/pages/PlannerPage.tsx
+#: src/features/planner/components/PlannerTimelineArea.tsx
 msgid "Loading board..."
 msgstr "Loading board..."
 
@@ -3463,7 +3462,7 @@ msgstr "Loading users..."
 msgid "Loading workload..."
 msgstr "Loading workload..."
 
-#: src/features/planner/pages/PlannerPage.tsx
+#: src/features/planner/components/PlannerTimelineArea.tsx
 msgid "Loading workspace..."
 msgstr "Loading workspace..."
 
@@ -3592,7 +3591,7 @@ msgstr "Member actions"
 msgid "Member not found."
 msgstr "Member not found."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 msgid "Members"
@@ -3718,8 +3717,8 @@ msgid "Mood board and materials"
 msgstr "Mood board and materials"
 
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "More actions"
 msgstr "More actions"
 
@@ -3727,11 +3726,11 @@ msgstr "More actions"
 msgid "More people"
 msgstr "More people"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
 msgstr "Most teams just sign up and start working. If your data has to stay inside your own perimeter, Motio deploys to your infrastructure — and you can export everything and walk away whenever you want."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
 msgstr "Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week."
 
@@ -3744,7 +3743,7 @@ msgstr "Motio"
 msgid "Motio — see who’s doing what this week, across every project"
 msgstr "Motio — see who’s doing what this week, across every project"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Motio grew out of exactly this boring but very real problem."
 msgstr "Motio grew out of exactly this boring but very real problem."
 
@@ -3809,7 +3808,7 @@ msgstr "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 msgid "name@example.com"
 msgstr "name@example.com"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Need it on your own servers? That works too."
 msgstr "Need it on your own servers? That works too."
 
@@ -3991,8 +3990,8 @@ msgstr "No code"
 msgid "No company"
 msgstr "No company"
 
-#: src/features/planner/hooks/usePlannerLiveSync.ts
-#: src/features/planner/hooks/usePlannerLiveSync.ts
+#: src/features/planner/lib/syncStatusToasts.ts
+#: src/features/planner/lib/syncStatusToasts.ts
 msgid "No connection"
 msgstr "No connection"
 
@@ -4231,8 +4230,8 @@ msgstr "No priority"
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
+#: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
@@ -4422,8 +4421,8 @@ msgstr "Not used while own colours are on."
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/TimeOffFields.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Note"
 msgstr "Note"
 
@@ -4524,7 +4523,7 @@ msgstr "on"
 msgid "On hold"
 msgstr "On hold"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 msgstr "On Monday I'd open three different tabs to answer one simple question: who's free this week. By Wednesday it would turn out someone was already overloaded, and I'd find out too late. At the retro, in a chat thread, or after a missed deadline."
 
@@ -4546,7 +4545,7 @@ msgstr "One person"
 msgid "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 msgstr "One shared timeline for people, projects and workload. Spot overload before it hits a deadline."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "One-command install"
 msgstr "One-command install"
 
@@ -4625,11 +4624,11 @@ msgstr "Open on timeline"
 msgid "Open project"
 msgstr "Open project"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingFooter.tsx
 msgid "Open source (AGPL-3.0)"
 msgstr "Open source (AGPL-3.0)"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Open source under AGPL-3.0"
 msgstr "Open source under AGPL-3.0"
 
@@ -4827,8 +4826,8 @@ msgstr "Pie chart (Donut)"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Pin to top"
 msgstr "Pin to top"
 
@@ -4836,7 +4835,7 @@ msgstr "Pin to top"
 msgid "Pinned"
 msgstr "Pinned"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Place tasks on the timeline. Assign them to people and projects."
 msgstr "Place tasks on the timeline. Assign them to people and projects."
 
@@ -4909,7 +4908,7 @@ msgstr "Priority"
 msgid "Priority changed"
 msgstr "Priority changed"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingFooter.tsx
 msgid "Privacy Policy"
 msgstr "Privacy Policy"
 
@@ -4940,7 +4939,7 @@ msgid "Progress: {0} / {1}"
 msgstr "Progress: {0} / {1}"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -5027,7 +5026,7 @@ msgstr "Project: all"
 msgid "Projects"
 msgstr "Projects"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Projects & milestones"
 msgstr "Projects & milestones"
 
@@ -5085,8 +5084,8 @@ msgstr "Quality check"
 msgid "Reaches {reach} people"
 msgstr "Reaches {reach} people"
 
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Read or edit a single project note."
 msgstr "Read or edit a single project note."
 
@@ -5413,8 +5412,8 @@ msgstr "Sage"
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/MobileFormSheet.tsx
@@ -5623,7 +5622,7 @@ msgstr "Search types..."
 msgid "Sections"
 msgstr "Sections"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 msgstr "See all tasks and who's doing what across any date range. Spot gaps and overlaps instantly."
 
@@ -5673,7 +5672,7 @@ msgstr "Select a workspace"
 msgid "Select a workspace member"
 msgstr "Select a workspace member"
 
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
 msgid "Select all tasks"
 msgstr "Select all tasks"
 
@@ -5720,8 +5719,8 @@ msgid "Select tags"
 msgstr "Select tags"
 
 #. placeholder {0}: task.title
-#: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
+#: src/features/members/components/MemberTasksList.tsx
 msgid "Select task {0}"
 msgstr "Select task {0}"
 
@@ -5745,7 +5744,7 @@ msgstr "Select value"
 msgid "Select workspace"
 msgstr "Select workspace"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Self-hosting guide on GitHub →"
 msgstr "Self-hosting guide on GitHub →"
 
@@ -5821,7 +5820,7 @@ msgstr "set manually"
 msgid "Set or clear the custom status label shown on this project."
 msgstr "Set or clear the custom status label shown on this project."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Set up your team workspace in seconds. No credit card needed."
 msgstr "Set up your team workspace in seconds. No credit card needed."
 
@@ -5940,7 +5939,7 @@ msgstr "Show until"
 msgid "Showing archived"
 msgstr "Showing archived"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingHeader.tsx
 msgid "Sign in"
 msgstr "Sign in"
 
@@ -5951,7 +5950,7 @@ msgstr "Sign in required"
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/auth/components/AccountRestoreScreen.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingHeader.tsx
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -5967,7 +5966,7 @@ msgstr "Sign-in (GoTrue)"
 msgid "Sign-in screen"
 msgstr "Sign-in screen"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingHeader.tsx
 msgid "Signed in"
 msgstr "Signed in"
 
@@ -6041,11 +6040,11 @@ msgstr "Sort Z to A"
 msgid "Sorting"
 msgstr "Sorting"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Spot overload months ahead"
 msgstr "Spot overload months ahead"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "SSO via Keycloak"
 msgstr "SSO via Keycloak"
 
@@ -6076,7 +6075,7 @@ msgstr "Start date ↓"
 msgid "Start for free →"
 msgstr "Start for free →"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Start now →"
 msgstr "Start now →"
 
@@ -6084,7 +6083,7 @@ msgstr "Start now →"
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -6228,7 +6227,7 @@ msgstr "Tap to copy"
 msgid "Tap, double-tap, hold"
 msgstr "Tap, double-tap, hold"
 
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/workspace/lib/starterTemplates/index.ts
 #: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
@@ -6313,7 +6312,7 @@ msgstr "Task was created, but subtasks were not saved."
 msgid "Tasks"
 msgstr "Tasks"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "Tasks by project"
 msgstr "Tasks by project"
 
@@ -6339,7 +6338,7 @@ msgstr "Team"
 msgid "Team access"
 msgstr "Team access"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingFooter.tsx
 msgid "Team planning workspace."
 msgstr "Team planning workspace."
 
@@ -6349,7 +6348,7 @@ msgstr "Team time off"
 
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Team workload"
 msgstr "Team workload"
@@ -6370,7 +6369,7 @@ msgstr "Template saved."
 msgid "Tent"
 msgstr "Tent"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingFooter.tsx
 msgid "Terms of Service"
 msgstr "Terms of Service"
 
@@ -6436,7 +6435,7 @@ msgstr "The server did not answer. This usually passes on its own — try again 
 msgid "The statuses, types and tags you saved, without examples."
 msgstr "The statuses, types and tags you saved, without examples."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "The tool I wanted to use"
 msgstr "The tool I wanted to use"
 
@@ -6445,7 +6444,7 @@ msgstr "The tool I wanted to use"
 msgid "The whole team is away"
 msgstr "The whole team is away"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "The workload heatmap: the team's load per day for the coming months"
 msgstr "The workload heatmap: the team's load per day for the coming months"
 
@@ -6539,7 +6538,7 @@ msgstr "This is the only time it is shown. Store it in the system that will use 
 msgid "this milestone"
 msgstr "this milestone"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "This month"
 msgstr "This month"
 
@@ -6652,7 +6651,7 @@ msgstr "This workspace already has all of them."
 msgid "Time off pattern"
 msgstr "Time off pattern"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 #: src/features/workspace/lib/appNavigation.ts
 msgid "Timeline"
@@ -6747,7 +6746,7 @@ msgstr "Total"
 msgid "Total milestones"
 msgstr "Total milestones"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "Total tasks"
 msgstr "Total tasks"
 
@@ -6801,16 +6800,16 @@ msgstr "Try again"
 msgid "Try again from Account settings."
 msgstr "Try again from Account settings."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingHeader.tsx
 msgid "Try demo"
 msgstr "Try demo"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Try demo — no signup"
 msgstr "Try demo — no signup"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Try Motio now"
 msgstr "Try Motio now"
 
@@ -6872,7 +6871,7 @@ msgstr "Unassigned"
 msgid "under a minute"
 msgstr "under a minute"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Understand who is overloaded before it becomes a problem. Balance work across the team."
 msgstr "Understand who is overloaded before it becomes a problem. Balance work across the team."
 
@@ -6894,8 +6893,8 @@ msgstr "Undone partially ({0} of {1})"
 msgid "unknown"
 msgstr "unknown"
 
-#: src/features/members/components/MemberTasksPanel.tsx
-#: src/features/members/components/MemberTasksPanel.tsx
+#: src/features/members/components/MemberTasksList.tsx
+#: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
@@ -6953,8 +6952,8 @@ msgstr "Unnamed group"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Unpin"
 msgstr "Unpin"
 
@@ -7003,7 +7002,7 @@ msgstr "Until {0}"
 msgid "Until date"
 msgstr "Until date"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Up and running in minutes"
 msgstr "Up and running in minutes"
 
@@ -7164,7 +7163,7 @@ msgstr "Viewer"
 msgid "Visible to the whole team."
 msgstr "Visible to the whole team."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Visual timeline"
 msgstr "Visual timeline"
 
@@ -7193,7 +7192,7 @@ msgstr "Warehouse fit-out"
 msgid "Waves"
 msgstr "Waves"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 msgstr "We work with small teams that need one simple thing: to see who is busy, who is free, and how the work is spread across the week. Signing up takes a minute, no credit card needed."
 
@@ -7270,11 +7269,11 @@ msgstr "Who takes over?"
 msgid "Whole country"
 msgstr "Whole country"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Why I built this"
 msgstr "Why I built this"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Why Motio"
 msgstr "Why Motio"
 
@@ -7302,7 +7301,7 @@ msgstr "Without this, only people who have not seen it yet will get it."
 msgid "Workflow"
 msgstr "Workflow"
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingSections.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Workload heatmap"
 msgstr "Workload heatmap"
@@ -7366,7 +7365,7 @@ msgstr "Workspaces you will simply leave:"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
-#: src/features/projects/components/projectCard/ActivityBlock.tsx
+#: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Write a comment..."
 msgstr "Write a comment..."
 
@@ -7519,7 +7518,7 @@ msgstr "Your own set of statuses, types and tags"
 msgid "Your sign-in session expired. Please continue with Keycloak again."
 msgstr "Your sign-in session expired. Please continue with Keycloak again."
 
-#: src/features/marketing/pages/LandingPage.tsx
+#: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "Your team's progress, always in view"
 msgstr "Your team's progress, always in view"
 

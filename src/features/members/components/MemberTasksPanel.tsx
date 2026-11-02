@@ -1,10 +1,8 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { format, parseISO } from 'date-fns';
 import { RefreshCcw, SlidersHorizontal } from 'lucide-react';
-import { Assignee, Project, Status, Task } from '@/features/planner/types/planner';
+import { Assignee, Project, Status } from '@/features/planner/types/planner';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -14,23 +12,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
-import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MemberTasksFiltersScreen } from '@/features/members/components/MemberTasksFiltersScreen';
-
-type DisplayTaskRow = {
-  key: string;
-  task: Task;
-  taskIds: string[];
-  repeatMeta: {
-    cadence: RepeatCadence;
-    remaining: number;
-    total: number;
-  } | null;
-};
+import { type DisplayTaskRow, MemberTasksList } from '@/features/members/components/MemberTasksList';
 
 type MemberTasksPanelProps = {
   selectedAssignee: Assignee | null;
@@ -371,178 +357,19 @@ export const MemberTasksPanel = ({
               <>
                 {displayTaskRows.length === 0 ? (
                   <div className="text-sm text-muted-foreground">{t`No tasks match the current filters.`}</div>
-                ) : isMobile ? (
-                  <div className="space-y-3">
-                    {displayTaskRows.map((row) => {
-                      const { task } = row;
-                      const status = statusById.get(task.statusId);
-                      const project = task.projectId ? projectById.get(task.projectId) : null;
-                      const selectedInRow = row.taskIds.filter((taskId) => selectedTaskIds.has(taskId)).length;
-                      const rowChecked: boolean | 'indeterminate' = (
-                        selectedInRow === row.taskIds.length
-                          ? true
-                          : selectedInRow > 0
-                            ? 'indeterminate'
-                            : false
-                      );
-
-                      return (
-                        <div
-                          key={row.key}
-                          className="rounded-xl border border-border px-4 py-3 transition-colors hover:bg-muted/40"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div
-                              className="-ml-1.5 -mt-1.5 flex h-11 w-11 shrink-0 items-center justify-center"
-                              onClick={(event) => event.stopPropagation()}
-                            >
-                              <Checkbox
-                                checked={rowChecked}
-                                onCheckedChange={(value) => onToggleTask(row.taskIds, value as boolean | 'indeterminate')}
-                                aria-label={t`Select task ${task.title}`}
-                                className="h-5 w-5"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              className="min-w-0 flex-1 text-left"
-                              onClick={() => onSelectTask(task.id)}
-                            >
-                              <div className="space-y-1">
-                                <div className="text-sm font-medium leading-snug break-words [overflow-wrap:anywhere] line-clamp-2">
-                                  {task.title}
-                                </div>
-                                {row.repeatMeta && (
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <Badge variant="outline" className="text-[10px]">
-                                      {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
-                                    </Badge>
-                                    <span className="text-xs text-muted-foreground">
-                                      {formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                                <div>
-                                  {status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {project ? (
-                                    <>
-                                      <span
-                                        className="inline-flex h-2 w-2 rounded-full"
-                                        style={{ backgroundColor: project.color }}
-                                      />
-                                      <span className="break-words [overflow-wrap:anywhere]">
-                                        {formatProjectLabel(project.name, project.code)}
-                                      </span>
-                                      {project.archived && (
-                                        <Badge variant="secondary" className="text-[10px]">{t`Archived`}</Badge>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <span>{t`No project`}</span>
-                                  )}
-                                </div>
-                                <div>
-                                  {format(parseISO(task.startDate), 'dd MMM yyyy')} – {format(parseISO(task.endDate), 'dd MMM yyyy')}
-                                </div>
-                              </div>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-10">
-                          <Checkbox
-                            checked={allVisibleSelected ? true : someVisibleSelected ? 'indeterminate' : false}
-                            onCheckedChange={(value) => onToggleAll(value as boolean | 'indeterminate')}
-                            aria-label={t`Select all tasks`}
-                          />
-                        </TableHead>
-                        <TableHead>{t`Task`}</TableHead>
-                        <TableHead>{t`Status`}</TableHead>
-                        <TableHead>{t`Project`}</TableHead>
-                        <TableHead>{t`Dates`}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {displayTaskRows.map((row) => {
-                        const { task } = row;
-                        const status = statusById.get(task.statusId);
-                        const project = task.projectId ? projectById.get(task.projectId) : null;
-                        const selectedInRow = row.taskIds.filter((taskId) => selectedTaskIds.has(taskId)).length;
-                        const rowChecked: boolean | 'indeterminate' = (
-                          selectedInRow === row.taskIds.length
-                            ? true
-                            : selectedInRow > 0
-                              ? 'indeterminate'
-                              : false
-                        );
-                        return (
-                          <TableRow
-                            key={row.key}
-                            className="cursor-pointer"
-                            onClick={() => onSelectTask(task.id)}
-                          >
-                            <TableCell onClick={(event) => event.stopPropagation()}>
-                              <Checkbox
-                                checked={rowChecked}
-                                onCheckedChange={(value) => onToggleTask(row.taskIds, value as boolean | 'indeterminate')}
-                                aria-label={t`Select task ${task.title}`}
-                              />
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              <div className="space-y-1">
-                                <div>{task.title}</div>
-                                {row.repeatMeta && (
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <Badge variant="outline" className="text-[10px]">
-                                      {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
-                                    </Badge>
-                                    <span className="text-xs text-muted-foreground">
-                                      {formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {project ? (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <span
-                                    className="inline-flex h-2 w-2 rounded-full"
-                                    style={{ backgroundColor: project.color }}
-                                  />
-                                  <span>{formatProjectLabel(project.name, project.code)}</span>
-                                  {project.archived && (
-                                    <Badge variant="secondary" className="text-[10px]">{t`Archived`}</Badge>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">{t`No project`}</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {format(parseISO(task.startDate), 'dd MMM yyyy')} – {format(parseISO(task.endDate), 'dd MMM yyyy')}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                  <MemberTasksList
+                    rows={displayTaskRows}
+                    isMobile={isMobile}
+                    statusById={statusById}
+                    projectById={projectById}
+                    selectedTaskIds={selectedTaskIds}
+                    allVisibleSelected={allVisibleSelected}
+                    someVisibleSelected={someVisibleSelected}
+                    onToggleAll={onToggleAll}
+                    onSelectTask={onSelectTask}
+                    onToggleTask={onToggleTask}
+                  />
                 )}
                 {taskScope === 'past' && displayTotalCount > taskScopePageSize && (
                   <div className={`mt-4 text-xs text-muted-foreground ${isMobile ? 'space-y-2' : 'flex items-center justify-between'}`}>

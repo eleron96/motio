@@ -11,8 +11,8 @@ import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 export const ACTIVITY_HTML_TAG_RE = (
   /<\/?(?:b|strong|i|em|u|s|strike|ul|ol|li|blockquote|br|div|p|span|img)\b/i
 );
-const IMG_TAG_RE = /<img\b/i;
-const ALL_TAGS_RE = /<[^>]+>/g;
+export const IMG_TAG_RE = /<img\b/i;
+export const ALL_TAGS_RE = /<[^>]+>/g;
 const NBSP_RE = /&nbsp;/gi;
 
 /**
