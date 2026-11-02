@@ -51,7 +51,7 @@ import {
 import {
   DASHBOARD_BREAKPOINTS,
   DASHBOARD_COLS,
-  getDashboardGridSettings,
+  getDashboardCanvasMetrics,
   getViewportProfileForBreakpoint,
   type DashboardBreakpoint,
 } from '@/features/dashboard/lib/dashboardResponsive';
@@ -102,7 +102,7 @@ const getStatsVariantKey = (widget: DashboardWidget) => (
 );
 
 /**
- * Container-width tracker that survives the canvas being remounted.
+ * Canvas-width tracker that survives the canvas being remounted.
  *
  * react-grid-layout's own useContainerWidth attaches its ResizeObserver to the
  * container node exactly once, but this page remounts the canvas on every
@@ -110,26 +110,30 @@ const getStatsVariantKey = (widget: DashboardWidget) => (
  * the observer keeps watching the dead node: it reports width 0 and never
  * recovers, collapsing every widget until a full page reload. A callback ref
  * re-attaches the observer to whichever node is currently mounted instead.
+ *
+ * The width includes the canvas padding (clientWidth): the padding is derived
+ * from this width (getDashboardCanvasMetrics), so measuring inside it fed each
+ * padding change back into the next measurement and shook the grid.
  */
-const useRemountSafeContainerWidth = (initialWidth = 1280) => {
+const useRemountSafeCanvasWidth = (initialWidth = 1280) => {
   const [width, setWidth] = useState(initialWidth);
   const observerRef = useRef<ResizeObserver | null>(null);
   const containerRef = useCallback((node: HTMLDivElement | null) => {
     observerRef.current?.disconnect();
     observerRef.current = null;
     if (!node) return;
-    setWidth(node.offsetWidth);
+    setWidth(node.clientWidth || initialWidth);
     if (typeof ResizeObserver !== 'undefined') {
-      const observer = new ResizeObserver((entries) => {
-        const next = entries[0]?.contentRect.width;
-        // Ignore the 0-width blips a detaching node can emit — a real container
+      const observer = new ResizeObserver(() => {
+        const next = node.clientWidth;
+        // Ignore the 0-width blips a detaching node can emit — a real canvas
         // is never 0px wide, and latching 0 is exactly the bug this hook fixes.
-        if (typeof next === 'number' && next > 0) setWidth(next);
+        if (next > 0) setWidth(next);
       });
       observer.observe(node);
       observerRef.current = observer;
     }
-  }, []);
+  }, [initialWidth]);
   return { width, containerRef };
 };
 
@@ -171,7 +175,8 @@ const DashboardPage = () => {
     startY: number;
     moved: boolean;
   } | null>(null);
-  const { width, containerRef } = useRemountSafeContainerWidth();
+  const { width: canvasWidth, containerRef } = useRemountSafeCanvasWidth();
+  const { settings: currentGridSettings, gridWidth: width } = getDashboardCanvasMetrics(canvasWidth);
 
   const {
     widgets,
@@ -280,7 +285,6 @@ const DashboardPage = () => {
     && currentWorkspaceId
     && prevWorkspaceIdRef.current !== currentWorkspaceId,
   );
-  const currentGridSettings = getDashboardGridSettings(currentBreakpoint, width);
   const currentViewportProfile = getViewportProfileForBreakpoint(currentBreakpoint, width);
   const isTouchDashboardViewport = currentViewportProfile === 'phone'
     || currentViewportProfile === 'tablet'

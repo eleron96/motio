@@ -37,6 +37,7 @@ import {
 } from '@/features/planner/store/plannerStore.helpers';
 import type { Assignee, Task } from '@/features/planner/types/planner';
 import { getTimeOffMotifId, type TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
+import { keepTimeOffIfSame } from '@/features/planner/lib/timeOff';
 import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
 import { buildWorkspaceMemberActivityActorSnapshot } from '@/shared/domain/workspaceMemberActivity';
 import {
@@ -272,7 +273,7 @@ const shiftTaskWindow = async (
       ),
       timeOff: timeOffRes.error
         ? state.timeOff
-        : ((timeOffRes.data ?? []) as unknown as TimeOffRow[]).map(mapTimeOffRow),
+        : keepTimeOffIfSame(state.timeOff, ((timeOffRes.data ?? []) as unknown as TimeOffRow[]).map(mapTimeOffRow)),
       loadedRange: window,
       ...(state.highlightedTaskId && !keptIds.has(state.highlightedTaskId)
         ? { highlightedTaskId: null, highlightedTaskRowAssigneeId: null }
@@ -413,7 +414,7 @@ const loadFullWorkspaceData = async (
     .eq('workspace_id', workspaceId);
   // Milestones are deliberately NOT windowed by the task load range: they are
   // sparse (a handful per project), and the project card / milestones tab
-  // must show far-future dates that lie outside the ±3-month task window.
+  // must show far-future dates that lie outside the ±5-month task window.
   const milestonesQuery = supabase
     .from('milestones')
     .select('id, workspace_id, title, project_id, date, note, status_override, include_in_workload')
@@ -573,7 +574,7 @@ const loadFullWorkspaceData = async (
         windowCommentCounts,
       ),
       milestones: (milestonesRes.data ?? []).map(mapMilestoneRow),
-      timeOff: nextTimeOff,
+      timeOff: keepTimeOffIfSame(state.timeOff, nextTimeOff),
       projects: nextProjects,
       trackedProjectIds: nextTrackedProjectIds,
       customers: nextCustomers,

@@ -7,6 +7,45 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.56] - 2026-11-02
+### Changed
+- Minor internal improvements.
+
+## [0.10.55] - 2026-11-02
+### Fixed
+- Timeline scrolling is fast again: row heights are back to how they were, since fitting them to the days on screen slowed the timeline down.
+
+## [0.10.54] - 2026-11-02
+### Changed
+- Timeline rows now fit the days on screen: a busy day somewhere else no longer stretches a row for months. A row opens up smoothly as a busy week scrolls in and settles gently once you stop.
+
+### Fixed
+- Timeline search now opens with Ctrl+K (⌘K on a Mac) or / in any keyboard layout, including Russian on Windows. The shortcut badge is gone from the search button; hover it to see the shortcut.
+
+## [0.10.53] - 2026-11-01
+### Fixed
+- In the Motio app opened from the iPhone Home Screen, the top menu sits a little lower and no longer hides under the blur by the status bar.
+
+## [0.10.52] - 2026-11-01
+### Fixed
+- After you stop scrolling the timeline, task bars and milestone lines no longer fly across the screen; they stay on their days.
+
+## [0.10.51] - 2026-11-01
+### Changed
+- Scrolling the timeline to far-off dates is faster: when the neighbouring months load, the day grid is no longer redrawn from scratch.
+
+## [0.10.50] - 2026-11-01
+### Fixed
+- Scrolling the timeline far no longer makes task bars hop or rows jump while new dates load.
+
+## [0.10.49] - 2026-11-01
+### Fixed
+- The dashboard no longer shakes at some window widths, and switching from it to the timeline is quick again.
+
+## [0.10.48] - 2026-11-01
+### Fixed
+- Charts on the dashboard no longer twitch nonstop at some window sizes.
+
 ## [0.10.47] - 2026-10-31
 ### Changed
 - For self-hosted servers: Keycloak can no longer take all of its container's memory, and the database keeps per-query statistics for finding slow spots. Both apply on their own with the update.

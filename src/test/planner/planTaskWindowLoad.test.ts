@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { buildTaskRange, planTaskWindowLoad } from '@/features/planner/store/plannerStore.helpers';
 import { getVisibleRange } from '@/features/planner/lib/dateUtils';
 
-// Loaded around 15 March: 2025-12-15 … 2026-06-15.
+// Loaded around 15 March: 2025-10-15 … 2026-08-15.
 const dayWindow = { ...buildTaskRange('2026-03-15', 'day'), viewMode: 'day' as const, workspaceId: 'ws-1' };
 const calendarWindow = { ...buildTaskRange('2026-03-15', 'calendar'), viewMode: 'calendar' as const, workspaceId: 'ws-1' };
 
@@ -17,14 +17,15 @@ describe('planTaskWindowLoad', () => {
     expect(planTaskWindowLoad(dayWindow, request('2026-03-15', 'day', 'ws-2'))).toBe('full');
   });
 
-  it('reuses the window while it covers every rendered day', () => {
+  it('reuses the window while it covers every rendered day and two months past them', () => {
     expect(planTaskWindowLoad(dayWindow, request('2026-03-15'))).toBe('reuse');
     expect(planTaskWindowLoad(dayWindow, request('2026-04-10'))).toBe('reuse');
   });
 
   it('shifts the window once the rendered days run past it, though the date is still inside', () => {
-    // 1 May is inside the loaded window, but the timeline renders up to
-    // 1 July — under the old date-only rule these days were drawn empty.
+    // 1 May is inside the loaded window and the timeline renders up to
+    // 1 July, but the two months after that (where the next re-anchoring
+    // goes) are not loaded yet: load them now, before they are on screen.
     expect(planTaskWindowLoad(dayWindow, request('2026-05-01'))).toBe('shift');
     expect(planTaskWindowLoad(dayWindow, request('2026-01-20'))).toBe('shift');
     expect(planTaskWindowLoad(dayWindow, request('2026-09-01'))).toBe('shift');
@@ -34,7 +35,7 @@ describe('planTaskWindowLoad', () => {
     const visible = getVisibleRange('2026-04-15', 'day');
     expect(format(visible.start, 'yyyy-MM-dd')).toBe('2026-02-15');
     expect(format(visible.end, 'yyyy-MM-dd')).toBe('2026-06-15');
-    // The last rendered day is exactly the last loaded one: still covered.
+    // Two months past the last rendered day is exactly the last loaded one.
     expect(planTaskWindowLoad(dayWindow, request('2026-04-15'))).toBe('reuse');
     expect(planTaskWindowLoad(dayWindow, request('2026-04-16'))).toBe('shift');
   });

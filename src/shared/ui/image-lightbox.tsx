@@ -332,7 +332,7 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({ image, onClose }) 
             )}
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-end gap-2 p-3 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-end gap-2 p-3 pt-[calc(env(safe-area-inset-top,0px)+var(--ios-edge-blur-gap,0px)+0.75rem)]">
             <div className="pointer-events-auto flex gap-2">
               <button
                 type="button"

@@ -52,13 +52,14 @@ const TimelineHeaderBase: React.FC<TimelineHeaderProps> = ({
           const isHoliday = shouldApplyHolidayHatch(dayKey, weekend, holidayDates);
           const isAttentionDay = attentionDate === dayKey;
 
+          // Keyed by the day, like the row cells: see TimelineRow.
           return (
-            <ContextMenu key={index}>
+            <ContextMenu key={day.getTime()}>
               <ContextMenuTrigger asChild>
                 <div
                   data-day-key={dayKey}
                   className={cn(
-                    'flex flex-col items-center justify-center border-r border-border transition-colors py-2 gap-1',
+                    'flex flex-col items-center justify-center border-r border-border py-2 gap-1',
                     weekend && 'bg-timeline-weekend',
                     adjacentWeekend && 'border-r-foreground/20',
                     isHoliday && 'holiday-hatch',

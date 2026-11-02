@@ -46,6 +46,7 @@ import { useTimelineViewport } from './hooks/useTimelineViewport';
 import { useTimelineScroll, LEFT_CONTEXT_DAYS } from './hooks/useTimelineScroll';
 import { useMilestoneDisplay } from './hooks/useMilestoneDisplay';
 import { useTaskDisplayRows } from './hooks/useTaskDisplayRows';
+import { useRangeShifting } from './hooks/useRangeShifting';
 import { TimelineSidebarRow } from './TimelineSidebarRow';
 
 const SCROLL_REANCHOR_MIN_SHIFT_DAYS: Record<ViewMode, number> = {
@@ -236,6 +237,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   }, [assignees, myAssigneeId, myProfilePreferences, timeOffIndex]);
 
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
+  const rangeShifting = useRangeShifting(`${visibleDays[0]?.getTime() ?? ''}|${dayWidth}`);
   const totalWidth = visibleDays.length * dayWidth;
   const totalSurfaceWidth = `calc(${resolvedSidebarWidth} + ${totalWidth}px)`;
   const scrollReanchorMinShiftDays = SCROLL_REANCHOR_MIN_SHIFT_DAYS[viewMode];
@@ -401,6 +403,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     myAssigneeIdForTimeOff: myAssigneeId,
     canManageAnyTimeOff: currentWorkspaceRole === 'admin',
     onOpenTimeOff: setEditingTimeOffId,
+    layoutScope: `${currentWorkspaceId ?? ''}|${viewMode}`,
   });
 
   // ─── Other handlers ────────────────────────────────────────────────────────
@@ -551,7 +554,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           data-testid="timeline-scroll-container"
           data-tour="timeline-grid"
           data-timeline-scroll-owner="vertical"
-          className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}${rangeShifting ? ' timeline-range-shifting' : ''}`}
           onScroll={handleScroll}
           onMouseDown={handleDragStart}
         >
@@ -569,7 +572,9 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 return (
                   <div
                     key={date}
-                    className="absolute top-0 bottom-0 transition-all duration-200"
+                    // Only the hover look animates: a line whose `left` glided
+                    // flew across the grid whenever the day range shifted.
+                    className="absolute top-0 bottom-0 transition-[width,opacity,background-color] duration-200"
                     style={{
                       left: lineIndex * dayWidth + dayWidth / 2,
                       transform: 'translateX(-50%)',

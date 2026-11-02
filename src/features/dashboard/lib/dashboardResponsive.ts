@@ -1,3 +1,4 @@
+import { getBreakpointFromWidth } from 'react-grid-layout';
 // Every screen from 1200px up shares ONE 12-column layout: a dashboard arranged
 // on a laptop looks the same on a wide monitor, only larger. Separate 14/16-
 // column layouts for wide screens used to be stored independently and drifted
@@ -107,4 +108,44 @@ export const getDashboardGridSettings = (
     margin: [gap, gap],
     containerPadding: [gap, gap],
   };
+};
+
+export type DashboardCanvasMetrics = {
+  settings: DashboardGridSettings;
+  /** Width left for the grid inside the canvas padding (react-grid-layout's `width`). */
+  gridWidth: number;
+};
+
+/**
+ * Metrics for a dashboard canvas `canvasWidth` px wide, its padding included.
+ *
+ * The canvas padding is one of the metrics, and on desktop they grow with the
+ * grid width. Measured inside the padding, that width moved by 2px with every
+ * 1px change of the padding, the padding was recomputed back, and at some
+ * window widths (1497, 1653, 1809px, ~2px each) the padding, gaps and row
+ * height flipped between two values every frame — the whole dashboard shook.
+ * Here they depend on the outer width alone, which the padding does not move.
+ *
+ * A few rounds find the metrics whose padding leaves exactly the width they
+ * were computed for: the state the measured layout settled on before, so
+ * nothing moves where it used to be still. Where no such metrics exist, the
+ * last round is kept; it is still a function of the outer width, so it stays.
+ */
+export const getDashboardCanvasMetrics = (canvasWidth: number): DashboardCanvasMetrics => {
+  const outerWidth = Number.isFinite(canvasWidth) ? Math.max(0, canvasWidth) : 0;
+  const gridWidthFor = (settings: DashboardGridSettings) => Math.max(0, outerWidth - 2 * settings.containerPadding[0]);
+  const settingsFor = (gridWidth: number) => getDashboardGridSettings(
+    getBreakpointFromWidth(DASHBOARD_BREAKPOINTS, gridWidth) as DashboardBreakpoint,
+    gridWidth,
+  );
+
+  let gridWidth = gridWidthFor(DASHBOARD_GRID_SETTINGS.lg);
+  let settings = settingsFor(gridWidth);
+  for (let round = 0; round < 3; round += 1) {
+    const nextGridWidth = gridWidthFor(settings);
+    if (nextGridWidth === gridWidth) break;
+    gridWidth = nextGridWidth;
+    settings = settingsFor(gridWidth);
+  }
+  return { settings, gridWidth: gridWidthFor(settings) };
 };

@@ -72,3 +72,22 @@ export const compactLegendItems = ({
     hiddenCount: Math.max(0, items.length - visibleCount),
   };
 };
+
+/** Below this plot height a chart goes compact: shorter legend rows, smaller text. */
+export const CHART_COMPACT_ENTER_HEIGHT_PX = 210;
+/**
+ * Going compact shortens the bottom legend (2px per row, at most ~12 rows fit
+ * under its height cap), so the plot grows by up to ~25px the moment it turns
+ * compact. Leaving compact therefore needs the plot to clear the entry line by
+ * more than that: with one line for both, a plot sitting on it flipped between
+ * the two every frame and the whole widget twitched.
+ */
+export const CHART_COMPACT_EXIT_HEIGHT_PX = 250;
+
+/** Whether the chart is compact now, given whether it was and the plot's height. */
+export const resolveCompactChartHeight = (wasCompact: boolean, plotHeight: number): boolean => {
+  if (plotHeight <= 0) return wasCompact;
+  return wasCompact
+    ? plotHeight < CHART_COMPACT_EXIT_HEIGHT_PX
+    : plotHeight < CHART_COMPACT_ENTER_HEIGHT_PX;
+};

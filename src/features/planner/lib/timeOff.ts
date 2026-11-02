@@ -29,6 +29,25 @@ export const EMPTY_TIME_OFF_INDEX: TimeOffIndex = {
 const dayKey = (day: Date): string => format(day, 'yyyy-MM-dd');
 
 /** Inclusive on both ends: a one-day record covers exactly that day. */
+/**
+ * `current` when `next` holds the same records (any order), else `next`. Every
+ * window load re-reads time off; storing an equal list as a new array rebuilt
+ * the time-off index and with it every timeline row, for nothing on screen.
+ */
+export const keepTimeOffIfSame = (current: TimeOff[], next: TimeOff[]): TimeOff[] => {
+  if (current.length !== next.length) return next;
+  const byId = new Map(current.map((record) => [record.id, record]));
+  const same = next.every((record) => {
+    const known = byId.get(record.id);
+    return Boolean(known)
+      && known!.assigneeId === record.assigneeId
+      && known!.startDate === record.startDate
+      && known!.endDate === record.endDate
+      && known!.note === record.note;
+  });
+  return same ? current : next;
+};
+
 export const timeOffCoversDay = (record: TimeOff, key: string): boolean => (
   key >= record.startDate && key <= record.endDate
 );

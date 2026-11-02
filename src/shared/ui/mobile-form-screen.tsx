@@ -113,7 +113,7 @@ export const MobileFormScreen: React.FC<MobileFormScreenProps> = ({
             transition: 'bottom 150ms ease-out',
           }}
         >
-          <header className="flex min-h-14 shrink-0 items-center gap-1 border-b border-border bg-card px-1.5 pt-[env(safe-area-inset-top,0px)]">
+          <header className="flex min-h-14 shrink-0 items-center gap-1 border-b border-border bg-card px-1.5 pt-safe-top">
             <button
               type="button"
               onClick={() => onOpenChange(false)}

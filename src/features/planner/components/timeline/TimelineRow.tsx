@@ -174,13 +174,20 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
                 isHoliday,
               );
 
+              // Keyed by the day itself, not its position: when the timeline
+              // re-anchors, the days still in range keep their cells untouched,
+              // and only the days that come or go are added or removed (by
+              // position, every cell of every row was rewritten and re-coloured).
+              // The instant rather than dayKey: after a time zone change mid-
+              // session, two midnights of the old zone can format to the same
+              // date, and a repeated key would leave a stray cell in the row.
               return (
                 <div
-                  key={index}
+                  key={day.getTime()}
                   data-day-key={dayKey}
                   data-time-off-shaded={isTimeOff ? 'true' : undefined}
                   className={cn(
-                    'h-full border-r border-timeline-grid transition-colors relative',
+                    'h-full border-r border-timeline-grid relative',
                     weekend && 'bg-timeline-weekend/50',
                     adjacentWeekend && 'border-r-foreground/20',
                     isHoliday && 'holiday-hatch',

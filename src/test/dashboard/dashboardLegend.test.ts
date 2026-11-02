@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { compactLegendItems, resolveLegendRenderState } from '@/features/dashboard/lib/dashboardLegend';
+import {
+  CHART_COMPACT_ENTER_HEIGHT_PX,
+  CHART_COMPACT_EXIT_HEIGHT_PX,
+  compactLegendItems,
+  resolveCompactChartHeight,
+  resolveLegendRenderState,
+} from '@/features/dashboard/lib/dashboardLegend';
 
 describe('resolveLegendRenderState', () => {
   it('keeps legend visible when enabled and items exist even with very small capacity', () => {
@@ -109,5 +115,37 @@ describe('compactLegendItems', () => {
 
     expect(result.legendItems).toEqual([{ name: 'A', value: 10 }]);
     expect(result.hiddenCount).toBe(3);
+  });
+});
+
+describe('resolveCompactChartHeight', () => {
+  it('goes compact once the plot is shorter than the entry line', () => {
+    expect(resolveCompactChartHeight(false, 240)).toBe(false);
+    expect(resolveCompactChartHeight(false, CHART_COMPACT_ENTER_HEIGHT_PX)).toBe(false);
+    expect(resolveCompactChartHeight(false, CHART_COMPACT_ENTER_HEIGHT_PX - 1)).toBe(true);
+  });
+
+  it('stays compact until the plot clears the exit line', () => {
+    expect(resolveCompactChartHeight(true, 230)).toBe(true);
+    expect(resolveCompactChartHeight(true, CHART_COMPACT_EXIT_HEIGHT_PX - 1)).toBe(true);
+    expect(resolveCompactChartHeight(true, CHART_COMPACT_EXIT_HEIGHT_PX)).toBe(false);
+  });
+
+  it('settles a plot that grows when it turns compact instead of flipping every frame', () => {
+    // Measured on a 4x4 bar widget with 25 projects at a 1800px window: the
+    // plot was 201px with regular legend rows and 214px with compact ones.
+    const heightFor = (compact: boolean) => (compact ? 214 : 201);
+    let compact = false;
+    const seen: boolean[] = [];
+    for (let frame = 0; frame < 6; frame += 1) {
+      compact = resolveCompactChartHeight(compact, heightFor(compact));
+      seen.push(compact);
+    }
+    expect(seen).toEqual([true, true, true, true, true, true]);
+  });
+
+  it('keeps the last state while the plot is not measured', () => {
+    expect(resolveCompactChartHeight(true, 0)).toBe(true);
+    expect(resolveCompactChartHeight(false, 0)).toBe(false);
   });
 });

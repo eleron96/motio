@@ -54,7 +54,7 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
   if (isMobile) {
     return (
       <>
-        <header className="border-b border-border bg-card">
+        <header className="border-b border-border bg-card pt-safe-top">
           <WorkspacePillNav onOpenMenu={openMenu} unreadCount={inbox.totalBadgeCount} />
         </header>
         <WorkspaceMobileMenuSheet
@@ -85,7 +85,8 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
   }
 
   return (
-    <header className="border-b border-border bg-card px-4 py-3">
+    // The top padding grows only in an iPad Home Screen app (see `.pt-safe-top`).
+    <header className="border-b border-border bg-card px-4 pb-3 pt-[calc(0.75rem+var(--ios-edge-blur-gap,0px))]">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link

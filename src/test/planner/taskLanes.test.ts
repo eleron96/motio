@@ -172,3 +172,77 @@ describe('calculateTaskLanes — referential identity (memo stability)', () => {
     expect(byId(calculateTaskLanes([a]), 'a')).toBe(byId(solo, 'a'));
   });
 });
+
+describe('calculateTaskLanes — keeping lanes from the last layout', () => {
+  const lanesOf = (rows: Array<{ id: string; lane: number }>) => new Map(rows.map((row) => [row.id, row.lane]));
+  const overlapsInLane = (rows: Array<Task & { lane: number }>) => rows.some((left, i) => rows.some((right, j) => (
+    i < j && left.lane === right.lane && left.startDate <= right.endDate && right.startDate <= left.endDate
+  )));
+
+  it('keeps every lane when an earlier task leaves (the window moved right)', () => {
+    // Packed from scratch without "early", "late" would drop from lane 2 to
+    // lane 1 and every bar after it would shuffle.
+    const early = makeTask({ id: 'early', startDate: '2026-02-01', endDate: '2026-02-10' });
+    const a = makeTask({ id: 'a', startDate: '2026-02-05', endDate: '2026-02-12' });
+    const b = makeTask({ id: 'b', startDate: '2026-02-08', endDate: '2026-02-14' });
+    const late = makeTask({ id: 'late', startDate: '2026-02-11', endDate: '2026-02-20' });
+    const before = calculateTaskLanes([early, a, b, late]);
+
+    const after = calculateTaskLanes([a, b, late], [], lanesOf(before));
+
+    ['a', 'b', 'late'].forEach((id) => expect(byId(after, id).lane, id).toBe(byId(before, id).lane));
+    expect(overlapsInLane(after)).toBe(false);
+  });
+
+  it('places tasks that arrive in free lanes without moving the ones on screen', () => {
+    const a = makeTask({ id: 'a', startDate: '2026-02-10', endDate: '2026-02-15' });
+    const b = makeTask({ id: 'b', startDate: '2026-02-12', endDate: '2026-02-18' });
+    const before = calculateTaskLanes([a, b]);
+    // An earlier task overlapping both: packed from scratch it would take lane 0.
+    const arrived = makeTask({ id: 'arrived', startDate: '2026-02-01', endDate: '2026-02-13' });
+
+    const after = calculateTaskLanes([arrived, a, b], [], lanesOf(before));
+
+    expect(byId(after, 'a').lane).toBe(byId(before, 'a').lane);
+    expect(byId(after, 'b').lane).toBe(byId(before, 'b').lane);
+    expect(byId(after, 'arrived').lane).toBe(2);
+    expect(overlapsInLane(after)).toBe(false);
+  });
+
+  it('moves only the task whose lane got taken, to the first free lane', () => {
+    const a = makeTask({ id: 'a', startDate: '2026-02-10', endDate: '2026-02-12' });
+    const b = makeTask({ id: 'b', startDate: '2026-02-20', endDate: '2026-02-22' });
+    const before = calculateTaskLanes([a, b]);
+    expect(byId(before, 'b').lane).toBe(0);
+    // b was dragged onto a's days.
+    const moved = makeTask({ id: 'b', startDate: '2026-02-11', endDate: '2026-02-13' });
+
+    const after = calculateTaskLanes([a, moved], [], lanesOf(before));
+
+    expect(byId(after, 'a').lane).toBe(0);
+    expect(byId(after, 'b').lane).toBe(1);
+  });
+
+  it('keeps a task out of lane 0 where a time-off bar holds it', () => {
+    const a = makeTask({ id: 'a', startDate: '2026-02-10', endDate: '2026-02-12' });
+    const after = calculateTaskLanes([a], [{ startDate: '2026-02-11', endDate: '2026-02-11' }], new Map([['a', 0]]));
+    expect(byId(after, 'a').lane).toBe(1);
+  });
+
+  it('never stacks two overlapping tasks in one lane, whatever the last layout said', () => {
+    let seed = 11;
+    const random = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const day = (offset: number) => new Date(Date.UTC(2026, 1, 1 + offset)).toISOString().slice(0, 10);
+    for (let round = 0; round < 50; round += 1) {
+      const tasks = Array.from({ length: 30 }, (_, index) => {
+        const start = Math.floor(random() * 40);
+        return makeTask({ id: `t${index}`, startDate: day(start), endDate: day(start + Math.floor(random() * 6)) });
+      });
+      const previous = new Map(tasks.map((task) => [task.id, Math.floor(random() * 5)]));
+      const result = calculateTaskLanes(tasks, [], previous);
+      expect(result).toHaveLength(tasks.length);
+      expect(overlapsInLane(result)).toBe(false);
+    }
+  });
+});
+
