@@ -7,17 +7,12 @@
   ],
   "unusedDependencies": [],
   "largeFiles": [
-    "src/features/auth/components/AccountSettingsDialog.tsx",
-    "src/features/dashboard/components/DashboardWidgetCard.tsx",
-    "src/features/dashboard/pages/DashboardPage.tsx",
-    "src/features/members/pages/MembersPage.tsx",
     "src/features/planner/components/AddTaskDialog.tsx",
     "src/features/planner/components/TaskDetailPanel.tsx",
     "src/features/planner/components/timeline/CalendarTimeline.tsx",
     "src/features/planner/components/timeline/TaskBar.tsx",
     "src/features/planner/components/timeline/TimelineGrid.tsx",
-    "src/features/projects/pages/ProjectsPage.tsx",
-    "src/features/workspace/components/WorkspaceMembersPanel.tsx"
+    "src/features/projects/pages/ProjectsPage.tsx"
   ],
   "supabaseOutsideInfrastructure": [],
   "crossFeatureComponentImports": [

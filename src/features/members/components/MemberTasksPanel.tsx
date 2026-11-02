@@ -18,7 +18,7 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MemberTasksFiltersScreen } from '@/features/members/components/MemberTasksFiltersScreen';
 import { type DisplayTaskRow, MemberTasksList } from '@/features/members/components/MemberTasksList';
 
-type MemberTasksPanelProps = {
+export type MemberTasksPanelProps = {
   selectedAssignee: Assignee | null;
   taskScope: TaskScope;
   onChangeTaskScope: (scope: TaskScope) => void;

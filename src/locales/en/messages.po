@@ -39,8 +39,8 @@ msgstr "(edited)"
 msgid "(no name set)"
 msgstr "(no name set)"
 
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "(you)"
 msgstr "(you)"
 
@@ -85,7 +85,7 @@ msgid "{0} leaves \"{1}\" and ends up without a group. Their tasks are not affec
 msgstr "{0} leaves \"{1}\" and ends up without a group. Their tasks are not affected."
 
 #. placeholder {0}: milestonesInCalendar.length
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardMilestoneCalendar.tsx
 msgid "{0} milestones"
 msgstr "{0} milestones"
 
@@ -261,11 +261,11 @@ msgid "{weeksAgo, plural, one {# week ago} other {# weeks ago}}"
 msgstr "{weeksAgo, plural, one {# week ago} other {# weeks ago}}"
 
 #. placeholder {0}: hiddenMilestones.length
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardMilestoneList.tsx
 msgid "+{0} more milestones"
 msgstr "+{0} more milestones"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/hooks/useChartLayout.ts
 msgid "+{groupedLegendCount} hidden"
 msgstr "+{groupedLegendCount} hidden"
 
@@ -330,7 +330,7 @@ msgstr "A strip above the workspace that can be dismissed."
 msgid "A subtask can have up to {MAX_SUBTASK_IMAGES} images."
 msgstr "A subtask can have up to {MAX_SUBTASK_IMAGES} images."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "A task is assigned to me"
 msgstr "A task is assigned to me"
 
@@ -364,7 +364,7 @@ msgstr "Accept the invitation to join your team workspace."
 
 #: src/features/auth/hooks/useInviteReactionToasts.ts
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceInvites.ts
 msgid "Accepted"
 msgstr "Accepted"
 
@@ -429,15 +429,15 @@ msgid "active"
 msgstr "active"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardWidgetFilterNote.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "Active"
@@ -457,11 +457,11 @@ msgstr "Active tokens"
 msgid "Add"
 msgstr "Add"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Add a \"Board\" button: tasks as cards in status columns"
 msgstr "Add a \"Board\" button: tasks as cards in status columns"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Add a \"Week\" button next to Day and Calendar"
 msgstr "Add a \"Week\" button next to Day and Calendar"
 
@@ -513,9 +513,9 @@ msgstr "Add image"
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Add member"
 msgstr "Add member"
 
@@ -590,10 +590,10 @@ msgstr "admin"
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Admin"
 msgstr "Admin"
 
@@ -631,7 +631,7 @@ msgstr "All active users"
 msgid "All assignees"
 msgstr "All assignees"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/hooks/useDashboardSync.ts
 msgid "All changes saved"
 msgstr "All changes saved"
 
@@ -659,7 +659,7 @@ msgstr "All projects"
 msgid "All results"
 msgstr "All results"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardWidgetFilterNote.tsx
 #: src/features/members/hooks/useMemberTaskFilterToggles.ts
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "All statuses"
@@ -939,7 +939,7 @@ msgstr "Biweekly (every 2 weeks)"
 msgid "Board"
 msgstr "Board"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Board view (beta)"
 msgstr "Board view (beta)"
 
@@ -948,7 +948,7 @@ msgstr "Board view (beta)"
 msgid "Broadcast"
 msgstr "Broadcast"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Browser notifications"
 msgstr "Browser notifications"
 
@@ -1015,10 +1015,10 @@ msgstr "Call"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
 #: src/features/members/components/MembersDialogs.tsx
@@ -1059,22 +1059,22 @@ msgstr "Call"
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Cancel"
 msgstr "Cancel"
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceInvites.ts
 msgid "Canceled"
 msgstr "Canceled"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardWidgetFilterNote.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
@@ -1134,7 +1134,7 @@ msgstr "Chart style"
 msgid "Check the coordinate system"
 msgstr "Check the coordinate system"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "Check your inbox"
 msgstr "Check your inbox"
 
@@ -1176,7 +1176,7 @@ msgstr "Choose an option"
 msgid "Choose how your workspace looks and behaves"
 msgstr "Choose how your workspace looks and behaves"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Choose the accent color used across the interface"
 msgstr "Choose the accent color used across the interface"
 
@@ -1279,7 +1279,7 @@ msgstr "Close search"
 msgid "closed"
 msgstr "closed"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardWidgetFilterNote.tsx
 msgid "Closed"
 msgstr "Closed"
 
@@ -1478,7 +1478,7 @@ msgstr "Could not send: {0}"
 msgid "Couldn't delete the task. It's back in place."
 msgstr "Couldn't delete the task. It's back in place."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/hooks/useAccountSettings.ts
 msgid "Couldn't enable notifications. Please try again."
 msgstr "Couldn't enable notifications. Please try again."
 
@@ -1519,7 +1519,7 @@ msgstr "Counts toward department workload"
 msgid "Crash on older Android phones"
 msgstr "Crash on older Android phones"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/members/components/MembersDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/CustomerFormDialogs.tsx
@@ -1535,7 +1535,7 @@ msgstr "Create \"{normalizedQuery}\""
 msgid "Create a new customer for grouping projects."
 msgstr "Create a new customer for grouping projects."
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "Create a new dashboard."
 msgstr "Create a new dashboard."
 
@@ -1646,7 +1646,7 @@ msgstr "Current month"
 msgid "current week"
 msgstr "current week"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardWidgetFilterNote.tsx
 msgid "Custom"
 msgstr "Custom"
 
@@ -1686,7 +1686,7 @@ msgstr "Customers"
 msgid "Daily"
 msgstr "Daily"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Daily brief"
 msgstr "Daily brief"
 
@@ -1709,17 +1709,17 @@ msgstr "Danger zone"
 msgid "Dashboard"
 msgstr "Dashboard"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/hooks/useDashboardManageDialogs.ts
 msgid "Dashboard limit reached (10)."
 msgstr "Dashboard limit reached (10)."
 
-#: src/features/dashboard/pages/DashboardPage.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "Dashboard name"
 msgstr "Dashboard name"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardSwitcher.tsx
+#: src/features/dashboard/components/DashboardSwitcher.tsx
 msgid "Dashboard settings"
 msgstr "Dashboard settings"
 
@@ -1731,7 +1731,7 @@ msgstr "Dashboard shows workload charts, Projects holds clients and milestones, 
 msgid "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups. To invite colleagues, open the gear next to the workspace name."
 msgstr "Dashboard shows workload charts, Projects holds clients and milestones, Team lists people and groups. To invite colleagues, open the gear next to the workspace name."
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardSwitcher.tsx
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Dashboards"
 msgstr "Dashboards"
@@ -1783,7 +1783,7 @@ msgstr "Decline"
 
 #: src/features/auth/hooks/useInviteReactionToasts.ts
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceInvites.ts
 msgid "Declined"
 msgstr "Declined"
 
@@ -1796,7 +1796,7 @@ msgstr "default"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
@@ -1860,11 +1860,11 @@ msgstr "Delete contact?"
 msgid "Delete customer?"
 msgstr "Delete customer?"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardSwitcher.tsx
 msgid "Delete dashboard"
 msgstr "Delete dashboard"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "Delete dashboard?"
 msgstr "Delete dashboard?"
 
@@ -1962,7 +1962,7 @@ msgid "Delete..."
 msgstr "Delete..."
 
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Deleted account"
 msgstr "Deleted account"
 
@@ -2025,7 +2025,7 @@ msgid "Details"
 msgstr "Details"
 
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Disable member"
 msgstr "Disable member"
 
@@ -2046,10 +2046,10 @@ msgstr "disabled"
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersSection.tsx
 msgid "Disabled"
@@ -2354,10 +2354,10 @@ msgstr "editor"
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Editor"
 msgstr "Editor"
 
@@ -2372,8 +2372,8 @@ msgstr "Electrical"
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Email"
 msgstr "Email"
 
@@ -2409,7 +2409,7 @@ msgid "Empty workspace"
 msgstr "Empty workspace"
 
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Enable member"
 msgstr "Enable member"
 
@@ -2443,8 +2443,8 @@ msgstr "Enter a valid user UUID."
 msgid "Enter customer name..."
 msgstr "Enter customer name..."
 
-#: src/features/dashboard/pages/DashboardPage.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "Enter dashboard name..."
 msgstr "Enter dashboard name..."
 
@@ -2555,7 +2555,7 @@ msgid "Experimental — a workspace admin switches it on in settings."
 msgstr "Experimental — a workspace admin switches it on in settings."
 
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceInvites.ts
 msgid "Expired"
 msgstr "Expired"
 
@@ -2642,7 +2642,7 @@ msgstr "Failed to load comments"
 msgid "Failed to load notifications."
 msgstr "Failed to load notifications."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/hooks/useAccountSettings.ts
 msgid "Failed to load profile."
 msgstr "Failed to load profile."
 
@@ -2737,16 +2737,12 @@ msgstr "Filter customers"
 msgid "Filter milestones by team"
 msgstr "Filter milestones by team"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardWidgetSlot.tsx
 msgid "Filter settings"
 msgstr "Filter settings"
 
-#. placeholder {0}: filterLabels[widget.statusFilter]
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#. placeholder {0}: filterLabels[statusFilter]
+#: src/features/dashboard/components/DashboardWidgetFilterNote.tsx
 msgid "Filter: {0}"
 msgstr "Filter: {0}"
 
@@ -2887,7 +2883,7 @@ msgstr "General"
 msgid "Generate a new export"
 msgstr "Generate a new export"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Get notified in this browser about your tasks, even when Motio isn't open."
 msgstr "Get notified in this browser about your tasks, even when Motio isn't open."
 
@@ -2929,12 +2925,12 @@ msgstr "Got it"
 
 #: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 #: src/features/members/pages/MembersPage.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Group"
 msgstr "Group"
@@ -3081,7 +3077,7 @@ msgstr "Hospital wing"
 msgid "I agree to the <0>Privacy Policy</0>"
 msgstr "I agree to the <0>Privacy Policy</0>"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "I'm mentioned in a comment"
 msgstr "I'm mentioned in a comment"
 
@@ -3188,8 +3184,8 @@ msgstr "Inspection"
 msgid "Install ventilation units"
 msgstr "Install ventilation units"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Interface color"
 msgstr "Interface color"
 
@@ -3205,11 +3201,11 @@ msgstr "Interrupts once with a dialog. Use for maintenance and outages."
 msgid "Invalid name."
 msgstr "Invalid name."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "Invite created"
 msgstr "Invite created"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "Invite people and share access."
 msgstr "Invite people and share access."
 
@@ -3231,8 +3227,8 @@ msgstr "Invited by"
 
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Invites"
 msgstr "Invites"
 
@@ -3280,8 +3276,8 @@ msgstr "Keycloak"
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 msgstr "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Language"
 msgstr "Language"
@@ -3312,9 +3308,9 @@ msgstr "Latest changes"
 msgid "Lavender"
 msgstr "Lavender"
 
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Leave"
 msgstr "Leave"
 
@@ -3326,13 +3322,13 @@ msgstr "Leave empty to reuse the Russian text"
 msgid "Leave the dates empty to switch it on now and off by hand. A personal assignment wins over a workspace one, which wins over a domain, which wins over everyone."
 msgstr "Leave the dates empty to switch it on now and off by hand. A personal assignment wins over a workspace one, which wins over a domain, which wins over everyone."
 
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Leave workspace"
 msgstr "Leave workspace"
 
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Leave workspace?"
 msgstr "Leave workspace?"
 
@@ -3400,8 +3396,8 @@ msgstr "Loading dashboard..."
 
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Loading data..."
 msgstr "Loading data..."
 
@@ -3416,8 +3412,8 @@ msgstr "Loading editor..."
 
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Loading groups..."
 msgstr "Loading groups..."
 
@@ -3583,7 +3579,7 @@ msgstr "Member"
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Member actions"
 msgstr "Member actions"
 
@@ -3803,8 +3799,8 @@ msgstr "Name must be at least 2 characters."
 msgid "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 msgstr "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "name@example.com"
 msgstr "name@example.com"
 
@@ -3844,8 +3840,8 @@ msgstr "New contact"
 msgid "New customer"
 msgstr "New customer"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
+#: src/features/dashboard/components/DashboardSwitcher.tsx
 msgid "New dashboard"
 msgstr "New dashboard"
 
@@ -3863,7 +3859,7 @@ msgid "New milestone"
 msgstr "New milestone"
 
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 msgid "New owner"
 msgstr "New owner"
 
@@ -4047,10 +4043,10 @@ msgstr "No customers found."
 msgid "No customers yet."
 msgstr "No customers yet."
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardChartWidget.tsx
+#: src/features/dashboard/components/DashboardChartWidget.tsx
+#: src/features/dashboard/components/DashboardChartWidget.tsx
+#: src/features/dashboard/components/DashboardChartWidget.tsx
 msgid "No data"
 msgstr "No data"
 
@@ -4087,24 +4083,24 @@ msgstr "No examples, just basic statuses to start from."
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/hooks/useMembersFilter.ts
 #: src/features/members/hooks/useMembersFilter.ts
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/shared/lib/workspaceMemberActivity.ts
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "No group"
 msgstr "No group"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "No groups created yet."
 msgstr "No groups created yet."
 
@@ -4133,8 +4129,8 @@ msgstr "No groups yet. Create one on the Groups tab first."
 msgid "No history yet."
 msgstr "No history yet."
 
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "No invites sent yet."
 msgstr "No invites sent yet."
 
@@ -4171,7 +4167,7 @@ msgstr "No members in this group."
 msgid "No members match the search."
 msgstr "No members match the search."
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardMilestoneList.tsx
 msgid "No milestones"
 msgstr "No milestones"
 
@@ -4227,9 +4223,9 @@ msgstr "No people in this workspace yet."
 msgid "No priority"
 msgstr "No priority"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardMilestoneCalendar.tsx
+#: src/features/dashboard/components/DashboardMilestoneList.tsx
+#: src/features/dashboard/components/DashboardMilestoneList.tsx
 #: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -4474,15 +4470,15 @@ msgstr "Nothing to show"
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/hooks/useAccountSettings.ts
 msgid "Notifications are blocked in this browser. Allow them in the site settings and try again."
 msgstr "Notifications are blocked in this browser. Allow them in the site settings and try again."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Notifications on iPhone and iPad"
 msgstr "Notifications on iPhone and iPad"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Occasional announcements and tips. Every email has a one-click unsubscribe."
 msgstr "Occasional announcements and tips. Every email has a one-click unsubscribe."
 
@@ -4533,7 +4529,7 @@ msgstr "On Monday I'd open three different tabs to answer one simple question: w
 msgid "On the calendar"
 msgstr "On the calendar"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "One of my tasks changes"
 msgstr "One of my tasks changes"
 
@@ -4660,7 +4656,7 @@ msgstr "Optional"
 msgid "Order"
 msgstr "Order"
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardChartWidget.tsx
 msgid "Other"
 msgstr "Other"
 
@@ -4690,8 +4686,8 @@ msgid "Overview"
 msgstr "Overview"
 
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Owner"
 msgstr "Owner"
 
@@ -4753,7 +4749,7 @@ msgid "Pastel sky"
 msgstr "Pastel sky"
 
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceInvites.ts
 msgid "Pending"
 msgstr "Pending"
 
@@ -4916,7 +4912,7 @@ msgstr "Privacy Policy"
 msgid "Private house"
 msgstr "Private house"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Product news by email"
 msgstr "Product news by email"
 
@@ -4924,7 +4920,7 @@ msgstr "Product news by email"
 msgid "Product teams and studios: features, bugs and releases."
 msgstr "Product teams and studios: features, bugs and releases."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Product tour"
 msgstr "Product tour"
 
@@ -5072,7 +5068,7 @@ msgstr "purge_after"
 msgid "Push notifications"
 msgstr "Push notifications"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/hooks/useAccountSettings.ts
 msgid "Push notifications aren't available right now."
 msgstr "Push notifications aren't available right now."
 
@@ -5131,9 +5127,9 @@ msgstr "Release notes"
 #: src/features/members/components/MemberGroupDialogs.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamMobileSheets.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Remove"
 msgstr "Remove"
 
@@ -5181,8 +5177,8 @@ msgstr "Remove from workspace"
 msgid "Remove image"
 msgstr "Remove image"
 
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Remove member?"
 msgstr "Remove member?"
 
@@ -5202,7 +5198,7 @@ msgstr "Remove the old partitions"
 msgid "Remove the sample projects, people and tasks this workspace started with"
 msgstr "Remove the sample projects, people and tasks this workspace started with"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardWidgetSlot.tsx
 msgid "Remove widget"
 msgstr "Remove widget"
 
@@ -5215,14 +5211,14 @@ msgstr "Removing…"
 msgid "Rename"
 msgstr "Rename"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
+#: src/features/dashboard/components/DashboardSwitcher.tsx
 msgid "Rename dashboard"
 msgstr "Rename dashboard"
 
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Rename deleted member"
 msgstr "Rename deleted member"
 
@@ -5333,8 +5329,8 @@ msgid "Return to Home"
 msgstr "Return to Home"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Revoke"
 msgstr "Revoke"
 
@@ -5360,12 +5356,12 @@ msgstr "Riverside restaurant interior"
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Role"
 msgstr "Role"
@@ -5404,8 +5400,8 @@ msgstr "Sage"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
@@ -5459,7 +5455,7 @@ msgstr "Saved as your own set."
 msgid "Saved."
 msgstr "Saved."
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/hooks/useDashboardSync.ts
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Saving..."
 msgstr "Saving..."
@@ -5640,7 +5636,7 @@ msgstr "Select a group to see members."
 
 #: src/features/planner/components/CommentMentionPopover.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 msgid "Select a member"
 msgstr "Select a member"
 
@@ -5685,11 +5681,11 @@ msgstr "Select an end date."
 msgid "Select country"
 msgstr "Select country"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardSwitcher.tsx
 msgid "Select dashboard"
 msgstr "Select dashboard"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Select language"
 msgstr "Select language"
@@ -5753,8 +5749,8 @@ msgstr "Self-hosting guide on GitHub →"
 msgid "Send"
 msgstr "Send"
 
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Send invite"
 msgstr "Send invite"
 
@@ -5793,8 +5789,8 @@ msgstr "Sends a short test email to the address of your admin account."
 msgid "Sent"
 msgstr "Sent"
 
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Sent invites"
 msgstr "Sent invites"
 
@@ -5841,7 +5837,7 @@ msgid "Show {overflowCount} more milestones"
 msgstr "Show {overflowCount} more milestones"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Show again"
 msgstr "Show again"
 
@@ -5860,7 +5856,7 @@ msgstr "Show archived"
 msgid "Show contact info"
 msgstr "Show contact info"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Show daily task summary each morning"
 msgstr "Show daily task summary each morning"
 
@@ -6302,8 +6298,8 @@ msgstr "Task updates"
 msgid "Task was created, but subtasks were not saved."
 msgstr "Task was created, but subtasks were not saved."
 
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
-#: src/features/dashboard/components/DashboardWidgetCard.tsx
+#: src/features/dashboard/components/DashboardChartWidget.tsx
+#: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
@@ -6402,7 +6398,7 @@ msgstr "The database will be replaced with backup {name}."
 msgid "The end date cannot be earlier than the start date."
 msgstr "The end date cannot be earlier than the start date."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "The pattern drawn on your days off. Your teammates see it too"
 msgstr "The pattern drawn on your days off. Your teammates see it too"
 
@@ -6456,7 +6452,7 @@ msgstr "The workspace and all its data will be deleted permanently."
 msgid "There are no other active members to transfer ownership to."
 msgstr "There are no other active members to transfer ownership to."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 msgid "There is no one to transfer ownership to. Delete the workspace instead if you no longer need it."
 msgstr "There is no one to transfer ownership to. Delete the workspace instead if you no longer need it."
 
@@ -6484,8 +6480,8 @@ msgstr "They end up without a group. Their tasks are not affected."
 msgid "They keep their tasks and history but cannot open the workspace."
 msgstr "They keep their tasks and history but cannot open the workspace."
 
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "They will lose access to this workspace. Tasks already assigned to them are not affected."
 msgstr "They will lose access to this workspace. Tasks already assigned to them are not affected."
 
@@ -6506,7 +6502,7 @@ msgstr "This and following"
 msgid "This announcement will go to {0} opted-in users."
 msgstr "This announcement will go to {0} opted-in users."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/hooks/useAccountSettings.ts
 msgid "This browser can't show notifications here."
 msgstr "This browser can't show notifications here."
 
@@ -6518,7 +6514,7 @@ msgstr "This comment will be permanently removed and cannot be recovered."
 msgid "this customer"
 msgstr "this customer"
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "this dashboard"
 msgstr "this dashboard"
 
@@ -6617,8 +6613,8 @@ msgstr "This will permanently delete \"{0}\"."
 msgid "This will permanently delete \"{taskTitle}\"."
 msgstr "This will permanently delete \"{taskTitle}\"."
 
-#. placeholder {0}: currentDashboard?.name ?? t`this dashboard`
-#: src/features/dashboard/pages/DashboardPage.tsx
+#. placeholder {0}: currentDashboardName ?? t`this dashboard`
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "This will remove \"{0}\". Widgets and layouts will be lost."
 msgstr "This will remove \"{0}\". Widgets and layouts will be lost."
 
@@ -6646,8 +6642,8 @@ msgstr "this workspace"
 msgid "This workspace already has all of them."
 msgstr "This workspace already has all of them."
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Time off pattern"
 msgstr "Time off pattern"
 
@@ -6696,7 +6692,7 @@ msgctxt "task status"
 msgid "To do"
 msgstr "To do"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 msgstr "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 
@@ -6777,7 +6773,7 @@ msgstr "Tracking"
 msgid "Transactional — to all active users, no opt-out. Use only for account, maintenance or legal notices."
 msgstr "Transactional — to all active users, no opt-out. Use only for account, maintenance or legal notices."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 msgid "Transfer & leave"
 msgstr "Transfer & leave"
 
@@ -6899,8 +6895,8 @@ msgstr "unknown"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Unknown"
 msgstr "Unknown"
@@ -7027,7 +7023,7 @@ msgstr "Update customer name and industry."
 msgid "Update milestone details."
 msgstr "Update milestone details."
 
-#: src/features/dashboard/pages/DashboardPage.tsx
+#: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "Update the current dashboard name."
 msgstr "Update the current dashboard name."
 
@@ -7152,10 +7148,10 @@ msgstr "viewer"
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Viewer"
 msgstr "Viewer"
 
@@ -7180,7 +7176,7 @@ msgstr "Wait {0} s before sending another one."
 msgid "Waiting for input"
 msgstr "Waiting for input"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Walk through the timeline, dashboard, projects and team again"
 msgstr "Walk through the timeline, dashboard, projects and team again"
 
@@ -7213,7 +7209,7 @@ msgstr "Website launch"
 msgid "Week"
 msgstr "Week"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Week view on the timeline"
 msgstr "Week view on the timeline"
 
@@ -7281,7 +7277,7 @@ msgstr "Why Motio"
 msgid "Widget"
 msgstr "Widget"
 
-#: src/features/auth/components/AccountSettingsDialog.tsx
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Will start on the timeline"
 msgstr "Will start on the timeline"
 
@@ -7393,16 +7389,16 @@ msgstr "yesterday"
 msgid "You"
 msgstr "You"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/hooks/useLeaveWorkspace.ts
 #: src/features/workspace/hooks/useWorkspaceAccess.ts
 msgid "You are the only admin. Promote another member to admin before leaving."
 msgstr "You are the only admin. Promote another member to admin before leaving."
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 msgid "You are the only member"
 msgstr "You are the only member"
 
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 msgid "You are the owner of this workspace. Transfer ownership to another member to leave."
 msgstr "You are the owner of this workspace. Transfer ownership to another member to leave."
 
@@ -7460,8 +7456,8 @@ msgstr "You need to sign in again before adding comments."
 msgid "You were added to a new workspace."
 msgstr "You were added to a new workspace."
 
+#: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
-#: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "You will lose access to this workspace. Your tasks stay and reattach to you if you are invited back."
 msgstr "You will lose access to this workspace. Your tasks stay and reattach to you if you are invited back."
 
