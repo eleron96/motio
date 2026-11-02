@@ -7,6 +7,15 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- A new workspace starts by asking what your team does — architecture and design, BIM, construction or software — and comes with matching statuses, task types and a few examples in your language. In workspace settings you can add catalogs from a template or save your own set.
+
+### Changed
+- The intro tour is shorter and clearer: six tips right on the timeline — how to read it, add and move tasks. On a phone you get a few cards about gestures instead.
+
+### Fixed
+- A task moved to another day now takes the top free row instead of hanging lower down.
+
 ## [0.10.56] - 2026-11-02
 ### Changed
 - Minor internal improvements.
