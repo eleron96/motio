@@ -52,14 +52,6 @@ const resizeImage = (file: File): Promise<Blob> =>
 const avatarPath = (userId: string) => `${userId}/avatar.jpg`;
 
 /**
- * Returns the public URL for a user's avatar, or null if no avatar stored.
- */
-export const getAvatarPublicUrl = (userId: string): string => {
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(avatarPath(userId));
-  return data.publicUrl;
-};
-
-/**
  * Compresses the image, uploads it to Supabase Storage, and saves the URL to profiles.
  * Returns the new public URL or an error string.
  */

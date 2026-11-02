@@ -35,15 +35,3 @@ export const getAppNavigationItems = (basePath: AppBasePath = '/app'): AppNaviga
   },
 ];
 
-export const getAppNavigationLabel = (pathname: string, basePath: AppBasePath = '/app') => {
-  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
-  const matchedItem = getAppNavigationItems(basePath).find((item) => {
-    if (item.end) {
-      return normalizedPath === item.to;
-    }
-
-    return normalizedPath === item.to || normalizedPath.startsWith(`${item.to}/`);
-  });
-
-  return matchedItem?.label ?? t`Workspace`;
-};

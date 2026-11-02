@@ -18,10 +18,6 @@ export interface BroadcastRow {
   finishedAt: string | null;
 }
 
-/** Still going: either queued for later or mid-flight right now. */
-export const isBroadcastInFlight = (row: BroadcastRow): boolean =>
-  row.status === 'scheduled' || row.status === 'sending';
-
 export interface BroadcastSummary {
   /** The most recent broadcast overall, whatever its state. */
   latest: BroadcastRow | null;

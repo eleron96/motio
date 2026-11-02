@@ -2123,10 +2123,6 @@ msgstr "Display"
 msgid "Display style"
 msgstr "Display style"
 
-#: src/features/marketing/pages/LandingPage.tsx
-#~ msgid "Docker Compose"
-#~ msgstr "Docker Compose"
-
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
 msgstr "Does not repeat"
@@ -4906,10 +4902,6 @@ msgstr "Plumbing"
 msgid "Plumbing rough-in"
 msgstr "Plumbing rough-in"
 
-#: src/features/marketing/pages/LandingPage.tsx
-#~ msgid "Postgres"
-#~ msgstr "Postgres"
-
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
 msgstr "Preparing your data…"
@@ -7391,7 +7383,6 @@ msgstr "works"
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
-#: src/features/workspace/lib/appNavigation.ts
 msgid "Workspace"
 msgstr "Workspace"
 

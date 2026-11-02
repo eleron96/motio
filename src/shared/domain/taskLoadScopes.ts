@@ -42,10 +42,6 @@ export const isTaskInWindow = (task: DatedTask, window: TaskDateWindow): boolean
   task.endDate >= window.start && task.startDate <= window.end
 );
 
-export const windowContains = (outer: TaskDateWindow, inner: TaskDateWindow): boolean => (
-  outer.start <= inner.start && outer.end >= inner.end
-);
-
 export const isTaskInBoardScope = (task: ScopedTask, board: TaskBoardScope): boolean => {
   if (board.openStatusIds.includes(task.statusId)) return true;
   // ISO timestamps compare correctly as strings only in the same format;

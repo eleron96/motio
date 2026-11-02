@@ -137,8 +137,3 @@ export const getRecentReleaseNotes = (
 
   return entries;
 };
-
-/** Sections of the newest entry that has content — `[]` when there is none. */
-export const getLatestReleaseNotes = (locale: Locale): ReleaseNotesSection[] => (
-  getRecentReleaseNotes(locale, 1)[0]?.sections ?? []
-);

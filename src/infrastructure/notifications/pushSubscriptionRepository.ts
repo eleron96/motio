@@ -1,6 +1,4 @@
 import { supabase } from '@/shared/lib/supabaseClient';
-import { parseInvokeError } from '@/shared/lib/parseInvokeError';
-import { PUSH_ACTIONS } from '@/shared/contracts/actions';
 
 export interface PushSubscriptionInput {
   endpoint: string;
@@ -32,18 +30,4 @@ export const deletePushSubscriptionByEndpoint = async (
     .delete()
     .eq('endpoint', endpoint);
   return error ? { error: error.message } : {};
-};
-
-// Asks the server to send a test push to the caller's own devices. Returns how
-// many devices it reached.
-export const sendTestPush = async (): Promise<{ sent?: number; error?: string }> => {
-  const { data, error, response } = await supabase.functions.invoke('push', {
-    body: { action: PUSH_ACTIONS.TEST },
-  });
-  if (error) {
-    return { error: await parseInvokeError(error, response) };
-  }
-  const payload = (data as { sent?: number; error?: string } | null) ?? null;
-  if (payload?.error) return { error: payload.error };
-  return { sent: payload?.sent ?? 0 };
 };

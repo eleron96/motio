@@ -8,7 +8,6 @@ import {
   mergeBoardLoad,
   mergeWindowLoad,
   pruneToWindow,
-  windowContains,
   type TaskBoardScope,
 } from '@/shared/domain/taskLoadScopes';
 import type { Task } from '@/features/planner/types/planner';
@@ -43,12 +42,6 @@ describe('taskLoadScopes', () => {
     expect(isTaskInWindow(makeTask({ startDate: '2026-03-31', endDate: '2026-04-05' }), window)).toBe(true);
     expect(isTaskInWindow(makeTask({ startDate: '2026-02-01', endDate: '2026-02-28' }), window)).toBe(false);
     expect(isTaskInWindow(makeTask({ startDate: '2026-04-01', endDate: '2026-04-02' }), window)).toBe(false);
-  });
-
-  it('checks window containment', () => {
-    expect(windowContains({ start: '2025-03-01', end: '2027-03-01' }, window)).toBe(true);
-    expect(windowContains(window, window)).toBe(true);
-    expect(windowContains(window, { start: '2026-02-28', end: '2026-03-31' })).toBe(false);
   });
 
   it('claims open tasks and recently changed ones for the board', () => {

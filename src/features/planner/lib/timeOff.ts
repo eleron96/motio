@@ -52,10 +52,6 @@ export const timeOffCoversDay = (record: TimeOff, key: string): boolean => (
   key >= record.startDate && key <= record.endDate
 );
 
-export const timeOffCoveredDays = (record: TimeOff, visibleDays: Date[]): string[] => (
-  visibleDays.map(dayKey).filter((key) => timeOffCoversDay(record, key))
-);
-
 /**
  * Weekends and holidays keep their normal look: they are already non-working,
  * so shading them grey would say nothing and would fight the existing hatch.

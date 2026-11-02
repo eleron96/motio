@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   RECENT_RELEASES_LIMIT,
-  getLatestReleaseNotes,
   getRecentReleaseNotes,
 } from '@/shared/lib/releaseNotes';
 
 describe('releaseNotes', () => {
   it('returns localized latest release notes without placeholder entries', () => {
-    const ruSections = getLatestReleaseNotes('ru');
-    const enSections = getLatestReleaseNotes('en');
+    const ruSections = getRecentReleaseNotes('ru', 1)[0]?.sections ?? [];
+    const enSections = getRecentReleaseNotes('en', 1)[0]?.sections ?? [];
 
     expect(ruSections.length).toBeGreaterThan(0);
     expect(enSections.length).toBeGreaterThan(0);
@@ -37,12 +36,6 @@ describe('releaseNotes', () => {
     const released = entries.filter((entry) => entry.version !== 'Unreleased');
     expect(released.length).toBeGreaterThan(0);
     expect(released[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-  });
-
-  it('agrees with getLatestReleaseNotes on the newest entry', () => {
-    const [newest] = getRecentReleaseNotes('en', 1);
-
-    expect(newest.sections).toEqual(getLatestReleaseNotes('en'));
   });
 
   it('honours the requested limit and rejects non-positive ones', () => {
