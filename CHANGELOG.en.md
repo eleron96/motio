@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.58] - 2026-11-02
 ### Fixed
 - When a task is moved to another day, the tasks under it rise into the freed place — no more gaps left in the stack.
 
