@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Timeline rows now fit the days on screen: a busy day somewhere else no longer stretches a row for months. A row opens up smoothly as a busy week scrolls in and settles gently once you stop.
+
+### Fixed
+- Timeline search now opens with Ctrl+K (⌘K on a Mac) or / in any keyboard layout, including Russian on Windows. The shortcut badge is gone from the search button; hover it to see the shortcut.
+
 ## [0.10.53] - 2026-11-01
 ### Fixed
 - In the Motio app opened from the iPhone Home Screen, the top menu sits a little lower and no longer hides under the blur by the status bar.
