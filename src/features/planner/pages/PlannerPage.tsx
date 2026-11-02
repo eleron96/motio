@@ -12,7 +12,6 @@ import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
 import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
-import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { useWorkspaceLoadRetry } from '@/features/planner/hooks/useWorkspaceLoadRetry';
 import { useTaskUndoToasts } from '@/features/planner/hooks/useTaskUndoToasts';
@@ -229,8 +228,6 @@ const PlannerPage = () => {
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   // Marking your own days off is not task editing: viewers may do it too, so the
   // create button opens the dialog in time-off-only mode for them.
-  const timeOffOn = isTimeOffEnabled();
-  const canOpenCreateDialog = canEdit || timeOffOn;
 
   // The Week view is optional (per-user "week_view_enabled" preference). If a
   // user is on 'week' but the preference is off — e.g. they had it enabled and
@@ -462,7 +459,6 @@ const PlannerPage = () => {
               setAddTaskDefaults(null);
               setShowAddTask(true);
             }}
-            disabled={!canOpenCreateDialog}
             className="press flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card text-primary hover:bg-accent disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <SquarePen className="h-6 w-6" />
@@ -476,7 +472,6 @@ const PlannerPage = () => {
             }}
             size="sm"
             className="gap-2"
-            disabled={!canOpenCreateDialog}
           >
             <Plus className="h-4 w-4" />
             {t`Add task`}
@@ -620,8 +615,8 @@ const PlannerPage = () => {
         initialProjectId={addTaskDefaults?.projectId}
         initialAssigneeIds={addTaskDefaults?.assigneeIds}
         initialStatusId={addTaskDefaults?.statusId}
-        timeOffEnabled={timeOffOn}
-        timeOffOnly={timeOffOn && !canEdit}
+        timeOffEnabled
+        timeOffOnly={!canEdit}
       />
     </>
   );

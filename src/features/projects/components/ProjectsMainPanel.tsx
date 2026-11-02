@@ -1,13 +1,9 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { format, parseISO } from 'date-fns';
-import { CalendarDays, ChevronDown, MoreHorizontal, Plus, RefreshCcw, Search } from 'lucide-react';
+import { CalendarDays, MoreHorizontal } from 'lucide-react';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { formatRepeatCadenceLabel, formatRepeatSeriesRemainderLabel } from '@/shared/lib/repeatLabels';
-import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
-import { Checkbox } from '@/shared/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,18 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
-import { Input } from '@/shared/ui/input';
-import { SearchInput } from '@/shared/ui/SearchInput';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ScrollArea } from '@/shared/ui/scroll-area';
-import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
 import { Assignee, Customer, CustomerContact, Milestone, Project, ProjectActivity, ProjectMember, Status, Task } from '@/features/planner/types/planner';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
-import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
+import type { TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { isPeopleSuggestEnabled, isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 import { collectKnownPeople } from '@/features/projects/lib/knownPeople';
 import { ProjectCardLayout } from '@/features/projects/components/projectCard/ProjectCardLayout';
 
@@ -59,20 +47,12 @@ type ProjectsMainPanelProps = {
   assigneeOptions: Assignee[];
   assigneeFilterIds: string[];
   onToggleAssignee: (assigneeId: string) => void;
-  pastFromDate: string;
-  onPastFromDateChange: (value: string) => void;
-  pastToDate: string;
-  onPastToDateChange: (value: string) => void;
-  pastSort: PastTaskSort;
-  onPastSortChange: (value: PastTaskSort) => void;
   onClearFilters: () => void;
-  selectedProjectId: string | null;
   onRefreshTasks: () => void;
   onAddTask?: () => void;
   tasksLoading: boolean;
   tasksError: string;
   displayTaskRows: DisplayTaskRow[];
-  taskScopePageSize: number;
   displayTotalCount: number;
   pageIndex: number;
   totalPages: number;
@@ -99,7 +79,7 @@ type ProjectsMainPanelProps = {
   onStartCustomerEdit: (customerId: string, customerName: string, industry?: string | null) => void;
   onRequestDeleteCustomer: (customer: Customer) => void;
   /**
-   * Only consumed when `isProjectCardEnabled()` is on and `mode === 'projects'`.
+   * Only consumed in `mode === 'projects'`.
    * Computed in ProjectsPage from existing data.
    */
   projectMembers: Assignee[];
@@ -166,20 +146,12 @@ export const ProjectsMainPanel = ({
   assigneeOptions,
   assigneeFilterIds,
   onToggleAssignee,
-  pastFromDate,
-  onPastFromDateChange,
-  pastToDate,
-  onPastToDateChange,
-  pastSort,
-  onPastSortChange,
   onClearFilters,
-  selectedProjectId,
   onRefreshTasks,
   onAddTask,
   tasksLoading,
   tasksError,
   displayTaskRows,
-  taskScopePageSize,
   displayTotalCount,
   pageIndex,
   totalPages,
@@ -233,14 +205,6 @@ export const ProjectsMainPanel = ({
 }: ProjectsMainPanelProps) => {
   const isMobile = useIsMobile();
   const sectionPadding = isMobile ? 'px-4 py-3' : 'px-6 py-4';
-  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
-  const hasActiveFilters = search.trim().length > 0
-    || statusFilterIds.length > 0
-    || assigneeFilterIds.length > 0
-    || (taskScope === 'past' && (pastFromDate.length > 0 || pastToDate.length > 0));
-
-  const projectCardEnabled = isProjectCardEnabled();
-  const projectCardMobileEnabled = isProjectCardMobileEnabled();
 
   // Memoize per-project slices so we don't re-allocate filtered arrays on every
   // unrelated re-render (these arrays span the whole workspace). Defensive
@@ -261,24 +225,15 @@ export const ProjectsMainPanel = ({
   );
   // Workspace-wide reusable people for the add-contact / add-member suggestions.
   // Built from the UNfiltered props on purpose — the whole point is to surface
-  // people entered on OTHER projects/customers. Empty (and cheap) when the flag
-  // is off, so the add forms stay exactly as they are today.
+  // people entered on OTHER projects/customers.
   const knownPeople = React.useMemo(
-    () => (isPeopleSuggestEnabled() ? collectKnownPeople(customerContacts ?? [], projectMemberRows ?? []) : []),
+    () => collectKnownPeople(customerContacts ?? [], projectMemberRows ?? []),
     [customerContacts, projectMemberRows],
   );
 
-  // When the flag is on and a project is selected, replace the legacy main
-  // panel with the new card layout. Mobile rendering is gated separately by
-  // VITE_FEATURE_PROJECT_CARD_MOBILE so the mobile read-only card can roll
-  // out independently of the desktop UI. Milestones / customers modes still
-  // fall through to the legacy UI by design.
-  if (
-    mode === 'projects'
-    && projectCardEnabled
-    && selectedProject
-    && (!isMobile || projectCardMobileEnabled)
-  ) {
+  // A selected project is shown as the project card, on desktop and phone.
+  // Milestones / customers / contacts modes render below.
+  if (mode === 'projects' && selectedProject) {
     return (
       <ProjectCardLayout
         selectedProject={selectedProject}
@@ -353,388 +308,6 @@ export const ProjectsMainPanel = ({
           {!selectedProject && (
             <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
               {t`Select a project to view details.`}
-            </div>
-          )}
-
-          {selectedProject && (
-            <div className="flex flex-1 flex-col overflow-hidden">
-              <div className={`border-b border-border ${sectionPadding}`}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <div className="text-lg font-semibold break-words [overflow-wrap:anywhere]">
-                          {formatProjectLabel(selectedProject.name, selectedProject.code)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {customerById.get(selectedProject.customerId ?? '')?.name ?? t`No customer`}
-                        </div>
-                      </div>
-                      {selectedProject.status && (
-                        <Badge
-                          variant="outline"
-                          className="font-semibold uppercase tracking-wide"
-                          title={t`Project status: ${selectedProject.status}`}
-                        >
-                          {selectedProject.status}
-                        </Badge>
-                      )}
-                      {selectedProject.archived && (
-                        <Badge variant="secondary">{t`Archived`}</Badge>
-                      )}
-                    </div>
-                    <SegmentedControl surface="filled">
-                      <SegmentedControlItem
-                        active={taskScope === 'current'}
-                        onClick={() => onChangeTaskScope('current')}
-                      >
-                        {t`Current`}
-                      </SegmentedControlItem>
-                      <SegmentedControlItem
-                        active={taskScope === 'past'}
-                        onClick={() => onChangeTaskScope('past')}
-                      >
-                        {t`Past`}
-                      </SegmentedControlItem>
-                    </SegmentedControl>
-                  </div>
-                  {canEdit && onAddTask && (
-                    <Button onClick={onAddTask} size="sm" className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      {t`Add task`}
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className={`border-b border-border ${sectionPadding}`}>
-                {isMobile ? (
-                  <button
-                    type="button"
-                    onClick={() => setMobileFiltersOpen((open) => !open)}
-                    aria-expanded={mobileFiltersOpen}
-                    className="flex w-full items-center justify-between text-xs font-medium text-muted-foreground"
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <Search className="h-3.5 w-3.5" />
-                      {t`Search & filters`}
-                      {hasActiveFilters && !mobileFiltersOpen ? (
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-                      ) : null}
-                    </span>
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                ) : null}
-                <div
-                  className={
-                    isMobile
-                      ? mobileFiltersOpen
-                        ? 'mt-3 flex flex-col items-stretch gap-2'
-                        : 'hidden'
-                      : 'flex flex-wrap items-center gap-3'
-                  }
-                >
-                  <SearchInput
-                    className="w-full sm:w-[220px]"
-                    placeholder={t`Search tasks...`}
-                    value={search}
-                    onValueChange={onSearchChange}
-                    clearLabel={t`Clear search`}
-                  />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={isMobile ? 'w-full justify-between' : undefined}>
-                        {statusFilterLabel}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="start">
-                      <div className="flex gap-2 pb-2">
-                        <Button size="sm" variant="ghost" onClick={() => setStatusPreset('all')}>{t`All`}</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setStatusPreset('open')}>{t`Open`}</Button>
-                        <Button size="sm" variant="ghost" onClick={() => setStatusPreset('done')}>{t`Done`}</Button>
-                      </div>
-                      <ScrollArea className="max-h-48 pr-2">
-                        <div className="space-y-1">
-                          {statuses.map((status) => (
-                            <label key={status.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                              <Checkbox
-                                checked={statusFilterIds.includes(status.id)}
-                                onCheckedChange={() => onToggleStatus(status.id)}
-                              />
-                              <span className="text-sm truncate">{formatStatusLabel(status.name, status.emoji)}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        data-tour="projects-assignee-filter"
-                        variant="outline"
-                        className={isMobile ? 'w-full justify-between' : undefined}
-                      >
-                        {assigneeFilterLabel}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="start">
-                      <ScrollArea className="max-h-48 pr-2">
-                        <div className="space-y-1">
-                          {assigneeOptions.length === 0 && (
-                            <div className="text-xs text-muted-foreground">{t`No assignees on this project.`}</div>
-                          )}
-                          {assigneeOptions.map((assignee) => (
-                            <label key={assignee.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                              <Checkbox
-                                checked={assigneeFilterIds.includes(assignee.id)}
-                                onCheckedChange={() => onToggleAssignee(assignee.id)}
-                              />
-                              <span className="text-sm truncate">
-                                {assignee.name}
-                                {!assignee.isActive && (
-                                  <span className="ml-1 text-[10px] text-muted-foreground">{t`(disabled)`}</span>
-                                )}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-
-                  {taskScope === 'past' && (
-                    <>
-                      <Input
-                        type="date"
-                        className="w-full sm:w-[160px]"
-                        value={pastFromDate}
-                        onChange={(event) => onPastFromDateChange(event.target.value)}
-                      />
-                      <Input
-                        type="date"
-                        className="w-full sm:w-[160px]"
-                        value={pastToDate}
-                        onChange={(event) => onPastToDateChange(event.target.value)}
-                      />
-                      <Select value={pastSort} onValueChange={(value) => onPastSortChange(value as PastTaskSort)}>
-                        <SelectTrigger className="w-full sm:w-[170px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="end_desc">{t`End date ↓`}</SelectItem>
-                          <SelectItem value="end_asc">{t`End date ↑`}</SelectItem>
-                          <SelectItem value="start_desc">{t`Start date ↓`}</SelectItem>
-                          <SelectItem value="start_asc">{t`Start date ↑`}</SelectItem>
-                          <SelectItem value="title_asc">{t`Title A–Z`}</SelectItem>
-                          <SelectItem value="title_desc">{t`Title Z–A`}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </>
-                  )}
-
-                  <Button variant="ghost" className={isMobile ? 'w-full justify-center' : undefined} onClick={onClearFilters}>
-                    {t`Clear filters`}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    className={isMobile ? 'w-full justify-center' : 'ml-auto'}
-                    onClick={onRefreshTasks}
-                    disabled={!selectedProjectId || tasksLoading}
-                  >
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    {t`Refresh`}
-                  </Button>
-                </div>
-              </div>
-
-              <div className={`flex-1 overflow-auto ${sectionPadding}`}>
-                {tasksLoading && (
-                  <div className="text-sm text-muted-foreground">{t`Loading tasks...`}</div>
-                )}
-                {!tasksLoading && tasksError && (
-                  <div className="text-sm text-destructive">{tasksError}</div>
-                )}
-                {!tasksLoading && !tasksError && (
-                  <>
-                    {displayTaskRows.length === 0 ? (
-                      <div className="text-sm text-muted-foreground">{t`No tasks match the current filters.`}</div>
-                    ) : isMobile ? (
-                      <div className="space-y-3">
-                        {displayTaskRows.map((row) => {
-                          const { task } = row;
-                          const status = statusById.get(task.statusId);
-                          const assigneesList = task.assigneeIds
-                            .map((id) => assigneeById.get(id))
-                            .filter((assignee): assignee is NonNullable<typeof assignee> => Boolean(assignee));
-
-                          return (
-                            <button
-                              key={row.key}
-                              type="button"
-                              className="w-full rounded-xl border border-border px-4 py-3 text-left transition-colors hover:bg-muted/40"
-                              onClick={() => onSelectTask(task.id)}
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0 space-y-1">
-                                  <div className="text-sm font-medium leading-snug break-words [overflow-wrap:anywhere] line-clamp-2">
-                                    {task.title}
-                                  </div>
-                                  {row.repeatMeta && (
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <Badge variant="outline" className="text-[10px]">
-                                        {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
-                                      </Badge>
-                                      <span className="text-xs text-muted-foreground">
-                                        {formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                {status && (
-                                  <Badge variant="secondary" className="shrink-0 text-[10px]">
-                                    {formatStatusLabel(status.name, status.emoji)}
-                                  </Badge>
-                                )}
-                              </div>
-
-                              <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                                <div>
-                                  {assigneesList.length === 0 ? (
-                                    <span>{t`Unassigned`}</span>
-                                  ) : (
-                                    <div className="flex flex-wrap gap-1">
-                                      {assigneesList.map((assignee) => (
-                                        <Badge key={assignee.id} variant="secondary" className="text-[10px]">
-                                          {assignee.name}
-                                          {!assignee.isActive && ` ${t`(disabled)`}`}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                                <div>
-                                  {format(parseISO(task.startDate), 'dd MMM yyyy')} – {format(parseISO(task.endDate), 'dd MMM yyyy')}
-                                </div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>{t`Task`}</TableHead>
-                            <TableHead>{t`Status`}</TableHead>
-                            <TableHead>{t`Assignees`}</TableHead>
-                            <TableHead>{t`Dates`}</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {displayTaskRows.map((row) => {
-                            const { task } = row;
-                            const status = statusById.get(task.statusId);
-                            const assigneesList = task.assigneeIds
-                              .map((id) => assigneeById.get(id))
-                              .filter((assignee): assignee is NonNullable<typeof assignee> => Boolean(assignee));
-                            return (
-                              <TableRow
-                                key={row.key}
-                                role="button"
-                                tabIndex={0}
-                                className="cursor-pointer hover:bg-muted/40"
-                                onClick={() => onSelectTask(task.id)}
-                                onKeyDown={(event) => {
-                                  if (event.key === 'Enter' || event.key === ' ') {
-                                    event.preventDefault();
-                                    onSelectTask(task.id);
-                                  }
-                                }}
-                              >
-                                <TableCell className="font-medium">
-                                  <div className="space-y-1">
-                                    <div>{task.title}</div>
-                                    {row.repeatMeta && (
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <Badge variant="outline" className="text-[10px]">
-                                          {formatRepeatCadenceLabel(row.repeatMeta.cadence)}
-                                        </Badge>
-                                        <span className="text-xs text-muted-foreground">
-                                          {formatRepeatSeriesRemainderLabel(row.repeatMeta.remaining)}
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <div className="text-sm">
-                                    {status ? formatStatusLabel(status.name, status.emoji) : t`Unknown`}
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  {assigneesList.length === 0 ? (
-                                    <span className="text-xs text-muted-foreground">{t`Unassigned`}</span>
-                                  ) : (
-                                    <div className="flex flex-wrap gap-1">
-                                      {assigneesList.map((assignee) => (
-                                        <Badge
-                                          key={assignee.id}
-                                          variant="secondary"
-                                          className="text-[10px]"
-                                        >
-                                          {assignee.name}
-                                          {!assignee.isActive && ` ${t`(disabled)`}`}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-sm text-muted-foreground">
-                                  {format(parseISO(task.startDate), 'dd MMM yyyy')} – {format(parseISO(task.endDate), 'dd MMM yyyy')}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    )}
-                    {taskScope === 'past' && displayTotalCount > taskScopePageSize && (
-                      <div className={`mt-4 text-xs text-muted-foreground ${isMobile ? 'space-y-2' : 'flex items-center justify-between'}`}>
-                        <span>
-                          {Math.min(displayTotalCount, (pageIndex - 1) * taskScopePageSize + 1)}–
-                          {Math.min(displayTotalCount, pageIndex * taskScopePageSize)} {t`of`} {displayTotalCount}
-                        </span>
-                        <div className={`flex items-center gap-2 ${isMobile ? 'justify-between' : ''}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onPrevPage}
-                            disabled={pageIndex === 1}
-                          >
-                            {t`Prev`}
-                          </Button>
-                          <span>
-                            {t`Page ${pageIndex} / ${totalPages}`}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onNextPage}
-                            disabled={pageIndex >= totalPages}
-                          >
-                            {t`Next`}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
             </div>
           )}
         </>

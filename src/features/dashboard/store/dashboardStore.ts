@@ -17,7 +17,6 @@ import {
   DashboardWidget,
   DashboardWidgetSize,
 } from '@/features/dashboard/types/dashboard';
-import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { resolveDashboardIncludeDisabledAssignees } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { createWidgetId, getPeriodRange, DEFAULT_BAR_PALETTE } from '@/features/dashboard/lib/dashboardUtils';
 import type { WorkloadDay } from '@/features/dashboard/lib/workloadHeatmap';
@@ -996,10 +995,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set({ heatmap: { days, rangeKey, loading: false, error: null } });
   },
   loadTimeOff: async (workspaceId, startDate, endDate) => {
-    // Absences are only ever read here to shrink the heatmap denominator, so the
-    // whole fetch sits behind the same flag that gates the feature on the timeline.
-    if (!isTimeOffEnabled()) return;
-
+    // Absences are only ever read here to shrink the heatmap denominator.
     const rangeKey = `${workspaceId}:${startDate}:${endDate}`;
     const current = get().timeOff;
     if (current.loading) return;

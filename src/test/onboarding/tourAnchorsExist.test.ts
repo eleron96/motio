@@ -65,11 +65,4 @@ describe('onboarding tour anchors', () => {
     expect(requestedAnchors().length).toBeGreaterThan(0);
     expect(appSources().length).toBeGreaterThan(1000);
   });
-
-  it('does not aim at the assignee filter — the project card hides it on production', () => {
-    // Разметка ещё существует в старой панели (её показывает выключенный флаг
-    // VITE_FEATURE_PROJECT_CARD), поэтому проверка наличия якоря этот шаг не
-    // ловила: он был мёртв ровно в том состоянии, ради которого писался.
-    expect(requestedAnchors()).not.toContain('projects-assignee-filter');
-  });
 });

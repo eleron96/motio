@@ -8,7 +8,7 @@ import { Label } from '@/shared/ui/label';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Switch } from '@/shared/ui/switch';
 import { Badge } from '@/shared/ui/badge';
-import { isWorkloadHeatmapEnabled, isWorkspaceApiEnabled } from '@/shared/lib/featureFlags';
+import { isWorkspaceApiEnabled } from '@/shared/lib/featureFlags';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import {
@@ -712,87 +712,85 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
           />
         </SettingRow>
       </Block>
-      {isWorkloadHeatmapEnabled() && (
-        <Block title={t`Team workload`}>
-          <SettingRow
-            title={(
-              <span className="inline-flex flex-wrap items-center gap-2">
-                {t`Workload heatmap`}
-                <Badge variant="secondary" className="font-normal">
-                  {t`experimental`}
-                </Badge>
-              </span>
-            )}
-            description={t`Show the department workload board on the dashboard`}
-            htmlFor="settings-heatmap-enabled"
-          >
-            <Switch
-              id="settings-heatmap-enabled"
-              size={isMobile ? 'touch' : 'default'}
-              checked={currentWorkspace?.heatmapEnabled ?? false}
-              onCheckedChange={handleToggleHeatmap}
-              disabled={!isAdmin || !currentWorkspaceId || heatmapSaving}
-              aria-label={t`Toggle workload heatmap`}
-            />
-          </SettingRow>
-          {(currentWorkspace?.heatmapEnabled ?? false) && (
-            <div className="space-y-2 border-t border-border pt-4">
-              <Label htmlFor="settings-heatmap-capacity">
-                {t`Full working day (tasks per person)`}
-              </Label>
-              <div className="flex items-center gap-2">
-                {isMobile ? (
-                  // A number field would summon the keyboard over half the
-                  // screen for a value that only ever moves in half steps.
-                  <MobileStepper
-                    value={heatmapCapacityValue}
-                    onChange={(next) => setHeatmapCapacityInput(String(next))}
-                    fallback={Math.max(1, Math.round(heatmapAutoCapacity ?? 5))}
-                    min={1}
-                    max={20}
-                    step={0.5}
-                    placeholder={heatmapCapacityPlaceholder}
-                    disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
-                    aria-label={t`Full working day (tasks per person)`}
-                  />
-                ) : (
-                  <Input
-                    id="settings-heatmap-capacity"
-                    type="number"
-                    min="1"
-                    step="0.5"
-                    inputMode="decimal"
-                    placeholder={heatmapCapacityPlaceholder}
-                    value={heatmapCapacityInput}
-                    onChange={(event) => setHeatmapCapacityInput(event.target.value)}
-                    disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
-                    className="w-32"
-                  />
-                )}
-                <Button
-                  className={isMobile ? 'h-11 flex-1' : undefined}
-                  onClick={handleSaveHeatmapCapacity}
-                  disabled={
-                    !isAdmin
-                    || !currentWorkspaceId
-                    || heatmapCapacitySaving
-                    || heatmapCapacityInput.trim() === (
-                      currentWorkspace?.heatmapCapacityPerPerson != null
-                        ? String(currentWorkspace.heatmapCapacityPerPerson)
-                        : ''
-                    )
-                  }
-                >
-                  {t`Save`}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t`This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history.`}
-              </p>
-            </div>
+      <Block title={t`Team workload`}>
+        <SettingRow
+          title={(
+            <span className="inline-flex flex-wrap items-center gap-2">
+              {t`Workload heatmap`}
+              <Badge variant="secondary" className="font-normal">
+                {t`experimental`}
+              </Badge>
+            </span>
           )}
-        </Block>
-      )}
+          description={t`Show the department workload board on the dashboard`}
+          htmlFor="settings-heatmap-enabled"
+        >
+          <Switch
+            id="settings-heatmap-enabled"
+            size={isMobile ? 'touch' : 'default'}
+            checked={currentWorkspace?.heatmapEnabled ?? false}
+            onCheckedChange={handleToggleHeatmap}
+            disabled={!isAdmin || !currentWorkspaceId || heatmapSaving}
+            aria-label={t`Toggle workload heatmap`}
+          />
+        </SettingRow>
+        {(currentWorkspace?.heatmapEnabled ?? false) && (
+          <div className="space-y-2 border-t border-border pt-4">
+            <Label htmlFor="settings-heatmap-capacity">
+              {t`Full working day (tasks per person)`}
+            </Label>
+            <div className="flex items-center gap-2">
+              {isMobile ? (
+                // A number field would summon the keyboard over half the
+                // screen for a value that only ever moves in half steps.
+                <MobileStepper
+                  value={heatmapCapacityValue}
+                  onChange={(next) => setHeatmapCapacityInput(String(next))}
+                  fallback={Math.max(1, Math.round(heatmapAutoCapacity ?? 5))}
+                  min={1}
+                  max={20}
+                  step={0.5}
+                  placeholder={heatmapCapacityPlaceholder}
+                  disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
+                  aria-label={t`Full working day (tasks per person)`}
+                />
+              ) : (
+                <Input
+                  id="settings-heatmap-capacity"
+                  type="number"
+                  min="1"
+                  step="0.5"
+                  inputMode="decimal"
+                  placeholder={heatmapCapacityPlaceholder}
+                  value={heatmapCapacityInput}
+                  onChange={(event) => setHeatmapCapacityInput(event.target.value)}
+                  disabled={!isAdmin || !currentWorkspaceId || heatmapCapacitySaving}
+                  className="w-32"
+                />
+              )}
+              <Button
+                className={isMobile ? 'h-11 flex-1' : undefined}
+                onClick={handleSaveHeatmapCapacity}
+                disabled={
+                  !isAdmin
+                  || !currentWorkspaceId
+                  || heatmapCapacitySaving
+                  || heatmapCapacityInput.trim() === (
+                    currentWorkspace?.heatmapCapacityPerPerson != null
+                      ? String(currentWorkspace.heatmapCapacityPerPerson)
+                      : ''
+                  )
+                }
+              >
+                {t`Save`}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t`This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history.`}
+            </p>
+          </div>
+        )}
+      </Block>
     </div>
   );
 

@@ -29,7 +29,6 @@ import {
   type CalendarOverlayCategory,
 } from '@/features/planner/lib/calendarDayMarkers';
 import { NO_TIME_OFF } from '@/features/planner/lib/timeOff';
-import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import {
   buildDayPie,
   buildPieBackground,
@@ -214,9 +213,8 @@ export const CalendarTimeline: React.FC = () => {
   // One stable colour per person, and one pass over the records for the whole
   // two-year window — the day cell only does a Map lookup.
   const timeOffColors = useMemo(() => buildTimeOffColorMap(assignees), [assignees]);
-  const timeOffEnabled = isTimeOffEnabled();
   const timeOffByDate = useMemo(() => {
-    if (!timeOffEnabled || !legend.timeOff || months.length === 0) return new Map<string, TimeOff[]>();
+    if (!legend.timeOff || months.length === 0) return new Map<string, TimeOff[]>();
     const windowStart = months[0];
     const windowEnd = endOfMonth(months[months.length - 1]);
     return buildTimeOffByDate(
@@ -224,7 +222,7 @@ export const CalendarTimeline: React.FC = () => {
       windowStart,
       windowEnd,
     );
-  }, [assigneeById, legend.timeOff, legendState.people, months, timeOff, timeOffEnabled]);
+  }, [assigneeById, legend.timeOff, legendState.people, months, timeOff]);
 
 
   const years = useMemo(() => {
@@ -801,7 +799,6 @@ export const CalendarTimeline: React.FC = () => {
           onOpenChange={setMobileLegendOpen}
           visibility={legend}
           onToggle={handleLegendToggle}
-          showTimeOffRow={timeOffEnabled}
           people={calendarPeople}
           peopleColors={timeOffColors}
           selectedPeople={legendState.people}
@@ -817,7 +814,6 @@ export const CalendarTimeline: React.FC = () => {
         <CalendarLegendPanel
           visibility={legend}
           onToggle={handleLegendToggle}
-          showTimeOffRow={timeOffEnabled}
           people={calendarPeople}
           peopleColors={timeOffColors}
           selectedPeople={legendState.people}

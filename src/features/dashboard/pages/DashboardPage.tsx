@@ -75,7 +75,6 @@ import { Navigate } from 'react-router-dom';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { t } from '@lingui/macro';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
-import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
 import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 
 type DashboardView = 'dashboards' | 'heatmap';
@@ -222,7 +221,7 @@ const DashboardPage = () => {
     () => workspaces.find((workspace) => workspace.id === currentWorkspaceId) ?? null,
     [workspaces, currentWorkspaceId],
   );
-  const heatmapAvailable = isWorkloadHeatmapEnabled() && Boolean(currentWorkspace?.heatmapEnabled);
+  const heatmapAvailable = Boolean(currentWorkspace?.heatmapEnabled);
   const isHeatmapView = view === 'heatmap' && heatmapAvailable;
   // A phone swipes between the two views, so both live in a deck. The heatmap
   // page mounts the first time it is opened and stays: its data is not worth

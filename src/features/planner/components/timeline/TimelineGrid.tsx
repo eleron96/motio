@@ -14,7 +14,6 @@ import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH } from '@/features/planner/l
 import { ViewMode } from '@/features/planner/types/planner';
 import { buildTimeOffIndex, EMPTY_TIME_OFF_INDEX, NO_TIME_OFF } from '@/features/planner/lib/timeOff';
 import { resolveRowMotif, type TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
-import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import {
   buildAssigneeGroupMap,
   resolveCurrentUserAssigneeId,
@@ -210,7 +209,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   // Time-off records of the visible window, grouped by row. Assignee grouping
   // only: project rows have no person, so there is nothing to shade there.
   const timeOffIndex = useMemo(
-    () => (isTimeOffEnabled() && groupMode === 'assignee'
+    () => (groupMode === 'assignee'
       ? buildTimeOffIndex(timeOff, visibleDays, timeOffDragPreview)
       : EMPTY_TIME_OFF_INDEX),
     [groupMode, timeOff, timeOffDragPreview, visibleDays],
@@ -421,7 +420,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   const handleCreateTaskAt = useCallback((date: string, rowId: string) => {
     // Viewers may open the dialog too — it opens in time-off-only mode for them.
-    if (!canEdit && !isTimeOffEnabled()) return;
     if (Date.now() - lastDragTimeRef.current < 200) return;
     const defaults: {
       startDate: string;
@@ -451,7 +449,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     }
 
     onCreateTask?.(defaults);
-  }, [assignees, canEdit, groupMode, lastDragTimeRef, onCreateTask, projects]);
+  }, [assignees, groupMode, lastDragTimeRef, onCreateTask, projects]);
 
   const personColors = usePersonColors();
 
@@ -664,7 +662,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     timeOffDays={timeOffIndex.daysByRowId.get(row.id)}
                     timeOffMotif={motifByRowId.get(row.id)}
                     height={row.height}
-                    canEdit={canEdit || isTimeOffEnabled()}
+                    // Viewers too: double-click opens the dialog in time-off-only mode.
+                    canEdit
                     canCreateTask={canEdit}
                     onCreateTask={handleCreateTaskAt}
                   >

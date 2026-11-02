@@ -2,7 +2,6 @@ import { addYears, format, parseISO } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { isProjectCardEnabled, isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { mapTaskRow, normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
 import { fetchTaskCommentCountsInWindow } from '@/infrastructure/tasks/taskCommentsRepository';
 import { applyStarterTemplatePayload } from '@/infrastructure/workspace/starterTemplateRepository';
@@ -171,14 +170,12 @@ const selectWindowTasks = ({ workspaceId, start, end }: LoadedTaskWindow) => sup
 // Time off IS windowed like tasks (unlike milestones): absences accumulate
 // linearly with wall-clock time and nothing ever archives them, so an
 // unwindowed query would grow heavier every year on the boot path.
-const selectWindowTimeOff = ({ workspaceId, start, end }: LoadedTaskWindow) => (isTimeOffEnabled()
-  ? supabase
-    .from('time_off')
-    .select('id, workspace_id, assignee_id, start_date, end_date, note')
-    .eq('workspace_id', workspaceId)
-    .gte('end_date', start)
-    .lte('start_date', end)
-  : Promise.resolve({ data: [] as never[], error: null }));
+const selectWindowTimeOff = ({ workspaceId, start, end }: LoadedTaskWindow) => supabase
+  .from('time_off')
+  .select('id, workspace_id, assignee_id, start_date, end_date, note')
+  .eq('workspace_id', workspaceId)
+  .gte('end_date', start)
+  .lte('start_date', end);
 
 /**
  * Window rows as they enter the cache: a task hidden while its deletion can
@@ -364,37 +361,27 @@ const loadFullWorkspaceData = async (
     .from('customers')
     .select('id, workspace_id, name, industry')
     .eq('workspace_id', workspaceId);
-  // Project-card-only tables: skip the queries entirely when the feature
-  // flag is off. Vite inlines `isProjectCardEnabled()` at build time, so
-  // disabled deployments pay zero cost (no round-trip, no RAM, no map).
-  const projectCardOn = isProjectCardEnabled();
-  const customerContactsQuery = projectCardOn
-    ? supabase
-        .from('customer_contacts')
-        .select('id, workspace_id, customer_id, name, role, email, phone, position, company, tag')
-        .eq('workspace_id', workspaceId)
-        .order('position', { ascending: true })
-        .order('created_at', { ascending: true })
-    : Promise.resolve({ data: [] as never[], error: null });
+  const customerContactsQuery = supabase
+    .from('customer_contacts')
+    .select('id, workspace_id, customer_id, name, role, email, phone, position, company, tag')
+    .eq('workspace_id', workspaceId)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true });
   const assigneesQuery = supabase
     .from('assignees')
     .select('id, workspace_id, name, user_id, is_active, email, phone, color')
     .eq('workspace_id', workspaceId);
-  const projectMembersQuery = projectCardOn
-    ? supabase
-        .from('project_members')
-        .select('id, workspace_id, project_id, assignee_id, role, position, tag, external_name, external_company, external_email, external_phone')
-        .eq('workspace_id', workspaceId)
-        .order('position', { ascending: true })
-        .order('created_at', { ascending: true })
-    : Promise.resolve({ data: [] as never[], error: null });
-  const projectActivityQuery = projectCardOn
-    ? supabase
-        .from('project_activity')
-        .select('id, workspace_id, project_id, author_id, author_display_name, kind, content, created_at, updated_at, pinned')
-        .eq('workspace_id', workspaceId)
-        .order('created_at', { ascending: false })
-    : Promise.resolve({ data: [] as never[], error: null });
+  const projectMembersQuery = supabase
+    .from('project_members')
+    .select('id, workspace_id, project_id, assignee_id, role, position, tag, external_name, external_company, external_email, external_phone')
+    .eq('workspace_id', workspaceId)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true });
+  const projectActivityQuery = supabase
+    .from('project_activity')
+    .select('id, workspace_id, project_id, author_id, author_display_name, kind, content, created_at, updated_at, pinned')
+    .eq('workspace_id', workspaceId)
+    .order('created_at', { ascending: false });
   const memberGroupsQuery = supabase
     .from('member_groups')
     .select('id, name')

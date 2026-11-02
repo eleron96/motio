@@ -6,7 +6,6 @@ import { t } from '@lingui/macro';
 import { Milestone, MilestoneStatusOverride, TaskPriority } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import type { LoadedTaskWindow } from '@/features/planner/store/plannerStore.helpers';
-import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { fetchBoardTaskIds, fetchTaskDeltaSince } from '@/infrastructure/tasks/boardTasksRepository';
 
 import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
@@ -620,7 +619,7 @@ export const usePlannerLiveSync = (
     // pipeline needs. Debounced so a burst of edits costs one request.
     let timeOffRefreshTimer: number | null = null;
     const refreshTimeOff = async () => {
-      if (!active || !isTimeOffEnabled()) return;
+      if (!active) return;
       // rangeRef is the window this effect was built for — the same source the
       // task pipeline uses, and unlike store.loadedRange it is guaranteed to be
       // in sync with workspaceRef for the lifetime of this subscription.
@@ -647,7 +646,7 @@ export const usePlannerLiveSync = (
     };
 
     const queueTimeOffRefresh = () => {
-      if (!active || !isTimeOffEnabled() || typeof window === 'undefined') return;
+      if (!active || typeof window === 'undefined') return;
       if (timeOffRefreshTimer) window.clearTimeout(timeOffRefreshTimer);
       timeOffRefreshTimer = window.setTimeout(() => {
         timeOffRefreshTimer = null;

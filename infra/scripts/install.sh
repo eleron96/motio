@@ -260,11 +260,6 @@ values = {
     "VITE_GLITCHTIP_DSN": "",
     "GLITCHTIP_DSN": "",
 
-    "VITE_FEATURE_TIME_OFF": "true",
-    "VITE_FEATURE_WORKLOAD_HEATMAP": "true",
-    "VITE_FEATURE_PROJECT_CARD": "true",
-    "VITE_FEATURE_PROJECT_CARD_MOBILE": "true",
-    "VITE_FEATURE_PEOPLE_SUGGEST": "true",
     "VITE_FEATURE_PUSH": "true",
     "VITE_FEATURE_KANBAN": "false",
     "VITE_FEATURE_ACCOUNT_DELETION": "false",

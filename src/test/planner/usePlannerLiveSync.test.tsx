@@ -289,12 +289,9 @@ describe('usePlannerLiveSync', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    vi.unstubAllEnvs();
   });
 
   it('subscribes to time_off and refetches the window when a record changes', async () => {
-    // The subscription and its refetch are gated on the feature flag.
-    vi.stubEnv('VITE_FEATURE_TIME_OFF', 'true');
     const timeOffRows = [{
       id: 'time-off-1',
       workspace_id: workspaceOne,

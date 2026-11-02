@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) =>
@@ -13,16 +13,7 @@ vi.mock('@/shared/hooks/use-mobile', () => ({
   useIsMobile: vi.fn(),
 }));
 
-vi.mock('@/shared/lib/featureFlags', () => ({
-  isProjectCardEnabled: vi.fn(),
-  isProjectCardMobileEnabled: vi.fn(),
-  isAccountDeletionEnabled: () => false,
-  isPeopleSuggestEnabled: () => false,
-}));
-
 const useIsMobileMock = vi.mocked(useIsMobile);
-const isProjectCardEnabledMock = vi.mocked(isProjectCardEnabled);
-const isProjectCardMobileEnabledMock = vi.mocked(isProjectCardMobileEnabled);
 
 const baseProps = {
   mode: 'projects' as const,
@@ -50,19 +41,11 @@ const baseProps = {
   assigneeOptions: [] as never,
   assigneeFilterIds: [] as string[],
   onToggleAssignee: vi.fn(),
-  pastFromDate: '',
-  onPastFromDateChange: vi.fn(),
-  pastToDate: '',
-  onPastToDateChange: vi.fn(),
-  pastSort: 'end_desc' as const,
-  onPastSortChange: vi.fn(),
   onClearFilters: vi.fn(),
-  selectedProjectId: 'p1',
   onRefreshTasks: vi.fn(),
   tasksLoading: false,
   tasksError: '',
   displayTaskRows: [] as never,
-  taskScopePageSize: 100,
   displayTotalCount: 0,
   pageIndex: 1,
   totalPages: 1,
@@ -114,77 +97,62 @@ const baseProps = {
   onSetProjectActivityPinned: vi.fn(async () => true),
 };
 
-describe('ProjectsMainPanel — mobile project card (M1)', () => {
+describe('ProjectsMainPanel — project card on mobile', () => {
   beforeEach(() => {
     useIsMobileMock.mockReset();
-    isProjectCardEnabledMock.mockReset();
-    isProjectCardMobileEnabledMock.mockReset();
+    useIsMobileMock.mockReturnValue(true);
   });
 
-  it('renders the new card layout on mobile when both flags are on', () => {
-    useIsMobileMock.mockReturnValue(true);
-    isProjectCardEnabledMock.mockReturnValue(true);
-    isProjectCardMobileEnabledMock.mockReturnValue(true);
-
+  it('renders the project card', () => {
     render(<ProjectsMainPanel {...baseProps} />);
 
-    // The new card surfaces specific block titles that the legacy panel
-    // never renders. Hitting any of these proves we took the new path.
     expect(screen.getByText('Customer')).toBeInTheDocument();
     expect(screen.getByText('Team')).toBeInTheDocument();
     expect(screen.getByText('Notes')).toBeInTheDocument();
   });
 
-  it('falls back to legacy panel on mobile when the mobile flag is off', () => {
-    useIsMobileMock.mockReturnValue(true);
-    isProjectCardEnabledMock.mockReturnValue(true);
-    isProjectCardMobileEnabledMock.mockReturnValue(false);
-
+  it('offers every add button', () => {
     render(<ProjectsMainPanel {...baseProps} />);
 
-    // Legacy panel does not surface a "Team" block heading — confirms we
-    // skipped the new card path on mobile.
-    expect(screen.queryByText('Team')).not.toBeInTheDocument();
-    expect(screen.queryByText('Customer')).not.toBeInTheDocument();
-  });
-
-  it('renders all add buttons on mobile after M3/M4', () => {
-    useIsMobileMock.mockReturnValue(true);
-    isProjectCardEnabledMock.mockReturnValue(true);
-    isProjectCardMobileEnabledMock.mockReturnValue(true);
-
-    render(<ProjectsMainPanel {...baseProps} />);
-
-    // M2: activity composer; M3: team add; M4: milestone + customer contact
-    // adds. With M4 shipped, all four are accessible from mobile.
     expect(screen.getByLabelText('Add note')).toBeInTheDocument();
     expect(screen.getByLabelText('Add team member')).toBeInTheDocument();
     expect(screen.getByLabelText('Add milestone')).toBeInTheDocument();
-    // CustomerBlock is rendered only when a customer is selected. baseProps
-    // points the project at customer "c1" so the block + button are visible.
+    // CustomerBlock renders only for a project with a customer: baseProps points at "c1".
     expect(screen.getByLabelText('Add customer contact')).toBeInTheDocument();
   });
 
-  it('renders the activity composer + button on mobile (M2)', () => {
-    useIsMobileMock.mockReturnValue(true);
-    isProjectCardEnabledMock.mockReturnValue(true);
-    isProjectCardMobileEnabledMock.mockReturnValue(true);
-
+  it('keeps the project-status chip interactive', () => {
     render(<ProjectsMainPanel {...baseProps} />);
 
-    expect(screen.getByLabelText('Add note')).toBeInTheDocument();
-  });
-
-  it('keeps the project-status chip interactive on mobile (M2)', () => {
-    useIsMobileMock.mockReturnValue(true);
-    isProjectCardEnabledMock.mockReturnValue(true);
-    isProjectCardMobileEnabledMock.mockReturnValue(true);
-
-    render(<ProjectsMainPanel {...baseProps} />);
-
-    // M2 makes the chip clickable on mobile (opens a bottom sheet). It is
-    // labelled the same as on desktop and not disabled.
+    // On a phone the chip opens a bottom sheet; same label as on desktop, not disabled.
     const chip = screen.getByRole('button', { name: 'Edit project status: IN PROGRESS' });
     expect(chip).not.toBeDisabled();
+  });
+});
+
+describe('ProjectsMainPanel — task scope in the project card', () => {
+  beforeEach(() => {
+    useIsMobileMock.mockReset();
+    useIsMobileMock.mockReturnValue(false);
+  });
+
+  it('switches to past tasks', async () => {
+    const user = userEvent.setup();
+    const onChangeTaskScope = vi.fn();
+
+    render(<ProjectsMainPanel {...baseProps} taskScope="current" onChangeTaskScope={onChangeTaskScope} />);
+    await user.click(screen.getByRole('button', { name: 'Past' }));
+
+    expect(onChangeTaskScope).toHaveBeenCalledWith('past');
+  });
+
+  it('pages through past tasks only', () => {
+    const { rerender } = render(
+      <ProjectsMainPanel {...baseProps} taskScope="past" displayTotalCount={120} totalPages={2} />,
+    );
+    expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+
+    rerender(<ProjectsMainPanel {...baseProps} taskScope="current" displayTotalCount={120} totalPages={2} />);
+    expect(screen.queryByText('Page 1 of 2')).not.toBeInTheDocument();
   });
 });

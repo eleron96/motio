@@ -68,9 +68,7 @@ Two habits keep the picture honest:
 
 The heatmap is off by default and marked *experimental*. A workspace admin turns it on
 in the workspace settings — the gear next to the workspace name — under **Display** →
-**Workload heatmap**. The manual "full working day" lives in the same place. On a
-self-hosted install the board also has to be switched on at build time with
-`VITE_FEATURE_WORKLOAD_HEATMAP=true`.
+**Workload heatmap**. The manual "full working day" lives in the same place.
 
 If it reads wrong for your team, [tell us how](https://github.com/eleron96/motio/discussions/categories/ideas).
 The model is young, and real teams are how it gets better.

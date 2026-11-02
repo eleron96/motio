@@ -7,7 +7,6 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { ProjectsSidebar } from '@/features/projects/components/ProjectsSidebar';
 import { ProjectCardSidebar } from '@/features/projects/components/projectCard/ProjectCardSidebar';
 import { computeGroupMembersToAdd } from '@/features/projects/lib/projectCard/computeGroupMembersToAdd';
-import { isProjectCardEnabled, isProjectCardMobileEnabled } from '@/shared/lib/featureFlags';
 import { ProjectsDialogs } from '@/features/projects/components/ProjectsDialogs';
 import { ProjectsMainPanel } from '@/features/projects/components/ProjectsMainPanel';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
@@ -97,7 +96,7 @@ const ProjectsPage = () => {
     taskScope, setTaskScope,
     pastFromDate, setPastFromDate,
     pastToDate, setPastToDate,
-    pastSort, setPastSort,
+    pastSort,
     pageIndex, setPageIndex,
     statusFilterIds, setStatusFilterIds,
   } = useTaskScopeFilter();
@@ -1042,9 +1041,6 @@ const ProjectsPage = () => {
     + (tab === 'archived' ? 1 : 0)
     + (groupByCustomer ? 1 : 0);
 
-  const projectCardEnabled = isProjectCardEnabled();
-  const projectCardMobileEnabled = isProjectCardMobileEnabled();
-
   // Projects | Milestones | Customers segmented switch — one rounded pill
   // container, the active option goes black. Used above both the new card
   // sidebar and the legacy customers sidebar. On mobile this also replaces
@@ -1080,15 +1076,8 @@ const ProjectsPage = () => {
   };
 
   const renderProjectsSidebar = () => {
-    // When the flag is on and in 'projects' mode, replace the legacy
-    // multi-mode sidebar with the new card-style list. Mobile rendering is
-    // gated separately by VITE_FEATURE_PROJECT_CARD_MOBILE so the M1 card
-    // can roll out without affecting milestones / customers modes.
-    if (
-      projectCardEnabled
-      && mode === 'projects'
-      && (!isMobile || projectCardMobileEnabled)
-    ) {
+    // 'projects' mode: the card-style project list, on desktop and phone.
+    if (mode === 'projects') {
       const visibleProjects = tab === 'archived'
         ? filteredArchivedProjects
         : filteredActiveProjects;
@@ -1135,7 +1124,7 @@ const ProjectsPage = () => {
         />
       );
     }
-    if (projectCardEnabled && !isMobile) {
+    if (!isMobile) {
       // Customers/milestones modes: show the same Projects|Customers tabs above
       // the legacy sidebar so the user can still flip between them.
       return (
@@ -1189,31 +1178,6 @@ const ProjectsPage = () => {
               customerById={customerById}
               trackedProjectIdSet={trackedProjectIdSet}
               formatMilestoneDate={formatMilestoneDate}
-              tab={tab}
-              onTabChange={setTab}
-              projectSearch={projectSearch}
-              onProjectSearchChange={setProjectSearch}
-              customerFilterLabel={customerFilterLabel}
-              customerFilterIds={customerFilterIds}
-              onClearCustomerFilters={() => setCustomerFilterIds([])}
-              onToggleCustomerFilter={handleToggleCustomer}
-              groupByCustomer={groupByCustomer}
-              onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
-              activeProjects={activeProjects}
-              archivedProjects={archivedProjects}
-              filteredActiveProjects={filteredActiveProjects}
-              filteredArchivedProjects={filteredArchivedProjects}
-              selectedProjectId={selectedProjectId}
-              onSelectProject={(projectId) => {
-                setSelectedProjectId(projectId);
-              }}
-              onToggleTrackedProject={(projectId, nextTracked) => {
-                void toggleTrackedProject(projectId, nextTracked);
-              }}
-              onOpenProjectSettings={openProjectSettings}
-              onRequestDeleteProject={requestDeleteProject}
-              onToggleProjectArchived={handleToggleProjectArchived}
-              groupProjects={groupedProjects}
             />
           </div>
         </div>
@@ -1272,31 +1236,6 @@ const ProjectsPage = () => {
       customerById={customerById}
       trackedProjectIdSet={trackedProjectIdSet}
       formatMilestoneDate={formatMilestoneDate}
-      tab={tab}
-      onTabChange={setTab}
-      projectSearch={projectSearch}
-      onProjectSearchChange={setProjectSearch}
-      customerFilterLabel={customerFilterLabel}
-      customerFilterIds={customerFilterIds}
-      onClearCustomerFilters={() => setCustomerFilterIds([])}
-      onToggleCustomerFilter={handleToggleCustomer}
-      groupByCustomer={groupByCustomer}
-      onToggleGroupByCustomer={() => setGroupByCustomer((current) => !current)}
-      activeProjects={activeProjects}
-      archivedProjects={archivedProjects}
-      filteredActiveProjects={filteredActiveProjects}
-      filteredArchivedProjects={filteredArchivedProjects}
-      selectedProjectId={selectedProjectId}
-      onSelectProject={(projectId) => {
-        setSelectedProjectId(projectId);
-      }}
-      onToggleTrackedProject={(projectId, nextTracked) => {
-        void toggleTrackedProject(projectId, nextTracked);
-      }}
-      onOpenProjectSettings={openProjectSettings}
-      onRequestDeleteProject={requestDeleteProject}
-      onToggleProjectArchived={handleToggleProjectArchived}
-      groupProjects={groupedProjects}
     />
     );
     if (isMobile) {
@@ -1368,21 +1307,6 @@ const ProjectsPage = () => {
       assigneeOptions={assigneeOptions}
       assigneeFilterIds={assigneeFilterIds}
       onToggleAssignee={handleToggleAssignee}
-      pastFromDate={pastFromDate}
-      onPastFromDateChange={(value) => {
-        setPastFromDate(value);
-        setPageIndex(1);
-      }}
-      pastToDate={pastToDate}
-      onPastToDateChange={(value) => {
-        setPastToDate(value);
-        setPageIndex(1);
-      }}
-      pastSort={pastSort}
-      onPastSortChange={(value) => {
-        setPastSort(value);
-        setPageIndex(1);
-      }}
       onClearFilters={() => {
         setSearch('');
         setStatusFilterIds([]);
@@ -1391,7 +1315,6 @@ const ProjectsPage = () => {
         setPastToDate('');
         setPageIndex(1);
       }}
-      selectedProjectId={selectedProjectId}
       onRefreshTasks={() => {
         if (selectedProjectId) {
           void refetchTasks();
@@ -1401,7 +1324,6 @@ const ProjectsPage = () => {
       tasksLoading={tasksLoading}
       tasksError={tasksError}
       displayTaskRows={displayTaskRows}
-      taskScopePageSize={pageSize}
       displayTotalCount={displayTotalCount}
       pageIndex={pageIndex}
       totalPages={totalPages}
