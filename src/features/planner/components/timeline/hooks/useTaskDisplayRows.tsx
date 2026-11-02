@@ -6,23 +6,19 @@ import { EMPTY_TIME_OFF_INDEX, timeOffMinLanes, timeOffReservedPeriods, type Tim
 import type { ReservedPeriod } from '@/features/planner/lib/taskLanes';
 import {
   buildTimelineDisplayRows,
+  calculateTimelineRowHeights,
   groupTasksByTimelineRow,
   selectArchivedProjectIds,
   selectFilteredTasks,
   selectTimelineGroupItems,
   selectVisibleAssignees,
-  timelineRowExtraHeight,
 } from '@/features/planner/lib/timelineSelectors';
 import { getTaskPosition, MIN_ROW_HEIGHT, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
 import { TaskBar } from '../TaskBar';
 import { TimeOffBar } from '../TimeOffBar';
 import { resolveAssigneeMinRowHeight } from '../TimelineSidebarRow';
-import { useAdaptiveRowHeights } from './useAdaptiveRowHeights';
 
 const ASSIGNEE_ROW_GAP = 20;
-
-/** Laid out rows before fitting: each takes its minimum height. */
-const NO_ROW_HEIGHTS: Record<string, number> = Object.freeze({}) as Record<string, number>;
 
 interface UseTaskDisplayRowsParams {
   tasks: Task[];
@@ -43,27 +39,15 @@ interface UseTaskDisplayRowsParams {
   onOpenTimeOff?: (id: string) => void;
   /**
    * What the layout belongs to (workspace, view). While it, the grouping and
-   * the filters stay the same, bars keep their lanes.
+   * the filters stay the same, bars keep their lanes and rows do not shrink.
    */
   layoutScope?: string;
-  /** Horizontal scroll of the date area and its visible width: rows fit the days on screen. */
-  scrollLeft?: number;
-  viewportWidth?: number;
-  /** The day range is shifting: keep the row heights as they are (useAdaptiveRowHeights). */
-  holdRowHeights?: boolean;
-  /** The timeline's scroll container: its scroll tells movement from rest. */
-  scrollContainerRef?: React.RefObject<HTMLDivElement>;
-  /** Height of the sticky header above the first row. */
-  headerHeight?: number;
-  /** Rows may grow but not shrink (a drag, the search lens, a deep-link highlight). */
-  suspendRowShrink?: boolean;
 }
-
-const NO_CONTAINER: React.RefObject<HTMLDivElement> = { current: null };
 
 type LayoutMemory = {
   key: string;
   lanesByRow: Map<string, Map<string, number>>;
+  heights: Record<string, number>;
 };
 
 export const useTaskDisplayRows = ({
@@ -84,20 +68,13 @@ export const useTaskDisplayRows = ({
   canManageAnyTimeOff = false,
   onOpenTimeOff,
   layoutScope = '',
-  scrollLeft = 0,
-  viewportWidth = 0,
-  holdRowHeights = false,
-  scrollContainerRef = NO_CONTAINER,
-  headerHeight = 0,
-  suspendRowShrink = false,
 }: UseTaskDisplayRowsParams) => {
-  // Lanes are laid out from the tasks of the days the timeline renders, not
-  // from everything loaded: loading the next stretch of dates while the
-  // timeline is scrolled far (planTaskWindowLoad) then changes nothing on
-  // screen. Row heights then fit the days actually on screen.
-  const dayKeys = useMemo(() => visibleDays.map((day) => format(day, 'yyyy-MM-dd')), [visibleDays]);
-  const rangeStart = dayKeys[0] ?? '';
-  const rangeEnd = dayKeys[dayKeys.length - 1] ?? '';
+  // Lanes and row heights are laid out from the tasks of the days the timeline
+  // renders, not from everything loaded: loading the next stretch of dates
+  // while the timeline is scrolled far (planTaskWindowLoad) then changes
+  // nothing on screen.
+  const rangeStart = visibleDays.length > 0 ? format(visibleDays[0], 'yyyy-MM-dd') : '';
+  const rangeEnd = visibleDays.length > 0 ? format(visibleDays[visibleDays.length - 1], 'yyyy-MM-dd') : '';
   // The same tasks in range keep the same array: a load that changed only
   // dates off screen then re-renders none of the rows (each row redraws all
   // its day cells when its bars array changes).
@@ -117,14 +94,14 @@ export const useTaskDisplayRows = ({
   }, [rangeEnd, rangeStart, tasks]);
 
   // The last layout, kept while the scope, the grouping and the filters stay:
-  // bars keep their lanes (calculateTaskLanes). Scrolling brings other tasks
-  // into the laid out range; repacking from scratch made the bars on screen
-  // hop between lanes at every step.
-  // Read inside the layout memo rather than listed as its dependency: the
+  // bars keep their lanes (calculateTaskLanes) and rows only grow. Scrolling
+  // brings other tasks into the laid out range; repacking from scratch and
+  // fitting rows to them made the rows on screen jump at every step.
+  // Read inside the layout memos rather than listed as their dependency: the
   // memory changes after every layout, and depending on it would redo the
   // layout on every render (each scroll step re-renders the grid).
   const layoutKey = `${layoutScope}|${groupMode}|${JSON.stringify(filters)}`;
-  const layoutMemoryRef = useRef<LayoutMemory>({ key: '', lanesByRow: new Map() });
+  const layoutMemoryRef = useRef<LayoutMemory>({ key: '', lanesByRow: new Map(), heights: {} });
   const readLayoutMemory = () => (
     layoutMemoryRef.current.key === layoutKey ? layoutMemoryRef.current : null
   );
@@ -202,28 +179,37 @@ export const useTaskDisplayRows = ({
     return minimums;
   }, [timeOffIndex]);
 
+  const rowHeights = useMemo(() => {
+    const heights = calculateTimelineRowHeights(tasksByRow, {
+      minRowHeight: effectiveMinRowHeight,
+      taskHeight: TASK_HEIGHT,
+      taskGap: TASK_GAP,
+      minLanesByRow,
+    });
+    const previousHeights = readLayoutMemory()?.heights;
+    if (!previousHeights) return heights;
+    Object.keys(heights).forEach((rowId) => {
+      const previous = previousHeights[rowId];
+      if (previous !== undefined && previous > heights[rowId]) heights[rowId] = previous;
+    });
+    return heights;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the memory is read, not tracked (see above)
+  }, [tasksByRow, effectiveMinRowHeight, minLanesByRow, layoutKey]);
+
   useEffect(() => {
     const lanesByRow = new Map<string, Map<string, number>>();
     Object.entries(tasksByRow).forEach(([rowId, rowTasks]) => {
       if (rowTasks.length === 0) return;
       lanesByRow.set(rowId, new Map(rowTasks.map((task) => [task.id, task.lane])));
     });
-    layoutMemoryRef.current = { key: layoutKey, lanesByRow };
-  }, [layoutKey, tasksByRow]);
+    layoutMemoryRef.current = { key: layoutKey, lanesByRow, heights: rowHeights };
+  }, [layoutKey, rowHeights, tasksByRow]);
 
-  const rowMetrics = useMemo(
-    () => ({ minRowHeight: effectiveMinRowHeight, taskHeight: TASK_HEIGHT, taskGap: TASK_GAP }),
-    [effectiveMinRowHeight],
-  );
-
-  // The rows to show. Their `height` is only the minimum: the height shown is
-  // in rowHeights (useAdaptiveRowHeights), kept apart so that a row changing
-  // height does not hand its memoised sidebar cell a new row object.
   const displayRows = useMemo(
     () => buildTimelineDisplayRows({
       groupItems,
       tasksByRow,
-      rowHeights: NO_ROW_HEIGHTS,
+      rowHeights,
       groupMode,
       assigneeFilterCount: filters.assigneeIds.length,
       hideUnassigned: filters.hideUnassigned,
@@ -234,39 +220,13 @@ export const useTaskDisplayRows = ({
       minRowHeight: effectiveMinRowHeight,
       assigneeRowGap: ASSIGNEE_ROW_GAP,
     }),
-    [effectiveMinRowHeight, filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, tasksByRow],
+    [effectiveMinRowHeight, filters.assigneeIds.length, filters.hideUnassigned, groupItems, groupMode, rowHeights, tasksByRow],
   );
 
-  const adaptiveRows = useMemo(
-    () => displayRows.map((row) => ({
-      id: row.id,
-      tasks: row.tasks,
-      extra: timelineRowExtraHeight(row.id, groupMode, ASSIGNEE_ROW_GAP),
-    })),
-    [groupMode, displayRows],
-  );
-
-  const { heights: rowHeights, instantRowIds, transition: rowHeightTransition } = useAdaptiveRowHeights({
-    rows: adaptiveRows,
-    dayKeys,
-    minLanesByRow,
-    metrics: rowMetrics,
-    scrollLeft,
-    viewportWidth,
-    dayWidth,
-    epoch: layoutKey,
-    hold: holdRowHeights,
-    suspended: suspendRowShrink,
-    scrollContainerRef,
-    headerHeight,
-  });
-
-  // Independent of the row heights: a row changing height must not hand every
-  // row a new children array (each would redraw its day cells).
   const rowTaskElementsById = useMemo(() => {
     const elementsByRowId = new Map<string, React.ReactNode[]>();
-    displayRows.forEach(({ id: rowId, tasks: rowTasks }) => {
-      const rowAssigneeId = groupMode === 'assignee' && rowId !== 'unassigned' ? rowId : null;
+    displayRows.forEach((row) => {
+      const rowAssigneeId = groupMode === 'assignee' && row.id !== 'unassigned' ? row.id : null;
       const taskElements: React.ReactNode[] = [];
       const rowTimeOff = rowAssigneeId ? timeOffIndex.byRowId.get(rowAssigneeId) : undefined;
       rowTimeOff?.forEach((record) => {
@@ -289,7 +249,7 @@ export const useTaskDisplayRows = ({
           />,
         );
       });
-      rowTasks.forEach((task) => {
+      row.tasks.forEach((task) => {
         const position = getTaskPosition(
           task.startDate,
           task.endDate,
@@ -310,10 +270,10 @@ export const useTaskDisplayRows = ({
           />,
         );
       });
-      elementsByRowId.set(rowId, taskElements);
+      elementsByRowId.set(row.id, taskElements);
     });
     return elementsByRowId;
   }, [canEdit, canManageAnyTimeOff, dayWidth, displayRows, groupMode, myAssigneeIdForTimeOff, onOpenTimeOff, timeOffIndex, visibleDays]);
 
-  return { displayRows, rowTaskElementsById, rowHeights, instantRowIds, rowHeightTransition };
+  return { displayRows, rowTaskElementsById };
 };

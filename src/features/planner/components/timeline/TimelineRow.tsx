@@ -16,6 +16,7 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 
 interface TimelineRowProps {
   rowId: string;
+  rowIndex: number;
   visibleDays: Date[];
   dayWidth: number;
   viewMode: ViewMode;
@@ -29,6 +30,7 @@ interface TimelineRowProps {
    * pseudo-element at all.
    */
   timeOffMotif?: TimeOffMotifId;
+  height: number;
   children: React.ReactNode;
   /** May open the create dialog by double-click (task editing OR marking time off). */
   canEdit?: boolean;
@@ -40,6 +42,7 @@ interface TimelineRowProps {
 
 const TimelineRowBase: React.FC<TimelineRowProps> = ({
   rowId,
+  rowIndex,
   visibleDays,
   dayWidth,
   viewMode,
@@ -47,6 +50,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   holidayDates,
   timeOffDays,
   timeOffMotif,
+  height,
   children,
   canEdit = false,
   canCreateTask,
@@ -132,13 +136,13 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
   return (
     // The motif attribute sits on the row root, the common ancestor of the day
     // cells and the bar layer, so one declaration paints every covered day.
-    // The height comes from the row frame in TimelineGrid (it glides there).
     <div
-      className="relative h-full border-b border-border box-border"
+      className="relative border-b border-border box-border"
       data-time-off-motif={timeOffMotif}
       // The motif tile has to divide the day width exactly, and that width
       // changes with the view — the CSS picks the tile off this.
       data-timeline-view={viewMode}
+      style={{ height }}
     >
       {/* Grid background */}
       <ContextMenu>
@@ -209,17 +213,9 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
         </ContextMenuContent>
       </ContextMenu>
       
-      {/* Task bars. The row fits the days on screen, so a taller stack off to
-          the side, or one coming in while the row is still growing, reaches
-          past its bottom: the clip cuts it there instead of drawing it over
-          the next row (and taking its clicks). The clip reaches 12 px above
-          and 4 px below the row so glows and rings of the bars stay whole;
-          the bars sit in a zero-height layer at the row's top, so a height
-          change does not lay them out again. */}
-      <div className="timeline-bars-clip pointer-events-none">
-        <div className="timeline-bars-layer">
-          {children}
-        </div>
+      {/* Task bars container */}
+      <div className="absolute inset-0 py-2 px-0.5 pointer-events-none">
+        {children}
       </div>
     </div>
   );
@@ -227,6 +223,7 @@ const TimelineRowBase: React.FC<TimelineRowProps> = ({
 
 const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps) => (
   prev.rowId === next.rowId
+  && prev.rowIndex === next.rowIndex
   && prev.visibleDays === next.visibleDays
   && prev.dayWidth === next.dayWidth
   && prev.viewMode === next.viewMode
@@ -234,6 +231,7 @@ const areTimelineRowPropsEqual = (prev: TimelineRowProps, next: TimelineRowProps
   && prev.holidayDates === next.holidayDates
   && prev.timeOffDays === next.timeOffDays
   && prev.timeOffMotif === next.timeOffMotif
+  && prev.height === next.height
   && prev.children === next.children
   && prev.canEdit === next.canEdit
   && prev.canCreateTask === next.canCreateTask

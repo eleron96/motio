@@ -1,5 +1,5 @@
 import { Assignee, Filters, GroupMode, MemberGroupAssignment, Project, Task } from '@/features/planner/types/planner';
-import { ReservedPeriod, TaskWithLane, calculateTaskLanes } from '@/features/planner/lib/taskLanes';
+import { ReservedPeriod, TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
@@ -240,12 +240,33 @@ export const groupTasksByTimelineRow = ({
   return grouped;
 };
 
-/** Room a row keeps under its bars beyond the lanes: people rows are set apart by a gap. */
-export const timelineRowExtraHeight = (
-  rowId: string,
-  groupMode: GroupMode,
-  assigneeRowGap: number,
-): number => (groupMode === 'assignee' && rowId !== 'unassigned' ? assigneeRowGap : 0);
+export const calculateTimelineRowHeights = (
+  tasksByRow: Record<string, TaskWithLane[]>,
+  options: {
+    minRowHeight: number;
+    taskHeight: number;
+    taskGap: number;
+    /**
+     * Lanes the row must have even with no tasks in them — currently one for a
+     * time-off bar, which owns lane 0 and never enters calculateTaskLanes.
+     * A MINIMUM, not an addition: tasks that overlap the bar were already packed
+     * below it by calculateTaskLanes, and tasks outside its days keep lane 0, so
+     * adding a lane here would leave an empty strip above every other row.
+     */
+    minLanesByRow?: Record<string, number>;
+  },
+) => {
+  const heights: Record<string, number> = {};
+  Object.entries(tasksByRow).forEach(([groupId, rowTasks]) => {
+    const minLanes = options.minLanesByRow?.[groupId] ?? 0;
+    // getMaxLanes returns 1 for an empty row, so a row whose only content is the
+    // bar still gets exactly one lane.
+    const lanes = Math.max(getMaxLanes(rowTasks), minLanes);
+    const calculatedHeight = 16 + lanes * (options.taskHeight + options.taskGap);
+    heights[groupId] = Math.max(options.minRowHeight, calculatedHeight);
+  });
+  return heights;
+};
 
 /**
  * Converts grouped row data into stable UI rows with labels, colors and row heights.
@@ -276,7 +297,9 @@ export const buildTimelineDisplayRows = ({
 }): TimelineDisplayRow[] => {
   const rows: TimelineDisplayRow[] = groupItems.map((item) => {
     const baseHeight = rowHeights[item.id] || minRowHeight;
-    const height = baseHeight + timelineRowExtraHeight(item.id, groupMode, assigneeRowGap);
+    const height = groupMode === 'assignee' && item.id !== 'unassigned'
+      ? baseHeight + assigneeRowGap
+      : baseHeight;
     return {
       ...item,
       tasks: tasksByRow[item.id] || [],

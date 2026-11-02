@@ -87,8 +87,8 @@ vi.mock('@/features/planner/components/timeline/TimelineHeader', () => ({
 }));
 
 vi.mock('@/features/planner/components/timeline/TimelineRow', () => ({
-  TimelineRow: ({ rowId, children }: { rowId: string; children: React.ReactNode }) => (
-    <div data-row-id={rowId}>
+  TimelineRow: ({ rowId, height, children }: { rowId: string; height: number; children: React.ReactNode }) => (
+    <div data-row-id={rowId} style={{ height }}>
       {children}
     </div>
   ),

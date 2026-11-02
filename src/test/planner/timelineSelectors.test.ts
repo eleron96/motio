@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Assignee, Filters, Project, Task } from '@/features/planner/types/planner';
 import {
   buildTimelineDisplayRows,
+  calculateTimelineRowHeights,
   groupTasksByTimelineRow,
   selectFilteredTasks,
   selectTimelineGroupItems,
@@ -177,7 +178,12 @@ describe('timelineSelectors', () => {
     expect(rowTasks.a2.map((task) => task.id)).toEqual(['shared']);
     expect(rowTasks.unassigned.map((task) => task.id)).toEqual(['no-assignee']);
 
-    const heights = { a1: 104, a2: 60, a3: 60, unassigned: 60 };
+    const heights = calculateTimelineRowHeights(rowTasks, {
+      minRowHeight: 56,
+      taskHeight: 40,
+      taskGap: 4,
+    });
+    expect(heights.a1).toBeGreaterThan(56);
 
     const displayRows = buildTimelineDisplayRows({
       groupItems: assigneeGroups,
@@ -210,6 +216,34 @@ describe('timelineSelectors', () => {
       assigneeRowGap: 20,
     });
     expect(hiddenUnassignedRows.some((row) => row.id === 'unassigned')).toBe(false);
+  });
+
+  it('treats the time-off lane as a minimum, not as an added lane', () => {
+    const rowTasks = {
+      // A task that does NOT overlap the bar keeps lane 0 — the row stays one lane.
+      a1: [{ ...makeTask({ id: 't1', assigneeIds: ['a1'] }), lane: 0 }],
+      // No tasks at all: the bar is the row's only lane.
+      a2: [],
+      // A task the packer already pushed под the bar — two lanes.
+      a3: [{ ...makeTask({ id: 't3', assigneeIds: ['a3'] }), lane: 1 }],
+    };
+    const options = { minRowHeight: 56, taskHeight: 40, taskGap: 4 };
+
+    const base = calculateTimelineRowHeights(rowTasks, options);
+    // One lane: 16 + 1 * 44 = 60 (getMaxLanes returns 1 for an empty row).
+    expect(base.a1).toBe(60);
+    expect(base.a2).toBe(60);
+    expect(base.a3).toBe(104);
+
+    const withTimeOff = calculateTimelineRowHeights(rowTasks, {
+      ...options,
+      minLanesByRow: { a1: 1, a2: 1, a3: 1 },
+    });
+    // The regression this replaced: a1 used to become 104 and left an empty
+    // strip above its task on every day outside the period.
+    expect(withTimeOff.a1).toBe(60);
+    expect(withTimeOff.a2).toBe(60);
+    expect(withTimeOff.a3).toBe(104);
   });
 
   it('packs task lanes around the reserved period, per row', () => {

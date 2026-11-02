@@ -717,48 +717,6 @@
   transition: none !important;
 }
 
-/* Rows fit the days on screen (useAdaptiveRowHeights). The frame's height
-   glides with an inline transition picked per change; never while the day
-   range shifts, never with reduced motion. */
-.timeline-range-shifting .timeline-row-frame {
-  transition: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .timeline-row-frame {
-    transition: none !important;
-  }
-}
-
-/* Bars of lanes the row is not tall enough for (off screen, or coming in
-   while the row grows) are cut at its bottom edge, not drawn over the next
-   row. The clip reaches 12 px above and 4 px below the row so glows, rings
-   and shadows stay whole; vertical only, a bar running past the last
-   rendered day stays as is. The bars sit in a zero-height layer pinned to
-   the row's top (their top is counted from there, as before). */
-.timeline-bars-clip {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -12px;
-  bottom: -4px;
-  overflow-y: clip;
-}
-
-@supports not (overflow: clip) {
-  .timeline-bars-clip {
-    overflow: hidden;
-  }
-}
-
-.timeline-bars-layer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 12px;
-  height: 0;
-}
-
 .timeline-drag-scroll-active .task-bar,
 .timeline-drag-scroll-active .milestone-dot,
 .timeline-drag-scroll-active .milestone-cell {
