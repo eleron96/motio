@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   BOARD_RECENTLY_CHANGED_DAYS,
   buildBoardScope,
+  findStaleTaskIds,
   isTaskInBoardScope,
   isTaskInLoadScopes,
   isTaskInWindow,
@@ -121,5 +122,22 @@ describe('taskLoadScopes', () => {
     const mixed = [...inWindow, makeTask({ id: 'far', startDate: '2027-01-01', endDate: '2027-01-01' })];
     expect(pruneToWindow(mixed, window).map((task) => task.id)).toEqual(['a', 'b']);
     expect(pruneToWindow(mixed, null)).toEqual([]);
+  });
+
+  it('finds tasks a reconcile should drop: claimed locally, no longer claimed remotely', () => {
+    const inWindow = makeTask({ id: 'in-window' });
+    const deleted = makeTask({ id: 'deleted' });
+    const boardOnly = makeTask({ id: 'board-only', startDate: '2026-05-01', endDate: '2026-05-02' });
+    const elsewhere = makeTask({ id: 'elsewhere', startDate: '2026-05-01', endDate: '2026-05-02', statusId: 'status-done' });
+    const tasks = [inWindow, deleted, boardOnly, elsewhere];
+
+    // Without a board only the window counts; tasks outside it are not ours to judge.
+    expect(findStaleTaskIds(tasks, window, null, new Set(['in-window']), new Set())).toEqual(['deleted']);
+    // The board still claims a task the window no longer does: it stays.
+    expect(findStaleTaskIds(tasks, window, board, new Set(['in-window']), new Set(['deleted', 'board-only'])))
+      .toEqual([]);
+    // Neither scope claims them remotely any more: both go.
+    expect(findStaleTaskIds(tasks, window, board, new Set(['in-window']), new Set()))
+      .toEqual(['deleted', 'board-only']);
   });
 });

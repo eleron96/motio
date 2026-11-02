@@ -11,7 +11,6 @@ import {
   subscribeToInboxChanges,
   updateTaskNotificationStatus,
   type PendingInvite,
-  type SentInviteSummary,
   type TaskNotification,
 } from '@/infrastructure/notifications/inboxRepository';
 import {
@@ -26,20 +25,18 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { toast } from '@/shared/ui/sonner';
 import { roleLabel } from '@/features/auth/lib/inboxLabels';
 import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
+import { useInviteReactionToasts } from '@/features/auth/hooks/useInviteReactionToasts';
+import { useAppIconBadge } from '@/shared/hooks/useAppIconBadge';
+import { createTimeoutSlot } from '@/shared/lib/timeoutSlot';
+import { scheduleWhenIdle } from '@/shared/lib/idleCallback';
+import { inboxPollDelayMs } from '@/shared/domain/syncBackoff';
 
 const getTodayIso = () => new Date().toISOString().slice(0, 10);
-const VISIBLE_POLL_BASE_MS = 75_000;
-const VISIBLE_POLL_MAX_MS = 8 * 60_000;
 const SENT_UPDATES_REFRESH_MS = 10 * 60_000;
-const POLL_JITTER_RATIO = 0.2;
 const REALTIME_REFRESH_DEBOUNCE_MS = 900;
 const INITIAL_POLL_IDLE_TIMEOUT_MS = 1_500;
 
 type PollingSource = 'initial' | 'timer' | 'focus' | 'open' | 'realtime';
-type IdleSchedulerWindow = Window & {
-  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
 
 export type TaskNotificationAction = 'markRead' | 'markUnread' | 'delete';
 
@@ -124,19 +121,14 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
   const dismissRef = useRef(onDismiss);
   dismissRef.current = onDismiss;
 
-  const inviteReactionSeenRef = useRef<Set<string>>(new Set());
-  const inviteReactionSessionStartedAtRef = useRef<number>(Date.now());
-  const pollingTimerRef = useRef<number | null>(null);
-  const realtimeRefreshTimerRef = useRef<number | null>(null);
-  const initialPollIdleRef = useRef<number | null>(null);
-  const initialPollTimeoutRef = useRef<number | null>(null);
+  const [pollingTimer] = useState(createTimeoutSlot);
+  const [realtimeRefreshTimer] = useState(createTimeoutSlot);
+  const cancelInitialPollRef = useRef<(() => void) | null>(null);
   const pollingFailureCountRef = useRef(0);
   const pollingInFlightRef = useRef(false);
   const lastSentUpdatesSyncAtRef = useRef(0);
   const runPollingCycleRef = useRef<(source: PollingSource) => void>(() => {});
 
-  const inviteReactionStorageKey = user?.id ? `invite-reactions-seen-${user.id}` : null;
-  const inviteReactionSessionStorageKey = user?.id ? `invite-reactions-session-started-${user.id}` : null;
 
   const pendingCount = pendingInvites.length;
   const unreadTaskCount = useMemo(
@@ -147,55 +139,10 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
   const hasBadge = totalBadgeCount > 0;
   const badgeLabel = useMemo(() => (totalBadgeCount > 9 ? '9+' : String(totalBadgeCount)), [totalBadgeCount]);
 
-  // Mirror the bell count onto the installed-PWA app icon (Badging API). Pushes
-  // set the badge while the app is closed; this keeps it in sync — and clears
-  // it — whenever the app is open and the count changes.
-  useEffect(() => {
-    // A disabled feed never counts anything, so it must not clear the badge the
-    // enabled one just set (both are mounted on desktop, only one is live).
-    if (!enabled) return;
-    const nav = navigator as Navigator & {
-      setAppBadge?: (count?: number) => Promise<void>;
-      clearAppBadge?: () => Promise<void>;
-    };
-    if (typeof nav.setAppBadge !== 'function') return;
-    if (totalBadgeCount > 0) {
-      nav.setAppBadge(totalBadgeCount).catch(() => {});
-    } else {
-      nav.clearAppBadge?.().catch(() => {});
-    }
-  }, [totalBadgeCount]);
+  useAppIconBadge(enabled, totalBadgeCount);
   const bulkTaskActionBusy = bulkTaskAction !== null;
 
-  const applyInviteUpdateToasts = useCallback((sentInvites: SentInviteSummary[]) => {
-    const now = Date.now();
-    let seenChanged = false;
-
-    sentInvites.forEach((invite) => {
-      if (invite.status !== 'accepted' && invite.status !== 'declined') return;
-      if (!invite.respondedAt) return;
-
-      const respondedAtMs = Date.parse(invite.respondedAt);
-      if (!Number.isFinite(respondedAtMs)) return;
-      if (respondedAtMs < inviteReactionSessionStartedAtRef.current) return;
-      if (now - respondedAtMs > 7 * 24 * 60 * 60 * 1000) return;
-
-      const reactionKey = `${invite.token}:${invite.status}`;
-      if (inviteReactionSeenRef.current.has(reactionKey)) return;
-
-      inviteReactionSeenRef.current.add(reactionKey);
-      seenChanged = true;
-      const statusLabel = invite.status === 'accepted' ? t`Accepted` : t`Declined`;
-      toast(t`Invite update`, {
-        description: `${invite.email} ${statusLabel} (${invite.workspaceName})`,
-      });
-    });
-
-    if (seenChanged && inviteReactionStorageKey && typeof window !== 'undefined') {
-      const values = Array.from(inviteReactionSeenRef.current).slice(-400);
-      window.localStorage.setItem(inviteReactionStorageKey, JSON.stringify(values));
-    }
-  }, [inviteReactionStorageKey]);
+  const applyInviteUpdateToasts = useInviteReactionToasts(user?.id ?? null);
 
   const loadInbox = useCallback(async (options?: {
     showLoading?: boolean;
@@ -247,50 +194,23 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
     return true;
   }, [applyInviteUpdateToasts, user]);
 
-  const clearPollingTimer = useCallback(() => {
-    if (pollingTimerRef.current !== null && typeof window !== 'undefined') {
-      window.clearTimeout(pollingTimerRef.current);
-    }
-    pollingTimerRef.current = null;
-  }, []);
-
-  const clearRealtimeRefreshTimer = useCallback(() => {
-    if (realtimeRefreshTimerRef.current !== null && typeof window !== 'undefined') {
-      window.clearTimeout(realtimeRefreshTimerRef.current);
-    }
-    realtimeRefreshTimerRef.current = null;
-  }, []);
+  const clearPollingTimer = pollingTimer.clear;
+  const clearRealtimeRefreshTimer = realtimeRefreshTimer.clear;
 
   const clearInitialPollSchedule = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    if (initialPollTimeoutRef.current !== null) {
-      window.clearTimeout(initialPollTimeoutRef.current);
-      initialPollTimeoutRef.current = null;
-    }
-    if (initialPollIdleRef.current !== null) {
-      const idleWindow = window as IdleSchedulerWindow;
-      if (typeof idleWindow.cancelIdleCallback === 'function') {
-        idleWindow.cancelIdleCallback(initialPollIdleRef.current);
-      }
-      initialPollIdleRef.current = null;
-    }
+    cancelInitialPollRef.current?.();
+    cancelInitialPollRef.current = null;
   }, []);
 
   const scheduleNextPollingCycle = useCallback(() => {
     if (!user || typeof window === 'undefined') return;
     if (typeof document !== 'undefined' && document.hidden) return;
 
-    const failureCount = pollingFailureCountRef.current;
-    const baseDelay = Math.min(VISIBLE_POLL_BASE_MS * (2 ** failureCount), VISIBLE_POLL_MAX_MS);
-    const jitterWindow = Math.round(baseDelay * POLL_JITTER_RATIO);
-    const jitter = Math.round((Math.random() * 2 - 1) * jitterWindow);
-    const delayMs = Math.max(15_000, baseDelay + jitter);
-
-    clearPollingTimer();
-    pollingTimerRef.current = window.setTimeout(() => {
-      runPollingCycleRef.current('timer');
-    }, delayMs);
-  }, [clearPollingTimer, user]);
+    pollingTimer.set(
+      () => runPollingCycleRef.current('timer'),
+      inboxPollDelayMs(pollingFailureCountRef.current),
+    );
+  }, [pollingTimer, user]);
 
   const runPollingCycle = useCallback(async (source: PollingSource) => {
     if (!user || pollingInFlightRef.current) return;
@@ -330,45 +250,8 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
 
   const scheduleRealtimeRefresh = useCallback(() => {
     if (!user || typeof window === 'undefined') return;
-    clearRealtimeRefreshTimer();
-    realtimeRefreshTimerRef.current = window.setTimeout(() => {
-      realtimeRefreshTimerRef.current = null;
-      runPollingCycleRef.current('realtime');
-    }, REALTIME_REFRESH_DEBOUNCE_MS);
-  }, [clearRealtimeRefreshTimer, user]);
-
-  useEffect(() => {
-    if (!inviteReactionSessionStorageKey || typeof window === 'undefined') {
-      inviteReactionSessionStartedAtRef.current = Date.now();
-      return;
-    }
-
-    const storedSessionStart = Number(window.sessionStorage.getItem(inviteReactionSessionStorageKey));
-    if (Number.isFinite(storedSessionStart) && storedSessionStart > 0) {
-      inviteReactionSessionStartedAtRef.current = storedSessionStart;
-      return;
-    }
-
-    const nextSessionStart = Date.now();
-    inviteReactionSessionStartedAtRef.current = nextSessionStart;
-    window.sessionStorage.setItem(inviteReactionSessionStorageKey, String(nextSessionStart));
-  }, [inviteReactionSessionStorageKey]);
-
-  useEffect(() => {
-    if (!inviteReactionStorageKey || typeof window === 'undefined') {
-      inviteReactionSeenRef.current = new Set();
-      return;
-    }
-
-    try {
-      const raw = window.localStorage.getItem(inviteReactionStorageKey);
-      const parsed = raw ? JSON.parse(raw) : [];
-      const values = Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
-      inviteReactionSeenRef.current = new Set(values);
-    } catch (_error) {
-      inviteReactionSeenRef.current = new Set();
-    }
-  }, [inviteReactionStorageKey]);
+    realtimeRefreshTimer.set(() => runPollingCycleRef.current('realtime'), REALTIME_REFRESH_DEBOUNCE_MS);
+  }, [realtimeRefreshTimer, user]);
 
   useEffect(() => {
     if (!user) {
@@ -390,18 +273,10 @@ export function useInboxFeed({ enabled = true, onDismiss }: UseInboxFeedOptions 
       void runPollingCycle('focus');
     };
 
-    const idleWindow = window as IdleSchedulerWindow;
-    if (typeof idleWindow.requestIdleCallback === 'function') {
-      initialPollIdleRef.current = idleWindow.requestIdleCallback(() => {
-        initialPollIdleRef.current = null;
-        void runPollingCycle('initial');
-      }, { timeout: INITIAL_POLL_IDLE_TIMEOUT_MS });
-    } else {
-      initialPollTimeoutRef.current = window.setTimeout(() => {
-        initialPollTimeoutRef.current = null;
-        void runPollingCycle('initial');
-      }, INITIAL_POLL_IDLE_TIMEOUT_MS);
-    }
+    cancelInitialPollRef.current = scheduleWhenIdle(() => {
+      cancelInitialPollRef.current = null;
+      void runPollingCycle('initial');
+    }, INITIAL_POLL_IDLE_TIMEOUT_MS);
     window.addEventListener('focus', handleVisibilityOrFocus);
     document.addEventListener('visibilitychange', handleVisibilityOrFocus);
 

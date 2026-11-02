@@ -55,6 +55,27 @@ export const isTaskInLoadScopes = (task: ScopedTask, scopes: TaskLoadScopes): bo
   || (scopes.board !== null && isTaskInBoardScope(task, scopes.board))
 );
 
+/**
+ * Local tasks a reconcile should drop: a scope that claims the task locally no
+ * longer claims it remotely, and no other scope does either.
+ */
+export const findStaleTaskIds = (
+  tasks: ReadonlyArray<ScopedTask & Pick<Task, 'id'>>,
+  window: TaskDateWindow,
+  board: TaskBoardScope | null,
+  remoteWindowIds: ReadonlySet<string>,
+  remoteBoardIds: ReadonlySet<string>,
+): string[] => tasks
+  .filter((task) => {
+    const inWindow = isTaskInWindow(task, window);
+    const inBoard = board !== null && isTaskInBoardScope(task, board);
+    if (!inWindow && !inBoard) return false;
+    if (inWindow && remoteWindowIds.has(task.id)) return false;
+    if (board && remoteBoardIds.has(task.id)) return false;
+    return true;
+  })
+  .map((task) => task.id);
+
 export const buildBoardScope = (
   workspaceId: string,
   statuses: ReadonlyArray<{ id: string; isFinal: boolean; isCancelled: boolean }>,

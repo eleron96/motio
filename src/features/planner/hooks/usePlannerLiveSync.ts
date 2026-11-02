@@ -1,7 +1,4 @@
-import { createElement, useEffect, useRef } from 'react';
-import { WifiOff } from 'lucide-react';
-import { toast } from 'sonner';
-import { t } from '@lingui/macro';
+import { useEffect, useRef } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import {
   mapMilestoneRow,
@@ -16,7 +13,11 @@ import {
   fetchTimeOffRowsInWindow,
 } from '@/infrastructure/planner/plannerLiveRepository';
 import { openPlannerLiveChannel } from '@/infrastructure/planner/plannerLiveChannel';
+import { showConnectionLostToast, showConnectionRestoredToast } from '@/features/planner/lib/syncStatusToasts';
+import { fallbackPollDelayMs } from '@/shared/domain/syncBackoff';
+import { createTimeoutSlot } from '@/shared/lib/timeoutSlot';
 import {
+  findStaleTaskIds,
   isTaskInBoardScope,
   isTaskInLoadScopes,
   isTaskInWindow,
@@ -29,10 +30,7 @@ const EVENT_FLUSH_MS = 320;
 const EVENT_BATCH_SIZE = 120;
 const INTERACTION_RETRY_MS = 220;
 const INITIAL_RECONCILE_DELAY_MS = 15_000;
-const FALLBACK_POLL_BASE_MS = 45_000;
-const FALLBACK_POLL_MAX_MS = 180_000;
 const FALLBACK_FAILURE_MAX = 6;
-const POLL_JITTER_RATIO = 0.18;
 // One return to the tab fires focus, pageshow and visibilitychange together.
 const FOCUS_RECONCILE_COALESCE_MS = 2_000;
 // While the channel is healthy realtime already delivers changes, so quick
@@ -76,16 +74,17 @@ export const usePlannerLiveSync = (
     const pendingTaskUpserts = new Set<string>();
     const pendingMilestoneUpserts = new Set<string>();
     const pendingTaskCommentCountRefreshes = new Set<string>();
-    let flushTimer: number | null = null;
-    let fallbackTimer: number | null = null;
-    let initialReconcileTimer: number | null = null;
+    const flushTimer = createTimeoutSlot();
+    const fallbackTimer = createTimeoutSlot();
+    const initialReconcileTimer = createTimeoutSlot();
+    const disconnectTimer = createTimeoutSlot();
+    const timeOffRefreshTimer = createTimeoutSlot();
     let syncInFlight = false;
     let flushRequested = false;
     let reconcileRequested = false;
     let fallbackFailureCount = 0;
     let channelHealthy = true;
     let hasSubscribedOnce = false;
-    let disconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let channelEpoch = 0;
     let reconnectInFlight = false;
     let lastReconnectAttemptAt = 0;
@@ -116,27 +115,6 @@ export const usePlannerLiveSync = (
     }
 
     const isLifecycleActive = (epoch: number) => active && epoch === lifecycleEpoch;
-
-    const clearFlushTimer = () => {
-      if (flushTimer !== null && typeof window !== 'undefined') {
-        window.clearTimeout(flushTimer);
-      }
-      flushTimer = null;
-    };
-
-    const clearFallbackTimer = () => {
-      if (fallbackTimer !== null && typeof window !== 'undefined') {
-        window.clearTimeout(fallbackTimer);
-      }
-      fallbackTimer = null;
-    };
-
-    const clearInitialReconcileTimer = () => {
-      if (initialReconcileTimer !== null && typeof window !== 'undefined') {
-        window.clearTimeout(initialReconcileTimer);
-      }
-      initialReconcileTimer = null;
-    };
 
     const canRunReconcileNow = () => (
       typeof document === 'undefined' || !document.hidden
@@ -170,14 +148,7 @@ export const usePlannerLiveSync = (
             );
 
             if (shouldDeferUpserts) {
-              if (active && typeof window !== 'undefined') {
-                clearFlushTimer();
-                flushTimer = window.setTimeout(() => {
-                  flushTimer = null;
-                  flushRequested = true;
-                  void runSyncRunner();
-                }, INTERACTION_RETRY_MS);
-              }
+              scheduleFlush(INTERACTION_RETRY_MS);
             } else {
               const taskUpsertIds = takeFromSet(pendingTaskUpserts, EVENT_BATCH_SIZE);
               if (taskUpsertIds.length > 0) {
@@ -264,12 +235,7 @@ export const usePlannerLiveSync = (
                   || pendingTaskCommentCountRefreshes.size > 0
                 )
               ) {
-                clearFlushTimer();
-                flushTimer = window.setTimeout(() => {
-                  flushTimer = null;
-                  flushRequested = true;
-                  void runSyncRunner();
-                }, 80);
+                scheduleFlush(80);
               }
             }
           }
@@ -317,19 +283,10 @@ export const usePlannerLiveSync = (
                 && typeof window !== 'undefined'
                 && canRunReconcileNow()
               ) {
-                clearFallbackTimer();
-                const baseDelay = Math.min(
-                  FALLBACK_POLL_BASE_MS * (2 ** fallbackFailureCount),
-                  FALLBACK_POLL_MAX_MS,
-                );
-                const jitterWindow = Math.round(baseDelay * POLL_JITTER_RATIO);
-                const jitter = Math.round((Math.random() * 2 - 1) * jitterWindow);
-                const delayMs = Math.max(20_000, baseDelay + jitter);
-                fallbackTimer = window.setTimeout(() => {
-                  fallbackTimer = null;
+                fallbackTimer.set(() => {
                   reconcileRequested = true;
                   void runSyncRunner();
-                }, delayMs);
+                }, fallbackPollDelayMs(fallbackFailureCount));
               }
               continue;
             }
@@ -352,20 +309,13 @@ export const usePlannerLiveSync = (
               upsertMilestones(changedMilestones.map(mapMilestoneRow));
             }
 
-            const remoteTaskIds = new Set(windowTaskIds);
-            const remoteBoardIds = new Set(boardIdsRes && 'data' in boardIdsRes ? boardIdsRes.data : []);
-            // A local task is stale when a scope it belongs to locally no
-            // longer claims it remotely, and no other scope does either.
-            const staleTaskIds = usePlannerStore.getState().tasks
-              .filter((task) => {
-                const inWindow = isTaskInWindow(task, rangeRef);
-                const inBoard = reconcileBoard !== null && isTaskInBoardScope(task, reconcileBoard);
-                if (!inWindow && !inBoard) return false;
-                if (inWindow && remoteTaskIds.has(task.id)) return false;
-                if (reconcileBoard && remoteBoardIds.has(task.id)) return false;
-                return true;
-              })
-              .map((task) => task.id);
+            const staleTaskIds = findStaleTaskIds(
+              usePlannerStore.getState().tasks,
+              rangeRef,
+              reconcileBoard,
+              new Set(windowTaskIds),
+              new Set(boardIdsRes && 'data' in boardIdsRes ? boardIdsRes.data : []),
+            );
             if (staleTaskIds.length > 0) {
               removeTasksByIds(staleTaskIds);
             }
@@ -416,9 +366,7 @@ export const usePlannerLiveSync = (
 
     const scheduleFlush = (delayMs = EVENT_FLUSH_MS) => {
       if (!active || typeof window === 'undefined') return;
-      clearFlushTimer();
-      flushTimer = window.setTimeout(() => {
-        flushTimer = null;
+      flushTimer.set(() => {
         flushRequested = true;
         void runSyncRunner();
       }, delayMs);
@@ -437,18 +385,7 @@ export const usePlannerLiveSync = (
       if (!active || typeof window === 'undefined') return;
       if (channelHealthy) return;
       if (!canRunReconcileNow()) return;
-      clearFallbackTimer();
-      const baseDelay = Math.min(
-        FALLBACK_POLL_BASE_MS * (2 ** fallbackFailureCount),
-        FALLBACK_POLL_MAX_MS,
-      );
-      const jitterWindow = Math.round(baseDelay * POLL_JITTER_RATIO);
-      const jitter = Math.round((Math.random() * 2 - 1) * jitterWindow);
-      const delayMs = Math.max(20_000, baseDelay + jitter);
-      fallbackTimer = window.setTimeout(() => {
-        fallbackTimer = null;
-        requestReconcile('fallback');
-      }, delayMs);
+      fallbackTimer.set(() => requestReconcile('fallback'), fallbackPollDelayMs(fallbackFailureCount));
     };
 
     const queueTaskUpsert = (id: string) => {
@@ -474,7 +411,6 @@ export const usePlannerLiveSync = (
     // time_off is sparse (a handful of rows per workspace), so a realtime event
     // just refetches the loaded window instead of the per-id reconcile the tasks
     // pipeline needs. Debounced so a burst of edits costs one request.
-    let timeOffRefreshTimer: number | null = null;
     const refreshTimeOff = async () => {
       if (!active) return;
       // rangeRef is the window this effect was built for — the same source the
@@ -491,9 +427,7 @@ export const usePlannerLiveSync = (
 
     const queueTimeOffRefresh = () => {
       if (!active || typeof window === 'undefined') return;
-      if (timeOffRefreshTimer) window.clearTimeout(timeOffRefreshTimer);
-      timeOffRefreshTimer = window.setTimeout(() => {
-        timeOffRefreshTimer = null;
+      timeOffRefreshTimer.set(() => {
         void refreshTimeOff();
       }, EVENT_FLUSH_MS);
     };
@@ -506,31 +440,22 @@ export const usePlannerLiveSync = (
     const handleChannelStatus = (status: string, epoch: number) => {
       if (!active || epoch !== channelEpoch) return;
       if (status === 'SUBSCRIBED') {
-        if (disconnectTimer) {
-          clearTimeout(disconnectTimer);
-          disconnectTimer = null;
+        if (disconnectTimer.pending) {
+          disconnectTimer.clear();
         } else if (!channelHealthy) {
-          toast.success(t`Connection restored`, {
-            id: 'sync-status',
-            position: 'bottom-right',
-            duration: 3000,
-          });
+          showConnectionRestoredToast();
         }
         channelHealthy = true;
         usePlannerStore.getState().setSyncHealthy(true);
         resetFallbackFailures();
-        clearFallbackTimer();
+        fallbackTimer.clear();
         if (!hasSubscribedOnce) {
           hasSubscribedOnce = true;
           if (typeof window === 'undefined') {
             requestReconcile('resubscribe');
             return;
           }
-          clearInitialReconcileTimer();
-          initialReconcileTimer = window.setTimeout(() => {
-            initialReconcileTimer = null;
-            requestReconcile('resubscribe');
-          }, INITIAL_RECONCILE_DELAY_MS);
+          initialReconcileTimer.set(() => requestReconcile('resubscribe'), INITIAL_RECONCILE_DELAY_MS);
           return;
         }
         requestReconcile('resubscribe');
@@ -539,36 +464,10 @@ export const usePlannerLiveSync = (
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
         channelHealthy = false;
         usePlannerStore.getState().setSyncHealthy(false);
-        if (!disconnectTimer) {
-          disconnectTimer = setTimeout(() => {
-            disconnectTimer = null;
-            const compact = typeof window !== 'undefined'
-              && window.matchMedia('(max-width: 767px)').matches;
-            if (compact) {
-              // Mobile: a compact icon-only badge on the right, instead of a
-              // full-width text toast that would crowd the narrow screen.
-              toast.custom(
-                () => createElement(
-                  'div',
-                  {
-                    className: 'flex h-10 w-10 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg',
-                    role: 'status',
-                    'aria-label': t`No connection`,
-                  },
-                  createElement(WifiOff, { className: 'h-5 w-5' }),
-                ),
-                { id: 'sync-status', position: 'top-right', duration: Infinity },
-              );
-            } else {
-              toast.error(t`No connection`, {
-                id: 'sync-status',
-                position: 'bottom-right',
-                duration: Infinity,
-              });
-            }
-          }, 5000);
+        if (!disconnectTimer.pending) {
+          disconnectTimer.set(showConnectionLostToast, 5000);
         }
-        clearInitialReconcileTimer();
+        initialReconcileTimer.clear();
         growFallbackFailures();
         requestReconcile('channel');
         scheduleFallbackPoll();
@@ -663,13 +562,10 @@ export const usePlannerLiveSync = (
     return () => {
       active = false;
       lifecycleEpoch += 1;
-      clearFlushTimer();
-      clearFallbackTimer();
-      clearInitialReconcileTimer();
-      if (disconnectTimer) {
-        clearTimeout(disconnectTimer);
-        disconnectTimer = null;
-      }
+      flushTimer.clear();
+      fallbackTimer.clear();
+      initialReconcileTimer.clear();
+      disconnectTimer.clear();
       if (typeof window !== 'undefined') {
         window.removeEventListener('focus', handleVisibilityOrFocus);
         window.removeEventListener('pageshow', handleVisibilityOrFocus);
