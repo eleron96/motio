@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.55] - 2026-11-02
 ### Fixed
 - Прокрутка таймлайна снова быстрая: вернули прежнюю высоту строк — подстройка под дни на экране замедляла таймлайн.
 

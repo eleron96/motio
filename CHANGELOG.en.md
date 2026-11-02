@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.55] - 2026-11-02
 ### Fixed
 - Timeline scrolling is fast again: row heights are back to how they were, since fitting them to the days on screen slowed the timeline down.
 
