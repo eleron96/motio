@@ -1,7 +1,8 @@
 # AGENTS.md
 
-Этот файл — основная рабочая инструкция для AI-агентов (Claude Code, Codex и др.) в этом репозитории.
+Основная рабочая инструкция для AI-агентов (Claude Code, Codex и др.) в этом репозитории.
 Цель: держать код понятным, расширяемым и предсказуемым при изменениях.
+Здесь — правила. Как всё устроено и как чинить — в `docs/` (ссылки по тексту).
 
 ## 1. Приоритеты проекта
 
@@ -15,15 +16,13 @@
 1. Обзор продукта простым языком: `notes/overview-for-ai.md` (что Motio делает, из чего состоит, как работает).
 2. Архитектурные границы: `notes/architecture/frontend-boundaries.md`.
 3. Поведенческие спецификации: `notes/specifications/*-behavior-by-example.md` (ядро — `planner-behavior-by-example.md`).
-4. Публичная документация (трекается в git): `README.md` (витрина), `CONTRIBUTING.md` (как прислать баг, идею или PR), `SECURITY.md` (приватный канал для сообщений об уязвимостях), `CODE_OF_CONDUCT.md` (Contributor Covenant 2.0, контакт — inbox@nikog.net), шаблоны issue/PR в `.github/` и `docs/` (операционный справочник: деплой, конфигурация, backup/restore, troubleshooting; `docs/self-hosting.md` — установка на чужой сервер, §5.6; `docs/api.md` — контракт API пространства, §4.3). `docs/guides/` — пользовательские гайды «как получить пользу» (не эксплуатация): при изменении описанного в них поведения (кнопки, названия, жесты) править и гайд; скриншоты в `docs/guides/images/` сняты с публичного `/demo` в 1600×1000.
-5. Dev/Prod команды: `README.md` и `Makefile`.
+4. Публичная документация (трекается в git):
+   - `README.md` — витрина; `CONTRIBUTING.md` — как прислать баг, идею или PR (там же чек-лист «Adding a language»); `SECURITY.md` — приватный канал для уязвимостей; `CODE_OF_CONDUCT.md` — Contributor Covenant 2.0, контакт inbox@nikog.net; шаблоны issue/PR — `.github/`.
+   - `docs/` — операционный справочник: `operations.md` (контуры, деплой, релизы, тест-стенд, бэкапы), `configuration.md`, `architecture.md`, `troubleshooting.md`, `self-hosting.md` (§5.6), `api.md` (§4.3).
+   - `docs/guides/` — пользовательские гайды «как получить пользу» (не эксплуатация): при изменении описанного в них поведения (кнопки, названия, жесты) править и гайд; скриншоты в `docs/guides/images/` сняты с публичного `/demo` в 1600×1000.
+5. Команды: `Makefile` и `docs/operations.md`.
 
-> Папка `notes/` — локальные рабочие материалы для агента: она в `.gitignore` и
-> **в репозиторий не коммитится** (на чистом клоне её может не быть). В рабочей
-> копии этого репозитория файлы присутствуют — читать их из неё. Не добавлять
-> `notes/` в git и не коммитить изменения внутри неё. Папка `docs/` — наоборот,
-> публичная и трекается: при изменении деплоя/конфигурации/операционных процессов
-> обновлять соответствующий файл в `docs/`.
+Папка `notes/` — локальные рабочие материалы агента: она в `.gitignore` и **в репозиторий не коммитится** (на чистом клоне её может не быть; в этой рабочей копии файлы есть — читать их отсюда). Не добавлять `notes/` в git (в том числе через `git add -f`) и не коммитить изменения внутри неё. Карта папки — `notes/README.md`; источник истины — только пункты 1–3, `notes/archive/` — история, не правила. В `notes/` кладутся текст и скрипты; кадры, трейсы и профили браузера — во временную папку, после задачи удалить. Папка `docs/` — наоборот, публичная: при изменении деплоя, конфигурации или операционных процессов обновлять соответствующий файл в `docs/`.
 
 Если есть конфликт между устаревшим кодом и этими документами, сначала привести решение к правилам документов.
 
@@ -49,6 +48,8 @@
 5. `shared/lib`: утилиты инфраструктуры и адаптеры.
 6. `shared/ui`: переиспользуемые презентационные примитивы.
 
+Это правила о том, куда класть **новый** код, а не полная карта `src/` (есть ещё `app/`, `infrastructure/`, `shared/{components,store,contracts,hooks,assets}`; `pages`/`store` есть не у всех фич). Карта — `notes/architecture/frontend-boundaries.md`.
+
 ### Запрещено
 
 1. Прямой `supabase`/HTTP доступ из `pages` и feature-UI компонентов.
@@ -56,12 +57,10 @@
 3. Смешивание API контракта и UI-форматирования в одном месте.
 4. Импорт `react`/`react-dom`/`@supabase`/`@tanstack`/`@/infrastructure` в `shared/domain` — слой обязан оставаться чистым.
 
-Границы (1) и (4) частично защищены статически правилом ESLint `no-restricted-imports` (см. `eslint.config.js`): нарушение валит линт, а значит и CI. Объём защиты:
+Границы (1) и (4) частично защищены правилом ESLint `no-restricted-imports` (`eslint.config.js`): нарушение валит линт, а значит и CI. Объём защиты:
 
-- Граница (1): линт ловит только импорт `@/shared/lib/supabaseClient` в `features/*/pages` и `features/*/components`. Прямой импорт `@supabase/*`, относительные пути к supabaseClient, `fetch`, а также код в `features/*/hooks` и `features/*/lib` линтом не ловятся — там граница держится на ревью.
-- Граница (4): в `shared/domain` запрещены `react`, `react-dom`, `@supabase/*`, `@tanstack/*`, `@/infrastructure/*` и `@/shared/lib/supabaseClient`. Правило матчит спецификаторы как написано: относительные пути к supabaseClient и subpath-импорты (`react-dom/client`) оно не поймает — не обходить запрет такими импортами.
-
-Примечание: фактическая структура `src/` шире описанной в §3 (есть также `app/`, `infrastructure/`, `shared/{components,store,contracts,hooks,assets}`; `pages`/`store` присутствуют не у всех фич). Правила §3 — о том, куда класть новый код, а не полная карта каталогов.
+- (1): линт ловит только импорт `@/shared/lib/supabaseClient` в `features/*/pages` и `features/*/components`. Прямой `@supabase/*`, относительные пути к supabaseClient, `fetch`, а также код в `features/*/hooks` и `features/*/lib` линт не ловит — там граница держится на ревью.
+- (4): в `shared/domain` запрещены `react`, `react-dom`, `@supabase/*`, `@tanstack/*`, `@/infrastructure/*` и `@/shared/lib/supabaseClient`. Правило матчит спецификаторы как написано: относительные пути к supabaseClient и subpath-импорты (`react-dom/client`) оно не поймает — не обходить запрет такими импортами.
 
 ## 4. Правило изменений
 
@@ -100,7 +99,7 @@
 
 ## 4.2. Правила работы с переводами (Lingui)
 
-При **любом** изменении набора переводимых строк — добавлении, удалении, переименовании или перемещении файла с `t\`...\`` / `<Trans>` — выполнить `npm run lingui:extract` и `npm run lingui:compile` и закоммитить `src/locales` тем же коммитом. Удаление компонента без extract оставляет в `.po` ссылки на несуществующие файлы: на этом падают и CI-шаг «i18n catalogs up to date», и гейт `make deploy`.
+При **любом** изменении набора переводимых строк — добавлении, удалении, переименовании или перемещении файла с `t\`...\`` / `<Trans>` — выполнить `npm run lingui:extract` и `npm run lingui:compile` и закоммитить `src/locales` тем же коммитом. Удаление компонента без extract оставляет в `.po` ссылки на несуществующие файлы: на этом падают и CI-шаг «i18n catalogs up to date», и гейт `make deploy`. Если строки удалялись, извлекать с `npx lingui extract --clean`: обычный extract лишь помечает их `#~`, а `compile` всё равно кладёт их в бандл.
 
 Языки интерфейса: `en` (исходный, msgid — английский текст), `ru`, `de`. Немецкий — деловой, на «Sie», термины по глоссарию (Arbeitsbereich, Zeitachse, Aufgabe, Zuständig, Meilenstein, Abwesenheit, Label вместо Tag, Inhaber/Admin/Bearbeiter/Leser). Непереведённая строка показывается по-английски (`fallbackLocales`), но в репозиторий такие не попадают.
 
@@ -109,17 +108,16 @@
 1. Открыть `src/locales/ru/messages.po` и `src/locales/de/messages.po`, найти новые записи с пустым `msgstr ""` и заполнить перевод в обоих.
 2. Проверить все три языка: плейсхолдеры (`{name}`, `{0}`) и теги (`<0>…</0>`) должны остаться как в msgid.
 3. Только после этого коммитить и деплоить: `lingui compile` при деплое отработает сам, но переводы в `.po` должны быть уже на месте.
+4. В интерфейсе смотреть все три языка, а не только тот, на котором работаешь: немецкий текст длиннее на ~30% — проверять обрезки и переносы на телефоне; вместо текста не должны показываться hash/id вида `zT1YvU`.
 
-Полноту проверяет тест `src/test/smoke/localeCatalogs.test.ts` (часть `npm run test`, а значит CI и гейта деплоя): пустой `msgstr` или потерянный плейсхолдер в `ru`/`de` валит его.
+Полноту проверяет `src/test/smoke/localeCatalogs.test.ts` (часть `npm run test`, а значит CI и гейта деплоя): пустой `msgstr` или потерянный плейсхолдер в `ru`/`de` валит его.
 
-Язык выбирается не только каталогом: списки языков живут ещё в коде, БД, письмах и Keycloak. Новый язык добавлять только по чек-листу «Adding a language» в `CONTRIBUTING.md` — иначе часть интерфейса (даты, письма, пуши, примеры пространства, страница входа) останется на английском, а сохранение языка в профиль упадёт на `profiles_locale_check`. Новый язык — решение владельца: каждый следующий язык удорожает каждую новую строку.
-
-Проверка перед коммитом:
 ```bash
-npm run lingui:extract
-# В выводе Missing = 0 для ru и de
+npm run lingui:extract          # в выводе Missing = 0 для ru и de
 npx vitest run src/test/smoke/localeCatalogs.test.ts
 ```
+
+Язык выбирается не только каталогом: списки языков живут ещё в коде, БД, письмах и Keycloak. Новый язык добавлять только по чек-листу «Adding a language» в `CONTRIBUTING.md` — иначе часть интерфейса (даты, письма, пуши, примеры пространства, страница входа) останется на английском, а сохранение языка в профиль упадёт на `profiles_locale_check`. Новый язык — решение владельца: каждый следующий язык удорожает каждую новую строку.
 
 ## 4.3. API пространства (импорт отсутствий)
 
@@ -135,46 +133,36 @@ npx vitest run src/test/smoke/localeCatalogs.test.ts
 
 ## 5. Правила деплоя
 
-## 5.1. Local dev
+## 5.1. Локальный контур
 
-> В этом проекте локальный контур **не поднимается**: агент не запускает `make up`, dev-сервер и prod-контур на своей машине. Изменения проверяются на тестовом сервере (§5.4.1). Команды ниже — справка, а не рабочий процесс.
-
-1. Поднять контур: `make up`.
-2. Остановить: `make down`.
-3. Логи: `make logs`.
+Локальный контур **не поднимается**: агент не запускает `make up`, dev-сервер и `make up-prod` на своей машине. Изменения проверяются на тестовом сервере (§5.4.1). Команды и устройство локального контура — справка в `docs/operations.md` («Local development», «Production (local prod stack)»).
 
 ## 5.2. Диагностические проверки конфигурации
 
-`make check-prod-secrets` и `make audit-migrations` — инструменты **разбора конкретного сбоя** (подозрение на кривые секреты, непонятное состояние миграций), а не обязательный шаг перед деплоем. Штатный гейт живёт внутри `infra/scripts/deploy-remote.sh`; проверка секретов вдобавок запускается на сервере сама — `prod-compose.sh` зовёт `check-prod-secrets.sh` на каждом деплое (§5.4 п.1) и запускается сам; дублировать его вручную не нужно (см. §5.4.2 п.3).
+`make check-prod-secrets` и `make audit-migrations` — инструменты **разбора конкретного сбоя** (подозрение на кривые секреты, непонятное состояние миграций), а не шаг перед деплоем. Штатный гейт живёт в `infra/scripts/deploy-remote.sh`, а `prod-compose.sh` сам запускает `check-prod-secrets.sh` на сервере при каждом деплое — дублировать вручную не нужно (§5.4.2 п.3).
 
-## 5.3. Production deploy (локальный запуск prod-контура)
+## 5.3. Prod-стек на сервере
 
-> Тоже локальный контур — агент его **не поднимает** (см. §5.1). Раздел описывает, как prod-стек устроен и что делает `prod-compose.sh` на сервере.
-
-1. Запуск: `make up-prod`.
-2. Мониторинг: `make logs-prod`.
-3. Дополнительные проверки Keycloak:
-- `make keycloak-backup-db`
-- `make keycloak-audit-realm`
-- `make keycloak-export-realm`
-4. Realm-настройки Keycloak применяются автоматически ensure-скриптами при каждом prod-деплое: `prod-compose.sh` вызывает `infra/scripts/keycloak-ensure-*.sh` (client-secret, client-urls, realm-ssl-required, realm-branding, realm-frontend-url, realm-session-policy, realm-bruteforce, realm-passwordpolicy, realm-user-profile, realm-locales). Новую realm-настройку вносить новым ensure-скриптом по этому же образцу, а не правкой realm-JSON: импорт JSON применяется только при первичной инициализации realm.
-
-Не обходить скрипт `infra/scripts/prod-compose.sh` ручными шагами.
+1. Не обходить `infra/scripts/prod-compose.sh` ручными шагами; что он делает — `docs/operations.md`.
+2. Realm-настройки Keycloak применяются ensure-скриптами при каждом деплое (`infra/scripts/keycloak-ensure-*.sh`: client-secret, client-urls, realm-ssl-required, realm-branding, realm-frontend-url, realm-session-policy, realm-bruteforce, realm-passwordpolicy, realm-user-profile, realm-locales). Новую realm-настройку вносить новым ensure-скриптом по этому образцу (и подключать по §5.6 п.4), а не правкой realm-JSON: импорт JSON применяется только при первичной инициализации realm.
+3. Утилиты Keycloak (`make keycloak-backup-db`, `make keycloak-audit-realm`, `make keycloak-export-realm`) работают с локальным `.env` и локальным docker, то есть с локальным контуром (§5.1), а не с сервером; справка — `docs/operations.md`, «Production (local prod stack)».
 
 ## 5.4. Remote deploy (production)
 
-1. Основной путь: `make deploy` (алиас `make deploy-remote [NEXT_VERSION=X.Y.Z]`). Что происходит:
-   - **Гейт перед деплоем** — пять шагов подряд: чистое рабочее дерево → `lint` → `typecheck` → `test` → `lingui:extract` + `lingui:compile` с проверкой, что после них `src/locales` не изменились. Стоит до первого rsync — при падении на прод не уходит ничего. Аварийный обход `DEPLOY_SKIP_CHECKS=1 make deploy` снимает **все** проверки разом. Отсюда следствие: артефакты предыдущего деплоя надо закоммитить (`make release-sync`) прежде, чем катить снова.
-   - Локальное рабочее дерево уходит на сервер по rsync (`.env`, `notes/`, `dist/` и пр. исключены).
-   - VERSION бампается автоматически **на сервере** (`prod-compose.sh`): PATCH+1 либо явный `NEXT_VERSION`.
-   - Там же секция `Unreleased` переносится в `CHANGELOG.md`/`CHANGELOG.en.md` и дописывается `infra/releases.log`; при падении сборки web артефакты откатываются.
-   - После деплоя скрипт синкает `VERSION`, оба `CHANGELOG` и `infra/releases.log` обратно в локальную копию.
-2. Сразу после успешного деплоя: `make release-sync` — коммитит синкнутые релизные артефакты (`chore(release): sync release X.Y.Z`) и пушит.
-3. Полный релизный путь одной командой (changelog + commit + push + deploy + sync): `make release MSG="..." RU="..." EN="..." [TYPE=changed]`.
-4. GitHub Release публикуется **сам**: workflow `Release` (`.github/workflows/release.yml`) на каждый push в `main` запускает `infra/scripts/release-publish.sh` (деплой релизы не публикует). Скрипт идемпотентен: при каждом влитии в `main` он ставит тег на текущую версию (`VERSION`) — версии, выкаченные между влитиями, отдельных тегов не получают; публичный Release создаётся только при реальных пользовательских изменениях. Release **накопительный**: текст собирается из секций changelog всех версий с прошлого опубликованного Release (если прошлый Release не найден через `gh` или в `CHANGELOG.en.md` — только секция текущей версии). В workflow включён строгий режим (`RELEASE_PUBLISH_STRICT=1`): неопубликованный Release = красный прогон, после мёржа проверять `gh run list --workflow Release --limit 1`. Ручной запасной путь (повтор, недоступен Actions) — `make release-publish` с `main`; он non-fatal и подхватывает тег, уже поставленный из CI.
-5. Ветки: рабочая ветка — `codex/main-current`; `main` — зеркало выпущенного (точка для тегов и GitHub Releases). Влитие в `main` — **только по команде владельца** («сделай релиз», «влей в main»), а не после каждого деплоя: так GitHub Release получается накопительным. Влитие делается локально после `make release-sync`: `git checkout main && git pull --ff-only && git merge --no-ff codex/main-current && git push origin main`, затем возврат на рабочую ветку — этот пуш сам публикует Release (п. 4). Если в этом же дереве параллельно идёт другая работа или возможен деплой, мёржить из отдельного `git worktree add <путь> main`, не переключая рабочее дерево: `make deploy` rsync-ит дерево как есть, и дерево, оставленное на `main`, увезло бы на прод старый код. Pull Request для этого не используется. Перед мёржем убедиться, что CI рабочей ветки зелёный (`gh run list --branch codex/main-current --limit 1`). Мёрж в `main` запускать с запасом по времени (≥4 мин) — он дважды зависал на шаге коммита; если процесс прервали, остаются стейл-локи `.git/HEAD.lock` / `.git/refs/heads/main.lock` (см. `docs/troubleshooting.md`, «`git merge` into `main` hangs»). Ветка `main` не защищена настройками GitHub — force-push и удаление ветки агенту **запрещены**.
+1. Путь: `make deploy` (алиас `make deploy-remote [NEXT_VERSION=X.Y.Z]`):
+   - **Гейт** до первого rsync, пять шагов: чистое рабочее дерево → `lint` → `typecheck` → `test` → `lingui:extract` + `lingui:compile` без изменений в `src/locales`. При падении на прод не уходит ничего. `DEPLOY_SKIP_CHECKS=1 make deploy` снимает **все** проверки разом — только аварийно. Следствие: артефакты прошлого деплоя закоммитить (`make release-sync`) прежде, чем катить снова.
+   - Рабочее дерево уходит на сервер по rsync (`.env`, `notes/`, `dist/` и пр. исключены). На сервере `prod-compose.sh` бампает `VERSION` (PATCH+1 или `NEXT_VERSION`), переносит `Unreleased` в `CHANGELOG.md`/`CHANGELOG.en.md` и дописывает `infra/releases.log` (при падении сборки web откатывает). После деплоя `deploy-remote.sh` синкает `VERSION`, оба CHANGELOG и `infra/releases.log` обратно в локальную копию.
+2. Сразу после успешного деплоя: `make release-sync` — коммитит синкнутые артефакты (`chore(release): sync release X.Y.Z`) и пушит.
+3. Полный путь одной командой (changelog + commit + push + deploy + sync): `make release MSG="..." RU="..." EN="..." [TYPE=changed]`.
+4. GitHub Release публикуется **сам**: workflow `Release` (`.github/workflows/release.yml`) на каждый push в `main` запускает `infra/scripts/release-publish.sh`; деплой релизы не публикует. Скрипт идемпотентен: ставит тег на текущий `VERSION` (версии между влитиями тегов не получают), Release создаёт только при пользовательских изменениях и делает его **накопительным** — из секций changelog всех версий с прошлого опубликованного Release (если тот не найден через `gh` или в `CHANGELOG.en.md` — только текущая секция). Строгий режим (`RELEASE_PUBLISH_STRICT=1`): неопубликованный Release = красный прогон, после мёржа проверять `gh run list --workflow Release --limit 1`. Запасной путь (повтор, недоступен Actions) — `make release-publish` с `main`: non-fatal, подхватывает тег из CI.
+5. Ветки: рабочая — `codex/main-current`; `main` — зеркало выпущенного (теги и GitHub Releases).
+   - Влитие в `main` — **только по команде владельца** («сделай релиз», «влей в main»), не после каждого деплоя. Pull Request не используется.
+   - Порядок: `make release-sync` → CI рабочей ветки зелёный (`gh run list --branch codex/main-current --limit 1`) → `git checkout main && git pull --ff-only && git merge --no-ff codex/main-current && git push origin main` → вернуться на рабочую ветку. Этот пуш сам публикует Release (п. 4).
+   - Если в дереве параллельно идёт другая работа или возможен деплой — мёржить из отдельного `git worktree add <путь> main`, не переключая рабочее дерево: `make deploy` rsync-ит дерево как есть, и дерево на `main` увезло бы на прод старый код.
+   - Мёрж запускать с запасом по времени (≥4 мин): он зависал на шаге коммита; прерванный оставляет стейл-локи `.git/HEAD.lock` / `.git/refs/heads/main.lock` (`docs/troubleshooting.md`, «`git merge` into `main` hangs»).
+   - `main` не защищена настройками GitHub — force-push и удаление ветки агенту **запрещены**.
 
-Гейт деплоя **не заменяет CI**: в нём нет SQL security lint (`infra/scripts/lint-security-definer.sh`), `npm run build`, `npm run test:backup` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --limit 1`; красный — чинить сразу.
+Гейт деплоя **не заменяет CI**: в нём нет SQL security lint, `npm run build`, `npm run test:backup` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --limit 1`; красный — чинить сразу.
 
 ## 5.4.1. Remote deploy (testing)
 
@@ -190,35 +178,29 @@ npx vitest run src/test/smoke/localeCatalogs.test.ts
 | Caddy | `Caddyfile` | `Caddyfile.testing` |
 | Release | `make release` | `make release-testing` |
 
-1. Deploy на тестовый: `make deploy-testing` (в отличие от прода, VERSION/CHANGELOG не трогает и ничего не синкает назад).
-2. Скрипт `deploy-testing.sh` **жёстко блокирует** деплой на prod IP.
-3. Для тестового tracked release использовать отдельный путь `make release-testing MSG="..." RU="..." EN="..." [TYPE=changed] [NEXT_VERSION=X.Y.Z]`.
-4. `make release-testing` повышает `VERSION`, переносит записи из `Unreleased` в `CHANGELOG.md/CHANGELOG.en.md`, пишет историю в `infra/testing-releases.log` и только потом выполняет `make deploy-testing`.
-5. `.env` на тестовом сервере полностью отдельный — все секреты свои.
-6. **Никогда** не использовать `make deploy-remote` для тестового сервера и наоборот.
-7. У `make deploy-testing` гейта нет вообще: он катит рабочее дерево как есть, включая незакоммиченное. Отсюда два правила: порядок контуров обязателен (сначала тест, потом прод) и всё, что проверено на тесте, должно быть закоммичено до `make deploy` — иначе гейт прода упрётся в грязное дерево, а на прод уедет не то, что проверяли.
-8. Тестовый сервер **общий** с другим проектом владельца — ids-checker, и для ids-checker это **его прод** (https://check-ifc.nikog.webtm.ru). Ids-checker о соседе знает (его `docs/operations.md`, «Соседи на сервере»). Карта — в §5.4.1.1; подробности — `docs/operations.md`, «Testing stand». Прежний тестовый сервер `46.149.69.61` с 2026-10-22 выводится: туда не деплоить.
-9. Тестовые данные — `make seed-testing`: пересобирает пространство «Motio QA Playground» из сида `/demo` (`src/features/demo/lib/demoSeed.ts`) для QA-учёток тестового Keycloak (`qa.alice` — владелец, `qa.bob`/`qa.carol` — редакторы, `qa.dave` — просмотр; `qa.newbie` не входит — для проверки первого входа). Повторный запуск заменяет только это пространство; Keycloak скрипт лишь читает, пароли не задаёт; прод отклоняет. Демо и тестовые данные берутся из одного сида — меняя `demoSeed.ts`, помни, что меняешь и тестовый стенд. Живых людей (например, владельца) добавляет строка `SEED_TESTING_EXTRA_MEMBERS=email:role,…` в `.env` тестового сервера — личные адреса в публичный репозиторий не кладём. Суперадмин без единого пространства считается резервной служебной учёткой и попадает сразу в админку, поэтому владельцу на тесте нужно членство.
+1. `make deploy-testing` не трогает `VERSION`/CHANGELOG и ничего не синкает назад. `deploy-testing.sh` **жёстко блокирует** деплой на prod IP.
+2. Tracked release на тест — `make release-testing MSG="..." RU="..." EN="..." [TYPE=changed] [NEXT_VERSION=X.Y.Z]`: повышает `VERSION`, переносит `Unreleased` в оба CHANGELOG, пишет `infra/testing-releases.log` и потом выполняет `make deploy-testing`.
+3. `.env` на тестовом сервере полностью отдельный — все секреты свои.
+4. **Никогда** не использовать `make deploy-remote` для тестового сервера и наоборот.
+5. У `make deploy-testing` гейта нет: он катит рабочее дерево как есть, включая незакоммиченное. Поэтому порядок контуров обязателен (сначала тест, потом прод), и всё проверенное на тесте должно быть закоммичено до `make deploy` — иначе гейт прода упрётся в грязное дерево, а на прод уедет не то, что проверяли.
+6. Тестовый сервер **общий** с другим проектом владельца — ids-checker, и для него это **прод** (https://check-ifc.nikog.webtm.ru); ids-checker о соседе знает (его `docs/operations.md`, «Соседи на сервере»). Карта — §5.4.1.1. Прежний тестовый сервер `46.149.69.61` с 2026-10-22 выводится: туда не деплоить.
+7. Тестовые данные — `make seed-testing`: пересобирает пространство «Motio QA Playground» из сида `/demo` (`src/features/demo/lib/demoSeed.ts`) для QA-учёток тестового Keycloak (подробно — `docs/operations.md`, «Testing stand»). Повторный запуск заменяет только это пространство; Keycloak скрипт лишь читает, пароли не задаёт; прод отклоняет. Меняя `demoSeed.ts`, меняешь и тестовый стенд. Живых людей добавляет строка `SEED_TESTING_EXTRA_MEMBERS=email:role,…` в `.env` тестового сервера — личные адреса в репозиторий не кладём. Суперадмин без единого пространства считается резервной служебной учёткой и попадает сразу в админку, поэтому владельцу на тесте нужно членство.
 
 ## 5.4.1.1. Карта теста: что происходит по «кати на тест»
 
-«Кати на тест» / «сделай деплой» без указания контура = `make deploy-testing` из этого репозитория (§5.4.2). Что и где:
+«Кати на тест» / «сделай деплой» без указания контура = `make deploy-testing` из этого репозитория (§5.4.2). Устройство стенда подробно — `docs/operations.md`, «Testing stand».
 
 | Что | Где |
 |---|---|
 | Сервер | `root@72.56.34.157` — **общий с прод-контуром ids-checker** (`/opt/ids-checker`, контейнеры `ids-checker*`) |
 | Код и `.env` теста | `/opt/motio-test` (rsync рабочего дерева, `.env` только серверный) |
 | Контейнеры теста | compose-проект `infra` (`infra-*`) + `motio-caddy` (вне compose) |
-| Вход снаружи | хостовый nginx ids-checker (80/443, TLS certbot) → сайт `/etc/nginx/sites-available/motio-test` (= `infra/nginx/motio-test.conf`, ставится руками, деплоем не трогается) → `motio-caddy` на `127.0.0.1:8088` → `web` / `gateway` / `oauth2-proxy` |
-| Keycloak | **общий**: `ids-checker-keycloak` (26.1, `127.0.0.1:8081`, под `/auth`), realm `timeline`; изнутри стека — `http://ids-checker-keycloak:8080/auth` (сеть `ids-checker_default`), снаружи — `https://test.motio.nikog.net/realms/timeline` (frontend URL realm'а; Caddy дописывает `/auth`) |
-| БД Keycloak | `ids-checker-keycloak-db` (её читает `seed-testing.sh`) |
-| Админка Keycloak | https://check-ifc.nikog.webtm.ru/auth/admin/ — один master-админ на оба realm; он же `KEYCLOAK_ADMIN*` в `.env` теста |
-| Тема логина | синкается в `/opt/keycloak-themes/timeline`; при её изменении деплой перезапускает `ids-checker-keycloak` (вход ids-checker мигает ~30 с) |
-| Свой Keycloak Motio | на тесте не стартует (профиль `own-keycloak`); `infra-keycloak-1`/`-db-1` остановлены, тома сохранены для отката |
+| Вход снаружи | хостовый nginx ids-checker (80/443) → сайт `motio-test` (= `infra/nginx/motio-test.conf`, ставится руками) → `motio-caddy` на `127.0.0.1:8088` → `web` / `gateway` / `oauth2-proxy` |
+| Keycloak | **общий** `ids-checker-keycloak` (26.1, под `/auth`), realm `timeline`; БД — `ids-checker-keycloak-db` (её читает `seed-testing.sh`); админка обоих realm — https://check-ifc.nikog.webtm.ru/auth/admin/ (master-админ = `KEYCLOAK_ADMIN*` в `.env` теста). Свой Keycloak Motio на тесте не стартует (профиль `own-keycloak`): `infra-keycloak-1`/`-db-1` остановлены намеренно, тома сохранены для отката |
 
-Кто может войти на тест: регистрация в realm `timeline` **закрыта**; включены только владелец, `qa.alice` (под ней работает агент, тестирующий выгрузки — **пароль ей не сбрасывать**) и резервный админ `RESERVE_ADMIN_EMAIL`. Остальные учётки, включая `qa.bob/carol/dave/newbie`, выключены, не удалены; включать — только по просьбе владельца.
+Кто может войти: регистрация в realm `timeline` **закрыта**; включены только владелец, `qa.alice` (под ней работает агент, тестирующий выгрузки — **пароль ей не сбрасывать**) и резервный админ `RESERVE_ADMIN_EMAIL`. Остальные учётки, включая `qa.bob/carol/dave/newbie`, выключены, не удалены; включать — только по просьбе владельца.
 
-Что деплой теста трогает: `/opt/motio-test`, контейнеры `infra-*`, reload `motio-caddy`, тему в `/opt/keycloak-themes/timeline` и настройки realm `timeline` (ensure-скрипты через `127.0.0.1:8081/auth`). Чего не трогает и трогать нельзя: всё `ids-checker*`, его compose (блок `keycloak` живёт в репозитории ids-checker), его nginx-сайт, сайт ТЭП `test-tep`, UFW; `harden-firewall.sh` на тесте не запускать. Без нужды не перезапускать `ids-checker-keycloak` — это вход прода ids-checker.
+Деплой теста трогает: `/opt/motio-test`, контейнеры `infra-*`, reload `motio-caddy`, тему в `/opt/keycloak-themes/timeline` (её изменение перезапускает `ids-checker-keycloak` — вход ids-checker мигает ~30 с) и настройки realm `timeline` (ensure-скрипты через `127.0.0.1:8081/auth`). Трогать нельзя: всё `ids-checker*`, его compose (блок `keycloak` живёт в репозитории ids-checker), его nginx-сайт, сайт ТЭП `test-tep`, UFW; `harden-firewall.sh` на тесте не запускать. Без нужды не перезапускать `ids-checker-keycloak` — это вход прода ids-checker.
 
 Post-deploy на тесте (кроме §5.5):
 
@@ -230,149 +212,94 @@ ssh root@72.56.34.157 "docker logs --since 15m ids-checker-keycloak 2>&1 | grep 
 ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с воркером ids-checker (лимит 6G)
 ```
 
-Грабли: GoTrue строит адрес входа из внутреннего URL Keycloak, а gateway (`infra/supabase/nginx.conf`, `proxy_redirect`) переписывает его на публичный — для каждого внутреннего адреса Keycloak нужна своя строка, иначе браузер уходит на `ids-checker-keycloak:8080`. Проверка входа через `/oauth2/start` этого не ловит — проверять именно `/auth/v1/authorize`.
+Вход проверять именно через `/auth/v1/authorize`, а не `/oauth2/start`: GoTrue строит адрес из внутреннего URL Keycloak, и для каждого внутреннего адреса нужна своя строка `proxy_redirect` в gateway (`docs/troubleshooting.md`, «Testing sign-in sends the browser to `ids-checker-keycloak:8080`»).
 
 ## 5.4.2. Правило для агента при явной команде "сделай деплой"
 
-1. Формулировка «сделай деплой» **без указания контура означает тестовый контур**: `make deploy-testing`. Production-деплой (`make deploy` = `make deploy-remote`, `make release`) запускается только при явном указании прода владельцем. При малейшей неоднозначности — переспросить, не выбирать прод по умолчанию.
-2. Если пользователь явно просит деплой на тестовый / test / staging и нужно зафиксировать версию/историю изменений, агент должен запускать `make release-testing`.
-3. Не выполнять дополнительные локальные pre-check команды (`make check-prod-secrets`, `make audit-migrations`, `make up-prod`, повторные `lint/test`), если пользователь отдельно этого не просил.
-4. Исключение: если deploy сам завершился ошибкой или явно требует дополнительной диагностики, агент может запускать только те проверки, которые нужны для разбора конкретного сбоя.
-5. После deploy выполнить краткий post-deploy минимум: доступность приложения, auth flow и проверка логов/health endpoints.
+1. «Сделай деплой» **без указания контура означает тестовый контур**: `make deploy-testing`. Production-деплой (`make deploy` = `make deploy-remote`, `make release`) — только при явном указании прода владельцем. При малейшей неоднозначности — переспросить, не выбирать прод по умолчанию.
+2. Если владелец явно просит деплой на тестовый / test / staging и нужно зафиксировать версию/историю изменений — `make release-testing`.
+3. Не выполнять дополнительные pre-check команды (`make check-prod-secrets`, `make audit-migrations`, `make up-prod`, повторные `lint/test`), если владелец отдельно не просил.
+4. Исключение: если deploy сам завершился ошибкой или явно требует дополнительной диагностики — запускать только проверки, нужные для разбора конкретного сбоя.
+5. После deploy — post-deploy минимум (§5.5).
 6. Не подменять `make deploy-remote` / `make deploy-testing` ручной последовательностью `rsync`/`ssh` команд.
-7. После успешного production-деплоя выполнить `make release-sync`, чтобы релизные артефакты (VERSION/CHANGELOG'и/releases.log) попали в git.
+7. После успешного production-деплоя — `make release-sync` (§5.4 п.2).
 
 ## 5.4.3. Release notes для пользователей (обязательно при `make release` и `make release-testing`)
 
-Перед выполнением `make release` или `make release-testing` агент обязан составить пользовательские release notes:
-
-1. Получить список коммитов с прошлого релиза: `git log --oneline "$(git log -1 --format=%H --grep='^chore(release): sync release')"..HEAD`. Граница — последний коммит `make release-sync` на рабочей ветке. Теги `vX.Y.Z` для этого не годятся: CI ставит их на мёрж-коммиты в `main`, из `codex/main-current` они недостижимы, и `git describe` уводит к давнему тегу (сотни лишних коммитов).
-2. Отфильтровать только те, что влияют на пользователя:
-   - Включать: `feat(*)`, `fix(*)` затрагивающие UI, поведение, данные пользователя.
-   - Исключать: `chore`, `refactor`, `test`, `docs`, `infra`, `ci`, внутренние технические fix (миграции индексов, конфиги, docker, nginx).
-3. Сформулировать кратко на русском (`RU=`) и английском (`EN=`) — с точки зрения пользователя, не разработчика.
-   - ❌ "refactor(planner): extract repeat fields" → не включать
-   - ❌ "chore(infra): harden routing" → не включать
-   - ✅ "feat(daily-brief): добавлено утреннее окно с задачами и вехами" → включать
-   - ✅ "fix(planner): исправлена синхронизация комментариев в реальном времени" → включать
-4. Передать итоговый текст в `make release ...` или `make release-testing ...`.
-5. Если пользовательских изменений нет — всё равно выполнить release-команду с кратким техническим описанием, пометив `[internal]`.
-6. Тот же текст уходит в окно «Последние изменения» в приложении и в публичный GitHub Release — писать для людей, без идентификаторов. При голом `make deploy` (без `make release`) release notes = то, что уже лежит в `Unreleased`: пустой раздел уйдёт как «Нет зафиксированных изменений», поэтому перед деплоем проверить `Unreleased` и при необходимости дописать запись `make logchange`.
-7. `make deploy` и `make release-sync` запускать из рабочего дерева, стоящего на `codex/main-current` (`release-sync` коммитит и пушит **текущую** ветку). Из worktree агента на своей ветке — нельзя: синк уйдёт не в ту ветку.
+1. Коммиты с прошлого релиза: `git log --oneline "$(git log -1 --format=%H --grep='^chore(release): sync release')"..HEAD`. Граница — последний коммит `make release-sync` на рабочей ветке. Теги `vX.Y.Z` не годятся: CI ставит их на мёрж-коммиты в `main`, из `codex/main-current` они недостижимы, и `git describe` уводит к давнему тегу.
+2. Оставить только влияющие на пользователя: `feat(*)`, `fix(*)` про UI, поведение, данные пользователя. Исключать `chore`, `refactor`, `test`, `docs`, `infra`, `ci` и внутренние технические fix (индексы, конфиги, docker, nginx).
+3. Сформулировать кратко на русском (`RU=`) и английском (`EN=`) с точки зрения пользователя: ✅ «добавлено утреннее окно с задачами и вехами», ❌ «extract repeat fields».
+4. Передать текст в `make release ...` / `make release-testing ...`. Нет пользовательских изменений — всё равно выполнить команду с кратким техническим описанием, пометив `[internal]`.
+5. Тот же текст уходит в окно «Последние изменения» в приложении и в публичный GitHub Release — писать для людей, без идентификаторов. При голом `make deploy` release notes = то, что лежит в `Unreleased`: пустой раздел уйдёт как «Нет зафиксированных изменений», поэтому перед деплоем проверить `Unreleased` и при необходимости дописать запись `make logchange`.
+6. `make deploy` и `make release-sync` запускать из рабочего дерева на `codex/main-current` (`release-sync` коммитит и пушит **текущую** ветку). Из worktree агента на своей ветке — нельзя: синк уйдёт не в ту ветку.
 
 ## 5.5. Post-deploy минимум
 
-1. Проверить доступность приложения.
-2. Проверить auth flow (вход/выход).
-3. Проверить критичные сценарии: задачи, проекты, участники.
-4. Проверить логи на прод-сервере: `ssh root@94.141.162.237 "cd /opt/new_toggl && docker compose -f infra/docker-compose.prod.yml --env-file .env logs --since 15m"`. Локальная `make logs-prod` показывает только локальный prod-контур (§5.3), не сервер.
+1. Доступность приложения.
+2. Auth flow (вход/выход).
+3. Критичные сценарии: задачи, проекты, участники.
+4. Логи и health endpoints на сервере: `ssh root@94.141.162.237 "cd /opt/new_toggl && docker compose -f infra/docker-compose.prod.yml --env-file .env logs --since 15m"` (для теста — §5.4.1.1). Локальная `make logs-prod` показывает только локальный контур, не сервер.
 
 ## 5.6. Self-host: установка на чужие серверы
 
-Установщик для пользователей: `infra/scripts/install.sh` (install / update / rollback / backup / restore / up / status / `--env-only`), обёртка `infra/scripts/selfhost-compose.sh`, оверлеи `infra/docker-compose.selfhost.yml` (+ `docker-compose.selfhost-tls.yml`, `docker-compose.selfhost-proxy-network.yml` при `MOTIO_PROXY_NETWORK`, и свой незатреканный `docker-compose.selfhost.local.yml` пользователя), `infra/caddy/Caddyfile.selfhost`, `infra/scripts/keycloak-ensure-realm-smtp.sh`. Документация — `docs/self-hosting.md`. **Прод и тест владельца ими не пользуются**: их путь — по-прежнему `make deploy` / `make deploy-testing` (§5.4). Клиенты ставят и обновляются с **тега релиза**, поэтому любая правка установщика доходит до них только после прод-релиза.
+Установщик: `infra/scripts/install.sh` (install / update / rollback / backup / restore / up / status / `--env-only`), обёртка `infra/scripts/selfhost-compose.sh`, оверлеи `infra/docker-compose.selfhost.yml` (+ `docker-compose.selfhost-tls.yml`, `docker-compose.selfhost-proxy-network.yml` при `MOTIO_PROXY_NETWORK` и незатреканный `docker-compose.selfhost.local.yml` пользователя), `infra/caddy/Caddyfile.selfhost`, `infra/scripts/keycloak-ensure-realm-smtp.sh`. Документация — `docs/self-hosting.md`. **Прод и тест владельца ими не пользуются** — их путь `make deploy` / `make deploy-testing`. Клиенты ставят и обновляются с **тега релиза**: правка установщика доходит до них только после прод-релиза.
 
 При изменениях держать self-host в согласии с продом:
 
 1. **Новый публичный маршрут** (страница или файл без сессии) — во все три Caddyfile: `Caddyfile`, `Caddyfile.testing`, `Caddyfile.selfhost`. Паритет проверяет `src/test/smoke/publicRoutes.test.ts`.
-2. **Новая переменная в `.env.example`** — решить, нужно ли её генерировать или выводить из домена в `install.sh` (`generate_env`); описать в `docs/configuration.md`. При `install.sh update` новые ключи дописываются из `.env.example` с дефолтом — дефолт обязан быть рабочим для чужой установки.
+2. **Новая переменная в `.env.example`** — решить, генерировать ли её или выводить из домена в `install.sh` (`generate_env`); описать в `docs/configuration.md`. При `install.sh update` новые ключи дописываются из `.env.example` с дефолтом — дефолт обязан работать на чужой установке.
 3. **Новый `VITE_*`** — `ARG`/`ENV` в `infra/web/Dockerfile` и `build.args` в `docker-compose.prod.yml`; новый флаг фичи — осознанный дефолт для self-host в `install.sh` и строка в таблице `docs/self-hosting.md`.
 4. **Новый ensure-скрипт Keycloak** — в `prod-compose.sh`, `test-compose.sh` **и** в список `bring_up` в `install.sh`.
 5. **Новый сервис, том или порт в `docker-compose.prod.yml`** — проверить оверлей self-host: имена томов через `MOTIO_INSTANCE`, наружу ничего, кроме Caddy, лимиты памяти под 4 ГБ. Проверка: `docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.selfhost.yml --env-file <тестовый .env> config`.
 6. **Изменение, требующее действия от self-host** (новая обязательная настройка, ручной шаг) — отдельной строкой в CHANGELOG простым языком: «Для своих серверов: …».
-7. **Домен, аналитика и мониторинг владельца** в коде не вписывать: адрес сайта — `VITE_PUBLIC_SITE_URL` (`vite/siteIdentity.ts`), аналитика владельца подставляется только `prod-compose.sh`; чужая установка по умолчанию никуда ничего не шлёт (это проверяет `src/test/smoke/selfhostInstallEnv.test.ts`).
-8. **Пробная установка** — чистого VPS нет; владелец разрешил тест-сервер при строгой изоляции: свой каталог и `--instance`, режим `proxy` на `127.0.0.1` (порты 80/443 — nginx соседа), свои порты gateway/Keycloak, проверка через SSH-туннель, перед `up` — нет `external: true` томов. После проверки — `selfhost-compose.sh down -v`, удалить собранные образы `<instance>-*` и каталог; общие образы (`caddy:2.8` использует `motio-caddy`) не трогать.
+7. **Домен, аналитика и мониторинг владельца** в коде не вписывать: адрес сайта — `VITE_PUBLIC_SITE_URL` (`vite/siteIdentity.ts`), аналитика владельца подставляется только `prod-compose.sh`; чужая установка по умолчанию никуда ничего не шлёт (проверяет `src/test/smoke/selfhostInstallEnv.test.ts`).
+8. **Пробная установка** — чистого VPS нет; владелец разрешил тест-сервер при строгой изоляции: свой каталог и `--instance`, режим `proxy` на `127.0.0.1` (80/443 — nginx соседа), свои порты gateway/Keycloak, проверка через SSH-туннель, перед `up` — нет `external: true` томов. После проверки — `selfhost-compose.sh down -v`, удалить собранные образы `<instance>-*` и каталог; общие образы (`caddy:2.8` использует `motio-caddy`) не трогать.
 9. Резервный админ (`RESERVE_ADMIN_*`) — служебная учётка, сразу в `/app/admin`; первый человек на чужой установке регистрируется сам. Не делать почту установщика резервным админом.
 10. **Бэкап-наборы** (`infra/backups/install/<вид>-<время>/`) — холодная копия томов из `set_volumes` в `install.sh` + `.env` + коммит; `update` снимает набор перед миграциями, `rollback`/`restore` кладут тома обратно побайтно и переключают checkout. **Новый том с данными в `docker-compose.prod.yml` — сразу в `set_volumes`**, иначе откат вернёт всё, кроме него. Копирует `tar` из образа `db` (GNU tar: сохраняет владельцев и xattrs файлов storage-api).
 
 ## 6. Правила логирования
 
-## 6.1. Общие
+1. Логи помогают диагностике, а не шумят. Не логировать секреты, токены, пароли, cookies; не логировать PII (email, полное имя) в открытом виде без необходимости. Пользователю — безопасное сообщение, в лог — технические детали.
+2. Формат структурный: `module` (`planner.store`, `members.repo`), `action` (`loadWorkspaceData`, `deleteProject`), `workspaceId`/`entityId` (если есть), `result` (`success`/`error`), `errorCode`/`message` при ошибке.
+3. Уровни: `debug` — временная диагностика (не оставлять в долгую); `info` — значимые бизнес-события; `warn` — деградация без падения; `error` — сбой сценария или операции.
+4. Frontend: без `console.log` в финальном UI-коде; `console.error` — только в error-path, где ошибка также обрабатывается; без логов в рендерах и горячих циклах.
 
-1. Логи должны помогать диагностике, а не шуметь.
-2. Не логировать секреты, токены, пароли, cookies.
-3. Не логировать PII без необходимости (email, full name) в открытом виде.
-4. В пользовательский UI отдавать безопасное сообщение, в лог — технические детали.
-
-## 6.2. Формат
-
-Использовать структурированный формат с полями:
-
-1. `module` (например `planner.store`, `members.repo`).
-2. `action` (например `loadWorkspaceData`, `deleteProject`).
-3. `workspaceId` и `entityId` (если есть).
-4. `result` (`success`/`error`).
-5. `errorCode`/`message` при ошибке.
-
-## 6.3. Уровни
-
-1. `debug`: временная диагностика (не оставлять в долгую).
-2. `info`: значимые бизнес-события.
-3. `warn`: деградация без падения.
-4. `error`: сбой сценария или операции.
-
-## 6.4. Frontend
-
-1. Не использовать `console.log` в финальном UI-коде.
-2. `console.error` только в error-path, где ошибка также обрабатывается.
-3. Избегать логов внутри рендеров и горячих циклов.
-
-## 6.5. Локализация UI
-
-1. Порядок работы с каталогами — в §4.2, повторять его здесь не нужно.
-2. Проверять все три языка — русский, английский и немецкий, а не только тот, на котором работаешь. Немецкий текст длиннее на ~30%: смотреть обрезки и переносы на телефоне.
-3. После обновления каталогов убедиться, что в UI не отображаются hash/id вида `zT1YvU` вместо текста.
+Локализация UI — §4.2.
 
 ## 7. Правила коммитов
 
 ## 7.1. Формат
 
-Использовать Conventional Commits:
-
-1. `feat(scope): ...`
-2. `fix(scope): ...`
-3. `refactor(scope): ...`
-4. `test(scope): ...`
-5. `docs(scope): ...`
-6. `chore(scope): ...`
-
-Примеры:
-
-1. `feat(planner): add repeat scope selector for bulk updates`
-2. `fix(members): prevent stale assignee tasks after workspace switch`
-3. `docs(architecture): define supabase access boundaries`
+Conventional Commits: `feat`, `fix`, `refactor`, `test`, `docs`, `chore` со scope — например `feat(planner): add repeat scope selector for bulk updates`, `fix(members): prevent stale assignee tasks after workspace switch`, `docs(architecture): define supabase access boundaries`.
 
 ## 7.2. Содержимое коммита
 
-1. Один коммит = одна логическая цель.
-2. В коммите должны быть только связанные изменения.
-3. Для изменения поведения обновлять тесты и/или спецификацию в том же наборе коммитов.
-4. Не коммитить `dist/`, `node_modules/`, временные файлы.
-5. Репозиторий **публичный**. В код, комментарии, миграции, тесты, сообщения коммитов и `CHANGELOG` не попадают реальные люди и клиенты: имена, почты, логины, id пользователей, названия компаний-заказчиков, метрики прода. В примерах — вымышленные данные (`*.example`, «Анна», «Север»). Персональное — живые данные: задаётся SQL-ом на сервере, через админку или серверный `.env` (как `SEED_TESTING_EXTRA_MEMBERS`), а не сидом в миграции. Внутренняя аналитика и разборы — только в `notes/`.
+1. Один коммит = одна логическая цель, только связанные изменения.
+2. Для изменения поведения обновлять тесты и/или спецификацию в том же наборе коммитов.
+3. Не коммитить `dist/`, `node_modules/`, временные файлы.
+4. Репозиторий **публичный**. В код, комментарии, миграции, тесты, сообщения коммитов и `CHANGELOG` не попадают реальные люди и клиенты: имена, почты, логины, id пользователей, названия компаний-заказчиков, метрики прода. В примерах — вымышленные данные (`*.example`, «Анна», «Север»). Персональное — живые данные: задаётся SQL-ом на сервере, через админку или серверный `.env` (как `SEED_TESTING_EXTRA_MEMBERS`), а не сидом в миграции. Внутренняя аналитика и разборы — только в `notes/`.
 
 ## 7.3. Перед коммитом
 
-1. Проверить `git status --porcelain` и убрать посторонние неотслеживаемые файлы. Особый случай — дубли вида `X 2.tsx` / `X 2.sql` (артефакты облачной синхронизации папки проекта; рабочая копия держится вне iCloud — не на Рабочем столе и не в «Документах», — так что их появление значит, что папка снова попала под синхронизацию): искать `find . -name '* 2.*' -not -path './node_modules/*'`, удалять **до** `lingui:extract`, коммита и любого деплоя. Они валят typecheck и попадают в `.po` как источники строк.
-2. `npm run lint`
-3. `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`)
-4. `npm run test`
-5. Проверить diff на случайные debug-логи и закомментированный код.
+1. `git status --porcelain` — убрать посторонние неотслеживаемые файлы. Особый случай — дубли `X 2.tsx` / `X 2.sql`: это артефакты облачной синхронизации, значит папка снова попала под iCloud (рабочая копия держится вне Рабочего стола и «Документов»). Искать `find . -name '* 2.*' -not -path './node_modules/*'` и удалять **до** `lingui:extract`, коммита и любого деплоя — они валят typecheck и попадают в `.po`.
+2. `npm run lint`, `npm run typecheck`, `npm run test`.
+3. Проверить diff на случайные debug-логи и закомментированный код.
 
 ## 7.4. CI и гейты качества
 
-CI (`.github/workflows/ci.yml`) на каждый push и pull request прогоняет два параллельных job:
+CI (`.github/workflows/ci.yml`) на каждый push и pull request гоняет два параллельных job:
 
-- `lint-test-build`: **lint → SQL security lint → typecheck → edge-функции → i18n-каталоги → test → backup-service tests → build**. Шаг «SQL security lint» (`infra/scripts/lint-security-definer.sh`) падает, если в миграциях есть функция с `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (см. §4.1 п.5). Шаг «i18n catalogs up to date» падает, если `npm run lingui:extract` даёт дифф в `src/locales` (см. §4.2 п.5).
-- `integration-tests`: поднимает Supabase-Postgres и прогоняет Liquibase-миграции скриптом `infra/scripts/ci-test-db.sh`, затем гоняет `npm run test:integration` (RLS, RPC, cron).
+- `lint-test-build`: **lint → SQL security lint → typecheck → edge-функции → i18n-каталоги → test → backup-service tests → build**. SQL security lint (`infra/scripts/lint-security-definer.sh`) падает на `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (§4.1 п.5); «i18n catalogs up to date» — если `npm run lingui:extract` даёт дифф в `src/locales` (§4.2).
+- `integration-tests`: поднимает Supabase-Postgres, прогоняет Liquibase-миграции (`infra/scripts/ci-test-db.sh`) и `npm run test:integration` (каталог `tests/`: RLS, RPC, cron). Локально при изменениях в RPC/RLS/cron — той же схемой: `bash infra/scripts/ci-test-db.sh`, затем `npm run test:integration`.
 
-Любой красный шаг останавливает пайплайн — но не мерж и не деплой (см. ниже). При этом CI **не является гейтом мержа и деплоя**: ветка `main` не защищена, а прод собирается из рабочего дерева по rsync — красный пайплайн технически не мешает выкатить релиз. Поэтому за зелёным CI следит агент (§5.4).
+CI **не является гейтом мержа и деплоя**: `main` не защищена, прод собирается из рабочего дерева по rsync — красный пайплайн технически не мешает релизу. За зелёным CI следит агент (§5.4).
 
-1. `vite build` НЕ проверяет типы (esbuild). Проверку типов даёт отдельный шаг `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`).
-2. В `tsconfig.app.json` `strict: false`, но `strictNullChecks` **включён** — null/undefined-разыменования ловит компилятор. `noImplicitAny` пока выключен: неявные any не ловятся, новый код типизировать явно. Полный `strict` — отдельная постепенная задача.
+1. `vite build` НЕ проверяет типы (esbuild) — это делает `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`).
+2. `tsconfig.app.json`: `strict: false`, но `strictNullChecks` **включён**; `noImplicitAny` выключен — неявные any не ловятся, новый код типизировать явно. Полный `strict` — отдельная постепенная задача.
 3. Результаты Supabase-запросов со строковым `select` кастовать как `... as unknown as <Row>` (Supabase не выводит тип такого select — принятый паттерн границы).
-4. Интеграционные тесты (`npm run test:integration`, каталог `tests/`) запускаются и в CI (job `integration-tests`). Локально при изменениях в RPC/RLS/cron гонять той же схемой: `bash infra/scripts/ci-test-db.sh`, затем `npm run test:integration`.
-5. Edge Functions (`infra/supabase/functions`) в `tsconfig.app.json` не входят — их проверяет шаг «Edge Functions typecheck»: `infra/scripts/check-edge-functions.sh`, Deno 1.40.3 (как в `supabase/edge-runtime`), строгость как у фронта (`infra/supabase/deno.check.json`). Это храповик: в коде есть старые ошибки типов, шаг падает, только если их число превысило `infra/scripts/edge-typecheck-baseline.txt`. Починил старые — понизь базу через `--write-baseline`. Локально без Deno: `docker run --rm -v "$PWD:/repo:ro" -w /repo denoland/deno:1.40.3 bash infra/scripts/check-edge-functions.sh`.
-6. Тесты backup-service (`infra/backup-service/*.test.js`) — отдельный набор на `node:test` вне vitest: `npm run test:backup`, гоняется в CI шагом «backup-service tests». Новые тесты сервиса класть туда же рядом с кодом, без внешних зависимостей (CI не ставит `node_modules` сервиса).
-7. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1100 тестов за ~30 с. На `forks` тот же набор шёл 20+ минут и давал ложные падения по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
+4. Edge Functions (`infra/supabase/functions`) в `tsconfig.app.json` не входят — их проверяет шаг «Edge Functions typecheck»: `infra/scripts/check-edge-functions.sh`, Deno 1.40.3 (как в `supabase/edge-runtime`), строгость как у фронта (`infra/supabase/deno.check.json`). Это храповик: шаг падает, только если число старых ошибок превысило `infra/scripts/edge-typecheck-baseline.txt`. Починил старые — понизь базу через `--write-baseline`. Локально без Deno: `docker run --rm -v "$PWD:/repo:ro" -w /repo denoland/deno:1.40.3 bash infra/scripts/check-edge-functions.sh`.
+5. Тесты backup-service (`infra/backup-service/*.test.js`) — отдельный набор на `node:test` вне vitest (`npm run test:backup`). Новые тесты сервиса класть рядом с кодом, без внешних зависимостей (CI не ставит `node_modules` сервиса).
+6. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1700 тестов за ~45 с. На `forks` тот же набор шёл 20+ минут с ложными падениями по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
 
 ## 8. Definition of Done
 
@@ -388,13 +315,13 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request прог�
 
 ### 9.0. Известные грабли (сверяться до диагностики)
 
-Подробные рецепты — в `docs/troubleshooting.md`; здесь только то, что регулярно сбивает с толку.
+Рецепты — в `docs/troubleshooting.md`; здесь то, что регулярно сбивает с толку.
 
-1. **Флаги фич живут в серверных `.env`, из репозитория их не видно.** `VITE_FEATURE_*` читаются при сборке `web` на сервере; в репо нет ни прод-, ни тест-значений. Прежде чем считать фичу выключенной, проверить `grep '^VITE_FEATURE' /opt/new_toggl/.env` на нужном контуре. Тихий флип флага = правка серверного `.env` + пересборка `web`, без релиза.
+1. **Флаги фич живут в серверных `.env`, из репозитория их не видно.** `VITE_FEATURE_*` читаются при сборке `web` на сервере. Прежде чем считать фичу выключенной, проверить `grep '^VITE_FEATURE' /opt/new_toggl/.env` на нужном контуре. Тихий флип флага = правка серверного `.env` + пересборка `web`, без релиза.
 2. **Applied ≠ live.** `EXECUTED` в `databasechangelog` не доказывает, что объект миграции есть в живой БД (триггер из 0008 однажды пропал на тесте). При странностях проверять `pg_catalog`, миграции писать идемпотентными и самодостаточными.
-3. **Гранты новых таблиц** — §4.1 п.4: Liquibase на тесте/проде работает от `supabase_admin`, дефолтные гранты не срабатывают, без явного `GRANT` приложение получает `42501`.
+3. **Гранты новых таблиц** — §4.1 п.4 (иначе `42501`).
 4. **`TLS handshake timeout` при сборке `web`** — anycast `public.ecr.aws` не маршрутизируется с сервера; повторный деплой не лечит, сначала `docker pull` базовых образов на сервере в цикле.
-5. **Edge Functions и `esm.sh`** — `edge-runtime` тянет зависимости с `esm.sh` на холодном старте; прод не маршрутизирует его anycast, пересоздание контейнера давало `502` на всех `/functions/v1/*`. Починено пином `extra_hosts` на IP Cloudflare и persistent-кэшем Deno (`motio_deno_cache`); при `502` после пересоздания проверять именно это.
+5. **Edge Functions и `esm.sh`** — `edge-runtime` тянет зависимости с `esm.sh` на холодном старте, прод не маршрутизирует его anycast: пересоздание контейнера давало `502` на всех `/functions/v1/*`. Починено пином `extra_hosts` на IP Cloudflare и persistent-кэшем Deno (`motio_deno_cache`); при `502` после пересоздания проверять именно это.
 6. **`KEYCLOAK_ADMIN_PASSWORD` не менять через `.env`** — рассинхрон с realm даёт `401` на деплое. Пароль admin меняется в Keycloak, `.env` подгоняется следом.
 7. **Мёрж в `main` может зависнуть** — §5.4 п.5.
 8. **Тома в `docker-compose.prod.yml` с фиксированными именами** (`supabase_db_data` external, `keycloak_db_data`, `supabase_storage_data`, `motio_deno_cache`). Вторая копия стека на той же машине без оверлея с переименованием подключится к чужой базе. Self-host оверлей переименовывает (§5.6).
@@ -406,54 +333,26 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request прог�
 
 ### 9.1. Docker Compose — перезапуск контейнеров
 
-1. **Никогда не перезапускать upstream-сервисы (`rest`, `auth`, `realtime`, `backup`) без перезапуска `gateway`.**
-   - nginx (gateway) резолвит IP сервисов только при старте контейнера.
-   - После пересоздания контейнеров (`--no-deps`) их IP меняются — gateway продолжает слать запросы на старые IP (111: Connection refused).
-   - Правило: `docker compose ... restart rest auth realtime backup && docker compose ... restart gateway`
-   - Предпочтительный путь: `make deploy-remote` / `prod-compose.sh` (поднимают весь стек сразу).
-
-2. При ручном вмешательстве через `docker compose up -d --no-deps <service>` всегда проверять лог gateway на ошибки `connect() failed`.
+1. **Никогда не перезапускать upstream-сервисы (`rest`, `auth`, `realtime`, `backup`) без перезапуска `gateway`**: nginx резолвит их IP только при старте, после пересоздания (`--no-deps`) он шлёт запросы на старые IP (`111: Connection refused`). Правило: `docker compose ... restart rest auth realtime backup && docker compose ... restart gateway`. Предпочтительный путь — `make deploy-remote` / `prod-compose.sh`, они поднимают весь стек сразу.
+2. После ручного `docker compose up -d --no-deps <service>` всегда проверять лог gateway на `connect() failed`.
 
 ### 9.2. Сетевая безопасность Docker
 
-1. **Все порты внутренних сервисов обязательно биндить на `127.0.0.1`**, не на `0.0.0.0`:
-   ```yaml
-   # ❌ Опасно — доступно из интернета:
-   ports:
-     - "5432:5432"
-   # ✅ Безопасно — только localhost:
-   ports:
-     - "127.0.0.1:5432:5432"
-   ```
-2. Публично доступны только порты 80 и 443 (через Caddy/reverse proxy).
-3. Перед деплоем проверять: `docker compose config | grep -A2 'ports:'` на наличие `0.0.0.0`-биндингов.
+1. **Порты внутренних сервисов биндить только на `127.0.0.1`** (`"127.0.0.1:5432:5432"`), никогда на `0.0.0.0` (`"5432:5432"` открывает порт в интернет).
+2. Публично доступны только 80 и 443 (через Caddy/reverse proxy).
+3. Перед деплоем проверять `docker compose config | grep -A2 'ports:'` на `0.0.0.0`-биндинги.
 
 ### 9.3. PostgreSQL в Supabase-стеке
 
-1. **Суперпользователь — `supabase_admin`, не `postgres`.**
-   - `postgres` имеет `rolsuper=f` и `rolreplication=t` — изменить его пароль может только `supabase_admin`.
-   - При смене пароля подключаться именно как `supabase_admin`:
-     ```bash
-     docker exec -u postgres infra-db-1 psql -d postgres -U supabase_admin -c \
-       "ALTER ROLE postgres WITH PASSWORD '...'; ALTER ROLE supabase_admin WITH PASSWORD '...';"
-     ```
+1. **Суперпользователь — `supabase_admin`, не `postgres`**: у `postgres` `rolsuper=f`, `rolreplication=t`, и его пароль меняет только `supabase_admin` — `docker exec -u postgres infra-db-1 psql -d postgres -U supabase_admin -c "ALTER ROLE postgres WITH PASSWORD '...'; ALTER ROLE supabase_admin WITH PASSWORD '...';"`.
 2. После смены пароля в БД обязательно обновить `.env` на сервере и перезапустить `rest`, `auth`, `realtime`, `backup`, `gateway`.
 
 ### 9.4. Управление секретами
 
-1. `.env` **не хранится в git** и **не копируется** `make deploy-remote` (rsync `--exclude '.env'`).
-   - Локальный `.env` — только для local dev.
-   - Серверный `.env` в `/opt/new_toggl/.env` управляется вручную через SSH.
+1. `.env` **не хранится в git** и **не копируется** деплоем (rsync `--exclude '.env'`). Локальный `.env` — только для local dev; серверный (`/opt/new_toggl/.env`) управляется вручную через SSH.
 2. Никогда не использовать дефолтные пароли (`postgres`, `admin`, `secret`) в production.
 3. При любом инциденте безопасности: сначала сменить пароли в БД → обновить `.env` на сервере → перезапустить контейнеры → только потом анализировать логи.
 
-### 9.5. Признаки атаки на PostgreSQL (COPY FROM PROGRAM)
+### 9.5. Признаки атаки на PostgreSQL
 
-Если в `docker logs infra-db-1` есть строки вида:
-```
-FATAL: password authentication failed for user "postgres"
-```
-массово за короткий период — это брутфорс. Проверить:
-1. `docker exec infra-db-1 psql -U supabase_admin -c "SELECT pid,usename,application_name,client_addr,state,query FROM pg_stat_activity WHERE state='active';"` — подозрительные сессии.
-2. `docker exec infra-db-1 ls /tmp` — наличие бинарей (`init`, `mysql`, `bot`).
-3. Ответные меры: удалить файлы, заблокировать IP в UFW, перебиндить порт на 127.0.0.1, сменить пароль.
+Массовые `FATAL: password authentication failed for user "postgres"` в `docker logs infra-db-1` за короткий период — брутфорс (дальше обычно `COPY FROM PROGRAM`). Что проверить — `docs/troubleshooting.md`, «Many `password authentication failed for user "postgres"` in the db log». Ответные меры: сначала пароли по §9.4 п.3, затем удалить подброшенные файлы из `/tmp`, заблокировать IP-источники в UFW (на тест-сервере UFW общий с ids-checker — только по согласованию с владельцем, §5.4.1.1) и убедиться, что порт БД забинден на `127.0.0.1` (§9.2 п.1).
