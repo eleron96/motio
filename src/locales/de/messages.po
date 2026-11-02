@@ -368,7 +368,7 @@ msgstr "Nehmen Sie die Einladung an, um dem Arbeitsbereich Ihres Teams beizutret
 msgid "Accepted"
 msgstr "Angenommen"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 msgid "Access"
 msgstr "Zugriff"
@@ -498,7 +498,7 @@ msgstr "Kundenkontakt hinzufügen"
 msgid "Add from a template"
 msgstr "Aus einer Vorlage hinzufügen"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Add group"
 msgstr "Gruppe hinzufügen"
 
@@ -534,7 +534,7 @@ msgstr "Notiz hinzufügen"
 msgid "Add project status"
 msgstr "Projektstatus hinzufügen"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Add rule"
 msgstr "Regel hinzufügen"
 
@@ -602,7 +602,7 @@ msgstr "Admin"
 msgid "Admin sections"
 msgstr "Admin-Bereiche"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Advanced filters"
 msgstr "Erweiterte Filter"
 
@@ -677,7 +677,7 @@ msgstr "Alle Aufgaben"
 msgid "Already undone"
 msgstr "Bereits rückgängig gemacht"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Also counts: {regionHolidayList}."
 msgstr "Zusätzlich gelten: {regionHolidayList}."
 
@@ -834,8 +834,8 @@ msgstr "Anmeldefehler"
 msgid "Authentication failed."
 msgstr "Anmeldung fehlgeschlagen."
 
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 #: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "Auto"
 msgstr "Automatisch"
@@ -1035,6 +1035,8 @@ msgstr "Anrufen"
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
@@ -1046,10 +1048,8 @@ msgstr "Anrufen"
 #: src/features/projects/components/projectCard/MobileTextSheet.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
 #: src/features/projects/components/ProjectsDialogs.tsx
@@ -1077,8 +1077,8 @@ msgstr "Abgebrochen"
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Cancelled"
 msgstr "Abgebrochen"
 
@@ -1087,7 +1087,7 @@ msgctxt "task status"
 msgid "Cancelled"
 msgstr "Abgebrochen"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Cancelled status"
 msgstr "Status „Abgebrochen“"
 
@@ -1241,7 +1241,7 @@ msgstr "Foto entfernen"
 msgid "Clear search"
 msgstr "Suche leeren"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Clearing…"
 msgstr "Wird geleert …"
 
@@ -1292,10 +1292,10 @@ msgstr "geschlossen von {0}"
 msgid "Closed by week"
 msgstr "Erledigt pro Woche"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Code"
 msgstr "Kürzel"
 
@@ -1303,8 +1303,8 @@ msgstr "Kürzel"
 msgid "Collapse"
 msgstr "Einklappen"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Color"
 msgstr "Farbe"
 
@@ -1503,11 +1503,11 @@ msgstr "Rückgängig nicht möglich – bitte erneut versuchen"
 msgid "Count"
 msgstr "Anzahl"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Country code"
 msgstr "Ländercode"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceGeneralDraft.ts
 msgid "Country code must contain 2 letters."
 msgstr "Der Ländercode muss aus 2 Buchstaben bestehen."
 
@@ -1522,7 +1522,7 @@ msgstr "Absturz auf älteren Android-Geräten"
 #: src/features/dashboard/pages/DashboardPage.tsx
 #: src/features/members/components/MembersDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Create"
 msgstr "Erstellen"
@@ -1531,7 +1531,7 @@ msgstr "Erstellen"
 msgid "Create \"{normalizedQuery}\""
 msgstr "„{normalizedQuery}“ erstellen"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 msgid "Create a new customer for grouping projects."
 msgstr "Legen Sie einen neuen Kunden an, um Projekte zu gruppieren."
 
@@ -1547,7 +1547,7 @@ msgstr "Legen Sie eine neue Gruppe für Mitglieder des Arbeitsbereichs an."
 msgid "Create a new milestone for the selected date."
 msgstr "Neuen Meilenstein für das gewählte Datum erstellen."
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Create a new project and assign customer, code, and color."
 msgstr "Legen Sie ein neues Projekt an und vergeben Sie Kunde, Kürzel und Farbe."
 
@@ -1573,7 +1573,7 @@ msgstr "Neue Aufgabe erstellen"
 msgid "Create or select a dashboard to get started."
 msgstr "Erstellen oder wählen Sie ein Dashboard, um loszulegen."
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Create project"
 msgstr "Projekt erstellen"
 
@@ -1653,8 +1653,8 @@ msgstr "Benutzerdefiniert"
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/projects/hooks/useProjectsFilter.ts
 #: src/features/projects/pages/ProjectsPage.tsx
@@ -1666,8 +1666,8 @@ msgstr "Kunde"
 msgid "Customer actions"
 msgstr "Kundenaktionen"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 msgid "Customer name"
 msgstr "Kundenname"
 
@@ -2066,9 +2066,9 @@ msgstr "Deaktivierte Personen werden in den Filtern ausgeblendet."
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Discard"
 msgstr "Verwerfen"
 
@@ -2222,7 +2222,7 @@ msgstr "Aufgabe duplizieren"
 msgid "During this period, you can sign in to restore the account."
 msgstr "In dieser Zeit können Sie sich anmelden, um das Konto wiederherzustellen."
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 msgid "E.g. Real estate · Residential"
 msgstr "z. B. Immobilien · Wohnbau"
 
@@ -2230,8 +2230,8 @@ msgstr "z. B. Immobilien · Wohnbau"
 msgid "e.g. Time tracking sync"
 msgstr "z. B. Zeiterfassung-Sync"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "E.g. В работе, Заморожен, Завершен"
 msgstr "z. B. In Arbeit, Pausiert, Abgeschlossen"
 
@@ -2296,7 +2296,7 @@ msgstr "Kontakt bearbeiten"
 msgid "Edit contact info"
 msgstr "Kontaktdaten bearbeiten"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 msgid "Edit customer"
 msgstr "Kunden bearbeiten"
 
@@ -2321,11 +2321,11 @@ msgstr "Namen bearbeiten"
 msgid "Edit photo"
 msgstr "Foto bearbeiten"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Edit project"
 msgstr "Projekt bearbeiten"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Edit project details such as name, code, customer, and color."
 msgstr "Projektdetails wie Name, Kürzel, Kunde und Farbe bearbeiten."
 
@@ -2395,7 +2395,7 @@ msgstr "E-Mail-Domain"
 msgid "Email is not configured: no SMTP server in the settings."
 msgstr "E-Mail ist nicht eingerichtet: In den Einstellungen fehlt ein SMTP-Server."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Emoji"
 msgstr "Emoji"
 
@@ -2438,8 +2438,8 @@ msgstr "Enddatum ↓"
 msgid "Enter a valid user UUID."
 msgstr "Geben Sie eine gültige Nutzer-UUID ein."
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 msgid "Enter customer name..."
 msgstr "Kundenname eingeben …"
 
@@ -2453,8 +2453,8 @@ msgstr "Dashboard-Namen eingeben …"
 msgid "Enter how many repeats to create."
 msgstr "Geben Sie an, wie viele Wiederholungen erstellt werden sollen."
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Enter project name..."
 msgstr "Projektnamen eingeben …"
 
@@ -2466,7 +2466,7 @@ msgstr "Aufgabentitel eingeben …"
 msgid "Enter workspace name and optionally configure a template."
 msgstr "Geben Sie den Namen des Arbeitsbereichs ein und wählen Sie bei Bedarf eine Vorlage."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Equals"
 msgstr "Ist gleich"
 
@@ -2524,11 +2524,11 @@ msgstr "Alle, die diese Ankündigung bereits geschlossen haben, sehen sie noch e
 msgid "Everything your team needs to stay aligned"
 msgstr "Alles, was Ihr Team braucht, um abgestimmt zu bleiben"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Example data"
 msgstr "Beispieldaten"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Examples on the timeline"
 msgstr "Beispiele in der Zeitachse"
 
@@ -2546,7 +2546,7 @@ msgstr "Demo verlassen?"
 msgid "Expand filters"
 msgstr "Filter ausklappen"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "experimental"
 msgstr "experimentell"
 
@@ -2764,8 +2764,8 @@ msgid "Filters"
 msgstr "Filter"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Final"
 msgstr "Abschluss"
 
@@ -2773,7 +2773,7 @@ msgstr "Abschluss"
 msgid "Final inspection"
 msgstr "Abnahme"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Final status"
 msgstr "Abschlussstatus"
 
@@ -2870,8 +2870,8 @@ msgstr "Voller Tag ≈ {capacityDisplay} Aufgaben/Person"
 msgid "Full name"
 msgstr "Vollständiger Name"
 
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Full working day (tasks per person)"
 msgstr "Voller Arbeitstag (Aufgaben pro Person)"
 
@@ -2927,7 +2927,7 @@ msgstr "Guten Morgen!"
 msgid "Got it"
 msgstr "Verstanden"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
@@ -2940,7 +2940,7 @@ msgid "Group"
 msgstr "Gruppe"
 
 #. placeholder {0}: index + 1
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Group {0}"
 msgstr "Gruppe {0}"
 
@@ -3061,7 +3061,7 @@ msgstr "Halten Sie die Kopfzeile des Widgets gedrückt, um es zu verschieben."
 msgid "Holiday"
 msgstr "Feiertag"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Holiday calendar"
 msgstr "Feiertagskalender"
 
@@ -3160,7 +3160,7 @@ msgstr "Deaktivierte Nutzer in Filtern, Summen und Legenden einbeziehen."
 msgid "Include unassigned"
 msgstr "Ohne Zuständige einbeziehen"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 msgid "Industry / segment"
 msgstr "Branche / Segment"
 
@@ -3250,9 +3250,9 @@ msgstr "Zum Datum springen"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Keep editing"
 msgstr "Weiter bearbeiten"
 
@@ -3381,8 +3381,8 @@ msgstr "Auslastung"
 msgid "Load older comments"
 msgstr "Ältere Kommentare laden"
 
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Loading available countries..."
 msgstr "Verfügbare Länder werden geladen …"
 
@@ -3428,14 +3428,14 @@ msgid "Loading history..."
 msgstr "Verlauf wird geladen …"
 
 #: src/features/members/components/MembersGroupPanel.tsx
-#: src/features/planner/components/CommentEditor.tsx
+#: src/features/planner/components/CommentMentionPopover.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Loading members..."
 msgstr "Mitglieder werden geladen …"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Loading regions..."
 msgstr "Regionen werden geladen …"
 
@@ -3537,11 +3537,11 @@ msgstr "Marketing-Neuigkeiten – nur an Nutzer mit Einwilligung, mit Abmeldelin
 msgid "marking yourself"
 msgstr "für Sie selbst"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Match all rules (AND)"
 msgstr "Alle Regeln erfüllt (UND)"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Match any rule (OR)"
 msgstr "Eine Regel erfüllt (ODER)"
 
@@ -3839,7 +3839,7 @@ msgstr "Neues Rundschreiben"
 msgid "New contact"
 msgstr "Neuer Kontakt"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "New customer"
 msgstr "Neuer Kunde"
@@ -3872,23 +3872,23 @@ msgstr "Neuer Inhaber"
 msgid "New owner: {0}"
 msgstr "Neuer Inhaber: {0}"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "New project"
 msgstr "Neues Projekt"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "New status name..."
 msgstr "Name des neuen Status …"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "New tag name..."
 msgstr "Name des neuen Labels …"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "New type name..."
 msgstr "Name des neuen Typs …"
 
@@ -3937,7 +3937,7 @@ msgstr "Keine aktiven Personen."
 msgid "No active projects."
 msgstr "Keine aktiven Projekte."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "No advanced filters. Add a group to build custom rules."
 msgstr "Keine erweiterten Filter. Fügen Sie eine Gruppe hinzu, um eigene Regeln zu erstellen."
 
@@ -4004,7 +4004,7 @@ msgstr "Keine Kontakte gefunden."
 msgid "No contacts here yet."
 msgstr "Hier gibt es noch keine Kontakte."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "No countries found."
 msgstr "Keine Länder gefunden."
 
@@ -4159,7 +4159,7 @@ msgstr "Keine Treffer."
 msgid "No matching tags."
 msgstr "Keine passenden Labels."
 
-#: src/features/planner/components/CommentEditor.tsx
+#: src/features/planner/components/CommentMentionPopover.tsx
 msgid "No members found"
 msgstr "Keine Mitglieder gefunden"
 
@@ -4209,7 +4209,7 @@ msgstr "Noch keine Notizen. Mit + fügen Sie die erste hinzu."
 msgid "No notifications."
 msgstr "Keine Benachrichtigungen."
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "No options"
 msgstr "Keine Optionen"
 
@@ -4277,7 +4277,7 @@ msgstr "Keine aktuellen Änderungen vorhanden."
 msgid "No recipients match this audience."
 msgstr "Für diese Zielgruppe gibt es keine Empfänger."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "No regions found."
 msgstr "Keine Regionen gefunden."
 
@@ -4287,7 +4287,7 @@ msgstr "Keine Regionen gefunden."
 msgid "No role"
 msgstr "Keine Rolle"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "No rules yet."
 msgstr "Noch keine Regeln."
 
@@ -4336,10 +4336,10 @@ msgid "No tasks yet. Double-click any day to create one."
 msgstr "Noch keine Aufgaben. Doppelklicken Sie auf einen beliebigen Tag, um eine anzulegen."
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No team"
 msgstr "Kein Team"
@@ -4396,7 +4396,7 @@ msgstr "Arbeitsfreie Tage des Landes, das für den Arbeitsbereich eingestellt is
 msgid "None"
 msgstr "Keine"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Not equals"
 msgstr "Ist ungleich"
 
@@ -4557,7 +4557,7 @@ msgstr "Es sind nur deaktivierte Personen verfügbar."
 msgid "Only for {scopedAssigneeName}"
 msgstr "Nur für {scopedAssigneeName}"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Only holidays of the whole country count. Pick a region to add its own holidays."
 msgstr "Es gelten nur landesweite Feiertage. Wählen Sie eine Region, um ihre eigenen Feiertage hinzuzufügen."
 
@@ -4593,7 +4593,7 @@ msgstr "Offen"
 msgid "Open Account settings to download the file."
 msgstr "Öffnen Sie die Kontoeinstellungen, um die Datei herunterzuladen."
 
-#: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/components/RichTextImageMenu.tsx
 msgid "Open fullscreen"
 msgstr "Im Vollbild öffnen"
 
@@ -4695,8 +4695,8 @@ msgstr "Übersicht"
 msgid "Owner"
 msgstr "Inhaber"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 msgid "Owner team"
 msgstr "Verantwortliches Team"
@@ -4938,7 +4938,7 @@ msgstr "Profil"
 msgid "Progress: {0} / {1}"
 msgstr "Fortschritt: {0} / {1}"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 #: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -4977,12 +4977,12 @@ msgstr "Projektfarben"
 msgid "Project deadlines live in this row, above everyone's tasks."
 msgstr "In dieser Zeile stehen die Projekttermine – über den Aufgaben des ganzen Teams."
 
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Project name"
 msgstr "Projektname"
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Project not found."
 msgstr "Projekt nicht gefunden."
 
@@ -4996,8 +4996,8 @@ msgstr "Projekteinstellungen"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Project status"
 msgstr "Projektstatus"
 
@@ -5112,7 +5112,7 @@ msgstr "Wiederholung"
 msgid "Refresh"
 msgstr "Aktualisieren"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Region"
 msgstr "Region"
 
@@ -5151,7 +5151,7 @@ msgid "Remove contact"
 msgstr "Kontakt entfernen"
 
 #: src/features/onboarding/components/SampleDataBanner.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Remove examples"
 msgstr "Beispiele entfernen"
 
@@ -5175,7 +5175,7 @@ msgstr "Aus dem Team entfernen"
 msgid "Remove from workspace"
 msgstr "Aus dem Arbeitsbereich entfernen"
 
-#: src/features/planner/components/RichTextEditor.tsx
+#: src/features/planner/components/RichTextImageMenu.tsx
 #: src/features/planner/components/SubtaskImages.tsx
 #: src/features/planner/components/SubtaskImages.tsx
 msgid "Remove image"
@@ -5198,7 +5198,7 @@ msgstr "Label entfernen"
 msgid "Remove the old partitions"
 msgstr "Alte Trennwände entfernen"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Remove the sample projects, people and tasks this workspace started with"
 msgstr "Die Beispielprojekte, -personen und -aufgaben entfernen, mit denen dieser Arbeitsbereich angelegt wurde"
 
@@ -5412,6 +5412,7 @@ msgstr "Salbei"
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -5422,12 +5423,11 @@ msgstr "Salbei"
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
 #: src/features/projects/components/projectCard/TeamBlock.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/workspace/components/RenamePurgedDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Save"
 msgstr "Speichern"
 
@@ -5522,7 +5522,7 @@ msgstr "Firmen suchen …"
 msgid "Search contacts..."
 msgstr "Kontakte suchen …"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Search countries..."
 msgstr "Länder suchen …"
 
@@ -5580,7 +5580,7 @@ msgstr "Projekte suchen"
 msgid "Search projects..."
 msgstr "Projekte suchen …"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Search regions..."
 msgstr "Regionen suchen …"
 
@@ -5638,7 +5638,7 @@ msgstr "Kunden wählen"
 msgid "Select a group to see members."
 msgstr "Wählen Sie eine Gruppe, um die Mitglieder zu sehen."
 
-#: src/features/planner/components/CommentEditor.tsx
+#: src/features/planner/components/CommentMentionPopover.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Select a member"
@@ -5681,7 +5681,7 @@ msgstr "Alle Aufgaben auswählen"
 msgid "Select an end date."
 msgstr "Wählen Sie ein Enddatum."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceGeneralDraft.ts
 msgid "Select country"
 msgstr "Land wählen"
 
@@ -5733,7 +5733,7 @@ msgstr "Typ wählen"
 msgid "Select user"
 msgstr "Nutzer wählen"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Select value"
 msgstr "Wert wählen"
 
@@ -5909,7 +5909,7 @@ msgstr "Zeigen"
 msgid "Show only this person"
 msgstr "Nur diese Person anzeigen"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Show tasks without an assignee"
 msgstr "Aufgaben ohne Zuständige anzeigen"
 
@@ -5917,7 +5917,7 @@ msgstr "Aufgaben ohne Zuständige anzeigen"
 msgid "Show tasks without an assignee."
 msgstr "Aufgaben ohne Zuständige anzeigen."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Show the department workload board on the dashboard"
 msgstr "Auslastungsboard der Abteilung im Dashboard anzeigen"
 
@@ -5925,7 +5925,7 @@ msgstr "Auslastungsboard der Abteilung im Dashboard anzeigen"
 msgid "Show their version"
 msgstr "Andere Version übernehmen"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Show unassigned"
 msgstr "Ohne Zuständige anzeigen"
 
@@ -6082,7 +6082,7 @@ msgstr "Jetzt starten →"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 #: src/features/members/components/MemberTasksList.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
@@ -6095,9 +6095,9 @@ msgstr "Jetzt starten →"
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Status"
 msgstr "Status"
 
@@ -6114,7 +6114,7 @@ msgstr "Statusfarben"
 #: src/features/planner/components/board/MobileBoardColumns.tsx
 #: src/features/projects/components/projectCard/ProjectTasksFiltersScreen.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Statuses"
 msgstr "Status"
 
@@ -6207,7 +6207,7 @@ msgstr "Label"
 #: src/features/planner/components/TaskDetailPanel.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Tags"
 msgstr "Labels"
 
@@ -6282,7 +6282,7 @@ msgid "Task title"
 msgstr "Aufgabentitel"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Task types"
 msgstr "Aufgabentypen"
 
@@ -6308,7 +6308,7 @@ msgstr "Die Aufgabe wurde erstellt, aber die Unteraufgaben wurden nicht gespeich
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Tasks"
 msgstr "Aufgaben"
 
@@ -6349,7 +6349,7 @@ msgstr "Abwesenheiten im Team"
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
 #: src/features/marketing/components/landing/LandingSections.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Team workload"
 msgstr "Auslastung des Teams"
 
@@ -6526,7 +6526,7 @@ msgstr "dieses Dashboard"
 msgid "This is the latest release."
 msgstr "Das ist die neueste Version."
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history."
 msgstr "Diese Auslastung gilt als 100 %. Leer lassen, um sie automatisch aus dem jüngsten Verlauf Ihres Teams abzuleiten."
 
@@ -6721,7 +6721,7 @@ msgstr "Heute"
 msgid "Toggle easter egg"
 msgstr "Easter Egg umschalten"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Toggle workload heatmap"
 msgstr "Auslastungskarte umschalten"
 
@@ -6853,7 +6853,7 @@ msgstr "Schirm"
 msgid "Unarchive"
 msgstr "Aus dem Archiv holen"
 
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskDialog.tsx
@@ -6863,7 +6863,7 @@ msgstr "Aus dem Archiv holen"
 #: src/features/planner/components/timeline/hooks/useTaskDisplayRows.tsx
 #: src/features/planner/components/timeline/TaskBar.tsx
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Unassigned"
 msgstr "Ohne Zuständige"
 
@@ -6975,9 +6975,9 @@ msgstr "In Vorbereitung"
 
 #: src/features/planner/components/TaskDetailDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Unsaved changes"
 msgstr "Ungespeicherte Änderungen"
 
@@ -7019,7 +7019,7 @@ msgstr "Aktualisieren"
 msgid "Update check is off (MOTIO_UPDATE_CHECK=false)."
 msgstr "Update-Prüfung ist aus (MOTIO_UPDATE_CHECK=false)."
 
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
 msgid "Update customer name and industry."
 msgstr "Kundenname und Branche bearbeiten."
 
@@ -7059,7 +7059,7 @@ msgstr "Dringend"
 msgid "Use current workspace"
 msgstr "Aktuellen Arbeitsbereich verwenden"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Use ISO code (for example RU, US, DE)."
 msgstr "Verwenden Sie den ISO-Code (z. B. DE, AT, CH)."
 
@@ -7068,7 +7068,7 @@ msgid "Use the Widget button to add your first widget."
 msgstr "Fügen Sie über die Schaltfläche „Widget“ Ihr erstes Widget hinzu."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
-#: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "User"
 msgstr "Nutzer"
 
@@ -7263,9 +7263,9 @@ msgstr "Wer wann Rollen, Gruppen und Zugriffe geändert hat."
 msgid "Who takes over?"
 msgstr "Wer übernimmt?"
 
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Whole country"
 msgstr "Ganzes Land"
 
@@ -7302,7 +7302,7 @@ msgid "Workflow"
 msgstr "Arbeitsablauf"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Workload heatmap"
 msgstr "Auslastungskarte"
 
@@ -7330,13 +7330,13 @@ msgstr "Limit für Arbeitsbereiche erreicht (5)."
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Workspace name"
 msgstr "Name des Arbeitsbereichs"
 
 #: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/hooks/useWorkspaceGeneralDraft.ts
+#: src/features/workspace/hooks/useWorkspaceGeneralDraft.ts
 msgid "Workspace not selected."
 msgstr "Kein Arbeitsbereich ausgewählt."
 
@@ -7432,9 +7432,9 @@ msgid "You have unsaved changes. Close without marking the time off?"
 msgstr "Sie haben ungespeicherte Änderungen. Schließen, ohne die Abwesenheit einzutragen?"
 
 #: src/features/planner/components/TaskDetailDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
-#: src/features/projects/components/ProjectsDialogs.tsx
+#: src/features/projects/components/CustomerFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
+#: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "You have unsaved changes. Close without saving?"
 msgstr "Sie haben ungespeicherte Änderungen. Ohne Speichern schließen?"
 
@@ -7442,7 +7442,7 @@ msgstr "Sie haben ungespeicherte Änderungen. Ohne Speichern schließen?"
 msgid "You have unsaved milestone changes. Close without saving?"
 msgstr "Sie haben ungespeicherte Änderungen am Meilenstein. Ohne Speichern schließen?"
 
-#: src/features/workspace/components/SettingsPanel.tsx
+#: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "You have view access and cannot edit this workspace."
 msgstr "Sie haben nur Lesezugriff und können diesen Arbeitsbereich nicht bearbeiten."
 
