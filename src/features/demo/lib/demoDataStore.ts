@@ -430,5 +430,3 @@ export const demoStore = {
     this.clear();
   },
 };
-
-export const TTL_HOURS = 24;

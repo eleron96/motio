@@ -762,4 +762,3 @@ const realFrom = function from<T extends Row = Row>(table: string) {
 
 (demoSupabaseClient as unknown as { from: typeof realFrom }).from = realFrom;
 
-export type DemoSupabaseClient = typeof demoSupabaseClient;

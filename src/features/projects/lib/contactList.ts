@@ -175,12 +175,6 @@ export interface ContactFilterSelection {
   roleKeys: string[];
 }
 
-export const EMPTY_CONTACT_FILTERS: ContactFilterSelection = {
-  companyKeys: [],
-  tagKeys: [],
-  roleKeys: [],
-};
-
 const valueKeyOf = (value: string | null): string => (
   value ? value.trim().toLowerCase() : NO_VALUE
 );

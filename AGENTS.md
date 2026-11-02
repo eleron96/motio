@@ -282,14 +282,14 @@ Conventional Commits: `feat`, `fix`, `refactor`, `test`, `docs`, `chore` со sc
 ## 7.3. Перед коммитом
 
 1. `git status --porcelain` — убрать посторонние неотслеживаемые файлы. Особый случай — дубли `X 2.tsx` / `X 2.sql`: это артефакты облачной синхронизации, значит папка снова попала под iCloud (рабочая копия держится вне Рабочего стола и «Документов»). Искать `find . -name '* 2.*' -not -path './node_modules/*'` и удалять **до** `lingui:extract`, коммита и любого деплоя — они валят typecheck и попадают в `.po`.
-2. `npm run lint`, `npm run typecheck`, `npm run test`.
+2. `npm run lint`, `npm run check:health`, `npm run typecheck`, `npm run test`.
 3. Проверить diff на случайные debug-логи и закомментированный код.
 
 ## 7.4. CI и гейты качества
 
 CI (`.github/workflows/ci.yml`) на каждый push и pull request гоняет два параллельных job:
 
-- `lint-test-build`: **lint → SQL security lint → typecheck → edge-функции → i18n-каталоги → test → backup-service tests → build**. SQL security lint (`infra/scripts/lint-security-definer.sh`) падает на `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (§4.1 п.5); «i18n catalogs up to date» — если `npm run lingui:extract` даёт дифф в `src/locales` (§4.2).
+- `lint-test-build`: **lint → code health → SQL security lint → typecheck → edge-функции → i18n-каталоги → test → backup-service tests → build**. Code health — храповик §7.5 п.4. SQL security lint (`infra/scripts/lint-security-definer.sh`) падает на `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (§4.1 п.5); «i18n catalogs up to date» — если `npm run lingui:extract` даёт дифф в `src/locales` (§4.2).
 - `integration-tests`: поднимает Supabase-Postgres, прогоняет Liquibase-миграции (`infra/scripts/ci-test-db.sh`) и `npm run test:integration` (каталог `tests/`: RLS, RPC, cron). Локально при изменениях в RPC/RLS/cron — той же схемой: `bash infra/scripts/ci-test-db.sh`, затем `npm run test:integration`.
 
 CI **не является гейтом мержа и деплоя**: `main` не защищена, прод собирается из рабочего дерева по rsync — красный пайплайн технически не мешает релизу. За зелёным CI следит агент (§5.4).
@@ -300,6 +300,15 @@ CI **не является гейтом мержа и деплоя**: `main` н�
 4. Edge Functions (`infra/supabase/functions`) в `tsconfig.app.json` не входят — их проверяет шаг «Edge Functions typecheck»: `infra/scripts/check-edge-functions.sh`, Deno 1.40.3 (как в `supabase/edge-runtime`), строгость как у фронта (`infra/supabase/deno.check.json`). Это храповик: шаг падает, только если число старых ошибок превысило `infra/scripts/edge-typecheck-baseline.txt`. Починил старые — понизь базу через `--write-baseline`. Локально без Deno: `docker run --rm -v "$PWD:/repo:ro" -w /repo denoland/deno:1.40.3 bash infra/scripts/check-edge-functions.sh`.
 5. Тесты backup-service (`infra/backup-service/*.test.js`) — отдельный набор на `node:test` вне vitest (`npm run test:backup`). Новые тесты сервиса класть рядом с кодом, без внешних зависимостей (CI не ставит `node_modules` сервиса).
 6. Юнит-набор (`vitest.config.ts`) идёт на `pool: 'threads'` с `testTimeout` 15 с: ~1700 тестов за ~45 с. На `forks` тот же набор шёл 20+ минут с ложными падениями по таймауту — не возвращать. `isolate: false` не включать: тесты полагаются на чистые модули.
+
+## 7.5. Чтобы мусор не копился
+
+1. **Флаг фичи живёт, пока фича раскатывается.** Включён на проде, на тесте и по умолчанию у self-host — убрать флаг вместе с кодом ветки «выключено» и тестами на неё: `featureFlags.ts`, `infra/web/Dockerfile`, compose-файлы, `.env.example`, `install.sh`, `docs/configuration.md` и `docs/self-hosting.md`. Значения флагов на проде и тесте — `grep '^VITE_FEATURE' .env` на сервере (§9.0 п.1).
+2. **Временный код совместимости** (для вкладок со старой сборкой, переходных путей и т. п.) помечать комментарием `REMOVE-AFTER: ГГГГ-ММ-ДД — что убрать и почему`. Просроченную дату `npm run check:health` показывает предупреждением — тогда код убрать.
+3. **Удаляя код, удалять и тесты, которые проверяют только его.** Функция, которую вызывают одни тесты, — мёртвая: тест держит её на плаву.
+4. **Храповик `npm run check:health`** (`infra/scripts/check-code-health.mjs`, шаг CI «Code health ratchet») следит за `src/`: неиспользуемые файлы, экспорты и зависимости, экспорты только для тестов, файлы длиннее 600 строк, прямой Supabase в фичах, импорт `features/A` → `features/B/components`. Старое записано в `infra/scripts/code-health-baseline.json`, новое валит CI. Починил старое — обновить базу тем же коммитом (`node infra/scripts/check-code-health.mjs --write-baseline`). Добавлять в базу новое — только осознанно и с объяснением в сообщении коммита.
+5. После влития ветки удалить её worktree и локальную ветку; кадры, трейсы и профили браузера — во временную папку, не в `notes/` (§2).
+6. В разрешения агента (`.claude/settings.local.json`) не сохранять команды с паролями и токенами.
 
 ## 8. Definition of Done
 

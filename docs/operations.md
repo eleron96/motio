@@ -166,7 +166,10 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
 
 `.github/workflows/ci.yml` runs on every push and pull request:
 
-- **lint-test-build** — `npm run lint` → SQL security lint
+- **lint-test-build** — `npm run lint` → code health ratchet (`npm run check:health`:
+  fails on new unused files, exports or dependencies, new files over 600 lines, new
+  direct Supabase access in features or new cross-feature component imports; the
+  known backlog is in `infra/scripts/code-health-baseline.json`) → SQL security lint
   (`infra/scripts/lint-security-definer.sh`) → `npm run typecheck` → i18n catalogs up
   to date (`lingui:extract`, then `git diff --exit-code src/locales`) →
   `npm run test` → `npm run test:backup` (backup-service, `node:test`) →

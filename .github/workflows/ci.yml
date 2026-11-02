@@ -25,6 +25,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Ratchet: fails only on NEW unused files, exports or dependencies, files
+      # over 600 lines, direct Supabase in features or cross-feature component
+      # imports. Baseline: infra/scripts/code-health-baseline.json.
+      - name: Code health ratchet
+        run: npm run check:health
+
       - name: SQL security lint (SECURITY DEFINER revoke guard)
         run: bash infra/scripts/lint-security-definer.sh
 

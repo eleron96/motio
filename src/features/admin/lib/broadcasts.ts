@@ -1,6 +1,5 @@
 export type BroadcastMessageType = 'announcement' | 'service';
 export type BroadcastAudienceKind = 'subscribers' | 'domain' | 'workspace' | 'all_active';
-export type BroadcastStatus = 'scheduled' | 'sending' | 'sent' | 'canceled' | 'failed';
 
 /** One row of the email broadcast history, as the admin function returns it. */
 export interface BroadcastRow {

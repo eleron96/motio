@@ -1,12 +1,6 @@
 import { z } from 'zod';
 import { INVITE_ACTIONS, INVITE_ROLE_VALUES } from '@/shared/contracts/actions';
 
-export const INVITE_ACTION_VALUES = Object.values(INVITE_ACTIONS) as [
-  typeof INVITE_ACTIONS[keyof typeof INVITE_ACTIONS],
-  ...typeof INVITE_ACTIONS[keyof typeof INVITE_ACTIONS][],
-];
-
-export const inviteActionSchema = z.enum(INVITE_ACTION_VALUES);
 const inviteRoleSchema = z.enum(INVITE_ROLE_VALUES);
 
 const inviteCreateRequestSchema = z.object({
@@ -51,11 +45,6 @@ export const inviteRequestSchema = z.discriminatedUnion('action', [
 ]);
 
 export type InviteRequest = z.infer<typeof inviteRequestSchema>;
-export type InviteAction = z.infer<typeof inviteActionSchema>;
-
-export const inviteErrorResponseSchema = z.object({
-  error: z.string(),
-});
 
 export const inviteBaseResponseSchema = z.object({
   success: z.boolean().optional(),
