@@ -9,16 +9,24 @@ import {
   useTimelineTaskSearchRunner,
 } from '@/features/planner/hooks/useTimelineTaskSearch';
 import { isSearchableQuery, splitHitsByRange } from '@/shared/domain/taskSearch';
+import { isSearchShortcut, isSearchSlash, searchShortcutLabel } from '@/features/planner/lib/searchShortcut';
 
 const isTypingTarget = (target: EventTarget | null) => (
   target instanceof HTMLElement
   && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
 );
 
+const platformName = typeof navigator === 'undefined'
+  ? ''
+  : (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform
+    || navigator.platform
+    || navigator.userAgent;
+
 /**
  * The search field of the timeline toolbar: a quiet magnifier at rest that
- * opens into a pill (click, ⌘K / Ctrl+K or "/"). The timeline itself shows the
- * result — see `TimelineSearchStrip` and the `task-search-*` bar classes.
+ * opens into a pill (click, ⌘K / Ctrl+K or "/"; the shortcut is named only in
+ * the tooltip). The timeline itself shows the result — see
+ * `TimelineSearchStrip` and the `task-search-*` bar classes.
  */
 export const TimelineSearch: React.FC = () => {
   useTimelineTaskSearchRunner();
@@ -46,8 +54,8 @@ export const TimelineSearch: React.FC = () => {
         closeSearch();
         return;
       }
-      const isShortcut = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k';
-      const isSlash = event.key === '/' && !event.metaKey && !event.ctrlKey && !isTypingTarget(event.target);
+      const isShortcut = isSearchShortcut(event);
+      const isSlash = isSearchSlash(event) && !isTypingTarget(event.target);
       if (!isShortcut && !isSlash) return;
       event.preventDefault();
       openSearch();
@@ -79,12 +87,12 @@ export const TimelineSearch: React.FC = () => {
           openSearch();
           window.requestAnimationFrame(() => inputRef.current?.focus());
         }}
-        className="press inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+        className="press inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
         aria-label={t`Search tasks`}
-        title={t`Search tasks`}
+        aria-keyshortcuts="Meta+K Control+K /"
+        title={`${t`Search tasks`} (${searchShortcutLabel(platformName)})`}
       >
         <Search className="h-3.5 w-3.5" aria-hidden="true" />
-        <span className="font-medium tracking-wide">⌘K</span>
       </button>
     );
   }
