@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- Timeline scrolling is fast again: row heights are back to how they were, since fitting them to the days on screen slowed the timeline down.
+
 ## [0.10.54] - 2026-11-02
 ### Changed
 - Timeline rows now fit the days on screen: a busy day somewhere else no longer stretches a row for months. A row opens up smoothly as a busy week scrolls in and settles gently once you stop.
