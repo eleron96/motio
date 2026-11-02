@@ -85,9 +85,19 @@ describe('useTaskDisplayRows layout while scrolling', () => {
     const { result, rerender } = renderRows({ tasks: [early, a, b], visibleDays: march });
     const lanes = { a: laneOf(result, 'a'), b: laneOf(result, 'b') };
 
-    rerender({ tasks: [a, b], visibleDays: march });
+    // Scrolled on: the rendered days now start after "early" ends.
+    rerender({ tasks: [a, b], visibleDays: days('2026-03-06', 31) });
 
     expect({ a: laneOf(result, 'a'), b: laneOf(result, 'b') }).toEqual(lanes);
+  });
+
+  it('fills the hole a dragged task leaves in the stack', () => {
+    const stack = ['a', 'b', 'c', 'd'].map((id) => task(id, '2026-03-10', '2026-03-10'));
+    const { result, rerender } = renderRows({ tasks: stack, visibleDays: march });
+
+    rerender({ tasks: [stack[0], { ...stack[1], startDate: '2026-03-12', endDate: '2026-03-12' }, stack[2], stack[3]], visibleDays: march });
+
+    expect(['a', 'c', 'd', 'b'].map((id) => laneOf(result, id))).toEqual([0, 1, 2, 0]);
   });
 
   it('puts a task dragged to the next day in the top free lane of that day', () => {

@@ -45,6 +45,13 @@ export type ReservedPeriod = { startDate: string; endDate: string };
 /** Where a task sat in a row's last layout, and over which days. A TaskWithLane is one. */
 export type RememberedLane = { lane: number; startDate: string; endDate: string };
 
+/**
+ * The days a layout covers (the rendered days). A task gone from the row while
+ * its days are still inside was deleted or moved to another row; one gone from
+ * outside merely scrolled away.
+ */
+export type LayoutRange = { startDate: string; endDate: string };
+
 const overlapsReserved = (
   task: Task,
   reserved: ReservedPeriod[],
@@ -70,11 +77,18 @@ const overlapsReserved = (
  * changed (dragged, resized, moved by a teammate) are placed in the first free
  * lane — a moved bar kept its old lane and hung low under free lanes of its
  * new days.
+ *
+ * The place a task leaves by a change on screen — dragged or resized off its
+ * days, deleted, moved to another row — is filled: the bars under it on those
+ * days rise, and each one that rises frees its own place for the bars under
+ * it. Without that a moved bar left a hole in the stack. A task that only
+ * scrolled out of `layoutRange` frees nothing, so scrolling still moves no bar.
  */
 export const calculateTaskLanes = (
   tasks: Task[],
   reservedLaneZero: ReservedPeriod[] = [],
   previousLanes?: ReadonlyMap<string, RememberedLane>,
+  layoutRange?: LayoutRange,
 ): TaskWithLane[] => {
   if (tasks.length === 0) return [];
 
@@ -86,7 +100,7 @@ export const calculateTaskLanes = (
   });
 
   if (previousLanes && previousLanes.size > 0) {
-    return packKeepingLanes(sortedTasks, reservedLaneZero, previousLanes);
+    return packKeepingLanes(sortedTasks, reservedLaneZero, previousLanes, layoutRange);
   }
 
   const result: TaskWithLane[] = [];
@@ -131,6 +145,10 @@ export const calculateTaskLanes = (
 
 type LaneSpan = { startDate: string; endDate: string };
 
+const sharesDays = (left: LaneSpan, right: LaneSpan) => (
+  left.startDate <= right.endDate && right.startDate <= left.endDate
+);
+
 /** Index of the first span in `spans` (sorted by start) starting after `startDate`. */
 const upperBound = (spans: LaneSpan[], startDate: string) => {
   let low = 0;
@@ -153,8 +171,9 @@ const packKeepingLanes = (
   sortedTasks: Task[],
   reservedLaneZero: ReservedPeriod[],
   previousLanes: ReadonlyMap<string, RememberedLane>,
+  layoutRange: LayoutRange | undefined,
 ): TaskWithLane[] => {
-  const lanes: LaneSpan[][] = [];
+  const lanes: Array<Array<LaneSpan & { task: Task }>> = [];
   const assigned = new Map<Task, number>();
 
   const fits = (lane: number, task: Task) => {
@@ -171,9 +190,27 @@ const packKeepingLanes = (
   const place = (lane: number, task: Task) => {
     while (lanes.length <= lane) lanes.push([]);
     const spans = lanes[lane];
-    spans.splice(upperBound(spans, task.startDate), 0, { startDate: task.startDate, endDate: task.endDate });
+    spans.splice(upperBound(spans, task.startDate), 0, { startDate: task.startDate, endDate: task.endDate, task });
     assigned.set(task, lane);
   };
+  const unplace = (lane: number, task: Task) => {
+    const spans = lanes[lane];
+    spans.splice(spans.findIndex((span) => span.task === task), 1);
+    assigned.delete(task);
+  };
+
+  // Places freed by a change on screen (see calculateTaskLanes).
+  const current = new Map(sortedTasks.map((task) => [task.id, task]));
+  const vacated: Array<LaneSpan & { lane: number }> = [];
+  previousLanes.forEach((previous, id) => {
+    if (previous.lane < 0) return;
+    const now = current.get(id);
+    const moved = Boolean(now) && (now!.startDate !== previous.startDate || now!.endDate !== previous.endDate);
+    const removed = !now && Boolean(layoutRange) && sharesDays(previous, layoutRange!);
+    if (moved || removed) {
+      vacated.push({ lane: previous.lane, startDate: previous.startDate, endDate: previous.endDate });
+    }
+  });
 
   // Tasks that were laid out before on the same days keep their lane while it is free.
   for (const task of sortedTasks) {
@@ -188,6 +225,24 @@ const packKeepingLanes = (
     let lane = 0;
     while (!fits(lane, task)) lane += 1;
     place(lane, task);
+  }
+
+  // Bars under a freed place rise into it. Top lanes first: a bar that rises
+  // frees its own place for the bars under it, which come later.
+  if (vacated.length > 0) {
+    const byLane = [...sortedTasks].sort((left, right) => (
+      (assigned.get(left) as number) - (assigned.get(right) as number)
+      || left.startDate.localeCompare(right.startDate)
+    ));
+    for (const task of byLane) {
+      const lane = assigned.get(task) as number;
+      if (!vacated.some((place) => place.lane < lane && sharesDays(place, task))) continue;
+      unplace(lane, task);
+      let target = 0;
+      while (target < lane && !fits(target, task)) target += 1;
+      place(target, task);
+      if (target < lane) vacated.push({ lane, startDate: task.startDate, endDate: task.endDate });
+    }
   }
 
   return sortedTasks.map((task) => wrapWithLane(task, assigned.get(task) as number));

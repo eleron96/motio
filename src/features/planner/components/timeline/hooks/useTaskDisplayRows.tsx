@@ -159,6 +159,9 @@ export const useTaskDisplayRows = ({
       groupMode,
       reservedLaneZeroByRow,
       previousLanesByRow: readLayoutMemory()?.lanesByRow,
+      // Not a dependency either: the range alone changing (a scroll step)
+      // must not redo the layout; it is read when the tasks change anyway.
+      layoutRange: rangeStart && rangeEnd ? { startDate: rangeStart, endDate: rangeEnd } : undefined,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the memory is read, not tracked (see above)
     [filteredTasks, groupItems, groupMode, reservedLaneZeroByRow, layoutKey],
