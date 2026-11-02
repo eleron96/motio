@@ -16,7 +16,6 @@
     "src/features/planner/components/timeline/CalendarTimeline.tsx",
     "src/features/planner/components/timeline/TaskBar.tsx",
     "src/features/planner/components/timeline/TimelineGrid.tsx",
-    "src/features/projects/components/projectCard/TeamBlock.tsx",
     "src/features/projects/pages/ProjectsPage.tsx",
     "src/features/workspace/components/WorkspaceMembersPanel.tsx"
   ],

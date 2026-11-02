@@ -19,7 +19,7 @@ type GroupRecord = {
   name: string;
 };
 
-interface MembersMobileListProps {
+export interface MembersMobileListProps {
   /** Which list this deck page holds. */
   mode: 'tasks' | 'groups';
   isAdmin: boolean;
