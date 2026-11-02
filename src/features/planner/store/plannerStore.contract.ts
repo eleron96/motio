@@ -5,8 +5,6 @@ import {
   CustomerContact,
   Filters,
   GroupMode,
-  MemberGroup,
-  MemberGroupAssignment,
   Milestone,
   PlannerState,
   PlannerSurface,

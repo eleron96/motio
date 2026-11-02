@@ -36,13 +36,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Copy, MoreVertical, RotateCw, Trash2 } from 'lucide-react';
 import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useTaskRepeatConfig, PendingRepeatUpdate, buildRepeatConfigSignature } from '@/features/planner/hooks/useTaskRepeatConfig';
+import { useTaskRepeatConfig, buildRepeatConfigSignature } from '@/features/planner/hooks/useTaskRepeatConfig';
 import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
 import { useTaskDrafts, areArraysEqual } from '@/features/planner/hooks/useTaskDrafts';
 import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
@@ -60,8 +59,6 @@ import {
   buildCreateRepeatsOptions,
   getRepeatOccurrenceDate,
   resolveRepeatValidationMessage,
-  RepeatEnds,
-  RepeatFrequency,
 } from '@/features/planner/lib/taskFormRules';
 import { clampTaskDates, getMinEndDate } from '@/features/planner/lib/dateUtils';
 
@@ -265,17 +262,16 @@ export const TaskDetailPanel: React.FC = () => {
   const noProjectDisabled = groupMode === 'project';
 
   const {
-    repeatFrequency, setRepeatFrequency,
-    repeatEnds, setRepeatEnds,
-    repeatUntil, setRepeatUntil,
-    repeatCount, setRepeatCount,
+    repeatFrequency,
+    repeatEnds,
+    repeatUntil,
+    repeatCount,
     repeatError, setRepeatError,
     repeatNotice, setRepeatNotice,
     repeatCreating, setRepeatCreating,
     repeatScopeOpen, setRepeatScopeOpen,
     pendingRepeatUpdate, setPendingRepeatUpdate,
     repeatInFlightRef,
-    repeatUntilAutoRef,
     repeatConfigSnapshotRef,
     repeatConfigDirty,
     handleRepeatFrequencyChange,
@@ -285,9 +281,9 @@ export const TaskDetailPanel: React.FC = () => {
   } = useTaskRepeatConfig({ task: task ?? null, tasks, selectedTaskId });
 
   const {
-    subtasksOpen, setSubtasksOpen,
+    subtasksOpen,
     subtasksLoading,
-    subtasksError, setSubtasksError,
+    subtasksError,
     subtasks,
     newSubtaskTitle, setNewSubtaskTitle,
     completedSubtasksCount,

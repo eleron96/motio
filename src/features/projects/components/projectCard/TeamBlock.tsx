@@ -5,12 +5,10 @@ import { Button } from '@/shared/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';

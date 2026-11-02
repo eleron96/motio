@@ -2,11 +2,8 @@
   "unusedFiles": [],
   "unusedExports": [],
   "testOnlyExports": [
-    "src/features/auth/lib/recentSignOut.ts :: clearRecentSignOut",
     "src/features/planner/lib/calendarDayMarkers.ts :: TIME_OFF_HOLIDAY_CIRCLE_SCALE",
-    "src/infrastructure/holidays/holidayApi.ts :: resetHolidayCacheForTests",
-    "src/shared/contracts/actions.ts :: PUSH_ACTIONS",
-    "src/shared/domain/starterTemplate.ts :: findStarterTemplateProblems"
+    "src/infrastructure/holidays/holidayApi.ts :: resetHolidayCacheForTests"
   ],
   "unusedDependencies": [],
   "largeFiles": [

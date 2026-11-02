@@ -170,7 +170,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     strip.scrollLeft = pan.startLeft - dx;
   }, []);
 
-  const onStripPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+  const onStripPointerUp = useCallback(() => {
     const pan = panRef.current;
     panRef.current = null;
     if (!pan) return;

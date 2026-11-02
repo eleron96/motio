@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { findStarterTemplateProblems } from '@/shared/domain/starterTemplate';
+import { findStarterTemplateProblems } from '@/test/helpers/starterTemplateProblems';
 import { readPoCatalog } from '@/test/helpers/poCatalog';
 
 /**

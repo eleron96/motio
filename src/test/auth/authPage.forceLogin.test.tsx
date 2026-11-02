@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { markRecentSignOut, clearRecentSignOut } from '@/features/auth/lib/recentSignOut';
+import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ describe('AuthPage: forceLogin via forceLoginRef', () => {
   });
 
   it('passes forceLogin=false when no recent sign-out marker exists (auto-flow)', async () => {
-    clearRecentSignOut();
+    window.sessionStorage.clear();
 
     await renderAuthPage();
 
@@ -102,7 +102,7 @@ describe('AuthPage: forceLogin via forceLoginRef', () => {
   });
 
   it('passes forceLogin=false on manual button click when no recent sign-out marker', async () => {
-    clearRecentSignOut();
+    window.sessionStorage.clear();
 
     await renderAuthPage('?silent=1');
 

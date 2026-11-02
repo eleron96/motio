@@ -23,7 +23,6 @@ import {
 import { toast } from '@/shared/ui/sonner';
 import { ImageLightbox } from '@/shared/ui/image-lightbox';
 import { LightboxImage, getClickedLightboxImage } from '@/shared/lib/lightboxImage';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import type { TaskComment } from '@/features/planner/types/planner';
 import { sanitizeCommentHtml, deleteTaskComment, updateTaskComment } from '@/infrastructure/tasks/taskCommentsRepository';

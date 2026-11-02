@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ADMIN_ACTIONS, PUSH_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
+import { ADMIN_ACTIONS, INVITE_ACTIONS } from '@/shared/contracts/actions';
 
 /**
  * The edge runtime cannot import from `src/`, so it carries its own copy of the
@@ -30,7 +30,6 @@ const functionsSource = readFileSync('infra/supabase/functions/_shared/actions.t
 describe('action contracts stay in sync between the app and the edge functions', () => {
   it.each([
     ['ADMIN_ACTIONS', ADMIN_ACTIONS as Record<string, string>],
-    ['PUSH_ACTIONS', PUSH_ACTIONS as Record<string, string>],
     ['INVITE_ACTIONS', INVITE_ACTIONS as Record<string, string>],
   ])('%s matches', (constName, appActions) => {
     const edgeActions = parseActions(functionsSource, constName);

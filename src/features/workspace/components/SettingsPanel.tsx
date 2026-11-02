@@ -155,7 +155,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
   const [newTypeName, setNewTypeName] = useState('');
 
   const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState(DEFAULT_COLOR_PICKER_VALUE);
 
   const heatmapAutoCapacity = useDashboardStore((state) => state.heatmapAutoCapacity);
   const heatmapCapacityPlaceholder = heatmapAutoCapacity != null
@@ -390,7 +389,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
 
   const handleAddTag = () => {
     if (!newTagName.trim()) return;
-    addTag({ name: newTagName.trim(), color: newTagColor });
+    addTag({ name: newTagName.trim(), color: DEFAULT_COLOR_PICKER_VALUE });
     setNewTagName('');
   };
 

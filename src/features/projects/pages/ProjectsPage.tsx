@@ -33,7 +33,7 @@ import { format, parseISO } from 'date-fns';
 import {
   Plus,
 } from 'lucide-react';
-import { Assignee, Customer, Milestone, Project, Task } from '@/features/planner/types/planner';
+import { Assignee, Milestone, Project } from '@/features/planner/types/planner';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import {
@@ -371,10 +371,9 @@ const ProjectsPage = () => {
   const {
     newCustomerName, setNewCustomerName,
     createCustomerOpen, setCreateCustomerOpen,
-    editingCustomerId, setEditingCustomerId,
+    setEditingCustomerId,
     editingCustomerName, setEditingCustomerName,
     editingCustomerIndustry, setEditingCustomerIndustry,
-    editingCustomerOriginalName,
     renameCustomerOpen, setRenameCustomerOpen,
     renameCustomerConfirmOpen, setRenameCustomerConfirmOpen,
     deleteCustomerTarget, setDeleteCustomerTarget,
@@ -773,8 +772,6 @@ const ProjectsPage = () => {
     milestones,
     projects,
     sortedCustomers,
-    trackedProjectIds,
-    trackedProjectIdSet,
     projectById,
     customerById,
     nameSort,
@@ -808,7 +805,6 @@ const ProjectsPage = () => {
   } = useProjectSelection({
     projects,
     milestones,
-    customers,
     projectTasks,
     selectedProjectId,
     selectedMilestoneId,

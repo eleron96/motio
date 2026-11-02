@@ -3,7 +3,6 @@ import { t } from '@lingui/macro';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { ResponsiveSelect } from '@/shared/ui/responsive-select';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { getMinEndDate } from '@/features/planner/lib/dateUtils';

@@ -49,7 +49,6 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   task,
   position,
   dayWidth,
-  visibleDays,
   lane,
   canEdit,
   rowAssigneeId = null,
