@@ -1,7 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTaskActions } from '@/features/planner/store/plannerStore.taskActions';
+import { createTaskMoveActions } from '@/features/planner/store/plannerStore.taskMoveActions';
+import { createRepeatActions } from '@/features/planner/store/plannerStore.repeatActions';
+import { createSubtaskActions } from '@/features/planner/store/plannerStore.subtaskActions';
 import { mapTaskRow } from '@/shared/domain/taskRowMapper';
 import type { TaskRow } from '@/features/planner/store/plannerStore.helpers';
+
+// Task actions live in several store slices; these tests drive them together.
+const createAllTaskActions = (set: never, get: never) => ({
+  ...createTaskActions(set, get),
+  ...createTaskMoveActions(set, get),
+  ...createRepeatActions(set, get),
+  ...createSubtaskActions(set, get),
+});
 
 const supabaseMocks = vi.hoisted(() => ({
   from: vi.fn(),
@@ -157,7 +168,7 @@ describe('plannerStore partial-failure resync', () => {
     supabaseMocks.rpc.mockResolvedValue({ data: null, error: { message: 'Forced rebuild failure' } });
 
     const harness = makeHarness(dbRows);
-    const actions = createTaskActions(harness.set as never, harness.get as never);
+    const actions = createAllTaskActions(harness.set as never, harness.get as never);
 
     const result = await actions.updateRepeatSeries('task-1', {
       frequency: 'biweekly',
@@ -190,7 +201,7 @@ describe('plannerStore partial-failure resync', () => {
     });
 
     const harness = makeHarness(dbRows);
-    const actions = createTaskActions(harness.set as never, harness.get as never);
+    const actions = createAllTaskActions(harness.set as never, harness.get as never);
 
     await actions.removeAssigneeFromTask('task-1', 'u1', 'following');
 
@@ -217,7 +228,7 @@ describe('plannerStore partial-failure resync', () => {
     });
 
     const harness = makeHarness(dbRows);
-    const actions = createTaskActions(harness.set as never, harness.get as never);
+    const actions = createAllTaskActions(harness.set as never, harness.get as never);
 
     await actions.removeAssigneeFromTask('task-1', 'u1', 'following');
 

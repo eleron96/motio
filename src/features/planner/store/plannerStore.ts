@@ -6,7 +6,12 @@ import type { PlannerStore } from '@/features/planner/store/plannerStore.contrac
 import { initialFilters } from '@/features/planner/store/plannerStore.helpers';
 import { createWorkspaceActions } from '@/features/planner/store/plannerStore.workspaceActions';
 import { createTaskActions } from '@/features/planner/store/plannerStore.taskActions';
+import { createTaskMoveActions } from '@/features/planner/store/plannerStore.taskMoveActions';
+import { createRepeatActions } from '@/features/planner/store/plannerStore.repeatActions';
+import { createSubtaskActions } from '@/features/planner/store/plannerStore.subtaskActions';
 import { createCatalogActions } from '@/features/planner/store/plannerStore.catalogActions';
+import { createProjectActions } from '@/features/planner/store/plannerStore.projectActions';
+import { createCustomerActions } from '@/features/planner/store/plannerStore.customerActions';
 import { createTimeOffActions } from '@/features/planner/store/plannerStore.timeOffActions';
 import { createUndoActions } from '@/features/planner/store/plannerStore.undoActions';
 import { fetchTaskCommentCounts } from '@/infrastructure/tasks/taskCommentsRepository';
@@ -256,7 +261,12 @@ export const usePlannerStore = create<PlannerStore>()(
       // Крупные доменные блоки вынесены в отдельные action-модули для SRP и упрощения поддержки.
       ...createWorkspaceActions(set, get),
       ...createTaskActions(set, get),
+      ...createTaskMoveActions(set, get),
+      ...createRepeatActions(set, get),
+      ...createSubtaskActions(set, get),
       ...createCatalogActions(set, get),
+      ...createProjectActions(set, get),
+      ...createCustomerActions(set, get),
       ...createTimeOffActions(set, get),
       ...createUndoActions(set, get),
 
