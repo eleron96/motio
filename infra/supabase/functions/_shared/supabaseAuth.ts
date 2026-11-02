@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 export type WorkspaceRole = "viewer" | "editor" | "admin";
 
@@ -27,6 +27,11 @@ const makeRandomPassword = (length = 40) => {
 
 const toLowerEmail = (value: string) => value.trim().toLowerCase();
 
+// Result of a write that has nothing to return. A plain `{}` on success would
+// get `error?: undefined` from TypeScript, and `"error" in result` would then
+// stop telling the two cases apart.
+export type WriteOutcome = { error: string } | { ok: true };
+
 const sanitizeDisplayName = (displayName?: string | null) => {
   const normalized = displayName?.trim() ?? "";
   return normalized.length > 0 ? normalized : null;
@@ -41,7 +46,7 @@ export const createSupabaseClients = (supabaseUrl: string, serviceRoleKey: strin
 };
 
 export const listAllAuthUsers = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   options?: { perPage?: number; maxPages?: number },
 ) => {
   const perPage = options?.perPage && options.perPage > 0
@@ -79,7 +84,7 @@ export const listAllAuthUsers = async (
 };
 
 export const findAuthUserByEmail = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   email: string,
 ) => {
   const target = toLowerEmail(email);
@@ -97,7 +102,7 @@ export const findAuthUserByEmail = async (
 };
 
 export const ensureSupabaseUserByEmail = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   email: string,
 ) => {
   const normalizedEmail = toLowerEmail(email);
@@ -141,10 +146,10 @@ export const ensureSupabaseUserByEmail = async (
 };
 
 export const ensureProfileDisplayName = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   userId: string,
   displayName?: string | null,
-) => {
+): Promise<WriteOutcome> => {
   const normalized = sanitizeDisplayName(displayName);
 
   const { error } = await supabaseAdmin
@@ -156,11 +161,11 @@ export const ensureProfileDisplayName = async (
     return { error: error.message };
   }
 
-  return {};
+  return { ok: true };
 };
 
 export const getProfileMap = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   userIds: string[],
 ) => {
   const uniqueIds = Array.from(new Set(userIds.filter(Boolean)));
@@ -191,7 +196,7 @@ export const getProfileMap = async (
 };
 
 export const getRoleSnapshotMap = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   userIds?: string[],
 ) => {
   const uniqueIds = Array.from(new Set((userIds ?? []).filter(Boolean)));
@@ -265,7 +270,7 @@ const mergeProviders = (appMetadata: Record<string, unknown> | null | undefined)
 };
 
 export const ensureKeycloakIdentityLink = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   payload: {
     supabaseUserId: string;
     email: string;
@@ -273,7 +278,7 @@ export const ensureKeycloakIdentityLink = async (
     keycloakUserId: string;
     issuer?: string;
   },
-) => {
+): Promise<WriteOutcome> => {
   const normalizedEmail = toLowerEmail(payload.email);
   if (!normalizedEmail) {
     return { error: "Email is required." };
@@ -324,11 +329,11 @@ export const ensureKeycloakIdentityLink = async (
     }
   }
 
-  return {};
+  return { ok: true };
 };
 
 export const findKeycloakIdentityForUser = async (
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: SupabaseClient,
   userId: string,
 ) => {
   const result = await supabaseAdmin.rpc("get_keycloak_identity", {

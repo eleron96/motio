@@ -9,11 +9,7 @@ set -euo pipefail
 # infra/supabase/deno.check.json — kept outside functions/ so the edge-runtime
 # container (which mounts only that folder) never picks it up.
 #
-# The code predates this check and carries known type errors (mostly
-# untyped Supabase rows and unnarrowed result unions). The step is a ratchet:
-# it fails only when the error count grows past the baseline, so new code is
-# checked without blocking on the backlog. After fixing errors, lower it:
-#   infra/scripts/check-edge-functions.sh --write-baseline
+# Any type error fails the step.
 #
 # Needs `deno` 1.40.x (the version inside supabase/edge-runtime v1.41.2).
 # Without a local install:
@@ -30,7 +26,6 @@ if ! command -v deno >/dev/null 2>&1; then
   exit 1
 fi
 
-BASELINE_FILE="infra/scripts/edge-typecheck-baseline.txt"
 CONFIG="$PWD/infra/supabase/deno.check.json"
 
 set +e
@@ -38,33 +33,10 @@ output="$(cd infra/supabase/functions && deno check --no-lock --config "$CONFIG"
 status=$?
 set -e
 
-clean_output="$(printf '%s\n' "$output" | sed 's/\x1b\[[0-9;]*m//g' | grep -v '^Download ' || true)"
-errors="$(printf '%s\n' "$clean_output" | grep -cE 'TS[0-9]+ \[ERROR\]' || true)"
-
-if [[ $status -ne 0 && $errors -eq 0 ]]; then
-  # Not a type error: unresolved import, syntax error, network failure.
-  printf '%s\n' "$clean_output" >&2
-  echo "deno check failed before typechecking (see above)." >&2
+if [[ $status -ne 0 ]]; then
+  printf '%s\n' "$output" | sed 's/\x1b\[[0-9;]*m//g' | grep -v '^Download ' >&2 || true
+  echo "::error::Edge Functions typecheck failed (see above)." >&2
   exit 1
 fi
 
-if [[ "${1:-}" == "--write-baseline" ]]; then
-  echo "$errors" > "$BASELINE_FILE"
-  echo "Baseline set to $errors type errors."
-  exit 0
-fi
-
-baseline="$(tr -d '[:space:]' < "$BASELINE_FILE")"
-
-if (( errors > baseline )); then
-  printf '%s\n' "$clean_output" >&2
-  echo "::error::Edge Functions: $errors type errors, baseline is $baseline. Fix the new ones (listed above)." >&2
-  exit 1
-fi
-
-if (( errors < baseline )); then
-  echo "Edge Functions: $errors type errors, below the baseline of $baseline — lower it with --write-baseline."
-  exit 0
-fi
-
-echo "Edge Functions: $errors type errors (baseline $baseline), no new ones."
+echo "Edge Functions: no type errors."

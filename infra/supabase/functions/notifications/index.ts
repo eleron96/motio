@@ -288,8 +288,8 @@ const handleNotifications = async (req: Request) => {
   }
 
   const { data: payload, error } = await readJson<NotificationsPayload>(req);
-  if (error) {
-    return jsonResponse({ error }, 400);
+  if (error || !payload) {
+    return jsonResponse({ error: error ?? "Invalid JSON body" }, 400);
   }
 
   const action = payload.action;
