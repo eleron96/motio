@@ -1,7 +1,7 @@
 import type { ComponentType, LazyExoticComponent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { getSupabase } from '@/shared/lib/supabaseClient';
+import { fetchMyDailyBriefEgg } from '@/infrastructure/daily-brief/easterEggRepository';
 import { EASTER_EGGS_ENABLED, EGG_CATALOG, type EggKey, isEggKey } from './catalog';
 
 /** Hard cap so a hung RPC can never delay or block the brief. */
@@ -19,11 +19,9 @@ export const resolveEggKey = async (): Promise<EggKey | null> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
   try {
-    const { data, error } = await getSupabase()
-      .rpc('get_my_daily_brief_egg')
-      .abortSignal(controller.signal);
-    if (error) return null;
-    return isEggKey(data) ? data : null;
+    const result = await fetchMyDailyBriefEgg(controller.signal);
+    if ('error' in result) return null;
+    return isEggKey(result.key) ? result.key : null;
   } catch {
     return null;
   } finally {

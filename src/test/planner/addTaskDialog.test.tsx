@@ -108,6 +108,7 @@ vi.mock('@/features/planner/components/RichTextEditor', () => ({
 }));
 
 vi.mock('@/infrastructure/tasks/taskMediaRepository', () => ({
+  isTaskMediaStorageAvailable: () => true,
   uploadTaskMediaFile: mocks.upload,
   buildTaskMediaUrl: (image: { id: string; token: string }) => `https://app.example/functions/v1/task-media/${image.id}?token=${image.token}`,
 }));

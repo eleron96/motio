@@ -1,4 +1,7 @@
-import { supabase } from '@/shared/lib/supabaseClient';
+import {
+  fetchDailyBriefProfile,
+  saveDailyBriefShownDate,
+} from '@/infrastructure/daily-brief/dailyBriefProfileRepository';
 
 const storageKey = (userId: string) => `motio_daily_brief_${userId}`;
 
@@ -24,29 +27,15 @@ interface RemoteState {
 }
 
 const fetchRemoteState = async (userId: string): Promise<RemoteState> => {
-  const { data } = await supabase
-    .from('profiles')
-    .select('daily_brief_shown_date, preferences, created_at')
-    .eq('id', userId)
-    .single();
-
-  const prefs = (data?.preferences ?? {}) as Record<string, unknown>;
+  const profile = await fetchDailyBriefProfile(userId);
   // Если поле отсутствует — считаем включённым (обратная совместимость)
-  const enabled = prefs.daily_brief_enabled !== false;
-  const signedUpAt = data?.created_at as string | null | undefined;
+  const enabled = profile.preferences.daily_brief_enabled !== false;
 
   return {
-    shownDate: (data?.daily_brief_shown_date as string | null) ?? null,
+    shownDate: profile.shownDate,
     enabled,
-    signedUpDate: signedUpAt ? toLocalDateString(new Date(signedUpAt)) : null,
+    signedUpDate: profile.createdAt ? toLocalDateString(new Date(profile.createdAt)) : null,
   };
-};
-
-export const updateRemoteShownDate = async (userId: string, date: string): Promise<void> => {
-  await supabase
-    .from('profiles')
-    .update({ daily_brief_shown_date: date })
-    .eq('id', userId);
 };
 
 // --- Public API ---
@@ -59,7 +48,7 @@ export const markShownToday = (userId: string): void => {
   const today = toLocalDateString(new Date());
   setLocalShownDate(userId, today);
   // fire-and-forget — не блокируем UI
-  updateRemoteShownDate(userId, today).catch(() => {});
+  saveDailyBriefShownDate(userId, today).catch(() => {});
 };
 
 /**

@@ -8,7 +8,9 @@
 //   testOnlyExports                exports only tests use: code kept alive by its tests
 //   unusedDependencies             package.json entries nothing imports
 //   largeFiles                     files over 600 lines (AGENTS.md: god files)
-//   supabaseOutsideInfrastructure  feature code that talks to Supabase directly
+//   supabaseOutsideInfrastructure  feature code outside store/ that talks to
+//                                  Supabase directly (stores are the scenario
+//                                  layer and may sync, AGENTS.md §3)
 //   crossFeatureComponentImports   features/A importing features/B/components
 //
 // Old debt may stay; new debt may not. After fixing some, shrink the baseline:
@@ -150,6 +152,7 @@ const largeFiles = prodFiles
 const featureOf = (file) => rel(file).match(/^src\/features\/([^/]+)\//)?.[1] ?? null;
 const supabaseOutsideInfrastructure = prodFiles
   .filter((file) => featureOf(file) && featureOf(file) !== 'demo')
+  .filter((file) => !/^src\/features\/[^/]+\/store\//.test(rel(file)))
   .filter((file) => specifiers(text.get(file)).some((s) => s === '@supabase/supabase-js' || /(^|\/)supabaseClient$/.test(s)))
   .map(rel);
 

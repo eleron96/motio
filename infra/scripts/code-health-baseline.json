@@ -40,22 +40,7 @@
     "src/features/workspace/components/SettingsPanel.tsx",
     "src/features/workspace/components/WorkspaceMembersPanel.tsx"
   ],
-  "supabaseOutsideInfrastructure": [
-    "src/features/admin/store/adminStore.ts",
-    "src/features/announcements/hooks/useAnnouncements.ts",
-    "src/features/auth/providers/AuthProvider.tsx",
-    "src/features/auth/store/authStore.ts",
-    "src/features/daily-brief/easter-eggs/useEasterEgg.ts",
-    "src/features/daily-brief/lib/dailyBriefStorage.ts",
-    "src/features/dashboard/store/dashboardStore.ts",
-    "src/features/planner/hooks/useDraftSubtaskImages.ts",
-    "src/features/planner/hooks/usePlannerLiveSync.ts",
-    "src/features/planner/store/plannerStore.catalogActions.ts",
-    "src/features/planner/store/plannerStore.taskActions.ts",
-    "src/features/planner/store/plannerStore.timeOffActions.ts",
-    "src/features/planner/store/plannerStore.undoActions.ts",
-    "src/features/planner/store/plannerStore.workspaceActions.ts"
-  ],
+  "supabaseOutsideInfrastructure": [],
   "crossFeatureComponentImports": [
     "src/features/auth/components/AccountBadgeButton.tsx -> planner",
     "src/features/auth/components/AccountSettingsDialog.tsx -> workspace",

@@ -1,23 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/shared/lib/supabaseClient';
+import {
+  type AnnouncementLevel,
+  dismissAnnouncement,
+  fetchMyAnnouncements,
+} from '@/infrastructure/announcements/announcementsRepository';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
-
-export type AnnouncementLevel = 'info' | 'critical';
 
 export interface Announcement {
   id: string;
   title: string;
   body: string | null;
-  level: AnnouncementLevel;
-}
-
-interface AnnouncementRow {
-  id: string;
-  title_ru: string;
-  title_en: string;
-  body_ru: string | null;
-  body_en: string | null;
   level: AnnouncementLevel;
 }
 
@@ -43,15 +36,14 @@ export const useAnnouncements = () => {
     let active = true;
 
     const load = async () => {
-      const { data, error } = await supabase.rpc('get_my_announcements');
+      const result = await fetchMyAnnouncements();
       if (!active) return;
-      if (error) {
+      if ('error' in result) {
         // A missing announcement is not worth interrupting anyone over.
-        console.error(error);
+        console.error(result.error);
         return;
       }
-      const rows = (data ?? []) as AnnouncementRow[];
-      setAnnouncements(rows.map((row) => ({
+      setAnnouncements(result.rows.map((row) => ({
         id: row.id,
         title: locale === 'ru' ? row.title_ru : row.title_en,
         body: (locale === 'ru' ? row.body_ru : row.body_en) || null,
@@ -68,9 +60,7 @@ export const useAnnouncements = () => {
 
   const dismiss = useCallback(async (announcementId: string) => {
     setAnnouncements((current) => current.filter((item) => item.id !== announcementId));
-    const { error } = await supabase.rpc('dismiss_announcement', {
-      p_announcement_id: announcementId,
-    });
+    const { error } = await dismissAnnouncement(announcementId);
     if (error) console.error(error);
   }, []);
 

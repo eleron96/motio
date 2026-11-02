@@ -168,7 +168,7 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
 
 - **lint-test-build** — `npm run lint` → code health ratchet (`npm run check:health`:
   fails on new unused files, exports or dependencies, new files over 600 lines, new
-  direct Supabase access in features or new cross-feature
+  direct Supabase access in features outside their stores or new cross-feature
   component imports; the known backlog is in `infra/scripts/code-health-baseline.json`)
   → SQL security lint (`infra/scripts/lint-security-definer.sh`) → `npm run typecheck`
   → Edge Functions typecheck (`infra/scripts/check-edge-functions.sh`, Deno 1.40.3;

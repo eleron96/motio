@@ -59,7 +59,7 @@
 
 Границы (1) и (4) частично защищены правилом ESLint `no-restricted-imports` (`eslint.config.js`): нарушение валит линт, а значит и CI. Объём защиты:
 
-- (1): линт ловит только импорт `@/shared/lib/supabaseClient` в `features/*/pages` и `features/*/components`. Прямой `@supabase/*`, относительные пути к supabaseClient, `fetch`, а также код в `features/*/hooks` и `features/*/lib` линт не ловит — там граница держится на ревью.
+- (1): линт ловит импорт `@/shared/lib/supabaseClient` в `features/*/pages` и `features/*/components`. Храповик `npm run check:health` (§7.5 п.4) ловит шире: импорт `@supabase/supabase-js` или supabaseClient (любым путём) в любом файле `features/*`, кроме `store/` и `demo`. Хуку, провайдеру или `lib`, которым нужна база, — репозиторий в `src/infrastructure/*`. `fetch` не ловит никто — держится на ревью.
 - (4): в `shared/domain` запрещены `react`, `react-dom`, `@supabase/*`, `@tanstack/*`, `@/infrastructure/*` и `@/shared/lib/supabaseClient`. Правило матчит спецификаторы как написано: относительные пути к supabaseClient и subpath-импорты (`react-dom/client`) оно не поймает — не обходить запрет такими импортами.
 
 ## 4. Правило изменений
@@ -306,7 +306,7 @@ CI **не является гейтом мержа и деплоя**: `main` н�
 1. **Флаг фичи живёт, пока фича раскатывается.** Включён на проде, на тесте и по умолчанию у self-host — убрать флаг вместе с кодом ветки «выключено» и тестами на неё: `featureFlags.ts`, `infra/web/Dockerfile`, compose-файлы, `.env.example`, `install.sh`, `docs/configuration.md` и `docs/self-hosting.md`. Значения флагов на проде и тесте — `grep '^VITE_FEATURE' .env` на сервере (§9.0 п.1).
 2. **Временный код совместимости** (для вкладок со старой сборкой, переходных путей и т. п.) помечать комментарием `REMOVE-AFTER: ГГГГ-ММ-ДД — что убрать и почему`. Просроченную дату `npm run check:health` показывает предупреждением — тогда код убрать.
 3. **Удаляя код, удалять и тесты, которые проверяют только его.** Функция, которую вызывают одни тесты, — мёртвая: тест держит её на плаву.
-4. **Храповик `npm run check:health`** (`infra/scripts/check-code-health.mjs`, шаг CI «Code health ratchet») следит за `src/`: неиспользуемые файлы, экспорты и зависимости, экспорты только для тестов, файлы длиннее 600 строк, прямой Supabase в фичах, импорт `features/A` → `features/B/components`. Старое записано в `infra/scripts/code-health-baseline.json`, новое валит CI. Починил старое — обновить базу тем же коммитом (`node infra/scripts/check-code-health.mjs --write-baseline`). Добавлять в базу новое — только осознанно и с объяснением в сообщении коммита.
+4. **Храповик `npm run check:health`** (`infra/scripts/check-code-health.mjs`, шаг CI «Code health ratchet») следит за `src/`: неиспользуемые файлы, экспорты и зависимости, экспорты только для тестов, файлы длиннее 600 строк, прямой Supabase в фичах вне `store/`, импорт `features/A` → `features/B/components`. Старое записано в `infra/scripts/code-health-baseline.json`, новое валит CI. Починил старое — обновить базу тем же коммитом (`node infra/scripts/check-code-health.mjs --write-baseline`). Добавлять в базу новое — только осознанно и с объяснением в сообщении коммита.
 5. После влития ветки удалить её worktree и локальную ветку; кадры, трейсы и профили браузера — во временную папку, не в `notes/` (§2).
 6. В разрешения агента (`.claude/settings.local.json`) не сохранять команды с паролями и токенами.
 

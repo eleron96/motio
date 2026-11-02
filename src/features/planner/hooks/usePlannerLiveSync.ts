@@ -1,14 +1,21 @@
 import { createElement, useEffect, useRef } from 'react';
 import { WifiOff } from 'lucide-react';
-import { supabase } from '@/shared/lib/supabaseClient';
 import { toast } from 'sonner';
 import { t } from '@lingui/macro';
-import { Milestone, MilestoneStatusOverride, TaskPriority } from '@/features/planner/types/planner';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import type { LoadedTaskWindow } from '@/features/planner/store/plannerStore.helpers';
+import {
+  mapMilestoneRow,
+  mapTimeOffRow,
+  type LoadedTaskWindow,
+} from '@/features/planner/store/plannerStore.helpers';
 import { fetchBoardTaskIds, fetchTaskDeltaSince } from '@/infrastructure/tasks/boardTasksRepository';
-
-import { mapTaskRow, type TaskMappedRow } from '@/shared/domain/taskRowMapper';
+import {
+  fetchMilestoneRowsByIds,
+  fetchPlannerChanges,
+  fetchTasksByIds,
+  fetchTimeOffRowsInWindow,
+} from '@/infrastructure/planner/plannerLiveRepository';
+import { openPlannerLiveChannel } from '@/infrastructure/planner/plannerLiveChannel';
 import {
   isTaskInBoardScope,
   isTaskInLoadScopes,
@@ -17,70 +24,6 @@ import {
 } from '@/shared/domain/taskLoadScopes';
 
 type LoadedRange = LoadedTaskWindow;
-
-type TaskSyncRow = TaskMappedRow & {
-  workspace_id: string;
-  priority: TaskPriority | null;
-  updated_at: string;
-};
-
-type MilestoneSyncRow = {
-  id: string;
-  workspace_id: string;
-  title: string;
-  project_id: string;
-  date: string;
-  note: string | null;
-  status_override: MilestoneStatusOverride | null;
-  include_in_workload?: boolean | null;
-  updated_at: string;
-};
-
-type TimeOffSyncRow = {
-  id: string;
-  workspace_id: string;
-  assignee_id: string;
-  start_date: string;
-  end_date: string;
-  note: string | null;
-};
-
-type TaskCommentSyncRow = {
-  task_id: string;
-  updated_at: string;
-};
-
-const TASK_SELECT = [
-  'id',
-  'workspace_id',
-  'title',
-  'project_id',
-  'assignee_id',
-  'assignee_ids',
-  'start_date',
-  'end_date',
-  'status_id',
-  'type_id',
-  'priority',
-  'tag_ids',
-  'description',
-  'repeat_id',
-  'repeat_ends',
-  'created_at',
-  'updated_at',
-].join(',');
-
-const MILESTONE_SELECT = [
-  'id',
-  'workspace_id',
-  'title',
-  'project_id',
-  'date',
-  'note',
-  'status_override',
-  'include_in_workload',
-  'updated_at',
-].join(',');
 
 const EVENT_FLUSH_MS = 320;
 const EVENT_BATCH_SIZE = 120;
@@ -96,16 +39,6 @@ const FOCUS_RECONCILE_COALESCE_MS = 2_000;
 // switching between tabs doesn't need a full reconcile every time.
 const FOCUS_RECONCILE_MIN_INTERVAL_MS = 60_000;
 
-const mapMilestoneRow = (row: MilestoneSyncRow): Milestone => ({
-  id: row.id,
-  title: row.title,
-  projectId: row.project_id,
-  date: row.date,
-  note: row.note,
-  statusOverride: row.status_override,
-  includeInWorkload: row.include_in_workload ?? true,
-});
-
 const takeFromSet = (source: Set<string>, limit: number) => {
   const values: string[] = [];
   for (const value of source) {
@@ -114,28 +47,6 @@ const takeFromSet = (source: Set<string>, limit: number) => {
     if (values.length >= limit) break;
   }
   return values;
-};
-
-const fetchTaskCommentDeltaRows = async (
-  workspaceId: string,
-  since: string,
-): Promise<{ data: TaskCommentSyncRow[]; error: { message: string } | null }> => {
-  const { data, error } = await supabase
-    .from('task_comments')
-    .select('task_id,updated_at')
-    .eq('workspace_id', workspaceId)
-    .gt('updated_at', since)
-    .order('updated_at', { ascending: true })
-    .limit(1000);
-
-  if (error) {
-    return { data: [], error };
-  }
-
-  return {
-    data: (data ?? []) as TaskCommentSyncRow[],
-    error: null,
-  };
 };
 
 export const usePlannerLiveSync = (
@@ -271,26 +182,20 @@ export const usePlannerLiveSync = (
               const taskUpsertIds = takeFromSet(pendingTaskUpserts, EVENT_BATCH_SIZE);
               if (taskUpsertIds.length > 0) {
                 const taskQueryEpoch = lifecycleEpoch;
-                const { data, error } = await supabase
-                  .from('tasks')
-                  .select(TASK_SELECT)
-                  .eq('workspace_id', workspaceRef)
-                  .in('id', taskUpsertIds);
+                const tasksRes = await fetchTasksByIds(workspaceRef, taskUpsertIds);
 
                 if (!isLifecycleActive(taskQueryEpoch)) {
                   break;
                 }
 
-                if (error) {
-                  console.error(error);
+                if ('error' in tasksRes) {
+                  console.error(tasksRes.error);
                   taskUpsertIds.forEach((id) => pendingTaskUpserts.add(id));
                   reconcileRequested = true;
                 } else {
-                  const rows = (data ?? []) as unknown as TaskSyncRow[];
                   const scopes = currentScopes();
                   const scopedById = new Map(
-                    rows
-                      .map(mapTaskRow)
+                    tasksRes.data
                       .filter((task) => isTaskInLoadScopes(task, scopes))
                       .map((task) => [task.id, task]),
                   );
@@ -309,22 +214,18 @@ export const usePlannerLiveSync = (
               const milestoneUpsertIds = takeFromSet(pendingMilestoneUpserts, EVENT_BATCH_SIZE);
               if (milestoneUpsertIds.length > 0) {
                 const milestoneQueryEpoch = lifecycleEpoch;
-                const { data, error } = await supabase
-                  .from('milestones')
-                  .select(MILESTONE_SELECT)
-                  .eq('workspace_id', workspaceRef)
-                  .in('id', milestoneUpsertIds);
+                const milestonesRes = await fetchMilestoneRowsByIds(workspaceRef, milestoneUpsertIds);
 
                 if (!isLifecycleActive(milestoneQueryEpoch)) {
                   break;
                 }
 
-                if (error) {
-                  console.error(error);
+                if ('error' in milestonesRes) {
+                  console.error(milestonesRes.error);
                   milestoneUpsertIds.forEach((id) => pendingMilestoneUpserts.add(id));
                   reconcileRequested = true;
                 } else {
-                  const rows = (data ?? []) as unknown as MilestoneSyncRow[];
+                  const rows = milestonesRes.data;
                   const returnedIds = new Set(rows.map((row) => row.id));
                   if (rows.length > 0) {
                     upsertMilestones(rows.map(mapMilestoneRow));
@@ -387,41 +288,11 @@ export const usePlannerLiveSync = (
             const milestoneSince = lastMilestoneSyncAtRef.current ?? nowIso;
             const taskCommentSince = lastTaskCommentSyncAtRef.current ?? nowIso;
 
-            const [
-              taskDeltaRes,
-              milestoneDeltaRes,
-              taskIdsRes,
-              milestoneIdsRes,
-              taskCommentDeltaRes,
-            ] = await Promise.all([
-              supabase
-                .from('tasks')
-                .select(TASK_SELECT)
-                .eq('workspace_id', workspaceRef)
-                .gt('updated_at', taskSince)
-                .gte('end_date', rangeRef.start)
-                .lte('start_date', rangeRef.end)
-                .order('updated_at', { ascending: true })
-                .limit(1000),
-              supabase
-                .from('milestones')
-                .select(MILESTONE_SELECT)
-                .eq('workspace_id', workspaceRef)
-                .gt('updated_at', milestoneSince)
-                .order('updated_at', { ascending: true })
-                .limit(1000),
-              supabase
-                .from('tasks')
-                .select('id')
-                .eq('workspace_id', workspaceRef)
-                .gte('end_date', rangeRef.start)
-                .lte('start_date', rangeRef.end),
-              supabase
-                .from('milestones')
-                .select('id')
-                .eq('workspace_id', workspaceRef),
-              fetchTaskCommentDeltaRows(workspaceRef, taskCommentSince),
-            ]);
+            const changesRes = await fetchPlannerChanges(workspaceRef, rangeRef, {
+              tasks: taskSince,
+              milestones: milestoneSince,
+              comments: taskCommentSince,
+            });
             // The board has no date window: its delta and id list are
             // workspace-wide. Only fetched while a board scope is claimed.
             const [boardDeltaRes, boardIdsRes] = reconcileBoard
@@ -437,22 +308,8 @@ export const usePlannerLiveSync = (
 
             const boardError = (boardDeltaRes && 'error' in boardDeltaRes ? boardDeltaRes.error : null)
               ?? (boardIdsRes && 'error' in boardIdsRes ? boardIdsRes.error : null);
-            if (
-              taskDeltaRes.error
-              || milestoneDeltaRes.error
-              || taskIdsRes.error
-              || milestoneIdsRes.error
-              || taskCommentDeltaRes.error
-              || boardError
-            ) {
-              console.error(
-                taskDeltaRes.error
-                ?? milestoneDeltaRes.error
-                ?? taskIdsRes.error
-                ?? milestoneIdsRes.error
-                ?? taskCommentDeltaRes.error
-                ?? boardError,
-              );
+            if ('error' in changesRes || boardError) {
+              console.error('error' in changesRes ? changesRes.error : boardError);
               growFallbackFailures();
               if (
                 !channelHealthy
@@ -477,21 +334,25 @@ export const usePlannerLiveSync = (
               continue;
             }
 
-            const taskRows = (taskDeltaRes.data ?? []) as unknown as TaskSyncRow[];
-            const milestoneRows = (milestoneDeltaRes.data ?? []) as unknown as MilestoneSyncRow[];
-            const taskCommentRows = (taskCommentDeltaRes.data ?? []) as TaskCommentSyncRow[];
+            const {
+              changedTasks,
+              changedMilestones,
+              windowTaskIds,
+              milestoneIds,
+              commentedTaskIds,
+            } = changesRes.data;
 
             const boardDeltaTasks = boardDeltaRes && 'data' in boardDeltaRes && reconcileBoard
               ? boardDeltaRes.data.filter((task) => isTaskInBoardScope(task, reconcileBoard))
               : [];
-            if (taskRows.length > 0 || boardDeltaTasks.length > 0) {
-              upsertTasks([...taskRows.map(mapTaskRow), ...boardDeltaTasks]);
+            if (changedTasks.length > 0 || boardDeltaTasks.length > 0) {
+              upsertTasks([...changedTasks, ...boardDeltaTasks]);
             }
-            if (milestoneRows.length > 0) {
-              upsertMilestones(milestoneRows.map(mapMilestoneRow));
+            if (changedMilestones.length > 0) {
+              upsertMilestones(changedMilestones.map(mapMilestoneRow));
             }
 
-            const remoteTaskIds = new Set(((taskIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
+            const remoteTaskIds = new Set(windowTaskIds);
             const remoteBoardIds = new Set(boardIdsRes && 'data' in boardIdsRes ? boardIdsRes.data : []);
             // A local task is stale when a scope it belongs to locally no
             // longer claims it remotely, and no other scope does either.
@@ -511,7 +372,7 @@ export const usePlannerLiveSync = (
 
             // The id list above is the full workspace set (milestones are not
             // windowed), so any local milestone missing from it was deleted.
-            const remoteMilestoneIds = new Set(((milestoneIdsRes.data ?? []) as Array<{ id: string }>).map((row) => row.id));
+            const remoteMilestoneIds = new Set(milestoneIds);
             const staleMilestoneIds = usePlannerStore.getState().milestones
               .filter((milestone) => !remoteMilestoneIds.has(milestone.id))
               .map((milestone) => milestone.id);
@@ -519,14 +380,10 @@ export const usePlannerLiveSync = (
               removeMilestonesByIds(staleMilestoneIds);
             }
 
-            const taskCommentRefreshIds = new Set(
-              taskCommentRows
-                .map((row) => row.task_id)
-                .filter((taskId): taskId is string => typeof taskId === 'string' && taskId.length > 0),
-            );
-            taskRows.forEach((row) => {
-              if (isTaskInWindow(mapTaskRow(row), rangeRef)) {
-                taskCommentRefreshIds.add(row.id);
+            const taskCommentRefreshIds = new Set(commentedTaskIds);
+            changedTasks.forEach((task) => {
+              if (isTaskInWindow(task, rangeRef)) {
+                taskCommentRefreshIds.add(task.id);
               }
             });
             boardDeltaTasks.forEach((task) => taskCommentRefreshIds.add(task.id));
@@ -623,26 +480,13 @@ export const usePlannerLiveSync = (
       // rangeRef is the window this effect was built for — the same source the
       // task pipeline uses, and unlike store.loadedRange it is guaranteed to be
       // in sync with workspaceRef for the lifetime of this subscription.
-      const range = rangeRef;
-      const { data, error } = await supabase
-        .from('time_off')
-        .select('id, workspace_id, assignee_id, start_date, end_date, note')
-        .eq('workspace_id', workspaceRef)
-        .gte('end_date', range.start)
-        .lte('start_date', range.end);
-      if (!active || error || !data) {
-        if (error) console.error(error);
+      const timeOffRes = await fetchTimeOffRowsInWindow(workspaceRef, rangeRef);
+      if (!active) return;
+      if ('error' in timeOffRes) {
+        console.error(timeOffRes.error);
         return;
       }
-      usePlannerStore.getState().setTimeOff(
-        (data as TimeOffSyncRow[]).map((row) => ({
-          id: row.id,
-          assigneeId: row.assignee_id,
-          startDate: row.start_date,
-          endDate: row.end_date,
-          note: row.note ?? null,
-        })),
-      );
+      usePlannerStore.getState().setTimeOff(timeOffRes.data.map(mapTimeOffRow));
     };
 
     const queueTimeOffRefresh = () => {
@@ -733,92 +577,31 @@ export const usePlannerLiveSync = (
 
     const buildChannel = () => {
       const epoch = channelEpoch;
-      return supabase
-      .channel(`planner-live-${workspaceRef}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'task_comments',
-          filter: `workspace_id=eq.${workspaceRef}`,
-        },
-        (payload) => {
+      return openPlannerLiveChannel(workspaceRef, {
+        onTaskCommentChange: (taskId) => {
           if (!active) return;
-          const changedTaskId = payload.eventType === 'DELETE'
-            ? (payload.old as { task_id?: unknown } | null)?.task_id
-            : (payload.new as { task_id?: unknown } | null)?.task_id;
-          if (typeof changedTaskId === 'string') {
-            queueTaskCommentCountRefresh(changedTaskId);
-          }
+          queueTaskCommentCountRefresh(taskId);
         },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tasks',
-          filter: `workspace_id=eq.${workspaceRef}`,
-        },
-        (payload) => {
+        onTaskChange: ({ id, deleted }) => {
           if (!active) return;
-          if (payload.eventType === 'DELETE') {
-            const deletedId = (payload.old as { id?: unknown } | null)?.id;
-            if (typeof deletedId === 'string') {
-              queueTaskDelete(deletedId);
-            }
-            return;
-          }
-          const changedId = (payload.new as { id?: unknown } | null)?.id;
-          if (typeof changedId === 'string') {
-            queueTaskUpsert(changedId);
-          }
+          if (deleted) queueTaskDelete(id);
+          else queueTaskUpsert(id);
         },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'milestones',
-          filter: `workspace_id=eq.${workspaceRef}`,
-        },
-        (payload) => {
+        onMilestoneChange: ({ id, deleted }) => {
           if (!active) return;
-          if (payload.eventType === 'DELETE') {
-            const deletedId = (payload.old as { id?: unknown } | null)?.id;
-            if (typeof deletedId === 'string') {
-              queueMilestoneDelete(deletedId);
-            }
-            return;
-          }
-          const changedId = (payload.new as { id?: unknown } | null)?.id;
-          if (typeof changedId === 'string') {
-            queueMilestoneUpsert(changedId);
-          }
+          if (deleted) queueMilestoneDelete(id);
+          else queueMilestoneUpsert(id);
         },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'time_off',
-          filter: `workspace_id=eq.${workspaceRef}`,
-        },
-        () => {
+        // Absences are few: a change refetches the window.
+        onTimeOffChange: () => {
           if (!active) return;
-          // DELETE payloads only carry the identity columns, and the table is
-          // REPLICA IDENTITY FULL (migration 0131) so the workspace filter above
-          // still matches them. Either way a refetch is the whole reconcile.
           queueTimeOffRefresh();
         },
-      )
-      .subscribe((status) => handleChannelStatus(status, epoch));
+        onStatus: (status) => handleChannelStatus(status, epoch),
+      });
     };
 
-    let channel = buildChannel();
+    let closeChannel = buildChannel();
 
     // When the tab regains focus or the network comes back, the realtime
     // client's internal reconnect/heartbeat timers may still be on a long
@@ -833,17 +616,17 @@ export const usePlannerLiveSync = (
       if (now - lastReconnectAttemptAt < 4000) return;
       lastReconnectAttemptAt = now;
       reconnectInFlight = true;
-      const staleChannel = channel;
+      const closeStaleChannel = closeChannel;
       channelEpoch += 1;
       try {
-        await supabase.removeChannel(staleChannel);
+        await closeStaleChannel();
       } catch (error) {
         console.error(error);
       } finally {
         reconnectInFlight = false;
       }
       if (!active) return;
-      channel = buildChannel();
+      closeChannel = buildChannel();
     };
 
     const handleVisibilityOrFocus = () => {
@@ -895,7 +678,7 @@ export const usePlannerLiveSync = (
           document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
         }
       }
-      void supabase.removeChannel(channel);
+      void closeChannel();
     };
   }, [
     loadedRange,
