@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { t } from '@lingui/macro';
 import { Assignee, Filters, GroupMode, Project, Task } from '@/features/planner/types/planner';
 import { EMPTY_TIME_OFF_INDEX, timeOffMinLanes, timeOffReservedPeriods, type TimeOffIndex } from '@/features/planner/lib/timeOff';
-import type { ReservedPeriod } from '@/features/planner/lib/taskLanes';
+import type { RememberedLane, ReservedPeriod } from '@/features/planner/lib/taskLanes';
 import {
   buildTimelineDisplayRows,
   calculateTimelineRowHeights,
@@ -46,7 +46,7 @@ interface UseTaskDisplayRowsParams {
 
 type LayoutMemory = {
   key: string;
-  lanesByRow: Map<string, Map<string, number>>;
+  lanesByRow: Map<string, Map<string, RememberedLane>>;
   heights: Record<string, number>;
 };
 
@@ -197,10 +197,10 @@ export const useTaskDisplayRows = ({
   }, [tasksByRow, effectiveMinRowHeight, minLanesByRow, layoutKey]);
 
   useEffect(() => {
-    const lanesByRow = new Map<string, Map<string, number>>();
+    const lanesByRow = new Map<string, Map<string, RememberedLane>>();
     Object.entries(tasksByRow).forEach(([rowId, rowTasks]) => {
       if (rowTasks.length === 0) return;
-      lanesByRow.set(rowId, new Map(rowTasks.map((task) => [task.id, task.lane])));
+      lanesByRow.set(rowId, new Map(rowTasks.map((task) => [task.id, task])));
     });
     layoutMemoryRef.current = { key: layoutKey, lanesByRow, heights: rowHeights };
   }, [layoutKey, rowHeights, tasksByRow]);

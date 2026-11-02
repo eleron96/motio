@@ -1,5 +1,5 @@
 import { Assignee, Filters, GroupMode, MemberGroupAssignment, Project, Task } from '@/features/planner/types/planner';
-import { ReservedPeriod, TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
+import { RememberedLane, ReservedPeriod, TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 
@@ -190,8 +190,8 @@ export const groupTasksByTimelineRow = ({
    * grouping passes them — a project row has no person to be away.
    */
   reservedLaneZeroByRow?: Record<string, ReservedPeriod[]>;
-  /** Per row, task id → lane in the last layout: bars keep their lanes (calculateTaskLanes). */
-  previousLanesByRow?: ReadonlyMap<string, ReadonlyMap<string, number>>;
+  /** Per row, task id → lane and days in the last layout: bars keep their lanes (calculateTaskLanes). */
+  previousLanesByRow?: ReadonlyMap<string, ReadonlyMap<string, RememberedLane>>;
 }): Record<string, TaskWithLane[]> => {
   const grouped: Record<string, TaskWithLane[]> = {};
   groupItems.forEach((item) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Task } from '@/features/planner/types/planner';
-import { calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
+import { calculateTaskLanes, getMaxLanes, type TaskWithLane } from '@/features/planner/lib/taskLanes';
 
 const makeTask = (overrides: Partial<Task>): Task => ({
   id: 'task-id',
@@ -174,7 +174,7 @@ describe('calculateTaskLanes — referential identity (memo stability)', () => {
 });
 
 describe('calculateTaskLanes — keeping lanes from the last layout', () => {
-  const lanesOf = (rows: Array<{ id: string; lane: number }>) => new Map(rows.map((row) => [row.id, row.lane]));
+  const lanesOf = (rows: TaskWithLane[]) => new Map(rows.map((row) => [row.id, row]));
   const overlapsInLane = (rows: Array<Task & { lane: number }>) => rows.some((left, i) => rows.some((right, j) => (
     i < j && left.lane === right.lane && left.startDate <= right.endDate && right.startDate <= left.endDate
   )));
@@ -223,9 +223,57 @@ describe('calculateTaskLanes — keeping lanes from the last layout', () => {
     expect(byId(after, 'b').lane).toBe(1);
   });
 
+  it('places a task dragged to the next day in the first free lane of that day', () => {
+    // 10 Feb is busy, 11 Feb has one task: the bar dropped on 11 Feb must not
+    // hang in lane 3 with lanes 1-2 free above it.
+    const a = makeTask({ id: 'a', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const b = makeTask({ id: 'b', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const c = makeTask({ id: 'c', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const dragged = makeTask({ id: 'dragged', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const next = makeTask({ id: 'next', startDate: '2026-02-11', endDate: '2026-02-11' });
+    const before = calculateTaskLanes([a, b, c, dragged, next]);
+    expect(byId(before, 'dragged').lane).toBe(3);
+    expect(byId(before, 'next').lane).toBe(0);
+
+    const dropped = makeTask({ id: 'dragged', startDate: '2026-02-11', endDate: '2026-02-11' });
+    const after = calculateTaskLanes([a, b, c, dropped, next], [], lanesOf(before));
+
+    expect(byId(after, 'dragged').lane).toBe(1);
+    ['a', 'b', 'c', 'next'].forEach((id) => expect(byId(after, id).lane, id).toBe(byId(before, id).lane));
+  });
+
+  it('places a resized task anew too: its days changed', () => {
+    const a = makeTask({ id: 'a', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const resized = makeTask({ id: 'resized', startDate: '2026-02-11', endDate: '2026-02-11' });
+    // The last layout had it in lane 2 (lanes above were taken then).
+    const previous = new Map([
+      ['a', { lane: 0, startDate: a.startDate, endDate: a.endDate }],
+      ['resized', { lane: 2, startDate: resized.startDate, endDate: resized.endDate }],
+    ]);
+
+    const after = calculateTaskLanes([a, { ...resized, endDate: '2026-02-12' }], [], previous);
+
+    expect(byId(after, 'resized').lane).toBe(0);
+  });
+
+  it('does not lift a bar whose days stayed, even when its task changed otherwise', () => {
+    // Scrolling and edits that keep the dates (a title, a status) never move a
+    // bar, though a lane above it is free now.
+    const kept = makeTask({ id: 'kept', startDate: '2026-02-10', endDate: '2026-02-12' });
+    const previous = new Map([['kept', { lane: 2, startDate: kept.startDate, endDate: kept.endDate }]]);
+
+    const after = calculateTaskLanes([{ ...kept, title: 'Renamed' }], [], previous);
+
+    expect(byId(after, 'kept').lane).toBe(2);
+  });
+
   it('keeps a task out of lane 0 where a time-off bar holds it', () => {
     const a = makeTask({ id: 'a', startDate: '2026-02-10', endDate: '2026-02-12' });
-    const after = calculateTaskLanes([a], [{ startDate: '2026-02-11', endDate: '2026-02-11' }], new Map([['a', 0]]));
+    const after = calculateTaskLanes(
+      [a],
+      [{ startDate: '2026-02-11', endDate: '2026-02-11' }],
+      new Map([['a', { lane: 0, startDate: a.startDate, endDate: a.endDate }]]),
+    );
     expect(byId(after, 'a').lane).toBe(1);
   });
 
@@ -238,7 +286,10 @@ describe('calculateTaskLanes — keeping lanes from the last layout', () => {
         const start = Math.floor(random() * 40);
         return makeTask({ id: `t${index}`, startDate: day(start), endDate: day(start + Math.floor(random() * 6)) });
       });
-      const previous = new Map(tasks.map((task) => [task.id, Math.floor(random() * 5)]));
+      const previous = new Map(tasks.map((task) => [
+        task.id,
+        { lane: Math.floor(random() * 5), startDate: task.startDate, endDate: task.endDate },
+      ]));
       const result = calculateTaskLanes(tasks, [], previous);
       expect(result).toHaveLength(tasks.length);
       expect(overlapsInLane(result)).toBe(false);

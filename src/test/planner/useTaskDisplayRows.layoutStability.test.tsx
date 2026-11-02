@@ -90,6 +90,19 @@ describe('useTaskDisplayRows layout while scrolling', () => {
     expect({ a: laneOf(result, 'a'), b: laneOf(result, 'b') }).toEqual(lanes);
   });
 
+  it('puts a task dragged to the next day in the top free lane of that day', () => {
+    const busy = ['a', 'b', 'c'].map((id) => task(id, '2026-03-10', '2026-03-10'));
+    const dragged = task('dragged', '2026-03-10', '2026-03-10');
+    const next = task('next', '2026-03-11', '2026-03-11');
+    const { result, rerender } = renderRows({ tasks: [...busy, dragged, next], visibleDays: march });
+    expect(laneOf(result, 'dragged')).toBe(3);
+
+    rerender({ tasks: [...busy, { ...dragged, startDate: '2026-03-11', endDate: '2026-03-11' }, next], visibleDays: march });
+
+    expect(laneOf(result, 'dragged')).toBe(1);
+    expect(['a', 'b', 'c', 'next'].map((id) => laneOf(result, id))).toEqual([0, 1, 2, 0]);
+  });
+
   it('does not shrink a row when a busy stretch scrolls out of the rendered days', () => {
     const busy = Array.from({ length: 3 }, (_, index) => task(`busy-${index}`, '2026-03-05', '2026-03-06'));
     const later = task('later', '2026-04-10', '2026-04-11');
