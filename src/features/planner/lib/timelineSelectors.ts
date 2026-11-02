@@ -2,6 +2,7 @@ import { Assignee, Filters, GroupMode, MemberGroupAssignment, Project, Task } fr
 import { LayoutRange, RememberedLane, ReservedPeriod, TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
+import { ROW_BOTTOM_SPACE, ROW_TOP_PADDING } from '@/features/planner/lib/dateUtils';
 
 export type TimelineGroupItem = {
   id: string;
@@ -266,7 +267,8 @@ export const calculateTimelineRowHeights = (
     // getMaxLanes returns 1 for an empty row, so a row whose only content is the
     // bar still gets exactly one lane.
     const lanes = Math.max(getMaxLanes(rowTasks), minLanes);
-    const calculatedHeight = 16 + lanes * (options.taskHeight + options.taskGap);
+    const barsBottom = ROW_TOP_PADDING + lanes * (options.taskHeight + options.taskGap) - options.taskGap;
+    const calculatedHeight = barsBottom + ROW_BOTTOM_SPACE;
     heights[groupId] = Math.max(options.minRowHeight, calculatedHeight);
   });
   return heights;

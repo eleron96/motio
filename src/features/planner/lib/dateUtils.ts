@@ -25,6 +25,9 @@ export const MIN_ROW_HEIGHT = 56; // minimum pixels per row
 export const TASK_HEIGHT = 40; // height of task bar
 export const TASK_GAP = 4; // gap between stacked tasks
 export const ROW_TOP_PADDING = 8; // breathing room between row top border and the first task bar
+// Free strip under the last task bar of a row. People double-click (double-tap
+// on a phone) there to add a task on that day, so it is a full tap target.
+export const ROW_BOTTOM_SPACE = 44;
 export const HEADER_HEIGHT = 56; // pixels for timeline header (day row only)
 export const SIDEBAR_WIDTH = 200; // pixels for left sidebar
 const TIMELINE_VISIBLE_MONTHS = 2;
