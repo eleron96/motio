@@ -42,14 +42,9 @@
   ],
   "supabaseOutsideInfrastructure": [],
   "crossFeatureComponentImports": [
-    "src/features/auth/components/AccountBadgeButton.tsx -> planner",
-    "src/features/auth/components/AccountSettingsDialog.tsx -> workspace",
-    "src/features/auth/components/AvatarWithEditButton.tsx -> planner",
     "src/features/dashboard/pages/DashboardPage.tsx -> workspace",
     "src/features/demo/pages/DemoPage.tsx -> workspace",
-    "src/features/members/components/MemberTasksPanel.tsx -> planner",
     "src/features/members/components/MembersDialogs.tsx -> workspace",
-    "src/features/members/components/MembersMobileList.tsx -> planner",
     "src/features/members/pages/MembersPage.tsx -> workspace",
     "src/features/planner/pages/PlannerPage.tsx -> onboarding",
     "src/features/planner/pages/PlannerPage.tsx -> workspace",
@@ -57,18 +52,12 @@
     "src/features/projects/components/ProjectsDialogs.tsx -> workspace",
     "src/features/projects/components/projectCard/ActivityBlock.tsx -> planner",
     "src/features/projects/components/projectCard/MobileNoteSheet.tsx -> planner",
-    "src/features/projects/components/projectCard/TeamBlock.tsx -> planner",
     "src/features/projects/pages/ProjectsPage.tsx -> planner",
     "src/features/projects/pages/ProjectsPage.tsx -> workspace",
     "src/features/workspace/components/WorkspaceCommonDialogs.tsx -> auth",
     "src/features/workspace/components/WorkspaceLayout.tsx -> announcements",
     "src/features/workspace/components/WorkspaceLayout.tsx -> onboarding",
-    "src/features/workspace/components/WorkspaceMemberDetailScreen.tsx -> planner",
-    "src/features/workspace/components/WorkspaceMembersMobileScreen.tsx -> planner",
-    "src/features/workspace/components/WorkspaceMembersPanel.tsx -> planner",
     "src/features/workspace/components/WorkspaceMobileMenuSheet.tsx -> auth",
-    "src/features/workspace/components/WorkspaceMobileMenuSheet.tsx -> planner",
-    "src/features/workspace/components/WorkspacePageHeader.tsx -> auth",
-    "src/features/workspace/components/WorkspacePillNav.tsx -> planner"
+    "src/features/workspace/components/WorkspacePageHeader.tsx -> auth"
   ]
 }

@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, Copy, MoreVertical, RotateCw, Trash2 } from 'lucide-react';
 import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { t } from '@lingui/macro';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import type { TeammateDraftView } from '@/features/planner/hooks/useTaskDraftPresence';
 import { cn } from '@/shared/lib/classNames';
 

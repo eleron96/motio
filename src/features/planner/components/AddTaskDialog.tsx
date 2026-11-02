@@ -27,7 +27,7 @@ import {
 import { ResponsiveSelect } from '@/shared/ui/responsive-select';
 import { Checkbox } from '@/shared/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { ChevronDown, ImagePlus, Plus, X } from 'lucide-react';
 import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';

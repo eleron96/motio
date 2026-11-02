@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import type { Assignee, ProjectMember } from '@/features/planner/types/planner';
 import type { KnownPerson } from '@/features/projects/lib/knownPeople';

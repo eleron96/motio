@@ -24,7 +24,7 @@ import { normalizePastedCommentHtml } from '@/shared/lib/pastedRichText';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import {
   hasTaskCommentRichTags,
   normalizeTaskCommentEditorHtml,

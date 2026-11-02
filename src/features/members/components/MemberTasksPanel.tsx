@@ -15,7 +15,7 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import type { RepeatCadence } from '@/shared/domain/repeatSeries';
 import type { PastTaskSort, TaskScope } from '@/shared/domain/taskScope';
 import { useIsMobile } from '@/shared/hooks/use-mobile';

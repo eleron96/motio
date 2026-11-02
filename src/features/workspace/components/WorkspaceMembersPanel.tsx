@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { Switch } from '@/shared/ui/switch';
 import { Badge } from '@/shared/ui/badge';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';

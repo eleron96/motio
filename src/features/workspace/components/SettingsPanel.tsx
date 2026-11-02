@@ -48,7 +48,7 @@ import { cn } from '@/shared/lib/classNames';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileStackScreen, type MobileStackSection } from '@/shared/ui/mobile-stack-screen';
 import { MobileStepper } from '@/shared/ui/mobile-stepper';
-import { useMobileMenu } from '@/features/workspace/components/MobileMenuContext';
+import { useMobileMenu } from '@/shared/components/MobileMenuContext';
 import { isAbortError } from '@/shared/lib/latestAsyncRequest';
 import { DEFAULT_COLOR_PICKER_VALUE, DEFAULT_STATUS_COLOR } from '@/shared/lib/colors';
 import { Block, SettingRow } from '@/features/workspace/components/settingsBlocks';

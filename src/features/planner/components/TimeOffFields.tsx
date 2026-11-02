@@ -4,7 +4,7 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { ResponsiveSelect } from '@/shared/ui/responsive-select';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { getMinEndDate } from '@/features/planner/lib/dateUtils';
 import type { Assignee } from '@/features/planner/types/planner';

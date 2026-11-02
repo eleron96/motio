@@ -36,7 +36,7 @@ import { cn } from '@/shared/lib/classNames';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileStackScreen, type MobileStackSection } from '@/shared/ui/mobile-stack-screen';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
-import { useMobileMenu } from '@/features/workspace/components/MobileMenuContext';
+import { useMobileMenu } from '@/shared/components/MobileMenuContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Switch } from '@/shared/ui/switch';
