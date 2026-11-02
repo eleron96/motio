@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import { useTimelineScroll } from '@/features/planner/components/timeline/hooks/useTimelineScroll';
 
 const visibleDays = [
@@ -24,9 +24,11 @@ const toDomRect = (rect: Partial<DOMRect>): DOMRect => ({
 const TimelineScrollHarness = ({
   highlightedTaskId,
   highlightedTaskRowAssigneeId,
+  rangeShifting = false,
 }: {
   highlightedTaskId: string | null;
   highlightedTaskRowAssigneeId: string | null;
+  rangeShifting?: boolean;
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +50,7 @@ const TimelineScrollHarness = ({
     scrollReanchorEdgeTriggerDays: 2,
     setCurrentDate: vi.fn(),
     markTimelineInteraction: vi.fn(),
+    rangeShifting,
   });
 
   return (
@@ -114,5 +117,122 @@ describe('useTimelineScroll', () => {
         behavior: 'smooth',
       });
     });
+  });
+
+  const mockGeometry = (container: HTMLDivElement, taskTop: number) => {
+    const task = container.querySelector<HTMLElement>('[data-task-id="task-1"][data-row-assignee-id="assignee-1"]')!;
+    const scrollToMock = vi.fn();
+    Object.defineProperty(container, 'clientWidth', { value: 700, configurable: true });
+    Object.defineProperty(container, 'clientHeight', { value: 300, configurable: true });
+    Object.defineProperty(container, 'scrollWidth', { value: 2400, configurable: true });
+    Object.defineProperty(container, 'scrollLeft', { value: 50, writable: true, configurable: true });
+    Object.defineProperty(container, 'scrollTop', { value: 40, writable: true, configurable: true });
+    Object.defineProperty(container, 'scrollTo', { value: scrollToMock, configurable: true });
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue(toDomRect({ left: 0, top: 100, width: 700, height: 300, right: 700, bottom: 400 }));
+    const taskRect = vi.spyOn(task, 'getBoundingClientRect').mockReturnValue(toDomRect({ left: 450, top: taskTop, width: 100, height: 40, right: 550, bottom: taskTop + 40 }));
+    return { scrollToMock, taskRect };
+  };
+
+  it('measures the highlighted bar only once the day range has stopped shifting', () => {
+    const { getByTestId, rerender } = render(
+      <TimelineScrollHarness highlightedTaskId={null} highlightedTaskRowAssigneeId={null} />,
+    );
+    const { scrollToMock } = mockGeometry(getByTestId('timeline-scroll-container') as HTMLDivElement, 260);
+
+    rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" rangeShifting />);
+    expect(scrollToMock).not.toHaveBeenCalled();
+
+    rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" />);
+    expect(scrollToMock).toHaveBeenCalledTimes(1);
+
+    // A later shift alone (an edge re-anchor) does not scroll back to it.
+    rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" rangeShifting />);
+    rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" />);
+    expect(scrollToMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('brings the bar back to the middle once the smooth scroll is over if rows moved it', () => {
+    vi.useFakeTimers();
+    try {
+      const { getByTestId, rerender } = render(
+        <TimelineScrollHarness highlightedTaskId={null} highlightedTaskRowAssigneeId={null} />,
+      );
+      const container = getByTestId('timeline-scroll-container') as HTMLDivElement;
+      const { scrollToMock, taskRect } = mockGeometry(container, 260);
+
+      rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" />);
+      expect(scrollToMock).toHaveBeenCalledTimes(1);
+
+      // Rows on the way grew: the bar ended up near the bottom edge.
+      taskRect.mockReturnValue(toDomRect({ left: 450, top: 360, width: 100, height: 40, right: 550, bottom: 400 }));
+      act(() => { vi.advanceTimersByTime(700); });
+
+      expect(scrollToMock).toHaveBeenCalledTimes(2);
+      // Centre 280 px down a 300 px band, scrolled 40: 40 + 280 - 150.
+      expect(scrollToMock).toHaveBeenLastCalledWith({ top: 170, behavior: 'smooth' });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not recentre once the person has taken the timeline over', () => {
+    vi.useFakeTimers();
+    try {
+      const { getByTestId, rerender } = render(
+        <TimelineScrollHarness highlightedTaskId={null} highlightedTaskRowAssigneeId={null} />,
+      );
+      const container = getByTestId('timeline-scroll-container') as HTMLDivElement;
+      const { scrollToMock, taskRect } = mockGeometry(container, 260);
+
+      rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" />);
+      taskRect.mockReturnValue(toDomRect({ left: 450, top: 360, width: 100, height: 40, right: 550, bottom: 400 }));
+      act(() => { container.dispatchEvent(new Event('wheel')); });
+      act(() => { vi.advanceTimersByTime(2000); });
+
+      expect(scrollToMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('waits for the smooth scroll to come to a stop before recentring', () => {
+    vi.useFakeTimers();
+    try {
+      const { getByTestId, rerender } = render(
+        <TimelineScrollHarness highlightedTaskId={null} highlightedTaskRowAssigneeId={null} />,
+      );
+      const container = getByTestId('timeline-scroll-container') as HTMLDivElement;
+      const { scrollToMock, taskRect } = mockGeometry(container, 260);
+
+      rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" />);
+      taskRect.mockReturnValue(toDomRect({ left: 450, top: 360, width: 100, height: 40, right: 550, bottom: 400 }));
+      // Still scrolling: a scroll event every 100 ms keeps it from recentring.
+      for (let step = 0; step < 5; step += 1) {
+        act(() => { container.dispatchEvent(new Event('scroll')); vi.advanceTimersByTime(100); });
+      }
+      expect(scrollToMock).toHaveBeenCalledTimes(1);
+
+      act(() => { vi.advanceTimersByTime(200); });
+      expect(scrollToMock).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('leaves the bar alone after the smooth scroll when it is already in the middle', () => {
+    vi.useFakeTimers();
+    try {
+      const { getByTestId, rerender } = render(
+        <TimelineScrollHarness highlightedTaskId={null} highlightedTaskRowAssigneeId={null} />,
+      );
+      const { scrollToMock } = mockGeometry(getByTestId('timeline-scroll-container') as HTMLDivElement, 260);
+
+      rerender(<TimelineScrollHarness highlightedTaskId="task-1" highlightedTaskRowAssigneeId="assignee-1" />);
+      act(() => { vi.advanceTimersByTime(700); });
+
+      expect(scrollToMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

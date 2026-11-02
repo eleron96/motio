@@ -30,12 +30,10 @@ const daysFrom = (year: number, month: number, day: number, count: number) => (
 const row = (visibleDays: Date[]) => (
   <TimelineRow
     rowId="a1"
-    rowIndex={0}
     visibleDays={visibleDays}
     dayWidth={40}
     viewMode="day"
     todayKey="2026-08-03"
-    height={56}
   >
     {null}
   </TimelineRow>

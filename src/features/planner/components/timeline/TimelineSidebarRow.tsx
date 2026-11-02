@@ -67,10 +67,11 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
     <div
       data-testid={`timeline-sidebar-row-${row.id}`}
       data-timeline-sidebar="row"
+      // Stretches to the row frame in TimelineGrid, which carries the height.
       className={cn(
         'sticky left-0 z-10 flex-shrink-0 border-r border-border bg-timeline-header',
       )}
-      style={{ width, height: row.height }}
+      style={{ width }}
     >
       <div
         className={cn(

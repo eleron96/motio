@@ -309,6 +309,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     isDragScrolling,
     isTaskDragActive: taskDragState.active,
     leftContextDays,
+    rangeShifting,
   });
 
   // ─── Derived display values ────────────────────────────────────────────────
@@ -386,7 +387,13 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   // ─── Task display ──────────────────────────────────────────────────────────
 
-  const { displayRows, rowTaskElementsById } = useTaskDisplayRows({
+  const {
+    displayRows,
+    rowTaskElementsById,
+    rowHeights,
+    instantRowIds,
+    rowHeightTransition,
+  } = useTaskDisplayRows({
     tasks,
     filters,
     assignees,
@@ -404,6 +411,18 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     canManageAnyTimeOff: currentWorkspaceRole === 'admin',
     onOpenTimeOff: setEditingTimeOffId,
     layoutScope: `${currentWorkspaceId ?? ''}|${viewMode}`,
+    scrollLeft,
+    viewportWidth,
+    holdRowHeights: rangeShifting,
+    scrollContainerRef,
+    headerHeight: effectiveHeaderHeight + milestoneRowHeight,
+    // Rows must not shrink under a bar being dragged, the search lens or a
+    // highlighted task; they still grow.
+    suspendRowShrink: taskDragState.active
+      || timeOffDragPreview !== null
+      || isDragScrolling
+      || highlightedTaskId !== null
+      || searchActive,
   });
 
   // ─── Other handlers ────────────────────────────────────────────────────────
@@ -555,6 +574,10 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           data-tour="timeline-grid"
           data-timeline-scroll-owner="vertical"
           className={`flex-1 min-w-0 overflow-auto scrollbar-soft ${isDragScrolling ? 'cursor-grabbing' : 'cursor-grab'}${rangeShifting ? ' timeline-range-shifting' : ''}`}
+          // Rows above the screen are resized with scrollTop corrected by hand
+          // (useAdaptiveRowHeights), the same in every browser; Chrome's own
+          // scroll anchoring would correct it a second time.
+          style={{ overflowAnchor: 'none' }}
           onScroll={handleScroll}
           onMouseDown={handleDragStart}
         >
@@ -630,9 +653,19 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
               </div>
             </div>
 
-            {/* Timeline rows */}
-            {displayRows.map((row, rowIndex) => (
-              <div key={row.id} className="flex">
+            {/* Timeline rows. The height sits on this frame alone and glides
+                (useAdaptiveRowHeights); the sidebar cell and the day row
+                stretch to it, so neither re-renders when it changes. Rows out
+                of sight vertically change at once. */}
+            {displayRows.map((row) => (
+              <div
+                key={row.id}
+                className="timeline-row-frame flex"
+                style={{
+                  height: rowHeights[row.id] ?? row.height,
+                  transition: instantRowIds.has(row.id) ? 'none' : rowHeightTransition,
+                }}
+              >
                 <TimelineSidebarRow
                   row={row}
                   width={resolvedSidebarWidth}
@@ -650,7 +683,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                 >
                   <TimelineRow
                     rowId={row.id}
-                    rowIndex={rowIndex}
                     visibleDays={visibleDays}
                     dayWidth={dayWidth}
                     viewMode={viewMode}
@@ -658,7 +690,6 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     holidayDates={holidayDates}
                     timeOffDays={timeOffIndex.daysByRowId.get(row.id)}
                     timeOffMotif={motifByRowId.get(row.id)}
-                    height={row.height}
                     canEdit={canEdit || isTimeOffEnabled()}
                     canCreateTask={canEdit}
                     onCreateTask={handleCreateTaskAt}

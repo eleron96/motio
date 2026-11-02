@@ -56,7 +56,6 @@ const renderRow = (
 ) => render(
   <TimelineRow
     rowId="a1"
-    rowIndex={0}
     visibleDays={visibleDays}
     dayWidth={40}
     viewMode="day"
@@ -64,7 +63,6 @@ const renderRow = (
     holidayDates={holidayDates}
     timeOffDays={timeOffDays}
     timeOffMotif={timeOffMotif}
-    height={104}
   >
     {null}
   </TimelineRow>,

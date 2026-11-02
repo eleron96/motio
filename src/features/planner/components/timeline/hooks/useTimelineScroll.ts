@@ -36,7 +36,17 @@ interface UseTimelineScrollOptions {
   /** Days of context shown left of the focused date (default 2; 1 on mobile so
    *  "today" sits near the centre of the narrow viewport instead of the edge). */
   leftContextDays?: number;
+  /** The day range just shifted: row heights are held, then fitted to the new
+   *  dates (useAdaptiveRowHeights), so a highlighted bar is measured after. */
+  rangeShifting?: boolean;
 }
+
+/** A smooth scroll to a highlighted bar is over once it has not moved for this long. */
+const HIGHLIGHT_SCROLL_QUIET_MS = 150;
+/** …or after this long at most. */
+const HIGHLIGHT_SCROLL_MAX_MS = 1500;
+/** The person taking the timeline over: no recentring after that. */
+const TAKE_OVER_EVENTS = ['wheel', 'pointerdown', 'touchstart', 'keydown'] as const;
 
 interface UseTimelineScrollResult {
   scrollLeft: number;
@@ -65,6 +75,7 @@ export function useTimelineScroll({
   isDragScrolling = false,
   isTaskDragActive = false,
   leftContextDays = LEFT_CONTEXT_DAYS,
+  rangeShifting = false,
 }: UseTimelineScrollOptions): UseTimelineScrollResult {
   const [scrollLeft, setScrollLeft] = useState(0);
   // Read from a timer callback, so a ref rather than the closure value.
@@ -80,6 +91,9 @@ export function useTimelineScroll({
 
   const scrollEndTimerRef = useRef<number | null>(null);
   const highlightedTaskScrollTimerRef = useRef<number | null>(null);
+  // The inputs the highlighted bar was last scrolled to: a later range shift
+  // alone (an edge re-anchor while the highlight stays) does not scroll back.
+  const highlightScrolledKeyRef = useRef<string | null>(null);
   const pendingScrollDateRef = useRef<string | null>(null);
   const lastEdgeReanchorAtRef = useRef(0);
   const visibleDaysRef = useRef<Date[]>([]);
@@ -295,21 +309,76 @@ export function useTimelineScroll({
 
   // Scroll to a highlighted task, retrying until the element is mounted
   useEffect(() => {
-    if (!highlightedTaskId || viewMode === 'calendar') return;
+    if (!highlightedTaskId || viewMode === 'calendar') {
+      highlightScrolledKeyRef.current = null;
+      return;
+    }
+    // Row heights are held while the range shifts and then set for the new
+    // dates: measuring now would aim at where the bar will no longer be.
+    if (rangeShifting) return;
     const container = scrollContainerRef.current;
     if (!container) return;
+    const scrollKey = [highlightedTaskId, highlightedTaskRowAssigneeId, sidebarViewportWidth, tasksLength, viewMode, viewportWidth].join('|');
+    if (highlightScrolledKeyRef.current === scrollKey) return;
 
     let cancelled = false;
     let attempts = 0;
+    let stopWatching = () => {};
 
-    const scrollToHighlightedTask = () => {
-      if (cancelled) return;
+    const findTaskElement = () => {
       const taskSelector = highlightedTaskRowAssigneeId
         ? `[data-task-id="${highlightedTaskId}"][data-row-assignee-id="${highlightedTaskRowAssigneeId}"]`
         : `[data-task-id="${highlightedTaskId}"]`;
-      const taskElement = container.querySelector<HTMLElement>(taskSelector)
+      return container.querySelector<HTMLElement>(taskSelector)
         ?? container.querySelector<HTMLElement>(`[data-task-id="${highlightedTaskId}"]`);
+    };
+
+    // Rows on the way may grow while the smooth scroll runs (they fit the days
+    // passing by): once it is over, bring the bar back to the middle if it
+    // drifted out of the middle 60 % of the rows' band.
+    const recentreVertically = () => {
+      if (cancelled) return;
+      const taskElement = findTaskElement();
+      if (!taskElement) return;
+      const containerRect = container.getBoundingClientRect();
+      const taskRect = taskElement.getBoundingClientRect();
+      const centerY = taskRect.top + taskRect.height / 2 - containerRect.top;
+      if (centerY >= container.clientHeight * 0.2 && centerY <= container.clientHeight * 0.8) return;
+      const targetTop = Math.max(0, container.scrollTop + centerY - container.clientHeight / 2);
+      container.scrollTo({ top: targetTop, behavior: 'smooth' });
+    };
+
+    // Recentre once the smooth scroll has come to a stop, unless the person
+    // took the timeline over meanwhile (wheel, press, touch, key).
+    const watchSmoothScrollEnd = () => {
+      let quietTimer = 0;
+      let maxTimer = 0;
+      const stop = () => {
+        window.clearTimeout(quietTimer);
+        window.clearTimeout(maxTimer);
+        container.removeEventListener('scroll', handleScroll);
+        TAKE_OVER_EVENTS.forEach((type) => container.removeEventListener(type, stop));
+      };
+      const finish = () => {
+        stop();
+        recentreVertically();
+      };
+      const handleScroll = () => {
+        window.clearTimeout(quietTimer);
+        quietTimer = window.setTimeout(finish, HIGHLIGHT_SCROLL_QUIET_MS);
+      };
+      maxTimer = window.setTimeout(finish, HIGHLIGHT_SCROLL_MAX_MS);
+      quietTimer = window.setTimeout(finish, HIGHLIGHT_SCROLL_QUIET_MS);
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      TAKE_OVER_EVENTS.forEach((type) => container.addEventListener(type, stop, { passive: true }));
+      return stop;
+    };
+
+    const scrollToHighlightedTask = () => {
+      if (cancelled) return;
+      const taskElement = findTaskElement();
       if (taskElement) {
+        highlightScrolledKeyRef.current = scrollKey;
         const containerRect = container.getBoundingClientRect();
         const taskRect = taskElement.getBoundingClientRect();
         const taskLeft = taskRect.left - containerRect.left + container.scrollLeft;
@@ -325,6 +394,7 @@ export function useTimelineScroll({
         const taskCenterY = taskRect.top - containerRect.top + container.scrollTop + taskRect.height / 2;
         const targetTop = Math.max(0, taskCenterY - container.clientHeight / 2);
         container.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' });
+        stopWatching = watchSmoothScrollEnd();
         return;
       }
       if (attempts >= 30) return;
@@ -336,6 +406,7 @@ export function useTimelineScroll({
 
     return () => {
       cancelled = true;
+      stopWatching();
       if (highlightedTaskScrollTimerRef.current) {
         window.clearTimeout(highlightedTaskScrollTimerRef.current);
         highlightedTaskScrollTimerRef.current = null;
@@ -343,7 +414,7 @@ export function useTimelineScroll({
     };
   // tasksLength intentionally included so scroll retries when tasks load
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [highlightedTaskId, highlightedTaskRowAssigneeId, sidebarViewportWidth, tasksLength, viewMode, viewportWidth]);
+  }, [highlightedTaskId, highlightedTaskRowAssigneeId, rangeShifting, sidebarViewportWidth, tasksLength, viewMode, viewportWidth]);
 
   return { scrollLeft, handleScroll, scrollToIndex };
 }
