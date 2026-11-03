@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+- In the demo, the Members and access tab in workspace settings no longer shows an error.
+
 ## [0.10.59] - 2026-11-03
 ### Changed
 - Timeline rows leave more free space under their tasks, so it is easier to double-click or double-tap there to add a task on that day.
