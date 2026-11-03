@@ -7,11 +7,6 @@ import {
   TaskOwnEdits,
 } from '@/shared/domain/taskOwnEdits';
 
-export const areArraysEqual = (left: string[], right: string[]) => {
-  if (left.length !== right.length) return false;
-  return left.every((value, index) => value === right[index]);
-};
-
 const NO_EDITS: TaskOwnEdits = {};
 
 interface UseTaskDraftsParams {

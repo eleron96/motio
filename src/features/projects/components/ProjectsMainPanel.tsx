@@ -28,7 +28,7 @@ type DisplayTaskRow = {
   } | null;
 };
 
-type ProjectsMainPanelProps = {
+export type ProjectsMainPanelProps = {
   // 'contacts' never renders here (the page shows a full-width panel for it),
   // but the shared mode type includes it.
   mode: 'projects' | 'milestones' | 'customers' | 'contacts';
