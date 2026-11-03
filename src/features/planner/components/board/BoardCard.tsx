@@ -3,7 +3,7 @@ import { CalendarDays, MessageSquare, MoreHorizontal, Repeat } from 'lucide-reac
 import { t } from '@lingui/macro';
 import type { Assignee, Project, Task, TaskPriority } from '@/features/planner/types/planner';
 import type { BoardColumnKind } from '@/shared/domain/boardColumns';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { TaskBarMenu } from '@/features/planner/components/timeline/TaskBarMenu';
 import { TaskBarDeleteDialog } from '@/features/planner/components/timeline/TaskBarDeleteDialog';
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/shared/ui/context-menu';

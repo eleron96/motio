@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   buildStarterTemplatePayload,
   daysUntilWeekday,
-  findStarterTemplateProblems,
   starterCatalogAsWorkspaceTemplate,
   type StarterTemplateContent,
 } from '@/shared/domain/starterTemplate';
+import { findStarterTemplateProblems } from '@/test/helpers/starterTemplateProblems';
 import { diffWorkspaceTemplate } from '@/shared/domain/workspaceTemplate';
 
 const content = (overrides: Partial<StarterTemplateContent> = {}): StarterTemplateContent => ({

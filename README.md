@@ -14,7 +14,7 @@ Free and open source: use the hosted app, or run it on your own servers. The liv
 
 **[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Self-host it](#-self-host)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.10.58-blue.svg)](./CHANGELOG.en.md)
+[![Version](https://img.shields.io/badge/version-0.10.59-blue.svg)](./CHANGELOG.en.md)
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
 
@@ -41,8 +41,8 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 
 ## ✨ Features
 
-- 📅 **Timeline** — drag-and-drop planner grouped by people or by project, at a day or week scale, plus a three-year calendar; milestones and time off sit on the same grid. Drag a task past the edge of the screen and the timeline scrolls along. Moved, rescheduled or deleted something by mistake? Undo it from the toast or with Cmd/Ctrl+Z.
-- 🗂 **Board (beta)** — the same tasks as cards in columns by your own statuses, as an optional view next to the timeline. Drag a card to another column to change its status (undo included), filter by person, group, project or overdue in one click. On a phone it is one column per screen with a swipe between them. Each person turns it on in account settings.
+- 📅 **Timeline** — drag-and-drop planner grouped by people or by project, at a day or week scale, plus a three-year calendar; milestones and time off sit on the same grid. Double-click a free spot in a row (double-tap on a phone) to add a task on that day: every row keeps room under its tasks for it. On a computer, find any task with ⌘K or /: other tasks fade, and a strip shows the matches on any date. Drag a task past the edge of the screen and the timeline scrolls along. Moved, rescheduled or deleted something by mistake? Undo it from the toast or with Cmd/Ctrl+Z.
+- 🗂 **Board (beta)** — the same tasks as cards in columns by your own statuses, as an optional view next to the timeline. Drag a card to another column to change its status (undo included), filter by person, group, project or overdue in one click. On a phone it is one column per screen with a swipe between them. Each person turns it on in account settings; on your own server it is off until you [switch it on](docs/self-hosting.md#settings).
 - ✅ **Tasks with depth** — subtasks (with pictures), repeating series, priorities, tags, rich descriptions with pasted images, comments with @mentions and screenshots; pictures open full screen with zoom. A subtask you started typing is saved on its own.
 - 🤝 **Working together** — teammates' changes show up within a second, and an open task keeps its subtasks and comments live. On a computer, with live drafts switched on (on in the hosted app, off by default when self-hosting), you see what a teammate is typing — a subtask, a comment — semi-transparent as they write. If two people edit the description of a one-off task at once, nobody's text is silently overwritten: the card asks which version to keep.
 - 👥 **Team** — members and groups, each person's current and past tasks at a glance.
@@ -50,8 +50,8 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 - 📊 **Dashboard** — configurable widgets and a department workload heatmap, with one layout that scales to wide monitors; a daily brief once a day and release notes right in the app.
 - 🔔 **Notifications** — in-app inbox plus browser push; installable as a PWA, push works on iPhone too.
 - 📱 **Works on phones** — a dedicated mobile layer for the timeline, the board, tasks, team and projects; one View button switches between them.
-- 🏢 **Workspaces and roles** — `viewer` / `editor` / `admin`, invitations, owner transfer, leaving a workspace.
-- 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself, Keycloak is the identity store.
+- 🏢 **Workspaces and roles** — a new workspace asks what your team does (architecture and design, BIM, construction or software) and starts with matching statuses, task types and a few examples; `viewer` / `editor` / `admin`, invitations, owner transfer, leaving a workspace.
+- 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself (deletion is off by default when self-hosting); Keycloak is the identity store.
 - 💾 **Backups built in** — daily backups of the database, media and Keycloak with retention, upload/download and one-click restore from the admin console.
 - 🗄 **Super-admin console** — user overview, workspace management, backup/restore, announcements to every user.
 - 🧪 **Demo sandbox** — [`/demo`](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme) runs entirely in the browser on sample data, no sign-in needed.
@@ -140,7 +140,7 @@ sign-in itself; oauth2-proxy stays as a fallback catch-all for non-public paths.
 ├── infra/
 │   ├── docker-compose.yml / docker-compose.prod.yml
 │   ├── supabase/  — SQL migrations, Liquibase changelog, Edge Functions, gateway nginx
-│   ├── keycloak/  — realm baselines (dev + production)
+│   ├── keycloak/  — realm baselines (dev + production) and the sign-in theme
 │   ├── backup-service/
 │   └── scripts/   — dev/prod compose, deploy, Keycloak realm sync
 ├── tests/         — DB integration tests (RLS, RPC, cron)

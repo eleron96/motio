@@ -344,23 +344,8 @@ export const deleteTaskComment = async (
 };
 
 // ---------------------------------------------------------------------------
-// Count (lightweight, for TaskBar badge)
+// Counts (lightweight, for TaskBar badge)
 // ---------------------------------------------------------------------------
-
-export const fetchTaskCommentCount = async (
-  workspaceId: string,
-  taskId: string,
-): Promise<number> => {
-  const { count, error } = await supabase
-    .from('task_comments')
-    .select('id', { count: 'exact', head: true })
-    .eq('workspace_id', workspaceId)
-    .eq('task_id', taskId)
-    .is('deleted_at', null);
-
-  if (error || count === null) return 0;
-  return count;
-};
 
 export const fetchTaskCommentCounts = async (
   workspaceId: string,

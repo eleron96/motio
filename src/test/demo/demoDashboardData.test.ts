@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { demoSupabaseClient } from '@/features/demo/lib/demoSupabaseClient';
 import { demoStore } from '@/features/demo/lib/demoDataStore';
 import {
@@ -10,7 +10,6 @@ import type { DashboardStatus, DashboardOption, DashboardWidget } from '@/featur
 import { buildContactList, buildCompanyBuckets } from '@/features/projects/lib/contactList';
 import { DEMO_SEED_DASHBOARDS, buildDemoDashboardLayouts } from '@/features/demo/lib/demoSeed';
 import { mapCustomerRow, mapCustomerContactRow, mapProjectMemberRow } from '@/features/planner/store/plannerStore.helpers';
-import { isProjectCardEnabled, isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
 
 vi.mock('@lingui/macro', () => ({
   t: (strings: TemplateStringsArray, ...values: unknown[]) =>
@@ -289,25 +288,5 @@ describe('demo dashboard layouts are stable (no jitter)', () => {
     expect(kpiItems.length).toBeGreaterThan(0);
     // a 1×1 KPI is the broken case; require a wider/taller cell
     expect(kpiItems.every((it) => it.w >= 2 && it.h >= 2)).toBe(true);
-  });
-});
-
-describe('demo feature flags', () => {
-  const originalPath = window.location.pathname;
-  afterEach(() => {
-    window.history.replaceState({}, '', originalPath);
-  });
-
-  it('forces project-card and workload-heatmap ON while on /demo', () => {
-    window.history.replaceState({}, '', '/demo/dashboard');
-    expect(isProjectCardEnabled()).toBe(true);
-    expect(isWorkloadHeatmapEnabled()).toBe(true);
-  });
-
-  it('leaves the flags to env defaults off /demo', () => {
-    window.history.replaceState({}, '', '/app/dashboard');
-    // env flags are unset in the test runner → both read false off the demo path
-    expect(isProjectCardEnabled()).toBe(false);
-    expect(isWorkloadHeatmapEnabled()).toBe(false);
   });
 });

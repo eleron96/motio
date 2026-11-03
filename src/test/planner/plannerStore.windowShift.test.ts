@@ -57,10 +57,6 @@ vi.mock('@/shared/lib/supabaseClient', () => {
 });
 
 vi.mock('@/shared/lib/adminConfig', () => ({ getAdminUserId: () => Promise.resolve(null) }));
-vi.mock('@/shared/lib/featureFlags', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/shared/lib/featureFlags')>()),
-  isTimeOffEnabled: () => true,
-}));
 
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { beginTaskWrite, resetTaskWrites } from '@/features/planner/store/plannerStore.pendingWrites';

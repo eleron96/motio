@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Assignee, Status, Tag, Task, TaskType } from '@/features/planner/types/planner';
+import type { Assignee, Status, Tag, TaskType } from '@/features/planner/types/planner';
 
 interface UsePlannerLookupMapsInput {
   statuses: Status[];

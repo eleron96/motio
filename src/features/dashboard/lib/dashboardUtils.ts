@@ -1,4 +1,5 @@
 import { addDays, format, parseISO, subDays, subMonths, subWeeks } from 'date-fns';
+import type { Locale as DateFnsLocale } from 'date-fns';
 import {
   DashboardBarPalette,
   DashboardFilterField,
@@ -72,6 +73,15 @@ export const getPeriodRange = (period: DashboardPeriod) => {
     startDate: format(start, 'yyyy-MM-dd'),
     endDate: format(end, 'yyyy-MM-dd'),
   };
+};
+
+/** "Mar 3 - Mar 10", or a single "Mar 3" when both ends fall on the same day. */
+export const formatShortDateRange = (startDate: string, endDate: string, dateLocale: DateFnsLocale) => {
+  const start = parseISO(startDate);
+  const end = parseISO(endDate);
+  const startLabel = format(start, 'MMM d', { locale: dateLocale });
+  const endLabel = format(end, 'MMM d', { locale: dateLocale });
+  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`;
 };
 
 export const isCancelledStatusName = (name: string) => {

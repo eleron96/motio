@@ -41,6 +41,7 @@ export interface KeycloakUserRepresentation {
   lastName?: string;
   enabled?: boolean;
   emailVerified?: boolean;
+  requiredActions?: string[];
 }
 
 let tokenCache: KeycloakTokenCache | null = null;

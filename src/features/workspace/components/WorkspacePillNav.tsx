@@ -4,7 +4,7 @@ import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import {
   getAppNavigationItems,
   type AppNavigationItem,

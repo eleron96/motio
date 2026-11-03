@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 type NameSort = 'asc' | 'desc';
 type MilestoneTab = 'active' | 'past';
 type ProjectsTab = 'active' | 'archived';
-type ProjectsMode = 'projects' | 'milestones' | 'customers' | 'contacts';
+export type ProjectsMode = 'projects' | 'milestones' | 'customers' | 'contacts';
 
 export type MilestoneGroupBy = 'project' | 'customer' | 'month';
 
@@ -156,3 +156,5 @@ export const useProjectsViewPreferences = ({
     setMilestoneOwnerGroupFilterIds,
   };
 };
+
+export type ProjectsViewPreferences = ReturnType<typeof useProjectsViewPreferences>;

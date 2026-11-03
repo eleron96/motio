@@ -254,6 +254,18 @@ const createRealtimeFromMock = (handlers: RealtimeHandlers = {}) => {
       };
     }
 
+    if (table === 'time_off') {
+      // The sync re-reads the window's absences on reconnect and on time_off
+      // events; no absences unless a test supplies its own.
+      const builder = {
+        select: () => builder,
+        eq: () => builder,
+        gte: () => builder,
+        lte: () => Promise.resolve({ data: [], error: null }),
+      };
+      return builder;
+    }
+
     throw new Error(`Unexpected table: ${table}`);
   };
 };
@@ -289,12 +301,9 @@ describe('usePlannerLiveSync', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    vi.unstubAllEnvs();
   });
 
   it('subscribes to time_off and refetches the window when a record changes', async () => {
-    // The subscription and its refetch are gated on the feature flag.
-    vi.stubEnv('VITE_FEATURE_TIME_OFF', 'true');
     const timeOffRows = [{
       id: 'time-off-1',
       workspace_id: workspaceOne,

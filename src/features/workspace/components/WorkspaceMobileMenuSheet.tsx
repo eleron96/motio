@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { roleLabel } from '@/features/auth/lib/inboxLabels';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { APP_VERSION } from '@/shared/lib/appVersion';
 import { ReleaseNotesDialog } from '@/features/auth/components/ReleaseNotesDialog';

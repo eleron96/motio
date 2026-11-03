@@ -136,19 +136,18 @@ and rebuild `web`; no release is needed.
 
 | Flag | Turns on |
 |---|---|
-| `VITE_FEATURE_PROJECT_CARD` | the project card on the Projects page and the Contacts tab |
-| `VITE_FEATURE_PROJECT_CARD_MOBILE` | the same project card on phones (needs `PROJECT_CARD`) |
-| `VITE_FEATURE_PEOPLE_SUGGEST` | suggestions of people already entered elsewhere in the workspace when adding a contact or an external team member (needs `PROJECT_CARD`) |
-| `VITE_FEATURE_WORKLOAD_HEATMAP` | the workload heatmap board on the dashboard; each workspace still opts in with its own switch in workspace settings (off by default) |
-| `VITE_FEATURE_TIME_OFF` | marking days off on the timeline |
 | `VITE_FEATURE_KANBAN` | the board view (beta), an optional view next to the timeline: each person still turns it on in account settings → Appearance; `/demo` does not force it on, but follows the flag like the app |
 | `VITE_FEATURE_PUSH` | browser push notifications (needs the VAPID keys below) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | account self-deletion in account settings |
 | `VITE_FEATURE_WORKSPACE_API` | the API section in workspace settings, where admins create tokens for importing absences ([API](api.md)); hidden in `/demo` |
 | `VITE_FEATURE_TASK_LIVE_DRAFTS` | teammates' drafts in an open task card, live and semi-transparent: the subtask or comment someone is typing, and that someone edits the description (desktop only). Shared through a private Realtime channel that only members of the workspace can join; nothing is stored. Off in `/demo`. On a brand-new self-hosted install the channel's access rules land with the first `install.sh update` (Realtime sets up its tables only once someone connects) |
 
-The `/demo` sandbox always shows the project card, contacts, heatmap and time off,
-whatever the flags say.
+The project card, contacts, people suggestions, the workload heatmap and time off
+used to be behind flags of their own; they are always on now. The heatmap still
+needs each workspace to opt in with its own switch in workspace settings (off by
+default). Old `VITE_FEATURE_TIME_OFF`, `VITE_FEATURE_WORKLOAD_HEATMAP`,
+`VITE_FEATURE_PROJECT_CARD`, `VITE_FEATURE_PROJECT_CARD_MOBILE` and
+`VITE_FEATURE_PEOPLE_SUGGEST` lines in `.env` do nothing and can be removed.
 
 ## Push notifications
 

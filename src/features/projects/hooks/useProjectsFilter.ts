@@ -17,8 +17,6 @@ interface UseProjectsFilterInput {
   milestones: Milestone[];
   projects: Project[];
   sortedCustomers: Customer[];
-  trackedProjectIds: string[];
-  trackedProjectIdSet: Set<string>;
   projectById: Map<string, Project>;
   customerById: Map<string, Customer>;
   nameSort: 'asc' | 'desc';
@@ -42,8 +40,6 @@ export function useProjectsFilter({
   milestones,
   projects,
   sortedCustomers,
-  trackedProjectIds,
-  trackedProjectIdSet,
   projectById,
   customerById,
   nameSort,
@@ -88,7 +84,6 @@ export function useProjectsFilter({
       milestones,
       projectById,
       customerById,
-      trackedProjectIdSet,
       milestoneSearch,
       nameSort,
       ownerGroupFilterIds: milestoneOwnerGroupFilterIds,
@@ -100,7 +95,6 @@ export function useProjectsFilter({
       milestones,
       nameSort,
       projectById,
-      trackedProjectIdSet,
     ],
   );
 
@@ -119,7 +113,6 @@ export function useProjectsFilter({
       projectById,
       projects,
       sortedCustomers,
-      trackedProjectIds,
       nameSort,
       dateLocale,
       labels: {
@@ -127,7 +120,7 @@ export function useProjectsFilter({
         noCustomer: t`No customer`,
       },
     }),
-    [dateLocale, milestoneGroupBy, milestoneTab, nameSort, projectById, projects, sortedCustomers, trackedProjectIds, visibleMilestones],
+    [dateLocale, milestoneGroupBy, milestoneTab, nameSort, projectById, projects, sortedCustomers, visibleMilestones],
   );
 
   const milestoneGroupLabel = useMemo(() => {

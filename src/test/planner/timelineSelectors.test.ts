@@ -8,6 +8,7 @@ import {
   selectTimelineGroupItems,
   selectVisibleAssignees,
 } from '@/features/planner/lib/timelineSelectors';
+import { ROW_BOTTOM_SPACE, ROW_TOP_PADDING, TASK_GAP, TASK_HEIGHT } from '@/features/planner/lib/dateUtils';
 
 const makeTask = (overrides: Partial<Task>): Task => ({
   id: 'task-id',
@@ -230,20 +231,37 @@ describe('timelineSelectors', () => {
     const options = { minRowHeight: 56, taskHeight: 40, taskGap: 4 };
 
     const base = calculateTimelineRowHeights(rowTasks, options);
-    // One lane: 16 + 1 * 44 = 60 (getMaxLanes returns 1 for an empty row).
-    expect(base.a1).toBe(60);
-    expect(base.a2).toBe(60);
-    expect(base.a3).toBe(104);
+    // One lane: 8 top + 40 bar + 44 free below = 92 (getMaxLanes returns 1 for
+    // an empty row); two lanes add one more bar and its 4px gap.
+    expect(base.a1).toBe(92);
+    expect(base.a2).toBe(92);
+    expect(base.a3).toBe(136);
 
     const withTimeOff = calculateTimelineRowHeights(rowTasks, {
       ...options,
       minLanesByRow: { a1: 1, a2: 1, a3: 1 },
     });
-    // The regression this replaced: a1 used to become 104 and left an empty
-    // strip above its task on every day outside the period.
-    expect(withTimeOff.a1).toBe(60);
-    expect(withTimeOff.a2).toBe(60);
-    expect(withTimeOff.a3).toBe(104);
+    // The regression this replaced: a1 used to grow by a lane and left an
+    // empty strip above its task on every day outside the period.
+    expect(withTimeOff.a1).toBe(92);
+    expect(withTimeOff.a2).toBe(92);
+    expect(withTimeOff.a3).toBe(136);
+  });
+
+  it('leaves a tap-sized free strip under the last bar of a busy row', () => {
+    const options = { minRowHeight: 56, taskHeight: TASK_HEIGHT, taskGap: TASK_GAP };
+    for (let lanes = 1; lanes <= 5; lanes += 1) {
+      const rowTasks = {
+        a1: Array.from({ length: lanes }, (_, lane) => ({
+          ...makeTask({ id: `t${lane}`, assigneeIds: ['a1'] }),
+          lane,
+        })),
+      };
+      const height = calculateTimelineRowHeights(rowTasks, options).a1;
+      const lastBarBottom = ROW_TOP_PADDING + (lanes - 1) * (TASK_HEIGHT + TASK_GAP) + TASK_HEIGHT;
+      expect(height - lastBarBottom).toBe(ROW_BOTTOM_SPACE);
+      expect(ROW_BOTTOM_SPACE).toBeGreaterThanOrEqual(44);
+    }
   });
 
   it('packs task lanes around the reserved period, per row', () => {

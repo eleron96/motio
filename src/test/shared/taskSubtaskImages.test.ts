@@ -3,7 +3,6 @@ import {
   MAX_SUBTASK_IMAGES,
   MAX_TASK_IMAGE_BYTES,
   appendSubtaskImages,
-  diffRemovedSubtaskImageIds,
   parseTaskSubtaskImages,
   selectSubtaskImageFiles,
 } from '@/shared/domain/taskSubtaskImages';
@@ -24,11 +23,6 @@ describe('taskSubtaskImages', () => {
       { ...ref('a'), extra: 1 },
       ref('c'),
     ])).toEqual([ref('a'), ref('c')]);
-  });
-
-  it('names the pictures a change took off a subtask', () => {
-    expect(diffRemovedSubtaskImageIds([ref('a'), ref('b')], [ref('b')])).toEqual(['a']);
-    expect(diffRemovedSubtaskImageIds([ref('a')], [ref('a'), ref('b')])).toEqual([]);
   });
 
   it('appends without repeats and never past the cap', () => {

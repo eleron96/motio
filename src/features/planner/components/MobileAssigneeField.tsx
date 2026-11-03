@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { MobilePickerScreen, type MobilePickerOption } from '@/shared/ui/mobile-picker-screen';
 

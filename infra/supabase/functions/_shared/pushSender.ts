@@ -8,6 +8,8 @@
 // shipping. VAPID keys are the standard base64url pair from `web-push
 // generate-vapid-keys`.
 
+import type { PushContent } from "./pushPayload.ts";
+
 const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
 const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@example.com";
@@ -166,7 +168,7 @@ const encryptPayload = async (
 
 export const sendWebPush = async (
   sub: PushSubscriptionRecord,
-  payload: Record<string, unknown>,
+  payload: PushContent,
 ): Promise<PushSendResult> => {
   try {
     const jwt = await buildVapidJwt(sub.endpoint);

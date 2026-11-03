@@ -636,7 +636,15 @@ const handleUsersList = async (payload: { search?: string; includeSuperAdmins?: 
     workspaceMap.set(userId, list);
   };
 
-  (memberships ?? []).forEach((row) => {
+  // Without generated types supabase-js reads the joined workspace as an array;
+  // workspace_members -> workspaces is many-to-one, so it is one row or null.
+  type MembershipRow = {
+    user_id: string;
+    role: string;
+    workspace_id: string;
+    workspaces: { name: string | null } | null;
+  };
+  ((memberships ?? []) as unknown as MembershipRow[]).forEach((row) => {
     upsertWorkspace(row.user_id, {
       id: row.workspace_id,
       name: row.workspaces?.name ?? "Workspace",

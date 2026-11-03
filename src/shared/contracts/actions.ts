@@ -34,11 +34,6 @@ export const ADMIN_ACTIONS = {
   SYSTEM_TEST_EMAIL: 'system.testEmail',
 } as const;
 
-export const PUSH_ACTIONS = {
-  TEST: 'push.test',
-  FLUSH: 'push.flush',
-} as const;
-
 export const INVITE_ACTIONS = {
   CREATE: 'create',
   ACCEPT: 'accept',

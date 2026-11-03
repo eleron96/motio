@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { SampleDataBanner } from '@/features/onboarding/components/SampleDataBanner';
 import { StarterTemplateChooserHost } from '@/features/workspace/components/StarterTemplateChooserHost';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
-import { MobileMenuProvider } from '@/features/workspace/components/MobileMenuContext';
+import { MobileMenuProvider } from '@/shared/components/MobileMenuContext';
 import { AnnouncementsHost } from '@/features/announcements/components/AnnouncementsHost';
 import { PendingDeletionBanner } from '@/shared/components/PendingDeletionBanner';
 import { useNewVersionNotice } from '@/features/workspace/hooks/useNewVersionNotice';

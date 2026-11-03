@@ -1,15 +1,27 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Bold, Italic, Underline, Strikethrough, List, ListOrdered, Quote, Image } from 'lucide-react';
-import { sanitizeTaskRichText } from '@/shared/lib/sanitizer';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizePastedTaskHtml } from '@/shared/lib/pastedRichText';
-import { hasRichTags } from '@/shared/domain/taskDescription';
-import { Button } from '@/shared/ui/button';
 import { ImageLightbox } from '@/shared/ui/image-lightbox';
 import { LightboxImage, getClickedLightboxImage } from '@/shared/lib/lightboxImage';
 import { toast } from '@/shared/ui/sonner';
 import { cn } from '@/shared/lib/classNames';
 import { uploadTaskMedia } from '@/infrastructure/tasks/taskMediaRepository';
 import { t } from '@lingui/macro';
+import {
+  buildEditorImageHtml,
+  defaultImageWidth,
+  extractEditorValue,
+  getCaretRangeFromPoint,
+  hasImageFiles,
+  isSelectionInsideList,
+  rangeAtEnd,
+  resizedImageWidth,
+  selectRange,
+  setEditorValue,
+  wrapEditorImages,
+} from '@/features/planner/lib/richTextEditorDom';
+import { useRichTextImageMenu } from '@/features/planner/hooks/useRichTextImageMenu';
+import { RichTextImageMenu } from '@/features/planner/components/RichTextImageMenu';
+import { RichTextToolbar } from '@/features/planner/components/RichTextToolbar';
 
 interface RichTextEditorProps {
   id?: string;
@@ -35,68 +47,7 @@ interface RichTextEditorProps {
 }
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const MIN_IMAGE_WIDTH = 120;
-const DEFAULT_IMAGE_SCALE = 0.7;
 
-const normalizePlainText = (text: string) => text.replace(/\u00a0/g, ' ');
-
-const isEmptyText = (text: string) => normalizePlainText(text).trim().length === 0;
-
-const sanitizeHtml = sanitizeTaskRichText;
-
-const sanitizeEditorHtml = (editor: HTMLDivElement) => {
-  const clone = editor.cloneNode(true) as HTMLDivElement;
-  clone.querySelectorAll('.rte-image-handle').forEach((node) => node.remove());
-  clone.querySelectorAll('.rte-image').forEach((wrapper) => {
-    const img = wrapper.querySelector('img');
-    if (img) {
-      wrapper.replaceWith(img);
-    } else {
-      wrapper.remove();
-    }
-  });
-  return sanitizeHtml(clone.innerHTML);
-};
-
-const extractEditorValue = (editor: HTMLDivElement) => {
-  const html = sanitizeEditorHtml(editor);
-  const text = editor.innerText ?? '';
-  const hasImages = /<img\b/i.test(html);
-  if (!hasImages && isEmptyText(text)) {
-    return '';
-  }
-  return hasRichTags(html) ? html : normalizePlainText(text);
-};
-
-const setEditorValue = (editor: HTMLDivElement, value: string) => {
-  if (!value) {
-    editor.innerHTML = '';
-    return;
-  }
-  if (hasRichTags(value)) {
-    editor.innerHTML = sanitizeHtml(value);
-    return;
-  }
-  editor.textContent = value;
-};
-
-// Mockup-style toolbar: related commands sit in groups separated by a thin
-// vertical divider (text formatting | lists | blocks).
-const toolbarGroups = [
-  [
-    { label: 'Bold', command: 'bold', icon: Bold },
-    { label: 'Italic', command: 'italic', icon: Italic },
-    { label: 'Underline', command: 'underline', icon: Underline },
-    { label: 'Strike', command: 'strikeThrough', icon: Strikethrough },
-  ],
-  [
-    { label: 'Bulleted list', command: 'insertUnorderedList', icon: List },
-    { label: 'Numbered list', command: 'insertOrderedList', icon: ListOrdered },
-  ],
-  [
-    { label: 'Quote', command: 'formatBlock', value: 'blockquote', icon: Quote },
-  ],
-] as Array<Array<{ label: string; command: string; value?: string; icon: typeof Bold }>>;
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   id,
@@ -120,15 +71,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     startY: number;
     startWidth: number;
   } | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const draggingImageRef = useRef<HTMLSpanElement | null>(null);
   const dragDepthRef = useRef(0);
-  const contextImageRef = useRef<HTMLImageElement | null>(null);
   const lastValueRef = useRef(value);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
   const closeLightbox = useCallback(() => setLightboxImage(null), []);
+  const imageMenu = useRichTextImageMenu(containerRef);
 
   const syncFromEditor = useCallback(() => {
     const editor = editorRef.current;
@@ -168,60 +117,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     selection.addRange(range);
   }, []);
 
-  const getDefaultImageWidth = useCallback(() => {
-    const editor = editorRef.current;
-    if (!editor) return `${Math.round(DEFAULT_IMAGE_SCALE * 100)}%`;
-    const editorWidth = editor.clientWidth;
-    if (!editorWidth) return `${Math.round(DEFAULT_IMAGE_SCALE * 100)}%`;
-    const targetWidth = Math.round(editorWidth * DEFAULT_IMAGE_SCALE);
-    const maxWidth = Math.max(MIN_IMAGE_WIDTH, editorWidth - 32);
-    const safeWidth = Math.min(Math.max(MIN_IMAGE_WIDTH, targetWidth), maxWidth);
-    return `${safeWidth}px`;
-  }, []);
-
-  const getCaretRangeFromPoint = useCallback((x: number, y: number) => {
-    const caretRangeFromPoint = (document as Document & {
-      caretRangeFromPoint?: (x: number, y: number) => Range | null;
-    }).caretRangeFromPoint;
-    if (caretRangeFromPoint) {
-      return caretRangeFromPoint.call(document, x, y);
-    }
-    const position = (document as Document & {
-      caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
-    }).caretPositionFromPoint?.(x, y);
-    if (!position) return null;
-    const range = document.createRange();
-    range.setStart(position.offsetNode, position.offset);
-    range.collapse(true);
-    return range;
-  }, []);
-
-  const hasImageFiles = useCallback((dataTransfer?: DataTransfer | null) => {
-    if (!dataTransfer) return false;
-    const hasImageItem = Array.from(dataTransfer.items ?? [])
-      .some((item) => item.kind === 'file' && item.type.startsWith('image/'));
-    if (hasImageItem) return true;
-    return Array.from(dataTransfer.files ?? [])
-      .some((file) => file.type.startsWith('image/'));
-  }, []);
-
   const insertImage = useCallback((src: string, altText: string) => {
     const editor = editorRef.current;
     if (!editor) return;
     restoreSelection();
     editor.focus();
-    const safeAlt = altText.replace(/"/g, '&quot;');
-    const defaultWidth = getDefaultImageWidth();
-    const html = [
-      '<span class="rte-image" contenteditable="false" draggable="true" data-rte-image="true">',
-      `<img src="${src}" alt="${safeAlt}" style="width:${defaultWidth};height:auto;" />`,
-      '<span class="rte-image-handle" data-handle="se"></span>',
-      '</span>',
-    ].join('');
-    document.execCommand('insertHTML', false, html);
+    document.execCommand('insertHTML', false, buildEditorImageHtml(src, altText, defaultImageWidth(editor)));
     saveSelection();
     syncFromEditor();
-  }, [getDefaultImageWidth, restoreSelection, saveSelection, syncFromEditor]);
+  }, [restoreSelection, saveSelection, syncFromEditor]);
 
   const uploadTaskImage = useCallback(async (file: File) => {
     return uploadTaskMedia(workspaceId?.trim() ?? '', file);
@@ -254,14 +158,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     // user can paste / type immediately.
     const id = window.requestAnimationFrame(() => {
       editor.focus();
-      const range = document.createRange();
-      range.selectNodeContents(editor);
-      range.collapse(false);
-      const selection = window.getSelection();
-      if (selection) {
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
+      selectRange(rangeAtEnd(editor));
     });
     return () => window.cancelAnimationFrame(id);
   }, [autoFocus]);
@@ -272,35 +169,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     if (value === lastValueRef.current && editor.innerHTML !== '') return;
     setEditorValue(editor, value);
     lastValueRef.current = value;
-    const defaultWidth = getDefaultImageWidth();
-    const images = Array.from(editor.querySelectorAll('img'));
-    images.forEach((img) => {
-      let wrapper = img.closest('.rte-image');
-      if (!wrapper) {
-        const parent = img.parentNode;
-        if (!parent) return;
-        wrapper = document.createElement('span');
-        wrapper.className = 'rte-image';
-        wrapper.setAttribute('contenteditable', 'false');
-        parent.insertBefore(wrapper, img);
-        wrapper.appendChild(img);
-      }
-      if (wrapper instanceof HTMLElement) {
-        wrapper.setAttribute('draggable', 'true');
-        wrapper.setAttribute('data-rte-image', 'true');
-      }
-      if (!wrapper.querySelector('.rte-image-handle')) {
-        const handle = document.createElement('span');
-        handle.className = 'rte-image-handle';
-        handle.setAttribute('data-handle', 'se');
-        wrapper.appendChild(handle);
-      }
-      if (!img.style.width && !img.getAttribute('width')) {
-        img.style.width = defaultWidth;
-        img.style.height = 'auto';
-      }
-    });
-  }, [getDefaultImageWidth, value]);
+    wrapEditorImages(editor, defaultImageWidth(editor));
+  }, [value]);
 
   useEffect(() => {
     if (!disabled) return;
@@ -311,15 +181,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const handleResizeMove = useCallback((event: PointerEvent) => {
     const state = resizeStateRef.current;
     if (!state) return;
-    const deltaX = event.clientX - state.startX;
-    const deltaY = event.clientY - state.startY;
-    const delta = Math.max(deltaX, deltaY);
+    const delta = Math.max(event.clientX - state.startX, event.clientY - state.startY);
     const editorWidth = editorRef.current?.clientWidth ?? state.startWidth;
-    const maxWidth = Math.max(MIN_IMAGE_WIDTH, editorWidth - 32);
-    const nextWidth = Math.min(
-      Math.max(MIN_IMAGE_WIDTH, state.startWidth + delta),
-      maxWidth,
-    );
+    const nextWidth = resizedImageWidth(state.startWidth, delta, editorWidth);
     state.img.style.width = `${Math.round(nextWidth)}px`;
     state.img.style.height = 'auto';
   }, []);
@@ -330,73 +194,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     resizeStateRef.current = null;
     syncFromEditor();
   }, [handleResizeMove, syncFromEditor]);
-
-  const closeContextMenu = useCallback(() => {
-    setContextMenu(null);
-    contextImageRef.current = null;
-  }, []);
-
-  useEffect(() => {
-    if (!contextMenu) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.closest('.rte-image-menu')) return;
-      closeContextMenu();
-    };
-    const handleScroll = () => closeContextMenu();
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeContextMenu();
-      }
-    };
-    window.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('pointerdown', handlePointerDown);
-      window.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [closeContextMenu, contextMenu]);
-
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    if (!contextMenu || !menuRef.current || !container) return;
-    const rect = menuRef.current.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const padding = 8;
-    let nextX = contextMenu.x;
-    let nextY = contextMenu.y;
-    const maxX = containerRect.width - rect.width - padding;
-    const maxY = containerRect.height - rect.height - padding;
-    if (nextX > maxX) {
-      nextX = Math.max(padding, maxX);
-    }
-    if (nextY > maxY) {
-      nextY = Math.max(padding, maxY);
-    }
-    if (nextX < padding) nextX = padding;
-    if (nextY < padding) nextY = padding;
-    if (nextX !== contextMenu.x || nextY !== contextMenu.y) {
-      setContextMenu({ x: nextX, y: nextY });
-    }
-  }, [contextMenu]);
-
-  const isSelectionInsideList = useCallback(() => {
-    const editor = editorRef.current;
-    const selection = window.getSelection();
-    if (!editor || !selection || selection.rangeCount === 0) return false;
-    let node: Node | null = selection.getRangeAt(0).startContainer;
-    if (!node || !editor.contains(node)) return false;
-    while (node && node !== editor) {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const tag = (node as Element).tagName;
-        if (tag === 'LI' || tag === 'UL' || tag === 'OL') return true;
-      }
-      node = node.parentNode;
-    }
-    return false;
-  }, []);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (disabled) return;
@@ -424,7 +221,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     // Inside a list we defer to the browser so Enter still creates a new list
     // item (and a trailing empty item exits the list).
     if (event.key === 'Enter') {
-      if (isSelectionInsideList()) return;
+      if (isSelectionInsideList(editorRef.current)) return;
       event.preventDefault();
       document.execCommand('insertLineBreak');
       syncFromEditor();
@@ -581,21 +378,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       const dropRange = getCaretRangeFromPoint(event.clientX, event.clientY);
       if (dropRange && editor.contains(dropRange.startContainer)) {
-        const selection = window.getSelection();
-        if (selection) {
-          selection.removeAllRanges();
-          selection.addRange(dropRange);
+        if (window.getSelection()) {
+          selectRange(dropRange);
           savedSelectionRef.current = dropRange;
         }
       } else {
-        const range = document.createRange();
-        range.selectNodeContents(editor);
-        range.collapse(false);
-        const selection = window.getSelection();
-        if (selection) {
-          selection.removeAllRanges();
-          selection.addRange(range);
-        }
+        const range = rangeAtEnd(editor);
+        selectRange(range);
         savedSelectionRef.current = range;
       }
 
@@ -649,15 +438,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const image = target instanceof HTMLImageElement ? target : wrapper?.querySelector('img');
     if (!(image instanceof HTMLImageElement)) return;
     event.preventDefault();
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    const x = containerRect ? event.clientX - containerRect.left + 6 : event.clientX + 6;
-    const y = containerRect ? event.clientY - containerRect.top + 6 : event.clientY + 6;
-    contextImageRef.current = image;
-    setContextMenu({ x, y });
+    imageMenu.openAt(image, event.clientX, event.clientY);
   };
 
   const handleRemoveImage = () => {
-    const image = contextImageRef.current;
+    const image = imageMenu.imageRef.current;
     if (!image) return;
     const wrapper = image.closest('.rte-image');
     if (wrapper) {
@@ -665,13 +450,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     } else {
       image.remove();
     }
-    closeContextMenu();
+    imageMenu.close();
     syncFromEditor();
   };
 
   const handleOpenImage = () => {
-    const image = contextImageRef.current;
-    closeContextMenu();
+    const image = imageMenu.imageRef.current;
+    imageMenu.close();
     if (!image?.src) return;
     setLightboxImage({ src: image.src, alt: image.alt });
   };
@@ -708,54 +493,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div
-        className={cn(
-          'flex flex-wrap items-center gap-0.5',
-          framed
-            ? 'border-b border-border/60 bg-secondary/70 px-2 py-1.5'
-            : 'rounded-md border border-input bg-muted/30 p-1',
-        )}
-      >
-        {toolbarGroups.map((group, groupIndex) => (
-          <React.Fragment key={groupIndex}>
-            {groupIndex > 0 && (
-              <span aria-hidden="true" className="mx-1 h-4 w-px shrink-0 bg-border" />
-            )}
-            {group.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Button
-                  key={item.label}
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  disabled={disabled}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => applyCommand(item.command, item.value)}
-                  aria-label={item.label}
-                  title={item.label}
-                >
-                  <Icon className="h-4 w-4" />
-                </Button>
-              );
-            })}
-          </React.Fragment>
-        ))}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          disabled={disabled}
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={handleImageButtonClick}
-          aria-label="Insert image"
-          title="Insert image"
-        >
-          <Image className="h-4 w-4" />
-        </Button>
-      </div>
+      <RichTextToolbar
+        framed={framed}
+        disabled={disabled}
+        onCommand={applyCommand}
+        onInsertImage={handleImageButtonClick}
+      />
       <input
         ref={fileInputRef}
         type="file"
@@ -798,28 +541,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {t`Drag and drop image files into the description area.`}
         </p>
       )}
-      {contextMenu && (
-        <div
-          ref={menuRef}
-          className="rte-image-menu absolute z-[60] min-w-[160px] rounded-md border border-border bg-popover p-1 text-sm shadow-lg"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-        >
-          <button
-            type="button"
-            className="w-full rounded-sm px-2 py-1 text-left hover:bg-muted"
-            onClick={handleOpenImage}
-          >
-            {t`Open fullscreen`}
-          </button>
-          <button
-            type="button"
-            className="w-full rounded-sm px-2 py-1 text-left hover:bg-muted"
-            onClick={handleRemoveImage}
-          >
-            {t`Remove image`}
-          </button>
-        </div>
-      )}
+      <RichTextImageMenu
+        menuRef={imageMenu.menuRef}
+        position={imageMenu.position}
+        onOpenImage={handleOpenImage}
+        onRemoveImage={handleRemoveImage}
+      />
       <ImageLightbox image={lightboxImage} onClose={closeLightbox} />
     </div>
   );

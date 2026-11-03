@@ -5,7 +5,7 @@ import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useBoardPeopleCounts } from '@/features/planner/hooks/useBoardColumns';
 import { buildAssigneeGroupMap, resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSelectors';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import {

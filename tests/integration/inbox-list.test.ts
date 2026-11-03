@@ -9,14 +9,9 @@ import {
   loadFixture,
   withRollback,
 } from "../helpers/setup-test-db";
-import {
-  mapInboxTaskNotifications,
-  type InboxNotificationRow,
-} from "../../infra/supabase/functions/inbox/taskNotifications";
 
-// 0166: inbox_list returns what the inbox edge function returned, from one
-// query. The notification list is checked against the function's own mapping
-// (mapInboxTaskNotifications) fed with the same queries the function ran.
+// 0166: inbox_list is the bell's single read — pending invites, the user's
+// notifications and (on request) the invites they sent — in one query.
 
 const W1 = TEST_WORKSPACE_IDS.aliceSolo; // Alice admin, Charlie editor
 const W2 = TEST_WORKSPACE_IDS.bobShared; // Bob admin, Charlie admin
@@ -110,32 +105,12 @@ async function seedNotifications(client: PoolClient) {
   await notify(client, { workspaceId: W1, actor: alice, type: "task_assigned", taskId: liveTask, title: "Deleted from inbox", minutesAgo: 7, deleted: true });
 }
 
-// What the edge function computed, with its own mapping.
-async function expectedNotifications(client: PoolClient, userId: string) {
-  const { rows } = await client.query<InboxNotificationRow & { created_at: string; read_at: string | null }>(
-    `select id, workspace_id, actor_user_id, type, task_id, task_title_snapshot,
-            task_start_date_snapshot::text, comment_id, comment_preview,
-            to_jsonb(created_at)#>>'{}' as created_at, to_jsonb(read_at)#>>'{}' as read_at
-     from public.user_notifications
-     where recipient_user_id = $1 and deleted_at is null
-     order by created_at desc limit 60`,
-    [userId],
-  );
-  const { rows: memberRows } = await client.query<{ workspace_id: string }>(
-    "select workspace_id from public.workspace_members where user_id = $1",
-    [userId],
-  );
-  const memberOf = new Set(memberRows.map((row) => row.workspace_id));
-  const visible = rows.filter((row) => row.workspace_id === null || memberOf.has(row.workspace_id));
-  const names = new Map((await client.query<{ id: string; name: string }>("select id, name from public.workspaces")).rows.map((r) => [r.id, r.name ?? "Workspace"]));
-  const profiles = new Map((await client.query<{ id: string; display_name: string | null; email: string | null }>(
-    "select id, display_name, email from public.profiles",
-  )).rows.map((r) => [r.id, { displayName: r.display_name ?? null, email: r.email ?? null }]));
-  const tasks = new Map((await client.query<{ id: string; title: string | null; start_date: string | null }>(
-    "select id, title, start_date::text from public.tasks",
-  )).rows.map((r) => [r.id, { title: r.title ?? null, startDate: r.start_date ?? null }]));
-  return mapInboxTaskNotifications(visible, names, profiles, tasks);
-}
+// Every notification the client parses (inboxRepository.parseTaskNotifications).
+const NOTIFICATION_KEYS = [
+  "actorDisplayName", "actorEmail", "actorUserId", "commentId", "commentPreview", "createdAt",
+  "id", "readAt", "taskExists", "taskId", "taskStartDate", "taskTitle", "type",
+  "workspaceId", "workspaceName",
+];
 
 describe("inbox_list (0166)", () => {
   beforeAll(async () => {
@@ -155,17 +130,18 @@ describe("inbox_list (0166)", () => {
     await closeTestPool();
   });
 
-  it("returns the same notifications as the edge function's mapping", async () => {
+  it("returns the visible notifications newest first, in the shape the client reads", async () => {
     await withRollback(async (client) => {
       await loadFixture(client, "account-deletion.sql");
       await seedNotifications(client);
 
-      const result = await inboxAs(client, charlie);
-      const expected = await expectedNotifications(client, charlie);
+      const { notifications } = await inboxAs(client, charlie);
 
-      expect(result.notifications).toEqual(expected);
-      // Sanity on the cases the seed covers.
-      expect(result.notifications.map((n) => n.type)).toEqual(["task_assigned", "comment_mention", "task_updated", "export_ready"]);
+      expect(notifications.map((n) => n.type)).toEqual(["task_assigned", "comment_mention", "task_updated", "export_ready"]);
+      for (const notification of notifications) {
+        expect(Object.keys(notification).sort()).toEqual(NOTIFICATION_KEYS);
+        expect(Date.parse(String(notification.createdAt))).not.toBeNaN();
+      }
     });
   });
 

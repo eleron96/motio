@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   BOARD_RECENTLY_CHANGED_DAYS,
   buildBoardScope,
+  findStaleTaskIds,
   isTaskInBoardScope,
   isTaskInLoadScopes,
   isTaskInWindow,
   mergeBoardLoad,
   mergeWindowLoad,
   pruneToWindow,
-  windowContains,
   type TaskBoardScope,
 } from '@/shared/domain/taskLoadScopes';
 import type { Task } from '@/features/planner/types/planner';
@@ -43,12 +43,6 @@ describe('taskLoadScopes', () => {
     expect(isTaskInWindow(makeTask({ startDate: '2026-03-31', endDate: '2026-04-05' }), window)).toBe(true);
     expect(isTaskInWindow(makeTask({ startDate: '2026-02-01', endDate: '2026-02-28' }), window)).toBe(false);
     expect(isTaskInWindow(makeTask({ startDate: '2026-04-01', endDate: '2026-04-02' }), window)).toBe(false);
-  });
-
-  it('checks window containment', () => {
-    expect(windowContains({ start: '2025-03-01', end: '2027-03-01' }, window)).toBe(true);
-    expect(windowContains(window, window)).toBe(true);
-    expect(windowContains(window, { start: '2026-02-28', end: '2026-03-31' })).toBe(false);
   });
 
   it('claims open tasks and recently changed ones for the board', () => {
@@ -128,5 +122,22 @@ describe('taskLoadScopes', () => {
     const mixed = [...inWindow, makeTask({ id: 'far', startDate: '2027-01-01', endDate: '2027-01-01' })];
     expect(pruneToWindow(mixed, window).map((task) => task.id)).toEqual(['a', 'b']);
     expect(pruneToWindow(mixed, null)).toEqual([]);
+  });
+
+  it('finds tasks a reconcile should drop: claimed locally, no longer claimed remotely', () => {
+    const inWindow = makeTask({ id: 'in-window' });
+    const deleted = makeTask({ id: 'deleted' });
+    const boardOnly = makeTask({ id: 'board-only', startDate: '2026-05-01', endDate: '2026-05-02' });
+    const elsewhere = makeTask({ id: 'elsewhere', startDate: '2026-05-01', endDate: '2026-05-02', statusId: 'status-done' });
+    const tasks = [inWindow, deleted, boardOnly, elsewhere];
+
+    // Without a board only the window counts; tasks outside it are not ours to judge.
+    expect(findStaleTaskIds(tasks, window, null, new Set(['in-window']), new Set())).toEqual(['deleted']);
+    // The board still claims a task the window no longer does: it stays.
+    expect(findStaleTaskIds(tasks, window, board, new Set(['in-window']), new Set(['deleted', 'board-only'])))
+      .toEqual([]);
+    // Neither scope claims them remotely any more: both go.
+    expect(findStaleTaskIds(tasks, window, board, new Set(['in-window']), new Set()))
+      .toEqual(['deleted', 'board-only']);
   });
 });

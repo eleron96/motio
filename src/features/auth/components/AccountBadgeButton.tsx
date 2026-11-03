@@ -4,8 +4,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { cn } from '@/shared/lib/classNames';
 import { Button } from '@/shared/ui/button';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 
 interface AccountBadgeButtonProps {
   onClick: () => void;

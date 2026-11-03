@@ -166,11 +166,16 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
 
 `.github/workflows/ci.yml` runs on every push and pull request:
 
-- **lint-test-build** — `npm run lint` → SQL security lint
-  (`infra/scripts/lint-security-definer.sh`) → `npm run typecheck` → i18n catalogs up
-  to date (`lingui:extract`, then `git diff --exit-code src/locales`) →
-  `npm run test` → `npm run test:backup` (backup-service, `node:test`) →
-  `npm run build`.
+- **lint-test-build** — `npm run lint` (no errors, and no more warnings than
+  `--max-warnings` in `package.json`) → code health ratchet (`npm run check:health`:
+  fails on new unused files, exports or dependencies, new files over 600 lines, new
+  direct Supabase access in features outside their stores or new cross-feature
+  component imports; the known backlog is in `infra/scripts/code-health-baseline.json`)
+  → SQL security lint (`infra/scripts/lint-security-definer.sh`) → `npm run typecheck`
+  → Edge Functions typecheck (`infra/scripts/check-edge-functions.sh`, Deno 1.40.3;
+  any type error fails) → i18n catalogs up to date (`lingui:extract`, then
+  `git diff --exit-code src/locales`) → `npm run test` → `npm run test:backup`
+  (backup-service, `node:test`) → `npm run build`.
 - **integration-tests** — `infra/scripts/ci-test-db.sh` provisions the Supabase
   Postgres and applies the Liquibase migrations, then `npm run test:integration`
   runs against it.

@@ -93,8 +93,9 @@ const checkOk = (response, label) => check(response, {
 });
 
 export function inboxPoll() {
-  const body = JSON.stringify({ action: 'list', includeSentUpdates: false, limit: 60 });
-  const response = http.post(`${BASE_URL}/functions/v1/inbox`, body, withHeaders());
+  // The bell's single read (RPC inbox_list, 0166), with the client's limits.
+  const body = JSON.stringify({ p_limit: 60, p_pending_invite_limit: 80, p_sent_limit: 140, p_include_sent: false });
+  const response = http.post(`${BASE_URL}/rest/v1/rpc/inbox_list`, body, withHeaders());
   checkOk(response, 'inbox');
   sleep(1);
 }

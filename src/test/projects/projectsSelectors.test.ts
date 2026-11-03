@@ -49,7 +49,6 @@ describe('projectsSelectors', () => {
       milestones,
       projectById: new Map(projects.map((project) => [project.id, project])),
       customerById: new Map(customers.map((customer) => [customer.id, customer])),
-      trackedProjectIdSet: new Set(['p1']),
       milestoneSearch: '',
       nameSort: 'asc',
     });
@@ -60,7 +59,6 @@ describe('projectsSelectors', () => {
       milestones,
       projectById: new Map(projects.map((project) => [project.id, project])),
       customerById: new Map(customers.map((customer) => [customer.id, customer])),
-      trackedProjectIdSet: new Set(['p1']),
       milestoneSearch: 'acme',
       nameSort: 'asc',
     });
@@ -85,7 +83,6 @@ describe('projectsSelectors', () => {
       milestones,
       projectById: new Map(projects.map((project) => [project.id, project])),
       customerById: new Map(),
-      trackedProjectIdSet: new Set(['tracked']),
       milestoneSearch: '',
       nameSort: 'asc',
     });
@@ -113,7 +110,6 @@ describe('projectsSelectors', () => {
       projectById: new Map(projects.map((project) => [project.id, project])),
       projects,
       sortedCustomers,
-      trackedProjectIds: ['p1'],
       nameSort: 'asc',
       dateLocale: enUS,
       labels: {
@@ -199,7 +195,6 @@ describe('projectsSelectors', () => {
         milestones,
         projectById,
         customerById,
-        trackedProjectIdSet: new Set(),
         milestoneSearch: '',
         nameSort: 'asc',
         ownerGroupFilterIds: ['g1'],
@@ -210,7 +205,6 @@ describe('projectsSelectors', () => {
         milestones,
         projectById,
         customerById,
-        trackedProjectIdSet: new Set(),
         milestoneSearch: 'sprint',
         nameSort: 'asc',
         ownerGroupFilterIds: ['g1'],

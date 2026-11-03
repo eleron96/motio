@@ -2,6 +2,10 @@
 // build time, so checks compile down to constants — no runtime overhead.
 //
 // Flags default to OFF for safety: missing or empty env var → disabled.
+//
+// A flag lives only while its feature rolls out. Once it is on everywhere —
+// production, testing and the self-host default — remove it together with the
+// code behind "off".
 
 import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
 
@@ -13,48 +17,6 @@ const readFlag = (value: unknown): boolean => {
 
 export const isAccountDeletionEnabled = (): boolean => (
   readFlag(import.meta.env.VITE_FEATURE_ACCOUNT_DELETION)
-);
-
-// The /demo sandbox is a self-contained showcase: force the customer/contacts
-// and workload-heatmap features on there regardless of the build-time env, so
-// the demo always exhibits them (and works under a plain `npm run dev` too).
-export const isProjectCardEnabled = (): boolean => (
-  isDemoRoute() || readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD)
-);
-
-/**
- * When on, the new Project Card UI is rendered on mobile too (otherwise mobile
- * falls back to the legacy panel). Implies `isProjectCardEnabled`.
- *
- * Edit flows are gated separately as they are layered in across mobile phases
- * (M1 = read-only, M2 = status + activity composer, etc.) — for now the same
- * flag covers the whole mobile path.
- */
-export const isProjectCardMobileEnabled = (): boolean => (
-  isProjectCardEnabled()
-  && readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD_MOBILE)
-);
-
-/**
- * When on, the built-in "workload heatmap" board is available on the dashboard
- * page (a toggle in the toolbar) and its per-workspace switch shows up in
- * workspace settings. Off by default so the migration and code can ship dormant
- * ahead of GA; the per-workspace `heatmap_enabled` flag gates it after that.
- */
-export const isWorkloadHeatmapEnabled = (): boolean => (
-  isDemoRoute() || readFlag(import.meta.env.VITE_FEATURE_WORKLOAD_HEATMAP)
-);
-
-/**
- * When on, adding a customer contact or an external team member suggests people
- * already entered elsewhere in the workspace, so they don't have to be retyped
- * per project. Purely additive — the existing add forms are unchanged when
- * there is nothing to suggest. Off by default; only affects the Project Card,
- * so it implies `isProjectCardEnabled`.
- */
-export const isPeopleSuggestEnabled = (): boolean => (
-  isProjectCardEnabled()
-  && readFlag(import.meta.env.VITE_FEATURE_PEOPLE_SUGGEST)
 );
 
 /**
@@ -69,18 +31,8 @@ export const isPushEnabled = (): boolean => (
 );
 
 /**
- * When on, a person can mark their own days off ("Отметить выходной") on the
- * timeline: the record renders as a bar on lane 0 of their row and shades the
- * covered working days. Off by default so the table and the render can ship
- * dormant; forced on in /demo so the sandbox always exhibits it.
- */
-export const isTimeOffEnabled = (): boolean => (
-  isDemoRoute() || readFlag(import.meta.env.VITE_FEATURE_TIME_OFF)
-);
-
-/**
  * When on, a person can turn on the board (kanban) view in account settings →
- * Preferences and then switch the planner between the timeline and a board of
+ * Appearance and then switch the planner between the timeline and a board of
  * status columns. A hidden beta: the manifesto still says "no kanban", so it
  * is NOT forced on in /demo (the public sandbox) — only the build env enables it.
  */
@@ -114,11 +66,6 @@ export const isTaskLiveDraftsEnabled = (): boolean => (
  * Raw build values only — the /demo forcing above does not apply here.
  */
 export const listBuildFeatureFlags = (): Array<{ name: string; enabled: boolean }> => [
-  { name: 'VITE_FEATURE_TIME_OFF', enabled: readFlag(import.meta.env.VITE_FEATURE_TIME_OFF) },
-  { name: 'VITE_FEATURE_WORKLOAD_HEATMAP', enabled: readFlag(import.meta.env.VITE_FEATURE_WORKLOAD_HEATMAP) },
-  { name: 'VITE_FEATURE_PROJECT_CARD', enabled: readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD) },
-  { name: 'VITE_FEATURE_PROJECT_CARD_MOBILE', enabled: readFlag(import.meta.env.VITE_FEATURE_PROJECT_CARD_MOBILE) },
-  { name: 'VITE_FEATURE_PEOPLE_SUGGEST', enabled: readFlag(import.meta.env.VITE_FEATURE_PEOPLE_SUGGEST) },
   { name: 'VITE_FEATURE_PUSH', enabled: readFlag(import.meta.env.VITE_FEATURE_PUSH) },
   { name: 'VITE_FEATURE_KANBAN', enabled: readFlag(import.meta.env.VITE_FEATURE_KANBAN) },
   { name: 'VITE_FEATURE_ACCOUNT_DELETION', enabled: readFlag(import.meta.env.VITE_FEATURE_ACCOUNT_DELETION) },

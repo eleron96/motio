@@ -9,6 +9,7 @@ vi.mock('@lingui/macro', () => ({
 
 const media = vi.hoisted(() => ({ upload: vi.fn() }));
 vi.mock('@/infrastructure/tasks/taskMediaRepository', () => ({
+  isTaskMediaStorageAvailable: () => true,
   uploadTaskMediaFile: media.upload,
   buildTaskMediaUrl: (image: { id: string }) => `https://app.example/functions/v1/task-media/${image.id}`,
 }));

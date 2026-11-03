@@ -38,19 +38,6 @@ export const parseTaskSubtaskImages = (raw: unknown): TaskSubtaskImage[] => {
   return images;
 };
 
-export const subtaskImageMediaIds = (images: TaskSubtaskImage[]): string[] => (
-  images.map((image) => image.id)
-);
-
-/** Media ids that `previous` showed and `next` no longer does — GC candidates. */
-export const diffRemovedSubtaskImageIds = (
-  previous: TaskSubtaskImage[],
-  next: TaskSubtaskImage[],
-): string[] => {
-  const kept = new Set(next.map((image) => image.id));
-  return previous.filter((image) => !kept.has(image.id)).map((image) => image.id);
-};
-
 /** Appends new pictures, skipping repeats, without going past the cap. */
 export const appendSubtaskImages = (
   current: TaskSubtaskImage[],

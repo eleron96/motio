@@ -6,7 +6,6 @@ import type { Customer, Milestone, Project, Tag, Task } from '@/features/planner
 interface UseProjectSelectionInput {
   projects: Project[];
   milestones: Milestone[];
-  customers: Customer[];
   projectTasks: Task[];
   selectedProjectId: string | null;
   selectedMilestoneId: string | null;
@@ -21,7 +20,6 @@ interface UseProjectSelectionInput {
 export function useProjectSelection({
   projects,
   milestones,
-  customers,
   projectTasks,
   selectedProjectId,
   selectedMilestoneId,

@@ -19,8 +19,6 @@ import type { Assignee } from '@/features/planner/types/planner';
 export interface CalendarLegendPanelProps {
   visibility: CalendarOverlayVisibility;
   onToggle: (category: CalendarOverlayCategory) => void;
-  /** Rendered only when the time-off feature is available to this deployment. */
-  showTimeOffRow?: boolean;
   /** People whose time off can be shown; the list is hidden when empty. */
   people?: Assignee[];
   peopleColors?: Map<string, string>;
@@ -54,7 +52,6 @@ const COLLAPSE_THRESHOLD = 8;
 export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
   visibility,
   onToggle,
-  showTimeOffRow = false,
   people = [],
   peopleColors,
   selectedPeople = null,
@@ -94,13 +91,12 @@ export const CalendarLegendPanel: React.FC<CalendarLegendPanelProps> = ({
     : people.filter((person) => selectedPeople.includes(person.id)).length
       + (unknownPeopleIds.length > 0 && unknownShown ? 1 : 0);
 
-  const rows = buildCalendarLegendRows(showTimeOffRow);
+  const rows = buildCalendarLegendRows();
 
   // Nested under its own checkbox rather than parked at the bottom of the
   // panel: the list only makes sense for that category, and a separate section
   // left a hole in the middle.
-  const peopleBlock = showTimeOffRow
-    && visibility.timeOff
+  const peopleBlock = visibility.timeOff
     && (people.length > 0 || unknownPeopleIds.length > 0)
     && onTogglePerson
     ? (

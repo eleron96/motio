@@ -42,7 +42,6 @@ interface TimelineRowProps {
 
 const TimelineRowBase: React.FC<TimelineRowProps> = ({
   rowId,
-  rowIndex,
   visibleDays,
   dayWidth,
   viewMode,

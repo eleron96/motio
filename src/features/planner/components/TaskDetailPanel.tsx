@@ -3,108 +3,35 @@ import { lazyNamed } from '@/shared/lib/lazyComponent';
 import { useShallow } from 'zustand/react/shallow';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
-import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
-import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
-import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
-import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
-import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle } from '@/shared/ui/dialog';
 import { TaskDetailAlerts, TaskNotFoundDialog } from '@/features/planner/components/TaskDetailDialogs';
+import { TaskDetailFrame } from '@/features/planner/components/TaskDetailFrame';
+import { TaskDetailHeader } from '@/features/planner/components/TaskDetailHeader';
+import { TaskDetailDescription } from '@/features/planner/components/TaskDetailDescription';
+import { TaskDetailParameters } from '@/features/planner/components/TaskDetailParameters';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { MobileFormScreen } from '@/shared/ui/mobile-form-screen';
-import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
-import { Button } from '@/shared/ui/button';
-import { Checkbox } from '@/shared/ui/checkbox';
-import { Input } from '@/shared/ui/input';
-const LazyRichTextEditor = lazyNamed(
-  () => import('@/features/planner/components/RichTextEditor'),
-  'RichTextEditor'
-);
+import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
+import { Task } from '@/features/planner/types/planner';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { useTaskRepeatConfig } from '@/features/planner/hooks/useTaskRepeatConfig';
+import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
+import { useTaskDrafts } from '@/features/planner/hooks/useTaskDrafts';
+import { useTaskDescriptionSave } from '@/features/planner/hooks/useTaskDescriptionSave';
+import { useTaskRepeatSave } from '@/features/planner/hooks/useTaskRepeatSave';
+import { useTaskDetailClose } from '@/features/planner/hooks/useTaskDetailClose';
+import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
+import { useTaskDraftPresence } from '@/features/planner/hooks/useTaskDraftPresence';
+import { useSerialFieldWrite } from '@/features/planner/hooks/useSerialFieldWrite';
+import { isTaskLiveDraftsEnabled } from '@/shared/lib/featureFlags';
+import { hasTaskUpdates } from '@/shared/domain/taskUpdates';
+import { formatTaskTimestamps } from '@/features/planner/lib/taskTimestamps';
+import { clampTaskDates } from '@/features/planner/lib/dateUtils';
+
 const LazyTaskCommentSection = lazyNamed(
   () => import('@/features/planner/components/TaskCommentSection'),
   'TaskCommentSection'
 );
-import { Label } from '@/shared/ui/label';
-import { formatStatusLabel } from '@/shared/lib/statusLabels';
-import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { ResponsiveSelect } from '@/shared/ui/responsive-select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
-import { getPersonMonogram } from '@/shared/domain/personName';
-import { ChevronDown, Copy, MoreVertical, RotateCw, Trash2 } from 'lucide-react';
-import { RepeatTaskUpdateScope, Task, TaskPriority } from '@/features/planner/types/planner';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { useTaskRepeatConfig, PendingRepeatUpdate, buildRepeatConfigSignature } from '@/features/planner/hooks/useTaskRepeatConfig';
-import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
-import { useTaskDrafts, areArraysEqual } from '@/features/planner/hooks/useTaskDrafts';
-import { SubtasksSection } from '@/features/planner/components/SubtasksSection';
-import { TeammateDraftLine } from '@/features/planner/components/TeammateDraftLine';
-import { useTaskDraftPresence } from '@/features/planner/hooks/useTaskDraftPresence';
-import { useSerialFieldWrite } from '@/features/planner/hooks/useSerialFieldWrite';
-import { isTaskLiveDraftsEnabled } from '@/shared/lib/featureFlags';
-import { t } from '@lingui/macro';
-import { i18n } from '@lingui/core';
-import { format, isSameDay, isSameYear, parseISO, subDays } from 'date-fns';
-import type { Locale as DateFnsLocale } from 'date-fns';
-import { isSupportedLocale } from '@/shared/lib/locale';
-import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import {
-  buildCreateRepeatsOptions,
-  getRepeatOccurrenceDate,
-  resolveRepeatValidationMessage,
-  RepeatEnds,
-  RepeatFrequency,
-} from '@/features/planner/lib/taskFormRules';
-import { clampTaskDates, getMinEndDate } from '@/features/planner/lib/dateUtils';
-
-const shouldIgnoreOutsideInteraction = (target: EventTarget | null) => {
-  if (!(target instanceof HTMLElement)) return false;
-  return Boolean(
-    target.closest('[data-radix-popper-content-wrapper]')
-    || target.closest('[data-mention-popover="true"]')
-    || target.closest('[data-mention-branch="true"]'),
-  );
-};
-
 
 const NO_IDS: string[] = [];
-
-const hasTaskUpdates = (task: Task, updates: Partial<Task>) => (
-  Object.entries(updates).some(([key, value]) => {
-    const currentValue = task[key as keyof Task];
-    if (Array.isArray(currentValue) && Array.isArray(value)) {
-      return !areArraysEqual(currentValue, value);
-    }
-    return currentValue !== value;
-  })
-);
-
-
-const formatTimestampLabel = (iso: string, now: Date, locale: DateFnsLocale) => {
-  const date = parseISO(iso);
-  if (isSameDay(date, now)) return t`today`;
-  if (isSameDay(date, subDays(now, 1))) return t`yesterday`;
-  return format(date, isSameYear(date, now) ? 'd MMMM' : 'd MMMM yyyy', { locale });
-};
-
-const resolveScopedRepeatCount = (params: {
-  repeatCount: number;
-  scope: Exclude<RepeatTaskUpdateScope, 'single'>;
-  selectedTaskStartDate: string;
-  series: Task[];
-}) => {
-  if (params.scope === 'all') return params.repeatCount;
-  if (params.repeatCount !== params.series.length) return params.repeatCount;
-  return params.series.filter((item) => item.startDate >= params.selectedTaskStartDate).length;
-};
 
 export const TaskDetailPanel: React.FC = () => {
   const {
@@ -120,13 +47,9 @@ export const TaskDetailPanel: React.FC = () => {
     tags,
     groupMode,
     updateTask,
-    revertTaskOwnEdits,
-    saveTaskDescription,
     deleteTaskDeferred,
     deleteTaskSeries,
     duplicateTask,
-    createRepeats,
-    updateRepeatSeries,
     fetchTaskSubtasks,
     createTaskSubtask,
     updateTaskSubtaskTitle,
@@ -149,13 +72,9 @@ export const TaskDetailPanel: React.FC = () => {
     tags: state.tags,
     groupMode: state.groupMode,
     updateTask: state.updateTask,
-    revertTaskOwnEdits: state.revertTaskOwnEdits,
-    saveTaskDescription: state.saveTaskDescription,
     deleteTaskDeferred: state.deleteTaskDeferred,
     deleteTaskSeries: state.deleteTaskSeries,
     duplicateTask: state.duplicateTask,
-    createRepeats: state.createRepeats,
-    updateRepeatSeries: state.updateRepeatSeries,
     fetchTaskSubtasks: state.fetchTaskSubtasks,
     createTaskSubtask: state.createTaskSubtask,
     updateTaskSubtaskTitle: state.updateTaskSubtaskTitle,
@@ -188,8 +107,6 @@ export const TaskDetailPanel: React.FC = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subtaskEditingDirty, setSubtaskEditingDirty] = useState(false);
   const [subtaskEditingActive, setSubtaskEditingActive] = useState(false);
-  const [commentDraftDirty, setCommentDraftDirty] = useState(false);
-  const [commentConfirmOpen, setCommentConfirmOpen] = useState(false);
 
   const task = tasks.find(t => t.id === selectedTaskId);
   const taskId = task?.id ?? null;
@@ -219,10 +136,6 @@ export const TaskDetailPanel: React.FC = () => {
     taskId,
   );
 
-  useEffect(() => {
-    setCommentDraftDirty(false);
-    setCommentConfirmOpen(false);
-  }, [taskId]);
   const descriptionLoading = task !== undefined && task.description === undefined;
 
   useEffect(() => {
@@ -231,19 +144,15 @@ export const TaskDetailPanel: React.FC = () => {
     }
   }, [descriptionLoading, taskId, fetchTaskDescription]);
 
+  const drafts = useTaskDrafts({ task, selectedTaskId });
   const {
-    ownEdits,
     recordOwnEdits,
     titleDraftRef,
     descriptionDraftRef,
-    descriptionBaseRef,
-    adoptDescription,
-    markDescriptionSaved,
-    forgetOwnEdits,
     draftTitle, setDraftTitle,
     draftDescription, setDraftDescription,
     isDirty,
-  } = useTaskDrafts({ task, selectedTaskId });
+  } = drafts;
   const currentProject = useMemo(
     () => projects.find((project) => project.id === task?.projectId),
     [projects, task?.projectId],
@@ -256,38 +165,20 @@ export const TaskDetailPanel: React.FC = () => {
   const currentProjectCustomer = currentProject?.customerId
     ? customerById.get(currentProject.customerId)
     : null;
-  const selectableAssignees = useMemo(() => {
-    if (!task) return filteredAssignees.filter((assignee) => assignee.isActive);
-    return filteredAssignees.filter(
-      (assignee) => assignee.isActive || pickedAssigneeIds.includes(assignee.id),
-    );
-  }, [filteredAssignees, task, pickedAssigneeIds]);
   const noProjectDisabled = groupMode === 'project';
 
+  const repeat = useTaskRepeatConfig({ task: task ?? null, tasks, selectedTaskId });
   const {
-    repeatFrequency, setRepeatFrequency,
-    repeatEnds, setRepeatEnds,
-    repeatUntil, setRepeatUntil,
-    repeatCount, setRepeatCount,
-    repeatError, setRepeatError,
-    repeatNotice, setRepeatNotice,
-    repeatCreating, setRepeatCreating,
+    repeatCreating,
     repeatScopeOpen, setRepeatScopeOpen,
     pendingRepeatUpdate, setPendingRepeatUpdate,
-    repeatInFlightRef,
-    repeatUntilAutoRef,
-    repeatConfigSnapshotRef,
     repeatConfigDirty,
-    handleRepeatFrequencyChange,
-    handleRepeatEndsChange,
-    handleRepeatUntilChange,
-    handleRepeatCountInputChange,
-  } = useTaskRepeatConfig({ task: task ?? null, tasks, selectedTaskId });
+  } = repeat;
 
   const {
-    subtasksOpen, setSubtasksOpen,
+    subtasksOpen,
     subtasksLoading,
-    subtasksError, setSubtasksError,
+    subtasksError,
     subtasks,
     newSubtaskTitle, setNewSubtaskTitle,
     completedSubtasksCount,
@@ -320,284 +211,58 @@ export const TaskDetailPanel: React.FC = () => {
   });
   const descriptionDrafts = teammateDrafts.filter((entry) => entry.draft.kind === 'description');
 
-  const assigneeLabel = useMemo(() => {
-    if (!task || pickedAssigneeIds.length === 0) return t`Unassigned`;
-    const selected = filteredAssignees
-      .filter((assignee) => pickedAssigneeIds.includes(assignee.id))
-      .map((assignee) => assignee.name);
-    if (selected.length === 1 && pickedAssigneeIds.length === 1) return selected[0];
-    return t`${pickedAssigneeIds.length} assignees`;
-  }, [filteredAssignees, task, pickedAssigneeIds]);
-
-  // Mockup-style footer meta: «Создано 9 июня · обновлено сегодня».
+  // Footer meta: «Создано 9 июня · обновлено сегодня».
   const taskCreatedAt = task?.createdAt;
   const taskUpdatedAt = task?.updatedAt;
-  const timestampsMeta = useMemo(() => {
-    if (!taskCreatedAt) return null;
-    const locale = resolveDateFnsLocale(isSupportedLocale(i18n.locale) ? i18n.locale : 'en');
-    const now = new Date();
-    const created = formatTimestampLabel(taskCreatedAt, now, locale);
-    if (!taskUpdatedAt) return t`Created ${created}`;
-    const updated = formatTimestampLabel(taskUpdatedAt, now, locale);
-    return t`Created ${created} · updated ${updated}`;
-  }, [taskCreatedAt, taskUpdatedAt]);
-  // The description is saved only over the text the person started from; a
-  // teammate's newer one is never overwritten silently (migration 0162).
-  // Repeating tasks keep the scope dialog's path, which writes the series.
-  const [descriptionConflict, setDescriptionConflict] = useState(false);
-  const descriptionConflictRef = useRef<HTMLDivElement | null>(null);
-  // Saves run one after another, each checked against the base the previous
-  // one left: a second save started while the first is in flight would
-  // otherwise be checked against the old base and look like a teammate's.
-  const descriptionSaveChainRef = useRef<Promise<unknown>>(Promise.resolve());
-  const descriptionInFlightRef = useRef<{ text: string | null; promise: Promise<'saved' | 'conflict' | 'failed'> } | null>(null);
-  const selectedTaskIdRef = useRef(selectedTaskId);
-  selectedTaskIdRef.current = selectedTaskId;
-  const taskRef = useRef(task);
-  taskRef.current = task;
-  useEffect(() => {
-    setDescriptionConflict(false);
-    descriptionInFlightRef.current = null;
-  }, [selectedTaskId]);
-
-  const descriptionSavesConditionally = Boolean(task && !task.repeatId);
-  const isDescriptionDraftPending = () => (
-    Boolean(task && task.description !== undefined)
-    && (descriptionDraftRef.current || '') !== (descriptionBaseRef.current || '')
+  const timestampsMeta = useMemo(
+    () => formatTaskTimestamps(taskCreatedAt, taskUpdatedAt),
+    [taskCreatedAt, taskUpdatedAt],
   );
 
-  const saveDescriptionDraft = (options: { force?: boolean } = {}): Promise<'saved' | 'conflict' | 'failed'> => {
-    if (!canEdit || !task || task.description === undefined) return Promise.resolve('saved');
-    const taskIdAtCall = task.id;
-    const next = descriptionDraftRef.current || null;
-    // Blur and Done can both ask for the same text; one request answers both.
-    const inFlight = descriptionInFlightRef.current;
-    if (!options.force && inFlight && inFlight.text === next) return inFlight.promise;
+  const descriptionSave = useTaskDescriptionSave({ task, selectedTaskId, canEdit, drafts });
+  const {
+    descriptionConflict,
+    descriptionConflictRef,
+    descriptionSavesConditionally,
+    saveDescriptionDraft,
+    takeTeammateDescription,
+  } = descriptionSave;
 
-    const run = async (): Promise<'saved' | 'conflict' | 'failed'> => {
-      if (selectedTaskIdRef.current !== taskIdAtCall) return 'saved';
-      // Read the base only now, after any earlier save has moved it.
-      const base = descriptionBaseRef.current || null;
-      if (!options.force && (next ?? '') === (base ?? '')) return 'saved';
-      const before = taskRef.current;
-      const result = await saveTaskDescription(taskIdAtCall, next, base, options);
-      // The card moved on to another task: this answer is not its business.
-      if (selectedTaskIdRef.current !== taskIdAtCall) return result;
-      if (result === 'saved') {
-        markDescriptionSaved(next || '');
-        // Own edit from what was really overwritten: our base, or with
-        // "Keep mine" the teammate's text — so Discard brings that back.
-        if (before) {
-          recordOwnEdits(
-            { ...before, description: options.force ? (before.description ?? null) : base },
-            { description: next },
-          );
-        }
-        setDescriptionConflict(false);
-      } else if (result === 'conflict') {
-        setDescriptionConflict(true);
-      }
-      return result;
-    };
-    const promise = descriptionSaveChainRef.current.then(run, run);
-    descriptionSaveChainRef.current = promise.catch(() => undefined);
-    descriptionInFlightRef.current = { text: next, promise };
-    void promise.finally(() => {
-      if (descriptionInFlightRef.current?.promise === promise) descriptionInFlightRef.current = null;
-    });
-    return promise;
-  };
-
-  const takeTeammateDescription = () => {
-    adoptDescription(taskRef.current?.description || '');
-    // Their text is now what we start from: Discard must not roll it back.
-    forgetOwnEdits(['description']);
-    setDescriptionConflict(false);
-  };
-
-  // Closing is held while the description conflict is open; say why instead
-  // of a close button that silently does nothing.
-  const pointAtDescriptionConflict = () => {
-    const banner = descriptionConflictRef.current;
-    banner?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-    banner?.querySelector<HTMLButtonElement>('button')?.focus();
-  };
-
-  const requestClose = () => {
-    if (descriptionSavesConditionally && (descriptionConflict || isDescriptionDraftPending())) {
-      // Unsaved description text: save it first, and stay open if a teammate
-      // changed the description meanwhile — the banner asks what to keep.
-      if (descriptionConflict) {
-        pointAtDescriptionConflict();
-        return;
-      }
-      void saveDescriptionDraft().then((result) => {
-        if (result === 'saved') closeIfClean();
-      });
-      return;
-    }
-    closeIfClean();
-  };
-
-  // An unsent comment would vanish with the card: closing asks first, and
-  // «Discard» carries on with whatever close was asked for.
-  const commentDiscardContinueRef = useRef<(() => void) | null>(null);
-  const askAboutUnsentComment = (proceed: () => void) => {
-    commentDiscardContinueRef.current = proceed;
-    setCommentConfirmOpen(true);
-  };
-  const handleDiscardCommentAndContinue = () => {
-    setCommentConfirmOpen(false);
-    const proceed = commentDiscardContinueRef.current;
-    commentDiscardContinueRef.current = null;
-    proceed?.();
-  };
-
-  const closeIfClean = (commentChecked = false) => {
-    if (!commentChecked && commentDraftDirty) {
-      askAboutUnsentComment(() => closeIfClean(true));
-      return;
-    }
-    // A subtask edit in progress also counts as unsaved work — warn before
-    // closing so the changes aren't lost. A typed new-subtask draft doesn't:
-    // leaving the task saves it as a subtask (useTaskSubtasks).
-    if (!isDirty && !repeatConfigDirty && !subtaskEditingDirty) {
+  const { syncRepeatsOnSave, applyPendingRepeatUpdate, cancelPendingRepeatUpdate } = useTaskRepeatSave({
+    task,
+    canEdit,
+    repeat,
+    drafts,
+    closeCard: () => {
+      setConfirmOpen(false);
       setSelectedTaskId(null);
-      return;
-    }
-    setConfirmOpen(true);
-  };
+    },
+  });
 
-  const syncRepeatsOnSave = async () => {
-    if (!canEdit) return true;
-    if (!task) return true;
-    const nextSignature = buildRepeatConfigSignature({
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      until: repeatUntil,
-      count: repeatCount,
-    });
-    if (nextSignature === repeatConfigSnapshotRef.current) return true;
+  const {
+    setCommentDraftDirty,
+    commentConfirmOpen,
+    setCommentConfirmOpen,
+    requestClose,
+    handleDiscardCommentAndContinue,
+    handleSaveAndClose,
+    handleDiscardAndClose,
+    handleCancelClose,
+  } = useTaskDetailClose({
+    task,
+    taskId,
+    canEdit,
+    setConfirmOpen,
+    isDirty,
+    repeatConfigDirty,
+    subtaskEditingDirty,
+    repeatScopeOpen,
+    pendingRepeatUpdate,
+    descriptionSave,
+    syncRepeatsOnSave,
+    drafts,
+  });
 
-    const repeatValidationMessage = resolveRepeatValidationMessage({
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      until: repeatUntil,
-      count: repeatCount,
-    }, {
-      missingCount: t`Enter how many repeats to create.`,
-      missingUntil: t`Select an end date.`,
-    });
-    if (repeatValidationMessage) {
-      setRepeatError(repeatValidationMessage);
-      return false;
-    }
-
-    setRepeatError('');
-    if (repeatFrequency === 'none') {
-      repeatConfigSnapshotRef.current = nextSignature;
-      return true;
-    }
-
-    if (task.repeatId) {
-      setPendingRepeatUpdate({
-        kind: 'repeat-config',
-        taskId: task.id,
-        options: buildCreateRepeatsOptions({
-          frequency: repeatFrequency,
-          ends: repeatEnds,
-          until: repeatUntil,
-          count: repeatCount,
-        }),
-        nextSignature,
-        closeAfterApply: true,
-        scopes: ['all', 'following'],
-      });
-      setRepeatScopeOpen(true);
-      return false;
-    }
-
-    if (repeatInFlightRef.current) return false;
-    repeatInFlightRef.current = true;
-    setRepeatCreating(true);
-    setRepeatNotice('');
-
-    const result = await createRepeats(
-      task.id,
-      buildCreateRepeatsOptions({
-        frequency: repeatFrequency,
-        ends: repeatEnds,
-        until: repeatUntil,
-        count: repeatCount,
-      }),
-    );
-
-    repeatInFlightRef.current = false;
-    setRepeatCreating(false);
-
-    if (result.error) {
-      if (result.error === 'No repeats created for the selected range.') {
-        setRepeatError('');
-        setRepeatNotice(t`No new repeats were needed.`);
-        repeatConfigSnapshotRef.current = nextSignature;
-        return true;
-      }
-      setRepeatError(result.error);
-      return false;
-    }
-
-    setRepeatNotice(t`Created ${result.created ?? 0} tasks.`);
-    repeatConfigSnapshotRef.current = nextSignature;
-    return true;
-  };
-
-  const handleSaveAndClose = async (commentChecked = false) => {
-    if (repeatScopeOpen || pendingRepeatUpdate) return;
-    if (!commentChecked && commentDraftDirty) {
-      askAboutUnsentComment(() => { void handleSaveAndClose(true); });
-      return;
-    }
-    // Flush unsaved description draft before closing.
-    // onBlur of the rich-text editor is the normal save path, but it can be
-    // skipped (React event batching) when the user clicks OK without first
-    // moving focus away from the editor.
-    // Guard: only flush when description has already been lazy-loaded
-    // (undefined means "not yet fetched" — flushing null would corrupt the DB).
-    if (descriptionSavesConditionally) {
-      if (descriptionConflict) {
-        pointAtDescriptionConflict();
-        return;
-      }
-      const saved = await saveDescriptionDraft();
-      if (saved !== 'saved') return;
-    } else if (canEdit && task && task.description !== undefined) {
-      const pendingDescription = descriptionDraftRef.current || null;
-      if (hasTaskUpdates(task, { description: pendingDescription })) {
-        recordOwnEdits(task, { description: pendingDescription });
-        void updateTask(task.id, { description: pendingDescription }, 'single');
-      }
-    }
-    const repeatsSynced = await syncRepeatsOnSave();
-    if (!repeatsSynced) return;
-    setConfirmOpen(false);
-    setSelectedTaskId(null);
-  };
-
-  const handleDiscardAndClose = () => {
-    // Roll back only what this person changed here; a teammate's edits that
-    // live sync brought in meanwhile stay.
-    if (task) void revertTaskOwnEdits(task.id, ownEdits);
-    setConfirmOpen(false);
-    setSelectedTaskId(null);
-  };
-
-  // Footer «Cancel»: close discarding pending title/description drafts.
-  // Already-saved field changes (status, dates, ...) stay — same semantics as
-  // closing without saving, but without the confirm dialog.
-  const handleCancelClose = () => {
-    setConfirmOpen(false);
-    setSelectedTaskId(null);
-  };
   if (!task) {
     return <TaskNotFoundDialog open={Boolean(selectedTaskId)} onOpenChange={(open) => !open && requestClose()} />;
   }
@@ -627,77 +292,6 @@ export const TaskDetailPanel: React.FC = () => {
   };
   requestTaskUpdateRef.current = requestTaskUpdate;
 
-  const applyPendingRepeatUpdate = async (scope: RepeatTaskUpdateScope) => {
-    const pending = pendingRepeatUpdate;
-    if (!pending) return;
-    setPendingRepeatUpdate(null);
-    setRepeatScopeOpen(false);
-    if (pending.kind === 'task-update') {
-      // "Only this task" detaches the occurrence from its series (repeatId: null)
-      // so future edits treat it as a standalone task and never ask for scope again.
-      const updates = scope === 'single'
-        ? { ...(pending.updates ?? {}), repeatId: null }
-        : (pending.updates ?? {});
-      // A series-wide change was confirmed in the scope dialog and spans other
-      // tasks, so Discard in this card doesn't roll it back.
-      if (scope === 'single' && task?.id === pending.taskId) recordOwnEdits(task, updates);
-      await updateTask(pending.taskId, updates, scope);
-      return;
-    }
-    if (scope === 'single' || !task || !pending.options) return;
-    if (repeatInFlightRef.current) return;
-
-    repeatInFlightRef.current = true;
-    setRepeatCreating(true);
-    setRepeatError('');
-    setRepeatNotice('');
-
-    const series = tasks.filter((item) => item.repeatId === task.repeatId);
-    const result = await updateRepeatSeries(
-      pending.taskId,
-      pending.options.ends === 'after'
-        ? {
-          ...pending.options,
-          count: resolveScopedRepeatCount({
-            repeatCount: pending.options.count ?? repeatCount,
-            scope,
-            selectedTaskStartDate: task.startDate,
-            series,
-          }),
-        }
-        : pending.options,
-      scope,
-    );
-
-    repeatInFlightRef.current = false;
-    setRepeatCreating(false);
-
-    if (result.error) {
-      setRepeatError(result.error);
-      return;
-    }
-
-    if (pending.nextSignature) {
-      repeatConfigSnapshotRef.current = pending.nextSignature;
-    }
-    if (pending.closeAfterApply) {
-      setConfirmOpen(false);
-      setSelectedTaskId(null);
-    }
-  };
-
-  const cancelPendingRepeatUpdate = () => {
-    const pending = pendingRepeatUpdate;
-    setPendingRepeatUpdate(null);
-    setRepeatScopeOpen(false);
-    if (!pending?.resetDraftOnCancel) return;
-    titleDraftRef.current = task.title;
-    setDraftTitle(task.title);
-    const nextDescription = task.description || '';
-    descriptionDraftRef.current = nextDescription;
-    setDraftDescription(nextDescription);
-  };
-
   const handleUpdate = (field: keyof Task, value: Task[keyof Task]) => requestTaskUpdate({ [field]: value } as Partial<Task>);
 
   // Dates must keep end >= start. Moving the start past the end drags the end
@@ -709,49 +303,6 @@ export const TaskDetailPanel: React.FC = () => {
 
   const handleEndDateChange = (value: string) => {
     requestTaskUpdate({ endDate: clampTaskDates(task.startDate, value).endDate });
-  };
-
-  /**
-   * The mobile picker hands back the whole selection rather than one toggle, so
-   * it goes through the same guards (read-only, disabled people) and the same
-   * canonical ordering as toggling one by one.
-   */
-  const handleAssigneesChange = (nextIds: string[]) => {
-    if (!canEdit) return;
-    const allowed = nextIds.filter((id) => {
-      const assignee = assignees.find((candidate) => candidate.id === id);
-      if (!assignee) return false;
-      return assignee.isActive || pickedAssigneeIds.includes(id);
-    });
-    const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
-    const sorted = [...new Set(allowed)].sort((left, right) => (
-      (order.get(left) ?? 0) - (order.get(right) ?? 0)
-    ));
-    setPickedAssigneeIds(sorted);
-  };
-
-  const handleAssigneeToggle = (assigneeId: string) => {
-    if (!canEdit) return;
-    const targetAssignee = assignees.find((assignee) => assignee.id === assigneeId);
-    if (targetAssignee && !targetAssignee.isActive && !pickedAssigneeIds.includes(assigneeId)) {
-      return;
-    }
-    const next = pickedAssigneeIds.includes(assigneeId)
-      ? pickedAssigneeIds.filter((id) => id !== assigneeId)
-      : [...pickedAssigneeIds, assigneeId];
-    const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
-    const sorted = [...new Set(next)].sort((left, right) => (
-      (order.get(left) ?? 0) - (order.get(right) ?? 0)
-    ));
-    setPickedAssigneeIds(sorted);
-  };
-
-  const handleTagToggle = (tagId: string) => {
-    if (!canEdit) return;
-    const newTagIds = pickedTagIds.includes(tagId)
-      ? pickedTagIds.filter(id => id !== tagId)
-      : [...pickedTagIds, tagId];
-    setPickedTagIds(newTagIds);
   };
 
   const handleDelete = () => {
@@ -770,175 +321,92 @@ export const TaskDetailPanel: React.FC = () => {
     setDeleteOpen(false);
   };
 
-  const panelBody = (
-    <>
+  const alerts = (
+    <TaskDetailAlerts
+      confirmOpen={confirmOpen}
+      setConfirmOpen={setConfirmOpen}
+      onDiscardAndClose={handleDiscardAndClose}
+      onSaveAndClose={() => handleSaveAndClose(true)}
+      commentConfirmOpen={commentConfirmOpen}
+      setCommentConfirmOpen={setCommentConfirmOpen}
+      onDiscardComment={handleDiscardCommentAndContinue}
+      repeatCreating={repeatCreating}
+      repeatScopeOpen={repeatScopeOpen}
+      setRepeatScopeOpen={setRepeatScopeOpen}
+      repeatScopeOptions={pendingRepeatUpdate?.scopes}
+      onCancelPendingRepeatUpdate={cancelPendingRepeatUpdate}
+      onApplyPendingRepeatUpdate={applyPendingRepeatUpdate}
+      deleteOpen={deleteOpen}
+      setDeleteOpen={setDeleteOpen}
+      isRepeating={isRepeating}
+      hasFutureRepeats={hasFutureRepeats}
+      taskTitle={task.title}
+      canEdit={canEdit}
+      onDeleteTask={handleDeleteTask}
+      onDeleteTaskAndFollowing={handleDeleteTaskAndFollowing}
+    />
+  );
+
+  return (
+    <TaskDetailFrame
+      isMobile={isMobile}
+      open={!!selectedTaskId}
+      onRequestClose={requestClose}
+      timestampsMeta={timestampsMeta}
+      onCancel={handleCancelClose}
+      onDone={() => {
+        void handleSaveAndClose();
+      }}
+      doneDisabled={repeatCreating}
+      escapeBelongsToField={subtaskEditingActive || newSubtaskTitle !== '' || subtaskImages.draftImages.length > 0}
+      alerts={alerts}
+    >
       {/* Full-height tint behind the parameters column, header and footer included. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 right-0 hidden w-[340px] border-l border-border bg-secondary/70 lg:block"
       />
 
-      {/* ── Header: project crumb, large title, actions.
-          On wide screens the header block stops where the tinted
-          parameters panel begins, so the title never crosses into it.
-          The wrapper is positioned so the actions button below anchors to this
-          header rather than to the phone screen, where it would paint over the
-          back arrow. */}
-      <div className="relative">
-      <div className="relative px-6 pb-3 pr-20 pt-5 lg:mr-[340px] lg:pr-6">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          {currentProject ? (
-            <>
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: currentProject.color }}
-                aria-hidden="true"
-              />
-              <span className="font-medium text-foreground">
-                {formatProjectLabel(currentProject.name, currentProject.code)}
-              </span>
-              {currentProject.archived && (
-                <span className="text-[10px] text-muted-foreground">({t`Archived`})</span>
-              )}
-              <span aria-hidden="true">·</span>
-              <span>
-                {currentProjectCustomer
-                  ? `${t`Customer`}: ${currentProjectCustomer.name}`
-                  : t`No customer`}
-              </span>
-            </>
-          ) : (
-            <span>{t`No project`}</span>
-          )}
-          {isRepeating && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span className="inline-flex items-center gap-1">
-                <RotateCw className="h-3 w-3" aria-hidden="true" />
-                {t`Repeat`}
-              </span>
-            </>
-          )}
-        </div>
-        <Input
-          id="title"
-          value={draftTitle}
-          onChange={(e) => {
-            const nextTitle = e.target.value;
-            titleDraftRef.current = nextTitle;
-            setDraftTitle(nextTitle);
-          }}
-          onBlur={() => {
-            requestTaskUpdate({ title: titleDraftRef.current }, true);
-          }}
-          placeholder={t`Task title`}
-          aria-label={t`Title`}
-          className="-mx-2 mt-1 h-auto rounded-md border-0 bg-transparent px-2 py-1 text-2xl font-bold tracking-tight shadow-none hover:bg-muted/60 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0 md:text-2xl"
-          disabled={isReadOnly}
-        />
-      </div>
-
-      {!isReadOnly && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-3 h-8 w-8 text-muted-foreground lg:right-10 lg:top-2.5"
-              aria-label={t`Task actions`}
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onSelect={() => duplicateTask(task.id)}>
-              <Copy className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-              {t`Duplicate task`}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onSelect={handleDelete}
-            >
-              <Trash2 className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
-              {t`Delete task`}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-      </div>
+      <TaskDetailHeader
+        currentProject={currentProject}
+        currentProjectCustomer={currentProjectCustomer}
+        isRepeating={isRepeating}
+        draftTitle={draftTitle}
+        onTitleChange={(nextTitle) => {
+          titleDraftRef.current = nextTitle;
+          setDraftTitle(nextTitle);
+        }}
+        onTitleBlur={() => {
+          requestTaskUpdate({ title: titleDraftRef.current }, true);
+        }}
+        isReadOnly={isReadOnly}
+        onDuplicate={() => duplicateTask(task.id)}
+        onDelete={handleDelete}
+      />
 
       <div className="relative grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* ── Left column: description, subtasks, comments */}
         <div className="min-w-0 space-y-5 px-6 pb-6 pt-1">
-          <div className="space-y-2">
-            <ComposerEyebrow>{t`Description`}</ComposerEyebrow>
-            {descriptionDrafts.map((entry) => (
-              <TeammateDraftLine key={entry.userId} entry={entry} />
-            ))}
-            {descriptionConflict && (
-              <div
-                ref={descriptionConflictRef}
-                role="alert"
-                className="space-y-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100"
-              >
-                <p>{t`Someone changed the description while you were writing. Your text is kept here.`}</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={takeTeammateDescription}
-                  >
-                    {t`Show their version`}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => void saveDescriptionDraft({ force: true })}
-                  >
-                    {t`Keep mine`}
-                  </Button>
-                </div>
-              </div>
-            )}
-            {descriptionLoading ? (
-              <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground animate-pulse" />
-            ) : (
-              <Suspense fallback={
-                <div className="min-h-[140px] rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-                  {t`Loading editor...`}
-                </div>
-              }>
-                <div
-                  // Only that someone edits the description is shared, not its text.
-                  onFocus={() => { if (!isReadOnly) shareDraft('description', { kind: 'description' }); }}
-                  onBlur={(event) => {
-                    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
-                    shareDraft('description', null);
-                  }}
-                >
-                  <LazyRichTextEditor
-                    id="description"
-                    framed
-                    value={draftDescription}
-                    workspaceId={currentWorkspaceId}
-                    onChange={(value) => {
-                      const nextDescription = value || '';
-                      descriptionDraftRef.current = nextDescription;
-                      setDraftDescription(nextDescription);
-                    }}
-                    onBlur={() => {
-                      if (descriptionSavesConditionally) void saveDescriptionDraft();
-                      else requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
-                    }}
-                    placeholder={t`Add a description...`}
-                    disabled={isReadOnly}
-                  />
-                </div>
-              </Suspense>
-            )}
-          </div>
+          <TaskDetailDescription
+            descriptionDrafts={descriptionDrafts}
+            shareDraft={shareDraft}
+            descriptionConflict={descriptionConflict}
+            descriptionConflictRef={descriptionConflictRef}
+            onTakeTeammateVersion={takeTeammateDescription}
+            onKeepMine={() => void saveDescriptionDraft({ force: true })}
+            descriptionLoading={descriptionLoading}
+            draftDescription={draftDescription}
+            workspaceId={currentWorkspaceId}
+            isReadOnly={isReadOnly}
+            onChange={(nextDescription) => {
+              descriptionDraftRef.current = nextDescription;
+              setDraftDescription(nextDescription);
+            }}
+            onBlur={() => {
+              if (descriptionSavesConditionally) void saveDescriptionDraft();
+              else requestTaskUpdate({ description: descriptionDraftRef.current || null }, true);
+            }}
+          />
 
           <SubtasksSection
             isReadOnly={isReadOnly}
@@ -984,328 +452,27 @@ export const TaskDetailPanel: React.FC = () => {
         </div>
 
         {/* ── Right column: parameters panel */}
-        <div className="space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 lg:border-0 lg:bg-transparent lg:pt-1">
-          <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
-
-          <div className="space-y-1.5">
-            <Label>{t`Project`}</Label>
-            <TaskProjectSelect
-              value={task.projectId || 'none'}
-              projects={projectOptions}
-              disabled={isReadOnly}
-              noProjectDisabled={noProjectDisabled}
-              showArchivedBadge
-              triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
-              onValueChange={(v) => {
-                if (noProjectDisabled && v === 'none') return;
-                handleUpdate('projectId', v === 'none' ? null : v);
-              }}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Assignees`}</Label>
-            {isMobile ? (
-              <MobileAssigneeField
-                label={assigneeLabel}
-                assignees={selectableAssignees}
-                selectedIds={pickedAssigneeIds}
-                disabled={isReadOnly}
-                onChange={handleAssigneesChange}
-                emptyLabel={t`No assignees available.`}
-              />
-            ) : (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between bg-background font-normal"
-                  disabled={isReadOnly}
-                >
-                  <span className="truncate">{assigneeLabel}</span>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-2" align="start">
-                {selectableAssignees.length === 0 ? (
-                  <div className="text-xs text-muted-foreground">{t`No assignees available.`}</div>
-                ) : (
-                  <div
-                    className="max-h-48 overflow-y-auto overscroll-contain pr-2"
-                    onWheelCapture={(event) => event.stopPropagation()}
-                  >
-                    <div className="space-y-1">
-                      {selectableAssignees.map((assignee) => {
-                        const isAssigned = pickedAssigneeIds.includes(assignee.id);
-                        const isDisabled = isReadOnly || (!assignee.isActive && !isAssigned);
-                        return (
-                          <label key={assignee.id} className="flex items-center gap-2 py-1 cursor-pointer">
-                            <Checkbox
-                              checked={isAssigned}
-                              onCheckedChange={() => handleAssigneeToggle(assignee.id)}
-                              disabled={isDisabled}
-                            />
-                            <PersonAvatar
-                              assigneeId={assignee.id}
-                              userId={assignee.userId}
-                              avatarUrl={assignee.avatar}
-                              initials={getPersonMonogram(assignee.name, 'U')}
-                              colorSeed={assignee.userId ?? assignee.id}
-                              size="xs"
-                            />
-                            <span className="text-sm truncate">
-                              {assignee.name}
-                              {!assignee.isActive && (
-                                <span className="ml-1 text-[10px] text-muted-foreground">({t`disabled`})</span>
-                              )}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
-            )}
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5 min-w-0">
-              <Label>{t`Status`}</Label>
-              <ResponsiveSelect
-                value={task.statusId}
-                onValueChange={(v) => handleUpdate('statusId', v)}
-                disabled={isReadOnly}
-                title={t`Status`}
-                placeholder={t`Select status`}
-                triggerClassName="min-w-0 overflow-hidden whitespace-nowrap bg-background text-left"
-                valueClassName="truncate text-left"
-                itemLabelClassName="truncate"
-                options={statuses.map((s) => ({
-                  value: s.id,
-                  label: formatStatusLabel(s.name, s.emoji),
-                }))}
-              />
-            </div>
-
-            <div className="space-y-1.5 min-w-0">
-              <Label>{t`Priority`}</Label>
-              <ResponsiveSelect
-                value={task.priority ?? 'none'}
-                onValueChange={(value) => handleUpdate('priority', value === 'none' ? null : (value as TaskPriority))}
-                disabled={isReadOnly}
-                title={t`Priority`}
-                placeholder={t`Select priority`}
-                triggerClassName="bg-background text-left"
-                valueClassName="truncate text-left"
-                options={[
-                  { value: 'none', label: t`No priority` },
-                  { value: 'low', label: t`Low` },
-                  { value: 'medium', label: t`Medium` },
-                  { value: 'high', label: t`High` },
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Type`}</Label>
-            <ResponsiveSelect
-              value={task.typeId}
-              onValueChange={(v) => handleUpdate('typeId', v)}
-              disabled={isReadOnly}
-              title={t`Type`}
-              placeholder={t`Select type`}
-              triggerClassName="bg-background text-left"
-              valueClassName="truncate text-left"
-              options={taskTypes.map((type) => ({ value: type.id, label: type.name }))}
-            />
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5 min-w-0">
-              <Label htmlFor="startDate">{t`Start Date`}</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={task.startDate}
-                onChange={(e) => handleStartDateChange(e.target.value)}
-                disabled={isReadOnly}
-                className="bg-background px-2 text-sm tabular-nums"
-              />
-            </div>
-            <div className="space-y-1.5 min-w-0">
-              <Label htmlFor="endDate">{t`End Date`}</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={task.endDate}
-                min={getMinEndDate(task.startDate)}
-                onChange={(e) => handleEndDateChange(e.target.value)}
-                disabled={isReadOnly}
-                className="bg-background px-2 text-sm tabular-nums"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Repeat`}</Label>
-            <RepeatPopoverField
-              count={repeatCount}
-              disabled={isReadOnly}
-              ends={repeatEnds}
-              error={repeatError}
-              frequency={repeatFrequency}
-              idPrefix="detail"
-              notice={repeatNotice}
-              onCountInputChange={handleRepeatCountInputChange}
-              onEndsChange={handleRepeatEndsChange}
-              onFrequencyChange={handleRepeatFrequencyChange}
-              onUntilChange={handleRepeatUntilChange}
-              projectedEnd={getRepeatOccurrenceDate(task.startDate, repeatFrequency, Math.max(0, repeatCount - 1))}
-              showNeverHint
-              until={repeatUntil}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Tags`}</Label>
-            <TagMultiSelect
-              tags={tags}
-              selectedTagIds={pickedTagIds}
-              onToggleTag={handleTagToggle}
-              disabled={isReadOnly}
-            />
-          </div>
-        </div>
+        <TaskDetailParameters
+          task={task}
+          projectOptions={projectOptions}
+          noProjectDisabled={noProjectDisabled}
+          canEdit={canEdit}
+          isMobile={isMobile}
+          assignees={assignees}
+          filteredAssignees={filteredAssignees}
+          pickedAssigneeIds={pickedAssigneeIds}
+          setPickedAssigneeIds={setPickedAssigneeIds}
+          statuses={statuses}
+          taskTypes={taskTypes}
+          tags={tags}
+          pickedTagIds={pickedTagIds}
+          setPickedTagIds={setPickedTagIds}
+          onUpdate={handleUpdate}
+          onStartDateChange={handleStartDateChange}
+          onEndDateChange={handleEndDateChange}
+          repeat={repeat}
+        />
       </div>
-
-    </>
-  );
-
-  const alerts = (
-    <TaskDetailAlerts
-      confirmOpen={confirmOpen}
-      setConfirmOpen={setConfirmOpen}
-      onDiscardAndClose={handleDiscardAndClose}
-      onSaveAndClose={() => handleSaveAndClose(true)}
-      commentConfirmOpen={commentConfirmOpen}
-      setCommentConfirmOpen={setCommentConfirmOpen}
-      onDiscardComment={handleDiscardCommentAndContinue}
-      repeatCreating={repeatCreating}
-      repeatScopeOpen={repeatScopeOpen}
-      setRepeatScopeOpen={setRepeatScopeOpen}
-      repeatScopeOptions={pendingRepeatUpdate?.scopes}
-      onCancelPendingRepeatUpdate={cancelPendingRepeatUpdate}
-      onApplyPendingRepeatUpdate={applyPendingRepeatUpdate}
-      deleteOpen={deleteOpen}
-      setDeleteOpen={setDeleteOpen}
-      isRepeating={isRepeating}
-      hasFutureRepeats={hasFutureRepeats}
-      taskTitle={task.title}
-      canEdit={canEdit}
-      onDeleteTask={handleDeleteTask}
-      onDeleteTaskAndFollowing={handleDeleteTaskAndFollowing}
-    />
-  );
-
-  const cancelButton = (
-    <Button variant="outline" onClick={handleCancelClose} className={isMobile ? 'h-11 flex-1' : undefined}>
-      {t`Cancel`}
-    </Button>
-  );
-
-  const doneButton = (
-    <Button
-      onClick={() => {
-        void handleSaveAndClose();
-      }}
-      disabled={repeatCreating}
-      className={isMobile ? 'h-11 flex-1' : undefined}
-    >
-      {/* Distinct id: the bare "Done" msgid is a task status («Завершено»). */}
-      {t({ id: 'taskDetail.footer.done', message: 'Done' })}
-    </Button>
-  );
-
-  if (isMobile) {
-    // Same shape as creating a task: a full-screen form with a back arrow and
-    // pinned actions, rather than a card that the keyboard pushes off-screen.
-    return (
-      <>
-        <MobileFormScreen
-          open={!!selectedTaskId}
-          onOpenChange={(next) => { if (!next) requestClose(); }}
-          title={t`Task details`}
-          description={t`View and edit task details.`}
-          footer={(
-            <div className="flex flex-col gap-2">
-              {/* The created/updated line reads above the actions here — on a
-                  phone there is no room for it beside them. */}
-              {timestampsMeta && (
-                <span className="truncate text-center text-xs text-muted-foreground">
-                  {timestampsMeta}
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                {cancelButton}
-                {doneButton}
-              </div>
-            </div>
-          )}
-        >
-          {panelBody}
-        </MobileFormScreen>
-        {alerts}
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Dialog open={!!selectedTaskId} onOpenChange={(open) => !open && requestClose()}>
-        <DialogScrollContent
-          className="flex w-full max-w-[940px] flex-col gap-0 p-0"
-          // Don't auto-focus (and select) the title input when the panel opens.
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => {
-            // While a subtask is being edited or a draft is typed, Escape
-            // belongs to that field — it cancels the text, not the whole task.
-            // The field's own handler still sees the key and clears itself.
-            if (subtaskEditingActive || newSubtaskTitle !== '' || subtaskImages.draftImages.length > 0) {
-              e.preventDefault();
-            }
-          }}
-          onInteractOutside={(e) => {
-            if (shouldIgnoreOutsideInteraction(e.target)) {
-              e.preventDefault();
-            }
-          }}
-          onPointerDownOutside={(e) => {
-            if (shouldIgnoreOutsideInteraction(e.target)) {
-              e.preventDefault();
-            }
-          }}
-        >
-          <DialogHeader className="sr-only">
-            <DialogTitle>{t`Task details`}</DialogTitle>
-            <DialogDescription>{t`View and edit task details.`}</DialogDescription>
-          </DialogHeader>
-
-          {panelBody}
-
-          {/* ── Footer */}
-          <div className="relative flex items-center justify-between gap-3 px-6 py-3.5">
-            <span className="min-w-0 truncate text-xs text-muted-foreground">{timestampsMeta}</span>
-            <div className="flex shrink-0 gap-2">
-              {cancelButton}
-              {doneButton}
-            </div>
-          </div>
-        </DialogScrollContent>
-      </Dialog>
-      {alerts}
-    </>
+    </TaskDetailFrame>
   );
 };

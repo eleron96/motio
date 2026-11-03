@@ -4,7 +4,7 @@ import { ArrowDownUp } from 'lucide-react';
 import type { Assignee } from '@/features/planner/types/planner';
 import type { AccessMember } from '@/features/workspace/hooks/useWorkspaceAccess';
 import { matchesWorkspaceMemberSearch } from '@/shared/domain/workspaceMemberSearch';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { Badge } from '@/shared/ui/badge';

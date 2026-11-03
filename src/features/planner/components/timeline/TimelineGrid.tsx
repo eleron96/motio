@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
 import { isSearchableQuery } from '@/shared/domain/taskSearch';
@@ -10,17 +10,15 @@ import { TimelineRow } from './TimelineRow';
 import { MilestoneDialog } from './MilestoneDialog';
 import { TimeOffEditDialog } from './TimeOffEditDialog';
 import { MilestoneLayer } from './MilestoneLayer';
-import { getVisibleDays, getDayWidth, SIDEBAR_WIDTH } from '@/features/planner/lib/dateUtils';
+import { getVisibleDays, getDayWidth } from '@/features/planner/lib/dateUtils';
 import { ViewMode } from '@/features/planner/types/planner';
-import { buildTimeOffIndex, EMPTY_TIME_OFF_INDEX, NO_TIME_OFF } from '@/features/planner/lib/timeOff';
-import { resolveRowMotif, type TimeOffMotifId } from '@/features/planner/lib/timeOffMotifs';
-import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
+import { NO_TIME_OFF } from '@/features/planner/lib/timeOff';
+import { resolveTimelineSidebarWidth } from '@/features/planner/lib/timelineSidebarWidth';
 import {
   buildAssigneeGroupMap,
   resolveCurrentUserAssigneeId,
   selectArchivedProjectIds,
 } from '@/features/planner/lib/timelineSelectors';
-import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { format, parseISO } from 'date-fns';
@@ -28,10 +26,8 @@ import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { useTodayKey } from '@/shared/hooks/useTodayKey';
-import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { getPersonMonogram } from '@/shared/domain/personName';
-import { usePersonColors } from '@/features/planner/hooks/usePersonColors';
 import { useDragScroll } from './hooks/useDragScroll';
 import { DRAG_EDGE_ZONE_PX } from '@/features/planner/lib/dragAutoScroll';
 import { isWithinPanGrace } from '@/features/planner/lib/panGrace';
@@ -47,7 +43,13 @@ import { useTimelineScroll, LEFT_CONTEXT_DAYS } from './hooks/useTimelineScroll'
 import { useMilestoneDisplay } from './hooks/useMilestoneDisplay';
 import { useTaskDisplayRows } from './hooks/useTaskDisplayRows';
 import { useRangeShifting } from './hooks/useRangeShifting';
+import { useTimelineHolidays } from './hooks/useTimelineHolidays';
+import { useTimelineTimeOff } from './hooks/useTimelineTimeOff';
+import { useTimelineViewportSync } from './hooks/useTimelineViewportSync';
+import { useCreateTaskAt, type TimelineNewTaskDefaults } from './hooks/useCreateTaskAt';
+import { useAssigneeAvatarInfo } from './hooks/useAssigneeAvatarInfo';
 import { TimelineSidebarRow } from './TimelineSidebarRow';
+import { TimelineTodayButton } from './TimelineTodayButton';
 
 const SCROLL_REANCHOR_MIN_SHIFT_DAYS: Record<ViewMode, number> = {
   day: 3,
@@ -59,35 +61,12 @@ const SCROLL_REANCHOR_EDGE_TRIGGER_DAYS: Record<ViewMode, number> = {
   week: 14,
   calendar: 21,
 };
-const TIMELINE_SIDEBAR_MIN_WIDTH = SIDEBAR_WIDTH;
-const TIMELINE_SIDEBAR_MAX_WIDTH = 520;
-const TIMELINE_SIDEBAR_AUTO_MAX_WIDTH = 360;
-const TIMELINE_MOBILE_PROJECT_SIDEBAR_MIN_WIDTH = 120;
-const TIMELINE_MOBILE_PROJECT_SIDEBAR_MAX_WIDTH = 164;
-const TIMELINE_MOBILE_PROJECT_SIDEBAR_AUTO_MAX_WIDTH = 152;
-const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MIN_WIDTH = 48;
-const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MAX_WIDTH = 64;
-const TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_AUTO_MAX_WIDTH = 56;
-
 interface TimelineGridProps {
-  onCreateTask?: (payload: {
-    startDate: string;
-    endDate: string;
-    projectId?: string | null;
-    assigneeIds?: string[];
-  }) => void;
+  onCreateTask?: (payload: TimelineNewTaskDefaults) => void;
   sidebarWidth?: number | null;
   onSidebarWidthChange?: (width: number) => void;
   onSidebarWidthReset?: () => void;
 }
-
-const clampTimelineSidebarWidth = (
-  value: number,
-  minWidth: number,
-  maxWidth: number,
-) => (
-  Math.max(minWidth, Math.min(maxWidth, value))
-);
 
 export const TimelineGrid: React.FC<TimelineGridProps> = ({
   onCreateTask,
@@ -154,39 +133,15 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const sidebarContainerRef = useRef<HTMLDivElement>(null);
 
-  const isMobileAssigneeTimeline = isMobile && groupMode === 'assignee';
-  const sidebarMinWidth = isMobile
-    ? (groupMode === 'assignee' ? TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MIN_WIDTH : TIMELINE_MOBILE_PROJECT_SIDEBAR_MIN_WIDTH)
-    : TIMELINE_SIDEBAR_MIN_WIDTH;
-  const sidebarMaxWidth = isMobile
-    ? (groupMode === 'assignee' ? TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_MAX_WIDTH : TIMELINE_MOBILE_PROJECT_SIDEBAR_MAX_WIDTH)
-    : TIMELINE_SIDEBAR_MAX_WIDTH;
-  const sidebarAutoMaxWidth = isMobile
-    ? (groupMode === 'assignee' ? TIMELINE_MOBILE_ASSIGNEE_SIDEBAR_AUTO_MAX_WIDTH : TIMELINE_MOBILE_PROJECT_SIDEBAR_AUTO_MAX_WIDTH)
-    : TIMELINE_SIDEBAR_AUTO_MAX_WIDTH;
-  const resolvedSidebarWidth = typeof sidebarWidth === 'number' && Number.isFinite(sidebarWidth)
-    ? `${clampTimelineSidebarWidth(sidebarWidth, sidebarMinWidth, sidebarMaxWidth)}px`
-    : `clamp(${sidebarMinWidth}px, ${isMobileAssigneeTimeline ? '14vw' : isMobile ? '38vw' : '26vw'}, ${sidebarAutoMaxWidth}px)`;
+  const {
+    isMobileAssigneeTimeline,
+    sidebarMinWidth,
+    sidebarMaxWidth,
+    resolvedSidebarWidth,
+  } = resolveTimelineSidebarWidth({ sidebarWidth, isMobile, groupMode });
 
   const visibleDays = useMemo(() => getVisibleDays(currentDate, viewMode), [currentDate, viewMode]);
-  const visibleHolidayYears = useMemo(
-    () => Array.from(new Set(visibleDays.map((day) => day.getFullYear()))),
-    [visibleDays],
-  );
-  const holidayCountryCode = useMemo(() => {
-    const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
-    return normalizeHolidayCountryCode(currentWorkspace?.holidayCountry);
-  }, [workspaces, currentWorkspaceId]);
-  const holidayRegionCode = useMemo(() => (
-    workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.holidayRegion ?? null
-  ), [workspaces, currentWorkspaceId]);
-  const { holidayDates } = useHolidayMap({
-    years: visibleHolidayYears,
-    holidayCountryCode,
-    holidayRegionCode,
-    fallbackHolidayLabel: t`Non-working day`,
-    holidayLabel: t`Holiday`,
-  });
+  const holidayDates = useTimelineHolidays({ visibleDays, workspaces, currentWorkspaceId });
   // Подсказку показываем, только когда на таймлайне действительно нет ни одной
   // задачи — не путать с «всё скрыто фильтрами», там пусто по воле человека,
   // и не путать с первыми секундами новичка: его пространство ещё создаётся на
@@ -207,34 +162,15 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     return ids.size > 0 ? ids : undefined;
   }, [projects, groupMode]);
 
-  // Time-off records of the visible window, grouped by row. Assignee grouping
-  // only: project rows have no person, so there is nothing to shade there.
-  const timeOffIndex = useMemo(
-    () => (isTimeOffEnabled() && groupMode === 'assignee'
-      ? buildTimeOffIndex(timeOff, visibleDays, timeOffDragPreview)
-      : EMPTY_TIME_OFF_INDEX),
-    [groupMode, timeOff, timeOffDragPreview, visibleDays],
-  );
-
-  // Decorative motif per row. Mine comes from the live preference so the settings
-  // picker repaints my row at once; a teammate's rides along on their assignee
-  // record. Only rows that actually carry time off get an entry — every other row
-  // stays attribute-less and unchanged.
-  const motifByRowId = useMemo(() => {
-    const motifs = new Map<string, TimeOffMotifId>();
-    if (timeOffIndex.byRowId.size === 0) return motifs;
-    const motifByAssigneeId = new Map(
-      assignees.map((assignee) => [assignee.id, assignee.timeOffMotif]),
-    );
-    timeOffIndex.byRowId.forEach((_records, rowId) => {
-      motifs.set(rowId, resolveRowMotif({
-        isMe: rowId === myAssigneeId,
-        myPreferences: myProfilePreferences,
-        assigneeMotif: motifByAssigneeId.get(rowId),
-      }));
-    });
-    return motifs;
-  }, [assignees, myAssigneeId, myProfilePreferences, timeOffIndex]);
+  const { timeOffIndex, motifByRowId } = useTimelineTimeOff({
+    groupMode,
+    timeOff,
+    timeOffDragPreview,
+    visibleDays,
+    assignees,
+    myAssigneeId,
+    myProfilePreferences,
+  });
 
   const dayWidth = useMemo(() => getDayWidth(viewMode), [viewMode]);
   const rangeShifting = useRangeShifting(`${visibleDays[0]?.getTime() ?? ''}|${dayWidth}`);
@@ -313,40 +249,17 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   // ─── Derived display values ────────────────────────────────────────────────
 
-  const focusIndex = useMemo(() => {
-    if (!viewportWidth || dayWidth === 0) return -1;
-    const focusPx = scrollLeft + leftContextDays * dayWidth + dayWidth / 2;
-    return Math.min(visibleDays.length - 1, Math.max(0, Math.floor(focusPx / dayWidth)));
-  }, [scrollLeft, viewportWidth, dayWidth, visibleDays.length, leftContextDays]);
-
-  useEffect(() => {
-    if (focusIndex >= 0 && focusIndex < visibleDays.length) {
-      setVisibleCenterDate(format(visibleDays[focusIndex], 'yyyy-MM-dd'));
-    }
-  }, [focusIndex, visibleDays, setVisibleCenterDate]);
-
-  // The search strip and its "earlier / later" chips need the days on screen.
-  useEffect(() => {
-    if (!viewportWidth || dayWidth === 0 || visibleDays.length === 0) return;
-    const first = Math.min(visibleDays.length - 1, Math.max(0, Math.floor(scrollLeft / dayWidth)));
-    const last = Math.min(visibleDays.length - 1, Math.max(first, Math.floor((scrollLeft + viewportWidth - 1) / dayWidth)));
-    setSearchViewport(
-      { start: format(visibleDays[first], 'yyyy-MM-dd'), end: format(visibleDays[last], 'yyyy-MM-dd') },
-      { start: format(visibleDays[0], 'yyyy-MM-dd'), end: format(visibleDays[visibleDays.length - 1], 'yyyy-MM-dd') },
-      sidebarViewportWidth,
-    );
-  }, [dayWidth, scrollLeft, setSearchViewport, sidebarViewportWidth, viewportWidth, visibleDays]);
-
-  const showTodayButton = useMemo(() => {
-    if (!viewportWidth || dayWidth === 0 || visibleDays.length === 0) return false;
-    const todayIndex = visibleDays.findIndex((day) => format(day, 'yyyy-MM-dd') === todayKey);
-    if (todayIndex < 0) return true;
-    const todayStart = todayIndex * dayWidth;
-    const todayEnd = todayStart + dayWidth;
-    const viewportStart = scrollLeft;
-    const viewportEnd = scrollLeft + viewportWidth;
-    return todayEnd <= viewportStart || todayStart >= viewportEnd;
-  }, [dayWidth, scrollLeft, todayKey, viewportWidth, visibleDays]);
+  const showTodayButton = useTimelineViewportSync({
+    visibleDays,
+    dayWidth,
+    scrollLeft,
+    viewportWidth,
+    sidebarViewportWidth,
+    leftContextDays,
+    todayKey,
+    setVisibleCenterDate,
+    setSearchViewport,
+  });
 
   // ─── Milestone state, selectors, and handlers ─────────────────────────────
 
@@ -356,10 +269,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     editingMilestone,
     milestoneLine,
     projectById,
-    sortedMilestones,
     visibleDayIndex,
-    milestonesByDate,
-    milestoneOffsets,
     visibleMilestoneLines,
     milestoneTooltipCells,
     effectiveHeaderHeight,
@@ -419,64 +329,11 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     setTimelineAttentionDate(null);
   }, [setTimelineAttentionDate, timelineAttentionDate]);
 
-  const handleCreateTaskAt = useCallback((date: string, rowId: string) => {
-    // Viewers may open the dialog too — it opens in time-off-only mode for them.
-    if (!canEdit && !isTimeOffEnabled()) return;
-    if (Date.now() - lastDragTimeRef.current < 200) return;
-    const defaults: {
-      startDate: string;
-      endDate: string;
-      projectId?: string | null;
-      assigneeIds?: string[];
-    } = {
-      startDate: date,
-      endDate: date,
-      assigneeIds: [],
-    };
+  const handleCreateTaskAt = useCreateTaskAt({ groupMode, projects, assignees, lastDragTimeRef, onCreateTask });
 
-    if (groupMode === 'project') {
-      if (rowId === 'unassigned') {
-        defaults.projectId = null;
-      } else {
-        const project = projects.find((item) => item.id === rowId);
-        defaults.projectId = project && !project.archived ? project.id : null;
-      }
-    }
-
-    if (groupMode === 'assignee' && rowId !== 'unassigned') {
-      const assignee = assignees.find((item) => item.id === rowId);
-      if (assignee?.isActive) {
-        defaults.assigneeIds = [assignee.id];
-      }
-    }
-
-    onCreateTask?.(defaults);
-  }, [assignees, canEdit, groupMode, lastDragTimeRef, onCreateTask, projects]);
-
-  const personColors = usePersonColors();
+  const getAssigneeAvatarInfo = useAssigneeAvatarInfo(assignees, members);
 
   const getSidebarRowMonogram = useCallback((rowName: string) => getPersonMonogram(rowName, 'U'), []);
-
-  const getAssigneeAvatarInfo = useCallback((rowId: string): {
-    avatarUrl: string | null;
-    userId: string;
-    email: string | null;
-    color: string | null;
-  } => {
-    const assignee = assignees.find((a) => a.id === rowId);
-    const userId = assignee?.userId ?? rowId;
-    const member = members.find((m) => m.userId === userId);
-    // Workspace profile email wins; assignees without an account (external
-    // people) fall back to the contact email stored on the assignee itself.
-    return {
-      avatarUrl: member?.avatarUrl ?? null,
-      userId,
-      email: member?.email ?? assignee?.email ?? null,
-      // The colour in effect, not just a hand-picked one: an avatar has to match
-      // the person's day-off circles and chart series either way.
-      color: personColors.byAssigneeId.get(rowId) ?? null,
-    };
-  }, [assignees, members, personColors]);
 
   // Stable noop so MilestoneLayer's onCreateMilestone prop doesn't change every
   // render for non-editors (an inline `() => {}` would defeat its memo).
@@ -664,7 +521,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                     timeOffDays={timeOffIndex.daysByRowId.get(row.id)}
                     timeOffMotif={motifByRowId.get(row.id)}
                     height={row.height}
-                    canEdit={canEdit || isTimeOffEnabled()}
+                    // Viewers too: double-click opens the dialog in time-off-only mode.
+                    canEdit
                     canCreateTask={canEdit}
                     onCreateTask={handleCreateTaskAt}
                   >
@@ -713,23 +571,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
         />
       )}
 
-      {showTodayButton && (
-        <Button
-          type="button"
-          variant="secondary"
-          className={cn(
-            'absolute z-30 border border-border/80 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.35)] backdrop-blur transition-shadow hover:shadow-[0_18px_40px_rgba(15,23,42,0.45)]',
-            // On mobile the add-task FAB sits bottom-right, so stack "Today"
-            // above it (same right edge) instead of overlapping it.
-            isMobile
-              ? 'right-4 bottom-[calc(env(safe-area-inset-bottom,0px)+5.75rem)]'
-              : 'bottom-6 right-6',
-          )}
-          onClick={handleJumpToToday}
-        >
-          {t`Today`}
-        </Button>
-      )}
+      {showTodayButton && <TimelineTodayButton isMobile={isMobile} onClick={handleJumpToToday} />}
 
       <TimeOffEditDialog
         recordId={editingTimeOffId}

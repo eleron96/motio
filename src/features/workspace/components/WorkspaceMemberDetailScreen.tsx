@@ -7,7 +7,7 @@ import type { AccessGroup, AccessMember } from '@/features/workspace/hooks/useWo
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Switch } from '@/shared/ui/switch';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import { MobilePickerScreen, type MobilePickerOption } from '@/shared/ui/mobile-picker-screen';

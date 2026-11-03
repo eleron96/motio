@@ -5,138 +5,25 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { createPortal } from 'react-dom';
-import { DismissableLayerBranch } from '@radix-ui/react-dismissable-layer';
-import {
-  Bold,
-  Image,
-  Italic,
-  List,
-  ListOrdered,
-  Quote,
-  Strikethrough,
-  Underline,
-  AtSign,
-} from 'lucide-react';
+import { Image, AtSign } from 'lucide-react';
 import { t } from '@lingui/macro';
-import { sanitizeCommentRichText } from '@/shared/lib/sanitizer';
 import { normalizePastedCommentHtml } from '@/shared/lib/pastedRichText';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
-import { UserAvatar } from '@/shared/ui/UserAvatar';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
-import {
-  hasTaskCommentRichTags,
-  normalizeTaskCommentEditorHtml,
-  normalizeTaskCommentPlainText,
-} from '@/features/planner/lib/taskCommentEditorHtml';
-import { getCommentMentionPopoverPosition } from '@/features/planner/lib/commentMentionPopoverPosition';
 import {
   getCommentPlainLength,
   COMMENT_MAX_PLAIN_LENGTH,
-  sanitizeCommentHtml,
 } from '@/infrastructure/tasks/taskCommentsRepository';
 import { uploadTaskMedia } from '@/infrastructure/tasks/taskMediaRepository';
 import { toast } from '@/shared/ui/sonner';
 import { type TaskCommentMentionCandidate } from '@/shared/domain/taskCommentMentionCandidates';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
+import { extractEditorValue, setEditorValue } from '@/features/planner/lib/commentEditorDom';
+import { buildEditorImageHtml, defaultImageWidth, MIN_IMAGE_WIDTH } from '@/features/planner/lib/richTextEditorDom';
+import { RICH_TEXT_TOOLBAR_GROUPS } from '@/features/planner/lib/richTextToolbarGroups';
+import { useCommentMentions } from '@/features/planner/hooks/useCommentMentions';
+import { CommentMentionPopover } from '@/features/planner/components/CommentMentionPopover';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const MIN_IMAGE_WIDTH = 120;
-const DEFAULT_IMAGE_SCALE = 0.7;
-
-const isEmpty = (text: string) => normalizeTaskCommentPlainText(text).trim().length === 0;
-
-const setEditorValue = (editor: HTMLDivElement, value: string) => {
-  if (!value) { editor.innerHTML = ''; return; }
-  if (hasTaskCommentRichTags(value)) { editor.innerHTML = sanitizeCommentHtml(value); return; }
-  editor.textContent = value;
-};
-
-const getSelectionRangeWithinEditor = (editor: HTMLDivElement): Range | null => {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0) return null;
-  const range = selection.getRangeAt(0);
-  return editor.contains(range.commonAncestorContainer) ? range : null;
-};
-
-const isVisibleRect = (
-  rect: Pick<DOMRect, 'width' | 'height' | 'top' | 'left'> | null | undefined,
-) => {
-  if (!rect) return false;
-  return (
-    (rect.width > 0) ||
-    (rect.height > 0) ||
-    (rect.top > 0) ||
-    (rect.left > 0)
-  );
-};
-
-const getEditorTextBeforeCaret = (editor: HTMLDivElement, range: Range): string => {
-  const prefixRange = range.cloneRange();
-  prefixRange.selectNodeContents(editor);
-  prefixRange.setEnd(range.startContainer, range.startOffset);
-  return normalizeTaskCommentPlainText(prefixRange.cloneContents().textContent ?? '');
-};
-
-const getTextNodePosition = (editor: HTMLDivElement, textOffset: number) => {
-  const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
-  let traversed = 0;
-  let node = walker.nextNode();
-  let lastTextNode: Text | null = null;
-
-  while (node) {
-    const textNode = node as Text;
-    const textLength = textNode.textContent?.length ?? 0;
-    if (textOffset <= traversed + textLength) {
-      return {
-        node: textNode,
-        offset: Math.max(0, textOffset - traversed),
-      };
-    }
-    traversed += textLength;
-    lastTextNode = textNode;
-    node = walker.nextNode();
-  }
-
-  if (!lastTextNode) return null;
-  return {
-    node: lastTextNode,
-    offset: lastTextNode.textContent?.length ?? 0,
-  };
-};
-
-const createEditorTextRange = (editor: HTMLDivElement, startOffset: number, endOffset: number) => {
-  const start = getTextNodePosition(editor, startOffset);
-  const end = getTextNodePosition(editor, endOffset);
-  if (!start || !end) return null;
-
-  const range = document.createRange();
-  range.setStart(start.node, start.offset);
-  range.setEnd(end.node, end.offset);
-  return range;
-};
-
-const extractEditorValue = (editor: HTMLDivElement): string => {
-  const clone = editor.cloneNode(true) as HTMLDivElement;
-  clone.querySelectorAll('.rte-image-handle').forEach((n) => n.remove());
-  clone.querySelectorAll('.rte-image').forEach((wrapper) => {
-    const img = wrapper.querySelector('img');
-    if (img) wrapper.replaceWith(img); else wrapper.remove();
-  });
-  const html = sanitizeCommentRichText(normalizeTaskCommentEditorHtml(clone.innerHTML));
-  const text = editor.innerText ?? '';
-  const hasImages = /<img\b/i.test(html);
-  if (!hasImages && isEmpty(text)) return '';
-  return hasTaskCommentRichTags(html) ? html : normalizeTaskCommentPlainText(text);
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CommentEditor
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface CommentEditorProps {
   workspaceId: string;
@@ -159,8 +46,6 @@ export interface CommentEditorProps {
    */
   emptyWhileSaving?: boolean;
 }
-
-type MentionAnchorSource = 'button' | 'caret';
 
 export const CommentEditor: React.FC<CommentEditorProps> = ({
   workspaceId,
@@ -187,7 +72,6 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   const resizeStateRef = useRef<{
     img: HTMLImageElement; startX: number; startY: number; startWidth: number;
   } | null>(null);
-  const mentionQueryRef = useRef<string | null>(null);
 
   const [plainLength, setPlainLength] = useState(0);
   // Whether the draft holds anything worth sending — text or an image. Gates
@@ -202,17 +86,6 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
   useEffect(() => () => onDraftDirtyChangeRef.current?.(false), []);
   const [saving, setSaving] = useState(false);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
-
-  // Mention popover
-  const [mentionOpen, setMentionOpen] = useState(false);
-  const [mentionQuery, setMentionQuery] = useState('');
-  const [mentionAnchorRect, setMentionAnchorRect] = useState<DOMRect | null>(null);
-  const [mentionAnchorSource, setMentionAnchorSource] = useState<MentionAnchorSource | null>(null);
-  const mentionListRef = useRef<HTMLDivElement>(null);
-  const [mentionHighlight, setMentionHighlight] = useState(0);
-  const [mentionPopoverPosition, setMentionPopoverPosition] = useState<ReturnType<
-    typeof getCommentMentionPopoverPosition
-  > | null>(null);
 
   // ── initialise editor
   useLayoutEffect(() => {
@@ -253,6 +126,15 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     sel.addRange(range);
   }, []);
 
+  const mentions = useCommentMentions({
+    editorRef,
+    mentionButtonRef,
+    candidates: mentionCandidates,
+    saveSelection,
+    restoreSelection,
+    syncFromEditor,
+  });
+
   // ── toolbar formatting
   const applyCommand = useCallback(
     (command: string, value?: string) => {
@@ -266,40 +148,18 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     [disabled, syncFromEditor],
   );
 
-  // ── image helpers (mirrors RichTextEditor)
-  const getDefaultImageWidth = useCallback((): string => {
-    const editor = editorRef.current;
-    if (!editor) return `${Math.round(DEFAULT_IMAGE_SCALE * 100)}%`;
-    const w = editor.clientWidth;
-    if (!w) return `${Math.round(DEFAULT_IMAGE_SCALE * 100)}%`;
-    const target = Math.round(w * DEFAULT_IMAGE_SCALE);
-    const maxW = Math.max(MIN_IMAGE_WIDTH, w - 32);
-    const safe = Math.min(Math.max(MIN_IMAGE_WIDTH, target), maxW);
-    return `${safe}px`;
-  }, []);
-
+  // ── images: same markup and default width as the description editor
   const insertImage = useCallback(
     (src: string, alt: string) => {
       const editor = editorRef.current;
       if (!editor) return;
       restoreSelection();
       editor.focus();
-      const safeAlt = alt.replace(/"/g, '&quot;');
-      const width = getDefaultImageWidth();
-      document.execCommand(
-        'insertHTML',
-        false,
-        [
-          '<span class="rte-image" contenteditable="false" draggable="true" data-rte-image="true">',
-          `<img src="${src}" alt="${safeAlt}" style="width:${width};height:auto;" />`,
-          '<span class="rte-image-handle" data-handle="se"></span>',
-          '</span>',
-        ].join(''),
-      );
+      document.execCommand('insertHTML', false, buildEditorImageHtml(src, alt, defaultImageWidth(editor)));
       saveSelection();
       syncFromEditor();
     },
-    [getDefaultImageWidth, restoreSelection, saveSelection, syncFromEditor],
+    [restoreSelection, saveSelection, syncFromEditor],
   );
 
   const handleImageFile = useCallback(
@@ -319,262 +179,6 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     },
     [insertImage, workspaceId],
   );
-
-  // ── @ mention detection
-  /**
-   * Scans backwards from the current caret position looking for an unclosed `@`.
-   * Returns the query string (text after `@`) or null if not in a mention context.
-   */
-  const detectMentionContext = useCallback((): { query: string; triggerStart: number; triggerEnd: number } | null => {
-    const editor = editorRef.current;
-    if (!editor) return null;
-    const range = getSelectionRangeWithinEditor(editor);
-    if (!range || !range.collapsed) return null;
-    const before = getEditorTextBeforeCaret(editor, range);
-    // Find the last `@` that is not immediately preceded by a word character
-    // (prevents false positives inside email addresses etc.)
-    const atIndex = before.lastIndexOf('@');
-    if (atIndex === -1) return null;
-    const charBeforeAt = atIndex > 0 ? before[atIndex - 1] : ' ';
-    if (/\w/.test(charBeforeAt)) return null; // preceded by word char → not a trigger
-    const query = before.slice(atIndex + 1);
-    // If the query contains a space, the mention context was closed
-    if (/\s/.test(query)) return null;
-    return {
-      query,
-      triggerStart: atIndex,
-      triggerEnd: before.length,
-    };
-  }, []);
-
-  const filteredMentionCandidates = mentionCandidates.filter((a) => {
-    if (!mentionQuery) return true;
-    return a.name.toLowerCase().includes(mentionQuery.toLowerCase());
-  });
-
-  const closeMention = useCallback(() => {
-    setMentionOpen(false);
-    setMentionQuery('');
-    mentionQueryRef.current = null;
-    setMentionHighlight(0);
-    setMentionAnchorRect(null);
-    setMentionAnchorSource(null);
-    setMentionPopoverPosition(null);
-  }, []);
-
-  const syncMentionAnchor = useCallback((
-    source: MentionAnchorSource,
-    fallbackElement?: HTMLElement | null,
-  ) => {
-    setMentionAnchorSource((current) => (current === source ? current : source));
-
-    if (source === 'caret') {
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        if (typeof range.getClientRects === 'function') {
-          const rects = range.getClientRects();
-          const caretRect = rects.length > 0 ? rects[rects.length - 1] : null;
-          if (isVisibleRect(caretRect)) {
-            setMentionAnchorRect(caretRect as DOMRect);
-            return;
-          }
-        }
-        if (typeof range.getBoundingClientRect === 'function') {
-          const rect = range.getBoundingClientRect();
-          if (isVisibleRect(rect)) {
-            setMentionAnchorRect(rect);
-            return;
-          }
-        }
-      }
-    }
-
-    const buttonRect = mentionButtonRef.current?.getBoundingClientRect();
-    if (source === 'button' && isVisibleRect(buttonRect)) {
-      setMentionAnchorRect(buttonRect as DOMRect);
-      return;
-    }
-
-    const fallbackRect = fallbackElement?.getBoundingClientRect();
-    if (isVisibleRect(fallbackRect)) {
-      setMentionAnchorRect(fallbackRect as DOMRect);
-      return;
-    }
-
-    const editorRect = editorRef.current?.getBoundingClientRect();
-    if (isVisibleRect(editorRect)) {
-      setMentionAnchorRect(editorRect as DOMRect);
-    }
-  }, []);
-
-  const refreshMentionAnchor = useCallback(() => {
-    if (!mentionAnchorSource) return;
-    if (mentionAnchorSource === 'button') {
-      syncMentionAnchor('button', mentionButtonRef.current);
-      return;
-    }
-    syncMentionAnchor('caret', editorRef.current);
-  }, [mentionAnchorSource, syncMentionAnchor]);
-
-  const insertMention = useCallback(
-    (candidate: TaskCommentMentionCandidate) => {
-      const editor = editorRef.current;
-      if (!editor) return;
-
-      editor.focus();
-      restoreSelection();
-      const mentionContext = detectMentionContext();
-      const selection = window.getSelection();
-      if (mentionContext && selection) {
-        const triggerRange = createEditorTextRange(
-          editor,
-          mentionContext.triggerStart,
-          mentionContext.triggerEnd,
-        );
-        if (triggerRange) {
-          triggerRange.deleteContents();
-          selection.removeAllRanges();
-          selection.addRange(triggerRange);
-        }
-      }
-
-      const mentionHtml = [
-        `<span class="comment-mention" contenteditable="false"`,
-        ` data-mention-user-id="${candidate.userId}"`,
-        ` data-mention-name="${candidate.name.replace(/"/g, '&quot;')}"`,
-        `>@${candidate.name}</span>`,
-        '&nbsp;',
-      ].join('');
-      document.execCommand('insertHTML', false, mentionHtml);
-      saveSelection();
-      syncFromEditor();
-      closeMention();
-    },
-    [closeMention, detectMentionContext, restoreSelection, saveSelection, syncFromEditor],
-  );
-
-  const syncMentionPopoverPosition = useCallback(() => {
-    if (!mentionOpen || !mentionAnchorRect) {
-      setMentionPopoverPosition(null);
-      return;
-    }
-
-    const popoverElement = mentionListRef.current;
-    // Measure the height the list WANTS, with the previous cap lifted. Reading
-    // it capped would make "does it fit below?" true by construction, and the
-    // popover would latch onto the cramped side and stay cropped there even
-    // after the room came back. This runs inside a layout effect, so the clear
-    // and restore both happen before the next paint.
-    let naturalHeight = 224;
-    if (popoverElement) {
-      const cappedMaxHeight = popoverElement.style.maxHeight;
-      popoverElement.style.maxHeight = 'none';
-      naturalHeight = popoverElement.offsetHeight || naturalHeight;
-      popoverElement.style.maxHeight = cappedMaxHeight;
-    }
-    // The visible band, not the whole layout viewport. iOS does not shrink the
-    // layout viewport for the keyboard, so `window.innerHeight` still counts the
-    // strip the keyboard covers — measured against it, the popover looks like it
-    // has plenty of room below the caret and gets placed under the keyboard.
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    const nextPosition = getCommentMentionPopoverPosition({
-      anchorRect: mentionAnchorRect,
-      popoverSize: {
-        width: popoverElement?.offsetWidth || 256,
-        height: naturalHeight,
-      },
-      viewportSize: {
-        width: vv?.width ?? window.innerWidth,
-        height: vv?.height ?? window.innerHeight,
-      },
-      // Both the anchor rect and a `position: fixed` popover live in client
-      // coordinates, so the offsets are the whole conversion — no scaling.
-      viewportOrigin: { top: vv?.offsetTop ?? 0, left: vv?.offsetLeft ?? 0 },
-    });
-
-    setMentionPopoverPosition((current) => (
-      current &&
-      current.top === nextPosition.top &&
-      current.left === nextPosition.left &&
-      current.placement === nextPosition.placement &&
-      current.maxHeight === nextPosition.maxHeight
-        ? current
-        : nextPosition
-    ));
-  }, [mentionAnchorRect, mentionOpen]);
-
-  useLayoutEffect(() => {
-    if (!mentionOpen) return;
-    syncMentionPopoverPosition();
-  }, [filteredMentionCandidates.length, mentionOpen, mentionQuery, mentionHighlight, syncMentionPopoverPosition]);
-
-  useEffect(() => {
-    if (!mentionOpen) return;
-
-    const handleResize = () => {
-      refreshMentionAnchor();
-      syncMentionPopoverPosition();
-    };
-    const handleScroll = (event: Event) => {
-      const target = event.target;
-      if (target instanceof Node && mentionListRef.current?.contains(target)) {
-        return;
-      }
-      refreshMentionAnchor();
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('scroll', handleScroll, true);
-    // Opening the keyboard fires neither of the two above — the layout viewport
-    // never changes and the page never scrolls. Only the visual viewport moves,
-    // so without these the popover would keep its stale, buried position.
-    const vv = window.visualViewport;
-    vv?.addEventListener('resize', handleResize);
-    vv?.addEventListener('scroll', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('scroll', handleScroll, true);
-      vv?.removeEventListener('resize', handleResize);
-      vv?.removeEventListener('scroll', handleResize);
-    };
-  }, [mentionOpen, refreshMentionAnchor, syncMentionPopoverPosition]);
-
-  useEffect(() => {
-    if (!mentionOpen) return;
-
-    const handleSelectionChange = () => {
-      if (mentionAnchorSource !== 'caret') return;
-      const editor = editorRef.current;
-      const selection = window.getSelection();
-      if (!editor || !selection || selection.rangeCount === 0) return;
-      if (!editor.contains(selection.anchorNode)) return;
-      refreshMentionAnchor();
-    };
-
-    document.addEventListener('selectionchange', handleSelectionChange);
-    return () => {
-      document.removeEventListener('selectionchange', handleSelectionChange);
-    };
-  }, [mentionAnchorSource, mentionOpen, refreshMentionAnchor]);
-
-  useEffect(() => {
-    if (!mentionOpen) return;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (mentionListRef.current?.contains(target)) return;
-      if (editorRef.current?.contains(target)) return;
-      if (mentionButtonRef.current?.contains(target)) return;
-      closeMention();
-    };
-
-    window.addEventListener('pointerdown', handlePointerDown);
-    return () => {
-      window.removeEventListener('pointerdown', handlePointerDown);
-    };
-  }, [closeMention, mentionOpen]);
 
   // ── image resize (identical to RichTextEditor logic)
   useEffect(() => {
@@ -628,30 +232,13 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
     }
   }, [emptyWhileSaving, onSave, plainLength, syncFromEditor]);
 
-  // Same grouping as the description editor toolbar: formatting | lists | blocks.
-  const toolbarGroups = [
-    [
-      { label: 'Bold', command: 'bold', icon: Bold },
-      { label: 'Italic', command: 'italic', icon: Italic },
-      { label: 'Underline', command: 'underline', icon: Underline },
-      { label: 'Strike', command: 'strikeThrough', icon: Strikethrough },
-    ],
-    [
-      { label: 'Bulleted list', command: 'insertUnorderedList', icon: List },
-      { label: 'Numbered list', command: 'insertOrderedList', icon: ListOrdered },
-    ],
-    [
-      { label: 'Quote', command: 'formatBlock', value: 'blockquote', icon: Quote },
-    ],
-  ] as Array<Array<{ label: string; command: string; value?: string; icon: typeof Bold }>>;
-
   const isOverLimit = plainLength > COMMENT_MAX_PLAIN_LENGTH;
 
   return (
     <div className="overflow-hidden rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring">
       {/* toolbar */}
       <div className="flex flex-wrap items-center gap-0.5 border-b border-border/60 bg-secondary/70 px-2 py-1.5">
-        {toolbarGroups.map((group, groupIndex) => (
+        {RICH_TEXT_TOOLBAR_GROUPS.map((group, groupIndex) => (
           <React.Fragment key={groupIndex}>
             {groupIndex > 0 && (
               <span aria-hidden="true" className="mx-1 h-4 w-px shrink-0 bg-border" />
@@ -692,19 +279,7 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
           title={t`Mention a person`}
           className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
           onMouseDown={(e) => { e.preventDefault(); saveSelection(); }}
-          onClick={() => {
-            const editor = editorRef.current;
-            if (!editor) return;
-            editor.focus();
-            restoreSelection();
-            document.execCommand('insertText', false, '@');
-            saveSelection();
-            syncMentionAnchor('button', mentionButtonRef.current ?? editor);
-            setMentionQuery('');
-            mentionQueryRef.current = '';
-            setMentionOpen(true);
-            setMentionHighlight(0);
-          }}
+          onClick={mentions.openFromButton}
           disabled={disabled}
         >
           <AtSign className="h-3.5 w-3.5" />
@@ -737,45 +312,10 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
         )}
         onInput={() => {
           syncFromEditor();
-          // Detect @ mention trigger
-          const mentionContext = detectMentionContext();
-          if (mentionContext !== null) {
-            saveSelection();
-            mentionQueryRef.current = mentionContext.query;
-            setMentionQuery(mentionContext.query);
-            if (!mentionOpen) {
-              setMentionOpen(true);
-              setMentionHighlight(0);
-            }
-            syncMentionAnchor('caret', editorRef.current);
-          } else {
-            if (mentionOpen) closeMention();
-          }
+          mentions.handleEditorInput();
         }}
         onKeyDown={(e) => {
-          if (mentionOpen) {
-            if (e.key === 'ArrowDown') {
-              e.preventDefault();
-              setMentionHighlight((h) => Math.min(h + 1, filteredMentionCandidates.length - 1));
-              return;
-            }
-            if (e.key === 'ArrowUp') {
-              e.preventDefault();
-              setMentionHighlight((h) => Math.max(h - 1, 0));
-              return;
-            }
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const candidate = filteredMentionCandidates[mentionHighlight];
-              if (candidate) insertMention(candidate);
-              return;
-            }
-            if (e.key === 'Escape') {
-              e.preventDefault();
-              closeMention();
-              return;
-            }
-          }
+          if (mentions.handleEditorKeyDown(e)) return;
           // Ctrl/Cmd + Enter → save
           if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
@@ -845,83 +385,16 @@ export const CommentEditor: React.FC<CommentEditorProps> = ({
         }}
       />
 
-      {/* mention floating popover */}
-      {mentionOpen && typeof document !== 'undefined' && createPortal(
-        <DismissableLayerBranch
-          data-mention-branch="true"
-          className="pointer-events-auto"
-        >
-          <div
-            data-mention-popover="true"
-            // Portalled to the body, so its layer is global: keep it a step above
-            // whatever surface the editor sits on. See src/shared/ui/layers.ts.
-            className="fixed z-[calc(var(--layer-modal)_+_10)] flex w-64 flex-col overflow-hidden rounded-md border bg-popover shadow-md pointer-events-auto"
-            style={
-              mentionPopoverPosition
-                ? {
-                    top: mentionPopoverPosition.top,
-                    left: mentionPopoverPosition.left,
-                    // Never taller than the room actually left on screen, so a
-                    // cramped viewport crops the list instead of hiding it.
-                    maxHeight: mentionPopoverPosition.maxHeight,
-                    pointerEvents: 'auto',
-                  }
-                : {
-                    visibility: 'hidden',
-                    pointerEvents: 'auto',
-                  }
-            }
-            ref={mentionListRef}
-            data-placement={mentionPopoverPosition?.placement}
-            onWheel={(e) => e.stopPropagation()}
-          >
-            <div className="shrink-0 border-b px-3 py-1.5">
-              <span className="text-xs text-muted-foreground">
-                {mentionsLoading
-                  ? t`Loading members...`
-                  : filteredMentionCandidates.length === 0
-                  ? t`No members found`
-                  : t`Select a member`}
-              </span>
-            </div>
-            <div
-              data-mention-options="true"
-              className="min-h-0 max-h-48 flex-1 overflow-y-auto overscroll-contain py-1"
-              onWheel={(e) => e.stopPropagation()}
-            >
-              {filteredMentionCandidates.map((candidate, idx) => (
-                <button
-                  key={candidate.id}
-                  type="button"
-                  className={cn(
-                    'flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm',
-                    idx === mentionHighlight
-                      ? 'bg-accent text-accent-foreground'
-                      : 'hover:bg-accent hover:text-accent-foreground',
-                  )}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    insertMention(candidate);
-                  }}
-                  onMouseEnter={() => setMentionHighlight(idx)}
-                >
-                  {/* Photo when the person has one, monogram otherwise */}
-                  <PersonAvatar
-                    userId={candidate.userId}
-                    name={candidate.name}
-                    avatarUrl={candidate.avatarUrl}
-                    colorSeed={candidate.userId}
-                    size="xs"
-                    className="shrink-0"
-                  />
-                  <span className="truncate">{candidate.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </DismissableLayerBranch>
-      , document.body)}
+      <CommentMentionPopover
+        open={mentions.mentionOpen}
+        position={mentions.mentionPopoverPosition}
+        listRef={mentions.mentionListRef}
+        loading={mentionsLoading}
+        candidates={mentions.filteredMentionCandidates}
+        highlight={mentions.mentionHighlight}
+        onPick={mentions.insertMention}
+        onHover={mentions.setMentionHighlight}
+      />
 
       {/* footer: char counter + actions */}
       <div className="flex items-center justify-between border-t border-border/60 bg-secondary/70 px-3 py-1.5">

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  clearRecentSignOut,
   consumeRecentSignOut,
   markRecentSignOut,
 } from '@/features/auth/lib/recentSignOut';
@@ -27,13 +26,6 @@ describe('recent sign out marker', () => {
     vi.spyOn(Date, 'now').mockReturnValue(2_000);
     markRecentSignOut();
     vi.spyOn(Date, 'now').mockReturnValue(2_000 + RECENT_SIGN_OUT_TTL_MS + 1);
-
-    expect(consumeRecentSignOut()).toBe(false);
-  });
-
-  it('clears marker explicitly', () => {
-    markRecentSignOut();
-    clearRecentSignOut();
 
     expect(consumeRecentSignOut()).toBe(false);
   });

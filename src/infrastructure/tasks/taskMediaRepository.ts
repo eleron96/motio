@@ -1,4 +1,4 @@
-import { supabase } from '@/shared/lib/supabaseClient';
+import { isDemoClientActive, supabase } from '@/shared/lib/supabaseClient';
 import { extractTaskMediaIds } from '@/shared/domain/taskMediaIds';
 import { parseTaskSubtaskImages, TaskSubtaskImage } from '@/shared/domain/taskSubtaskImages';
 
@@ -14,6 +14,9 @@ const encodeFileNameHeader = (fileName: string) => {
 const resolveSupabaseUrl = () => trimTrailingSlash(
   (import.meta.env.VITE_SUPABASE_URL ?? '').trim(),
 );
+
+/** The /demo sandbox has no media storage: nothing can be uploaded there. */
+export const isTaskMediaStorageAvailable = (): boolean => !isDemoClientActive();
 
 /** View URL of an uploaded picture — what an <img src> needs. */
 export const buildTaskMediaUrl = (image: TaskSubtaskImage): string => (

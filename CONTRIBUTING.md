@@ -52,6 +52,7 @@ are in [docs/troubleshooting.md](docs/troubleshooting.md).
 
    ```bash
    npm run lint
+   npm run check:health
    npm run typecheck
    npm run test
    bash infra/scripts/lint-security-definer.sh

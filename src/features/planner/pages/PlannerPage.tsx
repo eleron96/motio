@@ -1,18 +1,11 @@
-import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { TimelineGrid } from '@/features/planner/components/timeline/TimelineGrid';
-import { CalendarTimeline } from '@/features/planner/components/timeline/CalendarTimeline';
-import { lazyNamed } from '@/shared/lib/lazyComponent';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePlannerSurface } from '@/features/planner/hooks/usePlannerSurface';
 import { useUsageBeacon } from '@/features/planner/hooks/useUsageBeacon';
 import { isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
-import { TimelineControls } from '@/features/planner/components/timeline/TimelineControls';
-import { TimelineSearchStrip } from '@/features/planner/components/timeline/TimelineSearchStrip';
-import { TimelineSearchOverlay } from '@/features/planner/components/timeline/TimelineSearchOverlay';
 import { FilterPanel } from '@/features/planner/components/FilterPanel';
 import { TaskDetailPanel } from '@/features/planner/components/TaskDetailPanel';
 import { PushDeepLink } from '@/features/planner/components/PushDeepLink';
 import { AddTaskDialog } from '@/features/planner/components/AddTaskDialog';
-import { isTimeOffEnabled } from '@/shared/lib/featureFlags';
 import { usePlannerLiveSync } from '@/features/planner/hooks/usePlannerLiveSync';
 import { useWorkspaceLoadRetry } from '@/features/planner/hooks/useWorkspaceLoadRetry';
 import { useTaskUndoToasts } from '@/features/planner/hooks/useTaskUndoToasts';
@@ -25,7 +18,9 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { isWeekViewEnabled } from '@/features/planner/lib/weekViewPreference';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { WorkspaceCommonDialogs } from '@/features/workspace/components/WorkspaceCommonDialogs';
-import { Filters, PlannerSurface, ViewMode } from '@/features/planner/types/planner';
+import { type AddTaskDefaults, PlannerTimelineArea } from '@/features/planner/components/PlannerTimelineArea';
+import { importPlannerBoard } from '@/features/planner/lib/plannerBoardChunk';
+import { normalizeFilters } from '@/features/planner/lib/normalizeFilters';
 import { format } from 'date-fns';
 import { Navigate } from 'react-router-dom';
 import { t } from '@lingui/macro';
@@ -39,106 +34,6 @@ import {
 import { OnboardingTour } from '@/features/onboarding/components/OnboardingTour';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
-
-// The board is a beta most people never open: load its code on first use so
-// the planner bundle stays the same size for everyone else.
-const importPlannerBoard = () => import('@/features/planner/components/board/PlannerBoard');
-const PlannerBoard = lazyNamed(importPlannerBoard, 'PlannerBoard');
-
-type AddTaskDefaults = {
-  startDate: string;
-  endDate: string;
-  projectId?: string | null;
-  assigneeIds?: string[];
-  statusId?: string;
-};
-
-const normalizeFilterIds = (value: unknown) => (
-  Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === 'string')
-    : []
-);
-
-const normalizeFilters = (value: unknown): Filters => {
-  const candidate = value && typeof value === 'object' ? (value as Partial<Filters>) : {};
-  return {
-    projectIds: normalizeFilterIds(candidate.projectIds),
-    assigneeIds: normalizeFilterIds(candidate.assigneeIds),
-    groupIds: normalizeFilterIds(candidate.groupIds),
-    statusIds: normalizeFilterIds(candidate.statusIds),
-    typeIds: normalizeFilterIds(candidate.typeIds),
-    tagIds: normalizeFilterIds(candidate.tagIds),
-    hideUnassigned: typeof candidate.hideUnassigned === 'boolean' ? candidate.hideUnassigned : false,
-  };
-};
-
-interface PlannerTimelineAreaProps {
-  viewMode: ViewMode;
-  surface: PlannerSurface;
-  onCreateTaskRequest: (defaults: AddTaskDefaults) => void;
-  timelineSidebarWidth: number | null;
-  onTimelineSidebarWidthChange: (width: number) => void;
-  onTimelineSidebarWidthReset: () => void;
-  showLoadingOverlay: boolean;
-  plannerLoading: boolean;
-  plannerError: string | null;
-}
-
-const PlannerTimelineArea = React.memo(({
-  viewMode,
-  surface,
-  onCreateTaskRequest,
-  timelineSidebarWidth,
-  onTimelineSidebarWidthChange,
-  onTimelineSidebarWidthReset,
-  showLoadingOverlay,
-  plannerLoading,
-  plannerError,
-}: PlannerTimelineAreaProps) => (
-  <div className="flex-1 flex flex-col overflow-hidden min-h-0 timeline-surface">
-    <TimelineControls />
-    {surface === 'timeline' && viewMode !== 'calendar' && <TimelineSearchStrip />}
-    <div className="relative flex-1 overflow-hidden min-h-0">
-      {surface === 'board' && (
-        <Suspense
-          fallback={(
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {t`Loading board...`}
-            </div>
-          )}
-        >
-          <PlannerBoard onCreateTask={onCreateTaskRequest} />
-        </Suspense>
-      )}
-      {surface === 'timeline' && (viewMode === 'calendar'
-        ? <CalendarTimeline />
-        : (
-          <TimelineGrid
-            onCreateTask={onCreateTaskRequest}
-            sidebarWidth={timelineSidebarWidth}
-            onSidebarWidthChange={onTimelineSidebarWidthChange}
-            onSidebarWidthReset={onTimelineSidebarWidthReset}
-          />
-        )
-      )}
-      {surface === 'timeline' && viewMode !== 'calendar' && (
-        <TimelineSearchOverlay />
-      )}
-      {showLoadingOverlay && (
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground bg-background/60">
-          {t`Loading workspace...`}
-        </div>
-      )}
-      {!plannerLoading && plannerError && (
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-destructive bg-background/70">
-          {plannerError}
-        </div>
-      )}
-    </div>
-  </div>
-));
-
-PlannerTimelineArea.displayName = 'PlannerTimelineArea';
 
 const PlannerPage = () => {
   usePageSeo({
@@ -229,8 +124,6 @@ const PlannerPage = () => {
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   // Marking your own days off is not task editing: viewers may do it too, so the
   // create button opens the dialog in time-off-only mode for them.
-  const timeOffOn = isTimeOffEnabled();
-  const canOpenCreateDialog = canEdit || timeOffOn;
 
   // The Week view is optional (per-user "week_view_enabled" preference). If a
   // user is on 'week' but the preference is off — e.g. they had it enabled and
@@ -462,7 +355,6 @@ const PlannerPage = () => {
               setAddTaskDefaults(null);
               setShowAddTask(true);
             }}
-            disabled={!canOpenCreateDialog}
             className="press flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card text-primary hover:bg-accent disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <SquarePen className="h-6 w-6" />
@@ -476,7 +368,6 @@ const PlannerPage = () => {
             }}
             size="sm"
             className="gap-2"
-            disabled={!canOpenCreateDialog}
           >
             <Plus className="h-4 w-4" />
             {t`Add task`}
@@ -620,8 +511,8 @@ const PlannerPage = () => {
         initialProjectId={addTaskDefaults?.projectId}
         initialAssigneeIds={addTaskDefaults?.assigneeIds}
         initialStatusId={addTaskDefaults?.statusId}
-        timeOffEnabled={timeOffOn}
-        timeOffOnly={timeOffOn && !canEdit}
+        timeOffEnabled
+        timeOffOnly={!canEdit}
       />
     </>
   );

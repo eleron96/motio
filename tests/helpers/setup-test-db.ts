@@ -55,12 +55,12 @@ export async function assertCoreSchemaReady(client: PoolClient): Promise<void> {
   if (missing.length > 0) {
     throw new Error(
       `Test DB schema is not ready. Missing tables: ${missing.join(", ")}. ` +
-        `Start the stack with 'make up' and make sure Liquibase migrations have run.`,
+        `Provision it with 'bash infra/scripts/ci-test-db.sh' (database + all Liquibase migrations).`,
     );
   }
 }
 
-const PHASE1_CHECKS: { kind: string; name: string; sql: string }[] = [
+const ACCOUNT_DELETION_SCHEMA_CHECKS: { kind: string; name: string; sql: string }[] = [
   {
     kind: "enum",
     name: "public.account_status",
@@ -107,7 +107,7 @@ const PHASE1_CHECKS: { kind: string; name: string; sql: string }[] = [
   },
 ];
 
-const PHASE3_FUNCTIONS = [
+const PURGE_EXPORT_FUNCTIONS = [
   "_pick_profiles_to_purge",
   "_finalize_profile_purge",
   "_log_account_deletion_event",
@@ -115,9 +115,9 @@ const PHASE3_FUNCTIONS = [
   "_finalize_export_request",
 ] as const;
 
-export async function assertPhase3SchemaReady(client: PoolClient): Promise<void> {
+export async function assertPurgeExportRpcsReady(client: PoolClient): Promise<void> {
   const missing: string[] = [];
-  for (const fn of PHASE3_FUNCTIONS) {
+  for (const fn of PURGE_EXPORT_FUNCTIONS) {
     const { rowCount } = await client.query(
       `select 1 from pg_proc p
          join pg_namespace n on n.oid = p.pronamespace
@@ -134,20 +134,20 @@ export async function assertPhase3SchemaReady(client: PoolClient): Promise<void>
 
   if (missing.length > 0) {
     throw new Error(
-      `Phase 3 schema not ready. Missing: ${missing.join(", ")}. Apply migration 0075.`,
+      `Purge / export RPCs not ready. Missing: ${missing.join(", ")}. Apply migration 0075.`,
     );
   }
 }
 
-const PHASE5_FUNCTIONS = [
+const DELETION_CRON_FUNCTIONS = [
   "_pick_expired_exports",
   "_account_deletion_health_check",
   "admin_force_purge_account",
 ] as const;
 
-export async function assertPhase5SchemaReady(client: PoolClient): Promise<void> {
+export async function assertDeletionCronRpcsReady(client: PoolClient): Promise<void> {
   const missing: string[] = [];
-  for (const fn of PHASE5_FUNCTIONS) {
+  for (const fn of DELETION_CRON_FUNCTIONS) {
     const { rowCount } = await client.query(
       `select 1 from pg_proc p
          join pg_namespace n on n.oid = p.pronamespace
@@ -158,20 +158,20 @@ export async function assertPhase5SchemaReady(client: PoolClient): Promise<void>
   }
   if (missing.length > 0) {
     throw new Error(
-      `Phase 5 schema not ready. Missing: ${missing.join(", ")}. Apply migration 0076.`,
+      `Account deletion cron RPCs not ready. Missing: ${missing.join(", ")}. Apply migration 0076.`,
     );
   }
 }
 
-export async function assertPhase1SchemaReady(client: PoolClient): Promise<void> {
+export async function assertAccountDeletionSchemaReady(client: PoolClient): Promise<void> {
   const missing: string[] = [];
-  for (const check of PHASE1_CHECKS) {
+  for (const check of ACCOUNT_DELETION_SCHEMA_CHECKS) {
     const { rowCount } = await client.query(check.sql);
     if (!rowCount) missing.push(`${check.kind} ${check.name}`);
   }
   if (missing.length > 0) {
     throw new Error(
-      `Phase 1 schema not ready. Missing: ${missing.join(", ")}. ` +
+      `Account deletion schema not ready. Missing: ${missing.join(", ")}. ` +
         "Apply migrations 0069-0073.",
     );
   }

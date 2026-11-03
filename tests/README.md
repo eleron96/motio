@@ -1,9 +1,10 @@
 # Integration tests
 
 Tests that talk to a real Postgres (Supabase) instance: RLS policies, RPCs,
-triggers and the backup-service cron jobs. Kept separate from the unit tests in
-`src/test/`, which run in jsdom without a DB. CI runs them in the
-`integration-tests` job on every push.
+triggers and the SQL helpers the backup-service cron jobs call. Kept separate
+from the unit tests in `src/test/`, which run in jsdom without a DB, and from the
+backup-service's own tests next to its code (`infra/backup-service/*.test.js`,
+`npm run test:backup`). CI runs them in the `integration-tests` job on every push.
 
 ## Requirements
 
@@ -43,13 +44,16 @@ tests/
   fixtures/
     account-deletion.sql  # users/workspaces/membership for deletion tests
   integration/
-    phase0-smoke.test.ts  # verifies helper + fixtures plumbing works
-    phase1-…phase5-*.ts   # account deletion: schema, RPCs, cron
+    db-harness-smoke.test.ts               # helper + fixture plumbing works
+    account-deletion-schema.test.ts        # 0069-0073: statuses, events, exports
+    account-deletion-rpc.test.ts           # 0074: preview, request, cancel, data export
+    account-deletion-purge-export-rpc.test.ts  # 0075: purge and export helpers
+    account-deletion-cron-rpc.test.ts      # 0076: cron and health-check helpers
     access-control.test.ts, workspace-delete.test.ts, time-off.test.ts,
     notification-bursts.test.ts, … # one file per feature's DB contract
-  unit/
-    account-deletion-cron.test.ts  # backup-service cron logic, no DB
 ```
+
+Name a new file after the feature whose DB contract it checks.
 
 ## Isolation
 

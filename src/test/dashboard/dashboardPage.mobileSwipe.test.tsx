@@ -42,10 +42,6 @@ vi.mock('@/features/dashboard/components/WorkloadHeatmapBoard', () => ({
   WorkloadHeatmapBoard: () => <div>Desktop heatmap</div>,
 }));
 
-vi.mock('@/shared/lib/featureFlags', () => ({
-  isWorkloadHeatmapEnabled: () => true,
-}));
-
 const { authState, dashboardState } = vi.hoisted(() => ({
   authState: {
     currentWorkspaceId: 'ws-1',

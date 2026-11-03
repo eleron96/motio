@@ -16,12 +16,6 @@ export const markRecentSignOut = (): void => {
   storage.setItem(RECENT_SIGN_OUT_KEY, String(Date.now()));
 };
 
-export const clearRecentSignOut = (): void => {
-  const storage = getSessionStorage();
-  if (!storage) return;
-  storage.removeItem(RECENT_SIGN_OUT_KEY);
-};
-
 export const consumeRecentSignOut = (): boolean => {
   const storage = getSessionStorage();
   if (!storage) return false;

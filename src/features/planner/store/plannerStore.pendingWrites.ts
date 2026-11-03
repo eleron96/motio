@@ -43,8 +43,6 @@ export const beginTaskWrite = (taskId: string, current: Task | null): number => 
 
 export const isLatestTaskWrite = (taskId: string, seq: number) => writes.get(taskId)?.latestSeq === seq;
 
-export const hasTaskWriteInFlight = (taskId: string) => writes.has(taskId);
-
 /** Records the server's answer as the new confirmed state of the task. */
 export const confirmTaskWrite = (taskId: string, row: Task) => {
   const state = writes.get(taskId);

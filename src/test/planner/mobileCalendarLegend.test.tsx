@@ -26,13 +26,11 @@ const MANY_PEOPLE = Array.from({ length: 12 }, (_, index) => ({
 
 const Harness: React.FC<{
   initial?: CalendarOverlayVisibility;
-  showTimeOffRow?: boolean;
   people?: Assignee[];
   unknownPeopleIds?: string[];
   hiddenPeopleCount?: number;
 }> = ({
   initial = { holidays: true, milestones: true, timeOff: false },
-  showTimeOffRow = true,
   people = PEOPLE,
   unknownPeopleIds = [],
   hiddenPeopleCount = 0,
@@ -50,7 +48,6 @@ const Harness: React.FC<{
         ...current,
         [category]: !current[category],
       }))}
-      showTimeOffRow={showTimeOffRow}
       people={people}
       unknownPeopleIds={unknownPeopleIds}
       hiddenPeopleCount={hiddenPeopleCount}
@@ -163,12 +160,5 @@ describe('Calendar legend on a phone', () => {
     await user.click(screen.getByRole('button', { name: 'Not on the team (1)' }));
     expect(screen.getByRole('button', { name: 'Not on the team (1)' }))
       .toHaveAttribute('aria-pressed', 'false');
-  });
-
-  it('omits the time-off row where the feature is off', () => {
-    render(<Harness showTimeOffRow={false} />);
-
-    expect(screen.getByRole('switch', { name: 'Holidays' })).toBeInTheDocument();
-    expect(screen.queryByRole('switch', { name: 'Team time off' })).not.toBeInTheDocument();
   });
 });

@@ -1,49 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { SearchInput } from '@/shared/ui/SearchInput';
-import { Switch } from '@/shared/ui/switch';
-import { Badge } from '@/shared/ui/badge';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { cn } from '@/shared/lib/classNames';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/ui/alert-dialog';
-import { ChevronDown, ChevronUp, ChevronsUpDown, Crown, MoreHorizontal, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberActivity';
 import { formatWorkspaceMemberActivity } from '@/shared/lib/workspaceMemberActivity';
 import { matchesWorkspaceMemberSearch } from '@/shared/domain/workspaceMemberSearch';
 import { splitMembersByAccess } from '@/shared/domain/workspaceMemberAccess';
 import { RenamePurgedDialog } from './RenamePurgedDialog';
+import { WorkspaceMemberRow, type WorkspaceMemberSummary } from '@/features/workspace/components/WorkspaceMemberRow';
+import { WorkspaceLeaveDialogs } from '@/features/workspace/components/WorkspaceLeaveDialogs';
+import { useLeaveWorkspace } from '@/features/workspace/hooks/useLeaveWorkspace';
+import { WorkspaceInviteSection } from '@/features/workspace/components/WorkspaceInviteSection';
+import { useWorkspaceInvites } from '@/features/workspace/hooks/useWorkspaceInvites';
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { useDemoConversion } from '@/features/demo/providers/DemoConversionProvider';
 
@@ -62,15 +35,6 @@ type MemberGroup = {
 type MemberSortKey = 'member' | 'role' | 'group' | 'status';
 type MemberSortDirection = 'asc' | 'desc';
 
-type SentInvite = {
-  token: string;
-  workspaceId: string;
-  email: string;
-  status: 'pending' | 'accepted' | 'declined' | 'canceled' | 'expired';
-  isPending: boolean;
-  createdAt: string | null;
-};
-
 export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   active = true,
   showTitle = true,
@@ -83,15 +47,9 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     members,
     membersLoading,
     fetchMembers,
-    inviteMember,
-    listSentInvites,
-    cancelSentInvite,
     listWorkspaceMemberActivity,
     updateMemberRole,
     updateMemberGroup,
-    removeMember,
-    leaveWorkspace,
-    transferWorkspaceOwnership,
     renamePurgedProfile,
     currentWorkspaceId,
     currentWorkspaceRole,
@@ -101,15 +59,9 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     members: state.members,
     membersLoading: state.membersLoading,
     fetchMembers: state.fetchMembers,
-    inviteMember: state.inviteMember,
-    listSentInvites: state.listSentInvites,
-    cancelSentInvite: state.cancelSentInvite,
     listWorkspaceMemberActivity: state.listWorkspaceMemberActivity,
     updateMemberRole: state.updateMemberRole,
     updateMemberGroup: state.updateMemberGroup,
-    removeMember: state.removeMember,
-    leaveWorkspace: state.leaveWorkspace,
-    transferWorkspaceOwnership: state.transferWorkspaceOwnership,
     renamePurgedProfile: state.renamePurgedProfile,
     currentWorkspaceId: state.currentWorkspaceId,
     currentWorkspaceRole: state.currentWorkspaceRole,
@@ -129,19 +81,10 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   })));
 
   const [search, setSearch] = useState('');
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState<WorkspaceRole>('viewer');
   const [error, setError] = useState('');
-  const [inviteResult, setInviteResult] = useState<{ email: string; status: string; warning?: string | null } | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [cancelingToken, setCancelingToken] = useState<string | null>(null);
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [sentInvites, setSentInvites] = useState<SentInvite[]>([]);
-  const [sentInvitesLoading, setSentInvitesLoading] = useState(false);
   const [groups, setGroups] = useState<MemberGroup[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(false);
   const [groupsError, setGroupsError] = useState('');
-  const [inviteGroupId, setInviteGroupId] = useState('none');
   const [memberSortKey, setMemberSortKey] = useState<MemberSortKey>('member');
   const [memberSortDirection, setMemberSortDirection] = useState<MemberSortDirection>('asc');
   const [memberActivity, setMemberActivity] = useState<WorkspaceMemberActivityEntry[]>([]);
@@ -150,13 +93,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [renameTargetUserId, setRenameTargetUserId] = useState<string | null>(null);
   const [renameTargetCurrentName, setRenameTargetCurrentName] = useState<string | null>(null);
-  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
-  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
-  const [transferTargetId, setTransferTargetId] = useState('');
-  const [leaving, setLeaving] = useState(false);
-  const [leaveError, setLeaveError] = useState('');
-  const [removeTarget, setRemoveTarget] = useState<typeof members[number] | null>(null);
-
   const isAdmin = currentWorkspaceRole === 'admin';
   const isDemo = useIsDemo();
   const { open: openDemoConversion } = useDemoConversion();
@@ -203,28 +139,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
     };
   }, [active, currentWorkspaceId, fetchMemberGroups]);
 
-  const loadSentInvites = useCallback(async () => {
-    if (!active || !isAdmin || !currentWorkspaceId) {
-      setSentInvites([]);
-      setSentInvitesLoading(false);
-      return;
-    }
-
-    setSentInvitesLoading(true);
-    const { invites, error } = await listSentInvites({
-      workspaceId: currentWorkspaceId,
-      pendingOnly: true,
-    });
-
-    if (error) {
-      setError(error);
-      setSentInvitesLoading(false);
-      return;
-    }
-    setSentInvites(invites as SentInvite[]);
-    setSentInvitesLoading(false);
-  }, [active, currentWorkspaceId, isAdmin, listSentInvites]);
-
   const loadMemberActivity = useCallback(async () => {
     if (!active || !currentWorkspaceId || !isAdmin) {
       setMemberActivity([]);
@@ -251,19 +165,21 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
 
   useEffect(() => {
     if (!active || !isAdmin || !currentWorkspaceId) {
-      setSentInvites([]);
-      return;
-    }
-    void loadSentInvites();
-  }, [active, currentWorkspaceId, isAdmin, loadSentInvites]);
-
-  useEffect(() => {
-    if (!active || !isAdmin || !currentWorkspaceId) {
       setMemberActivity([]);
       return;
     }
     void loadMemberActivity();
   }, [active, currentWorkspaceId, isAdmin, loadMemberActivity]);
+
+  const invites = useWorkspaceInvites({
+    active,
+    isAdmin,
+    isDemo,
+    currentWorkspaceId,
+    setError,
+    onInvited: () => void loadMemberActivity(),
+    openDemoConversion,
+  });
 
   const assigneeByUserId = useMemo(() => {
     const map = new Map<string, typeof assignees[number]>();
@@ -356,95 +272,11 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       : <ChevronDown className="h-3 w-3 text-foreground" />;
   };
 
-  const sentInvitesList = useMemo(
-    () => [...sentInvites]
-      .filter((invite) => invite.isPending)
-      .sort((left, right) => {
-      const leftCreatedAt = left.createdAt ? Date.parse(left.createdAt) : 0;
-      const rightCreatedAt = right.createdAt ? Date.parse(right.createdAt) : 0;
-      return rightCreatedAt - leftCreatedAt;
-      }),
-    [sentInvites],
-  );
-
   const formatHistoryDate = useCallback((isoDate: string) => {
     const parsed = Date.parse(isoDate);
     if (!Number.isFinite(parsed)) return '';
     return new Date(parsed).toLocaleString();
   }, []);
-
-  const handleInvite = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError('');
-    setInviteResult(null);
-    if (!email.trim()) return;
-
-    if (isDemo) {
-      // Sending real invites needs a real account. Convert instead.
-      setInviteOpen(false);
-      openDemoConversion('invite');
-      return;
-    }
-
-    const invitedEmail = email.trim();
-    setSubmitting(true);
-    const result = await inviteMember(
-      invitedEmail,
-      role,
-      inviteGroupId === 'none' ? null : inviteGroupId,
-    );
-    if (result.error) {
-      setError(result.error);
-    }
-    if (!result.error) {
-      setInviteResult({
-        email: result.inviteEmail ?? invitedEmail,
-        status: result.inviteStatus ?? 'pending',
-        warning: result.warning ?? null,
-      });
-    }
-    setSubmitting(false);
-    if (!result.error) {
-      setEmail('');
-      setRole('viewer');
-      setInviteGroupId('none');
-      setInviteOpen(false);
-      void loadSentInvites();
-      void loadMemberActivity();
-    }
-  };
-
-  const handleCancelInvite = useCallback(async (token: string) => {
-    if (!isAdmin || !token) return;
-    setCancelingToken(token);
-    setError('');
-
-    const { error } = await cancelSentInvite(token);
-    if (error) {
-      setError(error);
-      setCancelingToken(null);
-      return;
-    }
-
-    await loadSentInvites();
-    setCancelingToken(null);
-  }, [cancelSentInvite, isAdmin, loadSentInvites]);
-
-  const getInviteStatusLabel = (status: SentInvite['status']) => {
-    if (status === 'accepted') return t`Accepted`;
-    if (status === 'declined') return t`Declined`;
-    if (status === 'canceled') return t`Canceled`;
-    if (status === 'expired') return t`Expired`;
-    return t`Pending`;
-  };
-
-  const getInviteStatusClassName = (status: SentInvite['status']) => {
-    if (status === 'accepted') return 'bg-emerald-500/15 text-emerald-700 border-emerald-500/20';
-    if (status === 'declined' || status === 'canceled' || status === 'expired') {
-      return 'bg-muted text-muted-foreground border-border';
-    }
-    return 'bg-amber-500/15 text-amber-700 border-amber-500/20';
-  };
 
   const handleRoleChange = async (userId: string, nextRole: WorkspaceRole) => {
     if (!isAdmin) return;
@@ -465,66 +297,6 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       return;
     }
     void loadMemberActivity();
-  };
-
-  const handleLeave = () => {
-    if (!currentWorkspaceId) return;
-    setError('');
-    setLeaveError('');
-    if (isWorkspaceOwner) {
-      // The owner cannot leave directly — they must transfer ownership first
-      // (or delete the workspace if they are the only member).
-      setTransferTargetId('');
-      setLeaveDialogOpen(true);
-      return;
-    }
-    setLeaveConfirmOpen(true);
-  };
-
-  const confirmLeave = async () => {
-    if (!currentWorkspaceId) return;
-    setLeaving(true);
-    const result = await leaveWorkspace(currentWorkspaceId);
-    setLeaving(false);
-    setLeaveConfirmOpen(false);
-    if (result.error) {
-      setError(
-        result.reason === 'SOLE_ADMIN_MUST_PROMOTE_FIRST'
-          ? t`You are the only admin. Promote another member to admin before leaving.`
-          : result.error,
-      );
-    }
-  };
-
-  const confirmRemove = async () => {
-    if (!removeTarget) return;
-    const targetId = removeTarget.userId;
-    setRemoveTarget(null);
-    const result = await removeMember(targetId);
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-    void loadMemberActivity();
-  };
-
-  const handleConfirmTransferAndLeave = async () => {
-    if (!currentWorkspaceId || !transferTargetId) return;
-    setLeaving(true);
-    setLeaveError('');
-    const transferResult = await transferWorkspaceOwnership(currentWorkspaceId, transferTargetId);
-    if (transferResult.error) {
-      setLeaving(false);
-      setLeaveError(transferResult.error);
-      return;
-    }
-    const leaveResult = await leaveWorkspace(currentWorkspaceId);
-    setLeaving(false);
-    if (leaveResult.error) {
-      setLeaveError(leaveResult.error);
-      return;
-    }
-    setLeaveDialogOpen(false);
   };
 
   const handleMemberStatusChange = async (assigneeId: string, nextValue: boolean) => {
@@ -563,152 +335,38 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       ? t`They keep their tasks and history but cannot open the workspace.`
       : t`Manage team roles, groups, and status.`;
 
-  const renderMemberRow = (member: typeof members[number]) => {
-    const isSelf = Boolean(currentUserId && member.userId === currentUserId);
-    const isOwner = Boolean(ownerId && member.userId === ownerId);
-    const assignee = assigneeByUserId.get(member.userId);
-    const isActive = assignee?.isActive ?? true;
-    const isPurged = member.status === 'PURGED';
-    const canRenamePurged = isAdmin && isPurged;
+  const leave = useLeaveWorkspace({
+    currentWorkspaceId,
+    isWorkspaceOwner,
+    setError,
+    onMemberRemoved: () => void loadMemberActivity(),
+  });
+  const {
+    leaving,
+    setRemoveTarget,
+    handleLeave,
+  } = leave;
 
-    return (
-      <div key={member.userId} className="grid items-center gap-3 rounded-md border px-3 py-3 md:grid-cols-[1fr,140px,180px,120px,90px]">
-        <div className="flex items-center gap-3 min-w-0">
-          <PersonAvatar
-            userId={member.userId}
-            name={member.displayName ?? member.email}
-            avatarUrl={member.avatarUrl}
-            colorSeed={member.userId}
-            size="md"
-            className="shrink-0"
-          />
-          <div className="min-w-0">
-          <div className={cn('text-sm font-medium truncate', isPurged && 'italic text-muted-foreground')}>
-            {member.email}
-            {isSelf ? ` ${t`(you)`}` : ''}
-          </div>
-          {member.displayName && (
-            <div className="flex items-center gap-2 min-w-0">
-              <div className={cn('text-xs text-muted-foreground truncate', isPurged && 'italic')}>
-                {member.displayName}
-              </div>
-              {canRenamePurged && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 px-1.5 text-muted-foreground hover:text-foreground"
-                  onClick={() => openRenamePurgedDialog(member)}
-                  aria-label={t`Rename deleted member`}
-                  data-testid={`rename-purged-button-${member.userId}`}
-                >
-                  <Pencil className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-          )}
-          <div className="mt-1 flex flex-wrap gap-1">
-            {isOwner && (
-              <Badge className="flex items-center gap-1 text-[10px]">
-                <Crown className="h-3 w-3" />
-                {t`Owner`}
-              </Badge>
-            )}
-            {isPurged && (
-              <Badge variant="outline" className="text-[10px]">{t`Deleted account`}</Badge>
-            )}
-            {!isActive && !isPurged && (
-              <Badge variant="secondary" className="text-[10px]">{t`Disabled`}</Badge>
-            )}
-          </div>
-          </div>
-        </div>
-        <Select
-          value={member.role}
-          onValueChange={(value) => void handleRoleChange(member.userId, value as WorkspaceRole)}
-          disabled={!isAdmin}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="viewer">{t`Viewer`}</SelectItem>
-            <SelectItem value="editor">{t`Editor`}</SelectItem>
-            <SelectItem value="admin">{t`Admin`}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={member.groupId ?? 'none'}
-          onValueChange={(value) => void handleGroupChange(member.userId, value)}
-          disabled={!isAdmin}
-        >
-          <SelectTrigger className="w-[180px] max-w-[180px] [&>span]:truncate">
-            <SelectValue placeholder={groupsLoading ? t`Loading groups...` : t`No group`} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">{t`No group`}</SelectItem>
-            {groups.map((group) => (
-              <SelectItem key={group.id} value={group.id}>
-                {group.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <div className="flex items-center gap-3">
-          {assignee ? (
-            <>
-              <Switch
-                checked={isActive}
-                onCheckedChange={(value) => void handleMemberStatusChange(assignee.id, value)}
-                disabled={!isAdmin || isSelf}
-                aria-label={isActive ? t`Disable member` : t`Enable member`}
-              />
-              <span className="text-[10px] text-muted-foreground">
-                {isActive ? t`Active` : t`Disabled`}
-              </span>
-            </>
-          ) : (
-            <span className="text-xs text-muted-foreground">—</span>
-          )}
-        </div>
-        <div className="flex justify-end">
-          {isSelf ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleLeave()}
-              disabled={leaving}
-              data-testid="leave-workspace-button"
-            >
-              {t`Leave`}
-            </Button>
-          ) : canRemoveMembers ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  aria-label={t`Member actions`}
-                  data-testid={`member-actions-${member.userId}`}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onSelect={() => setRemoveTarget(member)}
-                >
-                  {t`Remove`}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-        </div>
-      </div>
-    );
-  };
+  const renderMemberRow = (member: WorkspaceMemberSummary) => (
+    <WorkspaceMemberRow
+      key={member.userId}
+      member={member}
+      currentUserId={currentUserId}
+      ownerId={ownerId}
+      assigneeByUserId={assigneeByUserId}
+      isAdmin={isAdmin}
+      canRemoveMembers={canRemoveMembers}
+      groups={groups}
+      groupsLoading={groupsLoading}
+      leaving={leaving}
+      handleRoleChange={handleRoleChange}
+      handleGroupChange={handleGroupChange}
+      handleMemberStatusChange={handleMemberStatusChange}
+      handleLeave={handleLeave}
+      setRemoveTarget={setRemoveTarget}
+      openRenamePurgedDialog={openRenamePurgedDialog}
+    />
+  );
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -740,137 +398,13 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
       {/* Inviting belongs to the people who are in: it would read as a stray
           control above the disabled list or the history log. */}
       {accessTab === 'active' && (
-      <div className="rounded-lg border bg-background p-4 space-y-3">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold">{t`Invites`}</div>
-            <div className="text-xs text-muted-foreground">
-              {t`Invite people and share access.`}
-            </div>
-          </div>
-          <Popover open={inviteOpen} onOpenChange={setInviteOpen}>
-            <PopoverTrigger asChild>
-              <Button data-tour="members-add-member" variant="secondary" disabled={!isAdmin}>
-                {t`Add member`}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4" align="end">
-              <form onSubmit={handleInvite} className="space-y-3">
-                <Label htmlFor="invite-email">{t`Email`}</Label>
-                <Input
-                  id="invite-email"
-                  type="email"
-                  placeholder={t`name@example.com`}
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  disabled={!isAdmin}
-                />
-                <div className="space-y-1">
-                  <Label>{t`Role`}</Label>
-                  <Select value={role} onValueChange={(value) => setRole(value as WorkspaceRole)} disabled={!isAdmin}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="viewer">{t`Viewer`}</SelectItem>
-                      <SelectItem value="editor">{t`Editor`}</SelectItem>
-                      <SelectItem value="admin">{t`Admin`}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>{t`Group`}</Label>
-                  <Select
-                    value={inviteGroupId}
-                    onValueChange={setInviteGroupId}
-                    disabled={!isAdmin}
-                  >
-                    <SelectTrigger className="w-[220px] max-w-[220px] [&>span]:truncate">
-                      <SelectValue placeholder={groupsLoading ? t`Loading groups...` : t`No group`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t`No group`}</SelectItem>
-                      {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {groupsError && (
-                    <div className="text-xs text-destructive">{groupsError}</div>
-                  )}
-                  {!groupsError && groups.length === 0 && (
-                    <div className="text-xs text-muted-foreground">{t`No groups created yet.`}</div>
-                  )}
-                </div>
-                <Button type="submit" disabled={!isAdmin || submitting || !email.trim()}>
-                  {t`Send invite`}
-                </Button>
-              </form>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {inviteResult && (
-          <Alert>
-            <AlertTitle>{t`Invite created`}</AlertTitle>
-            <AlertDescription>
-              <div>{t`Check your inbox`}</div>
-              <div className="mt-1 text-xs">
-                {inviteResult.email} - {inviteResult.status}
-              </div>
-              {inviteResult.warning && (
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {inviteResult.warning}
-                </div>
-              )}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {isAdmin && (
-          <div className="space-y-2 border-t pt-3">
-            <div className="text-xs font-semibold text-muted-foreground">{t`Sent invites`}</div>
-            {sentInvitesLoading ? (
-              <div className="text-xs text-muted-foreground">{t`Loading data...`}</div>
-            ) : sentInvitesList.length === 0 ? (
-              <div className="text-xs text-muted-foreground">{t`No invites sent yet.`}</div>
-            ) : (
-              <div className="space-y-2">
-                {sentInvitesList.map((invite) => {
-                  const displayEmail = invite.email.includes('@') ? invite.email : t`Unknown`;
-                  return (
-                  <div key={invite.token} className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5">
-                    <div className="min-w-0">
-                      <div className="truncate text-xs font-medium" title={displayEmail}>{displayEmail}</div>
-                      <div className="mt-1">
-                        <Badge
-                          variant="outline"
-                          className={cn('text-[10px] font-medium', getInviteStatusClassName(invite.status))}
-                        >
-                          {getInviteStatusLabel(invite.status)}
-                        </Badge>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-7 px-2 text-xs"
-                      disabled={cancelingToken === invite.token}
-                      onClick={() => void handleCancelInvite(invite.token)}
-                    >
-                      {t`Revoke`}
-                    </Button>
-                  </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+        <WorkspaceInviteSection
+          invites={invites}
+          isAdmin={isAdmin}
+          groups={groups}
+          groupsLoading={groupsLoading}
+          groupsError={groupsError}
+        />
       )}
 
       <div className="rounded-lg border bg-background p-4 space-y-3">
@@ -1012,119 +546,7 @@ export const WorkspaceMembersPanel: React.FC<WorkspaceMembersPanelProps> = ({
         onSubmit={handleRenamePurgedSubmit}
       />
 
-      <Dialog
-        open={leaveDialogOpen}
-        onOpenChange={(next) => {
-          if (leaving) return;
-          setLeaveDialogOpen(next);
-          if (!next) setLeaveError('');
-        }}
-      >
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader>
-            <DialogTitle>{t`Leave workspace`}</DialogTitle>
-            <DialogDescription>
-              {t`You are the owner of this workspace. Transfer ownership to another member to leave.`}
-            </DialogDescription>
-          </DialogHeader>
-          {transferCandidates.length === 0 ? (
-            <Alert>
-              <AlertTitle>{t`You are the only member`}</AlertTitle>
-              <AlertDescription>
-                {t`There is no one to transfer ownership to. Delete the workspace instead if you no longer need it.`}
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="space-y-2">
-              <Label>{t`New owner`}</Label>
-              <Select value={transferTargetId} onValueChange={setTransferTargetId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t`Select a member`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {transferCandidates.map((candidate) => (
-                    <SelectItem key={candidate.userId} value={candidate.userId}>
-                      {candidate.displayName || candidate.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {leaveError && <p className="text-sm text-destructive">{leaveError}</p>}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setLeaveDialogOpen(false)} disabled={leaving}>
-              {t`Cancel`}
-            </Button>
-            <Button
-              onClick={() => void handleConfirmTransferAndLeave()}
-              disabled={leaving || !transferTargetId || transferCandidates.length === 0}
-            >
-              {t`Transfer & leave`}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog
-        open={leaveConfirmOpen}
-        onOpenChange={(next) => {
-          if (!leaving) setLeaveConfirmOpen(next);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t`Leave workspace?`}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t`You will lose access to this workspace. Your tasks stay and reattach to you if you are invited back.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={leaving}>{t`Cancel`}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(event) => {
-                event.preventDefault();
-                void confirmLeave();
-              }}
-              disabled={leaving}
-            >
-              {t`Leave`}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
-        open={removeTarget !== null}
-        onOpenChange={(next) => {
-          if (!next) setRemoveTarget(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t`Remove member?`}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t`They will lose access to this workspace. Tasks already assigned to them are not affected.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="text-sm font-medium">
-            {removeTarget?.displayName || removeTarget?.email}
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(event) => {
-                event.preventDefault();
-                void confirmRemove();
-              }}
-            >
-              {t`Remove`}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <WorkspaceLeaveDialogs leave={leave} transferCandidates={transferCandidates} />
     </div>
   );
 };

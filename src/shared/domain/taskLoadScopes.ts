@@ -42,10 +42,6 @@ export const isTaskInWindow = (task: DatedTask, window: TaskDateWindow): boolean
   task.endDate >= window.start && task.startDate <= window.end
 );
 
-export const windowContains = (outer: TaskDateWindow, inner: TaskDateWindow): boolean => (
-  outer.start <= inner.start && outer.end >= inner.end
-);
-
 export const isTaskInBoardScope = (task: ScopedTask, board: TaskBoardScope): boolean => {
   if (board.openStatusIds.includes(task.statusId)) return true;
   // ISO timestamps compare correctly as strings only in the same format;
@@ -58,6 +54,27 @@ export const isTaskInLoadScopes = (task: ScopedTask, scopes: TaskLoadScopes): bo
   (scopes.window !== null && isTaskInWindow(task, scopes.window))
   || (scopes.board !== null && isTaskInBoardScope(task, scopes.board))
 );
+
+/**
+ * Local tasks a reconcile should drop: a scope that claims the task locally no
+ * longer claims it remotely, and no other scope does either.
+ */
+export const findStaleTaskIds = (
+  tasks: ReadonlyArray<ScopedTask & Pick<Task, 'id'>>,
+  window: TaskDateWindow,
+  board: TaskBoardScope | null,
+  remoteWindowIds: ReadonlySet<string>,
+  remoteBoardIds: ReadonlySet<string>,
+): string[] => tasks
+  .filter((task) => {
+    const inWindow = isTaskInWindow(task, window);
+    const inBoard = board !== null && isTaskInBoardScope(task, board);
+    if (!inWindow && !inBoard) return false;
+    if (inWindow && remoteWindowIds.has(task.id)) return false;
+    if (board && remoteBoardIds.has(task.id)) return false;
+    return true;
+  })
+  .map((task) => task.id);
 
 export const buildBoardScope = (
   workspaceId: string,

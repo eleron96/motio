@@ -396,8 +396,7 @@ const handleDownload = async (req: Request, mediaId: string) => {
       .from("task_media")
       .update({ last_accessed_at: new Date().toISOString() })
       .eq("id", data.id)
-      .then(() => undefined)
-      .catch(() => undefined);
+      .then(() => undefined, () => undefined);
   }
 
   // Path A: file is in Supabase Storage (new uploads)

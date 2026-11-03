@@ -2,7 +2,7 @@ import React from 'react';
 import { t } from '@lingui/macro';
 import { MoreHorizontal } from 'lucide-react';
 import { Assignee } from '@/features/planner/types/planner';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
+import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { cn } from '@/shared/lib/classNames';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import { SearchInput } from '@/shared/ui/SearchInput';
@@ -19,7 +19,7 @@ type GroupRecord = {
   name: string;
 };
 
-interface MembersMobileListProps {
+export interface MembersMobileListProps {
   /** Which list this deck page holds. */
   mode: 'tasks' | 'groups';
   isAdmin: boolean;

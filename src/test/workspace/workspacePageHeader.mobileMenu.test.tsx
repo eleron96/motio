@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { WorkspacePageHeader } from '@/features/workspace/components/WorkspacePageHeader';
-import { MobileMenuProvider } from '@/features/workspace/components/MobileMenuContext';
+import { MobileMenuProvider } from '@/shared/components/MobileMenuContext';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import React from 'react';
 

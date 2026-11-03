@@ -1,0 +1,31 @@
+{
+  "unusedFiles": [],
+  "unusedExports": [],
+  "testOnlyExports": [
+    "src/features/planner/lib/calendarDayMarkers.ts :: TIME_OFF_HOLIDAY_CIRCLE_SCALE",
+    "src/infrastructure/holidays/holidayApi.ts :: resetHolidayCacheForTests"
+  ],
+  "unusedDependencies": [],
+  "largeFiles": [],
+  "supabaseOutsideInfrastructure": [],
+  "crossFeatureComponentImports": [
+    "src/features/dashboard/pages/DashboardPage.tsx -> workspace",
+    "src/features/demo/pages/DemoPage.tsx -> workspace",
+    "src/features/members/components/MembersDialogs.tsx -> workspace",
+    "src/features/members/pages/MembersPage.tsx -> workspace",
+    "src/features/planner/pages/PlannerPage.tsx -> onboarding",
+    "src/features/planner/pages/PlannerPage.tsx -> workspace",
+    "src/features/projects/components/ProjectsDialogs.tsx -> planner",
+    "src/features/projects/components/ProjectsDialogs.tsx -> workspace",
+    "src/features/projects/components/projectCard/ActivityBlock.tsx -> planner",
+    "src/features/projects/components/projectCard/ActivityModal.tsx -> planner",
+    "src/features/projects/components/projectCard/MobileNoteSheet.tsx -> planner",
+    "src/features/projects/pages/ProjectsPage.tsx -> planner",
+    "src/features/projects/pages/ProjectsPage.tsx -> workspace",
+    "src/features/workspace/components/WorkspaceCommonDialogs.tsx -> auth",
+    "src/features/workspace/components/WorkspaceLayout.tsx -> announcements",
+    "src/features/workspace/components/WorkspaceLayout.tsx -> onboarding",
+    "src/features/workspace/components/WorkspaceMobileMenuSheet.tsx -> auth",
+    "src/features/workspace/components/WorkspacePageHeader.tsx -> auth"
+  ]
+}

@@ -18,7 +18,6 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { isWorkloadHeatmapEnabled } from '@/shared/lib/featureFlags';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu';
 import { MoreVertical, Trash2 } from 'lucide-react';
 import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
@@ -70,8 +69,7 @@ export const MilestoneDialog: React.FC<MilestoneDialogProps> = ({
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const workspaces = useAuthStore((state) => state.workspaces);
   const heatmapAvailable = useMemo(
-    () => isWorkloadHeatmapEnabled()
-      && Boolean(workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.heatmapEnabled),
+    () => Boolean(workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.heatmapEnabled),
     [workspaces, currentWorkspaceId],
   );
 

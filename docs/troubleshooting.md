@@ -181,3 +181,20 @@ curl -s -o /dev/null -D - "https://test.motio.nikog.net/auth/v1/authorize?provid
 ```
 
 The `Location` must start with `https://test.motio.nikog.net/realms/timeline/`.
+
+## Many `password authentication failed for user "postgres"` in the db log
+
+A burst of these lines in `docker logs infra-db-1` over a short time is a
+brute-force attempt (the classic follow-up is `COPY FROM PROGRAM` dropping a
+miner into `/tmp`). Check:
+
+```bash
+docker exec infra-db-1 psql -U supabase_admin -c "SELECT pid, usename, application_name, client_addr, state, query FROM pg_stat_activity WHERE state = 'active';"
+docker exec infra-db-1 ls /tmp   # look for binaries such as init, mysql, bot
+```
+
+Respond in this order: rotate the passwords in the database (as `supabase_admin`,
+the only role that can change `postgres`), update the server `.env`, restart
+`rest`, `auth`, `realtime`, `backup` and then `gateway`; only then dig through
+the logs. Remove planted files, block the source IPs in UFW and make sure the
+database port is bound to `127.0.0.1`, not `0.0.0.0`.

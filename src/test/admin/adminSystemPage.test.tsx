@@ -50,7 +50,7 @@ describe('AdminSystemPage', () => {
     expect(screen.getByText('infra/scripts/install.sh update --version v0.11.0')).toBeInTheDocument();
     expect(screen.getByText('API gateway')).toBeInTheDocument();
     expect(screen.getByText('not responding')).toBeInTheDocument();
-    expect(screen.getByText('VITE_FEATURE_TIME_OFF')).toBeInTheDocument();
+    expect(screen.getByText('VITE_FEATURE_KANBAN')).toBeInTheDocument();
     expect(invoke).toHaveBeenCalledWith({ action: 'system.status' });
   });
 

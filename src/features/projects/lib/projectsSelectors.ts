@@ -28,7 +28,6 @@ type BuildGroupedMilestonesArgs = {
   projectById: Map<string, Project>;
   projects: Project[];
   sortedCustomers: Customer[];
-  trackedProjectIds: string[];
   nameSort: NameSort;
   dateLocale: DateFnsLocale;
   labels: {
@@ -41,7 +40,6 @@ type FilterAndSortMilestonesArgs = {
   milestones: Milestone[];
   projectById: Map<string, Project>;
   customerById: Map<string, Customer>;
-  trackedProjectIdSet: Set<string>;
   milestoneSearch: string;
   nameSort: NameSort;
   /** When non-empty, only keep milestones whose parent project's owner
@@ -103,7 +101,6 @@ export const filterAndSortMilestones = ({
   milestones,
   projectById,
   customerById,
-  trackedProjectIdSet,
   milestoneSearch,
   nameSort,
   ownerGroupFilterIds = [],
@@ -164,7 +161,6 @@ export const buildGroupedMilestones = ({
   projectById,
   projects,
   sortedCustomers,
-  trackedProjectIds,
   nameSort,
   dateLocale,
   labels,

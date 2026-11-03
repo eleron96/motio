@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { clearRecentSignOut } from '@/features/auth/lib/recentSignOut';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -51,7 +50,6 @@ const renderAuthPage = async (search = '') => {
 describe('AuthPage: ?intent=register opens the Keycloak registration form', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
-    clearRecentSignOut();
     mockSignInWithKeycloak.mockClear();
     vi.resetModules();
   });

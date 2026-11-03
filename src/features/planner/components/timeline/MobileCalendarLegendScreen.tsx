@@ -46,7 +46,6 @@ export const MobileCalendarLegendScreen: React.FC<MobileCalendarLegendScreenProp
   onOpenChange,
   visibility,
   onToggle,
-  showTimeOffRow = false,
   people = [],
   peopleColors,
   selectedPeople = null,
@@ -64,7 +63,7 @@ export const MobileCalendarLegendScreen: React.FC<MobileCalendarLegendScreenProp
     if (!open) setQuery('');
   }, [open]);
 
-  const rows = buildCalendarLegendRows(showTimeOffRow);
+  const rows = buildCalendarLegendRows();
   const searchable = people.length > SEARCH_THRESHOLD;
   const visiblePeople = React.useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -84,8 +83,7 @@ export const MobileCalendarLegendScreen: React.FC<MobileCalendarLegendScreenProp
     && !query.trim()
     && Boolean(onToggleUnknownPeople);
 
-  const showPeople = showTimeOffRow
-    && visibility.timeOff
+  const showPeople = visibility.timeOff
     && (people.length > 0 || unknownPeopleIds.length > 0)
     && Boolean(onTogglePerson);
 

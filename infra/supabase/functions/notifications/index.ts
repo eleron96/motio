@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
-import { createSupabaseClients, getProfileMap } from "../_shared/supabaseAuth.ts";
+import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -11,19 +11,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type NotificationAction = "list" | "markRead" | "markUnread" | "markAllRead" | "markTaskRead" | "deleteAll" | "delete";
-type NotificationType =
-  | "task_assigned"
-  | "comment_mention"
-  | "task_updated"
-  | "export_ready"
-  | "export_failed";
+type NotificationAction = "markRead" | "markUnread" | "markAllRead" | "markTaskRead" | "deleteAll" | "delete";
 
 interface NotificationsPayload {
   action?: NotificationAction;
   notificationId?: string;
   taskId?: string;
-  limit?: number;
 }
 
 interface AuthNotificationsUser {
@@ -82,133 +75,6 @@ const getWorkspaceAccessSet = async (workspaceIds: string[], userId: string) => 
   };
 };
 
-const handleList = async (
-  authUser: AuthNotificationsUser,
-  payload: NotificationsPayload,
-) => {
-  const requestedLimit = Number(payload.limit ?? 60);
-  const limit = Number.isFinite(requestedLimit)
-    ? Math.max(1, Math.min(200, Math.floor(requestedLimit)))
-    : 60;
-
-  const { data: rows, error } = await supabaseAdmin
-    .from("user_notifications")
-    .select("id, workspace_id, actor_user_id, type, task_id, task_title_snapshot, task_start_date_snapshot, comment_id, comment_preview, created_at, read_at")
-    .eq("recipient_user_id", authUser.id)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    return jsonResponse({ error: error.message }, 400);
-  }
-
-  const workspaceIds = Array.from(new Set(
-    (rows ?? [])
-      .map((row) => row.workspace_id)
-      .filter((id): id is string => typeof id === "string" && id.length > 0),
-  ));
-
-  const accessResult = await getWorkspaceAccessSet(workspaceIds, authUser.id);
-  if ("error" in accessResult) {
-    return jsonResponse({ error: accessResult.error }, 400);
-  }
-
-  // Account-level rows (workspace_id IS NULL) pass through without the workspace gate.
-  const visibleRows = (rows ?? []).filter((row) => {
-    if (row.workspace_id === null) return true;
-    return accessResult.workspaceIds.has(row.workspace_id);
-  });
-
-  const visibleWorkspaceIds = Array.from(new Set(
-    visibleRows
-      .map((row) => row.workspace_id)
-      .filter((id): id is string => typeof id === "string" && id.length > 0),
-  ));
-
-  let workspaceNameMap = new Map<string, string>();
-  if (visibleWorkspaceIds.length > 0) {
-    const { data: workspaceRows, error: workspaceError } = await supabaseAdmin
-      .from("workspaces")
-      .select("id, name")
-      .in("id", visibleWorkspaceIds);
-
-    if (workspaceError) {
-      return jsonResponse({ error: workspaceError.message }, 400);
-    }
-
-    workspaceNameMap = new Map(
-      (workspaceRows ?? [])
-        .filter((row): row is { id: string; name: string } => typeof row.id === "string")
-        .map((row) => [row.id, row.name ?? "Workspace"]),
-    );
-  }
-
-  const actorIds = Array.from(new Set(
-    visibleRows
-      .map((row) => row.actor_user_id)
-      .filter((id): id is string => typeof id === "string" && id.length > 0),
-  ));
-
-  const profileResult = await getProfileMap(supabaseAdmin, actorIds);
-  if ("error" in profileResult) {
-    return jsonResponse({ error: profileResult.error }, 400);
-  }
-
-  const taskIds = Array.from(new Set(
-    visibleRows
-      .map((row) => row.task_id)
-      .filter((id): id is string => typeof id === "string" && id.length > 0),
-  ));
-
-  let taskMap = new Map<string, { title: string | null; startDate: string | null }>();
-  if (taskIds.length > 0) {
-    const { data: taskRows, error: taskError } = await supabaseAdmin
-      .from("tasks")
-      .select("id, title, start_date")
-      .in("id", taskIds);
-
-    if (taskError) {
-      return jsonResponse({ error: taskError.message }, 400);
-    }
-
-    taskMap = new Map(
-      (taskRows ?? [])
-        .filter((row): row is { id: string; title: string | null; start_date: string | null } => typeof row.id === "string")
-        .map((row) => [row.id, { title: row.title ?? null, startDate: row.start_date ?? null }]),
-    );
-  }
-
-  const notifications = visibleRows.map((row) => {
-    const actorProfile = typeof row.actor_user_id === "string"
-      ? profileResult.profiles.get(row.actor_user_id)
-      : undefined;
-    const taskState = typeof row.task_id === "string"
-      ? taskMap.get(row.task_id)
-      : undefined;
-
-    return {
-      id: row.id,
-      type: row.type as NotificationType,
-      workspaceId: row.workspace_id,
-      workspaceName: workspaceNameMap.get(row.workspace_id) ?? "Workspace",
-      actorUserId: row.actor_user_id,
-      actorDisplayName: actorProfile?.displayName ?? null,
-      actorEmail: actorProfile?.email ?? null,
-      taskId: row.task_id,
-      taskTitle: taskState?.title ?? row.task_title_snapshot ?? "Untitled task",
-      taskStartDate: taskState?.startDate ?? row.task_start_date_snapshot ?? null,
-      taskExists: Boolean(taskState),
-      commentId: (row as Record<string, unknown>).comment_id ?? null,
-      commentPreview: (row as Record<string, unknown>).comment_preview ?? null,
-      createdAt: row.created_at,
-      readAt: row.read_at,
-    };
-  });
-
-  return jsonResponse({ success: true, notifications });
-};
-
 const ensureNotificationAccess = async (notificationId: string, userId: string) => {
   const { data: row, error } = await supabaseAdmin
     .from("user_notifications")
@@ -244,7 +110,7 @@ const ensureNotificationAccess = async (notificationId: string, userId: string) 
 const handleUpdate = async (
   authUser: AuthNotificationsUser,
   payload: NotificationsPayload,
-  action: Exclude<NotificationAction, "list" | "markAllRead">,
+  action: Exclude<NotificationAction, "markAllRead">,
 ) => {
   const notificationId = payload.notificationId?.trim() ?? "";
   if (!notificationId) {
@@ -422,11 +288,11 @@ const handleNotifications = async (req: Request) => {
   }
 
   const { data: payload, error } = await readJson<NotificationsPayload>(req);
-  if (error) {
-    return jsonResponse({ error }, 400);
+  if (error || !payload) {
+    return jsonResponse({ error: error ?? "Invalid JSON body" }, 400);
   }
 
-  const action = payload.action ?? "list";
+  const action = payload.action;
   if (action === "markRead" || action === "markUnread" || action === "delete") {
     return handleUpdate(authResult.user, payload, action);
   }
@@ -443,7 +309,7 @@ const handleNotifications = async (req: Request) => {
     return handleDeleteAll(authResult.user);
   }
 
-  return handleList(authResult.user, payload);
+  return jsonResponse({ error: "Unknown action" }, 400);
 };
 
 export const handler = async (req: Request) => {

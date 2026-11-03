@@ -1,18 +1,13 @@
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense } from 'react';
 import { lazyNamed } from '@/shared/lib/lazyComponent';
-import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { useShallow } from 'zustand/react/shallow';
-import { useFilteredAssignees } from '@/features/planner/hooks/useFilteredAssignees';
-import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
-import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
-import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
 import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
+import { AddTaskParameters } from '@/features/planner/components/AddTaskParameters';
+import { AddTaskSubtasksField } from '@/features/planner/components/AddTaskSubtasksField';
+import { TimeOffFields } from '@/features/planner/components/TimeOffFields';
 import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
 import { Input } from '@/shared/ui/input';
-import { AutoGrowTextarea } from '@/shared/ui/auto-grow-textarea';
 import { Label } from '@/shared/ui/label';
-import { formatStatusLabel, stripStatusEmoji } from '@/shared/lib/statusLabels';
 import { Dialog, DialogDescription, DialogHeader, DialogScrollContent, DialogTitle, DialogFooter } from '@/shared/ui/dialog';
 import {
   AlertDialog,
@@ -24,45 +19,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
-import { ResponsiveSelect } from '@/shared/ui/responsive-select';
-import { Checkbox } from '@/shared/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
-import { PersonAvatar } from '@/features/planner/components/PersonAvatar';
-import { getPersonMonogram } from '@/shared/domain/personName';
-import { ChevronDown, ImagePlus, Plus, X } from 'lucide-react';
-import { clampTaskDates, format, getMinEndDate } from '@/features/planner/lib/dateUtils';
-import { TaskPriority } from '@/features/planner/types/planner';
-import { TimeOffFields } from '@/features/planner/components/TimeOffFields';
-import { findTimeOffConflict, NO_TIME_OFF } from '@/features/planner/lib/timeOff';
-import { resolveCurrentUserAssigneeId } from '@/features/planner/lib/timelineSelectors';
+import { Plus } from 'lucide-react';
+import { clampTaskDates } from '@/features/planner/lib/dateUtils';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { MobileFormScreen } from '@/shared/ui/mobile-form-screen';
-import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
-import { useAuthStore } from '@/features/auth/store/authStore';
-import { sortProjectsByTracking } from '@/shared/lib/projectSorting';
-import { orderAssigneesForPopover } from '@/features/planner/lib/assigneePopoverOrder';
+import { useAddTaskForm } from '@/features/planner/hooks/useAddTaskForm';
 import { t } from '@lingui/macro';
-import { Status } from '@/features/planner/types/planner';
-import { toast } from 'sonner';
-import { useDraftSubtaskImages } from '@/features/planner/hooks/useDraftSubtaskImages';
-import { SubtaskImageStrip } from '@/features/planner/components/SubtaskImages';
-import { pastedImageFiles } from '@/features/planner/lib/pastedImageFiles';
-import { ImageLightbox } from '@/shared/ui/image-lightbox';
-import type { LightboxImage } from '@/shared/lib/lightboxImage';
-import {
-  buildCreateRepeatsOptions,
-  getAutoRepeatUntilOnEndsChange,
-  getAutoRepeatUntilOnFrequencyChange,
-  getDefaultRepeatUntil,
-  getRepeatOccurrenceDate,
-  parseRepeatCountInput,
-  RepeatEnds,
-  RepeatFrequency,
-  resolveAddTaskProjectValue,
-  resolveRepeatValidationMessage,
-  shouldAutoSyncRepeatUntil,
-} from '@/features/planner/lib/taskFormRules';
 
 interface AddTaskDialogProps {
   open: boolean;
@@ -83,33 +46,6 @@ interface AddTaskDialogProps {
   onCreated?: () => void;
 }
 
-const resolveDefaultStatusId = (statuses: Status[]) => {
-  if (statuses.length === 0) return '';
-  const aliases = new Set([
-    'todo',
-    'todonew',
-    'to do',
-    'to-do',
-    'to_do',
-    'квыполнению',
-    'сделать',
-    'новая',
-  ]);
-
-  const normalize = (value: string) => stripStatusEmoji(value).trim().toLowerCase();
-  const compact = (value: string) => normalize(value).replace(/[\s\-_]+/g, '');
-
-  const preferred = statuses.find((status) => {
-    const normalized = normalize(status.name);
-    const packed = compact(status.name);
-    return aliases.has(normalized) || aliases.has(packed);
-  });
-  if (preferred) return preferred.id;
-
-  const firstOpen = statuses.find((status) => !status.isFinal && !status.isCancelled);
-  return firstOpen?.id ?? statuses[0]?.id ?? '';
-};
-
 const LazyRichTextEditor = lazyNamed(
   () => import('@/features/planner/components/RichTextEditor'),
   'RichTextEditor'
@@ -117,15 +53,6 @@ const LazyRichTextEditor = lazyNamed(
 
 /** The mobile footer sits outside the <form>, so its submit button targets it by id. */
 const MOBILE_FORM_ID = 'add-task-mobile-form';
-
-type DraftSubtask = {
-  id: string;
-  title: string;
-};
-
-const createDraftSubtaskId = () => (
-  `draft-subtask-${Date.now()}-${Math.random().toString(16).slice(2)}`
-);
 
 export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   open,
@@ -140,587 +67,61 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
   timeOffOnly = false,
   onCreated,
 }) => {
-  const {
-    projects,
-    trackedProjectIds,
-    assignees,
-    statuses,
-    taskTypes,
-    tags,
-    groupMode,
-    addTask,
-    createRepeats,
-    createTaskSubtasks,
-    releaseTaskMedia,
-    timeOff,
-    addTimeOff,
-  } = usePlannerStore(useShallow((state) => ({
-    projects: state.projects,
-    trackedProjectIds: state.trackedProjectIds,
-    assignees: state.assignees,
-    statuses: state.statuses,
-    taskTypes: state.taskTypes,
-    tags: state.tags,
-    groupMode: state.groupMode,
-    addTask: state.addTask,
-    createRepeats: state.createRepeats,
-    createTaskSubtasks: state.createTaskSubtasks,
-    releaseTaskMedia: state.releaseTaskMedia,
-    timeOff: state.timeOff ?? NO_TIME_OFF,
-    addTimeOff: state.addTimeOff,
-  })));
   const isMobile = useIsMobile();
-  const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
-  const currentUser = useAuthStore((state) => state.user);
-  const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
-  const filteredAssignees = useFilteredAssignees(assignees);
-  const activeProjects = useMemo(
-    () => sortProjectsByTracking(
-      projects.filter((project) => !project.archived),
-      trackedProjectIds,
-    ),
-    [projects, trackedProjectIds],
-  );
-  const selectableAssignees = useMemo(
-    () => filteredAssignees.filter((assignee) => assignee.isActive),
-    [filteredAssignees],
-  );
-  const defaultStatusId = useMemo(() => {
-    return resolveDefaultStatusId(statuses);
-  }, [statuses]);
-  const noProjectDisabled = groupMode === 'project';
-  const fallbackProjectId = activeProjects[0]?.id;
-
-  const today = new Date();
-  const defaultStart = format(today, 'yyyy-MM-dd');
-  const initialStart = initialStartDate ?? defaultStart;
-  const initialEnd = initialEndDate ?? initialStart;
-  const [title, setTitle] = useState('');
-  const [projectId, setProjectId] = useState<string>('none');
-  const [projectInitialized, setProjectInitialized] = useState(false);
-  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
-  const [statusId, setStatusId] = useState(defaultStatusId);
-  const [typeId, setTypeId] = useState(taskTypes[0]?.id || '');
-  const [priority, setPriority] = useState<TaskPriority | 'none'>('none');
-  const [startDate, setStartDate] = useState(initialStart);
-  const [endDate, setEndDate] = useState(initialEnd);
-  const [tagIds, setTagIds] = useState<string[]>([]);
-  const [description, setDescription] = useState('');
-  const repeatUntilAutoRef = useRef(true);
-  const [repeatFrequency, setRepeatFrequency] = useState<RepeatFrequency>('none');
-  const [repeatEnds, setRepeatEnds] = useState<RepeatEnds>('never');
-  const [repeatUntil, setRepeatUntil] = useState(getDefaultRepeatUntil(initialStart));
-  const [repeatCount, setRepeatCount] = useState(4);
-  const [repeatError, setRepeatError] = useState('');
-  const [repeatCreating, setRepeatCreating] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
-  // Second mode of this dialog: "Отметить выходной". Task fields stay mounted
-  // but hidden, so switching back and forth keeps what was already typed.
-  const [mode, setMode] = useState<'task' | 'time_off'>(timeOffOnly ? 'time_off' : 'task');
-  const [timeOffAssigneeId, setTimeOffAssigneeId] = useState('');
-  // Own dates: sharing the task form's state let a time-off edit silently
-  // rewrite the dates of the task draft the user had started.
-  const [timeOffStart, setTimeOffStart] = useState('');
-  const [timeOffEnd, setTimeOffEnd] = useState('');
-  const [timeOffNote, setTimeOffNote] = useState('');
-  const [timeOffError, setTimeOffError] = useState('');
-  const [timeOffSaving, setTimeOffSaving] = useState(false);
-  const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
-  const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
-  const [assigneePopoverFrozenOrderIds, setAssigneePopoverFrozenOrderIds] = useState<string[] | null>(null);
-  const focusSubtaskIdRef = useRef<string | null>(null);
-  // Pictures of the draft subtasks: uploaded right away, written with the
-  // subtasks once the task exists.
-  const draftSubtaskImages = useDraftSubtaskImages({
-    workspaceId: currentWorkspaceId,
-    enabled: Boolean(currentWorkspaceId),
-    releaseTaskMedia,
-  });
-  const [subtaskImagesError, setSubtaskImagesError] = useState('');
-  const [waitingForImages, setWaitingForImages] = useState(false);
-  const openRef = useRef(open);
-  openRef.current = open;
-  const subtaskImageInputRef = useRef<HTMLInputElement | null>(null);
-  const subtaskImageTargetRef = useRef<string | null>(null);
-  const [subtaskLightboxImage, setSubtaskLightboxImage] = useState<LightboxImage | null>(null);
-  const titleInputRef = useRef<HTMLInputElement>(null);
-
-  const sortAssigneeIds = useCallback((ids: string[]) => {
-    if (ids.length === 0) return [];
-    const order = new Map(assignees.map((assignee, index) => [assignee.id, index]));
-    return Array.from(new Set(ids)).sort((left, right) => (
-      (order.get(left) ?? 0) - (order.get(right) ?? 0)
-    ));
-  }, [assignees]);
-
-  const normalizeAssigneeSelection = useCallback((ids: string[] | undefined) => {
-    if (!ids || ids.length === 0) return [];
-    return sortAssigneeIds(ids);
-  }, [sortAssigneeIds]);
-
-  const myAssigneeId = useMemo(
-    () => resolveCurrentUserAssigneeId(assignees, currentUser?.id),
-    [assignees, currentUser?.id],
-  );
-  // Admins record days off for anyone; everyone else only for themselves.
-  const canPickTimeOffAssignee = currentWorkspaceRole === 'admin';
-  const timeOffAvailable = timeOffEnabled && (canPickTimeOffAssignee || Boolean(myAssigneeId));
-  const timeOffSiblings = useMemo(
-    () => timeOff.filter((record) => record.assigneeId === timeOffAssigneeId),
-    [timeOff, timeOffAssigneeId],
-  );
-  const timeOffDatesFilled = Boolean(timeOffStart && timeOffEnd);
-  const timeOffConflict = useMemo(
-    () => (timeOffAssigneeId && timeOffDatesFilled
-      ? findTimeOffConflict({ startDate: timeOffStart, endDate: timeOffEnd }, timeOffSiblings)
-      : null),
-    [timeOffAssigneeId, timeOffDatesFilled, timeOffEnd, timeOffStart, timeOffSiblings],
-  );
-
-  const markChanged = useCallback(() => {
-    setHasChanges(true);
-  }, []);
-
-  const handleTagToggle = (tagId: string) => {
-    markChanged();
-    setTagIds((prev) => (
-      prev.includes(tagId)
-        ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
-    ));
-  };
-
-  const setAssigneeChecked = useCallback((assigneeId: string, checked: boolean) => {
-    markChanged();
-    setAssigneeIds((prev) => {
-      const next = checked
-        ? [...prev, assigneeId]
-        : prev.filter((id) => id !== assigneeId);
-      return sortAssigneeIds(next);
-    });
-  }, [markChanged, sortAssigneeIds]);
-
-  const handleRepeatFrequencyChange = (value: typeof repeatFrequency) => {
-    markChanged();
-    setRepeatFrequency(value);
-    const nextUntil = getAutoRepeatUntilOnFrequencyChange({
-      nextFrequency: value,
-      currentEnds: repeatEnds,
-      baseDate: startDate,
-    });
-    if (!nextUntil) return;
-    repeatUntilAutoRef.current = true;
-    setRepeatUntil(nextUntil);
-  };
-
-  const handleRepeatEndsChange = (value: typeof repeatEnds) => {
-    markChanged();
-    setRepeatEnds(value);
-    const nextUntil = getAutoRepeatUntilOnEndsChange({
-      nextEnds: value,
-      baseDate: startDate,
-    });
-    if (!nextUntil) return;
-    repeatUntilAutoRef.current = true;
-    setRepeatUntil(nextUntil);
-  };
-
-  const handleRepeatUntilChange = (value: string) => {
-    markChanged();
-    repeatUntilAutoRef.current = false;
-    setRepeatUntil(value);
-  };
-
-  const handleRepeatCountInputChange = (rawValue: string) => {
-    markChanged();
-    const nextRepeatCount = parseRepeatCountInput(rawValue);
-    if (nextRepeatCount === null) return;
-    setRepeatCount(nextRepeatCount);
-  };
-
-  const requestClose = () => {
-    // The task exists but its subtasks aren't written yet: closing now would
-    // leave it half made. While only waiting for pictures, nothing exists
-    // yet and closing simply cancels (a stuck upload can't lock the form).
-    if (repeatCreating && !waitingForImages) return;
-    if (hasChanges) {
-      setConfirmCloseOpen(true);
-      return;
-    }
-    onOpenChange(false);
-  };
-
-  const handleDialogOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      requestClose();
-      return;
-    }
-    onOpenChange(true);
-  };
-
-  const handleStartDateChange = (value: string) => {
-    markChanged();
-    setStartDate(value);
-    // Keep the end on/after the start: bump it forward when the start passes it.
-    setEndDate((prev) => clampTaskDates(value, prev).endDate);
-    if (!shouldAutoSyncRepeatUntil({
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      auto: repeatUntilAutoRef.current,
-    })) return;
-    setRepeatUntil(getDefaultRepeatUntil(value));
-  };
-
-  const handleAddDraftSubtask = () => {
-    markChanged();
-    const id = createDraftSubtaskId();
-    focusSubtaskIdRef.current = id;
-    setSubtasks((current) => [...current, { id, title: '' }]);
-  };
-
-  const handleDraftSubtaskTitleChange = (subtaskId: string, value: string) => {
-    markChanged();
-    if (subtaskImagesError) setSubtaskImagesError('');
-    setSubtasks((current) => (
-      current.map((item) => (item.id === subtaskId ? { ...item, title: value } : item))
-    ));
-  };
-
-  const handleRemoveSubtask = (subtaskId: string) => {
-    markChanged();
-    setSubtasks((current) => current.filter((item) => item.id !== subtaskId));
-    draftSubtaskImages.discardDraft(subtaskId);
-  };
-
-  const handlePickSubtaskImages = (subtaskId: string) => {
-    subtaskImageTargetRef.current = subtaskId;
-    subtaskImageInputRef.current?.click();
-  };
-
-  const handleSubtaskImagePaste = (subtaskId: string) => (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    if (!draftSubtaskImages.canAttachTo(subtaskId)) return;
-    const files = pastedImageFiles(event.clipboardData);
-    if (files.length === 0) return;
-    event.preventDefault();
-    markChanged();
-    draftSubtaskImages.attach(subtaskId, files);
-  };
-
-  const handleAssigneePopoverOpenChange = useCallback((nextOpen: boolean) => {
-    setAssigneePopoverOpen(nextOpen);
-    if (nextOpen) {
-      // Freeze a "selected first" order on open: already-chosen people sit at the
-      // top (easier to see), and the list stays stable while open instead of
-      // jumping as more are checked. Newly checked ones rise to the top next open.
-      const ordered = orderAssigneesForPopover({
-        assignees: selectableAssignees,
-        selectedAssigneeIds: assigneeIds,
-        frozenOrderIds: null,
-      });
-      setAssigneePopoverFrozenOrderIds(ordered.map((assignee) => assignee.id));
-      return;
-    }
-    setAssigneePopoverFrozenOrderIds(null);
-  }, [selectableAssignees, assigneeIds]);
-
-  // Assignees can arrive after the dialog opened (first load, workspace switch),
-  // so keep resolving until someone is picked instead of stranding the user.
-  useEffect(() => {
-    if (!open || timeOffAssigneeId || canPickTimeOffAssignee || !myAssigneeId) return;
-    setTimeOffAssigneeId(myAssigneeId);
-  }, [canPickTimeOffAssignee, myAssigneeId, open, timeOffAssigneeId]);
-
-  const handleSubmitTimeOff = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (timeOffSaving) return;
-    setTimeOffError('');
-
-    if (!timeOffAssigneeId) {
-      setTimeOffError(t`Select a person.`);
-      return;
-    }
-    if (!timeOffStart || !timeOffEnd) {
-      setTimeOffError(t`Pick both dates.`);
-      return;
-    }
-    const safeDates = clampTaskDates(timeOffStart, timeOffEnd);
-    if (findTimeOffConflict({ startDate: safeDates.startDate, endDate: safeDates.endDate }, timeOffSiblings)) {
-      setTimeOffError(t`These days are already marked as time off.`);
-      return;
-    }
-
-    setTimeOffSaving(true);
-    const result = await addTimeOff({
-      assigneeId: timeOffAssigneeId,
-      startDate: safeDates.startDate,
-      endDate: safeDates.endDate,
-      note: timeOffNote.trim() || null,
-    });
-    setTimeOffSaving(false);
-
-    if (result.error) {
-      // The database keeps the same invariant (0131): show the specific reason
-      // when it names one, otherwise the raw message.
-      if (result.code === 'overlap') setTimeOffError(t`These days are already marked as time off.`);
-      else if (result.code === 'invalidRange') setTimeOffError(t`The end date cannot be earlier than the start date.`);
-      else setTimeOffError(t`Failed to save the time off.`);
-      return;
-    }
-
-    setHasChanges(false);
-    onOpenChange(false);
-    onCreated?.();
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!title.trim() || !statusId || !typeId) return;
-
-    setRepeatError('');
-    const repeatValidationMessage = resolveRepeatValidationMessage({
-      frequency: repeatFrequency,
-      ends: repeatEnds,
-      until: repeatUntil,
-      count: repeatCount,
-    }, {
-      missingCount: t`Enter how many repeats to create.`,
-      missingUntil: t`Select an end date.`,
-    });
-    if (repeatValidationMessage) {
-      setRepeatError(repeatValidationMessage);
-      return;
-    }
-
-    // A subtask needs a title; pictures on an untitled draft would be dropped
-    // without a word. Ask for the title instead.
-    setSubtaskImagesError('');
-    const untitledWithPictures = subtasks.find((subtask) => (
-      !subtask.title.trim()
-      && (draftSubtaskImages.imagesFor(subtask.id).length > 0 || draftSubtaskImages.uploadingFor(subtask.id) > 0)
-    ));
-    if (untitledWithPictures) {
-      setSubtaskImagesError(t`Give the subtask with pictures a title, or remove it.`);
-      focusSubtaskIdRef.current = untitledWithPictures.id;
-      setSubtasks((current) => [...current]);
-      return;
-    }
-
-    setRepeatCreating(true);
-    // Pictures still uploading land first: the task is created only once
-    // its subtasks can be written whole.
-    setWaitingForImages(true);
-    await draftSubtaskImages.waitForUploads();
-    setWaitingForImages(false);
-    // Closed while waiting: the person cancelled before anything was created.
-    if (!openRef.current) {
-      setRepeatCreating(false);
-      return;
-    }
-    const safeDates = clampTaskDates(startDate, endDate);
-    const createdTask = await addTask({
-      title: title.trim(),
-      projectId: projectId === 'none' ? null : projectId,
-      assigneeIds,
-      statusId,
-      typeId,
-      priority: priority === 'none' ? null : priority,
-      startDate: safeDates.startDate,
-      endDate: safeDates.endDate,
-      tagIds,
-      description: description.trim() || null,
-      repeatId: null,
-    });
-
-    if (!createdTask) {
-      setRepeatError(t`Failed to create task.`);
-      setRepeatCreating(false);
-      return;
-    }
-
-    const imagesByDraft = draftSubtaskImages.snapshot();
-    const savedDrafts = subtasks
-      .map((subtask) => ({ title: subtask.title.trim(), images: imagesByDraft[subtask.id] ?? [] }))
-      .filter((draft) => draft.title);
-    // A draft with pictures but no title never becomes a subtask.
-    const savedDraftIds = new Set(subtasks.filter((subtask) => subtask.title.trim()).map((subtask) => subtask.id));
-    const orphanedImages = Object.entries(imagesByDraft)
-      .filter(([draftId]) => !savedDraftIds.has(draftId))
-      .flatMap(([, images]) => images.map((image) => image.id));
-    if (orphanedImages.length > 0) releaseTaskMedia(orphanedImages);
-    if (savedDrafts.length > 0 && currentWorkspaceId) {
-      const titles = savedDrafts.map((draft) => draft.title);
-      const hasImages = savedDrafts.some((draft) => draft.images.length > 0);
-      const subtaskResult = hasImages
-        ? await createTaskSubtasks(currentWorkspaceId, createdTask.id, titles, savedDrafts.map((draft) => draft.images))
-        : await createTaskSubtasks(currentWorkspaceId, createdTask.id, titles);
-      if (subtaskResult.error) {
-        console.error(subtaskResult.error);
-        toast(t`Task was created, but subtasks were not saved.`);
-        const unsaved = savedDrafts.flatMap((draft) => draft.images.map((image) => image.id));
-        if (unsaved.length > 0) releaseTaskMedia(unsaved);
-      }
-    }
-    // Written (or released above): the form no longer owns these pictures.
-    draftSubtaskImages.forget();
-
-    if (repeatFrequency !== 'none') {
-      const result = await createRepeats(
-        createdTask.id,
-        buildCreateRepeatsOptions({
-          frequency: repeatFrequency,
-          ends: repeatEnds,
-          until: repeatUntil,
-          count: repeatCount,
-        }),
-      );
-      if (result.error) {
-        setRepeatError(result.error);
-        setRepeatCreating(false);
-        return;
-      }
-    }
-
-    // Reset form
-    setTitle('');
-    setProjectId(resolveAddTaskProjectValue({
-      fallbackProjectId,
-      noProjectDisabled,
-    }));
-    setProjectInitialized(false);
-    setAssigneeIds([]);
-    setStatusId(defaultStatusId);
-    setTypeId(taskTypes[0]?.id || '');
-    setPriority('none');
-    setStartDate(defaultStart);
-    setEndDate(defaultStart);
-    setTagIds([]);
-    setDescription('');
-    setRepeatFrequency('none');
-    setRepeatEnds('never');
-    repeatUntilAutoRef.current = true;
-    setRepeatUntil(getDefaultRepeatUntil(defaultStart));
-    setRepeatCount(4);
-    setRepeatError('');
-    setRepeatCreating(false);
-    setHasChanges(false);
-    setAssigneePopoverOpen(false);
-    setAssigneePopoverFrozenOrderIds(null);
-    setSubtasks([]);
-
-    onCreated?.();
-    onOpenChange(false);
-  };
-
-  useEffect(() => {
-    if (!statusId && defaultStatusId) {
-      setStatusId(defaultStatusId);
-    }
-  }, [defaultStatusId, statusId]);
-
-  const { discardAll: discardDraftSubtaskImages } = draftSubtaskImages;
-  useEffect(() => {
-    if (!open) {
-      setProjectInitialized(false);
-      setHasChanges(false);
-      setConfirmCloseOpen(false);
-      setAssigneePopoverOpen(false);
-      setAssigneePopoverFrozenOrderIds(null);
-      setSubtasks([]);
-      // Closed without creating: nothing will show these pictures.
-      discardDraftSubtaskImages();
-      setSubtaskLightboxImage(null);
-      setSubtaskImagesError('');
-      setTimeOffError('');
-      setTimeOffSaving(false);
-      return;
-    }
-    if (projectInitialized) return;
-    const nextStart = initialStartDate ?? defaultStart;
-    const nextEnd = initialEndDate ?? nextStart;
-    const nextProjectId = resolveAddTaskProjectValue({
-      initialProjectId,
-      fallbackProjectId,
-      noProjectDisabled,
-    });
-    const nextAssignees = normalizeAssigneeSelection(initialAssigneeIds)
-      .filter((id) => selectableAssignees.some((assignee) => assignee.id === id));
-
-    setStartDate(nextStart);
-    setEndDate(nextEnd);
-    setProjectId(nextProjectId);
-    setAssigneeIds(nextAssignees);
-    setStatusId(
-      initialStatusId && statuses.some((status) => status.id === initialStatusId)
-        ? initialStatusId
-        : defaultStatusId,
-    );
-    setRepeatFrequency('none');
-    setRepeatEnds('never');
-    repeatUntilAutoRef.current = true;
-    setRepeatUntil(getDefaultRepeatUntil(nextStart));
-    setRepeatCount(4);
-    setRepeatError('');
-    setHasChanges(false);
-    setAssigneePopoverOpen(false);
-    setAssigneePopoverFrozenOrderIds(null);
-    setSubtasks([]);
-    setMode(timeOffOnly ? 'time_off' : 'task');
-    // Prefill the person: an admin who double-clicked someone's row marks that
-    // person, everyone else marks themselves.
-    setTimeOffAssigneeId(
-      (canPickTimeOffAssignee ? nextAssignees[0] : null) ?? myAssigneeId ?? '',
-    );
-    setTimeOffStart(nextStart);
-    setTimeOffEnd(nextEnd);
-    setTimeOffNote('');
-    setTimeOffError('');
-    setTimeOffSaving(false);
-    setProjectInitialized(true);
-  }, [
-    canPickTimeOffAssignee,
-    discardDraftSubtaskImages,
-    myAssigneeId,
-    timeOffOnly,
-    defaultStart,
-    fallbackProjectId,
-    initialAssigneeIds,
-    initialEndDate,
-    initialStatusId,
-    initialProjectId,
-    initialStartDate,
-    normalizeAssigneeSelection,
-    defaultStatusId,
-    noProjectDisabled,
+  const form = useAddTaskForm({
     open,
-    projectInitialized,
+    onOpenChange,
+    initialStartDate,
+    initialEndDate,
+    initialProjectId,
+    initialAssigneeIds,
+    initialStatusId,
+    timeOffEnabled,
+    timeOffOnly,
+    onCreated,
+  });
+  const {
+    currentWorkspaceId,
     selectableAssignees,
-    statuses,
-  ]);
-
-  useEffect(() => {
-    if (!typeId && taskTypes[0]?.id) {
-      setTypeId(taskTypes[0].id);
-    }
-  }, [taskTypes, typeId]);
-
-  const assigneeLabel = useMemo(() => {
-    if (assigneeIds.length === 0) return t`Unassigned`;
-    const selected = selectableAssignees
-      .filter((assignee) => assigneeIds.includes(assignee.id))
-      .map((assignee) => assignee.name);
-    if (selected.length === 1 && assigneeIds.length === 1) return selected[0];
-    return t`${assigneeIds.length} assignees`;
-  }, [assigneeIds, selectableAssignees]);
-
-  const orderedSelectableAssignees = useMemo(() => {
-    return orderAssigneesForPopover({
-      assignees: selectableAssignees,
-      selectedAssigneeIds: assigneeIds,
-      frozenOrderIds: assigneePopoverOpen ? assigneePopoverFrozenOrderIds : null,
-    });
-  }, [assigneeIds, assigneePopoverFrozenOrderIds, assigneePopoverOpen, selectableAssignees]);
+    title,
+    setTitle,
+    statusId,
+    typeId,
+    description,
+    setDescription,
+    repeatCreating,
+    confirmCloseOpen,
+    setConfirmCloseOpen,
+    mode,
+    setMode,
+    waitingForImages,
+    titleInputRef,
+    markChanged,
+    draftSubtasks,
+    timeOffMode,
+    requestClose,
+    handleDialogOpenChange,
+    discardAndClose,
+    handleSubmit,
+  } = form;
+  const {
+    timeOffAssigneeId,
+    setTimeOffAssigneeId,
+    timeOffStart,
+    setTimeOffStart,
+    timeOffEnd,
+    setTimeOffEnd,
+    timeOffNote,
+    setTimeOffNote,
+    timeOffError,
+    setTimeOffError,
+    timeOffSaving,
+    canPickTimeOffAssignee,
+    timeOffAvailable,
+    timeOffDatesFilled,
+    timeOffConflict,
+    handleSubmitTimeOff,
+  } = timeOffMode;
 
   const formBody = (
     <>
@@ -814,329 +215,11 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
             </p>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="block">{t`Subtasks`}</Label>
-            {subtasks.length > 0 && (
-              <div className="space-y-1">
-                {subtasks.map((subtask) => (
-                  <div
-                    key={subtask.id}
-                    className="group flex items-start gap-2.5"
-                  >
-                    <span
-                      className="mt-2.5 h-4 w-4 shrink-0 rounded-[5px] border-[1.5px] border-input"
-                      aria-hidden="true"
-                    />
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <AutoGrowTextarea
-                        ref={(element) => {
-                          if (element && focusSubtaskIdRef.current === subtask.id) {
-                            element.focus();
-                            focusSubtaskIdRef.current = null;
-                          }
-                        }}
-                        onPaste={handleSubtaskImagePaste(subtask.id)}
-                        value={subtask.title}
-                        onChange={(event) => handleDraftSubtaskTitleChange(subtask.id, event.target.value)}
-                        onKeyDown={(event) => {
-                          // Enter breaks the line; a new subtask comes from the button below.
-                          // A draft holding pictures is not removed by a stray Backspace.
-                          if (
-                            event.key === 'Backspace'
-                            && subtask.title === ''
-                            && draftSubtaskImages.imagesFor(subtask.id).length === 0
-                          ) {
-                            event.preventDefault();
-                            handleRemoveSubtask(subtask.id);
-                          }
-                        }}
-                        onBlur={() => {
-                          // Trailing blank lines are dropped on save anyway; shed
-                          // them here so the field stops showing phantom height.
-                          const trimmed = subtask.title.trim();
-                          if (trimmed !== subtask.title) {
-                            handleDraftSubtaskTitleChange(subtask.id, trimmed);
-                          }
-                        }}
-                        rows={1}
-                        placeholder={t`Subtask title`}
-                        className="min-h-[36px] min-w-0 w-full text-sm"
-                      />
-                      <SubtaskImageStrip
-                        images={draftSubtaskImages.imagesFor(subtask.id)}
-                        uploadingCount={draftSubtaskImages.uploadingFor(subtask.id)}
-                        resolveSrc={draftSubtaskImages.resolveSrc}
-                        canRemove
-                        onOpen={setSubtaskLightboxImage}
-                        onRemove={(mediaId) => draftSubtaskImages.remove(subtask.id, mediaId)}
-                      />
-                    </div>
-                    {draftSubtaskImages.canAttachTo(subtask.id) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="mt-1.5 h-6 w-6 shrink-0 opacity-100 md:opacity-0 md:focus-visible:opacity-100 md:group-hover:opacity-100"
-                        onClick={() => handlePickSubtaskImages(subtask.id)}
-                        aria-label={t`Add image`}
-                        title={t`Add image`}
-                      >
-                        <ImagePlus className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="mt-1.5 h-6 w-6 shrink-0 opacity-100 md:opacity-0 md:focus-visible:opacity-100 md:group-hover:opacity-100"
-                      onClick={() => handleRemoveSubtask(subtask.id)}
-                      aria-label={t`Remove subtask`}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {subtaskImagesError && (
-              <p className="text-xs text-destructive" role="alert">{subtaskImagesError}</p>
-            )}
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-8 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
-              onClick={handleAddDraftSubtask}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t`Add subtask`}
-            </Button>
-            <input
-              ref={subtaskImageInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              hidden
-              data-testid="draft-subtask-image-input"
-              onChange={(event) => {
-                const files = Array.from(event.target.files ?? []);
-                event.target.value = '';
-                const target = subtaskImageTargetRef.current;
-                if (files.length > 0 && target) {
-                  markChanged();
-                  draftSubtaskImages.attach(target, files);
-                }
-              }}
-            />
-            <ImageLightbox image={subtaskLightboxImage} onClose={() => setSubtaskLightboxImage(null)} />
-          </div>
+          <AddTaskSubtasksField draftSubtasks={draftSubtasks} markChanged={markChanged} />
         </div>
 
         {/* ── Right column: parameters panel */}
-        <div className="min-w-0 space-y-3.5 border-t border-border bg-secondary/70 px-5 pb-6 pt-4 md:border-0 md:bg-transparent md:pt-0">
-          <ComposerEyebrow>{t`Parameters`}</ComposerEyebrow>
-
-          <div className="space-y-1.5">
-            <Label>{t`Project`}</Label>
-            <TaskProjectSelect
-              value={projectId}
-              projects={activeProjects}
-              noProjectDisabled={noProjectDisabled}
-              disabled={lockProject}
-              triggerClassName="h-auto min-h-10 bg-background [&>span]:line-clamp-2"
-              onValueChange={(value) => {
-                markChanged();
-                setProjectId(value);
-              }}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Assignees`}</Label>
-            {isMobile ? (
-              <MobileAssigneeField
-                label={assigneeLabel}
-                assignees={orderedSelectableAssignees}
-                selectedIds={assigneeIds}
-                onChange={(ids) => {
-                  markChanged();
-                  setAssigneeIds(ids);
-                }}
-              />
-            ) : (
-            <Popover open={assigneePopoverOpen} onOpenChange={handleAssigneePopoverOpenChange}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between bg-background font-normal">
-                  <span className="truncate">{assigneeLabel}</span>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-2" align="start">
-                {selectableAssignees.length === 0 ? (
-                  <div className="text-xs text-muted-foreground">{t`No assignees yet.`}</div>
-                ) : (
-                  <div
-                    className="max-h-48 overflow-y-auto overscroll-contain pr-2"
-                    onWheelCapture={(e) => e.stopPropagation()}
-                  >
-                    <div className="space-y-1">
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
-                        onClick={() => {
-                          markChanged();
-                          setAssigneeIds([]);
-                        }}
-                      >
-                        <Checkbox
-                          checked={assigneeIds.length === 0}
-                          onClick={(event) => event.stopPropagation()}
-                          onCheckedChange={(checked) => {
-                            if (checked !== true) return;
-                            markChanged();
-                            setAssigneeIds([]);
-                          }}
-                        />
-                        <span className="text-sm truncate">{t`Unassigned`}</span>
-                      </button>
-                      {orderedSelectableAssignees.map((assignee) => (
-                        <button
-                          key={assignee.id}
-                          type="button"
-                          className="flex w-full items-center gap-2 rounded-sm py-1 text-left hover:bg-accent/50"
-                          onClick={() => setAssigneeChecked(assignee.id, !assigneeIds.includes(assignee.id))}
-                        >
-                          <Checkbox
-                            checked={assigneeIds.includes(assignee.id)}
-                            onClick={(event) => event.stopPropagation()}
-                            onCheckedChange={(checked) => setAssigneeChecked(assignee.id, checked === true)}
-                          />
-                          <PersonAvatar
-                            assigneeId={assignee.id}
-                            userId={assignee.userId}
-                            avatarUrl={assignee.avatar}
-                            initials={getPersonMonogram(assignee.name, 'U')}
-                            colorSeed={assignee.userId ?? assignee.id}
-                            size="xs"
-                          />
-                          <span className="text-sm truncate">{assignee.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
-            )}
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5 min-w-0">
-              <Label>{t`Status`}</Label>
-              <ResponsiveSelect
-                value={statusId}
-                onValueChange={(value) => {
-                  markChanged();
-                  setStatusId(value);
-                }}
-                title={t`Status`}
-                placeholder={t`Select status`}
-                triggerClassName="bg-background"
-                options={statuses.map((s) => ({
-                  value: s.id,
-                  label: formatStatusLabel(s.name, s.emoji),
-                }))}
-              />
-            </div>
-
-            <div className="space-y-1.5 min-w-0">
-              <Label>{t`Priority`}</Label>
-              <ResponsiveSelect
-                value={priority}
-                onValueChange={(value) => {
-                  markChanged();
-                  setPriority(value as TaskPriority | 'none');
-                }}
-                title={t`Priority`}
-                placeholder={t`Select priority`}
-                triggerClassName="bg-background"
-                options={[
-                  { value: 'none', label: t`No priority` },
-                  { value: 'low', label: t`Low` },
-                  { value: 'medium', label: t`Medium` },
-                  { value: 'high', label: t`High` },
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Type`}</Label>
-            <ResponsiveSelect
-              value={typeId}
-              onValueChange={(value) => {
-                markChanged();
-                setTypeId(value);
-              }}
-              title={t`Type`}
-              placeholder={t`Select type`}
-              triggerClassName="bg-background"
-              options={taskTypes.map((type) => ({ value: type.id, label: type.name }))}
-            />
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5 min-w-0">
-              <Label htmlFor="new-start">{t`Start date`}</Label>
-              <Input
-                id="new-start"
-                type="date"
-                className="bg-background px-2 text-sm tabular-nums"
-                value={startDate}
-                onChange={(e) => handleStartDateChange(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5 min-w-0">
-              <Label htmlFor="new-end">{t`End date`}</Label>
-              <Input
-                id="new-end"
-                type="date"
-                className="bg-background px-2 text-sm tabular-nums"
-                value={endDate}
-                min={getMinEndDate(startDate)}
-                onChange={(e) => {
-                  markChanged();
-                  setEndDate(clampTaskDates(startDate, e.target.value).endDate);
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Repeat`}</Label>
-            <RepeatPopoverField
-              count={repeatCount}
-              ends={repeatEnds}
-              error={repeatError}
-              frequency={repeatFrequency}
-              idPrefix="new"
-              onCountInputChange={handleRepeatCountInputChange}
-              onEndsChange={handleRepeatEndsChange}
-              onFrequencyChange={handleRepeatFrequencyChange}
-              onUntilChange={handleRepeatUntilChange}
-              projectedEnd={getRepeatOccurrenceDate(startDate, repeatFrequency, repeatCount)}
-              until={repeatUntil}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>{t`Tags`}</Label>
-            <TagMultiSelect
-              tags={tags}
-              selectedTagIds={tagIds}
-              onToggleTag={handleTagToggle}
-            />
-          </div>
-        </div>
+        <AddTaskParameters form={form} isMobile={isMobile} lockProject={lockProject} />
       </div>
 
     </>
@@ -1218,11 +301,7 @@ export const AddTaskDialog: React.FC<AddTaskDialogProps> = ({
               'bg-destructive text-destructive-foreground hover:bg-destructive/90',
               isMobile && 'h-11 rounded-xl',
             )}
-            onClick={() => {
-              setConfirmCloseOpen(false);
-              setHasChanges(false);
-              onOpenChange(false);
-            }}
+            onClick={discardAndClose}
           >
             {t`Discard`}
           </AlertDialogAction>

@@ -7,7 +7,7 @@ import { WorkspaceNav } from '@/features/workspace/components/WorkspaceNav';
 import { WorkspacePillNav } from '@/features/workspace/components/WorkspacePillNav';
 import { WorkspaceMobileMenuSheet } from '@/features/workspace/components/WorkspaceMobileMenuSheet';
 import { MobileWorkspacesScreen } from '@/features/workspace/components/MobileWorkspacesScreen';
-import { useMobileMenu } from '@/features/workspace/components/MobileMenuContext';
+import { useMobileMenu } from '@/shared/components/MobileMenuContext';
 import { InviteNotifications } from '@/features/auth/components/InviteNotifications';
 import { MobileNotificationsScreen } from '@/features/auth/components/MobileNotificationsScreen';
 import { useInboxFeed } from '@/features/auth/hooks/useInboxFeed';

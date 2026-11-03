@@ -1,6 +1,5 @@
 export type BroadcastMessageType = 'announcement' | 'service';
 export type BroadcastAudienceKind = 'subscribers' | 'domain' | 'workspace' | 'all_active';
-export type BroadcastStatus = 'scheduled' | 'sending' | 'sent' | 'canceled' | 'failed';
 
 /** One row of the email broadcast history, as the admin function returns it. */
 export interface BroadcastRow {
@@ -17,10 +16,6 @@ export interface BroadcastRow {
   createdAt: string;
   finishedAt: string | null;
 }
-
-/** Still going: either queued for later or mid-flight right now. */
-export const isBroadcastInFlight = (row: BroadcastRow): boolean =>
-  row.status === 'scheduled' || row.status === 'sending';
 
 export interface BroadcastSummary {
   /** The most recent broadcast overall, whatever its state. */

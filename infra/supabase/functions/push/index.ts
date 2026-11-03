@@ -8,6 +8,7 @@ import {
   renderTestPush,
   toPushLocale,
   type NotificationPushType,
+  type PushContent,
   type PushLocale,
 } from "../_shared/pushPayload.ts";
 
@@ -62,7 +63,7 @@ const isServiceRole = (req: Request): boolean => {
 // service reports as gone (404/410). Returns the delivered count.
 const deliverToUser = async (
   userId: string,
-  payload: Record<string, unknown>,
+  payload: PushContent,
   stage: string,
 ): Promise<number> => {
   const { data: subs, error } = await supabaseAdmin

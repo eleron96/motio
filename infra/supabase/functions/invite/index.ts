@@ -76,6 +76,7 @@ const inviteRequestSchema = z.discriminatedUnion("action", [
 ]);
 
 type InvitePayload = z.infer<typeof inviteRequestSchema>;
+type PayloadFor<A extends InvitePayload["action"]> = Extract<InvitePayload, { action: A }>;
 
 interface AuthInviteUser {
   id: string;
@@ -248,7 +249,7 @@ const ensureWorkspaceAdmin = async (workspaceId: string, userId: string) => {
 
 const handleCreateInvite = async (
   authUser: AuthInviteUser,
-  payload: InvitePayload,
+  payload: PayloadFor<typeof INVITE_ACTIONS.CREATE>,
 ) => {
   const workspaceId = payload.workspaceId?.trim();
   const email = payload.email ? normalizeEmail(payload.email) : "";
@@ -445,7 +446,7 @@ const handleCreateInvite = async (
 
 const handleAcceptInvite = async (
   authUser: AuthInviteUser,
-  payload: InvitePayload,
+  payload: PayloadFor<typeof INVITE_ACTIONS.ACCEPT>,
 ) => {
   const token = payload.token?.trim() ?? "";
   if (!token) {
@@ -687,7 +688,7 @@ const handleListInvites = async (authUser: AuthInviteUser) => {
 
 const handleDeclineInvite = async (
   authUser: AuthInviteUser,
-  payload: InvitePayload,
+  payload: PayloadFor<typeof INVITE_ACTIONS.DECLINE>,
 ) => {
   const token = payload.token?.trim() ?? "";
   if (!token) {
@@ -738,7 +739,10 @@ const handleDeclineInvite = async (
   return jsonResponse({ success: true });
 };
 
-const handleListSentInvites = async (authUser: AuthInviteUser, payload: InvitePayload) => {
+const handleListSentInvites = async (
+  authUser: AuthInviteUser,
+  payload: PayloadFor<typeof INVITE_ACTIONS.LIST_SENT>,
+) => {
   const nowIso = new Date().toISOString();
   const createdSinceIso = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
   const pendingOnly = payload.pendingOnly === true;
@@ -826,7 +830,7 @@ const handleListSentInvites = async (authUser: AuthInviteUser, payload: InvitePa
 
 const handleCancelInvite = async (
   authUser: AuthInviteUser,
-  payload: InvitePayload,
+  payload: PayloadFor<typeof INVITE_ACTIONS.CANCEL>,
 ) => {
   const token = payload.token?.trim() ?? "";
   if (!token) {
@@ -901,20 +905,19 @@ const handleInvite = async (req: Request) => {
   }
 
   const validatedPayload = parsedPayload.data;
-  const action = validatedPayload.action;
-  if (action === INVITE_ACTIONS.ACCEPT) {
+  if (validatedPayload.action === INVITE_ACTIONS.ACCEPT) {
     return handleAcceptInvite(authResult.user, validatedPayload);
   }
-  if (action === INVITE_ACTIONS.LIST) {
+  if (validatedPayload.action === INVITE_ACTIONS.LIST) {
     return handleListInvites(authResult.user);
   }
-  if (action === INVITE_ACTIONS.LIST_SENT) {
+  if (validatedPayload.action === INVITE_ACTIONS.LIST_SENT) {
     return handleListSentInvites(authResult.user, validatedPayload);
   }
-  if (action === INVITE_ACTIONS.DECLINE) {
+  if (validatedPayload.action === INVITE_ACTIONS.DECLINE) {
     return handleDeclineInvite(authResult.user, validatedPayload);
   }
-  if (action === INVITE_ACTIONS.CANCEL) {
+  if (validatedPayload.action === INVITE_ACTIONS.CANCEL) {
     return handleCancelInvite(authResult.user, validatedPayload);
   }
 

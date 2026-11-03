@@ -1,13 +1,6 @@
 import { z } from 'zod';
 import { ADMIN_ACTIONS } from '@/shared/contracts/actions';
 
-export const ADMIN_ACTION_VALUES = Object.values(ADMIN_ACTIONS) as [
-  typeof ADMIN_ACTIONS[keyof typeof ADMIN_ACTIONS],
-  ...typeof ADMIN_ACTIONS[keyof typeof ADMIN_ACTIONS][],
-];
-
-export const adminActionSchema = z.enum(ADMIN_ACTION_VALUES);
-
 const adminBootstrapSyncRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.BOOTSTRAP_SYNC),
 }).strict();
@@ -245,11 +238,6 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;
-export type AdminAction = z.infer<typeof adminActionSchema>;
-
-export const adminErrorResponseSchema = z.object({
-  error: z.string(),
-});
 
 export const adminBaseResponseSchema = z.object({
   error: z.string().optional(),

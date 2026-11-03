@@ -3,7 +3,6 @@ import {
   buildTimeOffIndex,
   findTimeOffConflict,
   shouldShadeTimeOffDay,
-  timeOffCoveredDays,
   timeOffCoversDay,
   timeOffMinLanes,
   timeOffReservedPeriods,
@@ -37,14 +36,6 @@ describe('timeOffCoversDay', () => {
     const item = record({ startDate: '2026-08-08', endDate: '2026-08-08' });
 
     expect(timeOffCoversDay(item, '2026-08-08')).toBe(true);
-  });
-});
-
-describe('timeOffCoveredDays', () => {
-  it('returns only the visible days inside the period', () => {
-    const visible = days(['2026-08-02', '2026-08-03', '2026-08-04', '2026-08-09']);
-
-    expect(timeOffCoveredDays(record(), visible)).toEqual(['2026-08-03', '2026-08-04']);
   });
 });
 

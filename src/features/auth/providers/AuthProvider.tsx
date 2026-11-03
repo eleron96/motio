@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/shared/lib/supabaseClient';
+import {
+  type AuthSession,
+  readCurrentSession,
+  signOutLocally,
+  subscribeToSessionChanges,
+} from '@/infrastructure/auth/authSession';
 import { readStoredWorkspaceId, useAuthStore } from '@/features/auth/store/authStore';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import {
@@ -47,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     let reconcileInFlight = false;
     let lastReconcileAt = 0;
 
-    const sessionKey = (session: Session | null) => {
+    const sessionKey = (session: AuthSession | null) => {
       if (!session?.user) return 'signed-out';
       return session.access_token
         ? `${session.user.id}:${session.access_token}`
@@ -55,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const handleSession = async (
-      session: Session | null,
+      session: AuthSession | null,
       force = false,
       options: { broadcast?: boolean } = {},
     ) => {
@@ -99,8 +103,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       lastReconcileAt = now;
 
       try {
-        const { data } = await supabase.auth.getSession();
-        await handleSession(data.session, false, { broadcast: false });
+        const session = await readCurrentSession();
+        await handleSession(session, false, { broadcast: false });
       } catch (_error) {
         // Keep current state on transient session read failures.
       } finally {
@@ -113,10 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     setLoading(true);
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'TOKEN_REFRESHED') {
-        return;
-      }
+    const unsubscribe = subscribeToSessionChanges((session) => {
       void handleSession(session);
     });
     void reconcileSession('mount', true);
@@ -138,7 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // A remote tab initiated logout: mark recent sign-out locally to force prompt=login.
         markRecentSignOut();
         void handleSession(null, true, { broadcast: false });
-        void supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+        void signOutLocally().catch(() => undefined);
         return;
       }
       if (syncState === 'signed-in' || isSupabaseAuthStorageKey(event.key)) {
@@ -158,7 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return () => {
       active = false;
-      subscription.unsubscribe();
+      unsubscribe();
       if (typeof window !== 'undefined') {
         window.removeEventListener('focus', handleVisibilityOrFocus);
         window.removeEventListener('online', handleOnline);

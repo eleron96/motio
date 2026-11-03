@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '@lingui/macro';
 import { toast } from '@/shared/ui/sonner';
-import { buildTaskMediaUrl, uploadTaskMediaFile } from '@/infrastructure/tasks/taskMediaRepository';
-import { isDemoClientActive } from '@/shared/lib/supabaseClient';
+import {
+  buildTaskMediaUrl,
+  isTaskMediaStorageAvailable,
+  uploadTaskMediaFile,
+} from '@/infrastructure/tasks/taskMediaRepository';
 import {
   appendSubtaskImages,
   MAX_SUBTASK_IMAGES,
@@ -50,7 +53,7 @@ export const useDraftSubtaskImages = ({
   releaseTaskMedia: (mediaIds: string[]) => void;
 }): DraftSubtaskImages => {
   // The sandbox has no media storage: no pictures there, as in its task card.
-  const enabled = enabledParam && !isDemoClientActive();
+  const enabled = enabledParam && isTaskMediaStorageAvailable();
   const [images, setImagesState] = useState<Record<string, TaskSubtaskImage[]>>({});
   const [uploading, setUploading] = useState<Record<string, number>>({});
   const imagesRef = useRef(images);
