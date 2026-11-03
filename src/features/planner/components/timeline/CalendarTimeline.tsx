@@ -12,38 +12,29 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/shared/ui/context-menu';
-import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/classNames';
-import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { hexToRgba } from '@/features/planner/lib/colorUtils';
 import { buildCalendarMonths } from '@/features/planner/lib/calendarMonths';
-import { formatDateRange } from '@/features/planner/lib/dateUtils';
 import { CalendarLegendPanel } from '@/features/planner/components/timeline/CalendarLegendPanel';
 import { MobileCalendarLegendScreen } from '@/features/planner/components/timeline/MobileCalendarLegendScreen';
 import { MobileDaySheet } from '@/features/planner/components/timeline/MobileDaySheet';
+import { CalendarDayHoverContent } from '@/features/planner/components/timeline/CalendarDayHoverContent';
+import { CalendarTodayButton } from '@/features/planner/components/timeline/CalendarTodayButton';
+import { useCalendarLegend } from '@/features/planner/hooks/useCalendarLegend';
+import { useCalendarMarks } from '@/features/planner/hooks/useCalendarMarks';
 import {
   buildTimeOffByDate,
   selectCalendarTimeOff,
   timeOffCircleInsetClass,
-  togglePersonSelection,
-  type CalendarOverlayCategory,
 } from '@/features/planner/lib/calendarDayMarkers';
 import { NO_TIME_OFF } from '@/features/planner/lib/timeOff';
 import {
   buildDayPie,
   buildPieBackground,
   buildTimeOffColorMap,
-  resolveTimeOffColor,
 } from '@/features/planner/lib/timeOffPalette';
-import {
-  DEFAULT_CALENDAR_LEGEND_STATE,
-  getCalendarLegendStorageKey,
-  readCalendarLegend,
-  writeCalendarLegend,
-  type CalendarLegendState,
-} from '@/features/planner/lib/calendarLegendStorage';
 import { Milestone, TimeOff } from '@/features/planner/types/planner';
-import { ArrowDown, ArrowUp, Layers } from 'lucide-react';
+import { Layers } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { formatWeekdayLabel, resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
@@ -51,7 +42,6 @@ import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 import { normalizeHolidayCountryCode, useHolidayMap } from '@/features/planner/hooks/useHolidayMap';
-import { buildAssigneeGroupMap, selectFilteredTasks } from '@/features/planner/lib/timelineSelectors';
 import {
   addDays,
   endOfMonth,
@@ -102,12 +92,6 @@ export const CalendarTimeline: React.FC = () => {
   const canEdit = currentWorkspaceRole === 'editor' || currentWorkspaceRole === 'admin';
   const containerRef = useRef<HTMLDivElement>(null);
   const monthRefs = useRef(new Map<string, HTMLDivElement>());
-  // Legend state. Persisted per user and per workspace; `legendHydrated` stops
-  // the defaults from overwriting what was stored before the read effect runs
-  // (the same guard the sidebar width needs in PlannerPage).
-  const [legendState, setLegendState] = useState<CalendarLegendState>(DEFAULT_CALENDAR_LEGEND_STATE);
-  const legend = legendState.visibility;
-  const legendHydratedRef = useRef(false);
   // The legend is a column beside the grid on a desktop and a screen of its own
   // on a phone; both read and write the same `legendState`.
   const isMobile = useIsMobile();
@@ -138,77 +122,47 @@ export const CalendarTimeline: React.FC = () => {
     workspaces.find((workspace) => workspace.id === currentWorkspaceId)?.holidayRegion ?? null
   ), [workspaces, currentWorkspaceId]);
 
-  const assigneeGroupMap = useMemo(
-    () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
-    [assignees, memberGroupAssignments],
-  );
-
-  const filteredTasks = useMemo(
-    () => selectFilteredTasks(tasks, filters, assigneeGroupMap, assignees),
-    [tasks, filters, assigneeGroupMap, assignees],
-  );
-
-  const projectById = useMemo(
-    () => new Map(projects.map((project) => [project.id, project])),
-    [projects]
-  );
-
-  const assigneeById = useMemo(
-    () => new Map(assignees.map((assignee) => [assignee.id, assignee])),
-    [assignees],
-  );
-
-  const filteredMilestones = useMemo(() => {
-    if (filters.projectIds.length === 0) return milestones;
-    return milestones.filter((milestone) => filters.projectIds.includes(milestone.projectId));
-  }, [milestones, filters.projectIds]);
-
-  const sortedMilestones = useMemo(() => {
-    return [...filteredMilestones].sort((left, right) => {
-      if (left.date === right.date) {
-        return left.title.localeCompare(right.title);
-      }
-      return left.date.localeCompare(right.date);
-    });
-  }, [filteredMilestones]);
-
-  const milestonesByDate = useMemo(() => {
-    const map = new Map<string, Milestone[]>();
-    sortedMilestones.forEach((milestone) => {
-      const list = map.get(milestone.date) ?? [];
-      list.push(milestone);
-      map.set(milestone.date, list);
-    });
-    return map;
-  }, [sortedMilestones]);
-
-  const myAssigneeId = useMemo(() => {
-    if (!user?.id) return null;
-    return assignees.find((assignee) => assignee.userId === user.id)?.id ?? null;
-  }, [assignees, user?.id]);
-
-  const taskCounts = useMemo(() => {
-    const counts = new Map<string, { total: number; mine: number }>();
-    filteredTasks.forEach(task => {
-      const start = parseISO(task.startDate);
-      const end = parseISO(task.endDate);
-      eachDayOfInterval({ start, end }).forEach(day => {
-        const key = format(day, 'yyyy-MM-dd');
-        const entry = counts.get(key) ?? { total: 0, mine: 0 };
-        entry.total += 1;
-        if (myAssigneeId && task.assigneeIds.includes(myAssigneeId)) {
-          entry.mine += 1;
-        }
-        counts.set(key, entry);
-      });
-    });
-    return counts;
-  }, [filteredTasks, myAssigneeId]);
+  const {
+    projectById,
+    assigneeById,
+    milestonesByDate,
+    myAssigneeId,
+    taskCounts,
+  } = useCalendarMarks({
+    tasks,
+    filters,
+    assignees,
+    memberGroupAssignments,
+    projects,
+    milestones,
+    userId: user?.id,
+  });
 
   // Two years around the current date — see lib/calendarMonths.ts for why the
   // window no longer follows the task span. The arrows and the "Today" button
   // move currentDate, so the window follows the user.
   const months = useMemo(() => buildCalendarMonths(currentDate), [currentDate]);
+
+  const {
+    legendState,
+    legend,
+    calendarPeople,
+    peopleWithoutTimeOff,
+    unknownPeopleIds,
+    handleTogglePerson,
+    handleToggleUnknownPeople,
+    handleShowOnlyPerson,
+    handleShowAllPeople,
+    handleShowOnlyMe,
+    handleLegendToggle,
+  } = useCalendarLegend({
+    userId: user?.id,
+    workspaceId: currentWorkspaceId,
+    months,
+    timeOff,
+    assignees,
+    myAssigneeId,
+  });
 
   // One stable colour per person, and one pass over the records for the whole
   // two-year window — the day cell only does a Map lookup.
@@ -292,118 +246,6 @@ export const CalendarTimeline: React.FC = () => {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [currentDate, months.length]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!user?.id || !currentWorkspaceId) return;
-    legendHydratedRef.current = false;
-    const stored = readCalendarLegend(
-      window.localStorage,
-      getCalendarLegendStorageKey(user.id, currentWorkspaceId),
-    );
-    setLegendState(stored ?? DEFAULT_CALENDAR_LEGEND_STATE);
-    legendHydratedRef.current = true;
-  }, [currentWorkspaceId, user?.id]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (!legendHydratedRef.current) return;
-    if (!user?.id || !currentWorkspaceId) return;
-    writeCalendarLegend(
-      window.localStorage,
-      getCalendarLegendStorageKey(user.id, currentWorkspaceId),
-      legendState,
-    );
-  }, [currentWorkspaceId, legendState, user?.id]);
-
-  // People shown on the calendar. A LOCAL selection, deliberately separate from
-  // the global people filter: that one narrows tasks and milestones everywhere,
-  // while this one only decides whose days off are marked here.
-  // Only people who actually have time off inside the rendered window. A tick
-  // box for somebody who never leaves toggles nothing — it just costs a row, and
-  // a thirty-person team turns the panel into a wall of checkboxes. The list
-  // shrinks and grows with the window as the user scrolls through years.
-  const peopleIdsWithTimeOff = useMemo(() => {
-    if (months.length === 0) return new Set<string>();
-    const windowStart = format(months[0], 'yyyy-MM-dd');
-    const windowEnd = format(endOfMonth(months[months.length - 1]), 'yyyy-MM-dd');
-    const ids = new Set<string>();
-    timeOff.forEach((record) => {
-      if (record.endDate < windowStart || record.startDate > windowEnd) return;
-      ids.add(record.assigneeId);
-    });
-    return ids;
-  }, [months, timeOff]);
-
-  const activePeople = useMemo(
-    () => assignees.filter((assignee) => assignee.isActive),
-    [assignees],
-  );
-
-  const calendarPeople = useMemo(
-    () => activePeople
-      .filter((assignee) => peopleIdsWithTimeOff.has(assignee.id))
-      .sort((left, right) => left.name.localeCompare(right.name)),
-    [activePeople, peopleIdsWithTimeOff],
-  );
-
-  /** Teammates with nothing to show in this window — counted, not listed. */
-  const peopleWithoutTimeOff = activePeople.length - calendarPeople.length;
-
-  // People with time off who are not in the assignee list — that list is pruned
-  // to those with an account or a task in the loaded window, while time off
-  // arrives on its own window. They share ONE row instead of a column of
-  // identical "unknown user" lines, but they still have to be switchable:
-  // otherwise their circles sit on the calendar with no way to hide them.
-  const unknownPeopleIds = useMemo(() => {
-    const knownIds = new Set(calendarPeople.map((person) => person.id));
-    return Array.from(peopleIdsWithTimeOff).filter((id) => !knownIds.has(id));
-  }, [calendarPeople, peopleIdsWithTimeOff]);
-
-  const handleTogglePerson = useCallback((assigneeId: string) => {
-    setLegendState((current) => ({
-      ...current,
-      people: togglePersonSelection(
-        current.people,
-        assigneeId,
-        [...calendarPeople.map((person) => person.id), ...unknownPeopleIds],
-      ),
-    }));
-  }, [calendarPeople, unknownPeopleIds]);
-
-  const handleToggleUnknownPeople = useCallback(() => {
-    setLegendState((current) => {
-      const allIds = [...calendarPeople.map((person) => person.id), ...unknownPeopleIds];
-      const shown = current.people === null || unknownPeopleIds.every((id) => current.people?.includes(id));
-      const base = current.people ?? allIds;
-      const next = shown
-        ? base.filter((id) => !unknownPeopleIds.includes(id))
-        : [...base, ...unknownPeopleIds.filter((id) => !base.includes(id))];
-      return {
-        ...current,
-        people: allIds.every((id) => next.includes(id)) ? null : next,
-      };
-    });
-  }, [calendarPeople, unknownPeopleIds]);
-
-  const handleShowOnlyPerson = useCallback((assigneeId: string) => {
-    setLegendState((current) => ({ ...current, people: [assigneeId] }));
-  }, []);
-
-  const handleShowAllPeople = useCallback(() => {
-    setLegendState((current) => ({ ...current, people: null }));
-  }, []);
-
-  const handleShowOnlyMe = useCallback(() => {
-    setLegendState((current) => ({ ...current, people: myAssigneeId ? [myAssigneeId] : current.people }));
-  }, [myAssigneeId]);
-
-  const handleLegendToggle = useCallback((category: CalendarOverlayCategory) => {
-    setLegendState((current) => ({
-      ...current,
-      visibility: { ...current.visibility, [category]: !current.visibility[category] },
-    }));
-  }, []);
 
   const handleDateClick = useCallback((day: Date) => {
     const nextDate = format(day, 'yyyy-MM-dd');
@@ -607,89 +449,19 @@ export const CalendarTimeline: React.FC = () => {
                                         sideOffset={6}
                                         className="w-56 rounded-lg border border-border bg-card/95 p-0 text-xs text-foreground shadow-md backdrop-blur"
                                       >
-                                        <div className="space-y-2 p-3">
-                                          {legend.milestones && milestonesForDay.length > 0 && (
-                                            <div className="space-y-1 border-b border-border/60 pb-2">
-                                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                                                {t`Milestones`}
-                                              </div>
-                                              <div className="space-y-0.5">
-                                                {milestonesForDay.map((milestone) => {
-                                                  const project = projectById.get(milestone.projectId);
-                                                  const color = project?.color ?? DEFAULT_NEUTRAL_COLOR;
-                                                  const dotColor = hexToRgba(color, 0.8) ?? color;
-                                                  return (
-                                                    <button
-                                                      type="button"
-                                                      key={milestone.id}
-                                                      onClick={() => handleEditMilestone(milestone)}
-                                                      className="flex w-full items-start gap-2 rounded-md px-2 py-1 text-left hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none"
-                                                      aria-label={t`Edit milestone`}
-                                                    >
-                                                      <span
-                                                        className="mt-1 h-2 w-2 shrink-0 rounded-full"
-                                                        style={{ backgroundColor: dotColor }}
-                                                      />
-                                                      <span className="min-w-0">
-                                                        <span className="block truncate text-[10px] text-muted-foreground">
-                                                          {project
-                                                            ? formatProjectLabel(project.name, project.code)
-                                                            : t`Project`}
-                                                        </span>
-                                                        <span className="block truncate text-sm">
-                                                          {milestone.title}
-                                                        </span>
-                                                      </span>
-                                                    </button>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          )}
-                                          <div className="flex items-center justify-between">
-                                            <span className="text-muted-foreground">{t`Total`}</span>
-                                            <span className="font-semibold">{counts.total}</span>
-                                          </div>
-                                          <div className="flex items-center justify-between">
-                                            <span className="text-muted-foreground">{t`Mine`}</span>
-                                            <span className="font-semibold">{counts.mine}</span>
-                                          </div>
-                                          {dayPie && timeOffForDay && (
-                                            <div className="space-y-1 border-t border-border/60 pt-1.5">
-                                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                                                {t`Away`}
-                                              </div>
-                                              <div className="space-y-0.5">
-                                                {timeOffForDay.map((record) => {
-                                                  const person = assigneeById.get(record.assigneeId);
-                                                  return (
-                                                    <div key={record.id} className="flex items-start gap-2">
-                                                      <span
-                                                        className="mt-1 h-2 w-2 shrink-0 rounded-full"
-                                                        style={{ backgroundColor: resolveTimeOffColor(timeOffColors, record.assigneeId) }}
-                                                      />
-                                                      <span className="min-w-0">
-                                                        <span className="block truncate text-[11px] text-foreground">
-                                                          {person?.name ?? t`Unknown user`}
-                                                        </span>
-                                                        <span className="block truncate text-[10px] text-muted-foreground">
-                                                          {formatDateRange(record.startDate, record.endDate, dateLocale)}
-                                                          {record.note ? ` · ${record.note}` : ''}
-                                                        </span>
-                                                      </span>
-                                                    </div>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          )}
-                                          {legend.holidays && holidayNames.length > 0 && (
-                                            <div className="border-t border-border/60 pt-1 text-[11px] text-muted-foreground">
-                                              <span className="text-foreground">{t`Holiday:`}</span>{' '}
-                                              {holidayNames.join(', ')}
-                                            </div>
-                                          )}
-                                        </div>
+                                        <CalendarDayHoverContent
+                                          counts={counts}
+                                          milestones={milestonesForDay}
+                                          showMilestones={legend.milestones}
+                                          timeOff={dayPie && timeOffForDay ? timeOffForDay : null}
+                                          holidayNames={holidayNames}
+                                          showHolidays={legend.holidays}
+                                          projectById={projectById}
+                                          assigneeById={assigneeById}
+                                          timeOffColors={timeOffColors}
+                                          dateLocale={dateLocale}
+                                          onEditMilestone={handleEditMilestone}
+                                        />
                                       </HoverCardContent>
                                     </HoverCardPrimitive.Portal>
                                   </HoverCard>
@@ -725,22 +497,9 @@ export const CalendarTimeline: React.FC = () => {
             ))}
           </div>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          className={cn(
-            // z-20: the day cells inside the scroller are `relative z-10`, and a
-            // floating button left on z-auto is painted — and click-blocked —
-            // by whichever week row happens to scroll under it.
-            'absolute right-4 z-20 shadow-md transition-all duration-200 ease-out',
-            // Lifted out of the phone's rounded corner, like the legend button
-            // in the opposite one; the desktop keeps its old 16px.
-            'bottom-[calc(env(safe-area-inset-bottom,0px)+2rem)] md:bottom-4',
-            showTodayButton
-              ? 'opacity-100 translate-y-0 pointer-events-auto'
-              : 'opacity-0 translate-y-2 pointer-events-none'
-          )}
+        <CalendarTodayButton
+          visible={showTodayButton}
+          scrollDirection={scrollDirection}
           onClick={() => {
             const today = format(new Date(), 'yyyy-MM-dd');
             setCurrentDate(today);
@@ -750,14 +509,7 @@ export const CalendarTimeline: React.FC = () => {
               target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
           }}
-          aria-label={t`Back to today`}
-        >
-          {scrollDirection === 'down' ? (
-            <ArrowUp className="h-4 w-4" />
-          ) : (
-            <ArrowDown className="h-4 w-4" />
-          )}
-        </Button>
+        />
 
         {/* The way into the legend on a phone, where the side panel is hidden.
             Same round card button as "filters" on the timeline, in the same
