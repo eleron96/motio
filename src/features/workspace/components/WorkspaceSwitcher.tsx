@@ -72,7 +72,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ inCapsule 
           </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onSelect={(event) => { event.preventDefault(); setCreateOpen(true); }}
+            onSelect={() => setCreateOpen(true)}
             disabled={!canCreateWorkspace}
           >
             <Plus className="mr-2 h-4 w-4" />

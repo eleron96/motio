@@ -65,10 +65,7 @@ export const DashboardSwitcher: React.FC<DashboardSwitcherProps> = ({
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={(event) => {
-            event.preventDefault();
-            dialogs.openCreateDialog();
-          }}
+          onSelect={dialogs.openCreateDialog}
           disabled={!canEdit || !canCreateDashboard}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -90,19 +87,13 @@ export const DashboardSwitcher: React.FC<DashboardSwitcherProps> = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuItem
-          onSelect={(event) => {
-            event.preventDefault();
-            dialogs.openRenameDialog();
-          }}
+          onSelect={dialogs.openRenameDialog}
           disabled={!canEdit || !currentDashboardId}
         >
           {t`Rename dashboard`}
         </DropdownMenuItem>
         <DropdownMenuItem
-          onSelect={(event) => {
-            event.preventDefault();
-            dialogs.openDeleteDialog();
-          }}
+          onSelect={dialogs.openDeleteDialog}
           disabled={!canEdit || !canDeleteDashboard}
           className="text-destructive focus:text-destructive"
         >

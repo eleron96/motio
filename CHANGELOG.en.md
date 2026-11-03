@@ -11,6 +11,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Timeline rows leave more free space under their tasks, so it is easier to double-click or double-tap there to add a task on that day.
 
 ### Fixed
+- The dashboard settings menu no longer pops up again after you close the rename or delete window. The same goes for the menus that create a new dashboard or workspace.
 - In the demo, the Team page shows each person only their own tasks, and the assignee filter in project tasks works.
 
 ## [0.10.58] - 2026-11-02
