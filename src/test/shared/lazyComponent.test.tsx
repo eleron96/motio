@@ -59,7 +59,7 @@ describe('lazyNamed', () => {
   it('throws a recoverable error when the module resolves to undefined', async () => {
     // Mirrors Vite resolving a failed dynamic import to `undefined`.
     const Lazy = lazyNamed(
-      () => Promise.resolve(undefined as unknown as Record<string, unknown>),
+      () => Promise.resolve(undefined as unknown as { RichTextEditor: React.ComponentType }),
       'RichTextEditor',
     );
     const getError = renderLazy(Lazy);
@@ -69,8 +69,8 @@ describe('lazyNamed', () => {
 
   it('throws a recoverable error when the named export is missing', async () => {
     const Lazy = lazyNamed(
-      () => Promise.resolve({ SomethingElse: () => <div /> }),
-      'RichTextEditor' as never,
+      () => Promise.resolve({ SomethingElse: () => <div /> } as unknown as { RichTextEditor: React.ComponentType }),
+      'RichTextEditor',
     );
     const getError = renderLazy(Lazy);
     await waitFor(() => expect(getError()).not.toBeNull());

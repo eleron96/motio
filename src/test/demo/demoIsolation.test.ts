@@ -12,9 +12,11 @@ vi.mock('@lingui/macro', () => ({
 }));
 
 describe('demo isolation', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn> | null = null;
-  let xhrSpy: ReturnType<typeof vi.spyOn> | null = null;
-  let beaconSpy: ReturnType<typeof vi.spyOn> | null = null;
+  // Each spy wraps a different signature; only restoring them is shared.
+  type RestorableSpy = { mockRestore: () => void };
+  let fetchSpy: RestorableSpy | null = null;
+  let xhrSpy: RestorableSpy | null = null;
+  let beaconSpy: RestorableSpy | null = null;
 
   beforeEach(() => {
     demoStore.__reset();

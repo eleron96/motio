@@ -36,7 +36,7 @@ export const withAbortSignal = <T>(query: T, signal?: AbortSignal): T => {
   return query;
 };
 
-export const isAbortError = (error: unknown) => {
+export const isAbortError = (error: unknown): boolean => {
   if (!error) return false;
   if (typeof error === 'string') {
     return error.toLowerCase().includes('abort');
