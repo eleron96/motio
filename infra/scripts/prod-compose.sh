@@ -111,6 +111,11 @@ if [[ ! -x "infra/scripts/keycloak-ensure-realm-register-password.sh" ]]; then
   exit 1
 fi
 
+if [[ ! -x "infra/scripts/keycloak-ensure-identity-providers-disabled.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-identity-providers-disabled.sh" >&2
+  exit 1
+fi
+
 if [[ ! -x "infra/scripts/keycloak-backup-db.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-backup-db.sh" >&2
   exit 1
@@ -418,6 +423,12 @@ infra/scripts/keycloak-ensure-realm-passwordpolicy.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-user-profile.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-locales.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-register-password.sh "$env_file"
+# motio.nikog.net signs in with email and password only: Google sign-in is
+# switched off here, and only here (self-hosted installs keep their providers).
+# KEYCLOAK_DISABLED_IDENTITY_PROVIDERS in .env overrides the list; "none" keeps all.
+prod_disabled_idps="$(get_env_value KEYCLOAK_DISABLED_IDENTITY_PROVIDERS)"
+KEYCLOAK_DISABLED_IDENTITY_PROVIDERS="${prod_disabled_idps:-google}" \
+  infra/scripts/keycloak-ensure-identity-providers-disabled.sh "$env_file"
 
 if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" != "true" ]]; then
   echo "AUTO_KEYCLOAK_PRE_SYNC_BACKUP=false, skipping Keycloak DB backup."
