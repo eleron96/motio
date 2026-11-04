@@ -10,7 +10,7 @@ set -euo pipefail
 # plus the base images of the two images built here (web, backup-service).
 #
 #   infra/scripts/scan-images.sh                 # all images
-#   IMAGES="caddy:2.8 nginx:1.27-alpine" infra/scripts/scan-images.sh
+#   IMAGES="caddy:2.11 nginx:1.30-alpine" infra/scripts/scan-images.sh
 #
 # Needs Docker and jq. CI runs it weekly (.github/workflows/image-scan.yml).
 

@@ -205,8 +205,8 @@ Without `--version`, `update` re-applies the current checkout with the same back
 
 The images Motio runs are chosen and tested together and change with Motio
 releases. The Supabase services are pinned to exact versions; a few images are
-pinned to a version line (`caddy:2.8`, `postgres:15-alpine`, `keycloak:26.1`,
-`nginx:1.27-alpine`, `liquibase:4.27`), and `install.sh update` pulls the latest
+pinned to a version line (`caddy:2.11`, `postgres:15-alpine`, `keycloak:26.1`,
+`nginx:1.30-alpine`, `liquibase:4.27`), and `install.sh update` pulls the latest
 patch of that line.
 
 - **Weekly scan.** The repository checks all of these images every week for known

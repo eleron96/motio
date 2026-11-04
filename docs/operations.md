@@ -271,7 +271,7 @@ The testing environment is fully isolated from production.
   docker run -d --name motio-caddy --restart unless-stopped \
     --network infra_default -p 127.0.0.1:8088:80 \
     -v /opt/motio-test/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
-    -v caddy_data:/data -v caddy_config:/config caddy:2.8
+    -v caddy_data:/data -v caddy_config:/config caddy:2.11
   bash /opt/motio-test/infra/scripts/ensure-caddy-network-access.sh
   ```
 

@@ -367,7 +367,7 @@ services:
       - storage_data:/var/lib/storage
 
   gateway:
-    image: nginx:1.27-alpine
+    image: nginx:1.30-alpine
     restart: unless-stopped
     deploy:
       resources:
@@ -433,7 +433,7 @@ services:
       - "127.0.0.1:5174:80"
 
   oauth2-proxy:
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.5
     restart: unless-stopped
     depends_on:
       web:

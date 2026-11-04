@@ -277,7 +277,7 @@ services:
       - storage_data:/var/lib/storage
 
   gateway:
-    image: nginx:1.27-alpine
+    image: nginx:1.30-alpine
     container_name: supabase-gateway
     restart: unless-stopped
     depends_on:
@@ -320,7 +320,7 @@ services:
     command: sh -c "if [ ! -f node_modules/.bin/vite ] || [ ! -d node_modules/@vitejs/plugin-react ] || [ ! -f node_modules/date-fns/index.mjs ] || [ ! -d node_modules/@lingui/babel-plugin-lingui-macro ]; then rm -rf node_modules/date-fns; npm install; fi && npm run dev -- --host 0.0.0.0 --port 5173"
 
   oauth2-proxy:
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.5
     container_name: timeline-oauth2-proxy
     restart: unless-stopped
     depends_on:

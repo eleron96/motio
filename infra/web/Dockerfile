@@ -54,7 +54,7 @@ ENV NODE_OPTIONS=--max-old-space-size=2048
 
 RUN npm run lingui:compile && npm run build && node infra/web/precompress.mjs dist
 
-FROM public.ecr.aws/docker/library/nginx:1.27-alpine
+FROM public.ecr.aws/docker/library/nginx:1.30-alpine
 
 COPY infra/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
