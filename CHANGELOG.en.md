@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Updated the sign-in and session service to close known vulnerabilities. You stay signed in.
+
 ## [0.10.62] - 2026-11-04
 ### Changed
 - On motio.nikog.net, Google sign-in is switched off: sign in with your email and password. If you have no password, set one with “Forgot password?” on the sign-in page.
