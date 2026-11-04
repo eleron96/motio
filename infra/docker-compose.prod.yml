@@ -408,6 +408,7 @@ services:
         VITE_FEATURE_TASK_LIVE_DRAFTS: ${VITE_FEATURE_TASK_LIVE_DRAFTS:-false}
         VITE_PUSH_VAPID_PUBLIC_KEY: ${VITE_PUSH_VAPID_PUBLIC_KEY:-}
         VITE_PUBLIC_SITE_URL: ${VITE_PUBLIC_SITE_URL:-}
+        VITE_START_PAGE: ${VITE_START_PAGE:-landing}
         VITE_PLAUSIBLE_DOMAIN: ${VITE_PLAUSIBLE_DOMAIN:-}
         VITE_PLAUSIBLE_SRC: ${VITE_PLAUSIBLE_SRC:-}
     # Files of earlier releases, kept for a week by the deploy scripts: nginx

@@ -8,6 +8,7 @@ import { roleLabel } from '@/features/auth/lib/inboxLabels';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { APP_VERSION } from '@/shared/lib/appVersion';
+import { SourceCodeLink } from '@/shared/ui/source-code-link';
 import { ReleaseNotesDialog } from '@/features/auth/components/ReleaseNotesDialog';
 import { Sheet, SheetClose, SheetOverlay, SheetPortal, SheetTitle } from '@/shared/ui/sheet';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
@@ -410,6 +411,7 @@ export const WorkspaceMobileMenuSheet: React.FC<WorkspaceMobileMenuSheetProps> =
                 NIKO G.
               </a>
             </div>
+            <SourceCodeLink />
           </div>
         </SheetPrimitive.Content>
       </SheetPortal>

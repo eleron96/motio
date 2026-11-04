@@ -233,6 +233,7 @@ likely to touch:
 
 | Setting | Default for self-hosting |
 |---|---|
+| `VITE_START_PAGE` — `app` opens sign-in and the app at your address instead of the public start page | `landing` |
 | `VITE_FEATURE_PUSH` | on |
 | `VITE_FEATURE_KANBAN` (board view, beta), `VITE_FEATURE_ACCOUNT_DELETION`, `VITE_FEATURE_WORKSPACE_API` ([API](api.md)), `VITE_FEATURE_TASK_LIVE_DRAFTS` (teammates' live drafts in a task) | off |
 | `GOTRUE_SMTP_*` | empty — no email |

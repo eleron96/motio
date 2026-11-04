@@ -183,6 +183,10 @@ Built into `web` at build time (`vite/siteIdentity.ts`):
   `https://planner.example.com`, no path or trailing slash. It goes into the
   canonical and link-preview tags of `index.html`, `robots.txt` and `sitemap.xml`.
   Empty means `https://motio.nikog.net`.
+- `VITE_START_PAGE` — what the site root (`/`) opens: `landing` (default) shows
+  the public start page with the demo link, `app` goes straight to sign-in and the
+  app. With `app` the source code link moves from the start page to the version
+  line in account settings.
 - `VITE_PLAUSIBLE_DOMAIN`, `VITE_PLAUSIBLE_SRC` — page-view analytics with a
   Plausible-compatible script (`data-domain` and script URL). Set both or neither;
   empty means the page loads no analytics script. A self-hosted install sends

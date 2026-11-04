@@ -6188,6 +6188,10 @@ msgstr "Sort Z to A"
 msgid "Sorting"
 msgstr "Sorting"
 
+#: src/shared/ui/source-code-link.tsx
+msgid "Source code"
+msgstr "Source code"
+
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Spot overload months ahead"
 msgstr "Spot overload months ahead"
