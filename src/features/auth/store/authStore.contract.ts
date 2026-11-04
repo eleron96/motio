@@ -139,6 +139,8 @@ export interface AuthState {
   superAdminLoading: boolean;
   // "We could not ask" is not the same answer as "you are not an admin".
   superAdminCheckFailed: boolean;
+  // The admin function refused the session itself: only a new sign-in helps.
+  superAdminSessionExpired: boolean;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
   setSignOutRedirectInProgress: (value: boolean) => void;

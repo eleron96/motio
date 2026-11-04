@@ -43,6 +43,7 @@ const AdminLayout: React.FC = () => {
     isSuperAdmin,
     superAdminLoading,
     superAdminCheckFailed,
+    superAdminSessionExpired,
     resolveSuperAdmin,
     signOut,
   } = useAuthStore(useShallow((state) => ({
@@ -50,6 +51,7 @@ const AdminLayout: React.FC = () => {
     isSuperAdmin: state.isSuperAdmin,
     superAdminLoading: state.superAdminLoading,
     superAdminCheckFailed: state.superAdminCheckFailed,
+    superAdminSessionExpired: state.superAdminSessionExpired,
     resolveSuperAdmin: state.resolveSuperAdmin,
     signOut: state.signOut,
   })));
@@ -69,6 +71,24 @@ const AdminLayout: React.FC = () => {
           <CardHeader>
             <CardTitle>{t`Checking access…`}</CardTitle>
           </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isSuperAdmin && superAdminSessionExpired) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>{t`Your session has ended`}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>{t`Sign in again to open the admin console.`}</p>
+            <Button type="button" onClick={() => void signOut()}>
+              {t`Sign in again`}
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );

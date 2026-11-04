@@ -1,4 +1,4 @@
-import { supabase } from '@/shared/lib/supabaseClient';
+import { invokeFunction } from '@/shared/lib/invokeFunction';
 import { parseInvokeError } from '@/shared/lib/parseInvokeError';
 import {
   adminBaseResponseSchema,
@@ -14,9 +14,11 @@ import {
 // Discriminated union so callers narrow correctly: an error result never carries
 // `data`, and a success result never carries `error`. This also gives the generic
 // `T` real meaning — on success `data` is typed `T`, not `T | undefined`.
+// `status` is the HTTP status of a failed call when the function answered;
+// 401 means the session is no longer accepted (see invokeFunction).
 type FunctionResult<T> =
-  | { data: T; error?: undefined }
-  | { data?: undefined; error: string };
+  | { data: T; error?: undefined; status?: undefined }
+  | { data?: undefined; error: string; status?: number };
 
 export const invokeAdminFunction = async <T>(payload: AdminRequest): Promise<FunctionResult<T>> => {
   const parsedPayload = adminRequestSchema.safeParse(payload);
@@ -24,10 +26,10 @@ export const invokeAdminFunction = async <T>(payload: AdminRequest): Promise<Fun
     return { error: 'Invalid admin request payload.' };
   }
 
-  const { data, error, response } = await supabase.functions.invoke('admin', { body: parsedPayload.data });
+  const { data, error, response } = await invokeFunction('admin', parsedPayload.data);
   if (error) {
     const message = await parseInvokeError(error, response);
-    return { error: message };
+    return { error: message, status: response?.status };
   }
 
   const parsedResponse = adminBaseResponseSchema.safeParse(data ?? {});
@@ -47,10 +49,10 @@ export const invokeInviteFunction = async <T>(payload: InviteRequest): Promise<F
     return { error: 'Invalid invite request payload.' };
   }
 
-  const { data, error, response } = await supabase.functions.invoke('invite', { body: parsedPayload.data });
+  const { data, error, response } = await invokeFunction('invite', parsedPayload.data);
   if (error) {
     const message = await parseInvokeError(error, response);
-    return { error: message };
+    return { error: message, status: response?.status };
   }
 
   const parsedResponse = inviteBaseResponseSchema.safeParse(data ?? {});

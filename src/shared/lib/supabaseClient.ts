@@ -37,6 +37,23 @@ const getSupabaseProd = (): SupabaseClient => {
 // reloads the page so the real app boots cleanly.
 const bootedInDemo = isDemoRoute();
 
+/**
+ * Drops the session this browser keeps (supabase-js storage, default key).
+ * For sign-out when the auth server no longer knows the session: supabase-js
+ * then reports AuthSessionMissingError and keeps the stored session, so the
+ * person would stay "signed in" with a token nothing accepts.
+ */
+export const forgetPersistedSession = (): void => {
+  const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`;
+  for (const key of [storageKey, `${storageKey}-code-verifier`, `${storageKey}-user`]) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch (_error) {
+      // Storage unavailable (private mode, blocked): nothing is kept there.
+    }
+  }
+};
+
 /** True while this page talks to the demo mock — for code that reaches the network around the client. */
 export const isDemoClientActive = (): boolean => bootedInDemo || isDemoRoute();
 

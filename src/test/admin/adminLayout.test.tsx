@@ -6,6 +6,7 @@ const { authState, adminState } = vi.hoisted(() => ({
   authState: {
     user: { id: 'u1', email: 'owner@example.com' } as { id: string; email: string } | null,
     isSuperAdmin: true,
+    superAdminSessionExpired: false,
     signOut: vi.fn(),
   },
   adminState: {
@@ -76,6 +77,19 @@ const renderAdmin = (path = '/app/admin') => render(
 describe('AdminLayout', () => {
   beforeEach(() => {
     authState.isSuperAdmin = true;
+    authState.superAdminSessionExpired = false;
+    authState.signOut.mockClear();
+  });
+
+  it('asks for a new sign-in when the session is no longer accepted', () => {
+    authState.isSuperAdmin = false;
+    authState.superAdminSessionExpired = true;
+    renderAdmin();
+
+    expect(screen.getByText('Your session has ended')).toBeTruthy();
+    expect(screen.queryByText('Could not check access')).toBeNull();
+    screen.getByRole('button', { name: 'Sign in again' }).click();
+    expect(authState.signOut).toHaveBeenCalledTimes(1);
   });
 
   it('denies access to non super admins', () => {

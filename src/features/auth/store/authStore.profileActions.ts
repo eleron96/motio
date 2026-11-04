@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/lib/supabaseClient';
 import { parseInvokeError } from '@/shared/lib/parseInvokeError';
+import { invokeFunction } from '@/shared/lib/invokeFunction';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useAccentColorStore } from '@/shared/store/accentColorStore';
 import { isSupportedLocale } from '@/shared/lib/locale';
@@ -281,9 +282,7 @@ export const createProfileActions = (
     // Call the data-export edge function (action=status). It proxies
     // get_data_export_status and additionally issues a signed download URL
     // when the request is ready — we can't sign from the browser client.
-    const { data, error, response } = await supabase.functions.invoke('data-export', {
-      body: { action: 'status' },
-    });
+    const { data, error, response } = await invokeFunction('data-export', { action: 'status' });
     if (error) {
       const message = await parseInvokeError(error, response);
       return { error: message };
