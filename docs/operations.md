@@ -97,6 +97,8 @@ What `up-prod` does (in order):
   undone from that dump (if `AUTO_KEYCLOAK_PRE_SYNC_BACKUP=true`; the very first
   deploy backs up after the start);
 - runs the Keycloak realm drift audit (audit-only by default);
+- snapshots the database and uploaded files before new service images start
+  (`prod-snapshot.sh`, if `AUTO_PRE_START_SNAPSHOT` is not `false`);
 - takes a pre-migration backup (if `AUTO_PRE_MIGRATION_BACKUP=true`);
 - applies Liquibase migrations;
 - bumps the patch version in `VERSION`, moves `Unreleased` into
@@ -210,6 +212,39 @@ run page (and an artifact). It never fails; upgrades go through a release
    back in compose and run `infra/scripts/restore-keycloak.sh <dump>`, which stops
    Keycloak, restores the dump and starts it again. The login theme keeps no
    `template.ftl` of its own, so it renders on any Keycloak version.
+7. GoTrue, Storage and Realtime migrate their own schemas on start (Storage from
+   1.81 one-way). `prod-compose.sh` therefore snapshots the database and uploaded
+   files before the new images start — see «Roll back a service upgrade».
+
+#### Roll back a service upgrade
+
+Every production deploy first runs `infra/scripts/prod-snapshot.sh` (unless
+`AUTO_PRE_START_SNAPSHOT=false`): a consistent physical copy of the database taken
+while it runs (`pg_basebackup`), the storage volume with its xattrs, and the list of
+running images, in `infra/backups/snapshots/<time>/` (mode 700, newest 5 kept). The
+`pre-migrate-*.dump` taken later is a dump after the services have migrated, so it
+cannot undo a service upgrade; the snapshot can. To go back, on the server:
+
+```bash
+cd /opt/new_toggl
+snap=infra/backups/snapshots/<time>
+img=supabase/postgres:15.1.0.117          # the db image the snapshot came from
+c="docker compose -f infra/docker-compose.prod.yml --env-file .env"
+$c stop auth rest realtime storage functions backup gateway db
+docker run --rm -v supabase_db_data:/d --entrypoint bash $img -c 'rm -rf /d/* /d/.[!.]*'
+docker run --rm -i -v supabase_db_data:/d --entrypoint bash $img \
+  -c 'tar -C /d -xzf - && chown -R postgres:postgres /d && chmod 700 /d' < $snap/db.tar.gz
+docker run --rm -v supabase_storage_data:/s --entrypoint bash $img -c 'rm -rf /s/* /s/.[!.]*'
+docker run --rm -i -v supabase_storage_data:/s --entrypoint tar $img \
+  --xattrs --xattrs-include='*' -C /s -xzf - < $snap/storage.tar.gz
+```
+
+Then put the old image tags back in `infra/docker-compose.prod.yml` (they are in
+`$snap/images.txt`) and start the stack: `$c up -d db` and, once it is healthy,
+`$c up -d` followed by `$c restart gateway` (§9.1 of AGENTS.md). Anything written
+after the snapshot is lost, so roll back right after a failed upgrade. To check a
+snapshot without touching production, restore it into scratch volumes the same way
+and compare row counts and files.
 
 **CI does not gate production.** `main` is not protected and `make deploy` rsyncs the
 local working tree to the server, so a red CI run stops nothing — 0.9.67 shipped to
