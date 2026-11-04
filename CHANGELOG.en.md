@@ -6,7 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.10.67] - 2026-11-04
 ### Fixed
+- “Sign out” works again when the session has gone stale, and invitations, notifications and the admin console renew an outdated sign-in on their own instead of failing.
 - For your own servers: “install.sh rollback” and “install.sh restore” to an earlier version no longer stop at the Keycloak settings; the install comes up completely.
 
 ## [0.10.66] - 2026-11-04

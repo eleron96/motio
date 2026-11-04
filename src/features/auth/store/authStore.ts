@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '@/shared/lib/supabaseClient';
+import { forgetPersistedSession, supabase } from '@/shared/lib/supabaseClient';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useAccentColorStore } from '@/shared/store/accentColorStore';
 import { markRecentSignOut } from '@/features/auth/lib/recentSignOut';
@@ -47,6 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isSuperAdmin: false,
   superAdminLoading: false,
   superAdminCheckFailed: false,
+  superAdminSessionExpired: false,
   setSession: (session) => {
     const user = session?.user ?? null;
     set({
@@ -64,6 +65,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isSuperAdmin: false,
       superAdminLoading: Boolean(user),
       superAdminCheckFailed: false,
+      superAdminSessionExpired: false,
     });
   },
   setLoading: (loading) => set({ loading }),
@@ -73,7 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isSuperAdmin: false, superAdminLoading: false, superAdminCheckFailed: false });
       return false;
     }
-    set({ superAdminLoading: true, superAdminCheckFailed: false });
+    set({ superAdminLoading: true, superAdminCheckFailed: false, superAdminSessionExpired: false });
     try {
       // Keycloak is the source of truth: whoami checks the app_super_admin
       // realm role server-side (and syncs the cache table), so granting or
@@ -85,9 +87,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // container is enough. Retry briefly, and when it still will not answer,
       // record that the check failed instead of pretending the role is absent.
       for (let attempt = 0; attempt < SUPER_ADMIN_PROBE_ATTEMPTS; attempt += 1) {
-        const { data, error } = await invokeAdminFunction<{ isSuperAdmin?: boolean }>({
+        const { data, error, status } = await invokeAdminFunction<{ isSuperAdmin?: boolean }>({
           action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
         });
+        if (status === 401) {
+          // The session is not accepted even after a refresh: retrying will
+          // not help, only signing in again.
+          set({ isSuperAdmin: false, superAdminLoading: false, superAdminSessionExpired: true });
+          return false;
+        }
         if (!error) {
           // A super admin with workspaces is a regular working account (the
           // owner with the Keycloak role), so their workspace state must stay
@@ -169,7 +177,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     broadcastAuthSessionSync('signed-out');
     const { error: globalSignOutError } = await supabase.auth.signOut({ scope: 'global' });
     if (globalSignOutError) {
-      await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+      const localSignOut = await supabase.auth.signOut({ scope: 'local' }).catch((error: unknown) => ({ error }));
+      // Both fail when the auth server no longer knows the session; the
+      // stored one must still go, or the person stays signed in.
+      if (localSignOut.error) {
+        forgetPersistedSession();
+      }
     }
     set({
       user: null,

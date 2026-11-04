@@ -1,5 +1,6 @@
 import { supabase } from '@/shared/lib/supabaseClient';
 import { parseInvokeError } from '@/shared/lib/parseInvokeError';
+import { invokeFunction } from '@/shared/lib/invokeFunction';
 import { invokeInviteFunction } from '@/infrastructure/auth/functionsGateway';
 import { INVITE_ACTIONS } from '@/shared/contracts/actions';
 import type { WorkspaceRole } from '@/features/auth/store/authStore';
@@ -159,9 +160,7 @@ export const updateTaskNotificationStatus = async (
   notificationId: string,
   action: TaskNotificationAction,
 ): Promise<{ error?: string }> => {
-  const { error, response } = await supabase.functions.invoke('notifications', {
-    body: { action, notificationId },
-  });
+  const { error, response } = await invokeFunction('notifications', { action, notificationId });
   if (error) {
     return { error: await parseInvokeError(error, response) };
   }
@@ -169,9 +168,7 @@ export const updateTaskNotificationStatus = async (
 };
 
 export const markAllTaskNotificationsRead = async (): Promise<{ error?: string }> => {
-  const { error, response } = await supabase.functions.invoke('notifications', {
-    body: { action: 'markAllRead' },
-  });
+  const { error, response } = await invokeFunction('notifications', { action: 'markAllRead' });
   if (error) {
     return { error: await parseInvokeError(error, response) };
   }
@@ -179,9 +176,7 @@ export const markAllTaskNotificationsRead = async (): Promise<{ error?: string }
 };
 
 export const markTaskNotificationsReadForTask = async (taskId: string): Promise<{ error?: string }> => {
-  const { error, response } = await supabase.functions.invoke('notifications', {
-    body: { action: 'markTaskRead', taskId },
-  });
+  const { error, response } = await invokeFunction('notifications', { action: 'markTaskRead', taskId });
   if (error) {
     return { error: await parseInvokeError(error, response) };
   }
@@ -189,9 +184,7 @@ export const markTaskNotificationsReadForTask = async (taskId: string): Promise<
 };
 
 export const deleteAllTaskNotifications = async (): Promise<{ error?: string }> => {
-  const { error, response } = await supabase.functions.invoke('notifications', {
-    body: { action: 'deleteAll' },
-  });
+  const { error, response } = await invokeFunction('notifications', { action: 'deleteAll' });
   if (error) {
     return { error: await parseInvokeError(error, response) };
   }

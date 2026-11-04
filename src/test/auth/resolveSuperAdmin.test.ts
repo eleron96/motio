@@ -10,6 +10,10 @@ vi.mock('@/shared/lib/supabaseClient', () => ({
     functions: {
       invoke: functionsInvoke,
     },
+    // A 401 makes the gateway try a refresh first; here it fails (session gone).
+    auth: {
+      refreshSession: async () => ({ data: { session: null }, error: { message: 'Session not found' } }),
+    },
   },
 }));
 
@@ -95,6 +99,20 @@ describe('resolveSuperAdmin via superAdmins.whoami', () => {
 
     await useAuthStore.getState().resolveSuperAdmin(asUser);
 
+    expect(useAuthStore.getState().superAdminCheckFailed).toBe(false);
+  });
+
+  it('stops and asks for a new sign-in when the session is refused', async () => {
+    functionsInvoke.mockResolvedValue({
+      data: null,
+      error: { message: 'Unauthorized' },
+      response: new Response('{"error":"Unauthorized"}', { status: 401 }),
+    });
+
+    const result = await useAuthStore.getState().resolveSuperAdmin(asUser);
+
+    expect(result).toBe(false);
+    expect(useAuthStore.getState().superAdminSessionExpired).toBe(true);
     expect(useAuthStore.getState().superAdminCheckFailed).toBe(false);
   });
 });

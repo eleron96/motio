@@ -6087,6 +6087,14 @@ msgstr "Showing archived"
 msgid "Sign in"
 msgstr "Sign in"
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Sign in again"
+msgstr "Sign in again"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Sign in again to open the admin console."
+msgstr "Sign in again to open the admin console."
+
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Sign in required"
 msgstr "Sign in required"
@@ -7710,6 +7718,10 @@ msgstr "Your display name stays visible in historical comments:"
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Your own set of statuses, types and tags"
 msgstr "Your own set of statuses, types and tags"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Your session has ended"
+msgstr "Your session has ended"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Your sign-in session expired. Please continue with Keycloak again."

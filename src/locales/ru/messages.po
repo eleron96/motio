@@ -6087,6 +6087,14 @@ msgstr "Показан архив"
 msgid "Sign in"
 msgstr "Войти"
 
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Sign in again"
+msgstr "Войти снова"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Sign in again to open the admin console."
+msgstr "Войдите снова, чтобы открыть админ-консоль."
+
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Sign in required"
 msgstr "Требуется вход"
@@ -7710,6 +7718,10 @@ msgstr "Ваше отображаемое имя останется видимы
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 msgid "Your own set of statuses, types and tags"
 msgstr "Свой набор статусов, типов и тегов"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Your session has ended"
+msgstr "Сеанс завершён"
 
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Your sign-in session expired. Please continue with Keycloak again."
