@@ -3391,8 +3391,12 @@ msgid "Leave"
 msgstr "Verlassen"
 
 #: src/features/admin/components/AnnouncementFields.tsx
-msgid "Leave empty to reuse the Russian text"
-msgstr "Leer lassen, um den russischen Text zu verwenden"
+msgid "Leave empty to reuse another language"
+msgstr "Leer lassen, um den Text einer anderen Sprache zu übernehmen"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Leave empty to show the English text"
+msgstr "Leer lassen, um den englischen Text anzuzeigen"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Leave the dates empty to switch it on now and off by hand. A personal assignment wins over a workspace one, which wins over a domain, which wins over everyone."
@@ -6527,6 +6531,10 @@ msgid "Terracotta"
 msgstr "Terrakotta"
 
 #: src/features/admin/components/AnnouncementFields.tsx
+msgid "Text (DE)"
+msgstr "Text (DE)"
+
+#: src/features/admin/components/AnnouncementFields.tsx
 msgid "Text (EN)"
 msgstr "Text (EN)"
 
@@ -6820,6 +6828,10 @@ msgstr "Zeitachse, Dashboard, Projekte und Team finden Sie oben: Tippen Sie dara
 #: src/features/planner/components/TaskDetailHeader.tsx
 msgid "Title"
 msgstr "Titel"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Title (DE)"
+msgstr "Titel (DE)"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Title (EN)"

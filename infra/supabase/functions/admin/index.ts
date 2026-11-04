@@ -32,6 +32,7 @@ import {
   type WorkspaceRole,
 } from "../_shared/supabaseAuth.ts";
 import { decideSuperAdminAccess, isSuperAdminFromGroupsEnabled } from "../_shared/superAdminAccess.ts";
+import { resolveAnnouncementTexts } from "../_shared/announcementTexts.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -173,10 +174,12 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH),
-    titleRu: z.string().min(1).max(200),
+    titleRu: z.string().max(200).optional(),
     titleEn: z.string().max(200).optional(),
+    titleDe: z.string().max(200).optional(),
     bodyRu: z.string().max(2000).optional(),
     bodyEn: z.string().max(2000).optional(),
+    bodyDe: z.string().max(2000).optional(),
     level: z.enum(["info", "critical"]),
     audienceKind: z.enum(["all_active", "domain", "workspace"]),
     audienceValue: z.string().max(255).optional(),
@@ -193,10 +196,12 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE),
     announcementId: z.string().uuid(),
-    titleRu: z.string().min(1).max(200).optional(),
+    titleRu: z.string().max(200).optional(),
     titleEn: z.string().max(200).optional(),
+    titleDe: z.string().max(200).optional(),
     bodyRu: z.string().max(2000).optional(),
     bodyEn: z.string().max(2000).optional(),
+    bodyDe: z.string().max(2000).optional(),
     level: z.enum(["info", "critical"]).optional(),
     audienceKind: z.enum(["all_active", "domain", "workspace"]).optional(),
     audienceValue: z.string().max(255).nullable().optional(),
@@ -1180,10 +1185,12 @@ const resolveBroadcastAudience = async (
 // person, so nothing here has to think about who has already seen what.
 const handleAnnouncementsPublish = async (
   payload: {
-    titleRu: string;
+    titleRu?: string;
     titleEn?: string;
+    titleDe?: string;
     bodyRu?: string;
     bodyEn?: string;
+    bodyDe?: string;
     level: "info" | "critical";
     audienceKind: "all_active" | "domain" | "workspace";
     audienceValue?: string;
@@ -1196,15 +1203,13 @@ const handleAnnouncementsPublish = async (
     return jsonResponse({ error: "Audience value is required." }, 400);
   }
 
+  const texts = resolveAnnouncementTexts(payload);
+  if ("error" in texts) return jsonResponse({ error: texts.error }, 400);
+
   const { data, error } = await supabaseAdmin
     .from("app_announcements")
     .insert({
-      title_ru: payload.titleRu,
-      // English falls back to the Russian text: a half-translated announcement
-      // is worse than one that reads the same in both.
-      title_en: payload.titleEn?.trim() || payload.titleRu,
-      body_ru: payload.bodyRu?.trim() || null,
-      body_en: payload.bodyEn?.trim() || payload.bodyRu?.trim() || null,
+      ...texts,
       level: payload.level,
       audience_kind: payload.audienceKind,
       audience_value: payload.audienceKind === "all_active" ? null : payload.audienceValue,
@@ -1225,8 +1230,10 @@ const handleAnnouncementsUpdate = async (payload: {
   announcementId: string;
   titleRu?: string;
   titleEn?: string;
+  titleDe?: string;
   bodyRu?: string;
   bodyEn?: string;
+  bodyDe?: string;
   level?: "info" | "critical";
   audienceKind?: "all_active" | "domain" | "workspace";
   audienceValue?: string | null;
@@ -1235,10 +1242,19 @@ const handleAnnouncementsUpdate = async (payload: {
   published?: boolean;
 }) => {
   const patch: Record<string, unknown> = {};
-  if (payload.titleRu !== undefined) patch.title_ru = payload.titleRu;
-  if (payload.titleEn !== undefined) patch.title_en = payload.titleEn || payload.titleRu;
-  if (payload.bodyRu !== undefined) patch.body_ru = payload.bodyRu || null;
-  if (payload.bodyEn !== undefined) patch.body_en = payload.bodyEn || payload.bodyRu || null;
+  // The form sends every text field together; a request without any of them
+  // (publish toggle, dates) leaves the texts alone.
+  const textFields = [payload.titleRu, payload.titleEn, payload.titleDe, payload.bodyRu, payload.bodyEn, payload.bodyDe];
+  if (textFields.some((value) => value !== undefined)) {
+    const texts = resolveAnnouncementTexts(payload);
+    if ("error" in texts) return jsonResponse({ error: texts.error }, 400);
+    const { title_de, body_de, ...rest } = texts;
+    Object.assign(patch, rest);
+    // An older tab knows nothing of German; it must not erase it.
+    if (payload.titleDe !== undefined || payload.bodyDe !== undefined) {
+      Object.assign(patch, { title_de, body_de });
+    }
+  }
   if (payload.level !== undefined) patch.level = payload.level;
   if (payload.audienceKind !== undefined) patch.audience_kind = payload.audienceKind;
   if (payload.audienceValue !== undefined) patch.audience_value = payload.audienceValue;
@@ -1286,7 +1302,7 @@ const handleAnnouncementsResetReads = async (payload: { announcementId: string }
 const handleAnnouncementsList = async () => {
   const { data, error } = await supabaseAdmin
     .from("app_announcements")
-    .select("id, title_ru, title_en, body_ru, body_en, level, audience_kind, audience_value, published, starts_at, ends_at, created_at")
+    .select("id, title_ru, title_en, title_de, body_ru, body_en, body_de, level, audience_kind, audience_value, published, starts_at, ends_at, created_at")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -1312,8 +1328,10 @@ const handleAnnouncementsList = async () => {
       id: row.id,
       title: row.title_ru,
       titleEn: row.title_en,
+      titleDe: row.title_de,
       bodyRu: row.body_ru,
       bodyEn: row.body_en,
+      bodyDe: row.body_de,
       level: row.level,
       audienceKind: row.audience_kind,
       audienceValue: row.audience_value,
@@ -1808,10 +1826,12 @@ export const handler = async (req: Request) => {
     case ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH:
       return handleAnnouncementsPublish(
         payload as {
-          titleRu: string;
+          titleRu?: string;
           titleEn?: string;
+          titleDe?: string;
           bodyRu?: string;
           bodyEn?: string;
+          bodyDe?: string;
           level: "info" | "critical";
           audienceKind: "all_active" | "domain" | "workspace";
           audienceValue?: string;
@@ -1829,8 +1849,10 @@ export const handler = async (req: Request) => {
         announcementId: string;
         titleRu?: string;
         titleEn?: string;
+        titleDe?: string;
         bodyRu?: string;
         bodyEn?: string;
+        bodyDe?: string;
         level?: "info" | "critical";
         audienceKind?: "all_active" | "domain" | "workspace";
         audienceValue?: string | null;

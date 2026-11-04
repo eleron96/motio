@@ -150,10 +150,12 @@ const announcementAudienceKindSchema = z.enum(['all_active', 'domain', 'workspac
 
 const adminAnnouncementsPublishRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_PUBLISH),
-  titleRu: z.string().min(1).max(200),
+  titleRu: z.string().max(200).optional(),
   titleEn: z.string().max(200).optional(),
+  titleDe: z.string().max(200).optional(),
   bodyRu: z.string().max(2000).optional(),
   bodyEn: z.string().max(2000).optional(),
+  bodyDe: z.string().max(2000).optional(),
   level: announcementLevelSchema,
   audienceKind: announcementAudienceKindSchema,
   audienceValue: z.string().max(255).optional(),
@@ -173,10 +175,12 @@ const adminAnnouncementsUnpublishRequestSchema = z.object({
 const adminAnnouncementsUpdateRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.ANNOUNCEMENTS_UPDATE),
   announcementId: z.string().uuid(),
-  titleRu: z.string().min(1).max(200).optional(),
+  titleRu: z.string().max(200).optional(),
   titleEn: z.string().max(200).optional(),
+  titleDe: z.string().max(200).optional(),
   bodyRu: z.string().max(2000).optional(),
   bodyEn: z.string().max(2000).optional(),
+  bodyDe: z.string().max(2000).optional(),
   level: announcementLevelSchema.optional(),
   audienceKind: announcementAudienceKindSchema.optional(),
   audienceValue: z.string().max(255).nullable().optional(),

@@ -6,6 +6,7 @@ import {
 } from '@/infrastructure/announcements/announcementsRepository';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocaleStore } from '@/shared/store/localeStore';
+import { announcementText } from '@/features/announcements/lib/announcementText';
 
 export interface Announcement {
   id: string;
@@ -45,8 +46,7 @@ export const useAnnouncements = () => {
       }
       setAnnouncements(result.rows.map((row) => ({
         id: row.id,
-        title: locale === 'ru' ? row.title_ru : row.title_en,
-        body: (locale === 'ru' ? row.body_ru : row.body_en) || null,
+        ...announcementText(row, locale),
         level: row.level,
       })));
     };

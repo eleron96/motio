@@ -87,41 +87,66 @@ export const AnnouncementFields: React.FC<AnnouncementFieldsProps> = ({
       </div>
     </div>
 
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <div className="space-y-1.5">
-        <Label htmlFor={`${idPrefix}-title-ru`}>{t`Title (RU)`}</Label>
-        <Input
-          id={`${idPrefix}-title-ru`}
-          value={draft.titleRu}
-          onChange={(event) => onChange({ titleRu: event.target.value })}
-        />
+    {/* One column per language; each keeps its title above its text. */}
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-title-ru`}>{t`Title (RU)`}</Label>
+          <Input
+            id={`${idPrefix}-title-ru`}
+            value={draft.titleRu}
+            onChange={(event) => onChange({ titleRu: event.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-body-ru`}>{t`Text (RU)`}</Label>
+          <Textarea
+            id={`${idPrefix}-body-ru`}
+            rows={4}
+            value={draft.bodyRu}
+            onChange={(event) => onChange({ bodyRu: event.target.value })}
+          />
+        </div>
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor={`${idPrefix}-title-en`}>{t`Title (EN)`}</Label>
-        <Input
-          id={`${idPrefix}-title-en`}
-          value={draft.titleEn}
-          onChange={(event) => onChange({ titleEn: event.target.value })}
-          placeholder={t`Leave empty to reuse the Russian text`}
-        />
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-title-en`}>{t`Title (EN)`}</Label>
+          <Input
+            id={`${idPrefix}-title-en`}
+            value={draft.titleEn}
+            onChange={(event) => onChange({ titleEn: event.target.value })}
+            placeholder={t`Leave empty to reuse another language`}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-body-en`}>{t`Text (EN)`}</Label>
+          <Textarea
+            id={`${idPrefix}-body-en`}
+            rows={4}
+            value={draft.bodyEn}
+            onChange={(event) => onChange({ bodyEn: event.target.value })}
+          />
+        </div>
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor={`${idPrefix}-body-ru`}>{t`Text (RU)`}</Label>
-        <Textarea
-          id={`${idPrefix}-body-ru`}
-          rows={4}
-          value={draft.bodyRu}
-          onChange={(event) => onChange({ bodyRu: event.target.value })}
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor={`${idPrefix}-body-en`}>{t`Text (EN)`}</Label>
-        <Textarea
-          id={`${idPrefix}-body-en`}
-          rows={4}
-          value={draft.bodyEn}
-          onChange={(event) => onChange({ bodyEn: event.target.value })}
-        />
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-title-de`}>{t`Title (DE)`}</Label>
+          <Input
+            id={`${idPrefix}-title-de`}
+            value={draft.titleDe}
+            onChange={(event) => onChange({ titleDe: event.target.value })}
+            placeholder={t`Leave empty to show the English text`}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-body-de`}>{t`Text (DE)`}</Label>
+          <Textarea
+            id={`${idPrefix}-body-de`}
+            rows={4}
+            value={draft.bodyDe}
+            onChange={(event) => onChange({ bodyDe: event.target.value })}
+          />
+        </div>
       </div>
     </div>
 

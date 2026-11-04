@@ -2,13 +2,16 @@ import { supabase } from '@/shared/lib/supabaseClient';
 
 export type AnnouncementLevel = 'info' | 'critical';
 
-/** An announcement as the server stores it: both languages side by side. */
+/** An announcement as the server stores it: every language side by side. */
 export interface AnnouncementRow {
   id: string;
   title_ru: string;
   title_en: string;
+  /** Missing on a server older than migration 0171. */
+  title_de?: string | null;
   body_ru: string | null;
   body_en: string | null;
+  body_de?: string | null;
   level: AnnouncementLevel;
 }
 

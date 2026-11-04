@@ -2340,4 +2340,17 @@
     </preConditions>
     <sqlFile path="../migrations/0170_create_workspace_template_choice.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
   </changeSet>
+  <changeSet id="0171_app_announcements_german.sql" author="timeline" runInTransaction="true">
+    <preConditions onFail="MARK_RAN" onError="HALT">
+      <or>
+        <not>
+          <tableExists schemaName="public" tableName="schema_migrations"/>
+        </not>
+        <sqlCheck expectedResult="0">
+          select count(*) from public.schema_migrations where filename = '0171_app_announcements_german.sql'
+        </sqlCheck>
+      </or>
+    </preConditions>
+    <sqlFile path="../migrations/0171_app_announcements_german.sql" relativeToChangelogFile="true" splitStatements="false" stripComments="false" endDelimiter=";"/>
+  </changeSet>
 </databaseChangeLog>
