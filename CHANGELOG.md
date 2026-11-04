@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.62] - 2026-11-04
 ### Changed
 - На motio.nikog.net вход через Google отключён — входите по почте и паролю. Если пароля нет, задайте его через «Забыли пароль?» на странице входа.
 
