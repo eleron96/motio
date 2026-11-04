@@ -133,6 +133,11 @@ if docker volume inspect "$new_volume" >/dev/null 2>&1; then
   fi
   docker volume rm "$new_volume" >/dev/null
 fi
+# docker compose refuses to start any service while an external volume of the
+# project is missing: create the (empty) PostgreSQL 17 volume now.
+if [[ "$new_volume_external" == "true" ]]; then
+  docker volume create "$new_volume" >/dev/null
+fi
 
 wait_ready() { # container
   local started
@@ -166,7 +171,7 @@ SQL
 # waits until their migrations stand still for 15 s, stops them. Prints the state.
 run_service_migrations() { # container
   local started last="" same=0 current service state
-  "${compose[@]}" up -d --no-deps --force-recreate auth storage realtime >/dev/null 2>&1
+  "${compose[@]}" up -d --no-deps --force-recreate auth storage realtime >/dev/null
   started="$(date +%s)"
   while (( same < 5 )); do
     (( $(date +%s) - started > 420 )) && { "${compose[@]}" logs --tail 20 auth storage realtime >&2; log "the services did not finish their migrations."; return 1; }
@@ -241,11 +246,8 @@ log "PostgreSQL 15 stopped; its volume is not touched again."
 
 # --- PostgreSQL 17: create, let the services set up, load --------------------
 
-if [[ "$new_volume_external" == "true" ]]; then
-  docker volume create "$new_volume" >/dev/null
-fi
 log "Creating the PostgreSQL 17 database in $new_volume."
-"${compose[@]}" up -d --no-deps db >/dev/null 2>&1
+"${compose[@]}" up -d --no-deps db >/dev/null
 target_container="$("${compose[@]}" ps -q db)"
 started="$(date +%s)"
 until docker logs "$target_container" 2>&1 | grep -q 'init process complete'; do
