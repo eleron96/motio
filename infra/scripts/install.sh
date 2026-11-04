@@ -566,10 +566,11 @@ write_backup_set() {
     key="${entry%%:*}"
     archive="${entry#*:}.tar.gz"
     volume="$(layout_value "$key")"
-    # Before the move to PostgreSQL 17 (pg-upgrade-17.sh) the database is still
-    # in the PostgreSQL 15 volume, which the release in this set uses.
-    if [[ "$key" == "supabase_db_data" ]] && ! docker volume inspect "$volume" >/dev/null 2>&1; then
-      volume="${volume%_pg17}"
+    # The database volume is the one the install ran on, which the release of
+    # this set uses: before an update to PostgreSQL 17 it is still the
+    # PostgreSQL 15 volume, even when a _pg17 volume of an earlier move exists.
+    if [[ "$key" == "supabase_db_data" ]]; then
+      volume="$(db_volume_in_use "$volume")"
     fi
     if [[ -z "$volume" ]] || ! docker volume inspect "$volume" >/dev/null 2>&1; then
       echo "  $key: no such volume, skipped"
@@ -588,6 +589,26 @@ write_backup_set() {
     echo "commit=$(git rev-parse "$ref")"
     echo "instance=$(get_env_value MOTIO_INSTANCE)"
   } > "$dir/motio-backup.txt" || return 1
+}
+
+# The volume the stack's (stopped) db container has mounted; without one, $1
+# or, when $1 does not exist, its PostgreSQL 15 name (before pg-upgrade-17.sh).
+db_volume_in_use() {
+  local fallback="$1" container mounted
+  container="$("${compose[@]}" ps -aq db 2>/dev/null | head -n1)"
+  if [[ -n "$container" ]]; then
+    mounted="$(docker inspect "$container" \
+      --format '{{range .Mounts}}{{if eq .Destination "/var/lib/postgresql/data"}}{{.Name}}{{end}}{{end}}')"
+    if [[ -n "$mounted" ]]; then
+      printf '%s\n' "$mounted"
+      return 0
+    fi
+  fi
+  if docker volume inspect "$fallback" >/dev/null 2>&1; then
+    printf '%s\n' "$fallback"
+  else
+    printf '%s\n' "${fallback%_pg17}"
+  fi
 }
 
 set_value() { grep -E "^${2}=" "$1/motio-backup.txt" | head -n1 | cut -d= -f2- || true; }
