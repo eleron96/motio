@@ -50,6 +50,18 @@ if printf "%s\n" "${rsync_output}" | grep -q 'infra/keycloak/themes/'; then
   keycloak_theme_changed="true"
 fi
 
+# The tree is synced without --delete, so a file removed from the login theme
+# would stay on the server and Keycloak would keep rendering it. The theme
+# folder holds nothing of the server's own: mirror it exactly.
+theme_output="$(
+  rsync -az --delete --itemize-changes \
+    "${root_dir}/infra/keycloak/themes/" "${host}:${remote_dir}/infra/keycloak/themes/"
+)"
+if [[ -n "${theme_output}" ]]; then
+  printf "%s\n" "${theme_output}"
+  keycloak_theme_changed="true"
+fi
+
 # Sync Caddyfile.testing as the server's Caddyfile (in-place to keep inode stable)
 rsync -az --inplace \
   "${root_dir}/infra/caddy/Caddyfile.testing" \
