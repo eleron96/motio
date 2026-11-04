@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.61] - 2026-11-04
 ### Security
 - Обновили систему входа — в ней закрыты известные уязвимости. Регистрация и вход работают как прежде.
 
