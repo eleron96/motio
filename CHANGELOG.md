@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.65] - 2026-11-04
 ### Security
 - Обновили сервис живых обновлений — в нём закрыты известные уязвимости. Изменения коллег по-прежнему появляются сразу.
 
