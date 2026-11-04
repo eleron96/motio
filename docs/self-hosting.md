@@ -161,8 +161,8 @@ Changing only `.env` locks the scripts out.
 
 ## Update
 
-Nothing updates on its own: every image is pinned to an exact version, and a new
-release reaches your server only when you run:
+Nothing updates on its own: a new release reaches your server only when you run
+(how images are chosen and patched: [Security updates](#security-updates)):
 
 ```bash
 cd motio
@@ -200,6 +200,34 @@ first, so a rollback can itself be undone with `install.sh restore`.
 
 Without `--version`, `update` re-applies the current checkout with the same backup.
 `install.sh up` re-applies the configuration without a backup (after editing `.env`).
+
+## Security updates
+
+The images Motio runs are chosen and tested together and change with Motio
+releases. The Supabase services are pinned to exact versions; a few images are
+pinned to a version line (`caddy:2.8`, `postgres:15-alpine`, `keycloak:26.1`,
+`nginx:1.27-alpine`, `liquibase:4.27`), and `install.sh update` pulls the latest
+patch of that line.
+
+- **Weekly scan.** The repository checks all of these images every week for known
+  HIGH and CRITICAL vulnerabilities that already have a fix
+  ([Image scan](../.github/workflows/image-scan.yml); the report is on the run
+  page). The same check runs on your server with
+  `infra/scripts/scan-images.sh` (needs Docker and `jq`).
+- **Upgrades come as releases.** A newer image ships in a Motio release, together
+  with any data migration it needs, and reaches you through `install.sh update`
+  with its backup and rollback. Do not upgrade single containers from WUD or
+  Portainer: a newer Keycloak, Postgres or Supabase service can need a migration
+  or break sign-in.
+- **Security fixes do not wait.** A fix for a vulnerability that affects Motio
+  ships as a release of its own, and its notes say so.
+- **Staying informed.** On GitHub, **Watch → Custom → Releases**; advisories are
+  published under the repository's **Security** tab. Admin → System also shows
+  when a newer release is out.
+- **The host is yours.** The kernel, Docker and SSH of the server are patched by
+  you; container updates do not cover them.
+
+To report a vulnerability in Motio itself, see [SECURITY.md](../SECURITY.md).
 
 ## Everyday commands
 
@@ -429,8 +457,8 @@ stack `motio` as created outside Portainer (limited control): logs, console,
 statistics, start, stop and restart work there. Do not redeploy or edit the stack
 from Portainer; change settings in `.env` and run `install.sh up`.
 
-**What's Up Docker (WUD).** Motio's images are pinned to exact versions that are
-tested together, and they change only with a Motio release. WUD will report newer
+**What's Up Docker (WUD).** Motio's images are chosen and tested together, and
+they change only with a Motio release ([Security updates](#security-updates)). WUD will report newer
 versions of images like `supabase/postgres` or `keycloak`: do not apply them one by
 one, update Motio instead. Motio itself is built on your server, so WUD does not see
 its releases; the [Admin → System](#everyday-commands) page and `install.sh status`

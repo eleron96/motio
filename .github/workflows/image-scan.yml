@@ -1,0 +1,39 @@
+name: Image scan
+
+# Weekly look at the container images Motio runs: known HIGH and CRITICAL
+# vulnerabilities that already have a fix upstream. A report on the run page,
+# never a red build — upgrades go through a release, not through this job.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+  push:
+    paths:
+      - infra/docker-compose.prod.yml
+      - infra/docker-compose.selfhost.yml
+      - infra/web/Dockerfile
+      - infra/backup-service/Dockerfile
+      - infra/scripts/scan-images.sh
+      - .github/workflows/image-scan.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan images
+        run: bash infra/scripts/scan-images.sh | tee image-scan.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-scan
+          path: image-scan.md

@@ -180,6 +180,12 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
   Postgres and applies the Liquibase migrations, then `npm run test:integration`
   runs against it.
 
+`.github/workflows/image-scan.yml` runs `infra/scripts/scan-images.sh` every Monday,
+on demand and when an image reference changes: Trivy lists the HIGH and CRITICAL
+vulnerabilities with a fix upstream in every image Motio runs. The table is on the
+run page (and an artifact). It never fails; upgrades go through a release
+(`docs/self-hosting.md`, «Security updates»).
+
 **CI does not gate production.** `main` is not protected and `make deploy` rsyncs the
 local working tree to the server, so a red CI run stops nothing — 0.9.67 shipped to
 production with the "i18n catalogs up to date" step failing. The only mandatory
