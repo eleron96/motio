@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.60] - 2026-11-04
 ### Fixed
 - In the demo, the Members and access tab in workspace settings no longer shows an error.
 

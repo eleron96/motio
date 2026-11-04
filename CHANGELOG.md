@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.60] - 2026-11-04
 ### Fixed
 - В демо вкладка «Участники и доступ» в настройках пространства больше не показывает ошибку.
 
