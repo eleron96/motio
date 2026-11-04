@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { z } from "npm:zod@3.25.76";
 import { INVITE_ACTIONS, INVITE_ROLE_VALUES } from "../_shared/actions.ts";
 import {
@@ -933,5 +932,5 @@ export const handler = async (req: Request) => {
 };
 
 if (import.meta.main) {
-  serve(handler);
+  Deno.serve(handler);
 }

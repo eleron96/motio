@@ -16,11 +16,10 @@
 //   auth:
 //     - generate: Authorization: Bearer <SERVICE_ROLE_KEY>
 //     - status:   Authorization: Bearer <user JWT>
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
 // JSZip — собираем ZIP-архив в памяти (Deno std не имеет ZIP-encoder из коробки;
 // gzip/deflate есть, но не контейнер ZIP с центральным каталогом).
-import JSZip from "https://esm.sh/jszip@3.10.1";
+import JSZip from "npm:jszip@3.10.1";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -289,5 +288,5 @@ export const handler = async (req: Request) => {
 };
 
 if (import.meta.main) {
-  serve(handler);
+  Deno.serve(handler);
 }

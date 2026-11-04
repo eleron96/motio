@@ -1,7 +1,7 @@
 // Admin "System" section: read-only status of this install and a test email.
 // Nothing here can change the server — updates stay a command on the host
 // (infra/scripts/install.sh update), see docs/self-hosting.md.
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
 import { getMailerConfig, sendEmail } from "../_shared/mailer.ts";
 import {
   createTestEmailThrottle,

@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
 import { handler as accountPurgeHandler } from "../account-purge/index.ts";
 import { handler as adminHandler } from "../admin/index.ts";
@@ -30,7 +29,7 @@ const handlers: Record<string, (req: Request) => Promise<Response>> = {
   "task-media": taskMediaHandler,
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/+/, "");
   const [name] = path.split("/");

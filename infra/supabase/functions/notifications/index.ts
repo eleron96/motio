@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -321,5 +320,5 @@ export const handler = async (req: Request) => {
 };
 
 if (import.meta.main) {
-  serve(handler);
+  Deno.serve(handler);
 }

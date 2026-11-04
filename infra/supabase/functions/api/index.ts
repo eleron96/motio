@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
 import {
@@ -141,5 +140,5 @@ export const handler = async (req: Request): Promise<Response> => {
 };
 
 if (import.meta.main) {
-  serve(handler);
+  Deno.serve(handler);
 }

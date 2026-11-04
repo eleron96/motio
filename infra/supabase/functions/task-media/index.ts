@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
 import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
 import { toPublicTaskMediaUrl } from "../_shared/taskMediaPublicUrl.ts";
 
@@ -588,5 +587,5 @@ export const handler = async (req: Request) => {
 };
 
 if (import.meta.main) {
-  serve(handler);
+  Deno.serve(handler);
 }
