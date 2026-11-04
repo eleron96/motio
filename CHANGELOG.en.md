@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- For your own servers: “install.sh rollback” and “install.sh restore” to an earlier version no longer stop at the Keycloak settings; the install comes up completely.
 
 ## [0.10.66] - 2026-11-04
 ### Security

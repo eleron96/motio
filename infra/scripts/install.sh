@@ -802,7 +802,10 @@ EOF
     archive_to_volume "$volume" "$dir_abs" "$archive" || fail "restoring ${volume} failed."
   done
 
-  bring_up
+  # The checkout is now the release of the backup: start it with that
+  # release's own installer, whose steps and scripts match its files (this
+  # script's may call Keycloak scripts the older release does not have).
+  exec infra/scripts/install.sh up
 }
 
 # Read-only report for troubleshooting over SSH: version, containers, the
@@ -955,11 +958,9 @@ case "$command_name" in
     restore_dir="$(newest_backup_set pre-update)"
     [[ -n "$restore_dir" ]] || fail "no backup from an update in ${backup_sets_dir}; nothing to go back to."
     run_restore "$restore_dir"
-    print_summary
     ;;
   restore)
     run_restore "$restore_dir"
-    print_summary
     ;;
   up)
     [[ -f "$env_file" ]] || fail "no $env_file here — run install first."
