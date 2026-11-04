@@ -353,6 +353,20 @@ fi
 
 export COMPOSE_MENU=0
 
+# Snapshot the database and uploaded files BEFORE anything new starts: GoTrue,
+# Storage and Realtime migrate their schemas on start, some one-way, so the
+# pre-migration dump further down is already taken after them.
+pre_start_snapshot="$(get_env_value AUTO_PRE_START_SNAPSHOT)"
+pre_start_snapshot="$(normalize_bool "${pre_start_snapshot:-true}")"
+if [[ "$pre_start_snapshot" == "true" ]]; then
+  infra/scripts/prod-snapshot.sh "$env_file" "$compose_file"
+else
+  echo "AUTO_PRE_START_SNAPSHOT=false, skipping the pre-start snapshot."
+fi
+
+# Once: moves a PostgreSQL 15 database to 17 (a no-op otherwise).
+infra/scripts/pg-upgrade-17.sh "$env_file" "$compose_file"
+
 docker compose -f "$compose_file" --env-file "$env_file" up -d db
 
 DB_WAIT_TIMEOUT_SECONDS="${DB_WAIT_TIMEOUT_SECONDS:-300}"
@@ -389,17 +403,6 @@ if [[ -n "$db_container" && -n "$auth_container" ]]; then
     echo "The database restarted after auth: restarting auth to drop its stale connections."
     docker compose -f "$compose_file" --env-file "$env_file" restart auth
   fi
-fi
-
-# Snapshot the database and uploaded files BEFORE new service images start:
-# GoTrue, Storage and Realtime migrate their schemas on start, some one-way,
-# so the pre-migration dump further down is already taken after them.
-pre_start_snapshot="$(get_env_value AUTO_PRE_START_SNAPSHOT)"
-pre_start_snapshot="$(normalize_bool "${pre_start_snapshot:-true}")"
-if [[ "$pre_start_snapshot" == "true" ]]; then
-  infra/scripts/prod-snapshot.sh "$env_file" "$compose_file"
-else
-  echo "AUTO_PRE_START_SNAPSHOT=false, skipping the pre-start snapshot."
 fi
 
 # Back up Keycloak's database BEFORE a new Keycloak starts: a newer Keycloak

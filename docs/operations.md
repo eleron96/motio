@@ -228,15 +228,14 @@ cannot undo a service upgrade; the snapshot can. To go back, on the server:
 ```bash
 cd /opt/new_toggl
 snap=infra/backups/snapshots/<time>
-img=supabase/postgres:15.1.0.117          # the db image the snapshot came from
+vol=supabase_db_data_pg17     # PostgreSQL 17; a snapshot of PostgreSQL 15 (PG_VERSION 15) goes to supabase_db_data
 c="docker compose -f infra/docker-compose.prod.yml --env-file .env"
 $c stop auth rest realtime storage functions backup gateway db
-docker run --rm -v supabase_db_data:/d --entrypoint bash $img -c 'rm -rf /d/* /d/.[!.]*'
-docker run --rm -i -v supabase_db_data:/d --entrypoint bash $img \
-  -c 'tar -C /d -xzf - && chown -R postgres:postgres /d && chmod 700 /d' < $snap/db.tar.gz
-docker run --rm -v supabase_storage_data:/s --entrypoint bash $img -c 'rm -rf /s/* /s/.[!.]*'
-docker run --rm -i -v supabase_storage_data:/s --entrypoint tar $img \
-  --xattrs --xattrs-include='*' -C /s -xzf - < $snap/storage.tar.gz
+docker run --rm -v $vol:/d debian:12-slim sh -c 'rm -rf /d/* /d/.[!.]*'
+docker run --rm -i -v $vol:/d debian:12-slim tar --numeric-owner -C /d -xzf - < $snap/db.tar.gz
+docker run --rm -v supabase_storage_data:/s debian:12-slim sh -c 'rm -rf /s/* /s/.[!.]*'
+docker run --rm -i -v supabase_storage_data:/s debian:12-slim \
+  tar --numeric-owner --xattrs --xattrs-include='*' -C /s -xzf - < $snap/storage.tar.gz
 ```
 
 Then put the old image tags back in `infra/docker-compose.prod.yml` (they are in
@@ -245,6 +244,44 @@ Then put the old image tags back in `infra/docker-compose.prod.yml` (they are in
 after the snapshot is lost, so roll back right after a failed upgrade. To check a
 snapshot without touching production, restore it into scratch volumes the same way
 and compare row counts and files.
+
+#### Moving to PostgreSQL 17
+
+Releases from 0.10.66 run PostgreSQL 17 (`supabase/postgres:17.6.1.136`) in the
+volume `supabase_db_data_pg17`. The first deploy of such a release moves the data
+there by itself: `prod-compose.sh` and `test-compose.sh` (and `install.sh` on
+self-hosted servers) call `infra/scripts/pg-upgrade-17.sh` before they start the
+database. It is a logical copy, with a stop of everything that uses the database
+for about a minute (Keycloak and the web front keep running):
+
+1. PostgreSQL 15 starts on the old volume `supabase_db_data`, the new GoTrue,
+   Storage and Realtime bring their schemas up to date there, and the script
+   records a fingerprint: the catalog (tables, columns, functions with their
+   privileges, policies, triggers, publications, roles) and the row count and a
+   checksum of every table in `public`, `auth` and `storage`.
+2. A dump with the PostgreSQL 17 tools goes to `infra/backups/pg-upgrade/<time>/`
+   (mode 700, with the fingerprints; nothing deletes it).
+3. PostgreSQL 17 starts on the new volume, the same services create their
+   schemas, and the script loads roles and password hashes, the `public` schema,
+   the data of `auth` and `storage`, the publication of live updates, and
+   Motio's triggers and policies on `auth.users`, `storage.objects` and
+   `realtime.messages`.
+4. A second fingerprint must match the first; any difference stops the deploy
+   with PostgreSQL 15 untouched.
+
+The old volume is only read: it is the rollback. To go back, deploy the previous
+release (its compose file points at `supabase_db_data` and PostgreSQL 15); what
+was written on PostgreSQL 17 in between stays only in the 17 volume. When a
+release with PostgreSQL 17 is deployed again after that, the script notices that
+PostgreSQL 15 ran after the move, keeps the old 17 copy as
+`earlier-pg17.tar.gz` in the new `pg-upgrade` folder and moves again from
+PostgreSQL 15. Keep `supabase_db_data` for a few weeks, then remove it with
+`docker volume rm supabase_db_data`.
+
+New databases are created with byte-order text sorting (`builtin` provider,
+`C.UTF-8`), as PostgreSQL 15 had, and with `infra/supabase/db/motio-init.sql`:
+it gives `postgres` (GoTrue and storage-api connect as it) the rights on the
+`auth` and `storage` schemas that newer images no longer give it.
 
 **CI does not gate production.** `main` is not protected and `make deploy` rsyncs the
 local working tree to the server, so a red CI run stops nothing — 0.9.67 shipped to

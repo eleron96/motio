@@ -44,10 +44,13 @@ Check consistency of:
 - the output of `keycloak-ensure-client-urls.sh` (redirect URIs);
 - the output of `keycloak-ensure-realm-frontend-url.sh` (realm `frontendUrl`).
 
-## `volume supabase_db_data declared as external, but could not be found`
+## `volume supabase_db_data_pg17 declared as external, but could not be found`
+
+On a server that has never run Motio (on one that ran PostgreSQL 15 the deploy
+creates it while it moves the data, `docs/operations.md`, «Moving to PostgreSQL 17»):
 
 ```bash
-docker volume create supabase_db_data
+docker volume create supabase_db_data_pg17
 ```
 
 ## `Warning: Keycloak realm drift detected`

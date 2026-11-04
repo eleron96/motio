@@ -50,10 +50,10 @@ docker exec "$db_container" tar -C "$tmp" -czf - . > "$dir/db.tar.gz"
 
 if docker volume inspect "$storage_volume" >/dev/null 2>&1; then
   echo "Snapshot: uploaded files ($storage_volume)..."
-  db_image="$(docker inspect "$db_container" --format '{{.Config.Image}}')"
-  # GNU tar from the db image keeps owners and the xattrs storage-api relies on.
-  docker run --rm -v "$storage_volume":/s:ro --entrypoint tar "$db_image" \
-    --xattrs --xattrs-include='*' -C /s -czf - . > "$dir/storage.tar.gz"
+  # GNU tar keeps owners and the xattrs storage-api relies on (the PostgreSQL
+  # 17 image only has busybox tar).
+  docker run --rm -v "$storage_volume":/s:ro --entrypoint tar "${SNAPSHOT_TAR_IMAGE:-debian:12-slim}" \
+    --numeric-owner --xattrs --xattrs-include='*' -C /s -czf - . > "$dir/storage.tar.gz"
 fi
 
 docker ps --format '{{.Names}} {{.Image}}' | sort > "$dir/images.txt"

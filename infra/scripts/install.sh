@@ -369,6 +369,12 @@ sys.exit(1 if any(volume.get("external") for volume in volumes.values()) else 0)
       || fail "the Docker network $proxy_network (MOTIO_PROXY_NETWORK) does not exist; see: docker network ls"
   fi
 
+  # Once: moves a PostgreSQL 15 database to 17 (a no-op otherwise). Releases
+  # before PostgreSQL 17 (a restore of an older backup set) have no such step.
+  if [[ -x infra/scripts/pg-upgrade-17.sh ]]; then
+    infra/scripts/pg-upgrade-17.sh --selfhost
+  fi
+
   log "Starting the database"
   "${compose[@]}" up -d db
   local started
@@ -495,8 +501,8 @@ set_volumes=(supabase_db_data:database keycloak_db_data:keycloak storage_data:fi
 pre_update_sets_kept=3
 backup_set_dir=""
 
-# "<volume key> <docker volume name>" lines plus "image <db image>", read from
-# the compose configuration of the current checkout and .env.
+# "<volume key> <docker volume name>" lines, read from the compose
+# configuration of the current checkout and .env.
 compose_layout=""
 load_compose_layout() {
   compose_layout="$("${compose[@]}" config --format json | python3 -c '
@@ -504,18 +510,18 @@ import json, sys
 config = json.load(sys.stdin)
 for key, volume in (config.get("volumes") or {}).items():
     print(key, volume.get("name") or key)
-print("image", config["services"]["db"]["image"])
 ')" && [[ -n "$compose_layout" ]]
 }
 layout_value() { printf '%s\n' "$compose_layout" | awk -v key="$1" '$1 == key { print $2; exit }'; }
 
-# The database image carries GNU tar, which keeps numeric owners and the
-# extended attributes storage-api stores on uploaded files.
+# GNU tar keeps numeric owners and the extended attributes storage-api stores
+# on uploaded files (the PostgreSQL 17 image only has busybox tar).
+archive_image="debian:12-slim"
 volume_to_archive() {
   local volume="$1" archive_dir="$2" archive_name="$3"
   docker run --rm --entrypoint sh \
     -v "$volume":/volume:ro -v "$archive_dir":/backup \
-    "$(layout_value image)" -c '
+    "$archive_image" -c '
       tar --create --gzip --numeric-owner --xattrs --xattrs-include="*" --file "/backup/$1" -C /volume . \
         && chown "$2" "/backup/$1"' sh "$archive_name" "$(id -u):$(id -g)"
 }
@@ -524,7 +530,7 @@ archive_to_volume() {
   local volume="$1" archive_dir="$2" archive_name="$3"
   docker run --rm --entrypoint sh \
     -v "$volume":/volume -v "$archive_dir":/backup:ro \
-    "$(layout_value image)" -c '
+    "$archive_image" -c '
       find /volume -mindepth 1 -delete \
         && tar --extract --gzip --numeric-owner --xattrs --xattrs-include="*" --same-permissions \
           --file "/backup/$1" -C /volume' sh "$archive_name"
@@ -560,6 +566,11 @@ write_backup_set() {
     key="${entry%%:*}"
     archive="${entry#*:}.tar.gz"
     volume="$(layout_value "$key")"
+    # Before the move to PostgreSQL 17 (pg-upgrade-17.sh) the database is still
+    # in the PostgreSQL 15 volume, which the release in this set uses.
+    if [[ "$key" == "supabase_db_data" ]] && ! docker volume inspect "$volume" >/dev/null 2>&1; then
+      volume="${volume%_pg17}"
+    fi
     if [[ -z "$volume" ]] || ! docker volume inspect "$volume" >/dev/null 2>&1; then
       echo "  $key: no such volume, skipped"
       continue

@@ -82,7 +82,7 @@ services:
 
 volumes:
   supabase_db_data:
-    name: ${MOTIO_INSTANCE:-motio}_db_data
+    name: ${MOTIO_INSTANCE:-motio}_db_data_pg17
     external: false
   keycloak_db_data:
     name: ${MOTIO_INSTANCE:-motio}_keycloak_db_data

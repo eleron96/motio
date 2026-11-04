@@ -52,7 +52,7 @@ wait_for() {
 }
 
 # 1. External volume + Postgres -------------------------------------------------
-docker volume create supabase_db_data >/dev/null
+docker volume create supabase_db_data_pg17 >/dev/null
 log "Starting Postgres..."
 "${COMPOSE[@]}" up -d db
 

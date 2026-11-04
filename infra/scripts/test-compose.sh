@@ -165,6 +165,9 @@ export KEYCLOAK_ADMIN_BASE_URL="http://127.0.0.1:8081/auth"
 mkdir -p /opt/keycloak-themes/timeline
 rsync -a --delete infra/keycloak/themes/timeline/ /opt/keycloak-themes/timeline/
 
+# --- Once: move a PostgreSQL 15 database to 17 (a no-op otherwise) ---
+infra/scripts/pg-upgrade-17.sh "$env_file" "$compose_file" "$testing_override"
+
 # --- Start database first ---
 $compose_cmd up -d db
 
