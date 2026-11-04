@@ -10,6 +10,17 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 - In the demo, the Members and access tab in workspace settings no longer shows an error.
 
+### Added
+- In-app announcements can now be in German.
+
+### Security
+- For your own servers: Motio's containers are now checked for known vulnerabilities every week; the guide explains how they are updated.
+- Updated the sign-in and web server components to close known vulnerabilities.
+
+### Changed
+- For your own servers: the admin console is now fully translated into Russian and German.
+- For your own servers: the start page can be switched off, so your address opens sign-in straight away. Motio admin rights can be granted through a Keycloak group, for example one from Authentik. Both stay as before unless you turn them on; the guide has the details.
+
 ## [0.10.59] - 2026-11-03
 ### Changed
 - Timeline rows leave more free space under their tasks, so it is easier to double-click or double-tap there to add a task on that day.
