@@ -11,6 +11,7 @@ import {
   ensureKeycloakReady,
   ensureKeycloakUser,
   ensureRealmRoles,
+  getUserEffectiveRealmRoles,
   getUserRealmRoles,
   getKeycloakConfig,
   sendKeycloakExecuteActionsEmail,
@@ -30,6 +31,7 @@ import {
   type RoleSnapshot,
   type WorkspaceRole,
 } from "../_shared/supabaseAuth.ts";
+import { decideSuperAdminAccess, isSuperAdminFromGroupsEnabled } from "../_shared/superAdminAccess.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -39,6 +41,7 @@ const { supabaseAdmin } = createSupabaseClients(supabaseUrl, serviceRoleKey);
 
 const reserveAdminEmail = (Deno.env.get("RESERVE_ADMIN_EMAIL") ?? "").trim().toLowerCase();
 const reserveAdminPassword = Deno.env.get("RESERVE_ADMIN_PASSWORD") ?? "";
+const superAdminFromGroups = isSuperAdminFromGroupsEnabled(Deno.env.get("KEYCLOAK_SUPER_ADMIN_FROM_GROUPS"));
 
 const keycloakConfig = getKeycloakConfig();
 const keycloakIssuer = `${keycloakConfig.baseUrl}/realms/${keycloakConfig.realm}`;
@@ -244,7 +247,9 @@ const getAuthUser = async (req: Request) => {
 };
 
 // Keycloak is the source of truth for super-admin access: the realm role
-// app_super_admin decides, and the super_admins table is only a synced cache.
+// app_super_admin decides, and the super_admins table is only a synced cache
+// of the role assigned directly. With KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=true a
+// role inherited from a group also grants access, but is never cached.
 // Fail closed: when Keycloak cannot be consulted for a Keycloak-backed user,
 // access is denied rather than trusted from the cache. The one exception is
 // the break-glass reserve admin — a password-based GoTrue user with no
@@ -292,20 +297,32 @@ const ensureSuperAdmin = async (userId: string) => {
     return false;
   }
 
-  const hasSuperAdminRole = (keycloakRoles.roles ?? []).some((role) => role.name === "app_super_admin");
-
-  if (hasSuperAdminRole) {
-    if (!inTable) {
-      await supabaseAdmin.from("super_admins").upsert({ user_id: userId });
+  let effectiveRoleNames: string[] = [];
+  if (superAdminFromGroups) {
+    const effectiveRoles = await getUserEffectiveRealmRoles(keycloakConfig, providerId);
+    if ("error" in effectiveRoles) {
+      captureException(new Error(`super-admin check denied: Keycloak unavailable: ${effectiveRoles.error}`), {
+        tags: { function: "admin", stage: "ensure-super-admin" },
+      });
+      return false;
     }
-    return true;
+    effectiveRoleNames = (effectiveRoles.roles ?? []).map((role) => role.name ?? "");
   }
 
-  if (inTable) {
+  const decision = decideSuperAdminAccess({
+    directRoleNames: (keycloakRoles.roles ?? []).map((role) => role.name ?? ""),
+    effectiveRoleNames,
+    fromGroups: superAdminFromGroups,
+    inTable,
+  });
+
+  if (decision.cache === "add") {
+    await supabaseAdmin.from("super_admins").upsert({ user_id: userId });
+  } else if (decision.cache === "remove") {
     await supabaseAdmin.from("super_admins").delete().eq("user_id", userId);
   }
 
-  return false;
+  return decision.allowed;
 };
 
 const listSuperAdminIds = async () => {
