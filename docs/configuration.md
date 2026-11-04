@@ -57,6 +57,13 @@ make check-prod-secrets-remote   # check .env on the remote server
   verified; `false` switches to that. Applied by
   `keycloak-ensure-realm-register-password.sh` on every deploy; older Keycloak needs
   nothing and the script skips.
+- `KEYCLOAK_DISABLED_IDENTITY_PROVIDERS` (default empty) — comma-separated aliases of
+  external sign-in providers to switch off in the app realm and in `master`, e.g.
+  `google`. Off means `enabled=false`: settings and linked accounts stay, so emptying
+  the list and switching the provider back on in Keycloak restores it. Applied by
+  `keycloak-ensure-identity-providers-disabled.sh`; it never switches a provider on.
+  `prod-compose.sh` uses `google` when the key is not set (motio.nikog.net signs in
+  with email and password); `none` there keeps every provider.
 - `KEYCLOAK_JAVA_OPTS_APPEND` (default `-Xms512m`; `install.sh` writes `-Xms256m`) — extra
   JVM options for Keycloak. Leave out `-Xmx`: Keycloak caps its heap at 70% of the
   container's memory limit, and a heap as large as the limit gets the container killed
