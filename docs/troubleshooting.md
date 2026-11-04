@@ -128,14 +128,17 @@ from the failing build log if they have moved on.
 
 ## `502` on every `/functions/v1/*` after recreating `edge-runtime`
 
-Edge Functions fetch their dependencies from `esm.sh` on a cold start, and the
-production server cannot reach that host's anycast address. The compose file pins
-`esm.sh` to a Cloudflare IP via `extra_hosts` and keeps a persistent Deno cache
-(`motio_deno_cache`), so a recreated container starts from the cache without any
-download. If the `502` is back, check that both are still in place:
+Edge Functions fetch their `npm:` dependencies from the npm registry on a cold
+start and keep them in a persistent Deno cache (`motio_deno_cache`), so a recreated
+container normally starts from the cache. (Until edge-runtime 1.77 they came from
+`esm.sh`, whose anycast address the production server could not reach, and the
+compose file pinned it via `extra_hosts`.) If the `502` is back, check that the
+registry answers from the server and that the cache volume is mounted:
 
 ```bash
-docker inspect infra-functions-1 --format '{{json .HostConfig.ExtraHosts}} {{json .Mounts}}'
+curl -s -o /dev/null -w '%{http_code}\n' https://registry.npmjs.org/@supabase%2Fsupabase-js
+docker inspect infra-functions-1 --format '{{json .Mounts}}'
+docker logs --since 10m infra-functions-1 2>&1 | tail -20
 ```
 
 ## `git merge` into `main` hangs, or `cannot lock ref 'HEAD'`

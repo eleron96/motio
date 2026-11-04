@@ -9,7 +9,6 @@
 #   * Only Caddy faces the network. Database, web and oauth2-proxy publish
 #     nothing; gateway and Keycloak only on 127.0.0.1 for the install scripts
 #     (bootstrap, Keycloak ensure-scripts), on ports chosen by install.sh.
-#   * The esm.sh IP pin of the production host is dropped: normal DNS.
 #   * Memory caps sized for a 4 GB server.
 #
 # Requires Docker Compose v2.24+ (!reset / !override).
@@ -35,7 +34,6 @@ services:
           cpus: '1.0'
 
   functions:
-    extra_hosts: !reset []
     environment:
       # Admin → System shows the install.sh update command on self-hosted installs.
       MOTIO_SELF_HOSTED: "true"

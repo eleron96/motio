@@ -204,13 +204,8 @@ services:
       RLIMIT_NOFILE: "10000"
 
   functions:
-    image: supabase/edge-runtime:v1.41.2
+    image: supabase/edge-runtime:v1.77.4
     restart: unless-stopped
-    # esm.sh's default anycast IPs (8.x) are unroutable from this host, which
-    # hangs the edge-runtime on boot while it fetches function deps (supabase-js,
-    # jszip). Pin esm.sh to a reachable Cloudflare IP so cold starts succeed.
-    extra_hosts:
-      - "esm.sh:172.67.70.222"
     deploy:
       resources:
         limits:
@@ -264,10 +259,9 @@ services:
       MOTIO_UPDATE_CHECK: ${MOTIO_UPDATE_CHECK:-true}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
-      # Persist the Deno dependency cache across container recreates so cold
-      # starts never re-fetch function deps from esm.sh. Combined with the
-      # extra_hosts pin above, the first boot populates this volume and every
-      # later recreate reuses it — no network round-trip to esm.sh required.
+      # Persist the Deno dependency cache across container recreates: the first
+      # boot fetches the npm: dependencies of the functions from the npm registry
+      # into this volume, and every later recreate reuses them.
       - deno_cache:/root/.cache/deno
     command: ["start", "--main-service", "/home/deno/functions/main", "--port", "9000"]
 

@@ -167,7 +167,7 @@ services:
       RLIMIT_NOFILE: "10000"
 
   functions:
-    image: supabase/edge-runtime:v1.41.2
+    image: supabase/edge-runtime:v1.77.4
     container_name: supabase-functions
     restart: unless-stopped
     depends_on:

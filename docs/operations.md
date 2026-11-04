@@ -177,7 +177,7 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
   direct Supabase access in features outside their stores or new cross-feature
   component imports; the known backlog is in `infra/scripts/code-health-baseline.json`)
   → SQL security lint (`infra/scripts/lint-security-definer.sh`) → `npm run typecheck`
-  → Edge Functions typecheck (`infra/scripts/check-edge-functions.sh`, Deno 1.40.3;
+  → Edge Functions typecheck (`infra/scripts/check-edge-functions.sh`, Deno 2.1.4;
   any type error fails) → i18n catalogs up to date (`lingui:extract`, then
   `git diff --exit-code src/locales`) → `npm run test` → `npm run test:backup`
   (backup-service, `node:test`) → `npm run build`.
