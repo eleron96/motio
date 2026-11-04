@@ -106,6 +106,11 @@ if [[ ! -x "infra/scripts/keycloak-ensure-realm-locales.sh" ]]; then
   exit 1
 fi
 
+if [[ ! -x "infra/scripts/keycloak-ensure-realm-register-password.sh" ]]; then
+  echo "Missing executable infra/scripts/keycloak-ensure-realm-register-password.sh" >&2
+  exit 1
+fi
+
 if [[ ! -x "infra/scripts/keycloak-backup-db.sh" ]]; then
   echo "Missing executable infra/scripts/keycloak-backup-db.sh" >&2
   exit 1
@@ -381,6 +386,17 @@ if [[ -n "$db_container" && -n "$auth_container" ]]; then
   fi
 fi
 
+# Back up Keycloak's database BEFORE a new Keycloak starts: a newer Keycloak
+# rewrites its schema on start, and a backup taken afterwards cannot bring the
+# old version back. The very first deploy has no keycloak-db yet and backs up
+# after the start instead (below).
+keycloak_backup_done=false
+if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" == "true" ]] \
+  && [[ -n "$(docker compose -f "$compose_file" --env-file "$env_file" ps -q --status running keycloak-db 2>/dev/null || true)" ]]; then
+  infra/scripts/keycloak-backup-db.sh "$env_file" "$compose_file"
+  keycloak_backup_done=true
+fi
+
 docker compose -f "$compose_file" --env-file "$env_file" up -d keycloak-db keycloak auth rest functions backup realtime storage gateway
 
 # Recreate edge runtime container to drop stale deno module cache between releases.
@@ -401,11 +417,12 @@ infra/scripts/keycloak-ensure-realm-bruteforce.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-passwordpolicy.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-user-profile.sh "$env_file"
 infra/scripts/keycloak-ensure-realm-locales.sh "$env_file"
+infra/scripts/keycloak-ensure-realm-register-password.sh "$env_file"
 
-if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" == "true" ]]; then
-  infra/scripts/keycloak-backup-db.sh "$env_file" "$compose_file"
-else
+if [[ "$AUTO_KEYCLOAK_PRE_SYNC_BACKUP" != "true" ]]; then
   echo "AUTO_KEYCLOAK_PRE_SYNC_BACKUP=false, skipping Keycloak DB backup."
+elif [[ "$keycloak_backup_done" != "true" ]]; then
+  infra/scripts/keycloak-backup-db.sh "$env_file" "$compose_file"
 fi
 
 if [[ "$KEYCLOAK_REALM_AUDIT_ENABLED" == "true" ]]; then

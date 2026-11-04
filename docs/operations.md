@@ -91,8 +91,11 @@ What `up-prod` does (in order):
 - validates the required invite-only variables;
 - applies Keycloak realm settings via the `infra/scripts/keycloak-ensure-*.sh` scripts
   (client secret, client URLs, SSL-required, branding, frontend URL, session policy,
-  brute-force protection, password policy, user profile);
-- backs up `keycloak-db` before the realm audit (if `AUTO_KEYCLOAK_PRE_SYNC_BACKUP=true`);
+  brute-force protection, password policy, user profile, locales, password on the
+  registration form);
+- backs up `keycloak-db` before the new Keycloak starts, so a version upgrade can be
+  undone from that dump (if `AUTO_KEYCLOAK_PRE_SYNC_BACKUP=true`; the very first
+  deploy backs up after the start);
 - runs the Keycloak realm drift audit (audit-only by default);
 - takes a pre-migration backup (if `AUTO_PRE_MIGRATION_BACKUP=true`);
 - applies Liquibase migrations;
@@ -201,10 +204,12 @@ run page (and an artifact). It never fails; upgrades go through a release
 5. `motio-caddy` on production and testing runs outside compose: a new Caddy reaches
    them only by recreating the container (command above), keeping its volumes.
 6. Keycloak changes its database on start and cannot go back by image. Rehearse on a
-   copy of a Keycloak database first, check registration, sign-in, password reset,
-   invitations and external providers, and dump the production Keycloak database by
-   hand before the release: `prod-compose.sh` takes its Keycloak backup only after
-   the new Keycloak has started.
+   copy of a Keycloak database first and check registration, sign-in, password reset,
+   invitations and external providers. `prod-compose.sh` dumps `keycloak-db` before
+   the new Keycloak starts (`infra/backups/keycloak/`); to go back, put the old image
+   back in compose and run `infra/scripts/restore-keycloak.sh <dump>`, which stops
+   Keycloak, restores the dump and starts it again. The login theme keeps no
+   `template.ftl` of its own, so it renders on any Keycloak version.
 
 **CI does not gate production.** `main` is not protected and `make deploy` rsyncs the
 local working tree to the server, so a red CI run stops nothing — 0.9.67 shipped to

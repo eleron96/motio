@@ -37,13 +37,13 @@ describe("brand asset routing", () => {
 
   it("keeps public and login theme favicon assets in sync", () => {
     const caddyFile = readRepoText("infra", "caddy", "Caddyfile");
-    const loginTemplate = readRepoText(
+    const loginThemeProperties = readRepoText(
       "infra",
       "keycloak",
       "themes",
       "timeline",
       "login",
-      "template.ftl",
+      "theme.properties",
     );
     const publicLight = readRepoFile("public", "favicon-theme-light.png");
     const publicDark = readRepoFile("public", "favicon-theme-dark.png");
@@ -80,11 +80,13 @@ describe("brand asset routing", () => {
 
     expect(caddyFile).toContain("handle /favicon* {");
     expect(caddyFile).toContain("handle /logo.png {");
-    expect(loginTemplate).toContain('href="${url.resourcesPath}/img/favicon-theme-light.png"');
-    expect(loginTemplate).toContain('href="${url.resourcesPath}/img/favicon-theme-dark.png"');
-    expect(loginTemplate).toContain('media="(prefers-color-scheme: light)"');
-    expect(loginTemplate).toContain('media="(prefers-color-scheme: dark)"');
-    expect(loginTemplate).not.toContain('href="${url.resourcesPath}/img/favicon.ico"');
+    // The base template of Keycloak 26.8+ renders these into the page head; the
+    // theme keeps no template.ftl of its own, so it works on older Keycloak too.
+    expect(loginThemeProperties).toContain("favicons.light=img/favicon-theme-light.png");
+    expect(loginThemeProperties).toContain("favicons.light.media=(prefers-color-scheme: light)");
+    expect(loginThemeProperties).toContain("favicons.dark=img/favicon-theme-dark.png");
+    expect(loginThemeProperties).toContain("favicons.dark.media=(prefers-color-scheme: dark)");
+    expect(existsSync(resolve(repoRoot, "infra", "keycloak", "themes", "timeline", "login", "template.ftl"))).toBe(false);
     expect(publicLight.equals(keycloakLight)).toBe(true);
     expect(publicDark.equals(keycloakDark)).toBe(true);
     expect(loginScript).toContain("favicon-theme-light.png");
