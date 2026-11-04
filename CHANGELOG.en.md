@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Updated the sign-in system to close known vulnerabilities. Signing up and signing in work as before.
+
+### Changed
+- For your own servers: Keycloak is updated to 26.8. The installer backs up the whole install before the update as usual, and the sign-up form still asks for the password right away.
+
 ## [0.10.60] - 2026-11-04
 ### Fixed
 - In the demo, the Members and access tab in workspace settings no longer shows an error.
