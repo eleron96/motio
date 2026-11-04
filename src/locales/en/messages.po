@@ -265,6 +265,10 @@ msgstr "{weeksAgo, plural, one {# week ago} other {# weeks ago}}"
 msgid "+{0} more milestones"
 msgstr "+{0} more milestones"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "+{count} more"
+msgstr "+{count} more"
+
 #: src/features/dashboard/hooks/useChartLayout.ts
 msgid "+{groupedLegendCount} hidden"
 msgstr "+{groupedLegendCount} hidden"
@@ -417,8 +421,10 @@ msgid "Action failed"
 msgstr "Action failed"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Actions"
@@ -587,6 +593,7 @@ msgstr "Adds this delivery to the workload heatmap. Untick for milestones that d
 msgid "admin"
 msgstr "admin"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -596,6 +603,10 @@ msgstr "admin"
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Admin"
 msgstr "Admin"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Admin console"
+msgstr "Admin console"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/components/AdminLayout.tsx
@@ -845,6 +856,10 @@ msgstr "Auto"
 msgid "auto from history"
 msgstr "auto from history"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Average per file: {size}"
+msgstr "Average per file: {size}"
+
 #: src/features/planner/components/timeline/CalendarDayHoverContent.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Away"
@@ -881,6 +896,10 @@ msgstr "Backend"
 msgid "Backup & restore"
 msgstr "Backup & restore"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Backup name is required."
+msgstr "Backup name is required."
+
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Backup service"
 msgstr "Backup service"
@@ -906,6 +925,10 @@ msgstr "Bar chart"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Beer"
 msgstr "Beer"
+
+#: src/features/admin/lib/format.ts
+msgid "Before restore"
+msgstr "Before restore"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Behind your own reverse proxy"
@@ -1009,9 +1032,14 @@ msgstr "Call"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
@@ -1090,6 +1118,10 @@ msgstr "Cancelled"
 #: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Cancelled status"
 msgstr "Cancelled status"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Change backup file name."
+msgstr "Change backup file name."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Change easter egg"
@@ -1257,6 +1289,7 @@ msgstr "Client correspondence"
 msgid "Client review"
 msgstr "Client review"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
@@ -1555,6 +1588,10 @@ msgstr "Create a new project and assign customer, code, and color."
 msgid "Create account"
 msgstr "Create account"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Create backup"
+msgstr "Create backup"
+
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
@@ -1597,6 +1634,12 @@ msgstr "Create workspace"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Create your account"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Created"
+msgstr "Created"
 
 #. placeholder {0}: formatDate(token.createdAt)
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -1682,6 +1725,7 @@ msgstr "Customer:"
 msgid "Customers"
 msgstr "Customers"
 
+#: src/features/admin/lib/format.ts
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Daily"
 msgstr "Daily"
@@ -1794,7 +1838,10 @@ msgstr "default"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
@@ -1847,6 +1894,10 @@ msgstr "Delete all"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "Delete announcement?"
 msgstr "Delete announcement?"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Delete backup?"
+msgstr "Delete backup?"
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Delete comment?"
@@ -1948,10 +1999,12 @@ msgstr "Delete this workspace"
 msgid "Delete widget"
 msgstr "Delete widget"
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Delete workspace"
 msgstr "Delete workspace"
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Delete workspace?"
 msgstr "Delete workspace?"
@@ -2100,6 +2153,10 @@ msgstr "Dismissed"
 msgid "Display"
 msgstr "Display"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Display name"
+msgstr "Display name"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Display style"
 msgstr "Display style"
@@ -2150,6 +2207,10 @@ msgstr "Double-click any day in a project's row: the form opens with that projec
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 msgid "Double-tap to open it"
 msgstr "Double-tap to open it"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Download"
+msgstr "Download"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Download export"
@@ -2351,6 +2412,7 @@ msgstr "Editing does not bring the announcement back to people who already close
 msgid "editor"
 msgstr "editor"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -2372,6 +2434,7 @@ msgstr "Electrical"
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "Email"
@@ -2523,6 +2586,11 @@ msgstr "Everyone who already closed this announcement will see it once more."
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Everything your team needs to stay aligned"
 msgstr "Everything your team needs to stay aligned"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Exact size: {size}"
+msgstr "Exact size: {size}"
 
 #: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Example data"
@@ -2703,6 +2771,10 @@ msgstr "File is too large"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "File storage"
 msgstr "File storage"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Files: {count}"
+msgstr "Files: {count}"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Fill out task fields and create a new task."
@@ -3291,6 +3363,10 @@ msgstr "Last export failed: {0}"
 msgid "Last in series"
 msgstr "Last in series"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Last sign in"
+msgstr "Last sign in"
+
 #. placeholder {0}: formatDate(token.lastUsedAt)
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "last used {0}"
@@ -3505,6 +3581,14 @@ msgstr "Manage team roles, groups, and status."
 msgid "Manage your profile and account preferences."
 msgstr "Manage your profile and account preferences."
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Managed"
+msgstr "Managed"
+
+#: src/features/admin/lib/format.ts
+msgid "Manual"
+msgstr "Manual"
+
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Mark as read"
@@ -3587,6 +3671,7 @@ msgstr "Member actions"
 msgid "Member not found."
 msgstr "Member not found."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
@@ -3769,6 +3854,9 @@ msgstr "My own set"
 msgid "My team workspace"
 msgstr "My team workspace"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -3967,6 +4055,10 @@ msgstr "No available members."
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "No backups"
 msgstr "No backups"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "No backups."
+msgstr "No backups."
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "No broadcasts yet."
@@ -4291,6 +4383,10 @@ msgstr "No rules yet."
 msgid "No statuses in this workspace yet"
 msgstr "No statuses in this workspace yet"
 
+#: src/features/admin/lib/format.ts
+msgid "No storage data"
+msgstr "No storage data"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
@@ -4357,6 +4453,10 @@ msgstr "No tokens yet."
 msgid "No upcoming milestones in the next 7 days."
 msgstr "No upcoming milestones in the next 7 days."
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "No users."
+msgstr "No users."
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "No widgets yet."
 msgstr "No widgets yet."
@@ -4366,6 +4466,7 @@ msgid "No workspaces need your attention — you can continue."
 msgstr "No workspaces need your attention — you can continue."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "No workspaces."
 msgstr "No workspaces."
 
@@ -4685,6 +4786,12 @@ msgstr "overloaded"
 msgid "Overview"
 msgstr "Overview"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Owned"
+msgstr "Owned"
+
+#: src/features/admin/lib/format.ts
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
@@ -5099,7 +5206,10 @@ msgstr "Recipients: {0}"
 msgid "Recurring"
 msgstr "Recurring"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminSystemPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/DataExportButton.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -5206,10 +5316,16 @@ msgstr "Remove widget"
 msgid "Removing…"
 msgstr "Removing…"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
 msgid "Rename"
 msgstr "Rename"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Rename backup"
+msgstr "Rename backup"
 
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/DashboardSwitcher.tsx
@@ -5225,6 +5341,14 @@ msgstr "Rename deleted member"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Rename failed"
 msgstr "Rename failed"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Rename the selected workspace."
+msgstr "Rename the selected workspace."
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Rename workspace"
+msgstr "Rename workspace"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Reorder subtask"
@@ -5307,9 +5431,18 @@ msgstr "Residential quarter"
 msgid "Resize filters"
 msgstr "Resize filters"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Restore"
+msgstr "Restore"
+
 #: src/shared/components/PendingDeletionBanner.tsx
 msgid "Restore account"
 msgstr "Restore account"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Restore backup?"
+msgstr "Restore backup?"
 
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "Restore my account"
@@ -5351,6 +5484,7 @@ msgstr "Right-click to add your first widget."
 msgid "Riverside restaurant interior"
 msgstr "Riverside restaurant interior"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5399,6 +5533,8 @@ msgid "Sage"
 msgstr "Sage"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -5500,9 +5636,17 @@ msgstr "School for 600 pupils"
 msgid "Search"
 msgstr "Search"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Search by email, ID or workspace…"
+msgstr "Search by email, ID or workspace…"
+
 #: src/features/admin/components/AdminUserPicker.tsx
 msgid "Search by name or email"
 msgstr "Search by name or email"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Search by name or owner…"
+msgstr "Search by name or owner…"
 
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
@@ -5983,6 +6127,10 @@ msgstr "Site walk with the client"
 msgid "Site work"
 msgstr "Site work"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Size"
+msgstr "Size"
+
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -5990,8 +6138,8 @@ msgid "Skip"
 msgstr "Skip"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
-msgid "Skip the 30-day grace period for a PENDING_DELETION account. The cron will pick the user on the next tick."
-msgstr "Skip the 30-day grace period for a PENDING_DELETION account. The cron will pick the user on the next tick."
+msgid "Skips the 30-day waiting period for an account marked for deletion (PENDING_DELETION). The account is deleted on the next run of the scheduled cleanup."
+msgstr "Skips the 30-day waiting period for an account marked for deletion (PENDING_DELETION). The account is deleted on the next run of the scheduled cleanup."
 
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
@@ -6125,6 +6273,10 @@ msgstr "Statuses, task types and tags can be changed later in workspace settings
 #: src/features/projects/components/ProjectsMobileList.tsx
 msgid "Stop tracking"
 msgstr "Stop tracking"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Storage"
+msgstr "Storage"
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Storage used"
@@ -6298,6 +6450,7 @@ msgstr "Task updates"
 msgid "Task was created, but subtasks were not saved."
 msgstr "Task was created, but subtasks were not saved."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
@@ -6613,6 +6766,10 @@ msgstr "This will permanently delete \"{0}\"."
 msgid "This will permanently delete \"{taskTitle}\"."
 msgstr "This will permanently delete \"{taskTitle}\"."
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "This will permanently delete backup {name}."
+msgstr "This will permanently delete backup {name}."
+
 #. placeholder {0}: currentDashboardName ?? t`this dashboard`
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "This will remove \"{0}\". Widgets and layouts will be lost."
@@ -6746,6 +6903,10 @@ msgstr "Total milestones"
 msgid "Total tasks"
 msgstr "Total tasks"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Total: {count}"
+msgstr "Total: {count}"
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -6813,6 +6974,7 @@ msgstr "Try Motio now"
 msgid "Try returning home or jump back into the timeline."
 msgstr "Try returning home or jump back into the timeline."
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -7035,6 +7197,10 @@ msgstr "Update the element library"
 msgid "updated a task"
 msgstr "updated a task"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Upload backup"
+msgstr "Upload backup"
+
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Upload or remove your profile photo."
 msgstr "Upload or remove your profile photo."
@@ -7080,6 +7246,10 @@ msgstr "User workspaces"
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Users"
 msgstr "Users"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Users are created, edited and deleted in the Keycloak admin console."
+msgstr "Users are created, edited and deleted in the Keycloak admin console."
 
 #: src/features/workspace/lib/starterTemplates/common.ts
 msgid "Vacation"
@@ -7145,6 +7315,7 @@ msgstr "View tasks"
 msgid "viewer"
 msgstr "viewer"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -7323,12 +7494,17 @@ msgstr "Workspace joined"
 msgid "Workspace limit reached (5)."
 msgstr "Workspace limit reached (5)."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Workspace name"
 msgstr "Workspace name"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Workspace name is required."
+msgstr "Workspace name is required."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/hooks/useWorkspaceGeneralDraft.ts
@@ -7348,12 +7524,21 @@ msgstr "Workspace settings"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/pages/AdminOverviewPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Workspaces"
 msgstr "Workspaces"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Workspaces where the user is the owner"
+msgstr "Workspaces where the user is the owner"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Workspaces where the user is the owner or an admin"
+msgstr "Workspaces where the user is the owner or an admin"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Workspaces you will simply leave:"
