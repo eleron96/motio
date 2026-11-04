@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.64] - 2026-11-04
 ### Security
 - Updated the storage for images and attachments to close known vulnerabilities. All files stay in place.
 

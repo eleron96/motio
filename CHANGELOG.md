@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.64] - 2026-11-04
 ### Security
 - Обновили хранилище картинок и вложений — в нём закрыты известные уязвимости. Все файлы на месте.
 
