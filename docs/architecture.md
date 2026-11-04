@@ -211,7 +211,11 @@ WebSocket per tab; row-level security decides what reaches whom, exactly as for 
 ## Admin Console
 
 Page: `/app/admin` — super admins only, reachable by direct URL (no in-app links,
-by design). The SPA still redirects the old `/admin/users` address to
+by design). Access is the Keycloak realm role `app_super_admin`, checked against
+Keycloak on every request; the `super_admins` table only caches the directly
+assigned role. `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=true` (off by default) also
+counts the role inherited from a group or composite role, without caching it.
+The console speaks the interface language (en, ru, de). The SPA still redirects the old `/admin/users` address to
 `/app/admin/users`, but that only applies where the SPA serves the path: in
 production Caddy hands the whole `/admin*` prefix to the Keycloak console.
 
@@ -221,5 +225,6 @@ production Caddy hands the whole `/admin*` prefix to the Keycloak console.
 | **Users** (`/app/admin/users`) | user overview, workspace ownership, storage usage |
 | **Workspaces** (`/app/admin/workspaces`) | rename / delete workspace |
 | **Easter eggs** (`/app/admin/easter-eggs`) | assign a daily-brief egg to one person, a mail domain, a workspace, or everyone |
-| **Broadcast** (`/app/admin/broadcast`) | announcements and service notices, sent by email or shown as an in-app banner |
+| **Broadcast** (`/app/admin/broadcast`) | announcements and service notices, sent by email or shown as an in-app banner; an in-app announcement takes a title in any of ru, en, de, and a German reader without German text sees English |
 | **Backups** (`/app/admin/backups`) | create / upload / download / rename / delete / restore |
+| **System** (`/app/admin/system`) | version and available update, service health, what is switched on, test email |
