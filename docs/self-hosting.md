@@ -219,6 +219,13 @@ patch of that line.
   with its backup and rollback. Do not upgrade single containers from WUD or
   Portainer: a newer Keycloak, Postgres or Supabase service can need a migration
   or break sign-in.
+- **PostgreSQL 17 (from 0.10.66).** The first `install.sh update` to such a
+  release moves the database from PostgreSQL 15 by itself, after the usual backup
+  set: Motio is stopped for about a minute longer than usual. The data is copied
+  into a new volume and compared table by table, and the update stops if anything
+  differs. The PostgreSQL 15 volume stays as it was, so `install.sh rollback`
+  goes back to the previous release with it. Keep free disk space of about twice
+  the database. Details: [operations](operations.md), «Moving to PostgreSQL 17».
 - **Security fixes do not wait.** A fix for a vulnerability that affects Motio
   ships as a release of its own, and its notes say so.
 - **Staying informed.** On GitHub, **Watch → Custom → Releases**; advisories are
@@ -386,7 +393,7 @@ after the instance (`motio` by default):
 
 | What | Where |
 |---|---|
-| Database: workspaces, projects, tasks, people, accounts | volume `motio_db_data` |
+| Database: workspaces, projects, tasks, people, accounts | volume `motio_db_data_pg17` (before 0.10.66: `motio_db_data`, kept after the move as the rollback) |
 | Keycloak: sign-ins, passwords, realm settings | volume `motio_keycloak_db_data` |
 | Uploaded files: avatars, task attachments | volume `motio_storage_data` |
 | Certificates (mode `tls`) | volumes `motio_caddy_data`, `motio_caddy_config` |

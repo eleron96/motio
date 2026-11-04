@@ -20,8 +20,7 @@
 //   и подхватится на следующем cron-тике.
 //
 // Ответ: { processed, purged, failed, skipped, details: [...] }.
-import { serve } from "https://deno.land/std@0.203.0/http/server.ts";
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
 import {
   deleteKeycloakUser,
   ensureKeycloakReady,
@@ -275,5 +274,5 @@ export const handler = async (req: Request) => {
 };
 
 if (import.meta.main) {
-  serve(handler);
+  Deno.serve(handler);
 }

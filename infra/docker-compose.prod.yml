@@ -1,6 +1,6 @@
 services:
   db:
-    image: supabase/postgres:15.1.0.117
+    image: supabase/postgres:17.6.1.136
     restart: unless-stopped
     deploy:
       resources:
@@ -37,13 +37,19 @@ services:
       - "127.0.0.1:54322:5432"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_USER: ${POSTGRES_USER}
+      # Used only when a new database is created: the image runs its setup as
+      # supabase_admin. Byte-order text sorting (C.UTF-8), as on PostgreSQL 15.
+      POSTGRES_USER: supabase_admin
+      POSTGRES_INITDB_ARGS: --allow-group-access --encoding=UTF-8 --locale-provider=builtin --builtin-locale=C.UTF-8 --locale=C.UTF-8
       POSTGRES_DB: ${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
     volumes:
       - supabase_db_data:/var/lib/postgresql/data
+      - ./supabase/db/motio-init.sql:/docker-entrypoint-initdb.d/migrations/99-motio-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      # The image answers pg_isready while it still sets the new database up;
+      # _realtime is created last (motio-init.sql), so wait for it as well.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} && psql -U supabase_admin -d ${POSTGRES_DB} -tAc \"select 1 from pg_namespace where nspname = '_realtime'\" | grep -q 1"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -204,13 +210,8 @@ services:
       RLIMIT_NOFILE: "10000"
 
   functions:
-    image: supabase/edge-runtime:v1.41.2
+    image: supabase/edge-runtime:v1.77.4
     restart: unless-stopped
-    # esm.sh's default anycast IPs (8.x) are unroutable from this host, which
-    # hangs the edge-runtime on boot while it fetches function deps (supabase-js,
-    # jszip). Pin esm.sh to a reachable Cloudflare IP so cold starts succeed.
-    extra_hosts:
-      - "esm.sh:172.67.70.222"
     deploy:
       resources:
         limits:
@@ -264,10 +265,9 @@ services:
       MOTIO_UPDATE_CHECK: ${MOTIO_UPDATE_CHECK:-true}
     volumes:
       - ./supabase/functions:/home/deno/functions:ro
-      # Persist the Deno dependency cache across container recreates so cold
-      # starts never re-fetch function deps from esm.sh. Combined with the
-      # extra_hosts pin above, the first boot populates this volume and every
-      # later recreate reuses it — no network round-trip to esm.sh required.
+      # Persist the Deno dependency cache across container recreates: the first
+      # boot fetches the npm: dependencies of the functions from the npm registry
+      # into this volume, and every later recreate reuses them.
       - deno_cache:/root/.cache/deno
     command: ["start", "--main-service", "/home/deno/functions/main", "--port", "9000"]
 
@@ -503,8 +503,10 @@ services:
     entrypoint: ["/bin/sh", "/liquibase/changelog/liquibase-run.sh"]
 
 volumes:
+  # PostgreSQL 17. The PostgreSQL 15 data stays in supabase_db_data, untouched
+  # since infra/scripts/pg-upgrade-17.sh copied it here (rollback).
   supabase_db_data:
-    name: supabase_db_data
+    name: supabase_db_data_pg17
     external: true
   keycloak_db_data:
     name: keycloak_db_data

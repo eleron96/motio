@@ -13,7 +13,7 @@ set -euo pipefail
 #
 # Needs `deno` 1.40.x (the version inside supabase/edge-runtime v1.41.2).
 # Without a local install:
-#   docker run --rm -v "$PWD:/repo:ro" -w /repo denoland/deno:1.40.3 \
+#   docker run --rm -v "$PWD:/repo:ro" -w /repo denoland/deno:2.1.4 \
 #     bash infra/scripts/check-edge-functions.sh
 
 if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then

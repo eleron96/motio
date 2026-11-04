@@ -7,6 +7,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.66] - 2026-11-04
+### Security
+- Updated the database and the server functions to close known vulnerabilities. All data stays in place, no need to sign in again.
+
+### Changed
+- For your own servers: the database moves to PostgreSQL 17. The first “install.sh update” moves the data by itself and checks it table by table; Motio is down about a minute longer than usual. Keep free space of about twice the database. The previous database stays untouched, and “install.sh rollback” goes back to it.
+
 ## [0.10.65] - 2026-11-04
 ### Security
 - Updated the live updates service to close known vulnerabilities. Teammates' changes still show up right away.
