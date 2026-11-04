@@ -479,3 +479,6 @@
 2026-11-04T10:16:53Z | 0.10.60 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-101455.dump | In the demo, the Members and access tab in workspace settings no longer shows an error.
 2026-11-04T11:09:49Z | 0.10.61 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-110853.dump | Updated the sign-in system to close known vulnerabilities. Signing up and signing in work as before.
 2026-11-04T11:46:36Z | 0.10.62 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-114543.dump | On motio.nikog.net, Google sign-in is switched off: sign in with your email and password. If you have no password, set one with “Forgot password?” on the sign-in page.
+2026-11-04T17:37:54Z | 0.10.63 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-173702.dump | Updated the sign-in and session service to close known vulnerabilities. You stay signed in.
+2026-11-04T18:33:48Z | 0.10.64 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-183253.dump | Updated the storage for images and attachments to close known vulnerabilities. All files stay in place.
+2026-11-04T18:54:08Z | 0.10.65 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-185316.dump | Updated the live updates service to close known vulnerabilities. Teammates' changes still show up right away.

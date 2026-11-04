@@ -128,6 +128,9 @@ make check-prod-secrets-remote   # check .env on the remote server
 
 ## Liquibase
 
+- `AUTO_PRE_START_SNAPSHOT` (default `true`) — production deploys snapshot the database
+  and uploaded files before new service images start (`infra/scripts/prod-snapshot.sh`,
+  `infra/backups/snapshots/`, newest 5 kept); `false` skips it.
 - `AUTO_PRE_MIGRATION_BACKUP`
 - `AUTO_KEYCLOAK_PRE_SYNC_BACKUP`
 - `LIQUIBASE_LOG_LEVEL`

@@ -81,7 +81,7 @@ services:
       - "8081:8080"
 
   auth:
-    image: supabase/gotrue:v2.151.0
+    image: supabase/gotrue:v2.197.0
     container_name: supabase-auth
     restart: unless-stopped
     depends_on:
@@ -139,7 +139,7 @@ services:
       PGRST_OPENAPI_MODE: disabled
 
   realtime:
-    image: ghcr.io/supabase/realtime:v2.30.34
+    image: supabase/realtime:v2.143.3
     container_name: supabase-realtime
     restart: unless-stopped
     depends_on:
@@ -157,6 +157,9 @@ services:
       DB_ENC_KEY: ${REALTIME_DB_ENC_KEY:-supabaserealtime}
       API_JWT_SECRET: ${JWT_SECRET}
       SECRET_KEY_BASE: ${JWT_SECRET}
+      # Realtime 2.143 refuses to start without it: it signs the metrics endpoint. The same
+      # secret as the API, as in Supabase's own self-hosted compose.
+      METRICS_JWT_SECRET: ${JWT_SECRET}
       APP_NAME: realtime
       SEED_SELF_HOST: "true"
       RUN_JANITOR: "true"
@@ -252,7 +255,7 @@ services:
       - ./backups:/backups
 
   storage:
-    image: supabase/storage-api:v1.11.13
+    image: supabase/storage-api:v1.81.0
     container_name: supabase-storage
     restart: unless-stopped
     depends_on:

@@ -59,7 +59,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          # Realtime 2.143 idles at ~200 MB; 256M left it no headroom.
+          memory: 384M
           cpus: '0.5'
 
   functions:

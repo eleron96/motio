@@ -7,6 +7,21 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.65] - 2026-11-04
+### Security
+- Updated the live updates service to close known vulnerabilities. Teammates' changes still show up right away.
+
+## [0.10.64] - 2026-11-04
+### Security
+- Updated the storage for images and attachments to close known vulnerabilities. All files stay in place.
+
+### Changed
+- For your own servers: file storage is updated, and this update cannot be undone by switching versions. The installer backs up the whole install before the update as usual, and “install.sh rollback” brings it back together with the files.
+
+## [0.10.63] - 2026-11-04
+### Security
+- Updated the sign-in and session service to close known vulnerabilities. You stay signed in.
+
 ## [0.10.62] - 2026-11-04
 ### Changed
 - On motio.nikog.net, Google sign-in is switched off: sign in with your email and password. If you have no password, set one with “Forgot password?” on the sign-in page.

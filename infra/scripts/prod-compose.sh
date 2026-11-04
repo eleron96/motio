@@ -391,6 +391,17 @@ if [[ -n "$db_container" && -n "$auth_container" ]]; then
   fi
 fi
 
+# Snapshot the database and uploaded files BEFORE new service images start:
+# GoTrue, Storage and Realtime migrate their schemas on start, some one-way,
+# so the pre-migration dump further down is already taken after them.
+pre_start_snapshot="$(get_env_value AUTO_PRE_START_SNAPSHOT)"
+pre_start_snapshot="$(normalize_bool "${pre_start_snapshot:-true}")"
+if [[ "$pre_start_snapshot" == "true" ]]; then
+  infra/scripts/prod-snapshot.sh "$env_file" "$compose_file"
+else
+  echo "AUTO_PRE_START_SNAPSHOT=false, skipping the pre-start snapshot."
+fi
+
 # Back up Keycloak's database BEFORE a new Keycloak starts: a newer Keycloak
 # rewrites its schema on start, and a backup taken afterwards cannot bring the
 # old version back. The very first deploy has no keycloak-db yet and backs up

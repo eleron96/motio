@@ -25,8 +25,8 @@ export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-postgres}"
 export POSTGRES_DB="${POSTGRES_DB:-postgres}"
 export JWT_SECRET="${JWT_SECRET:-ci-super-secret-jwt-token-with-at-least-32-characters}"
 
-GOTRUE_IMAGE="${GOTRUE_IMAGE:-supabase/gotrue:v2.151.0}"
-STORAGE_IMAGE="${STORAGE_IMAGE:-supabase/storage-api:v1.11.13}"
+GOTRUE_IMAGE="${GOTRUE_IMAGE:-supabase/gotrue:v2.197.0}"
+STORAGE_IMAGE="${STORAGE_IMAGE:-supabase/storage-api:v1.81.0}"
 COMPOSE=(docker compose -f infra/docker-compose.yml)
 
 log() { echo "==> $*"; }
