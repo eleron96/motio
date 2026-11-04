@@ -477,3 +477,4 @@
 2026-11-02T16:16:54Z | 0.10.58 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261102-161603.dump | When a task is moved to another day, the tasks under it rise into the freed place — no more gaps left in the stack.
 2026-11-03T05:45:19Z | 0.10.59 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261103-054335.dump | Timeline rows leave more free space under their tasks, so it is easier to double-click or double-tap there to add a task on that day.
 2026-11-04T10:16:53Z | 0.10.60 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-101455.dump | In the demo, the Members and access tab in workspace settings no longer shows an error.
+2026-11-04T11:09:49Z | 0.10.61 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-110853.dump | Updated the sign-in system to close known vulnerabilities. Signing up and signing in work as before.

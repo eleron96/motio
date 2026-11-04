@@ -396,7 +396,8 @@ sys.exit(1 if any(volume.get("external") for volume in volumes.values()) else 0)
   export KEYCLOAK_ADMIN_BASE_URL="http://127.0.0.1:${keycloak_port}"
   local script
   for script in client-secret client-urls realm-ssl-required realm-branding realm-frontend-url \
-    realm-session-policy realm-bruteforce realm-passwordpolicy realm-user-profile realm-locales realm-smtp; do
+    realm-session-policy realm-bruteforce realm-passwordpolicy realm-user-profile realm-locales \
+    realm-register-password realm-smtp; do
     infra/scripts/keycloak-ensure-"$script".sh "$env_file"
   done
 

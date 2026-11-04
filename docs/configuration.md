@@ -51,6 +51,12 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `KEYCLOAK_REALM_SUPPORTED_LOCALES` — languages the realm offers on the sign-in page
   and in account emails, applied by `keycloak-ensure-realm-locales.sh` on every deploy
   (`en,ru,de` by default, the same as the app).
+- `KEYCLOAK_REALM_REGISTER_PASSWORD_ON_FORM` (default `true`) — the registration form
+  asks for the password right away, as it always has. From Keycloak 26.7, with
+  "Verify email" on, Keycloak would otherwise ask for it only after the email is
+  verified; `false` switches to that. Applied by
+  `keycloak-ensure-realm-register-password.sh` on every deploy; older Keycloak needs
+  nothing and the script skips.
 - `KEYCLOAK_JAVA_OPTS_APPEND` (default `-Xms512m`; `install.sh` writes `-Xms256m`) — extra
   JVM options for Keycloak. Leave out `-Xmx`: Keycloak caps its heap at 70% of the
   container's memory limit, and a heap as large as the limit gets the container killed
