@@ -81,7 +81,7 @@ services:
       - "8081:8080"
 
   auth:
-    image: supabase/gotrue:v2.151.0
+    image: supabase/gotrue:v2.197.0
     container_name: supabase-auth
     restart: unless-stopped
     depends_on:
