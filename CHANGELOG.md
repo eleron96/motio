@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Security
+- Обновили базу данных и серверные функции — в них закрыты известные уязвимости. Все данные на месте, входить заново не нужно.
+
+### Changed
+- Для своих серверов: база данных переходит на PostgreSQL 17. Первое «install.sh update» переносит данные само и сверяет их таблица за таблицей; Motio при этом стоит примерно на минуту дольше обычного. Нужно свободное место примерно на два объёма базы. Прежняя база остаётся нетронутой, и «install.sh rollback» возвращает к ней.
 
 ## [0.10.65] - 2026-11-04
 ### Security
