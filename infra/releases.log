@@ -483,3 +483,4 @@
 2026-11-04T18:33:48Z | 0.10.64 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-183253.dump | Updated the storage for images and attachments to close known vulnerabilities. All files stay in place.
 2026-11-04T18:54:08Z | 0.10.65 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-185316.dump | Updated the live updates service to close known vulnerabilities. Teammates' changes still show up right away.
 2026-11-04T20:35:40Z | 0.10.66 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-203445.dump | Updated the database and the server functions to close known vulnerabilities. All data stays in place, no need to sign in again.
+2026-11-04T22:37:29Z | 0.10.67 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261104-223638.dump | “Sign out” works again when the session has gone stale, and invitations, notifications and the admin console renew an outdated sign-in on their own instead of failing.

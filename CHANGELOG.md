@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.10.67] - 2026-11-04
 ### Fixed
 - «Выйти» снова выходит, даже если сессия устарела, а приглашения, уведомления и админ-консоль сами обновляют устаревший вход вместо ошибки.
 - Для своих серверов: «install.sh rollback» и «install.sh restore» на более раннюю версию больше не останавливаются на настройке Keycloak — установка поднимается до конца.
