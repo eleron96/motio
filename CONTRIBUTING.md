@@ -108,7 +108,12 @@ translation in it too. Then touch all of these, or part of the app stays English
    texts in `login/resources/js/login.v*.js` (bump the version in the file name),
    and the default of `KEYCLOAK_REALM_SUPPORTED_LOCALES`
    (`infra/scripts/keycloak-ensure-realm-locales.sh`).
-7. The landing language switch cycles through `SUPPORTED_LOCALES` by itself.
+7. In-app announcements keep one title and text per language: add
+   `title_<code>` / `body_<code>` to `app_announcements` and
+   `get_my_announcements()` (as `0171_app_announcements_german.sql` did), the
+   fields in `AnnouncementFields.tsx` and the admin function, and the language in
+   `announcementText.ts`. Without it readers get the English text.
+8. The landing language switch cycles through `SUPPORTED_LOCALES` by itself.
    Privacy and Terms stay English for new languages unless a lawyer-checked text
    exists; release notes fall back to English.
 

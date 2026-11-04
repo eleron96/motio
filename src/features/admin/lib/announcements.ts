@@ -6,8 +6,10 @@ export interface AnnouncementRow {
   id: string;
   title: string;
   titleEn: string | null;
+  titleDe?: string | null;
   bodyRu: string | null;
   bodyEn: string | null;
+  bodyDe?: string | null;
   level: AnnouncementLevel;
   audienceKind: AnnouncementAudienceKind;
   audienceValue: string | null;
@@ -26,8 +28,10 @@ export interface AnnouncementDraft {
   workspaceId: string;
   titleRu: string;
   titleEn: string;
+  titleDe: string;
   bodyRu: string;
   bodyEn: string;
+  bodyDe: string;
   endsAt: string;
 }
 
@@ -38,8 +42,10 @@ export const emptyAnnouncementDraft = (): AnnouncementDraft => ({
   workspaceId: '',
   titleRu: '',
   titleEn: '',
+  titleDe: '',
   bodyRu: '',
   bodyEn: '',
+  bodyDe: '',
   endsAt: '',
 });
 
@@ -61,8 +67,10 @@ export const draftFromRow = (row: AnnouncementRow): AnnouncementDraft => ({
   workspaceId: row.audienceKind === 'workspace' ? row.audienceValue ?? '' : '',
   titleRu: row.title,
   titleEn: row.titleEn ?? '',
+  titleDe: row.titleDe ?? '',
   bodyRu: row.bodyRu ?? '',
   bodyEn: row.bodyEn ?? '',
+  bodyDe: row.bodyDe ?? '',
   endsAt: toDateInput(row.endsAt),
 });
 
@@ -72,9 +80,9 @@ export const draftAudienceValue = (draft: AnnouncementDraft): string | null => {
   return null;
 };
 
-/** A draft is ready once it says something and knows who it is for. */
+/** A draft is ready once it has a title in any language and knows who it is for. */
 export const isAnnouncementDraftReady = (draft: AnnouncementDraft): boolean => {
-  if (!draft.titleRu.trim()) return false;
+  if (!draft.titleRu.trim() && !draft.titleEn.trim() && !draft.titleDe.trim()) return false;
   if (draft.audienceKind === 'domain') return draft.domain.trim().length > 0;
   if (draft.audienceKind === 'workspace') return draft.workspaceId.length > 0;
   return true;

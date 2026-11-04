@@ -15,6 +15,7 @@ import type {
   Subscription,
   User,
 } from '@supabase/supabase-js';
+import { INVITE_ACTIONS } from '@/shared/contracts/actions';
 import { demoStore } from './demoDataStore';
 
 import { cloneRow, fail, ok, type Result, type Row } from './demoClientCore';
@@ -194,8 +195,21 @@ const rpc = (name: string, args: Record<string, unknown> = {}) => {
 };
 
 // ── functions.invoke — Edge Functions are out of scope for demo ────────
+// Lists a screen loads on open answer "nothing there": the sandbox never sends
+// or receives an invite, and an error banner over an empty list reads as a
+// broken app. Everything else still fails.
+const emptyFunctionReads: Record<string, Partial<Record<string, Row>>> = {
+  invite: {
+    [INVITE_ACTIONS.LIST]: { invites: [] },
+    [INVITE_ACTIONS.LIST_SENT]: { invites: [] },
+  },
+};
+
 const functions = {
-  async invoke(_name: string, _opts?: unknown) {
+  async invoke(name: string, opts?: { body?: { action?: unknown } }) {
+    const action = opts?.body?.action;
+    const empty = typeof action === 'string' ? emptyFunctionReads[name]?.[action] : undefined;
+    if (empty) return ok(cloneRow(empty));
     return fail('Edge Functions are not available in the demo sandbox.');
   },
 };

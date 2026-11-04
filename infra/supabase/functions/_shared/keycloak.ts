@@ -504,6 +504,23 @@ export const getUserRealmRoles = async (config: KeycloakConfig, userId: string) 
   return { roles };
 };
 
+// Effective realm roles: direct ones plus those inherited from groups and
+// composite roles. Read-only — role sync keeps working on direct roles.
+export const getUserEffectiveRealmRoles = async (config: KeycloakConfig, userId: string) => {
+  const response = await keycloakRequest(
+    config,
+    `/admin/realms/${encodeURIComponent(config.realm)}/users/${encodeURIComponent(userId)}/role-mappings/realm/composite`,
+    { method: "GET" },
+  );
+
+  if (!response.ok) {
+    return { error: await parseKeycloakError(response) };
+  }
+
+  const roles = await response.json() as KeycloakRoleRepresentation[];
+  return { roles };
+};
+
 export const syncUserRealmRoles = async (
   config: KeycloakConfig,
   userId: string,

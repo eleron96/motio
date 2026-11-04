@@ -265,6 +265,10 @@ msgstr "{weeksAgo, plural, one {# неделю назад} few {# недели �
 msgid "+{0} more milestones"
 msgstr "+{0} ещё этапов"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "+{count} more"
+msgstr "и ещё {count}"
+
 #: src/features/dashboard/hooks/useChartLayout.ts
 msgid "+{groupedLegendCount} hidden"
 msgstr "+{groupedLegendCount} скрыто"
@@ -417,8 +421,10 @@ msgid "Action failed"
 msgstr "Действие не выполнено"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Actions"
@@ -587,6 +593,7 @@ msgstr "Добавляет эту веху в тепловую карту заг
 msgid "admin"
 msgstr "администратор"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -596,6 +603,10 @@ msgstr "администратор"
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Admin"
 msgstr "Администратор"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Admin console"
+msgstr "Админ-консоль"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/components/AdminLayout.tsx
@@ -845,6 +856,10 @@ msgstr "Авто"
 msgid "auto from history"
 msgstr "авто по истории"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Average per file: {size}"
+msgstr "В среднем на файл: {size}"
+
 #: src/features/planner/components/timeline/CalendarDayHoverContent.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Away"
@@ -881,6 +896,10 @@ msgstr "Бэкенд"
 msgid "Backup & restore"
 msgstr "Резервные копии и восстановление"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Backup name is required."
+msgstr "Укажите имя бэкапа."
+
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Backup service"
 msgstr "Сервис бэкапов"
@@ -906,6 +925,10 @@ msgstr "Столбчатая диаграмма"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Beer"
 msgstr "Пиво"
+
+#: src/features/admin/lib/format.ts
+msgid "Before restore"
+msgstr "Перед восстановлением"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Behind your own reverse proxy"
@@ -1009,9 +1032,14 @@ msgstr "Позвонить"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
@@ -1090,6 +1118,10 @@ msgstr "Отменена"
 #: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Cancelled status"
 msgstr "Отмененный статус"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Change backup file name."
+msgstr "Изменить имя файла бэкапа."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Change easter egg"
@@ -1257,6 +1289,7 @@ msgstr "Переписка с заказчиком"
 msgid "Client review"
 msgstr "На согласовании"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
@@ -1555,6 +1588,10 @@ msgstr "Создайте проект и задайте клиента, код �
 msgid "Create account"
 msgstr "Создать аккаунт"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Create backup"
+msgstr "Создать бэкап"
+
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
@@ -1597,6 +1634,12 @@ msgstr "Создать пространство"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Создание аккаунта"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Created"
+msgstr "Создан"
 
 #. placeholder {0}: formatDate(token.createdAt)
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -1682,6 +1725,7 @@ msgstr "Клиент:"
 msgid "Customers"
 msgstr "Клиенты"
 
+#: src/features/admin/lib/format.ts
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Daily"
 msgstr "Ежедневно"
@@ -1794,7 +1838,10 @@ msgstr "по умолчанию"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
@@ -1847,6 +1894,10 @@ msgstr "Удалить все"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "Delete announcement?"
 msgstr "Удалить объявление?"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Delete backup?"
+msgstr "Удалить бэкап?"
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Delete comment?"
@@ -1948,10 +1999,12 @@ msgstr "Удалить это рабочее пространство"
 msgid "Delete widget"
 msgstr "Удалить виджет"
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Delete workspace"
 msgstr "Удалить рабочее пространство"
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Delete workspace?"
 msgstr "Удалить рабочее пространство?"
@@ -2100,6 +2153,10 @@ msgstr "Закрыли"
 msgid "Display"
 msgstr "Отображение"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Display name"
+msgstr "Имя"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Display style"
 msgstr "Стиль отображения"
@@ -2150,6 +2207,10 @@ msgstr "Дважды щёлкните по любому дню в строке �
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 msgid "Double-tap to open it"
 msgstr "Двойной тап — открыть задачу"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Download"
+msgstr "Скачать"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Download export"
@@ -2351,6 +2412,7 @@ msgstr "Правка не вернёт объявление тем, кто ег�
 msgid "editor"
 msgstr "редактор"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -2372,6 +2434,7 @@ msgstr "Электрика"
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "Email"
@@ -2523,6 +2586,11 @@ msgstr "Все, кто уже закрыл это объявление, увид
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Everything your team needs to stay aligned"
 msgstr "Всё, что нужно команде, чтобы работать слаженно"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Exact size: {size}"
+msgstr "Точный размер: {size}"
 
 #: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Example data"
@@ -2703,6 +2771,10 @@ msgstr "Файл слишком большой"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "File storage"
 msgstr "Хранилище файлов"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Files: {count}"
+msgstr "Файлов: {count}"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Fill out task fields and create a new task."
@@ -3291,6 +3363,10 @@ msgstr "Последний экспорт завершился с ошибкой
 msgid "Last in series"
 msgstr "Последняя в серии"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Last sign in"
+msgstr "Последний вход"
+
 #. placeholder {0}: formatDate(token.lastUsedAt)
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "last used {0}"
@@ -3315,8 +3391,12 @@ msgid "Leave"
 msgstr "Покинуть"
 
 #: src/features/admin/components/AnnouncementFields.tsx
-msgid "Leave empty to reuse the Russian text"
-msgstr "Пусто — покажем русский текст"
+msgid "Leave empty to reuse another language"
+msgstr "Оставьте пустым — возьмётся текст на другом языке"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Leave empty to show the English text"
+msgstr "Оставьте пустым — покажется английский текст"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Leave the dates empty to switch it on now and off by hand. A personal assignment wins over a workspace one, which wins over a domain, which wins over everyone."
@@ -3505,6 +3585,14 @@ msgstr "Управляйте ролями, группами и статусом 
 msgid "Manage your profile and account preferences."
 msgstr "Управляйте своим профилем и настройками аккаунта."
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Managed"
+msgstr "Управляет"
+
+#: src/features/admin/lib/format.ts
+msgid "Manual"
+msgstr "Вручную"
+
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Mark as read"
@@ -3587,6 +3675,7 @@ msgstr "Действия с участником"
 msgid "Member not found."
 msgstr "Участник не найден."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
@@ -3769,6 +3858,9 @@ msgstr "Свой набор"
 msgid "My team workspace"
 msgstr "Рабочее пространство моей команды"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -3967,6 +4059,10 @@ msgstr "Нет доступных участников."
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "No backups"
 msgstr "Нет бэкапов"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "No backups."
+msgstr "Бэкапов нет."
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "No broadcasts yet."
@@ -4291,6 +4387,10 @@ msgstr "Правил пока нет."
 msgid "No statuses in this workspace yet"
 msgstr "В пространстве пока нет статусов"
 
+#: src/features/admin/lib/format.ts
+msgid "No storage data"
+msgstr "Нет данных о хранилище"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "No subtasks yet."
@@ -4357,6 +4457,10 @@ msgstr "Токенов пока нет."
 msgid "No upcoming milestones in the next 7 days."
 msgstr "Вех в ближайшие 7 дней нет."
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "No users."
+msgstr "Пользователей нет."
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "No widgets yet."
 msgstr "Пока нет виджетов."
@@ -4366,6 +4470,7 @@ msgid "No workspaces need your attention — you can continue."
 msgstr "Рабочие пространства не требуют вашего внимания — можно продолжать."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "No workspaces."
 msgstr "Рабочих пространств нет."
 
@@ -4685,6 +4790,12 @@ msgstr "перегруз"
 msgid "Overview"
 msgstr "Обзор"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Owned"
+msgstr "Владеет"
+
+#: src/features/admin/lib/format.ts
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
@@ -5099,7 +5210,10 @@ msgstr "Получателей: {0}"
 msgid "Recurring"
 msgstr "Повтор"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminSystemPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/DataExportButton.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -5206,10 +5320,16 @@ msgstr "Удалить виджет"
 msgid "Removing…"
 msgstr "Убираем…"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
 msgid "Rename"
 msgstr "Переименовать"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Rename backup"
+msgstr "Переименовать бэкап"
 
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/DashboardSwitcher.tsx
@@ -5225,6 +5345,14 @@ msgstr "Переименовать удалённого участника"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Rename failed"
 msgstr "Не удалось переименовать"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Rename the selected workspace."
+msgstr "Переименовать выбранное пространство."
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Rename workspace"
+msgstr "Переименовать пространство"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Reorder subtask"
@@ -5307,9 +5435,18 @@ msgstr "Жилой квартал"
 msgid "Resize filters"
 msgstr "Изменить размер фильтров"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Restore"
+msgstr "Восстановить"
+
 #: src/shared/components/PendingDeletionBanner.tsx
 msgid "Restore account"
 msgstr "Восстановить аккаунт"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Restore backup?"
+msgstr "Восстановить бэкап?"
 
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "Restore my account"
@@ -5351,6 +5488,7 @@ msgstr "Щелкните правой кнопкой, чтобы добавит�
 msgid "Riverside restaurant interior"
 msgstr "Интерьер ресторана на набережной"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5399,6 +5537,8 @@ msgid "Sage"
 msgstr "Шалфейный"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -5500,9 +5640,17 @@ msgstr "Школа на 600 учеников"
 msgid "Search"
 msgstr "Поиск"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Search by email, ID or workspace…"
+msgstr "Поиск по почте, ID или пространству…"
+
 #: src/features/admin/components/AdminUserPicker.tsx
 msgid "Search by name or email"
 msgstr "Поиск по имени или почте"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Search by name or owner…"
+msgstr "Поиск по названию или владельцу…"
 
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
@@ -5983,6 +6131,10 @@ msgstr "Обход объекта с заказчиком"
 msgid "Site work"
 msgstr "Работы на объекте"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Size"
+msgstr "Размер"
+
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -5990,8 +6142,8 @@ msgid "Skip"
 msgstr "Пропустить"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
-msgid "Skip the 30-day grace period for a PENDING_DELETION account. The cron will pick the user on the next tick."
-msgstr "Пропустить 30-дневный буфер для аккаунта в PENDING_DELETION. Cron заберёт пользователя на ближайшем тике."
+msgid "Skips the 30-day waiting period for an account marked for deletion (PENDING_DELETION). The account is deleted on the next run of the scheduled cleanup."
+msgstr "Пропускает 30-дневное ожидание для аккаунта, отмеченного к удалению (PENDING_DELETION). Аккаунт удалится при следующем запуске плановой очистки."
 
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
@@ -6035,6 +6187,10 @@ msgstr "Сортировать Я→А"
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 msgid "Sorting"
 msgstr "Сортировка"
+
+#: src/shared/ui/source-code-link.tsx
+msgid "Source code"
+msgstr "Исходный код"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Spot overload months ahead"
@@ -6125,6 +6281,10 @@ msgstr "Статусы, типы задач и теги можно поменя�
 #: src/features/projects/components/ProjectsMobileList.tsx
 msgid "Stop tracking"
 msgstr "Перестать отслеживать"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Storage"
+msgstr "Хранилище"
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Storage used"
@@ -6298,6 +6458,7 @@ msgstr "Обновления задач"
 msgid "Task was created, but subtasks were not saved."
 msgstr "Задача создана, но подзадачи не удалось сохранить."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
@@ -6372,6 +6533,10 @@ msgstr "Условия использования"
 #: src/shared/lib/accentColor.ts
 msgid "Terracotta"
 msgstr "Терракотовый"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Text (DE)"
+msgstr "Текст (DE)"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Text (EN)"
@@ -6613,6 +6778,10 @@ msgstr "Это навсегда удалит «{0}»."
 msgid "This will permanently delete \"{taskTitle}\"."
 msgstr "Это окончательно удалит \\\"{taskTitle}\\\"."
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "This will permanently delete backup {name}."
+msgstr "Бэкап {name} будет удалён безвозвратно."
+
 #. placeholder {0}: currentDashboardName ?? t`this dashboard`
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "This will remove \"{0}\". Widgets and layouts will be lost."
@@ -6663,6 +6832,10 @@ msgstr "Таймлайн, Дашборд, Проекты и Команда — 
 #: src/features/planner/components/TaskDetailHeader.tsx
 msgid "Title"
 msgstr "Название"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Title (DE)"
+msgstr "Заголовок (DE)"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Title (EN)"
@@ -6746,6 +6919,10 @@ msgstr "Всего вех"
 msgid "Total tasks"
 msgstr "Всего задач"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Total: {count}"
+msgstr "Всего: {count}"
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -6813,6 +6990,7 @@ msgstr "Попробуйте Motio сейчас"
 msgid "Try returning home or jump back into the timeline."
 msgstr "Вернитесь на главную или сразу откройте таймлайн."
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -7035,6 +7213,10 @@ msgstr "Обновить библиотеку элементов"
 msgid "updated a task"
 msgstr "изменил(а) задачу"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Upload backup"
+msgstr "Загрузить бэкап"
+
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Upload or remove your profile photo."
 msgstr "Загрузите или удалите фото профиля."
@@ -7080,6 +7262,10 @@ msgstr "Рабочие пространства пользователя"
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Users"
 msgstr "Пользователи"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Users are created, edited and deleted in the Keycloak admin console."
+msgstr "Пользователи создаются, меняются и удаляются в админке Keycloak."
 
 #: src/features/workspace/lib/starterTemplates/common.ts
 msgid "Vacation"
@@ -7145,6 +7331,7 @@ msgstr "Просмотреть задачи"
 msgid "viewer"
 msgstr "наблюдатель"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -7323,12 +7510,17 @@ msgstr "Вы добавлены в рабочее пространство"
 msgid "Workspace limit reached (5)."
 msgstr "Достигнут лимит рабочих пространств (5)."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Workspace name"
 msgstr "Название рабочего пространства"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Workspace name is required."
+msgstr "Укажите название пространства."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/hooks/useWorkspaceGeneralDraft.ts
@@ -7348,12 +7540,21 @@ msgstr "Настройки рабочего пространства"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/pages/AdminOverviewPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Workspaces"
 msgstr "Рабочие пространства"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Workspaces where the user is the owner"
+msgstr "Пространства, где пользователь — владелец"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Workspaces where the user is the owner or an admin"
+msgstr "Пространства, где пользователь — владелец или админ"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Workspaces you will simply leave:"

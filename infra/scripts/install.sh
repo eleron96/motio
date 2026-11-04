@@ -255,6 +255,7 @@ values = {
     "VITE_AUTH_MODE": "keycloak",
     "VITE_KEYCLOAK_PUBLIC_URL": url,
     "VITE_PUBLIC_SITE_URL": f"{parsed.scheme}://{host}",
+    "VITE_START_PAGE": "landing",
     "VITE_PLAUSIBLE_DOMAIN": "",
     "VITE_PLAUSIBLE_SRC": "",
     "VITE_GLITCHTIP_DSN": "",

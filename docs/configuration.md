@@ -37,6 +37,10 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `GOTRUE_EXTERNAL_KEYCLOAK_*` — OIDC provider for Supabase Auth.
 - `KEYCLOAK_INTERNAL_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ADMIN_REALM`,
   `KEYCLOAK_ADMIN_CLIENT_ID` — Edge Functions' access to the Keycloak Admin API.
+- `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS` — `true` lets the realm role `app_super_admin`
+  count when it comes from a Keycloak group or a composite role, not only when it
+  is assigned to the user directly. Default `false`. Leaving the group takes the
+  access away on the next check (see `docs/self-hosting.md`, «Super admins»).
 - `KEYCLOAK_ADMIN_BASE_URL` — base URL for infra scripts
   (`http://127.0.0.1:8081` by default).
 - `KEYCLOAK_MANAGED_CLIENT_IDS` — comma-separated clientIds for the realm baseline
@@ -179,6 +183,10 @@ Built into `web` at build time (`vite/siteIdentity.ts`):
   `https://planner.example.com`, no path or trailing slash. It goes into the
   canonical and link-preview tags of `index.html`, `robots.txt` and `sitemap.xml`.
   Empty means `https://motio.nikog.net`.
+- `VITE_START_PAGE` — what the site root (`/`) opens: `landing` (default) shows
+  the public start page with the demo link, `app` goes straight to sign-in and the
+  app. With `app` the source code link moves from the start page to the version
+  line in account settings.
 - `VITE_PLAUSIBLE_DOMAIN`, `VITE_PLAUSIBLE_SRC` — page-view analytics with a
   Plausible-compatible script (`data-domain` and script URL). Set both or neither;
   empty means the page loads no analytics script. A self-hosted install sends

@@ -242,7 +242,9 @@ export interface PlannerStore extends PlannerState {
   deleteProject: (id: string) => Promise<MutationResult>;
   toggleTrackedProject: (projectId: string, isTracked?: boolean) => Promise<void>;
 
-  addCustomer: (customer: Omit<Customer, 'id'>) => Promise<Customer | null>;
+  // Only the name is required: a customer created from the projects page has
+  // no industry yet, and the insert stores a missing one as null.
+  addCustomer: (customer: Pick<Customer, 'name'> & Partial<Pick<Customer, 'industry'>>) => Promise<Customer | null>;
   updateCustomer: (id: string, updates: Partial<Customer>) => Promise<MutationResult>;
   deleteCustomer: (id: string) => Promise<MutationResult>;
 

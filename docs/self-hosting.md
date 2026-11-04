@@ -79,6 +79,13 @@ existing install, set `MOTIO_PROXY_NETWORK=npm_backend` in `.env` and run
 `install.sh --env-only …` writes `.env` and stops, if you want to review or edit it
 first; `install.sh up` then starts everything.
 
+The first migration prints a few notices about objects that do not exist yet,
+among them `realtime.messages not found, task draft channel policies skipped`.
+That one is expected: the realtime service creates the table when the first
+browser connects, and the next `install.sh up` or `update` adds the rules. They
+only matter for live drafts (`VITE_FEATURE_TASK_LIVE_DRAFTS`, off by default), and
+turning that on needs `install.sh up` anyway.
+
 The first run takes 10–15 minutes, most of it building the web app.
 
 ### First sign-in
@@ -99,10 +106,63 @@ accounts you can close it: Keycloak → realm **timeline** → **Realm settings*
 **Login** → **User registration** off. People are then added by invitation only
 (which needs [email](#email)).
 
+### Super admins
+
+The admin console (`/app/admin`) opens for people with the realm role
+`app_super_admin` in realm **timeline**. It is separate from workspace roles
+(viewer, editor, admin): a Keycloak group called "Admins" grants nothing by its
+name alone.
+
+To make someone a super admin: Keycloak → realm **timeline** → **Users** → the
+person → **Role mapping** → **Assign role** → `app_super_admin`. The console opens
+for them on the next page load.
+
+To grant it through a group instead, for example one filled from Authentik:
+
+1. Set `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=true` in `.env` and run `install.sh up`.
+2. Keycloak → realm **timeline** → **Groups** → the group → **Role mapping** →
+   **Assign role** → `app_super_admin`.
+3. If the group comes from your identity provider through a mapper, set the
+   mapper's **Sync mode** to *force*, so that leaving the group there takes
+   effect at the next sign-in.
+
+Access is checked against Keycloak on every visit to the console, so a person
+who leaves the group loses it right away. A role that comes from a group is
+never copied onto the person. One limit: **Force purge account** on the Users
+page needs the role assigned to the person directly.
+
+### Replace Keycloak's temporary administrator
+
+Keycloak calls the administrator the installer created *temporary* and suggests
+replacing it. The account lives in realm **master**; realm **timeline** is not
+affected. Motio's maintenance scripts and backend sign in to Keycloak with
+`KEYCLOAK_ADMIN` / `KEYCLOAK_ADMIN_PASSWORD` from `.env`, so the new account has
+to go there before the old one is removed — otherwise the next `install.sh up`
+or `update` stops with `401` from Keycloak.
+
+1. `https://<domain>/admin` → realm **master** → **Users** → **Add user**. Set a
+   password on **Credentials** with *Temporary* off, and on **Role mapping**
+   assign the realm role `admin`.
+2. Put the new login into `.env`: `KEYCLOAK_ADMIN=<new user>` and
+   `KEYCLOAK_ADMIN_PASSWORD=<its password>`.
+3. Run `install.sh up`. It applies the Keycloak settings with the new account; if
+   it stops with `401`, check step 2 before going on.
+4. Sign in to the admin console as the new user and delete the temporary one in
+   realm **master** → **Users**.
+
+Keycloak creates its first administrator only once, when its database is empty,
+so the temporary account does not come back. The new account lives in
+Keycloak's database and `.env` holds its password; both are in every
+[backup set](#backup-sets). A rollback to a set made before the change brings
+the old account and the old `.env` back together, so they still match.
+
+Change this password the same way later: first in Keycloak, then in `.env`.
+Changing only `.env` locks the scripts out.
+
 ## Update
 
-Nothing updates on its own: every image is pinned to an exact version, and a new
-release reaches your server only when you run:
+Nothing updates on its own: a new release reaches your server only when you run
+(how images are chosen and patched: [Security updates](#security-updates)):
 
 ```bash
 cd motio
@@ -141,6 +201,34 @@ first, so a rollback can itself be undone with `install.sh restore`.
 Without `--version`, `update` re-applies the current checkout with the same backup.
 `install.sh up` re-applies the configuration without a backup (after editing `.env`).
 
+## Security updates
+
+The images Motio runs are chosen and tested together and change with Motio
+releases. The Supabase services are pinned to exact versions; a few images are
+pinned to a version line (`caddy:2.11`, `postgres:15-alpine`, `keycloak:26.1`,
+`nginx:1.30-alpine`, `liquibase:4.27`), and `install.sh update` pulls the latest
+patch of that line.
+
+- **Weekly scan.** The repository checks all of these images every week for known
+  HIGH and CRITICAL vulnerabilities that already have a fix
+  ([Image scan](../.github/workflows/image-scan.yml); the report is on the run
+  page). The same check runs on your server with
+  `infra/scripts/scan-images.sh` (needs Docker and `jq`).
+- **Upgrades come as releases.** A newer image ships in a Motio release, together
+  with any data migration it needs, and reaches you through `install.sh update`
+  with its backup and rollback. Do not upgrade single containers from WUD or
+  Portainer: a newer Keycloak, Postgres or Supabase service can need a migration
+  or break sign-in.
+- **Security fixes do not wait.** A fix for a vulnerability that affects Motio
+  ships as a release of its own, and its notes say so.
+- **Staying informed.** On GitHub, **Watch → Custom → Releases**; advisories are
+  published under the repository's **Security** tab. Admin → System also shows
+  when a newer release is out.
+- **The host is yours.** The kernel, Docker and SSH of the server are patched by
+  you; container updates do not cover them.
+
+To report a vulnerability in Motio itself, see [SECURITY.md](../SECURITY.md).
+
 ## Everyday commands
 
 `infra/scripts/selfhost-compose.sh` is `docker compose` with the right files and
@@ -173,6 +261,7 @@ likely to touch:
 
 | Setting | Default for self-hosting |
 |---|---|
+| `VITE_START_PAGE` — `app` opens sign-in and the app at your address instead of the public start page | `landing` |
 | `VITE_FEATURE_PUSH` | on |
 | `VITE_FEATURE_KANBAN` (board view, beta), `VITE_FEATURE_ACCOUNT_DELETION`, `VITE_FEATURE_WORKSPACE_API` ([API](api.md)), `VITE_FEATURE_TASK_LIVE_DRAFTS` (teammates' live drafts in a task) | off |
 | `GOTRUE_SMTP_*` | empty — no email |
@@ -368,8 +457,8 @@ stack `motio` as created outside Portainer (limited control): logs, console,
 statistics, start, stop and restart work there. Do not redeploy or edit the stack
 from Portainer; change settings in `.env` and run `install.sh up`.
 
-**What's Up Docker (WUD).** Motio's images are pinned to exact versions that are
-tested together, and they change only with a Motio release. WUD will report newer
+**What's Up Docker (WUD).** Motio's images are chosen and tested together, and
+they change only with a Motio release ([Security updates](#security-updates)). WUD will report newer
 versions of images like `supabase/postgres` or `keycloak`: do not apply them one by
 one, update Motio instead. Motio itself is built on your server, so WUD does not see
 its releases; the [Admin → System](#everyday-commands) page and `install.sh status`

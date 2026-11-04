@@ -24,4 +24,8 @@ tests against motio.nikog.net.
 
 ## Supported versions
 
-Only the latest release is supported; fixes ship in the next release.
+Only the latest release is supported. A fix for a vulnerability ships as a
+release of its own, without waiting for the next feature release.
+
+Self-hosted installs: how the bundled container images are checked and updated
+is described in [Security updates](docs/self-hosting.md#security-updates).

@@ -233,6 +233,7 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD must be set in production}
       KEYCLOAK_APP_CLIENT_ID: ${KEYCLOAK_APP_CLIENT_ID:-timeline-supabase}
+      KEYCLOAK_SUPER_ADMIN_FROM_GROUPS: ${KEYCLOAK_SUPER_ADMIN_FROM_GROUPS:-false}
       TASK_MEDIA_MAX_FILE_BYTES: ${TASK_MEDIA_MAX_FILE_BYTES:-5242880}
       TASK_MEDIA_USER_QUOTA_BYTES: ${TASK_MEDIA_USER_QUOTA_BYTES:-209715200}
       TASK_MEDIA_WORKSPACE_QUOTA_BYTES: ${TASK_MEDIA_WORKSPACE_QUOTA_BYTES:-2147483648}
@@ -366,7 +367,7 @@ services:
       - storage_data:/var/lib/storage
 
   gateway:
-    image: nginx:1.27-alpine
+    image: nginx:1.30-alpine
     restart: unless-stopped
     deploy:
       resources:
@@ -407,6 +408,7 @@ services:
         VITE_FEATURE_TASK_LIVE_DRAFTS: ${VITE_FEATURE_TASK_LIVE_DRAFTS:-false}
         VITE_PUSH_VAPID_PUBLIC_KEY: ${VITE_PUSH_VAPID_PUBLIC_KEY:-}
         VITE_PUBLIC_SITE_URL: ${VITE_PUBLIC_SITE_URL:-}
+        VITE_START_PAGE: ${VITE_START_PAGE:-landing}
         VITE_PLAUSIBLE_DOMAIN: ${VITE_PLAUSIBLE_DOMAIN:-}
         VITE_PLAUSIBLE_SRC: ${VITE_PLAUSIBLE_SRC:-}
     # Files of earlier releases, kept for a week by the deploy scripts: nginx
@@ -431,7 +433,7 @@ services:
       - "127.0.0.1:5174:80"
 
   oauth2-proxy:
-    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.5
     restart: unless-stopped
     depends_on:
       web:

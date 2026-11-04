@@ -5,7 +5,7 @@ set -euo pipefail
 # outside tsconfig.app.json, so `npm run typecheck` never sees them.
 #
 # main/index.ts imports every function, so one `deno check` covers them all.
-# Strictness matches the frontend (strictNullChecks, no full strict) via
+# Strictness matches the frontend (full strict) via
 # infra/supabase/deno.check.json — kept outside functions/ so the edge-runtime
 # container (which mounts only that folder) never picks it up.
 #

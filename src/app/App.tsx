@@ -15,6 +15,7 @@ import { useLocaleStore } from "@/shared/store/localeStore";
 import { PageErrorBoundary } from "@/app/PageErrorBoundary";
 import { BackgroundSuspenseBoundary } from "@/app/BackgroundSuspenseBoundary";
 import { DemoExitGuard } from "@/features/demo/components/DemoExitGuard";
+import { opensAppAtRoot } from "@/shared/lib/startPage";
 
 const queryClient = new QueryClient();
 
@@ -78,7 +79,7 @@ const App = () => {
                   )}
                 >
                   <SentryRoutes>
-                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/" element={opensAppAtRoot() ? <Navigate to="/app" replace /> : <LandingPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/terms" element={<TermsPage />} />
                   <Route path="/auth" element={<AuthPage />} />

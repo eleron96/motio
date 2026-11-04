@@ -265,6 +265,10 @@ msgstr "{weeksAgo, plural, one {vor # Woche} other {vor # Wochen}}"
 msgid "+{0} more milestones"
 msgstr "+{0} weitere Meilensteine"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "+{count} more"
+msgstr "+{count} weitere"
+
 #: src/features/dashboard/hooks/useChartLayout.ts
 msgid "+{groupedLegendCount} hidden"
 msgstr "+{groupedLegendCount} ausgeblendet"
@@ -323,7 +327,7 @@ msgstr "Die Farbe einer Person erscheint in den Dashboard-Diagrammen, auf ihren 
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "A strip above the workspace that can be dismissed."
-msgstr "Ein Streifen über dem Arbeitsbereich, der sich schließen lässt."
+msgstr "Ein ausblendbarer Hinweisbanner oberhalb des Arbeitsbereichs."
 
 #: src/features/planner/hooks/useDraftSubtaskImages.ts
 #: src/features/planner/hooks/useSubtaskImages.ts
@@ -417,8 +421,10 @@ msgid "Action failed"
 msgstr "Aktion fehlgeschlagen"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "Actions"
@@ -587,6 +593,7 @@ msgstr "Nimmt diese Lieferung in die Auslastungskarte auf. Deaktivieren Sie das 
 msgid "admin"
 msgstr "Admin"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -596,6 +603,10 @@ msgstr "Admin"
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Admin"
 msgstr "Admin"
+
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Admin console"
+msgstr "Administrationsbereich"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/components/AdminLayout.tsx
@@ -724,7 +735,7 @@ msgstr "API-Referenz"
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "App version"
-msgstr "App-Version"
+msgstr "Anwendungsversion"
 
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Appearance"
@@ -845,6 +856,10 @@ msgstr "Automatisch"
 msgid "auto from history"
 msgstr "automatisch aus dem Verlauf"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Average per file: {size}"
+msgstr "Durchschnitt pro Datei: {size}"
+
 #: src/features/planner/components/timeline/CalendarDayHoverContent.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 msgid "Away"
@@ -881,6 +896,10 @@ msgstr "Backend"
 msgid "Backup & restore"
 msgstr "Sicherung und Wiederherstellung"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Backup name is required."
+msgstr "Bitte geben Sie einen Namen für die Sicherung ein."
+
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Backup service"
 msgstr "Sicherungsdienst"
@@ -891,7 +910,7 @@ msgstr "Sicherungen"
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Backups stored"
-msgstr "Gespeicherte Sicherungen"
+msgstr "Vorhandene Sicherungen"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminMessagingSummary.tsx
@@ -906,6 +925,10 @@ msgstr "Balkendiagramm"
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Beer"
 msgstr "Bier"
+
+#: src/features/admin/lib/format.ts
+msgid "Before restore"
+msgstr "Vor Wiederherstellung"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Behind your own reverse proxy"
@@ -1009,9 +1032,14 @@ msgstr "Anrufen"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
@@ -1090,6 +1118,10 @@ msgstr "Abgebrochen"
 #: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
 msgid "Cancelled status"
 msgstr "Status „Abgebrochen“"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Change backup file name."
+msgstr "Dateinamen der Sicherung ändern."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Change easter egg"
@@ -1257,6 +1289,7 @@ msgstr "Korrespondenz mit dem Bauherrn"
 msgid "Client review"
 msgstr "In Abstimmung"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/DeleteAccountWizard.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
@@ -1555,6 +1588,10 @@ msgstr "Legen Sie ein neues Projekt an und vergeben Sie Kunde, Kürzel und Farbe
 msgid "Create account"
 msgstr "Konto erstellen"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Create backup"
+msgstr "Sicherung erstellen"
+
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
@@ -1597,6 +1634,12 @@ msgstr "Arbeitsbereich erstellen"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Konto erstellen"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Created"
+msgstr "Erstellt am"
 
 #. placeholder {0}: formatDate(token.createdAt)
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -1682,6 +1725,7 @@ msgstr "Kunde:"
 msgid "Customers"
 msgstr "Kunden"
 
+#: src/features/admin/lib/format.ts
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Daily"
 msgstr "Täglich"
@@ -1794,7 +1838,10 @@ msgstr "Standard"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
@@ -1847,6 +1894,10 @@ msgstr "Alle löschen"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "Delete announcement?"
 msgstr "Ankündigung löschen?"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Delete backup?"
+msgstr "Sicherung löschen?"
 
 #: src/features/planner/components/TaskCommentItem.tsx
 msgid "Delete comment?"
@@ -1948,10 +1999,12 @@ msgstr "Diesen Arbeitsbereich löschen"
 msgid "Delete widget"
 msgstr "Widget löschen"
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Delete workspace"
 msgstr "Arbeitsbereich löschen"
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 msgid "Delete workspace?"
 msgstr "Arbeitsbereich löschen?"
@@ -2100,6 +2153,10 @@ msgstr "Ausgeblendet"
 msgid "Display"
 msgstr "Anzeige"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Display name"
+msgstr "Anzeigename"
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Display style"
 msgstr "Darstellung"
@@ -2150,6 +2207,10 @@ msgstr "Doppelklicken Sie auf einen beliebigen Tag in der Zeile eines Projekts: 
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 msgid "Double-tap to open it"
 msgstr "Doppelt tippen – Aufgabe öffnen"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Download"
+msgstr "Herunterladen"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Download export"
@@ -2351,6 +2412,7 @@ msgstr "Durch das Bearbeiten erscheint die Ankündigung nicht erneut bei Persone
 msgid "editor"
 msgstr "Bearbeiter"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -2372,6 +2434,7 @@ msgstr "Elektro"
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "Email"
@@ -2383,7 +2446,7 @@ msgstr "E-Mail (SMTP)"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Email check"
-msgstr "E-Mail-Test"
+msgstr "Test-E-Mail"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -2402,7 +2465,7 @@ msgstr "Emoji"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Empty means it stays until each person dismisses it."
-msgstr "Leer bedeutet: Sie bleibt, bis jede Person sie selbst schließt."
+msgstr "Ohne Enddatum bleibt die Ankündigung sichtbar, bis sie von den jeweiligen Nutzern geschlossen wird."
 
 #: src/features/workspace/lib/starterTemplates/index.ts
 msgid "Empty workspace"
@@ -2523,6 +2586,11 @@ msgstr "Alle, die diese Ankündigung bereits geschlossen haben, sehen sie noch e
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Everything your team needs to stay aligned"
 msgstr "Alles, was Ihr Team braucht, um abgestimmt zu bleiben"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Exact size: {size}"
+msgstr "Genaue Größe: {size}"
 
 #: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Example data"
@@ -2703,6 +2771,10 @@ msgstr "Datei ist zu groß"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "File storage"
 msgstr "Dateispeicher"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Files: {count}"
+msgstr "Dateien: {count}"
 
 #: src/features/planner/components/AddTaskDialog.tsx
 msgid "Fill out task fields and create a new task."
@@ -3195,7 +3267,7 @@ msgstr "Innenausbau"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Interrupts once with a dialog. Use for maintenance and outages."
-msgstr "Unterbricht einmalig mit einem Dialog. Für Wartungen und Störungen."
+msgstr "Zeigt einmalig ein Hinweisfenster an. Geeignet für wichtige Informationen zu Wartungen und Störungen."
 
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Invalid name."
@@ -3291,6 +3363,10 @@ msgstr "Letzter Export fehlgeschlagen: {0}"
 msgid "Last in series"
 msgstr "Letzte der Serie"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Last sign in"
+msgstr "Letzte Anmeldung"
+
 #. placeholder {0}: formatDate(token.lastUsedAt)
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "last used {0}"
@@ -3315,12 +3391,16 @@ msgid "Leave"
 msgstr "Verlassen"
 
 #: src/features/admin/components/AnnouncementFields.tsx
-msgid "Leave empty to reuse the Russian text"
-msgstr "Leer lassen, um den russischen Text zu verwenden"
+msgid "Leave empty to reuse another language"
+msgstr "Leer lassen, um den Text einer anderen Sprache zu übernehmen"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Leave empty to show the English text"
+msgstr "Leer lassen, um den englischen Text anzuzeigen"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Leave the dates empty to switch it on now and off by hand. A personal assignment wins over a workspace one, which wins over a domain, which wins over everyone."
-msgstr "Lassen Sie die Daten leer, um es sofort ein- und manuell wieder auszuschalten. Eine persönliche Zuweisung hat Vorrang vor einer für den Arbeitsbereich, diese vor einer Domain und diese vor „Alle“."
+msgstr "Lassen Sie die Datumsfelder leer, um das Easter Egg sofort zu aktivieren. Ohne Enddatum bleibt es aktiv, bis es manuell deaktiviert wird. Bei mehreren Zuweisungen gilt folgende Priorität: Person → Arbeitsbereich → Domain → Alle."
 
 #: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
@@ -3364,7 +3444,7 @@ msgstr "Aktiv"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Live updates"
-msgstr "Live-Aktualisierung"
+msgstr "Echtzeit-Aktualisierung"
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
 #: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
@@ -3505,6 +3585,14 @@ msgstr "Rollen, Gruppen und Status des Teams verwalten."
 msgid "Manage your profile and account preferences."
 msgstr "Verwalten Sie Ihr Profil und Ihre Kontoeinstellungen."
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Managed"
+msgstr "Verwaltete Arbeitsbereiche"
+
+#: src/features/admin/lib/format.ts
+msgid "Manual"
+msgstr "Manuell"
+
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Mark as read"
@@ -3527,7 +3615,7 @@ msgstr "Abwesenheit eintragen"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Marketing news — only to opted-in users, with an unsubscribe link."
-msgstr "Marketing-Neuigkeiten – nur an Nutzer mit Einwilligung, mit Abmeldelink."
+msgstr "Neuigkeiten und Ankündigungen – ausschließlich an Nutzer mit entsprechender Einwilligung. Die E-Mail enthält einen Abmeldelink."
 
 #: src/features/planner/components/TimeOffFields.tsx
 msgid "marking yourself"
@@ -3587,6 +3675,7 @@ msgstr "Mitgliederaktionen"
 msgid "Member not found."
 msgstr "Mitglied nicht gefunden."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
@@ -3769,6 +3858,9 @@ msgstr "Eigene Auswahl"
 msgid "My team workspace"
 msgstr "Arbeitsbereich meines Teams"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -3968,9 +4060,13 @@ msgstr "Keine verfügbaren Mitglieder."
 msgid "No backups"
 msgstr "Keine Sicherungen"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "No backups."
+msgstr "Keine Sicherungen vorhanden."
+
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "No broadcasts yet."
-msgstr "Noch keine Rundschreiben."
+msgstr "Es wurden noch keine Rundschreiben versendet."
 
 #: src/features/planner/components/FilterPanel.tsx
 msgid "No code"
@@ -4064,7 +4160,7 @@ msgstr "Keine deaktivierten Mitglieder."
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "No easter eggs assigned."
-msgstr "Keine Easter Eggs zugewiesen."
+msgstr "Es wurden noch keine Easter Eggs zugewiesen."
 
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
@@ -4271,7 +4367,7 @@ msgstr "Keine aktuellen Änderungen vorhanden."
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "No recipients match this audience."
-msgstr "Für diese Zielgruppe gibt es keine Empfänger."
+msgstr "Für die ausgewählte Zielgruppe sind keine Empfänger vorhanden."
 
 #: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "No regions found."
@@ -4290,6 +4386,10 @@ msgstr "Noch keine Regeln."
 #: src/features/planner/components/board/PlannerBoard.tsx
 msgid "No statuses in this workspace yet"
 msgstr "In diesem Arbeitsbereich gibt es noch keine Status"
+
+#: src/features/admin/lib/format.ts
+msgid "No storage data"
+msgstr "Keine Daten zur Speicherbelegung"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/SubtasksSection.tsx
@@ -4357,6 +4457,10 @@ msgstr "Noch keine Tokens."
 msgid "No upcoming milestones in the next 7 days."
 msgstr "Keine Meilensteine in den nächsten 7 Tagen."
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "No users."
+msgstr "Keine Nutzer vorhanden."
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "No widgets yet."
 msgstr "Noch keine Widgets."
@@ -4366,6 +4470,7 @@ msgid "No workspaces need your attention — you can continue."
 msgstr "Kein Arbeitsbereich braucht Ihre Aufmerksamkeit – Sie können fortfahren."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 msgid "No workspaces."
 msgstr "Keine Arbeitsbereiche."
 
@@ -4685,6 +4790,12 @@ msgstr "überlastet"
 msgid "Overview"
 msgstr "Übersicht"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Owned"
+msgstr "Eigene Arbeitsbereiche"
+
+#: src/features/admin/lib/format.ts
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 #: src/features/workspace/components/WorkspaceMembersMobileScreen.tsx
@@ -4837,7 +4948,7 @@ msgstr "Platzieren Sie Aufgaben auf der Zeitachse. Weisen Sie sie Personen und P
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Plain text. Blank line starts a new paragraph."
-msgstr "Reiner Text. Eine Leerzeile beginnt einen neuen Absatz."
+msgstr "Nur Text. Absätze durch eine Leerzeile trennen."
 
 #: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
 msgid "Platform API"
@@ -5099,7 +5210,10 @@ msgstr "Empfänger: {0}"
 msgid "Recurring"
 msgstr "Wiederholung"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminSystemPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/DataExportButton.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -5206,10 +5320,16 @@ msgstr "Widget entfernen"
 msgid "Removing…"
 msgstr "Wird entfernt …"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
 msgid "Rename"
 msgstr "Umbenennen"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Rename backup"
+msgstr "Sicherung umbenennen"
 
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/DashboardSwitcher.tsx
@@ -5225,6 +5345,14 @@ msgstr "Gelöschtes Mitglied umbenennen"
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Rename failed"
 msgstr "Umbenennen fehlgeschlagen"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Rename the selected workspace."
+msgstr "Den ausgewählten Arbeitsbereich umbenennen."
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Rename workspace"
+msgstr "Arbeitsbereich umbenennen"
 
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Reorder subtask"
@@ -5307,9 +5435,18 @@ msgstr "Wohnquartier"
 msgid "Resize filters"
 msgstr "Filterbreite ändern"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Restore"
+msgstr "Wiederherstellen"
+
 #: src/shared/components/PendingDeletionBanner.tsx
 msgid "Restore account"
 msgstr "Konto wiederherstellen"
+
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Restore backup?"
+msgstr "Sicherung wiederherstellen?"
 
 #: src/features/auth/components/AccountRestoreScreen.tsx
 msgid "Restore my account"
@@ -5351,6 +5488,7 @@ msgstr "Klicken Sie mit der rechten Maustaste, um Ihr erstes Widget hinzuzufüge
 msgid "Riverside restaurant interior"
 msgstr "Innenausbau Restaurant am Fluss"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -5399,6 +5537,8 @@ msgid "Sage"
 msgstr "Salbei"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/pages/AdminBackupsPage.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -5468,7 +5608,7 @@ msgstr "Maßstab"
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Schedule"
-msgstr "Planen"
+msgstr "Versand planen"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Schedule this broadcast?"
@@ -5500,9 +5640,17 @@ msgstr "Schule für 600 Schüler"
 msgid "Search"
 msgstr "Suche"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Search by email, ID or workspace…"
+msgstr "Nach E-Mail-Adresse, ID oder Arbeitsbereich suchen …"
+
 #: src/features/admin/components/AdminUserPicker.tsx
 msgid "Search by name or email"
 msgstr "Nach Name oder E-Mail suchen"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Search by name or owner…"
+msgstr "Nach Name oder Inhaber suchen …"
 
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 #: src/features/planner/components/board/BoardQuickFilters.tsx
@@ -5756,7 +5904,7 @@ msgstr "Einladung senden"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Send now"
-msgstr "Jetzt senden"
+msgstr "Sofort senden"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Send test email"
@@ -5782,7 +5930,7 @@ msgstr "wird gesendet: {0}"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Sends a short test email to the address of your admin account."
-msgstr "Sendet eine kurze Test-E-Mail an die Adresse Ihres Admin-Kontos."
+msgstr "Sendet eine Test-E-Mail an die E-Mail-Adresse des Administratorkontos."
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -5983,6 +6131,10 @@ msgstr "Baustellenbegehung mit dem Bauherrn"
 msgid "Site work"
 msgstr "Arbeiten vor Ort"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Size"
+msgstr "Größe"
+
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 #: src/features/onboarding/lib/onboardingTour.ts
 #: src/features/onboarding/lib/onboardingTour.ts
@@ -5990,8 +6142,8 @@ msgid "Skip"
 msgstr "Überspringen"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
-msgid "Skip the 30-day grace period for a PENDING_DELETION account. The cron will pick the user on the next tick."
-msgstr "Die 30-tägige Frist für ein Konto im Status PENDING_DELETION überspringen. Der Cronjob übernimmt den Nutzer beim nächsten Lauf."
+msgid "Skips the 30-day waiting period for an account marked for deletion (PENDING_DELETION). The account is deleted on the next run of the scheduled cleanup."
+msgstr "Überspringt die 30-tägige Wartefrist für Konten mit dem Status „Zur Löschung vorgemerkt“ (PENDING_DELETION). Die endgültige Löschung erfolgt beim nächsten Durchlauf der geplanten Aufgabe."
 
 #: src/shared/lib/accentColor.ts
 msgid "Sky"
@@ -6035,6 +6187,10 @@ msgstr "Z bis A sortieren"
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 msgid "Sorting"
 msgstr "Sortierung"
+
+#: src/shared/ui/source-code-link.tsx
+msgid "Source code"
+msgstr "Quellcode"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Spot overload months ahead"
@@ -6125,6 +6281,10 @@ msgstr "Status, Aufgabentypen und Labels können Sie später in den Einstellunge
 #: src/features/projects/components/ProjectsMobileList.tsx
 msgid "Stop tracking"
 msgstr "Nicht mehr erfassen"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Storage"
+msgstr "Speicherbelegung"
 
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Storage used"
@@ -6298,6 +6458,7 @@ msgstr "Aufgaben-Updates"
 msgid "Task was created, but subtasks were not saved."
 msgstr "Die Aufgabe wurde erstellt, aber die Unteraufgaben wurden nicht gespeichert."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
@@ -6372,6 +6533,10 @@ msgstr "Nutzungsbedingungen"
 #: src/shared/lib/accentColor.ts
 msgid "Terracotta"
 msgstr "Terrakotta"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Text (DE)"
+msgstr "Text (DE)"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Text (EN)"
@@ -6613,6 +6778,10 @@ msgstr "Damit wird „{0}“ endgültig gelöscht."
 msgid "This will permanently delete \"{taskTitle}\"."
 msgstr "Damit wird „{taskTitle}“ endgültig gelöscht."
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "This will permanently delete backup {name}."
+msgstr "Die Sicherung {name} wird endgültig gelöscht."
+
 #. placeholder {0}: currentDashboardName ?? t`this dashboard`
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 msgid "This will remove \"{0}\". Widgets and layouts will be lost."
@@ -6663,6 +6832,10 @@ msgstr "Zeitachse, Dashboard, Projekte und Team finden Sie oben: Tippen Sie dara
 #: src/features/planner/components/TaskDetailHeader.tsx
 msgid "Title"
 msgstr "Titel"
+
+#: src/features/admin/components/AnnouncementFields.tsx
+msgid "Title (DE)"
+msgstr "Titel (DE)"
 
 #: src/features/admin/components/AnnouncementFields.tsx
 msgid "Title (EN)"
@@ -6746,6 +6919,10 @@ msgstr "Meilensteine gesamt"
 msgid "Total tasks"
 msgstr "Aufgaben gesamt"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Total: {count}"
+msgstr "Gesamt: {count}"
+
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
@@ -6771,7 +6948,7 @@ msgstr "Erfassung"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Transactional — to all active users, no opt-out. Use only for account, maintenance or legal notices."
-msgstr "Transaktional – an alle aktiven Nutzer, ohne Abmeldemöglichkeit. Nur für Konto-, Wartungs- oder Rechtshinweise."
+msgstr "Wichtige Mitteilungen an alle aktiven Nutzer. Eine Abmeldung ist nicht möglich. Nur für konto-, wartungs- oder rechtlich relevante Informationen verwenden."
 
 #: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 msgid "Transfer & leave"
@@ -6813,6 +6990,7 @@ msgstr "Motio jetzt ausprobieren"
 msgid "Try returning home or jump back into the timeline."
 msgstr "Kehren Sie zur Startseite zurück oder öffnen Sie direkt die Zeitachse."
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -7035,6 +7213,10 @@ msgstr "Bauteilbibliothek aktualisieren"
 msgid "updated a task"
 msgstr "hat eine Aufgabe geändert"
 
+#: src/features/admin/pages/AdminBackupsPage.tsx
+msgid "Upload backup"
+msgstr "Sicherung hochladen"
+
 #: src/features/auth/components/AvatarEditModal.tsx
 msgid "Upload or remove your profile photo."
 msgstr "Laden Sie Ihr Profilfoto hoch oder entfernen Sie es."
@@ -7081,6 +7263,10 @@ msgstr "Arbeitsbereiche des Nutzers"
 msgid "Users"
 msgstr "Nutzer"
 
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Users are created, edited and deleted in the Keycloak admin console."
+msgstr "Das Anlegen, Bearbeiten und Löschen von Nutzern erfolgt in der Keycloak-Administrationsoberfläche."
+
 #: src/features/workspace/lib/starterTemplates/common.ts
 msgid "Vacation"
 msgstr "Urlaub"
@@ -7109,7 +7295,7 @@ msgstr "Version {0}"
 #. placeholder {0}: latest.tag
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Version {0} is available."
-msgstr "Version {0} ist verfügbar."
+msgstr "Neue Version verfügbar: {0}"
 
 #: src/features/auth/components/ReleaseNotesDialog.tsx
 msgid "Version {APP_VERSION}"
@@ -7145,6 +7331,7 @@ msgstr "Aufgaben ansehen"
 msgid "viewer"
 msgstr "Leser"
 
+#: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -7233,7 +7420,7 @@ msgstr "Womit beschäftigt sich Ihr Team?"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "What is switched on"
-msgstr "Was eingeschaltet ist"
+msgstr "Aktivierte Funktionen"
 
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "What the planner shows"
@@ -7241,7 +7428,7 @@ msgstr "Was der Planer zeigt"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "What's new"
-msgstr "Was ist neu"
+msgstr "Was ist neu?"
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Where your tasks are"
@@ -7323,12 +7510,17 @@ msgstr "Arbeitsbereich beigetreten"
 msgid "Workspace limit reached (5)."
 msgstr "Limit für Arbeitsbereiche erreicht (5)."
 
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 msgid "Workspace name"
 msgstr "Name des Arbeitsbereichs"
+
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
+msgid "Workspace name is required."
+msgstr "Bitte geben Sie einen Namen für den Arbeitsbereich ein."
 
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/hooks/useWorkspaceGeneralDraft.ts
@@ -7348,12 +7540,21 @@ msgstr "Einstellungen des Arbeitsbereichs"
 
 #: src/features/admin/components/AdminLayout.tsx
 #: src/features/admin/pages/AdminOverviewPage.tsx
+#: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/MobileWorkspacesScreen.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Workspaces"
 msgstr "Arbeitsbereiche"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Workspaces where the user is the owner"
+msgstr "Arbeitsbereiche, deren Inhaber der Nutzer ist"
+
+#: src/features/admin/pages/AdminUsersPage.tsx
+msgid "Workspaces where the user is the owner or an admin"
+msgstr "Arbeitsbereiche, in denen der Nutzer Inhaber oder Admin ist"
 
 #: src/features/auth/components/DeleteAccountWizard.tsx
 msgid "Workspaces you will simply leave:"

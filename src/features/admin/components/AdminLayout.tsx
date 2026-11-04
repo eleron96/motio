@@ -118,7 +118,7 @@ const AdminLayout: React.FC = () => {
       <div className="mx-auto w-full max-w-6xl space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Admin console</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{t`Admin console`}</h1>
             <div className="text-xs text-muted-foreground">{user.email}</div>
           </div>
           <Button type="button" variant="outline" onClick={() => signOut()}>

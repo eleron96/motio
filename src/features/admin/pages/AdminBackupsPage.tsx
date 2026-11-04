@@ -137,7 +137,7 @@ const AdminBackupsPage: React.FC = () => {
     if (!backupRenameTarget) return;
     const nextName = backupRenameValue.trim();
     if (!nextName) {
-      setBackupRenameError('Backup name is required.');
+      setBackupRenameError(t`Backup name is required.`);
       return;
     }
     setBackupRenameSubmitting(true);
@@ -215,10 +215,10 @@ const AdminBackupsPage: React.FC = () => {
             onClick={handleCreateBackup}
             disabled={backupCreateSubmitting}
           >
-            Create backup
+            {t`Create backup`}
           </Button>
           <Button type="button" variant="outline" onClick={() => fetchBackups()}>
-            Refresh
+            {t`Refresh`}
           </Button>
           <Button
             type="button"
@@ -226,7 +226,7 @@ const AdminBackupsPage: React.FC = () => {
             onClick={openBackupUploadDialog}
             disabled={backupActionSubmitting}
           >
-            Upload backup
+            {t`Upload backup`}
           </Button>
         </div>
 
@@ -259,18 +259,18 @@ const AdminBackupsPage: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t`Name`}</TableHead>
+                    <TableHead>{t`Type`}</TableHead>
+                    <TableHead>{t`Size`}</TableHead>
+                    <TableHead>{t`Created`}</TableHead>
+                    <TableHead className="text-right">{t`Actions`}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pagination.pageRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-sm text-muted-foreground">
-                        No backups.
+                        {t`No backups.`}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -292,10 +292,10 @@ const AdminBackupsPage: React.FC = () => {
                         <TableCell className="text-sm text-muted-foreground">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="cursor-default">{formatStorageMain(item.size)}</span>
+                              <span className="cursor-default">{formatStorageMain(item.size, locale)}</span>
                             </TooltipTrigger>
                             <TooltipContent>
-                              Exact size: {formatStorageExactBytes(item.size)}
+                              {t`Exact size: ${{ size: formatStorageExactBytes(item.size, locale) }}`}
                             </TooltipContent>
                           </Tooltip>
                         </TableCell>
@@ -315,7 +315,7 @@ const AdminBackupsPage: React.FC = () => {
                               onClick={() => void handleDownloadBackup(item)}
                               disabled={backupActionSubmitting}
                             >
-                              Download
+                              {t`Download`}
                             </Button>
                             <Button
                               size="sm"
@@ -323,7 +323,7 @@ const AdminBackupsPage: React.FC = () => {
                               onClick={() => openBackupRename(item)}
                               disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
                             >
-                              Rename
+                              {t`Rename`}
                             </Button>
                             <Button
                               size="sm"
@@ -331,7 +331,7 @@ const AdminBackupsPage: React.FC = () => {
                               onClick={() => openBackupDelete(item)}
                               disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
                             >
-                              Delete
+                              {t`Delete`}
                             </Button>
                             <Button
                               size="sm"
@@ -339,7 +339,7 @@ const AdminBackupsPage: React.FC = () => {
                               onClick={() => openBackupRestore(item)}
                               disabled={backupRenameSubmitting || backupDeleteSubmitting || backupRestoreSubmitting}
                             >
-                              Restore
+                              {t`Restore`}
                             </Button>
                           </div>
                         </TableCell>
@@ -365,9 +365,9 @@ const AdminBackupsPage: React.FC = () => {
         <Dialog open={backupRenameOpen} onOpenChange={setBackupRenameOpen}>
           <DialogContent className="sm:max-w-[420px]">
             <DialogHeader>
-              <DialogTitle>Rename backup</DialogTitle>
+              <DialogTitle>{t`Rename backup`}</DialogTitle>
               <DialogDescription className="sr-only">
-                Change backup file name.
+                {t`Change backup file name.`}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
@@ -382,10 +382,10 @@ const AdminBackupsPage: React.FC = () => {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setBackupRenameOpen(false)}>
-                Cancel
+                {t`Cancel`}
               </Button>
               <Button type="button" onClick={handleRenameBackup} disabled={backupRenameSubmitting}>
-                Save
+                {t`Save`}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -394,16 +394,16 @@ const AdminBackupsPage: React.FC = () => {
         <AlertDialog open={backupDeleteOpen} onOpenChange={setBackupDeleteOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete backup?</AlertDialogTitle>
+              <AlertDialogTitle>{t`Delete backup?`}</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete backup {backupDeleteTarget?.name ?? '—'}.
+                {t`This will permanently delete backup ${{ name: backupDeleteTarget?.name ?? '—' }}.`}
               </AlertDialogDescription>
             </AlertDialogHeader>
             {backupDeleteError && (
               <div className="text-sm text-destructive">{backupDeleteError}</div>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={(event) => {
                   event.preventDefault();
@@ -411,7 +411,7 @@ const AdminBackupsPage: React.FC = () => {
                 }}
                 disabled={backupDeleteSubmitting}
               >
-                Delete
+                {t`Delete`}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -420,7 +420,7 @@ const AdminBackupsPage: React.FC = () => {
         <AlertDialog open={backupRestoreOpen} onOpenChange={setBackupRestoreOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Restore backup?</AlertDialogTitle>
+              <AlertDialogTitle>{t`Restore backup?`}</AlertDialogTitle>
               <AlertDialogDescription>
                 {t`The database will be replaced with backup ${{ name: backupRestoreTarget?.name ?? '—' }}.`}
                 {' '}
@@ -431,7 +431,7 @@ const AdminBackupsPage: React.FC = () => {
               <div className="text-sm text-destructive">{backupRestoreError}</div>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={(event) => {
                   event.preventDefault();
@@ -439,7 +439,7 @@ const AdminBackupsPage: React.FC = () => {
                 }}
                 disabled={backupRestoreSubmitting}
               >
-                Restore
+                {t`Restore`}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

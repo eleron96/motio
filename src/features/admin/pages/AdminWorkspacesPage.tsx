@@ -82,7 +82,7 @@ const AdminWorkspacesPage: React.FC = () => {
     if (!workspaceEditTarget) return;
     const name = workspaceEditName.trim();
     if (!name) {
-      setWorkspaceEditError('Workspace name is required.');
+      setWorkspaceEditError(t`Workspace name is required.`);
       return;
     }
     setWorkspaceEditSubmitting(true);
@@ -125,12 +125,12 @@ const AdminWorkspacesPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Input
-            placeholder="Search by name or owner..."
+            placeholder={t`Search by name or owner…`}
             value={workspaceSearch}
             onChange={(event) => setWorkspaceSearch(event.target.value)}
           />
           <Button type="button" variant="outline" onClick={() => fetchAdminWorkspaces()}>
-            Refresh
+            {t`Refresh`}
           </Button>
         </div>
 
@@ -149,19 +149,19 @@ const AdminWorkspacesPage: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Members</TableHead>
-                    <TableHead>Tasks</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t`Name`}</TableHead>
+                    <TableHead>{t`Owner`}</TableHead>
+                    <TableHead>{t`Members`}</TableHead>
+                    <TableHead>{t`Tasks`}</TableHead>
+                    <TableHead>{t`Created`}</TableHead>
+                    <TableHead className="text-right">{t`Actions`}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pagination.pageRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-sm text-muted-foreground">
-                        No workspaces.
+                        {t`No workspaces.`}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -212,14 +212,14 @@ const AdminWorkspacesPage: React.FC = () => {
                               variant="outline"
                               onClick={() => openWorkspaceEdit(workspace)}
                             >
-                              Rename
+                              {t`Rename`}
                             </Button>
                             <Button
                               size="sm"
                               variant="destructive"
                               onClick={() => openWorkspaceDelete(workspace)}
                             >
-                              Delete
+                              {t`Delete`}
                             </Button>
                           </div>
                         </TableCell>
@@ -245,16 +245,16 @@ const AdminWorkspacesPage: React.FC = () => {
         <Dialog open={workspaceEditOpen} onOpenChange={setWorkspaceEditOpen}>
           <DialogContent className="sm:max-w-[420px]">
             <DialogHeader>
-              <DialogTitle>Rename workspace</DialogTitle>
+              <DialogTitle>{t`Rename workspace`}</DialogTitle>
               <DialogDescription className="sr-only">
-                Rename the selected workspace.
+                {t`Rename the selected workspace.`}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <Input
                 value={workspaceEditName}
                 onChange={(event) => setWorkspaceEditName(event.target.value)}
-                placeholder="Workspace name"
+                placeholder={t`Workspace name`}
               />
               {workspaceEditError && (
                 <div className="text-sm text-destructive">{workspaceEditError}</div>
@@ -262,10 +262,10 @@ const AdminWorkspacesPage: React.FC = () => {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setWorkspaceEditOpen(false)}>
-                Cancel
+                {t`Cancel`}
               </Button>
               <Button type="button" onClick={handleUpdateWorkspace} disabled={workspaceEditSubmitting}>
-                Save
+                {t`Save`}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -274,7 +274,7 @@ const AdminWorkspacesPage: React.FC = () => {
         <AlertDialog open={workspaceDeleteOpen} onOpenChange={setWorkspaceDeleteOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+              <AlertDialogTitle>{t`Delete workspace?`}</AlertDialogTitle>
               <AlertDialogDescription>
                 {t`The workspace and all its data will be deleted permanently.`}
               </AlertDialogDescription>
@@ -283,7 +283,7 @@ const AdminWorkspacesPage: React.FC = () => {
               <div className="text-sm text-destructive">{workspaceDeleteError}</div>
             )}
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t`Cancel`}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={(event) => {
                   event.preventDefault();
@@ -291,7 +291,7 @@ const AdminWorkspacesPage: React.FC = () => {
                 }}
                 disabled={workspaceDeleteSubmitting}
               >
-                Delete
+                {t`Delete workspace`}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

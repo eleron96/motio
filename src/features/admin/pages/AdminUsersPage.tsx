@@ -26,6 +26,7 @@ import {
   formatDateCompact,
   formatStorageExactBytes,
   formatStorageMain,
+  formatWorkspaceRole,
   formatWorkspaceSummary,
   shortId,
 } from '@/features/admin/lib/format';
@@ -121,16 +122,16 @@ const AdminUsersPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Input
-            placeholder="Search by email, ID, workspace..."
+            placeholder={t`Search by email, ID or workspace…`}
             value={userSearch}
             onChange={(event) => setUserSearch(event.target.value)}
           />
           <Button type="button" variant="outline" onClick={() => fetchAdminUsers(userSearch.trim())}>
-            Refresh
+            {t`Refresh`}
           </Button>
         </div>
         <div className="text-xs text-muted-foreground">
-          User create/edit/delete is managed in Keycloak admin console.
+          {t`Users are created, edited and deleted in the Keycloak admin console.`}
         </div>
 
         {adminUsersError && (
@@ -148,22 +149,22 @@ const AdminUsersPage: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Email</TableHead>
+                    <TableHead>{t`Email`}</TableHead>
                     <TableHead>ID</TableHead>
-                    <TableHead>Display name</TableHead>
-                    <TableHead>Workspaces</TableHead>
-                    <TableHead>Owned</TableHead>
-                    <TableHead>Managed</TableHead>
-                    <TableHead>Storage</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Last sign in</TableHead>
+                    <TableHead>{t`Display name`}</TableHead>
+                    <TableHead>{t`Workspaces`}</TableHead>
+                    <TableHead>{t`Owned`}</TableHead>
+                    <TableHead>{t`Managed`}</TableHead>
+                    <TableHead>{t`Storage`}</TableHead>
+                    <TableHead>{t`Created`}</TableHead>
+                    <TableHead>{t`Last sign in`}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pagination.pageRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="text-sm text-muted-foreground">
-                        No users.
+                        {t`No users.`}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -211,15 +212,15 @@ const AdminUsersPage: React.FC = () => {
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <div className="space-y-1">
-                                <div>Total: {item.workspaceCount}</div>
+                                <div>{t`Total: ${{ count: item.workspaceCount }}`}</div>
                                 {item.workspaces.slice(0, 6).map((workspace) => (
                                   <div key={`${item.id}-${workspace.id}`} className="text-xs">
-                                    {workspace.name} ({workspace.role})
+                                    {workspace.name} ({formatWorkspaceRole(workspace.role)})
                                   </div>
                                 ))}
                                 {item.workspaces.length > 6 && (
                                   <div className="text-xs text-muted-foreground">
-                                    +{item.workspaces.length - 6} more
+                                    {t`+${{ count: item.workspaces.length - 6 }} more`}
                                   </div>
                                 )}
                               </div>
@@ -242,7 +243,7 @@ const AdminUsersPage: React.FC = () => {
                             <TooltipTrigger asChild>
                               <span className="cursor-default">{item.ownedWorkspaceCount}</span>
                             </TooltipTrigger>
-                            <TooltipContent>Workspaces where user is owner</TooltipContent>
+                            <TooltipContent>{t`Workspaces where the user is the owner`}</TooltipContent>
                           </Tooltip>
                         </TableCell>
                         <TableCell className="text-sm">
@@ -250,23 +251,23 @@ const AdminUsersPage: React.FC = () => {
                             <TooltipTrigger asChild>
                               <span className="cursor-default">{item.managedWorkspaceCount}</span>
                             </TooltipTrigger>
-                            <TooltipContent>Owner or admin workspaces</TooltipContent>
+                            <TooltipContent>{t`Workspaces where the user is the owner or an admin`}</TooltipContent>
                           </Tooltip>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="cursor-default">
-                                <div className="text-sm text-foreground">{formatStorageMain(item.storageUsedBytes)}</div>
+                                <div className="text-sm text-foreground">{formatStorageMain(item.storageUsedBytes, locale)}</div>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <div className="space-y-1">
-                                <div>Exact size: {formatStorageExactBytes(item.storageUsedBytes)}</div>
-                                <div>Objects: {item.storageObjectsCount}</div>
+                                <div>{t`Exact size: ${{ size: formatStorageExactBytes(item.storageUsedBytes, locale) }}`}</div>
+                                <div>{t`Files: ${{ count: item.storageObjectsCount }}`}</div>
                                 {item.storageObjectsCount > 0 && (
                                   <div>
-                                    Avg/object: {formatStorageMain(item.storageUsedBytes / item.storageObjectsCount)}
+                                    {t`Average per file: ${{ size: formatStorageMain(item.storageUsedBytes / item.storageObjectsCount, locale) }}`}
                                   </div>
                                 )}
                               </div>
@@ -312,7 +313,7 @@ const AdminUsersPage: React.FC = () => {
           <div>
             <div className="text-sm font-semibold">{t`Force purge account`}</div>
             <div className="text-xs text-muted-foreground">
-              {t`Skip the 30-day grace period for a PENDING_DELETION account. The cron will pick the user on the next tick.`}
+              {t`Skips the 30-day waiting period for an account marked for deletion (PENDING_DELETION). The account is deleted on the next run of the scheduled cleanup.`}
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
@@ -383,8 +384,8 @@ const AdminUsersPage: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Role</TableHead>
+                        <TableHead>{t`Name`}</TableHead>
+                        <TableHead>{t`Role`}</TableHead>
                         <TableHead>ID</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -392,7 +393,7 @@ const AdminUsersPage: React.FC = () => {
                       {workspaceDetails.map((workspace) => (
                         <TableRow key={workspace.id}>
                           <TableCell className="font-medium">{workspace.name}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{workspace.role}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{formatWorkspaceRole(workspace.role)}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{workspace.id}</TableCell>
                         </TableRow>
                       ))}
@@ -403,7 +404,7 @@ const AdminUsersPage: React.FC = () => {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setWorkspacesDialogOpen(false)}>
-                Close
+                {t`Close`}
               </Button>
             </DialogFooter>
           </DialogContent>

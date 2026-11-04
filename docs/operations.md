@@ -180,6 +180,32 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
   Postgres and applies the Liquibase migrations, then `npm run test:integration`
   runs against it.
 
+`.github/workflows/image-scan.yml` runs `infra/scripts/scan-images.sh` every Monday,
+on demand and when an image reference changes: Trivy lists the HIGH and CRITICAL
+vulnerabilities with a fix upstream in every image Motio runs. The table is on the
+run page (and an artifact). It never fails; upgrades go through a release
+(`docs/self-hosting.md`, «Security updates»).
+
+#### Upgrading a bundled image
+
+1. Pick the version (a stable line where there is one) and scan it first:
+   `IMAGES="<image:tag>" infra/scripts/scan-images.sh`.
+2. Read the upstream breaking changes for every version in between and check them
+   against our configuration.
+3. Check the configs without a stack: `caddy adapt` of all three Caddyfiles must give
+   the same JSON on the old and new Caddy; `nginx -t` of `infra/supabase/nginx.conf`
+   and `infra/web/nginx.conf` with `--add-host` for the upstream names.
+4. Change every reference (`git grep` the old tag: compose files, `infra/web/Dockerfile`,
+   docs, AGENTS.md), deploy to testing and compare public routes, sign-in redirects
+   and API answers with production.
+5. `motio-caddy` on production and testing runs outside compose: a new Caddy reaches
+   them only by recreating the container (command above), keeping its volumes.
+6. Keycloak changes its database on start and cannot go back by image. Rehearse on a
+   copy of a Keycloak database first, check registration, sign-in, password reset,
+   invitations and external providers, and dump the production Keycloak database by
+   hand before the release: `prod-compose.sh` takes its Keycloak backup only after
+   the new Keycloak has started.
+
 **CI does not gate production.** `main` is not protected and `make deploy` rsyncs the
 local working tree to the server, so a red CI run stops nothing — 0.9.67 shipped to
 production with the "i18n catalogs up to date" step failing. The only mandatory
@@ -265,7 +291,7 @@ The testing environment is fully isolated from production.
   docker run -d --name motio-caddy --restart unless-stopped \
     --network infra_default -p 127.0.0.1:8088:80 \
     -v /opt/motio-test/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
-    -v caddy_data:/data -v caddy_config:/config caddy:2.8
+    -v caddy_data:/data -v caddy_config:/config caddy:2.11
   bash /opt/motio-test/infra/scripts/ensure-caddy-network-access.sh
   ```
 

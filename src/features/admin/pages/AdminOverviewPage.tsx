@@ -87,7 +87,7 @@ const AdminOverviewPage: React.FC = () => {
         />
         <MetricCard
           label={t`Storage used`}
-          value={adminUsersLoading ? loadingPlaceholder : formatStorageMain(totalStorageBytes)}
+          value={adminUsersLoading ? loadingPlaceholder : formatStorageMain(totalStorageBytes, locale)}
           hint={t`Task media across all users`}
         />
         <MetricCard

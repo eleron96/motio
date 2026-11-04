@@ -36,12 +36,12 @@ interface ProjectCardLayoutProps {
   customerContacts: CustomerContact[];
   canEdit: boolean;
   onAddCustomerContact: (
-    payload: { customerId: string; name: string; role: string | null; email: string | null; phone: string | null; tag: string | null }
+    payload: { customerId: string; name: string; company: string | null; role: string | null; email: string | null; phone: string | null; tag: string | null }
   ) => Promise<boolean>;
   onDeleteCustomerContact: (id: string) => Promise<boolean>;
   onUpdateCustomerContact: (
     id: string,
-    updates: { name?: string; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
+    updates: { name?: string; company?: string | null; role?: string | null; email?: string | null; phone?: string | null; tag?: string | null },
   ) => Promise<boolean>;
   /** Fallback list — assignees that appear on this project's tasks. */
   projectMembers: Assignee[];
