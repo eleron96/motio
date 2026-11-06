@@ -12,13 +12,25 @@ const formatTimestampLabel = (iso: string, now: Date, locale: DateFnsLocale) => 
   return format(date, isSameYear(date, now) ? 'd MMMM' : 'd MMMM yyyy', { locale });
 };
 
-/** The task card's footer line: «Created 9 June · updated today». */
-export const formatTaskTimestamps = (createdAt: string | undefined, updatedAt: string | undefined) => {
-  if (!createdAt) return null;
+/** Compact task metadata; unknown authors leave the original date-only labels. */
+export const formatTaskTimestamps = (
+  createdAt: string | undefined,
+  updatedAt: string | undefined,
+  createdByName: string | null = null,
+  updatedByName: string | null = null,
+): string[] => {
+  if (!createdAt) return [];
   const locale = resolveDateFnsLocale(isSupportedLocale(i18n.locale) ? i18n.locale : 'en');
   const now = new Date();
   const created = formatTimestampLabel(createdAt, now, locale);
-  if (!updatedAt) return t`Created ${created}`;
+  const createdLabel = createdByName
+    ? t`Created by ${createdByName} · ${created}`
+    : t`Created ${created}`;
+  if (!updatedAt) return [createdLabel];
   const updated = formatTimestampLabel(updatedAt, now, locale);
-  return t`Created ${created} · updated ${updated}`;
+  if (!createdByName && !updatedByName) return [t`Created ${created} · updated ${updated}`];
+  return [
+    createdLabel,
+    updatedByName ? t`Updated by ${updatedByName} · ${updated}` : t`Updated ${updated}`,
+  ];
 };

@@ -20,6 +20,7 @@ import { demoStore } from './demoDataStore';
 
 import { cloneRow, fail, ok, type Result, type Row } from './demoClientCore';
 import { QueryBuilder } from './demoQueryBuilder';
+import { searchDemoTasks } from './demoTaskSearch';
 import {
   asStr,
   assigneeUniqueTaskCounts,
@@ -114,6 +115,10 @@ const rpcHandlers: Record<string, (args: Record<string, unknown>) => Result> = {
     return ok(demoStore.workspaceId());
   },
   demo_heartbeat: () => ok(null),
+  search_workspace_tasks: (args) => ok(searchDemoTasks(
+    asStr(args.p_workspace_id) ?? '',
+    asStr(args.p_query) ?? '',
+  )),
   // Daily-brief easter egg — no eggs in the demo sandbox (the brief itself is
   // suppressed on /demo anyway); return null instead of warning.
   get_my_daily_brief_egg: () => ok(null),

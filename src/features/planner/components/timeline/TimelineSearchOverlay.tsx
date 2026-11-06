@@ -4,7 +4,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, CornerDownLeft } from 'lucide-r
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
 import { useTimelineTaskSearchNavigation } from '@/features/planner/hooks/useTimelineTaskSearch';
-import { isSearchableQuery, splitHitsByRange } from '@/shared/domain/taskSearch';
+import { isSearchableQuery, splitHitsByRange, splitTitleAtMatch } from '@/shared/domain/taskSearch';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { format, parseISO } from '@/features/planner/lib/dateUtils';
 import { useLocaleStore } from '@/shared/store/localeStore';
@@ -12,6 +12,7 @@ import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 
 const PEEK_WIDTH = 272;
 const PEEK_GAP = 10;
+const PEEK_INSET = 8;
 
 /**
  * Over the timeline while searching: "N earlier" / "N later" chips on its
@@ -32,7 +33,13 @@ export const TimelineSearchOverlay: React.FC = () => {
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
   const { focusHit, focusNext, openFocused } = useTimelineTaskSearchNavigation();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const [peekPosition, setPeekPosition] = useState<{ left: number; top: number } | null>(null);
+  const peekRef = useRef<HTMLDivElement | null>(null);
+  const [peekPosition, setPeekPosition] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    maxHeight: number;
+  } | null>(null);
 
   const active = open && isSearchableQuery(query);
   const { before, after } = splitHitsByRange(hits, visibleRange);
@@ -49,26 +56,42 @@ export const TimelineSearchOverlay: React.FC = () => {
     const measure = () => {
       frame = 0;
       const root = rootRef.current;
+      const peek = peekRef.current;
       const bar = root?.parentElement?.querySelector<HTMLElement>(`.task-bar[data-task-id="${focusedId}"]`);
-      if (!root || !bar) {
+      if (!root || !bar || !peek) {
         setPeekPosition(null);
         return;
       }
       const rootRect = root.getBoundingClientRect();
       const barRect = bar.getBoundingClientRect();
+      const minLeft = Math.max(sidebarWidth, -rootRect.left) + PEEK_INSET;
+      const right = Math.min(rootRect.width, window.innerWidth - rootRect.left) - PEEK_INSET;
+      const width = Math.min(PEEK_WIDTH, Math.max(0, right - minLeft));
       const left = Math.min(
-        Math.max(barRect.left - rootRect.left, sidebarWidth + 8),
-        rootRect.width - PEEK_WIDTH - 8,
+        Math.max(barRect.left - rootRect.left, minLeft),
+        right - width,
       );
+      const minTop = Math.max(0, -rootRect.top) + PEEK_INSET;
+      const bottom = Math.min(rootRect.height, window.innerHeight - rootRect.top) - PEEK_INSET;
+      const maxHeight = Math.max(0, bottom - minTop);
+      const height = Math.min(peek.offsetHeight, maxHeight);
       const below = barRect.bottom - rootRect.top + PEEK_GAP;
-      const top = below + 140 > rootRect.height ? barRect.top - rootRect.top - PEEK_GAP - 132 : below;
+      const preferredTop = below + height > bottom
+        ? barRect.top - rootRect.top - PEEK_GAP - height
+        : below;
+      const top = Math.max(minTop, Math.min(preferredTop, bottom - height));
       const offscreen = barRect.right < rootRect.left + sidebarWidth || barRect.left > rootRect.right;
-      setPeekPosition(offscreen ? null : { left, top });
+      setPeekPosition(offscreen || !width || !maxHeight ? null : { left, top, width, maxHeight });
     };
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(measure);
     };
     measure();
+    // A matched subtask, translated labels or wrapping may change the card's
+    // height after the first measurement. Keep the entire card in view.
+    const observer = new ResizeObserver(schedule);
+    if (rootRef.current) observer.observe(rootRef.current);
+    if (peekRef.current) observer.observe(peekRef.current);
     // The bar may mount a moment later (a jump to other dates loads them).
     const retry = window.setInterval(schedule, 250);
     window.addEventListener('scroll', schedule, true);
@@ -77,6 +100,7 @@ export const TimelineSearchOverlay: React.FC = () => {
       window.clearInterval(retry);
       window.removeEventListener('scroll', schedule, true);
       window.removeEventListener('resize', schedule);
+      observer.disconnect();
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [active, focusedId, sidebarWidth]);
@@ -97,6 +121,8 @@ export const TimelineSearchOverlay: React.FC = () => {
   // and its card opens under it.
   const earlierCount = before.length;
   const laterCount = after.length;
+  const matchedSubtaskTitle = focused?.matchedSubtaskTitle;
+  const subtaskParts = matchedSubtaskTitle ? splitTitleAtMatch(matchedSubtaskTitle, query) : null;
 
   return (
     <div ref={rootRef} className="pointer-events-none absolute inset-0 z-40">
@@ -121,13 +147,28 @@ export const TimelineSearchOverlay: React.FC = () => {
           <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       )}
-      {focused && peekPosition && (
+      {focused && (
         <div
+          ref={peekRef}
           key={focused.id}
-          className="pointer-events-auto absolute rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-[0_14px_34px_rgba(30,30,25,0.16)] animate-in fade-in slide-in-from-top-1 duration-200"
-          style={{ left: peekPosition.left, top: peekPosition.top, width: PEEK_WIDTH }}
+          className="pointer-events-auto absolute overflow-y-auto rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-[0_14px_34px_rgba(30,30,25,0.16)] animate-in fade-in slide-in-from-top-1 duration-200"
+          style={{
+            left: peekPosition?.left ?? 0,
+            top: peekPosition?.top ?? 0,
+            width: peekPosition?.width ?? PEEK_WIDTH,
+            maxHeight: peekPosition?.maxHeight,
+            visibility: peekPosition ? 'visible' : 'hidden',
+          }}
         >
-          <div className="text-sm font-semibold leading-snug">{focused.title}</div>
+          <div className="break-words text-sm font-semibold leading-snug">{focused.title}</div>
+          {matchedSubtaskTitle && (
+            <p className="mt-1 break-words text-xs leading-relaxed text-muted-foreground">
+              {t`Subtask:`}{' '}
+              {subtaskParts ? (
+                <>{subtaskParts[0]}<mark className="task-search-hit">{subtaskParts[1]}</mark>{subtaskParts[2]}</>
+              ) : matchedSubtaskTitle}
+            </p>
+          )}
           <div className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {[project ? formatProjectLabel(project.name, project.code) : t`No project`, people, dates].filter(Boolean).join(' · ')}
             {status && <><br />{status.name}</>}

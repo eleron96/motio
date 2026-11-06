@@ -54,6 +54,14 @@ moved something by mistake, **Undo** appears in the corner. To hand a task to so
 else, click the bar and change **Assignees**. Everyone in the workspace sees the change
 straight away, without reloading the page.
 
+The bottom of the task card shows who created the task and who last edited its
+fields, alongside the dates. Older tasks show dates alone when the author is unknown.
+
+To find work on the desktop timeline, click the magnifying glass or press **⌘K**
+(**Ctrl+K** on Windows). Type at least two characters from a task or subtask title.
+Matches include tasks outside the visible dates; use the arrows to move between
+them. When a subtask matches, the preview shows its title and opens its parent task.
+
 ## Thursday: mark who is away
 
 A plan that ignores vacations is a wish list. Open **Add task**, switch to

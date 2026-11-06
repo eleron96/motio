@@ -7,6 +7,7 @@ import { diffRemovedTaskMediaIds } from '@/shared/domain/taskMediaIds';
 import { resolveTaskOwnEditsRevert } from '@/shared/domain/taskOwnEdits';
 import { sha256Hex } from '@/shared/lib/textHash';
 import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
+import { fetchTaskSearchHits } from '@/infrastructure/tasks/taskSearchRepository';
 import type { Task } from '@/features/planner/types/planner';
 import type {
   PlannerGetState,
@@ -41,10 +42,6 @@ type TaskActions = Pick<
   | 'duplicateTask'
   | 'searchTasks'
 >;
-
-// Search results never show the description, so it isn't fetched.
-const TASK_SEARCH_COLUMNS = 'id, title, project_id, assignee_id, assignee_ids, start_date, end_date, status_id, type_id, priority, tag_ids, repeat_id, updated_at';
-const TASK_SEARCH_LIMIT = 200;
 
 export const createTaskActions = (
   set: PlannerSetState,
@@ -442,26 +439,6 @@ export const createTaskActions = (
     if (!duplicate) get().reportTaskWriteFailure('save', 'duplicateTask', null);
   },
 
-  searchTasks: async (workspaceId, query) => {
-    const needle = query.trim();
-    if (!needle) return { tasks: [] };
-    // `%` and `_` are wildcards in ILIKE: a title with them is searched literally.
-    const pattern = `%${needle.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
-    const { data, error } = await supabase
-      .from('tasks')
-      .select(TASK_SEARCH_COLUMNS)
-      .eq('workspace_id', workspaceId)
-      .ilike('title', pattern)
-      .order('start_date', { ascending: true })
-      .limit(TASK_SEARCH_LIMIT);
-
-    if (error) {
-      return { tasks: [], error: error.message };
-    }
-
-    return {
-      tasks: ((data ?? []) as unknown as TaskRow[]).map(mapTaskRow),
-    };
-  },
+  searchTasks: fetchTaskSearchHits,
   });
 };

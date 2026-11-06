@@ -1659,6 +1659,10 @@ msgstr "Erstellt {created}"
 msgid "Created {created} · updated {updated}"
 msgstr "Erstellt {created} · aktualisiert {updated}"
 
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Created by {createdByName} · {created}"
+msgstr "Erstellt von {createdByName} · {created}"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Creates repeats for the next 12 months."
 msgstr "Erstellt Wiederholungen für die nächsten 12 Monate."
@@ -2860,8 +2864,8 @@ msgid "Find a project"
 msgstr "Projekt suchen"
 
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Find a task"
-msgstr "Aufgabe finden"
+msgid "Find a task or subtask"
+msgstr "Aufgabe oder Unteraufgabe finden"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -5748,8 +5752,8 @@ msgstr "Labels suchen …"
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Search tasks"
-msgstr "Aufgaben suchen"
+msgid "Search tasks and subtasks"
+msgstr "Aufgaben und Unteraufgaben suchen"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -6319,6 +6323,10 @@ msgstr "Aktionen für Unteraufgabe"
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask title"
 msgstr "Titel der Unteraufgabe"
+
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+msgid "Subtask:"
+msgstr "Unteraufgabe:"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskSubtasksField.tsx
@@ -7217,9 +7225,17 @@ msgstr "Namen des aktuellen Dashboards ändern."
 msgid "Update the element library"
 msgstr "Bauteilbibliothek aktualisieren"
 
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated {updated}"
+msgstr "Geändert {updated}"
+
 #: src/features/auth/components/InboxPanel.tsx
 msgid "updated a task"
 msgstr "hat eine Aufgabe geändert"
+
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated by {updatedByName} · {updated}"
+msgstr "Geändert von {updatedByName} · {updated}"
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Upload backup"

@@ -1659,6 +1659,10 @@ msgstr "Created {created}"
 msgid "Created {created} · updated {updated}"
 msgstr "Created {created} · updated {updated}"
 
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Created by {createdByName} · {created}"
+msgstr "Created by {createdByName} · {created}"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Creates repeats for the next 12 months."
 msgstr "Creates repeats for the next 12 months."
@@ -2860,8 +2864,8 @@ msgid "Find a project"
 msgstr "Find a project"
 
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Find a task"
-msgstr "Find a task"
+msgid "Find a task or subtask"
+msgstr "Find a task or subtask"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -5748,8 +5752,8 @@ msgstr "Search tags..."
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Search tasks"
-msgstr "Search tasks"
+msgid "Search tasks and subtasks"
+msgstr "Search tasks and subtasks"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -6319,6 +6323,10 @@ msgstr "Subtask actions"
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask title"
 msgstr "Subtask title"
+
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+msgid "Subtask:"
+msgstr "Subtask:"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskSubtasksField.tsx
@@ -7217,9 +7225,17 @@ msgstr "Update the current dashboard name."
 msgid "Update the element library"
 msgstr "Update the element library"
 
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated {updated}"
+msgstr "Updated {updated}"
+
 #: src/features/auth/components/InboxPanel.tsx
 msgid "updated a task"
 msgstr "updated a task"
+
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated by {updatedByName} · {updated}"
+msgstr "Updated by {updatedByName} · {updated}"
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Upload backup"

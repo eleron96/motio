@@ -15,6 +15,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useTaskRepeatConfig } from '@/features/planner/hooks/useTaskRepeatConfig';
 import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
 import { useTaskDrafts } from '@/features/planner/hooks/useTaskDrafts';
+import { useTaskAttribution } from '@/features/planner/hooks/useTaskAttribution';
 import { useTaskDescriptionSave } from '@/features/planner/hooks/useTaskDescriptionSave';
 import { useTaskRepeatSave } from '@/features/planner/hooks/useTaskRepeatSave';
 import { useTaskDetailClose } from '@/features/planner/hooks/useTaskDetailClose';
@@ -211,12 +212,12 @@ export const TaskDetailPanel: React.FC = () => {
   });
   const descriptionDrafts = teammateDrafts.filter((entry) => entry.draft.kind === 'description');
 
-  // Footer meta: «Создано 9 июня · обновлено сегодня».
+  // Attribution is fetched only for the open card, outside the timeline's data.
   const taskCreatedAt = task?.createdAt;
   const taskUpdatedAt = task?.updatedAt;
-  const timestampsMeta = useMemo(
-    () => formatTaskTimestamps(taskCreatedAt, taskUpdatedAt),
-    [taskCreatedAt, taskUpdatedAt],
+  const { createdByName, updatedByName } = useTaskAttribution(taskId, taskUpdatedAt);
+  const timestampsMeta = formatTaskTimestamps(
+    taskCreatedAt, taskUpdatedAt, createdByName, updatedByName,
   );
 
   const descriptionSave = useTaskDescriptionSave({ task, selectedTaskId, canEdit, drafts });

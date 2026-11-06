@@ -17,8 +17,8 @@ interface TaskDetailFrameProps {
   isMobile: boolean;
   open: boolean;
   onRequestClose: () => void;
-  /** «Created 9 June · updated today», or nothing for a task without dates. */
-  timestampsMeta: string | null;
+  /** Created/updated dates and known authors, or no lines for undated tasks. */
+  timestampsMeta: string[];
   onCancel: () => void;
   onDone: () => void;
   doneDisabled: boolean;
@@ -65,6 +65,14 @@ export const TaskDetailFrame: React.FC<TaskDetailFrameProps> = ({
     </Button>
   );
 
+  const metadata = timestampsMeta.length > 0 && (
+    <div className={`min-w-0 text-xs leading-4 text-muted-foreground ${isMobile ? 'text-center' : ''}`}>
+      {timestampsMeta.map((line, index) => (
+        <p key={index} className="break-words [overflow-wrap:anywhere]">{line}</p>
+      ))}
+    </div>
+  );
+
   if (isMobile) {
     return (
       <>
@@ -75,13 +83,9 @@ export const TaskDetailFrame: React.FC<TaskDetailFrameProps> = ({
           description={t`View and edit task details.`}
           footer={(
             <div className="flex flex-col gap-2">
-              {/* The created/updated line reads above the actions here — on a
+              {/* The created/updated metadata reads above the actions here — on a
                   phone there is no room for it beside them. */}
-              {timestampsMeta && (
-                <span className="truncate text-center text-xs text-muted-foreground">
-                  {timestampsMeta}
-                </span>
-              )}
+              {metadata}
               <div className="flex items-center gap-2">
                 {cancelButton}
                 {doneButton}
@@ -131,7 +135,7 @@ export const TaskDetailFrame: React.FC<TaskDetailFrameProps> = ({
 
           {/* ── Footer */}
           <div className="relative flex items-center justify-between gap-3 px-6 py-3.5">
-            <span className="min-w-0 truncate text-xs text-muted-foreground">{timestampsMeta}</span>
+            {metadata || <span />}
             <div className="flex shrink-0 gap-2">
               {cancelButton}
               {doneButton}

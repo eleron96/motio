@@ -1,5 +1,5 @@
 /**
- * Finding tasks by title on the timeline ("lens" search): the timeline itself
+ * Finding tasks by their own or a subtask's title on the timeline: the timeline itself
  * shows the result — matching bars stay, the rest fades — and a strip above it
  * shows every match on a time axis, including the ones outside the screen.
  */
@@ -11,6 +11,7 @@ export interface TaskSearchCandidate {
   endDate: string;
   projectId: string | null;
   repeatId: string | null;
+  matchedSubtaskTitle?: string | null;
 }
 
 export interface TaskSearchDateRange {
@@ -31,7 +32,7 @@ export const normalizeSearchQuery = (query: string): string => (
 );
 
 export const isSearchableQuery = (query: string): boolean => (
-  normalizeSearchQuery(query).length >= MIN_TASK_SEARCH_QUERY_LENGTH
+  Array.from(normalizeSearchQuery(query)).length >= MIN_TASK_SEARCH_QUERY_LENGTH
 );
 
 /** Where the query sits in the title (for underlining), or null. */
@@ -63,22 +64,33 @@ const distanceFromToday = (task: TaskSearchCandidate, today: string) => {
 };
 
 /**
- * Matching tasks, one per repeat series (the occurrence nearest to today) and
- * merged from several sources by id, ordered by date.
+ * Prefer the first source's current task fields, while retaining matching
+ * subtask context from the server. One hit per repeat series goes in the strip;
+ * every matching occurrence stays highlighted on the timeline.
  */
-export const collectTaskSearchHits = <T extends TaskSearchCandidate>(
+export const collectTaskSearchResults = <T extends TaskSearchCandidate>(
   sources: ReadonlyArray<readonly T[]>,
   query: string,
   today: string,
-): T[] => {
+): { hits: T[]; matchedTaskIds: ReadonlySet<string> } => {
+  if (!isSearchableQuery(query)) return { hits: [], matchedTaskIds: new Set() };
   const byId = new Map<string, T>();
   sources.forEach((source) => source.forEach((task) => {
-    if (!byId.has(task.id) && findTitleMatch(task.title, query)) byId.set(task.id, task);
+    const current = byId.get(task.id);
+    if (!current) byId.set(task.id, task);
+    else if (!current.matchedSubtaskTitle && task.matchedSubtaskTitle) {
+      byId.set(task.id, { ...current, matchedSubtaskTitle: task.matchedSubtaskTitle });
+    }
   }));
 
   const nearestBySeries = new Map<string, T>();
   const singles: T[] = [];
+  const matchedTaskIds = new Set<string>();
   byId.forEach((task) => {
+    const matches = findTitleMatch(task.title, query)
+      || (task.matchedSubtaskTitle && findTitleMatch(task.matchedSubtaskTitle, query));
+    if (!matches) return;
+    matchedTaskIds.add(task.id);
     if (!task.repeatId) {
       singles.push(task);
       return;
@@ -89,9 +101,10 @@ export const collectTaskSearchHits = <T extends TaskSearchCandidate>(
     }
   });
 
-  return [...singles, ...nearestBySeries.values()].sort((left, right) => (
+  const hits = [...singles, ...nearestBySeries.values()].sort((left, right) => (
     left.startDate.localeCompare(right.startDate) || left.title.localeCompare(right.title)
   ));
+  return { hits, matchedTaskIds };
 };
 
 /** Hits before, on and after the visible part of the timeline. */

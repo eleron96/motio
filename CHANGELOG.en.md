@@ -7,6 +7,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- The task card now shows who created the task and who last edited its fields.
+
+
+### Changed
+- Timeline search now finds tasks by subtask titles and shows the matching subtask in the preview. The search button is easier to spot and follows your chosen accent color.
 ## [0.10.67] - 2026-11-04
 ### Fixed
 - “Sign out” works again when the session has gone stale, and invitations, notifications and the admin console renew an outdated sign-in on their own instead of failing.

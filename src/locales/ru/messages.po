@@ -1659,6 +1659,10 @@ msgstr "Создано {created}"
 msgid "Created {created} · updated {updated}"
 msgstr "Создано {created} · обновлено {updated}"
 
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Created by {createdByName} · {created}"
+msgstr "Создано: {createdByName} · {created}"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Creates repeats for the next 12 months."
 msgstr "Создает повторы на следующие 12 месяцев."
@@ -2860,8 +2864,8 @@ msgid "Find a project"
 msgstr "Найти проект"
 
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Find a task"
-msgstr "Найти задачу"
+msgid "Find a task or subtask"
+msgstr "Найти задачу или подзадачу"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -5748,8 +5752,8 @@ msgstr "Поиск тегов..."
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Search tasks"
-msgstr "Поиск задач"
+msgid "Search tasks and subtasks"
+msgstr "Поиск задач и подзадач"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -6319,6 +6323,10 @@ msgstr "Действия с подзадачей"
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Subtask title"
 msgstr "Название подзадачи"
+
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+msgid "Subtask:"
+msgstr "Подзадача:"
 
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskSubtasksField.tsx
@@ -7217,9 +7225,17 @@ msgstr "Обновите название текущей панели."
 msgid "Update the element library"
 msgstr "Обновить библиотеку элементов"
 
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated {updated}"
+msgstr "Изменено {updated}"
+
 #: src/features/auth/components/InboxPanel.tsx
 msgid "updated a task"
 msgstr "изменил(а) задачу"
+
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated by {updatedByName} · {updated}"
+msgstr "Изменено: {updatedByName} · {updated}"
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Upload backup"

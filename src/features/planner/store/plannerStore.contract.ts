@@ -15,6 +15,7 @@ import {
   Status,
   Tag,
   Task,
+  TaskSearchHit,
   TaskSubtask,
   TaskType,
   TimeOff,
@@ -135,10 +136,10 @@ export interface PlannerStore extends PlannerState {
   deleteTaskSeries: (repeatId: string, fromDate: string) => Promise<void>;
   removeAssigneeFromTask: (id: string, assigneeId: string, mode: 'single' | 'following') => Promise<void>;
   /**
-   * Tasks of the workspace whose title contains `query` (any dates, not only
-   * the loaded window). Not put into the task cache.
+   * Tasks matching their own or a subtask's title, across all dates.
+   * Search-only metadata is not put into the task cache.
    */
-  searchTasks: (workspaceId: string, query: string) => Promise<{ tasks: Task[]; error?: string }>;
+  searchTasks: (workspaceId: string, query: string) => Promise<{ tasks: TaskSearchHit[]; error?: string }>;
   fetchTaskSubtasks: (workspaceId: string, taskId: string) => Promise<{ subtasks: TaskSubtask[]; error?: string }>;
   createTaskSubtask: (
     workspaceId: string,

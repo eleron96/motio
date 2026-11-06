@@ -36,6 +36,7 @@ const baseTask: Task = {
 
 const mocks = vi.hoisted(() => ({
   isMobile: true,
+  attribution: { createdByName: null as string | null, updatedByName: null as string | null },
   authState: {
     currentWorkspaceId: 'workspace-1',
     currentWorkspaceRole: 'editor',
@@ -91,6 +92,10 @@ const mocks = vi.hoisted(() => ({
     saveTaskDescription: vi.fn(async (): Promise<'saved' | 'conflict' | 'failed'> => 'saved'),
   },
   liveHandlers: [] as Array<{ table: string; onChange: (change: { type: string; rowId: string }) => void }>,
+}));
+
+vi.mock('@/features/planner/hooks/useTaskAttribution', () => ({
+  useTaskAttribution: () => mocks.attribution,
 }));
 
 vi.mock('@/infrastructure/tasks/openTaskLiveChannel', () => ({
@@ -204,6 +209,7 @@ describe('TaskDetailPanel on mobile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.isMobile = true;
+    mocks.attribution = { createdByName: null, updatedByName: null };
     mocks.plannerState.selectedTaskId = 'task-1';
     mocks.plannerState.tasks = [{ ...baseTask, createdAt: '2026-01-05T10:00:00.000Z' } as typeof baseTask];
   });
@@ -238,5 +244,18 @@ describe('TaskDetailPanel on mobile', () => {
 
     expect(screen.queryByRole('button', { name: 'Back' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
+  });
+
+  it.each([true, false])('shows the creator and last editor in the footer (mobile=%s)', (isMobile) => {
+    mocks.isMobile = isMobile;
+    mocks.attribution = { createdByName: 'Alex Morgan', updatedByName: 'Sam Taylor' };
+    mocks.plannerState.tasks[0].updatedAt = '2026-01-06T10:00:00.000Z';
+    render(<TaskDetailPanel />);
+
+    const created = screen.getByText(/Created by Alex Morgan ·/);
+    const updated = screen.getByText(/Updated by Sam Taylor ·/);
+    const done = screen.getByRole('button', { name: 'Done' });
+    expect(created.compareDocumentPosition(updated) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(updated.compareDocumentPosition(done) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
