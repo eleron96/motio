@@ -29,6 +29,15 @@ export interface AdminWorkspace {
   createdAt: string | null;
 }
 
+/** What happened when a super admin added someone to a workspace. */
+export type AddWorkspaceMemberOutcome = 'added' | 'already_member' | 'limit_reached';
+
+export interface PickablePerson {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+}
+
 export interface SuperAdminUser {
   userId: string;
   email: string | null;
@@ -60,6 +69,13 @@ interface AdminState {
   fetchAdminWorkspaces: () => Promise<{ error?: string }>;
   updateAdminWorkspace: (workspaceId: string, name: string) => Promise<{ error?: string }>;
   deleteAdminWorkspace: (workspaceId: string) => Promise<{ error?: string }>;
+  /** Everyone with an account, super admins included: the people a super admin can add to a workspace. */
+  loadPickablePeople: () => Promise<{ people: PickablePerson[]; error?: string }>;
+  addAdminWorkspaceMember: (
+    workspaceId: string,
+    userId: string,
+    role: WorkspaceRole,
+  ) => Promise<{ outcome?: AddWorkspaceMemberOutcome; error?: string }>;
   fetchSuperAdmins: () => Promise<{ error?: string }>;
   createSuperAdmin: (payload: { email: string; displayName?: string }) => Promise<{ error?: string; warning?: string }>;
   deleteSuperAdmin: (userId: string) => Promise<{ error?: string }>;
@@ -182,6 +198,27 @@ export const useAdminStore = create<AdminState>((set) => ({
     });
     if (error) return { error };
     return {};
+  },
+  loadPickablePeople: async () => {
+    const { data, error } = await invokeAdminFunction<{ users?: PickablePerson[] }>({
+      action: ADMIN_ACTIONS.USERS_LIST,
+      page: 1,
+      perPage: 1000,
+      loadAll: true,
+      includeSuperAdmins: true,
+    });
+    if (error) return { people: [], error };
+    return { people: data?.users ?? [] };
+  },
+  addAdminWorkspaceMember: async (workspaceId, userId, role) => {
+    const { data, error } = await invokeAdminFunction<{ outcome?: AddWorkspaceMemberOutcome }>({
+      action: ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER,
+      workspaceId,
+      userId,
+      role,
+    });
+    if (error) return { error };
+    return { outcome: data?.outcome ?? 'added' };
   },
   deleteAdminWorkspace: async (workspaceId) => {
     const { error } = await invokeAdminFunction({

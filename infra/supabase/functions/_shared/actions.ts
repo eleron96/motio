@@ -8,6 +8,8 @@ export const ADMIN_ACTIONS = {
   WORKSPACES_LIST: 'workspaces.list',
   WORKSPACES_UPDATE: 'workspaces.update',
   WORKSPACES_DELETE: 'workspaces.delete',
+  // A super admin adds an existing account to a workspace, no invitation needed.
+  WORKSPACES_ADD_MEMBER: 'workspaces.addMember',
   SUPER_ADMINS_LIST: 'superAdmins.list',
   SUPER_ADMINS_CREATE: 'superAdmins.create',
   SUPER_ADMINS_DELETE: 'superAdmins.delete',

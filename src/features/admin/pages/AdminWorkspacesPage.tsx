@@ -18,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { useTablePagination } from '@/features/admin/hooks/useTablePagination';
 import { AdminTablePagination } from '@/features/admin/components/AdminTablePagination';
+import { AdminWorkspaceAddMemberDialog } from '@/features/admin/components/AdminWorkspaceAddMemberDialog';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -53,6 +54,8 @@ const AdminWorkspacesPage: React.FC = () => {
   const [workspaceDeleteTarget, setWorkspaceDeleteTarget] = useState<AdminWorkspace | null>(null);
   const [workspaceDeleteError, setWorkspaceDeleteError] = useState('');
   const [workspaceDeleteSubmitting, setWorkspaceDeleteSubmitting] = useState(false);
+
+  const [addMemberTarget, setAddMemberTarget] = useState<AdminWorkspace | null>(null);
 
   useEffect(() => {
     fetchAdminWorkspaces();
@@ -210,6 +213,13 @@ const AdminWorkspacesPage: React.FC = () => {
                             <Button
                               size="sm"
                               variant="outline"
+                              onClick={() => setAddMemberTarget(workspace)}
+                            >
+                              {t`Add member`}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
                               onClick={() => openWorkspaceEdit(workspace)}
                             >
                               {t`Rename`}
@@ -241,6 +251,14 @@ const AdminWorkspacesPage: React.FC = () => {
             />
           </div>
         )}
+
+        <AdminWorkspaceAddMemberDialog
+          workspace={addMemberTarget}
+          onOpenChange={(open) => {
+            if (!open) setAddMemberTarget(null);
+          }}
+          onAdded={() => void fetchAdminWorkspaces()}
+        />
 
         <Dialog open={workspaceEditOpen} onOpenChange={setWorkspaceEditOpen}>
           <DialogContent className="sm:max-w-[420px]">

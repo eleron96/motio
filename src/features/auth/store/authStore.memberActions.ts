@@ -12,6 +12,7 @@ import type {
   AuthGetState,
   AuthSetState,
   AuthState,
+  InviteDelivery,
   WorkspaceMember,
   WorkspaceMemberProfileRow,
   WorkspaceRole,
@@ -99,6 +100,9 @@ export const createMemberActions = (
       warning?: string;
       inviteEmail?: string;
       inviteStatus?: string;
+      delivery?: InviteDelivery;
+      inviteToken?: string;
+      alreadyMember?: boolean;
     }>({
       action: INVITE_ACTIONS.CREATE,
       workspaceId,
@@ -144,6 +148,9 @@ export const createMemberActions = (
       warning: data?.warning,
       inviteEmail: data?.inviteEmail,
       inviteStatus: data?.inviteStatus,
+      delivery: data?.delivery,
+      inviteToken: data?.inviteToken,
+      alreadyMember: data?.alreadyMember,
     };
   },
   listSentInvites: async (options) => {

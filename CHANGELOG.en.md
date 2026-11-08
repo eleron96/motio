@@ -7,6 +7,18 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- A super admin can add someone to a workspace right away, without an invitation: “Admin → Workspaces → Add member”.
+
+
+### Changed
+- For your own servers: invitations work without a mail server too — the person signs in through your company sign-in or registers and accepts the invitation in the notifications; no accounts are created in advance.
+- A workspace invitation no longer depends on the email: someone who already has an account finds it in Motio’s notifications even if the email did not go out. The invitation link can be copied from the list of sent invites.
+
+
+### Fixed
+- An invitation no longer changes the invited person’s account — for example, it no longer switches a blocked account back on.
+
 ## [0.10.68] - 2026-11-06
 ### Added
 - The task card now shows who created the task and who last edited its fields.

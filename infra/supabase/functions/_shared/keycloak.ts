@@ -318,6 +318,67 @@ export const findKeycloakUserById = async (config: KeycloakConfig, userId: strin
   return { user };
 };
 
+/** The realm's SMTP settings (empty when no mail server is configured). */
+export const getRealmSmtpServer = async (config: KeycloakConfig) => {
+  const response = await keycloakRequest(
+    config,
+    `/admin/realms/${encodeURIComponent(config.realm)}`,
+    { method: "GET" },
+  );
+
+  if (!response.ok) {
+    return { error: await parseKeycloakError(response) };
+  }
+
+  const realm = await response.json() as { smtpServer?: Record<string, unknown> | null };
+  return { smtpServer: realm.smtpServer ?? null };
+};
+
+/**
+ * Creates a realm user for an invitation. Unlike ensureKeycloakUser it never
+ * changes an account that already exists (one created in the meantime is
+ * returned as it is, with created: false).
+ */
+export const createKeycloakUser = async (
+  config: KeycloakConfig,
+  payload: { email: string; requiredActions: string[] },
+) => {
+  const normalizedEmail = payload.email.trim().toLowerCase();
+  if (!normalizedEmail) {
+    return { error: "Email is required." };
+  }
+
+  const createResponse = await keycloakRequest(
+    config,
+    `/admin/realms/${encodeURIComponent(config.realm)}/users`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: normalizedEmail,
+        email: normalizedEmail,
+        enabled: true,
+        emailVerified: true,
+        requiredActions: payload.requiredActions,
+      }),
+    },
+  );
+
+  if (!(createResponse.status === 201 || createResponse.status === 409)) {
+    return { error: await parseKeycloakError(createResponse) };
+  }
+
+  const found = await findKeycloakUserByEmail(config, normalizedEmail);
+  if ("error" in found) {
+    return { error: found.error };
+  }
+  if (!found.user) {
+    return { error: "Failed to resolve created Keycloak user." };
+  }
+
+  return { user: found.user, created: createResponse.status === 201 };
+};
+
 export const ensureKeycloakUser = async (
   config: KeycloakConfig,
   payload: {

@@ -5,6 +5,7 @@ import { useAuthStore, type WorkspaceRole } from '@/features/auth/store/authStor
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { splitMembersByAccess } from '@/shared/domain/workspaceMemberAccess';
 import type { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberActivity';
+import { toInviteOutcome } from '@/features/workspace/lib/inviteOutcome';
 
 export type AccessGroup = {
   id: string;
@@ -273,11 +274,7 @@ export const useWorkspaceAccess = ({ active = true }: { active?: boolean } = {})
     }
     void loadInvites();
     void loadActivity();
-    return {
-      email: result.inviteEmail ?? email,
-      status: result.inviteStatus ?? 'pending',
-      warning: result.warning ?? null,
-    };
+    return { outcome: toInviteOutcome(result, email) };
   }, [inviteMember, loadActivity, loadInvites]);
 
   const revokeInvite = useCallback(async (token: string) => {

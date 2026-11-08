@@ -4,6 +4,8 @@ import { type Locale } from '@/shared/lib/locale';
 import type { WorkspaceStart } from '@/shared/domain/starterTemplate';
 import { WorkspaceMemberActivityEntry } from '@/shared/domain/workspaceMemberActivity';
 
+export type InviteDelivery = 'email' | 'in_app';
+
 export type WorkspaceRole = 'viewer' | 'editor' | 'admin';
 
 export type AccountStatus = 'ACTIVE' | 'PENDING_DELETION' | 'PURGED';
@@ -175,7 +177,17 @@ export interface AuthState {
     email: string,
     role: WorkspaceRole,
     groupId?: string | null
-  ) => Promise<{ error?: string; actionLink?: string; warning?: string; inviteEmail?: string; inviteStatus?: string }>;
+  ) => Promise<{
+    error?: string;
+    actionLink?: string;
+    warning?: string;
+    inviteEmail?: string;
+    inviteStatus?: string;
+    /** How it reaches the person: by email, or only in Motio's notifications. */
+    delivery?: InviteDelivery;
+    inviteToken?: string;
+    alreadyMember?: boolean;
+  }>;
   listSentInvites: (options?: {
     workspaceId?: string | null;
     pendingOnly?: boolean;

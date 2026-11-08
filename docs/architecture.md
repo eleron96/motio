@@ -127,9 +127,21 @@ Contract and examples: [API](api.md).
 
 ### `invite`
 
-- adds a user to a workspace;
-- creates / links the Keycloak + Supabase identity;
-- syncs realm roles to workspace roles.
+- creates, lists, accepts, declines and cancels workspace invitations; accepting
+  adds the user to the workspace and syncs realm roles to workspace roles;
+- an invitation is a row in `workspace_invites`: whoever signs in with that email
+  sees it in the notifications and can accept it, so the email is a way to bring
+  the person in, not the invitation itself;
+- someone with an account: their Keycloak account is only read, never changed
+  (an invitation does not enable a blocked account or mark an email verified); the
+  email goes out when the realm has SMTP, and a failed email leaves the invitation
+  waiting;
+- no account and the realm has SMTP: creates the Keycloak + Supabase identity and
+  Keycloak mails the set-up link; no account and no SMTP: only the invitation row
+  (rules: `_shared/inviteDelivery.ts`).
+
+`admin` → `workspaces.addMember` lets a super admin put an existing account into a
+workspace directly, without an invitation; workspace admins still invite.
 
 ### `task-media`
 

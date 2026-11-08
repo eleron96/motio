@@ -4,12 +4,12 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { WorkspaceRole } from '@/features/auth/store/authStore';
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Badge } from '@/shared/ui/badge';
 import { cn } from '@/shared/lib/classNames';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { t } from '@lingui/macro';
 import type { WorkspaceInvites } from '@/features/workspace/hooks/useWorkspaceInvites';
+import { InviteResultNotice } from '@/features/workspace/components/InviteResultNotice';
 
 interface WorkspaceInviteSectionProps {
   invites: WorkspaceInvites;
@@ -43,6 +43,7 @@ export const WorkspaceInviteSection: React.FC<WorkspaceInviteSectionProps> = ({
     setInviteGroupId,
     handleInvite,
     handleCancelInvite,
+    copyInviteLink,
     getInviteStatusLabel,
     getInviteStatusClassName,
   } = invites;
@@ -121,20 +122,7 @@ export const WorkspaceInviteSection: React.FC<WorkspaceInviteSectionProps> = ({
       </div>
 
       {inviteResult && (
-        <Alert>
-          <AlertTitle>{t`Invite created`}</AlertTitle>
-          <AlertDescription>
-            <div>{t`Check your inbox`}</div>
-            <div className="mt-1 text-xs">
-              {inviteResult.email} - {inviteResult.status}
-            </div>
-            {inviteResult.warning && (
-              <div className="mt-2 text-xs text-muted-foreground">
-                {inviteResult.warning}
-              </div>
-            )}
-          </AlertDescription>
-        </Alert>
+        <InviteResultNotice result={inviteResult} onCopyLink={(token) => void copyInviteLink(token)} />
       )}
 
       {isAdmin && (
@@ -161,16 +149,27 @@ export const WorkspaceInviteSection: React.FC<WorkspaceInviteSectionProps> = ({
                       </Badge>
                     </div>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="h-7 px-2 text-xs"
-                    disabled={cancelingToken === invite.token}
-                    onClick={() => void handleCancelInvite(invite.token)}
-                  >
-                    {t`Revoke`}
-                  </Button>
+                  <div className="flex shrink-0 gap-1.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => void copyInviteLink(invite.token)}
+                    >
+                      {t`Copy link`}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      disabled={cancelingToken === invite.token}
+                      onClick={() => void handleCancelInvite(invite.token)}
+                    >
+                      {t`Revoke`}
+                    </Button>
+                  </div>
                 </div>
                 );
               })}

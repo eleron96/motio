@@ -183,6 +183,14 @@ msgstr "{days, plural, one {# day} other {# days}}"
 msgid "{earlierCount} earlier"
 msgstr "{earlierCount} earlier"
 
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "{email} already has access to this workspace."
+msgstr "{email} already has access to this workspace."
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "{email} will get an email with a link. The invitation also waits in their notifications in Motio."
+msgstr "{email} will get an email with a link. The invitation also waits in their notifications in Motio."
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{firstRow}–{lastRow} of {total}"
 msgstr "{firstRow}–{lastRow} of {total}"
@@ -219,6 +227,14 @@ msgstr "{months} mo in Motio"
 msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 msgstr "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} is already a member of {workspaceName}."
+msgstr "{name} is already a member of {workspaceName}."
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} is already in 5 workspaces, the most one account can join."
+msgstr "{name} is already in 5 workspaces, the most one account can join."
+
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is editing the description"
 msgstr "{name} is editing the description"
@@ -234,6 +250,10 @@ msgstr "{name} is writing a comment"
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is writing a subtask"
 msgstr "{name} is writing a subtask"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} was added to {workspaceName}."
+msgstr "{name} was added to {workspaceName}."
 
 #. placeholder {0}: hits.length
 #: src/features/planner/components/timeline/TimelineSearch.tsx
@@ -516,6 +536,8 @@ msgstr "Add group"
 msgid "Add image"
 msgstr "Add image"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
@@ -524,6 +546,10 @@ msgstr "Add image"
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "Add member"
 msgstr "Add member"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "Add member to {workspaceName}"
+msgstr "Add member to {workspaceName}"
 
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "Add milestone"
@@ -593,6 +619,7 @@ msgstr "Adds this delivery to the workload heatmap. Untick for milestones that d
 msgid "admin"
 msgstr "admin"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
@@ -683,6 +710,10 @@ msgstr "All subscribers"
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "All tasks"
 msgstr "All tasks"
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Already a member"
+msgstr "Already a member"
 
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Already undone"
@@ -1032,6 +1063,7 @@ msgstr "Call"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
@@ -1165,10 +1197,6 @@ msgstr "Chart style"
 #: src/features/workspace/lib/starterTemplates/bimTemplate.ts
 msgid "Check the coordinate system"
 msgstr "Check the coordinate system"
-
-#: src/features/workspace/components/WorkspaceInviteSection.tsx
-msgid "Check your inbox"
-msgstr "Check your inbox"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Checkerboard"
@@ -1476,6 +1504,12 @@ msgstr "Copied"
 msgid "Copy email"
 msgstr "Copy email"
 
+#: src/features/workspace/components/InviteResultNotice.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
+#: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
+msgid "Copy link"
+msgstr "Copy link"
+
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Copy name"
 msgstr "Copy name"
@@ -1485,6 +1519,10 @@ msgstr "Copy name"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Copy phone"
+
+#: src/features/workspace/hooks/useCopyInviteLink.ts
+msgid "Copy the invitation link"
+msgstr "Copy the invitation link"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copy token"
@@ -2416,6 +2454,7 @@ msgstr "Editing does not bring the announcement back to people who already close
 msgid "editor"
 msgstr "editor"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
@@ -3277,9 +3316,17 @@ msgstr "Interrupts once with a dialog. Use for maintenance and outages."
 msgid "Invalid name."
 msgstr "Invalid name."
 
-#: src/features/workspace/components/WorkspaceInviteSection.tsx
-msgid "Invite created"
-msgstr "Invite created"
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Invitation created"
+msgstr "Invitation created"
+
+#: src/features/workspace/hooks/useCopyInviteLink.ts
+msgid "Invitation link copied"
+msgstr "Invitation link copied"
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Invitation sent"
+msgstr "Invitation sent"
 
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "Invite people and share access."
@@ -3478,6 +3525,7 @@ msgstr "Loading board..."
 msgid "Loading dashboard..."
 msgstr "Loading dashboard..."
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
@@ -4170,6 +4218,10 @@ msgstr "No easter eggs assigned."
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "No email or phone for this contact yet."
 msgstr "No email or phone for this contact yet."
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "No email was sent. {email} will see the invitation in their notifications after signing in to Motio with this address. You can also send them the link."
+msgstr "No email was sent. {email} will see the invitation in their notifications after signing in to Motio with this address. You can also send them the link."
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "No end date"
@@ -5492,6 +5544,7 @@ msgstr "Right-click to add your first widget."
 msgid "Riverside restaurant interior"
 msgstr "Riverside restaurant interior"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
@@ -6583,6 +6636,10 @@ msgstr "The end date cannot be earlier than the start date."
 msgid "The pattern drawn on your days off. Your teammates see it too"
 msgstr "The pattern drawn on your days off. Your teammates see it too"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "The person joins right away, without an invitation or an email. The list shows everyone who has signed in to Motio at least once."
+msgstr "The person joins right away, without an invitation or an email. The list shows everyone who has signed in to Motio at least once."
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
 msgstr "The previous export file has expired. Request it again."
@@ -7355,6 +7412,7 @@ msgstr "View tasks"
 msgid "viewer"
 msgstr "viewer"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx

@@ -1,5 +1,5 @@
 import { z } from "npm:zod@3.25.76";
-import { ADMIN_ACTIONS } from "../_shared/actions.ts";
+import { ADMIN_ACTIONS, INVITE_ROLE_VALUES } from "../_shared/actions.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
 import { buildUnsubscribeUrl, getMailerConfig, sendEmail } from "../_shared/mailer.ts";
 import { renderBroadcastEmail } from "../_shared/broadcastEmail.ts";
@@ -102,6 +102,12 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.WORKSPACES_DELETE),
     workspaceId: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER),
+    workspaceId: z.string().min(1),
+    userId: z.string().min(1),
+    role: z.enum(INVITE_ROLE_VALUES),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_LIST),
@@ -840,6 +846,99 @@ const handleWorkspacesUpdate = async (payload: { workspaceId?: string; name?: st
   }
 
   return jsonResponse({ success: true });
+};
+
+// A super admin puts an existing account into a workspace right away, without
+// an invitation or an email (self-hosted installs without SMTP, people who
+// sign in through the company's identity provider). Workspace admins still
+// invite: adding someone without their consent stays a super-admin power
+// (migration 0106). The person's Keycloak account is never changed here.
+const handleWorkspacesAddMember = async (payload: { workspaceId: string; userId: string; role: WorkspaceRole }) => {
+  const workspaceId = payload.workspaceId.trim();
+  const userId = payload.userId.trim();
+
+  const { data: workspace, error: workspaceError } = await supabaseAdmin
+    .from("workspaces")
+    .select("id")
+    .eq("id", workspaceId)
+    .maybeSingle();
+  if (workspaceError) {
+    return jsonResponse({ error: workspaceError.message }, 500);
+  }
+  if (!workspace) {
+    return jsonResponse({ error: "Workspace not found." }, 404);
+  }
+
+  const userResult = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (userResult.error || !userResult.data.user) {
+    return jsonResponse({ error: "User not found." }, 404);
+  }
+  const email = (userResult.data.user.email ?? "").trim().toLowerCase();
+
+  const { data: existingMembership, error: membershipError } = await supabaseAdmin
+    .from("workspace_members")
+    .select("user_id")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (membershipError) {
+    return jsonResponse({ error: membershipError.message }, 500);
+  }
+  if (existingMembership) {
+    return jsonResponse({ success: true, outcome: "already_member" });
+  }
+
+  const { error: insertError } = await supabaseAdmin
+    .from("workspace_members")
+    .insert({ workspace_id: workspaceId, user_id: userId, role: payload.role });
+  if (insertError) {
+    // enforce_workspace_limit (0001): one account belongs to at most 5 workspaces.
+    if (insertError.message.includes("workspace limit reached")) {
+      return jsonResponse({ success: true, outcome: "limit_reached" });
+    }
+    if (insertError.code === "23505") {
+      return jsonResponse({ success: true, outcome: "already_member" });
+    }
+    return jsonResponse({ error: insertError.message }, 500);
+  }
+
+  // An invitation still waiting for this person would ask them again.
+  if (email) {
+    await supabaseAdmin
+      .from("workspace_invites")
+      .update({ accepted_at: new Date().toISOString() })
+      .eq("workspace_id", workspaceId)
+      .eq("email_normalized", email)
+      .is("accepted_at", null)
+      .is("revoked_at", null);
+  }
+
+  // Realm roles mirror memberships for information only. Sync them through the
+  // identity the person signs in with; without one, nothing is created.
+  const identityResult = await findKeycloakIdentityForUser(supabaseAdmin, userId);
+  const keycloakUserId = "error" in identityResult ? null : identityResult.identity?.providerId ?? null;
+  if (keycloakUserId) {
+    const roleSync = await syncUserRoles(userId, keycloakUserId);
+    if ("error" in roleSync) {
+      console.warn(JSON.stringify({
+        module: "admin.workspaces",
+        action: "addMember",
+        workspaceId,
+        entityId: userId,
+        result: "role_sync_failed",
+        message: roleSync.error,
+      }));
+    }
+  }
+
+  console.info(JSON.stringify({
+    module: "admin.workspaces",
+    action: "addMember",
+    workspaceId,
+    entityId: userId,
+    result: "success",
+  }));
+  return jsonResponse({ success: true, outcome: "added" });
 };
 
 const handleWorkspacesDelete = async (payload: { workspaceId?: string }) => {
@@ -1795,6 +1894,8 @@ export const handler = async (req: Request) => {
       return handleWorkspacesUpdate(payload as { workspaceId?: string; name?: string });
     case ADMIN_ACTIONS.WORKSPACES_DELETE:
       return handleWorkspacesDelete(payload as { workspaceId?: string });
+    case ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER:
+      return handleWorkspacesAddMember(payload as { workspaceId: string; userId: string; role: WorkspaceRole });
     case ADMIN_ACTIONS.SUPER_ADMINS_LIST:
       return handleSuperAdminsList();
     case ADMIN_ACTIONS.SUPER_ADMINS_CREATE:

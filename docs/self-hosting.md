@@ -15,8 +15,8 @@ See also: [Configuration](configuration.md) · [Operations](operations.md) ·
   `python3`, `openssl` and `curl` — present on most distributions.
 - A **domain name** pointing at the server (an A/AAAA record), e.g.
   `planner.example.com`.
-- Optional: an **SMTP account** for email (invitations of new people, password
-  resets, the welcome email). Motio runs without it; see [Email](#email).
+- Optional: an **SMTP account** for email (invitation emails, password resets,
+  the welcome email). Motio runs without it; see [Email](#email).
 
 ## Install
 
@@ -284,10 +284,15 @@ it to Keycloak as well.
 
 With SMTP, new accounts also confirm their email address before the first
 sign-in. Without SMTP nothing is sent, and email confirmation is switched off so
-people can still sign up. People who already have an account still see
-invitations inside Motio; a new person can't receive the invitation email, so
-either create their account in the Keycloak console with a temporary password or
-let them sign up while registration is open.
+people can still sign up.
+
+Invitations work without SMTP too. An invitation waits in Motio's notifications
+for whoever signs in with that address: someone who already has an account, or a
+new person who signs in through your [own sign-in](#your-own-sign-in-authentik-microsoft-entra-id-google-workspace-)
+or registers. No account is created in advance. **Sent invites** has a **Copy link**
+button if you want to send the link yourself; only the invited address can accept
+it. A super admin can also put someone who has signed in at least once straight
+into a workspace, without an invitation: **Admin → Workspaces → Add member**.
 
 ## Your own sign-in (Authentik, Microsoft Entra ID, Google Workspace, …)
 

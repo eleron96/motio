@@ -183,6 +183,14 @@ msgstr "{days, plural, one {# день} few {# дня} many {# дней} other {
 msgid "{earlierCount} earlier"
 msgstr "{earlierCount} раньше"
 
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "{email} already has access to this workspace."
+msgstr "У {email} уже есть доступ к этому пространству."
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "{email} will get an email with a link. The invitation also waits in their notifications in Motio."
+msgstr "{email} получит письмо со ссылкой. Приглашение также ждёт в уведомлениях Motio."
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{firstRow}–{lastRow} of {total}"
 msgstr "{firstRow}–{lastRow} из {total}"
@@ -219,6 +227,14 @@ msgstr "В Motio {months} мес"
 msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 msgstr "{moreProjects, plural, one {и ещё # проект} few {и ещё # проекта} many {и ещё # проектов} other {и ещё # проекта}}"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} is already a member of {workspaceName}."
+msgstr "{name} уже участник пространства «{workspaceName}»."
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} is already in 5 workspaces, the most one account can join."
+msgstr "{name} уже состоит в 5 пространствах — это максимум для одной учётной записи."
+
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is editing the description"
 msgstr "{name} редактирует описание"
@@ -234,6 +250,10 @@ msgstr "{name} пишет комментарий"
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is writing a subtask"
 msgstr "{name} пишет подзадачу"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} was added to {workspaceName}."
+msgstr "{name} теперь участник пространства «{workspaceName}»."
 
 #. placeholder {0}: hits.length
 #: src/features/planner/components/timeline/TimelineSearch.tsx
@@ -516,6 +536,8 @@ msgstr "Добавить группу"
 msgid "Add image"
 msgstr "Добавить изображение"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
@@ -524,6 +546,10 @@ msgstr "Добавить изображение"
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "Add member"
 msgstr "Добавить участника"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "Add member to {workspaceName}"
+msgstr "Добавить участника в «{workspaceName}»"
 
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "Add milestone"
@@ -593,6 +619,7 @@ msgstr "Добавляет эту веху в тепловую карту заг
 msgid "admin"
 msgstr "администратор"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
@@ -683,6 +710,10 @@ msgstr "Все подписчики"
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "All tasks"
 msgstr "Все задачи"
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Already a member"
+msgstr "Уже участник"
 
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Already undone"
@@ -1032,6 +1063,7 @@ msgstr "Позвонить"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
@@ -1165,10 +1197,6 @@ msgstr "Стиль графика"
 #: src/features/workspace/lib/starterTemplates/bimTemplate.ts
 msgid "Check the coordinate system"
 msgstr "Проверить систему координат"
-
-#: src/features/workspace/components/WorkspaceInviteSection.tsx
-msgid "Check your inbox"
-msgstr "Проверьте почту"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Checkerboard"
@@ -1476,6 +1504,12 @@ msgstr "Скопировано"
 msgid "Copy email"
 msgstr "Скопировать email"
 
+#: src/features/workspace/components/InviteResultNotice.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
+#: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
+msgid "Copy link"
+msgstr "Скопировать ссылку"
+
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Copy name"
 msgstr "Скопировать имя"
@@ -1485,6 +1519,10 @@ msgstr "Скопировать имя"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Скопировать телефон"
+
+#: src/features/workspace/hooks/useCopyInviteLink.ts
+msgid "Copy the invitation link"
+msgstr "Скопируйте ссылку-приглашение"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copy token"
@@ -2416,6 +2454,7 @@ msgstr "Правка не вернёт объявление тем, кто ег�
 msgid "editor"
 msgstr "редактор"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
@@ -3277,9 +3316,17 @@ msgstr "Один раз прерывает окном. Для работ и сб
 msgid "Invalid name."
 msgstr "Недопустимое имя."
 
-#: src/features/workspace/components/WorkspaceInviteSection.tsx
-msgid "Invite created"
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Invitation created"
 msgstr "Приглашение создано"
+
+#: src/features/workspace/hooks/useCopyInviteLink.ts
+msgid "Invitation link copied"
+msgstr "Ссылка-приглашение скопирована"
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Invitation sent"
+msgstr "Приглашение отправлено"
 
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "Invite people and share access."
@@ -3478,6 +3525,7 @@ msgstr "Загружаем доску…"
 msgid "Loading dashboard..."
 msgstr "Загрузка дашборда..."
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
@@ -4170,6 +4218,10 @@ msgstr "Пасхалки никому не назначены."
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "No email or phone for this contact yet."
 msgstr "У контакта пока нет email или телефона."
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "No email was sent. {email} will see the invitation in their notifications after signing in to Motio with this address. You can also send them the link."
+msgstr "Письмо не отправлялось. {email} увидит приглашение в уведомлениях, когда войдёт в Motio с этим адресом. Можно также отправить ссылку."
 
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "No end date"
@@ -5492,6 +5544,7 @@ msgstr "Щелкните правой кнопкой, чтобы добавит�
 msgid "Riverside restaurant interior"
 msgstr "Интерьер ресторана на набережной"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
@@ -6583,6 +6636,10 @@ msgstr "Дата окончания не может быть раньше дат
 msgid "The pattern drawn on your days off. Your teammates see it too"
 msgstr "Узор, которым отмечаются ваши выходные. Его видит вся команда"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "The person joins right away, without an invitation or an email. The list shows everyone who has signed in to Motio at least once."
+msgstr "Человек сразу становится участником, без приглашения и письма. В списке — все, кто хотя бы раз входил в Motio."
+
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
 msgstr "Срок действия предыдущего файла экспорта истёк. Запросите его ещё раз."
@@ -7355,6 +7412,7 @@ msgstr "Просмотреть задачи"
 msgid "viewer"
 msgstr "наблюдатель"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx

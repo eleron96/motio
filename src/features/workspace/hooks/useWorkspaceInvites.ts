@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
 import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore, type WorkspaceRole } from '@/features/auth/store/authStore';
+import { toInviteOutcome, type InviteOutcome } from '@/features/workspace/lib/inviteOutcome';
+import { useCopyInviteLink } from '@/features/workspace/hooks/useCopyInviteLink';
 
 export type SentInvite = {
   token: string;
@@ -42,7 +44,8 @@ export const useWorkspaceInvites = ({
   })));
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<WorkspaceRole>('viewer');
-  const [inviteResult, setInviteResult] = useState<{ email: string; status: string; warning?: string | null } | null>(null);
+  const [inviteResult, setInviteResult] = useState<InviteOutcome | null>(null);
+  const copyInviteLink = useCopyInviteLink();
   const [submitting, setSubmitting] = useState(false);
   const [cancelingToken, setCancelingToken] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -115,11 +118,7 @@ export const useWorkspaceInvites = ({
       setError(result.error);
     }
     if (!result.error) {
-      setInviteResult({
-        email: result.inviteEmail ?? invitedEmail,
-        status: result.inviteStatus ?? 'pending',
-        warning: result.warning ?? null,
-      });
+      setInviteResult(toInviteOutcome(result, invitedEmail));
     }
     setSubmitting(false);
     if (!result.error) {
@@ -180,6 +179,7 @@ export const useWorkspaceInvites = ({
     setInviteGroupId,
     handleInvite,
     handleCancelInvite,
+    copyInviteLink,
     getInviteStatusLabel,
     getInviteStatusClassName,
   };

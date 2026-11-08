@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ADMIN_ACTIONS } from '@/shared/contracts/actions';
+import { ADMIN_ACTIONS, INVITE_ROLE_VALUES } from '@/shared/contracts/actions';
 
 const adminBootstrapSyncRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.BOOTSTRAP_SYNC),
@@ -53,6 +53,13 @@ const adminWorkspacesUpdateRequestSchema = z.object({
 const adminWorkspacesDeleteRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.WORKSPACES_DELETE),
   workspaceId: z.string().min(1),
+}).strict();
+
+const adminWorkspacesAddMemberRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER),
+  workspaceId: z.string().min(1),
+  userId: z.string().min(1),
+  role: z.enum(INVITE_ROLE_VALUES),
 }).strict();
 
 const adminSuperAdminsListRequestSchema = z.object({
@@ -217,6 +224,7 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminWorkspacesListRequestSchema,
   adminWorkspacesUpdateRequestSchema,
   adminWorkspacesDeleteRequestSchema,
+  adminWorkspacesAddMemberRequestSchema,
   adminSuperAdminsListRequestSchema,
   adminSuperAdminsCreateRequestSchema,
   adminSuperAdminsDeleteRequestSchema,

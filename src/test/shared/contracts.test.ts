@@ -20,6 +20,22 @@ describe('contracts', () => {
     expect(invalid.success).toBe(false);
   });
 
+  it('validates a super admin adding someone to a workspace', () => {
+    expect(adminRequestSchema.safeParse({
+      action: ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER,
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'editor',
+    }).success).toBe(true);
+
+    expect(adminRequestSchema.safeParse({
+      action: ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER,
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      role: 'owner',
+    }).success).toBe(false);
+  });
+
   it('validates invite requests by action contract', () => {
     const valid = inviteRequestSchema.safeParse({
       action: INVITE_ACTIONS.CREATE,
