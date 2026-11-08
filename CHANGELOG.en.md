@@ -17,6 +17,8 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 
 ### Fixed
+- For your own servers: restore and rollback check a backup set before stopping anything and refuse one its Motio release could not start on, leaving the data untouched. If Motio does not start after a restore, the installer says how to go back.
+- For your own servers: the move to PostgreSQL 17 no longer stops on a slow server with “the service schemas differ … 45 … 91”. You can update from any release straight to the newest, without the ones in between.
 - An invitation no longer changes the invited person’s account — for example, it no longer switches a blocked account back on.
 
 ## [0.10.68] - 2026-11-06

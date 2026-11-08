@@ -255,8 +255,10 @@ database. It is a logical copy, with a stop of everything that uses the database
 for about a minute (Keycloak and the web front keep running):
 
 1. PostgreSQL 15 starts on the old volume `supabase_db_data`, the new GoTrue,
-   Storage and Realtime bring their schemas up to date there, and the script
-   records a fingerprint: the catalog (tables, columns, functions with their
+   Storage and Realtime bring their schemas up to date there (the script waits
+   for each to log that it is done: GoTrue serving, Storage started, Realtime's
+   tenant set-up; a quiet period is not enough, a slow Realtime pauses before its
+   tenant migrations), and the script records a fingerprint: the catalog (tables, columns, functions with their
    privileges, policies, triggers, publications, roles) and the row count and a
    checksum of every table in `public`, `auth` and `storage`.
 2. A dump with the PostgreSQL 17 tools goes to `infra/backups/pg-upgrade/<time>/`

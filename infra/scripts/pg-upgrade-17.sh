@@ -167,25 +167,75 @@ select concat_ws(' ',
 SQL
 }
 
+# Whether a service has brought its schema up to date, by what it logs once it
+# has (checked in the images of this release):
+#   GoTrue    "GoTrue API started": it applies its migrations before it serves.
+#   Storage   "[Server] Started Successfully": after its migrations;
+#             "Server not started" when they fail.
+#   Realtime  "Tenant set-up successfully": its seeds step applied the tenant
+#             migrations (realtime.schema_migrations); "Starting Realtime": that
+#             step has exited. Its run.sh goes on after "Failed to set-up
+#             tenant", so that line is a failure here.
+# Waiting for these instead of a quiet period matters: on a slow machine
+# Realtime pauses for longer than any fixed period between its own migrations
+# and the tenant ones (a PostgreSQL 15 database already has the older tenant
+# migrations, so nothing shows the wait is not over).
+service_state() { # service, container -> ready | failed | waiting
+  local logs
+  logs="$(docker logs "$2" 2>&1 || true)"
+  case "$1" in
+    auth)
+      [[ "$logs" == *"GoTrue API started"* ]] && echo ready || echo waiting ;;
+    storage)
+      if [[ "$logs" == *"Server not started"* ]]; then echo failed
+      elif [[ "$logs" == *"[Server] Started Successfully"* ]]; then echo ready
+      else echo waiting; fi ;;
+    realtime)
+      if [[ "$logs" == *"Failed to set-up tenant"* ]]; then echo failed
+      elif [[ "$logs" == *"Tenant set-up successfully"* && "$logs" == *"Starting Realtime"* ]]; then echo ready
+      else echo waiting; fi ;;
+  esac
+}
+
 # Starts GoTrue, Storage and Realtime on whichever database answers as "db",
-# waits until their migrations stand still for 15 s, stops them. Prints the state.
+# waits until each has set up its schema (service_state), stops them. Prints
+# the migration state.
 run_service_migrations() { # container
-  local started last="" same=0 current service state
+  local started service container status pending=(auth storage realtime) waiting current
   "${compose[@]}" up -d --no-deps --force-recreate auth storage realtime >/dev/null
   started="$(date +%s)"
-  while (( same < 5 )); do
-    (( $(date +%s) - started > 420 )) && { "${compose[@]}" logs --tail 20 auth storage realtime >&2; log "the services did not finish their migrations."; return 1; }
+  while (( ${#pending[@]} > 0 )); do
+    if (( $(date +%s) - started > 900 )); then
+      "${compose[@]}" logs --tail 30 "${pending[@]}" >&2
+      log "${pending[*]} did not finish setting up within 15 minutes."
+      return 1
+    fi
     sleep 3
-    for service in auth storage realtime; do
-      state="$(docker inspect -f '{{.State.Status}}' "$("${compose[@]}" ps -aq "$service")" 2>/dev/null || echo missing)"
-      [[ "$state" == "running" ]] || { "${compose[@]}" logs --tail 20 "$service" >&2; log "$service is $state."; return 1; }
+    waiting=()
+    for service in "${pending[@]}"; do
+      container="$("${compose[@]}" ps -aq "$service")"
+      # A restart means the service failed once, whatever it logs afterwards.
+      status="$(docker inspect -f '{{.State.Status}}, {{.RestartCount}} restarts' "$container" 2>/dev/null || echo missing)"
+      if [[ "$status" != "running, 0 restarts" ]]; then
+        "${compose[@]}" logs --tail 30 "$service" >&2
+        log "$service stopped while setting up its schema ($status)."
+        return 1
+      fi
+      case "$(service_state "$service" "$container")" in
+        ready) log "  $service is up to date ($(( $(date +%s) - started )) s)." ;;
+        failed)
+          "${compose[@]}" logs --tail 30 "$service" >&2
+          log "$service could not set up its schema."
+          return 1 ;;
+        *) waiting+=("$service") ;;
+      esac
     done
-    current="$(service_versions "$1")"
-    if [[ "$current" == "$last" && "$current" != *-* ]]; then same=$((same + 1)); else same=0; fi
-    last="$current"
+    pending=(${waiting[@]+"${waiting[@]}"})
   done
   "${compose[@]}" stop auth storage realtime >/dev/null 2>&1
-  printf '%s\n' "$last"
+  current="$(service_versions "$1")"
+  [[ "$current" != *-* ]] || { log "a service reported ready without its migrations table: $current"; return 1; }
+  printf '%s\n' "$current"
 }
 
 roles_json() { # container

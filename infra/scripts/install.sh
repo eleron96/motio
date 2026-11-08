@@ -613,6 +613,68 @@ db_volume_in_use() {
 
 set_value() { grep -E "^${2}=" "$1/motio-backup.txt" | head -n1 | cut -d= -f2- || true; }
 
+# The PostgreSQL major version a release runs: the tag of the db image in its
+# compose file (supabase/postgres:15.1.0.117 → 15). Empty when unreadable.
+release_postgres_major() { # commit
+  git show "$1:infra/docker-compose.prod.yml" 2>/dev/null | python3 -c '
+import re, sys
+in_db = False
+for line in sys.stdin:
+    if re.match(r"^  \S", line):
+        in_db = line.strip() == "db:"
+    elif in_db:
+        match = re.match(r"^\s+image:\s*\S+:(\d+)", line)
+        if match:
+            print(match.group(1))
+            break
+' || true
+}
+
+# The PostgreSQL major version that wrote the database copy of a backup set
+# (PG_VERSION at the top of the volume). Empty when the copy has none.
+archive_postgres_major() { # backup set dir
+  local dir_abs
+  dir_abs="$(cd "$1" && pwd)"
+  docker run --rm --entrypoint tar -v "$dir_abs":/backup:ro "$archive_image" \
+    --extract --gzip --to-stdout --occurrence=1 --file /backup/database.tar.gz ./PG_VERSION 2>/dev/null \
+    | tr -d '[:space:]' || true
+}
+
+# Refuses a set whose database copy the release of the set cannot start, before
+# anything is stopped or overwritten. Installers up to 0.10.66 could put an
+# unfinished PostgreSQL 17 copy into the pre-update set of a PostgreSQL 15
+# release: restoring it would replace the good PostgreSQL 15 data with files
+# PostgreSQL 15 cannot read.
+check_backup_set_database() { # backup set dir, commit, label
+  local dir="$1" commit="$2" label="$3" archive_major release_major
+  [[ -f "$dir/database.tar.gz" ]] || return 0
+  archive_major="$(archive_postgres_major "$dir")"
+  release_major="$(release_postgres_major "$commit")"
+  [[ -n "$archive_major" ]] || fail "the database copy in ${dir} has no PG_VERSION, so it is not a database. Nothing was changed."
+  if [[ -z "$release_major" ]]; then
+    warn "could not tell which PostgreSQL release ${label} runs; restoring without that check."
+    return 0
+  fi
+  if [[ "$archive_major" != "$release_major" ]]; then
+    cat >&2 <<EOF
+
+This backup set cannot be restored: its database copy is PostgreSQL ${archive_major},
+but Motio ${label} runs PostgreSQL ${release_major} and could not start on it.
+Nothing was changed; Motio keeps running as it is.
+
+  Such a set comes from an update by Motio 0.10.66 or older after an earlier,
+  unfinished move to PostgreSQL 17. Your data is not in danger: the copy is
+  only a wrong one. The sets, oldest first:
+EOF
+    local set set_label
+    while read -r set; do
+      set_label="$(set_value "$set" tag)"
+      printf '    %s  (Motio %s)\n' "$set" "${set_label:-$(set_value "$set" version)}" >&2
+    done < <(list_backup_sets)
+    fail "the database copy does not match the release of the set."
+  fi
+}
+
 # Finished sets, oldest first (names end in their time): of one kind, or all.
 list_backup_sets() {
   local set kind="${1:-*}"
@@ -690,6 +752,9 @@ prepare_images() {
 
 update_backup_set=""
 update_from_version=""
+restore_label=""
+restore_safety_set=""
+restore_from_ref=""
 
 # Step 1, run by the installed release: switch the checkout, then hand over to
 # the install.sh of the new release, so its own steps (new settings, Keycloak
@@ -780,29 +845,36 @@ and settings. Changes made since then are lost; a copy of the current state is k
 first (unless --no-safety-backup).
 
 EOF
+  require_clean_checkout
+  if ! git cat-file -e "${commit}^{commit}" 2>/dev/null; then
+    git fetch --tags --quiet origin
+    git cat-file -e "${commit}^{commit}" 2>/dev/null || fail "commit ${commit} of this backup is not in the repository."
+  fi
+  check_backup_set_database "$dir" "$commit" "$label"
+
   if [[ "$assume_yes" != "true" ]]; then
     [[ -t 0 ]] || fail "confirm with --yes when not running interactively."
     read -r -p "Type 'restore' to continue: " confirm
     [[ "$confirm" == "restore" ]] || fail "cancelled; nothing was changed."
   fi
 
-  require_clean_checkout
-  if ! git cat-file -e "${commit}^{commit}" 2>/dev/null; then
-    git fetch --tags --quiet origin
-    git cat-file -e "${commit}^{commit}" 2>/dev/null || fail "commit ${commit} of this backup is not in the repository."
-  fi
-
+  restore_dir="$dir" restore_label="$label" restore_safety_set=""
   if [[ -f "$env_file" ]]; then
-    stop_stack
+    stop_for_restore
     if [[ "$safety_backup" == "true" ]]; then
       create_backup_set pre-restore "$env_file" HEAD \
         || fail "the copy of the current state failed; nothing was restored (--no-safety-backup skips it)."
+      restore_safety_set="$backup_set_dir"
     fi
     kept_env="${env_file}.before-restore-$(date +%Y%m%d-%H%M%S)"
     install -m 600 "$env_file" "$kept_env"
     echo "  the current .env is kept as ${kept_env}"
   fi
 
+  # From here until the release of the set runs, the install is between two
+  # releases: whatever stops it, say where it stands and how to go on.
+  restore_from_ref="$(git rev-parse HEAD)"
+  trap print_restore_failed EXIT
   log "Switching to the release of the backup (${label})"
   git checkout --quiet --detach "$commit"
   install -m 600 "$dir/env" "$env_file"
@@ -826,7 +898,50 @@ EOF
   # The checkout is now the release of the backup: start it with that
   # release's own installer, whose steps and scripts match its files (this
   # script's may call Keycloak scripts the older release does not have).
-  exec infra/scripts/install.sh up
+  # Going on after the checkout is safe while it stays inside this function:
+  # bash has read it already. It must exit here, not return, so that bash does
+  # not read on in the file the checkout replaced.
+  if infra/scripts/install.sh up; then
+    trap - EXIT
+    echo "  Restored: ${dir} (Motio ${label})."
+    exit 0
+  fi
+  exit 1
+}
+
+# Stops the install before a restore. With a .env docker compose cannot read
+# (the restore of a set may have been cut short), its containers are stopped by
+# their compose project label instead, so a restore can still repair it.
+stop_for_restore() {
+  stop_stack && return 0
+  local project
+  project="$(get_env_value MOTIO_INSTANCE)"
+  project="${project:-motio}"
+  warn "docker compose could not stop Motio; stopping the containers of ${project} directly."
+  docker ps -q --filter "label=com.docker.compose.project=${project}" | xargs -r docker stop >/dev/null
+}
+
+# The checkout is already the release of the set when this runs: the commands
+# switch back to this installer first, so its checks are the ones that run.
+# The state left behind is not worth a safety copy (--no-safety-backup).
+print_restore_failed() {
+  local status=$? back
+  (( status == 0 )) && return 0
+  back="git checkout --quiet --detach ${restore_from_ref:0:12}"
+  cat >&2 <<EOF
+
+The restore of ${restore_dir} (Motio ${restore_label}) did not finish (see above);
+Motio is not running.
+  Logs: infra/scripts/selfhost-compose.sh logs --tail=100
+  Once the cause is fixed, restore again:
+    ${back} && infra/scripts/install.sh restore ${restore_dir} --no-safety-backup
+EOF
+  if [[ -n "$restore_safety_set" ]]; then
+    cat >&2 <<EOF
+  Or go back to the state from before it:
+    ${back} && infra/scripts/install.sh restore ${restore_safety_set} --no-safety-backup
+EOF
+  fi
 }
 
 # Read-only report for troubleshooting over SSH: version, containers, the

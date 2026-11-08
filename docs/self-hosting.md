@@ -170,8 +170,15 @@ infra/scripts/install.sh update --version vX.Y.Z
 ```
 
 Read the release notes first: anything that needs your attention for self-hosted
-installs is called out there ("For your own servers: …"). The update runs in three
-steps:
+installs is called out there ("For your own servers: …").
+
+You can go from any release straight to the newest: `update` runs the migrations
+of every release in between, so there is no need to step through them. Only
+published releases have a tag (the list: GitHub Releases, or `git tag` after
+`git fetch --tags`); version numbers in between, such as 0.10.63 and 0.10.64, were
+never published and have no tag to update to.
+
+The update runs in three steps:
 
 1. **Prepare, while Motio keeps running.** It switches the checkout to the release
    tag, adds any new settings to `.env` with their defaults (and lists them),
@@ -196,7 +203,9 @@ infra/scripts/install.sh rollback
 It puts the newest `pre-update-*` set back: the previous release, its `.env` and all
 data exactly as they were right before the update. Anything changed after the update
 is lost; the state at the moment of the rollback is kept as a `pre-restore-*` set
-first, so a rollback can itself be undone with `install.sh restore`.
+first, so a rollback can itself be undone with `install.sh restore`. The previous
+release is started by its own installer, so a rollback works even when the newer
+release added steps the older one does not know.
 
 Without `--version`, `update` re-applies the current checkout with the same backup.
 `install.sh up` re-applies the configuration without a backup (after editing `.env`).
@@ -221,9 +230,10 @@ patch of that line.
   or break sign-in.
 - **PostgreSQL 17 (from 0.10.66).** The first `install.sh update` to such a
   release moves the database from PostgreSQL 15 by itself, after the usual backup
-  set: Motio is stopped for about a minute longer than usual. The data is copied
-  into a new volume and compared table by table, and the update stops if anything
-  differs. The PostgreSQL 15 volume stays as it was, so `install.sh rollback`
+  set: Motio is stopped for about a minute longer than usual (more on a slow
+  server: the move waits until GoTrue, Storage and Realtime report their schemas
+  up to date). The data is copied into a new volume and compared table by table,
+  and the update stops if anything differs. The PostgreSQL 15 volume stays as it was, so `install.sh rollback`
   goes back to the previous release with it. Keep free disk space of about twice
   the database. Details: [operations](operations.md), «Moving to PostgreSQL 17».
 - **Security fixes do not wait.** A fix for a vulnerability that affects Motio
@@ -312,7 +322,15 @@ OIDC provider (*identity brokering*) — no change to Motio is needed.
    client ID and secret, client authentication *Client secret sent as post*.
 3. Under **First login flow**, keep *first broker login*. People who already have
    a Motio account with the same email are asked to link it once.
-4. Optional: in the provider's **Advanced** settings turn on *Sync mode: force* to
+4. Turn on **Trust Email** (the provider's **Advanced** settings) if your provider
+   checks email addresses itself, as company directories do. Otherwise, once
+   [SMTP](#email) is set up, everyone who comes through the provider is asked to
+   confirm their email address first. With the default sync mode (*import*)
+   Trust Email only covers people who sign in for the first time after it is on;
+   with *Sync mode: force* (next step) it also covers those who signed in before,
+   at their next sign-in. Or turn on **Email verified** for them in **Users**.
+   Without SMTP nobody is asked.
+5. Optional: in the provider's **Advanced** settings turn on *Sync mode: force* to
    keep names and emails in step, and *Hide on login page* + the realm's
    **Login → Identity provider redirector** (default provider) to skip Keycloak's
    own login page entirely.
@@ -446,6 +464,22 @@ release of the set, put its `.env` back (the current one is kept as
 `.env.before-restore-<time>`), restore the volumes and start Motio. Before that they
 take a `pre-restore-<time>` set of the current state; `--no-safety-backup` skips it
 when the current state is not worth keeping or the disk is short.
+
+Before anything is stopped, they check that the database copy of the set is the
+PostgreSQL version its release runs (15 up to 0.10.65, 17 from 0.10.66). A set that
+does not fit is refused and nothing changes. The installer of 0.10.66 could write
+such a set: an update after an earlier, unfinished move to PostgreSQL 17 copied that
+unfinished copy into the `pre-update-*` set of a PostgreSQL 15 release. An older
+installer restores it without the check and empties the PostgreSQL 15 volume first;
+on 0.10.66, check the set before `rollback`, the answer must be `15`:
+
+```bash
+tar -xzOf infra/backups/install/<set>/database.tar.gz ./PG_VERSION
+```
+
+If a restore stops after it switched the checkout but before the release of the
+set is running (Motio is then down), it says so and prints two commands: restore
+again once the cause is fixed, or go back to the `pre-restore-*` set.
 
 A set holds the secrets of `.env` and all data: its folder is readable by its owner
 only, and copies of it need the same care as `.env`. Old `manual-*` and
