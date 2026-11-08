@@ -41,6 +41,16 @@ make check-prod-secrets-remote   # check .env on the remote server
   count when it comes from a Keycloak group or a composite role, not only when it
   is assigned to the user directly. Default `false`. Leaving the group takes the
   access away on the next check (see `docs/self-hosting.md`, «Super admins»).
+- `KEYCLOAK_WORKSPACES_FROM_GROUPS` — `true` lets Keycloak groups put people into
+  workspaces: a super admin maps a group to a workspace and a role in the admin
+  console (**Group access**), and whoever is in the group joins it the next time
+  they open Motio. Existing members keep their role. Default `false`: no extra
+  request to Keycloak and no admin section (`docs/self-hosting.md`, «Workspaces
+  from groups»).
+- `KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE` — with the above, `true` also takes away
+  the access a group gave once the person is no longer in any group mapped to that
+  workspace (at their next visit). Access given by hand or by an invitation, and the
+  owner's, is never taken away. Default `false`: access is only added.
 - `KEYCLOAK_ADMIN_BASE_URL` — base URL for infra scripts
   (`http://127.0.0.1:8081` by default).
 - `KEYCLOAK_MANAGED_CLIENT_IDS` — comma-separated clientIds for the realm baseline

@@ -8,6 +8,12 @@ export const ADMIN_ACTIONS = {
   WORKSPACES_LIST: 'workspaces.list',
   WORKSPACES_UPDATE: 'workspaces.update',
   WORKSPACES_DELETE: 'workspaces.delete',
+  // A super admin adds an existing account to a workspace, no invitation needed.
+  WORKSPACES_ADD_MEMBER: 'workspaces.addMember',
+  // Self-hosted installs: Keycloak group → workspace mappings (KEYCLOAK_WORKSPACES_FROM_GROUPS).
+  GROUP_WORKSPACES_LIST: 'groupWorkspaces.list',
+  GROUP_WORKSPACES_CREATE: 'groupWorkspaces.create',
+  GROUP_WORKSPACES_DELETE: 'groupWorkspaces.delete',
   SUPER_ADMINS_LIST: 'superAdmins.list',
   SUPER_ADMINS_CREATE: 'superAdmins.create',
   SUPER_ADMINS_DELETE: 'superAdmins.delete',

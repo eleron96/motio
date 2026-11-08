@@ -4,6 +4,10 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import type { Task, TaskSubtask } from '@/features/planner/types/planner';
 
+vi.mock('@/features/planner/hooks/useTaskAttribution', () => ({
+  useTaskAttribution: () => ({ createdByName: null, updatedByName: null }),
+}));
+
 vi.mock('@lingui/macro', () => ({
   t: (input: TemplateStringsArray | { message?: string }, ...values: unknown[]) => (
     Array.isArray(input)

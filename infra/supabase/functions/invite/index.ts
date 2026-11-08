@@ -3,13 +3,22 @@ import { INVITE_ACTIONS, INVITE_ROLE_VALUES } from "../_shared/actions.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
+  createKeycloakUser,
   ensureKeycloakReady,
-  ensureKeycloakUser,
   findKeycloakUserByEmail,
+  findKeycloakUserById,
   getKeycloakConfig,
+  getRealmSmtpServer,
   sendKeycloakExecuteActionsEmail,
   syncUserRealmRoles,
 } from "../_shared/keycloak.ts";
+import {
+  type InviteDelivery,
+  type InvitePlan,
+  planInvite,
+  realmCanSendEmail,
+  shouldEmailExistingAccount,
+} from "../_shared/inviteDelivery.ts";
 import {
   createSupabaseClients,
   ensureKeycloakIdentityLink,
@@ -175,58 +184,135 @@ const findExistingLinkedUserByEmail = async (email: string) => {
   };
 };
 
-const ensureInvitableLinkedUserByEmail = async (email: string) => {
-  const normalizedEmail = normalizeEmail(email);
-  if (!normalizedEmail) {
-    return { error: "Email is required." };
+// Whether Keycloak can mail from this realm. When the realm cannot be read the
+// answer is "yes": that keeps the behaviour from before the check existed.
+const resolveRealmCanSendEmail = async () => {
+  const smtp = await getRealmSmtpServer(keycloakConfig);
+  if ("error" in smtp) {
+    console.warn(JSON.stringify({
+      module: "invite",
+      action: "readRealmSmtp",
+      result: "error",
+      message: smtp.error,
+    }));
+    return true;
   }
+  return realmCanSendEmail(smtp.smtpServer);
+};
 
+const cleanRequiredActions = (value: unknown) =>
+  Array.isArray(value)
+    ? value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+    : [];
+
+type Invitee =
+  | {
+    plan: Extract<InvitePlan, "existing_account">;
+    userId: string;
+    keycloakUserId: string;
+    accountEnabled: boolean;
+    requiredActions: string[];
+  }
+  | {
+    plan: Extract<InvitePlan, "new_account">;
+    userId: string;
+    keycloakUserId: string;
+    keycloakCreated: boolean;
+    requiredActions: string[];
+  }
+  | {
+    plan: Extract<InvitePlan, "invite_only">;
+    /** Their Motio account, when they have one without a Keycloak account (rare). */
+    userId: string | null;
+  };
+
+// Finds out who is invited and prepares what the plan needs. An account that
+// already exists is only read: an invitation never enables a blocked account,
+// marks an email as verified or renames anyone.
+const resolveInvitee = async (
+  email: string,
+  canSendEmail: boolean,
+): Promise<Invitee | { error: string }> => {
   const keycloakReady = ensureKeycloakReady(keycloakConfig);
   if ("error" in keycloakReady) {
-    return { error: keycloakReady.error };
+    return { error: keycloakReady.error ?? "Keycloak is not configured." };
   }
 
-  const keycloakResult = await ensureKeycloakUser(keycloakConfig, {
-    email: normalizedEmail,
-    enabled: true,
-    emailVerified: true,
-    requiredActions: ["VERIFY_EMAIL", "UPDATE_PASSWORD"],
-  });
-  if ("error" in keycloakResult || !keycloakResult.user) {
-    return { error: "error" in keycloakResult ? keycloakResult.error : "Failed to resolve Keycloak user." };
+  const found = await findKeycloakUserByEmail(keycloakConfig, email);
+  if ("error" in found) {
+    return { error: found.error ?? "Failed to look up the Keycloak user." };
   }
 
-  const authResult = await ensureSupabaseUserByEmail(supabaseAdmin, normalizedEmail);
+  const plan = planInvite({ hasAccount: Boolean(found.user), realmCanSendEmail: canSendEmail });
+
+  if (plan === "invite_only") {
+    const authResult = await findAuthUserByEmail(supabaseAdmin, email);
+    if ("error" in authResult) {
+      return { error: authResult.error ?? "Failed to look up the user." };
+    }
+    return { plan, userId: authResult.user?.id ?? null };
+  }
+
+  let keycloakUser = found.user;
+  let keycloakCreated = false;
+  if (plan === "existing_account" && keycloakUser) {
+    // The search result may leave out required actions; read the account itself.
+    const full = await findKeycloakUserById(keycloakConfig, keycloakUser.id);
+    if ("error" in full) {
+      return { error: full.error ?? "Failed to read the Keycloak user." };
+    }
+    keycloakUser = full.user ?? keycloakUser;
+  } else {
+    const created = await createKeycloakUser(keycloakConfig, {
+      email,
+      requiredActions: ["VERIFY_EMAIL", "UPDATE_PASSWORD"],
+    });
+    if ("error" in created) {
+      return { error: created.error ?? "Failed to create the Keycloak user." };
+    }
+    keycloakUser = created.user;
+    keycloakCreated = created.created;
+  }
+  if (!keycloakUser) {
+    return { error: "Failed to resolve Keycloak user." };
+  }
+
+  const authResult = await ensureSupabaseUserByEmail(supabaseAdmin, email);
   if ("error" in authResult || !authResult.user) {
-    return { error: "error" in authResult ? authResult.error : "Failed to resolve Supabase user." };
+    return { error: "error" in authResult && authResult.error ? authResult.error : "Failed to resolve Supabase user." };
   }
 
   const linkResult = await ensureKeycloakIdentityLink(
     supabaseAdmin,
     {
       supabaseUserId: authResult.user.id,
-      email: normalizedEmail,
-      keycloakUserId: keycloakResult.user.id,
+      email,
+      keycloakUserId: keycloakUser.id,
       issuer: keycloakIssuer,
     },
   );
-
   if ("error" in linkResult) {
-    return linkResult;
+    return { error: linkResult.error };
   }
 
-  const requiredActions = Array.isArray(keycloakResult.user.requiredActions)
-    ? keycloakResult.user.requiredActions
-      .filter((value): value is string => typeof value === "string")
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0)
-    : [];
-
+  const requiredActions = cleanRequiredActions(keycloakUser.requiredActions);
+  if (plan === "existing_account") {
+    return {
+      plan,
+      userId: authResult.user.id,
+      keycloakUserId: keycloakUser.id,
+      accountEnabled: keycloakUser.enabled !== false,
+      requiredActions,
+    };
+  }
   return {
+    plan,
     userId: authResult.user.id,
-    email: normalizedEmail,
-    keycloakUserId: keycloakResult.user.id,
-    keycloakCreated: keycloakResult.created,
+    keycloakUserId: keycloakUser.id,
+    keycloakCreated,
     requiredActions,
   };
 };
@@ -281,23 +367,27 @@ const handleCreateInvite = async (
     }
   }
 
-  const linked = await ensureInvitableLinkedUserByEmail(email);
-  if ("error" in linked) {
-    return jsonResponse({ error: linked.error }, 400);
+  const canSendEmail = await resolveRealmCanSendEmail();
+  const invitee = await resolveInvitee(email, canSendEmail);
+  if ("error" in invitee) {
+    return jsonResponse({ error: invitee.error }, 400);
   }
 
-  const { data: existingMembership } = await supabaseAdmin
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", linked.userId)
-    .maybeSingle();
+  if (invitee.userId) {
+    const { data: existingMembership } = await supabaseAdmin
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", invitee.userId)
+      .maybeSingle();
 
-  if (existingMembership) {
-    return jsonResponse({
-      success: true,
-      warning: "User already has access to this workspace.",
-    });
+    if (existingMembership) {
+      return jsonResponse({
+        success: true,
+        alreadyMember: true,
+        warning: "User already has access to this workspace.",
+      });
+    }
   }
 
   const nowIso = new Date().toISOString();
@@ -407,37 +497,78 @@ const handleCreateInvite = async (
   }
 
   const inviteLink = `${appUrl}/invite/${inviteToken}`;
-  const inviteActions = linked.keycloakCreated
-    ? Array.from(new Set(["VERIFY_EMAIL", "UPDATE_PASSWORD", ...linked.requiredActions]))
-    : linked.requiredActions;
-  const keycloakEmailResult = await sendKeycloakExecuteActionsEmail(
-    keycloakConfig,
-    linked.keycloakUserId,
-    inviteActions,
-    {
-      redirectUri: inviteLink,
-      lifespanSeconds: Math.floor(inviteTtlMs / 1000),
-    },
-  );
-  if ("error" in keycloakEmailResult) {
-    if (inviteCreatedInThisRequest) {
-      await supabaseAdmin
-        .from("workspace_invites")
-        .update({ revoked_at: new Date().toISOString(), revoked_reason: "canceled" })
-        .eq("token", inviteToken)
-        .is("accepted_at", null)
-        .is("revoked_at", null);
+  const emailOptions = {
+    redirectUri: inviteLink,
+    lifespanSeconds: Math.floor(inviteTtlMs / 1000),
+  };
+  let delivery: InviteDelivery = "in_app";
+
+  if (invitee.plan === "new_account") {
+    // A new account can only be set up from the email: without it the invitation is useless.
+    const inviteActions = invitee.keycloakCreated
+      ? Array.from(new Set(["VERIFY_EMAIL", "UPDATE_PASSWORD", ...invitee.requiredActions]))
+      : invitee.requiredActions;
+    const keycloakEmailResult = await sendKeycloakExecuteActionsEmail(
+      keycloakConfig,
+      invitee.keycloakUserId,
+      inviteActions,
+      emailOptions,
+    );
+    if ("error" in keycloakEmailResult) {
+      if (inviteCreatedInThisRequest) {
+        await supabaseAdmin
+          .from("workspace_invites")
+          .update({ revoked_at: new Date().toISOString(), revoked_reason: "canceled" })
+          .eq("token", inviteToken)
+          .is("accepted_at", null)
+          .is("revoked_at", null);
+      }
+      return jsonResponse({
+        error: `Invite email delivery failed: ${keycloakEmailResult.error}`,
+      }, 503);
     }
-    return jsonResponse({
-      error: `Invite email delivery failed: ${keycloakEmailResult.error}`,
-    }, 503);
+    delivery = "email";
+  } else if (
+    invitee.plan === "existing_account"
+    && shouldEmailExistingAccount({ realmCanSendEmail: canSendEmail, accountEnabled: invitee.accountEnabled })
+  ) {
+    // Someone with an account sees the invitation in Motio anyway: a failed
+    // email leaves it waiting there instead of cancelling it.
+    const keycloakEmailResult = await sendKeycloakExecuteActionsEmail(
+      keycloakConfig,
+      invitee.keycloakUserId,
+      invitee.requiredActions,
+      emailOptions,
+    );
+    if ("error" in keycloakEmailResult) {
+      console.warn(JSON.stringify({
+        module: "invite",
+        action: "create",
+        workspaceId,
+        result: "email_failed",
+        message: keycloakEmailResult.error,
+      }));
+    } else {
+      delivery = "email";
+    }
   }
+
+  console.info(JSON.stringify({
+    module: "invite",
+    action: "create",
+    workspaceId,
+    result: "success",
+    plan: invitee.plan,
+    delivery,
+  }));
 
   return jsonResponse({
     success: true,
     inviteEmail: email,
     inviteStatus: "pending",
-    warning: linked.keycloakCreated
+    inviteToken,
+    delivery,
+    warning: invitee.plan === "new_account" && invitee.keycloakCreated
       ? "User account will be finalized after they complete setup from the invitation email."
       : undefined,
   });

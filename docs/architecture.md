@@ -127,9 +127,33 @@ Contract and examples: [API](api.md).
 
 ### `invite`
 
-- adds a user to a workspace;
-- creates / links the Keycloak + Supabase identity;
-- syncs realm roles to workspace roles.
+- creates, lists, accepts, declines and cancels workspace invitations; accepting
+  adds the user to the workspace and syncs realm roles to workspace roles;
+- an invitation is a row in `workspace_invites`: whoever signs in with that email
+  sees it in the notifications and can accept it, so the email is a way to bring
+  the person in, not the invitation itself;
+- someone with an account: their Keycloak account is only read, never changed
+  (an invitation does not enable a blocked account or mark an email verified); the
+  email goes out when the realm has SMTP, and a failed email leaves the invitation
+  waiting;
+- no account and the realm has SMTP: creates the Keycloak + Supabase identity and
+  Keycloak mails the set-up link; no account and no SMTP: only the invitation row
+  (rules: `_shared/inviteDelivery.ts`).
+
+`admin` → `workspaces.addMember` lets a super admin put an existing account into a
+workspace directly, without an invitation; workspace admins still invite.
+
+Workspaces from groups (`KEYCLOAK_WORKSPACES_FROM_GROUPS=true`, self-hosted only):
+`admin` → `superAdmins.whoami`, which every signed-in client calls when Motio
+opens, also reads the person's Keycloak groups and adds the memberships the
+mappings in `group_workspace_mappings` give (rules: `_shared/groupWorkspaces.ts`,
+sync: `admin/groupWorkspaces.ts`). It answers `workspacesChanged`, and the client
+reloads its workspace list before it would create a first workspace. Memberships
+the sync created are recorded in `group_workspace_grants`; only those can be taken
+away again (`KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE=true`). Both tables: RLS on, no
+policies, service role only (0174). Mappings: `groupWorkspaces.list` / `create` /
+`delete`, super admins only. Off (the default): whoami answers as before, with no
+request to Keycloak.
 
 ### `task-media`
 
@@ -223,7 +247,8 @@ production Caddy hands the whole `/admin*` prefix to the Keycloak console.
 |---|---|
 | **Overview** (`/app/admin`) | system at a glance: counts and storage assembled from the data the other sections fetch, plus the app version |
 | **Users** (`/app/admin/users`) | user overview, workspace ownership, storage usage |
-| **Workspaces** (`/app/admin/workspaces`) | rename / delete workspace |
+| **Workspaces** (`/app/admin/workspaces`) | rename / delete workspace, add a member directly |
+| **Group access** (`/app/admin/group-access`) | only with `KEYCLOAK_WORKSPACES_FROM_GROUPS=true` (self-hosted): map a Keycloak group to a workspace and a role |
 | **Easter eggs** (`/app/admin/easter-eggs`) | assign a daily-brief egg to one person, a mail domain, a workspace, or everyone |
 | **Broadcast** (`/app/admin/broadcast`) | announcements and service notices, sent by email or shown as an in-app banner; an in-app announcement takes a title in any of ru, en, de, and a German reader without German text sees English |
 | **Backups** (`/app/admin/backups`) | create / upload / download / rename / delete / restore |

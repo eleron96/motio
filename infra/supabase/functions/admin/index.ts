@@ -1,9 +1,18 @@
 import { z } from "npm:zod@3.25.76";
-import { ADMIN_ACTIONS } from "../_shared/actions.ts";
+import { ADMIN_ACTIONS, INVITE_ROLE_VALUES } from "../_shared/actions.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
 import { buildUnsubscribeUrl, getMailerConfig, sendEmail } from "../_shared/mailer.ts";
 import { renderBroadcastEmail } from "../_shared/broadcastEmail.ts";
 import { getSystemStatus, sendTestEmail } from "./system.ts";
+import {
+  createGroupWorkspaceMapping,
+  deleteGroupWorkspaceMapping,
+  listGroupWorkspaceMappings,
+  syncWorkspacesFromGroups,
+  type GroupWorkspaceDeps,
+} from "./groupWorkspaces.ts";
+import { insertWorkspaceMember } from "./workspaceMembership.ts";
+import { GROUP_WORKSPACE_ROLES, isSettingOn, type GroupWorkspaceRole } from "../_shared/groupWorkspaces.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -42,6 +51,10 @@ const { supabaseAdmin } = createSupabaseClients(supabaseUrl, serviceRoleKey);
 const reserveAdminEmail = (Deno.env.get("RESERVE_ADMIN_EMAIL") ?? "").trim().toLowerCase();
 const reserveAdminPassword = Deno.env.get("RESERVE_ADMIN_PASSWORD") ?? "";
 const superAdminFromGroups = isSuperAdminFromGroupsEnabled(Deno.env.get("KEYCLOAK_SUPER_ADMIN_FROM_GROUPS"));
+// Self-hosted installs: Keycloak groups put people into workspaces when they
+// open Motio (admin/groupWorkspaces.ts). Off by default, and on motio.nikog.net.
+const workspacesFromGroups = isSettingOn(Deno.env.get("KEYCLOAK_WORKSPACES_FROM_GROUPS"));
+const workspacesFromGroupsRemove = isSettingOn(Deno.env.get("KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE"));
 
 const keycloakConfig = getKeycloakConfig();
 const keycloakIssuer = `${keycloakConfig.baseUrl}/realms/${keycloakConfig.realm}`;
@@ -102,6 +115,25 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.WORKSPACES_DELETE),
     workspaceId: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER),
+    workspaceId: z.string().min(1),
+    userId: z.string().min(1),
+    role: z.enum(INVITE_ROLE_VALUES),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE),
+    groupPath: z.string().trim().min(1).max(255),
+    workspaceId: z.string().min(1),
+    role: z.enum(GROUP_WORKSPACE_ROLES),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_DELETE),
+    id: z.string().min(1),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_LIST),
@@ -839,6 +871,112 @@ const handleWorkspacesUpdate = async (payload: { workspaceId?: string; name?: st
     return jsonResponse({ error: error.message }, 500);
   }
 
+  return jsonResponse({ success: true });
+};
+
+// A super admin puts an existing account into a workspace right away, without
+// an invitation or an email (self-hosted installs without SMTP, people who
+// sign in through the company's identity provider). Workspace admins still
+// invite: adding someone without their consent stays a super-admin power
+// (migration 0106). The person's Keycloak account is never changed here.
+const handleWorkspacesAddMember = async (payload: { workspaceId: string; userId: string; role: WorkspaceRole }) => {
+  const workspaceId = payload.workspaceId.trim();
+  const userId = payload.userId.trim();
+
+  const { data: workspace, error: workspaceError } = await supabaseAdmin
+    .from("workspaces")
+    .select("id")
+    .eq("id", workspaceId)
+    .maybeSingle();
+  if (workspaceError) {
+    return jsonResponse({ error: workspaceError.message }, 500);
+  }
+  if (!workspace) {
+    return jsonResponse({ error: "Workspace not found." }, 404);
+  }
+
+  const userResult = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (userResult.error || !userResult.data.user) {
+    return jsonResponse({ error: "User not found." }, 404);
+  }
+  const email = (userResult.data.user.email ?? "").trim().toLowerCase();
+
+  const { data: existingMembership, error: membershipError } = await supabaseAdmin
+    .from("workspace_members")
+    .select("user_id")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (membershipError) {
+    return jsonResponse({ error: membershipError.message }, 500);
+  }
+  if (existingMembership) {
+    return jsonResponse({ success: true, outcome: "already_member" });
+  }
+
+  const inserted = await insertWorkspaceMember(supabaseAdmin, { workspaceId, userId, role: payload.role, email });
+  if ("error" in inserted) {
+    return jsonResponse({ error: inserted.error }, 500);
+  }
+  if (inserted.outcome !== "added") {
+    return jsonResponse({ success: true, outcome: inserted.outcome });
+  }
+
+  // Realm roles mirror memberships for information only. Sync them through the
+  // identity the person signs in with; without one, nothing is created.
+  const identityResult = await findKeycloakIdentityForUser(supabaseAdmin, userId);
+  const keycloakUserId = "error" in identityResult ? null : identityResult.identity?.providerId ?? null;
+  if (keycloakUserId) {
+    const roleSync = await syncUserRoles(userId, keycloakUserId);
+    if ("error" in roleSync) {
+      console.warn(JSON.stringify({
+        module: "admin.workspaces",
+        action: "addMember",
+        workspaceId,
+        entityId: userId,
+        result: "role_sync_failed",
+        message: roleSync.error,
+      }));
+    }
+  }
+
+  console.info(JSON.stringify({
+    module: "admin.workspaces",
+    action: "addMember",
+    workspaceId,
+    entityId: userId,
+    result: "success",
+  }));
+  return jsonResponse({ success: true, outcome: "added" });
+};
+
+const groupWorkspaceDeps: GroupWorkspaceDeps = {
+  supabaseAdmin,
+  keycloakConfig,
+  removeEnabled: workspacesFromGroupsRemove,
+  syncUserRoles: (userId, keycloakUserId) => syncUserRoles(userId, keycloakUserId),
+};
+
+const handleGroupWorkspaces = async (action: string, payload: unknown, actorId: string) => {
+  if (!workspacesFromGroups) {
+    if (action === ADMIN_ACTIONS.GROUP_WORKSPACES_LIST) {
+      return jsonResponse({ enabled: false, removeEnabled: false, mappings: [], groups: [], groupsError: null });
+    }
+    return jsonResponse({ error: "Workspaces from groups is turned off (KEYCLOAK_WORKSPACES_FROM_GROUPS)." }, 409);
+  }
+  if (action === ADMIN_ACTIONS.GROUP_WORKSPACES_LIST) {
+    const listed = await listGroupWorkspaceMappings(groupWorkspaceDeps);
+    if ("error" in listed) return jsonResponse({ error: listed.error }, 500);
+    return jsonResponse({ enabled: true, ...listed });
+  }
+  if (action === ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE) {
+    const input = payload as { groupPath: string; workspaceId: string; role: GroupWorkspaceRole };
+    const created = await createGroupWorkspaceMapping(groupWorkspaceDeps, { ...input, createdBy: actorId });
+    if ("error" in created) return jsonResponse({ error: created.error }, created.status);
+    return jsonResponse({ success: true, outcome: created.outcome });
+  }
+  const deleted = await deleteGroupWorkspaceMapping(groupWorkspaceDeps, (payload as { id: string }).id);
+  if ("error" in deleted) return jsonResponse({ error: deleted.error }, 500);
   return jsonResponse({ success: true });
 };
 
@@ -1762,7 +1900,26 @@ export const handler = async (req: Request) => {
   // in the app without any manual table edits.
   if (action === ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI) {
     const whoamiIsSuperAdmin = await ensureSuperAdmin(authResult.user.id);
-    return jsonResponse({ isSuperAdmin: whoamiIsSuperAdmin });
+    if (!workspacesFromGroups) {
+      return jsonResponse({ isSuperAdmin: whoamiIsSuperAdmin });
+    }
+    // Workspaces from groups: whoami runs each time someone opens Motio, before
+    // the app decides whether to create their first workspace. The client
+    // reloads the workspace list when this changed it.
+    const identity = await findKeycloakIdentityForUser(supabaseAdmin, authResult.user.id);
+    const keycloakUserId = "error" in identity ? null : identity.identity?.providerId ?? null;
+    const sync = keycloakUserId
+      ? await syncWorkspacesFromGroups(groupWorkspaceDeps, {
+        userId: authResult.user.id,
+        email: authResult.user.email ?? "",
+        keycloakUserId,
+      })
+      : { changed: false };
+    return jsonResponse({
+      isSuperAdmin: whoamiIsSuperAdmin,
+      groupWorkspaces: true,
+      workspacesChanged: sync.changed,
+    });
   }
 
   const isSuperAdmin = await ensureSuperAdmin(authResult.user.id);
@@ -1795,6 +1952,12 @@ export const handler = async (req: Request) => {
       return handleWorkspacesUpdate(payload as { workspaceId?: string; name?: string });
     case ADMIN_ACTIONS.WORKSPACES_DELETE:
       return handleWorkspacesDelete(payload as { workspaceId?: string });
+    case ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER:
+      return handleWorkspacesAddMember(payload as { workspaceId: string; userId: string; role: WorkspaceRole });
+    case ADMIN_ACTIONS.GROUP_WORKSPACES_LIST:
+    case ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE:
+    case ADMIN_ACTIONS.GROUP_WORKSPACES_DELETE:
+      return handleGroupWorkspaces(action, payload, authResult.user.id);
     case ADMIN_ACTIONS.SUPER_ADMINS_LIST:
       return handleSuperAdminsList();
     case ADMIN_ACTIONS.SUPER_ADMINS_CREATE:

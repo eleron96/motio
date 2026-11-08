@@ -23,7 +23,7 @@ const platformName = typeof navigator === 'undefined'
     || navigator.userAgent;
 
 /**
- * The search field of the timeline toolbar: a quiet magnifier at rest that
+ * The search field of the timeline toolbar: an accent magnifier at rest that
  * opens into a pill (click, ⌘K / Ctrl+K or "/"; the shortcut is named only in
  * the tooltip). The timeline itself shows the result — see
  * `TimelineSearchStrip` and the `task-search-*` bar classes.
@@ -87,10 +87,10 @@ export const TimelineSearch: React.FC = () => {
           openSearch();
           window.requestAnimationFrame(() => inputRef.current?.focus());
         }}
-        className="press inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
-        aria-label={t`Search tasks`}
+        className="press inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary transition-colors hover:border-primary/60 hover:bg-primary/20"
+        aria-label={t`Search tasks and subtasks`}
         aria-keyshortcuts="Meta+K Control+K /"
-        title={`${t`Search tasks`} (${searchShortcutLabel(platformName)})`}
+        title={`${t`Search tasks and subtasks`} (${searchShortcutLabel(platformName)})`}
       >
         <Search className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
@@ -134,9 +134,9 @@ export const TimelineSearch: React.FC = () => {
             openFocused();
           }
         }}
-        placeholder={t`Find a task`}
+        placeholder={t`Find a task or subtask`}
         className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        aria-label={t`Search tasks`}
+        aria-label={t`Search tasks and subtasks`}
       />
       {counter && (
         <span className="shrink-0 text-xs tabular-nums text-muted-foreground" aria-live="polite">{counter}</span>

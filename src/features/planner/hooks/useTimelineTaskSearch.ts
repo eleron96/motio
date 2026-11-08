@@ -3,9 +3,9 @@ import { format } from '@/features/planner/lib/dateUtils';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import type { Assignee, MemberGroupAssignment, Task } from '@/features/planner/types/planner';
+import type { Assignee, MemberGroupAssignment, Task, TaskSearchHit } from '@/features/planner/types/planner';
 import {
-  collectTaskSearchHits,
+  collectTaskSearchResults,
   isSearchableQuery,
   splitHitsByRange,
 } from '@/shared/domain/taskSearch';
@@ -33,12 +33,13 @@ export const useTimelineTaskSearchRunner = () => {
   const setResults = useTaskSearchStore((state) => state.setResults);
   const setSearching = useTaskSearchStore((state) => state.setSearching);
   const tasks = usePlannerStore((state) => state.tasks ?? NO_TASKS);
+  const loadedWorkspaceId = usePlannerStore((state) => state.workspaceId);
   const filters = usePlannerStore((state) => state.filters);
   const assignees = usePlannerStore((state) => state.assignees ?? NO_ASSIGNEES);
   const memberGroupAssignments = usePlannerStore((state) => state.memberGroupAssignments ?? NO_GROUP_ASSIGNMENTS);
   const searchTasks = usePlannerStore((state) => state.searchTasks);
   const workspaceId = useAuthStore((state) => state.currentWorkspaceId);
-  const serverHitsRef = useRef<{ query: string; tasks: Task[] }>({ query: '', tasks: [] });
+  const serverHitsRef = useRef<{ workspaceId: string; query: string; tasks: TaskSearchHit[] } | null>(null);
 
   const assigneeGroupMap = useMemo(
     () => buildAssigneeGroupMap(assignees, memberGroupAssignments),
@@ -46,47 +47,61 @@ export const useTimelineTaskSearchRunner = () => {
   );
 
   const publish = useCallback((currentQuery: string) => {
-    const server = serverHitsRef.current.query === currentQuery ? serverHitsRef.current.tasks : [];
-    // Loaded tasks first: they carry the latest local edits.
-    const hits = collectTaskSearchHits([tasks, server], currentQuery, todayKey());
+    const cached = serverHitsRef.current;
+    const server = cached?.workspaceId === workspaceId && cached.query === currentQuery ? cached.tasks : [];
+    // Loaded fields win, but the server contributes matches inside subtasks.
+    // Workspace switching can precede replacing the planner's task window.
+    const local = loadedWorkspaceId && loadedWorkspaceId !== workspaceId ? NO_TASKS : tasks;
+    const { hits, matchedTaskIds } = collectTaskSearchResults<TaskSearchHit>([local, server], currentQuery, todayKey());
     const visible = new Set(filters
       ? selectFilteredTasks(hits, filters, assigneeGroupMap, assignees).map((task) => task.id)
       : hits.map((task) => task.id));
-    setResults(hits, new Set(hits.filter((hit) => !visible.has(hit.id)).map((hit) => hit.id)));
-  }, [assigneeGroupMap, assignees, filters, setResults, tasks]);
+    setResults(hits, new Set(hits.filter((hit) => !visible.has(hit.id)).map((hit) => hit.id)), matchedTaskIds);
+  }, [assigneeGroupMap, assignees, filters, loadedWorkspaceId, setResults, tasks, workspaceId]);
+  // A response uses today's local fields/filters, not those at request start.
+  const publishRef = useRef(publish);
+  publishRef.current = publish;
 
   // Local matches: instant, and again whenever the loaded tasks change.
   useEffect(() => {
-    if (!open || !isSearchableQuery(query)) {
+    const cached = serverHitsRef.current;
+    if (cached && (cached.workspaceId !== workspaceId || cached.query !== query)) {
+      serverHitsRef.current = null;
+    }
+    if (!open || !workspaceId || !isSearchableQuery(query)) {
+      serverHitsRef.current = null;
       setResults([], new Set());
       return;
     }
     publish(query);
-  }, [open, publish, query, setResults]);
+  }, [open, publish, query, setResults, workspaceId]);
 
   // Server matches: after a pause; a stale answer is dropped.
   useEffect(() => {
     if (!open || !workspaceId || !isSearchableQuery(query)) {
+      serverHitsRef.current = null;
       setSearching(false);
       return;
     }
     let active = true;
     setSearching(true);
     const timer = window.setTimeout(async () => {
-      const result = await searchTasks(workspaceId, query);
-      if (!active) return;
+      try {
+        const result = await searchTasks(workspaceId, query);
+        if (!active) return;
+        serverHitsRef.current = result.error ? null : { workspaceId, query, tasks: result.tasks };
+      } catch {
+        if (!active) return;
+        serverHitsRef.current = null;
+      }
       setSearching(false);
-      if (result.error) return;
-      serverHitsRef.current = { query, tasks: result.tasks };
-      publish(query);
+      publishRef.current(query);
     }, SERVER_SEARCH_DELAY_MS);
     return () => {
       active = false;
       window.clearTimeout(timer);
     };
-    // `publish` changes with every loaded-tasks update; that must not re-ask the server.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, query, searchTasks, workspaceId]);
+  }, [open, query, searchTasks, setSearching, workspaceId]);
 };
 
 /** Moving between matches and opening them; usable from any search piece. */

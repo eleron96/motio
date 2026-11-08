@@ -1,0 +1,90 @@
+name: Self-hosted upgrade
+
+# The life of a self-hosted install, end to end with the real installer
+# (infra/scripts/selfhost-upgrade-test.sh): install an older release, add data,
+# update to this commit, roll back, update again, back up and restore — and
+# check the data, the files, sign-in and live updates after every step. Each
+# run takes 20–40 minutes, so it is not part of CI: weekly, by hand, and when
+# the installer, the move to PostgreSQL 17 or the compose files change.
+on:
+  schedule:
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'Release to update from (a tag such as v0.10.61, or "latest"); empty = all of them'
+        required: false
+        default: ''
+  push:
+    paths:
+      - infra/scripts/install.sh
+      - infra/scripts/selfhost-compose.sh
+      - infra/scripts/selfhost-upgrade-test.sh
+      - infra/scripts/pg-upgrade-17*
+      - infra/scripts/keycloak-ensure-*.sh
+      - infra/docker-compose.prod.yml
+      - infra/docker-compose.selfhost*.yml
+      - infra/caddy/Caddyfile.selfhost
+      - infra/supabase/db/**
+      - .github/workflows/selfhost-upgrade.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selfhost-upgrade-${{ github.ref }}-${{ github.event.inputs.from }}
+  cancel-in-progress: true
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The old Supabase services and PostgreSQL 15, on a slow Realtime:
+          # the move to 17 once stopped here ("45 vs 91").
+          - from: v0.10.61
+            slow_realtime: true
+          # New services, still PostgreSQL 15.
+          - from: v0.10.65
+            slow_realtime: false
+          # The newest release: already PostgreSQL 17, nothing to move.
+          - from: latest
+            slow_realtime: false
+    steps:
+      - name: Skip the releases not asked for
+        id: wanted
+        env:
+          WANTED: ${{ github.event.inputs.from }}
+          FROM: ${{ matrix.from }}
+        run: |
+          if [[ -z "$WANTED" || "$WANTED" == "$FROM" ]]; then echo "run=true" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/checkout@v4
+        if: steps.wanted.outputs.run == 'true'
+        with:
+          fetch-depth: 0  # the release tags to install from
+
+      - name: Free disk space for the images
+        if: steps.wanted.outputs.run == 'true'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
+
+      - name: Install, update, roll back, restore
+        if: steps.wanted.outputs.run == 'true'
+        env:
+          FROM: ${{ matrix.from }}
+          SLOW_REALTIME: ${{ matrix.slow_realtime }}
+        run: |
+          args=(--from "$FROM" --work "$RUNNER_TEMP/upgrade-test")
+          if [[ "$SLOW_REALTIME" == "true" ]]; then args+=(--slow-realtime); fi
+          infra/scripts/selfhost-upgrade-test.sh "${args[@]}"
+
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.wanted.outputs.run == 'true'
+        with:
+          name: upgrade-test-logs-${{ strategy.job-index }}
+          path: ${{ runner.temp }}/upgrade-test/logs

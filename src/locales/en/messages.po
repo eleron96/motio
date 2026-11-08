@@ -183,9 +183,21 @@ msgstr "{days, plural, one {# day} other {# days}}"
 msgid "{earlierCount} earlier"
 msgstr "{earlierCount} earlier"
 
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "{email} already has access to this workspace."
+msgstr "{email} already has access to this workspace."
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "{email} will get an email with a link. The invitation also waits in their notifications in Motio."
+msgstr "{email} will get an email with a link. The invitation also waits in their notifications in Motio."
+
 #: src/features/admin/components/AdminTablePagination.tsx
 msgid "{firstRow}–{lastRow} of {total}"
 msgstr "{firstRow}–{lastRow} of {total}"
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "{group} already puts people into {name}."
+msgstr "{group} already puts people into {name}."
 
 #: src/features/daily-brief/components/DailyBriefTaskList.tsx
 msgid "{hiddenCount, plural, one {and # more} other {and # more}}"
@@ -219,6 +231,14 @@ msgstr "{months} mo in Motio"
 msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 msgstr "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} is already a member of {workspaceName}."
+msgstr "{name} is already a member of {workspaceName}."
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} is already in 5 workspaces, the most one account can join."
+msgstr "{name} is already in 5 workspaces, the most one account can join."
+
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is editing the description"
 msgstr "{name} is editing the description"
@@ -234,6 +254,10 @@ msgstr "{name} is writing a comment"
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is writing a subtask"
 msgstr "{name} is writing a subtask"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "{name} was added to {workspaceName}."
+msgstr "{name} was added to {workspaceName}."
 
 #. placeholder {0}: hits.length
 #: src/features/planner/components/timeline/TimelineSearch.tsx
@@ -387,6 +411,10 @@ msgstr "Access denied"
 msgid "Access history"
 msgstr "Access history"
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Access is only added: leaving the group does not take it away."
+msgstr "Access is only added: leaving the group does not take it away."
+
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Account"
 msgstr "Account"
@@ -424,6 +452,7 @@ msgstr "Action failed"
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/projects/components/ProjectsMainPanel.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -485,6 +514,10 @@ msgstr "Add a comment or update..."
 msgid "Add a description..."
 msgstr "Add a description..."
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Add a mapping"
+msgstr "Add a mapping"
+
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 msgid "Add a task"
 msgstr "Add a task"
@@ -516,6 +549,12 @@ msgstr "Add group"
 msgid "Add image"
 msgstr "Add image"
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Add mapping"
+msgstr "Add mapping"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+#: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
@@ -524,6 +563,10 @@ msgstr "Add image"
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "Add member"
 msgstr "Add member"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "Add member to {workspaceName}"
+msgstr "Add member to {workspaceName}"
 
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "Add milestone"
@@ -577,6 +620,10 @@ msgstr "Add widget"
 msgid "Add your name"
 msgstr "Add your name"
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Added"
+msgstr "Added"
+
 #: src/features/workspace/components/WorkspaceTemplateSettings.tsx
 msgid "Added — statuses: {statuses}, task types: {taskTypes}, tags: {tags}."
 msgstr "Added — statuses: {statuses}, task types: {taskTypes}, tags: {tags}."
@@ -593,7 +640,10 @@ msgstr "Adds this delivery to the workload heatmap. Untick for milestones that d
 msgid "admin"
 msgstr "admin"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -683,6 +733,10 @@ msgstr "All subscribers"
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "All tasks"
 msgstr "All tasks"
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Already a member"
+msgstr "Already a member"
 
 #: src/features/planner/hooks/useTaskUndoToasts.ts
 msgid "Already undone"
@@ -1032,11 +1086,13 @@ msgstr "Call"
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
@@ -1165,10 +1221,6 @@ msgstr "Chart style"
 #: src/features/workspace/lib/starterTemplates/bimTemplate.ts
 msgid "Check the coordinate system"
 msgstr "Check the coordinate system"
-
-#: src/features/workspace/components/WorkspaceInviteSection.tsx
-msgid "Check your inbox"
-msgstr "Check your inbox"
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Checkerboard"
@@ -1476,6 +1528,12 @@ msgstr "Copied"
 msgid "Copy email"
 msgstr "Copy email"
 
+#: src/features/workspace/components/InviteResultNotice.tsx
+#: src/features/workspace/components/WorkspaceInviteSection.tsx
+#: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
+msgid "Copy link"
+msgstr "Copy link"
+
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 msgid "Copy name"
 msgstr "Copy name"
@@ -1485,6 +1543,10 @@ msgstr "Copy name"
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 msgid "Copy phone"
 msgstr "Copy phone"
+
+#: src/features/workspace/hooks/useCopyInviteLink.ts
+msgid "Copy the invitation link"
+msgstr "Copy the invitation link"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copy token"
@@ -1501,6 +1563,10 @@ msgstr "Could not check access"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Could not check for updates right now."
 msgstr "Could not check for updates right now."
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Could not load the groups"
+msgstr "Could not load the groups"
 
 #. placeholder {0}: result.message
 #: src/features/admin/pages/AdminSystemPage.tsx
@@ -1658,6 +1724,10 @@ msgstr "Created {created}"
 #: src/features/planner/lib/taskTimestamps.ts
 msgid "Created {created} · updated {updated}"
 msgstr "Created {created} · updated {updated}"
+
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Created by {createdByName} · {created}"
+msgstr "Created by {createdByName} · {created}"
 
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Creates repeats for the next 12 months."
@@ -2412,7 +2482,10 @@ msgstr "Editing does not bring the announcement back to people who already close
 msgid "editor"
 msgstr "editor"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -2860,8 +2933,8 @@ msgid "Find a project"
 msgstr "Find a project"
 
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Find a task"
-msgstr "Find a task"
+msgid "Find a task or subtask"
+msgstr "Find a task or subtask"
 
 #: src/features/projects/components/CustomerCombobox.tsx
 msgid "Find or add customer..."
@@ -3011,6 +3084,11 @@ msgstr "Group"
 #: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "Group {0}"
 msgstr "Group {0}"
+
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Group access"
+msgstr "Group access"
 
 #: src/features/members/components/MembersMobileList.tsx
 msgid "Group actions"
@@ -3273,9 +3351,17 @@ msgstr "Interrupts once with a dialog. Use for maintenance and outages."
 msgid "Invalid name."
 msgstr "Invalid name."
 
-#: src/features/workspace/components/WorkspaceInviteSection.tsx
-msgid "Invite created"
-msgstr "Invite created"
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Invitation created"
+msgstr "Invitation created"
+
+#: src/features/workspace/hooks/useCopyInviteLink.ts
+msgid "Invitation link copied"
+msgstr "Invitation link copied"
+
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "Invitation sent"
+msgstr "Invitation sent"
 
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "Invite people and share access."
@@ -3343,6 +3429,15 @@ msgstr "Keep writing"
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Keycloak"
 msgstr "Keycloak"
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Keycloak did not list its groups; type the group path as Keycloak shows it, for example /Design."
+msgstr "Keycloak did not list its groups; type the group path as Keycloak shows it, for example /Design."
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Keycloak group"
+msgstr "Keycloak group"
 
 #: src/features/marketing/components/landing/LandingDashboardDemo.tsx
 msgid "KPI widgets, bar and area charts, pie breakdowns. Build any dashboard you need. Filter by assignee, project or status."
@@ -3474,6 +3569,7 @@ msgstr "Loading board..."
 msgid "Loading dashboard..."
 msgstr "Loading dashboard..."
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
@@ -3556,6 +3652,7 @@ msgstr "Loading your workspaces…"
 msgid "Loading..."
 msgstr "Loading..."
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/demo/pages/DemoPage.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Loading…"
@@ -4167,6 +4264,10 @@ msgstr "No easter eggs assigned."
 msgid "No email or phone for this contact yet."
 msgstr "No email or phone for this contact yet."
 
+#: src/features/workspace/components/InviteResultNotice.tsx
+msgid "No email was sent. {email} will see the invitation in their notifications after signing in to Motio with this address. You can also send them the link."
+msgstr "No email was sent. {email} will see the invitation in their notifications after signing in to Motio with this address. You can also send them the link."
+
 #: src/features/admin/components/AdminMessagingSummary.tsx
 msgid "No end date"
 msgstr "No end date"
@@ -4229,6 +4330,10 @@ msgstr "No history yet."
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "No invites sent yet."
 msgstr "No invites sent yet."
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "No mappings yet."
+msgstr "No mappings yet."
 
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 msgid "No matches"
@@ -4879,6 +4984,18 @@ msgstr "People"
 msgid "People access"
 msgstr "People access"
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "People already in the workspace stay; nobody new joins through this group."
+msgstr "People already in the workspace stay; nobody new joins through this group."
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "People in {group} join {name} the next time they open Motio."
+msgstr "People in {group} join {name} the next time they open Motio."
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "People in a Keycloak group join its workspace with the role below the next time they open Motio. A group also covers its subgroups. People already in the workspace keep their role."
+msgstr "People in a Keycloak group join its workspace with the role below the next time they open Motio. A group also covers its subgroups. People already in the workspace keep their role."
+
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "People or projects"
 msgstr "People or projects"
@@ -4886,6 +5003,10 @@ msgstr "People or projects"
 #: src/features/members/components/MembersMobileDeck.tsx
 msgid "People sections"
 msgstr "People sections"
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "People who got access only through this group lose it at their next visit."
+msgstr "People who got access only through this group lose it at their next visit."
 
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
@@ -5238,6 +5359,7 @@ msgstr "Release 2.0"
 msgid "Release notes"
 msgstr "Release notes"
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/TeamMobileSheets.tsx
@@ -5290,6 +5412,14 @@ msgstr "Remove from workspace"
 #: src/features/planner/components/SubtaskImages.tsx
 msgid "Remove image"
 msgstr "Remove image"
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Remove mapping"
+msgstr "Remove mapping"
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Remove mapping?"
+msgstr "Remove mapping?"
 
 #: src/features/workspace/components/WorkspaceLeaveDialogs.tsx
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
@@ -5488,6 +5618,10 @@ msgstr "Right-click to add your first widget."
 msgid "Riverside restaurant interior"
 msgstr "Riverside restaurant interior"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
@@ -5748,8 +5882,8 @@ msgstr "Search tags..."
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
 #: src/features/planner/components/timeline/TimelineSearch.tsx
-msgid "Search tasks"
-msgstr "Search tasks"
+msgid "Search tasks and subtasks"
+msgstr "Search tasks and subtasks"
 
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -5883,6 +6017,7 @@ msgstr "Select value"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/features/workspace/components/WorkspaceSwitcher.tsx
 msgid "Select workspace"
@@ -6320,6 +6455,10 @@ msgstr "Subtask actions"
 msgid "Subtask title"
 msgstr "Subtask title"
 
+#: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+msgid "Subtask:"
+msgstr "Subtask:"
+
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskSubtasksField.tsx
 #: src/features/planner/components/SubtasksSection.tsx
@@ -6574,6 +6713,10 @@ msgstr "The end date cannot be earlier than the start date."
 #: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "The pattern drawn on your days off. Your teammates see it too"
 msgstr "The pattern drawn on your days off. Your teammates see it too"
+
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
+msgid "The person joins right away, without an invitation or an email. The list shows everyone who has signed in to Motio at least once."
+msgstr "The person joins right away, without an invitation or an email. The list shows everyone who has signed in to Motio at least once."
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "The previous export file has expired. Request it again."
@@ -6877,6 +7020,10 @@ msgstr "To do"
 msgid "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 msgstr "To get push notifications on iOS, add Motio to your Home Screen: tap Share in Safari, choose \"Add to Home Screen\", then enable notifications here in the installed app."
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "To turn it on, set this in .env and run install.sh up:"
+msgstr "To turn it on, set this in .env and run install.sh up:"
+
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "To update, run on the server:"
 msgstr "To update, run on the server:"
@@ -6997,6 +7144,10 @@ msgstr "Try Motio now"
 #: src/app/NotFoundPage.tsx
 msgid "Try returning home or jump back into the timeline."
 msgstr "Try returning home or jump back into the timeline."
+
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "Turned off on this server. It puts people into workspaces by their Keycloak groups, for example the groups of your own sign-in."
+msgstr "Turned off on this server. It puts people into workspaces by their Keycloak groups, for example the groups of your own sign-in."
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx
@@ -7217,9 +7368,17 @@ msgstr "Update the current dashboard name."
 msgid "Update the element library"
 msgstr "Update the element library"
 
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated {updated}"
+msgstr "Updated {updated}"
+
 #: src/features/auth/components/InboxPanel.tsx
 msgid "updated a task"
 msgstr "updated a task"
+
+#: src/features/planner/lib/taskTimestamps.ts
+msgid "Updated by {updatedByName} · {updated}"
+msgstr "Updated by {updatedByName} · {updated}"
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "Upload backup"
@@ -7339,7 +7498,10 @@ msgstr "View tasks"
 msgid "viewer"
 msgstr "viewer"
 
+#: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 #: src/features/admin/lib/format.ts
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/auth/lib/inboxLabels.ts
 #: src/features/members/pages/MembersPage.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -7438,6 +7600,10 @@ msgstr "What the planner shows"
 msgid "What's new"
 msgstr "What's new"
 
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+msgid "When someone leaves the group, the access it gave is taken away at their next visit. Access given by hand or by an invitation stays."
+msgstr "When someone leaves the group, the access it gave is taken away at their next visit. Access given by hand or by an invitation stays."
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Where your tasks are"
 msgstr "Where your tasks are"
@@ -7504,6 +7670,9 @@ msgstr "works"
 #: src/features/admin/components/AnnouncementFields.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
+#: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "Workspace"
 msgstr "Workspace"

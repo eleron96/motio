@@ -7,6 +7,32 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.69] - 2026-11-08
+### Added
+- For your own servers: Keycloak groups — for example from Authentik — can put people into workspaces. A super admin maps a group to a workspace and a role in the admin console (“Group access”), and the person joins the next time they open Motio. Turned on with KEYCLOAK_WORKSPACES_FROM_GROUPS, off by default; taking access away when someone leaves the group is a separate setting.
+- A super admin can add someone to a workspace right away, without an invitation: “Admin → Workspaces → Add member”.
+
+
+### Changed
+- For your own servers: invitations work without a mail server too — the person signs in through your company sign-in or registers and accepts the invitation in the notifications; no accounts are created in advance.
+- A workspace invitation no longer depends on the email: someone who already has an account finds it in Motio’s notifications even if the email did not go out. The invitation link can be copied from the list of sent invites.
+
+
+### Fixed
+- For your own servers: updates and the move to PostgreSQL 17 no longer stop with “Permission denied” when Motio is installed as a user other than root: the installer takes over the backups folder Docker created.
+- For your own servers: a first install on a clean server no longer stops with “the database system is shutting down”: the installer waits until the database has really started.
+- For your own servers: restore and rollback check a backup set before stopping anything and refuse one its Motio release could not start on, leaving the data untouched. If Motio does not start after a restore, the installer says how to go back.
+- For your own servers: the move to PostgreSQL 17 no longer stops on a slow server with “the service schemas differ … 45 … 91”. You can update from any release straight to the newest, without the ones in between.
+- An invitation no longer changes the invited person’s account — for example, it no longer switches a blocked account back on.
+
+## [0.10.68] - 2026-11-06
+### Added
+- The task card now shows who created the task and who last edited its fields.
+
+
+### Changed
+- Timeline search now finds tasks by subtask titles and shows the matching subtask in the preview. The search button is easier to spot and follows your chosen accent color.
+
 ## [0.10.67] - 2026-11-04
 ### Fixed
 - “Sign out” works again when the session has gone stale, and invitations, notifications and the admin console renew an outdated sign-in on their own instead of failing.

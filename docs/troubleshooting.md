@@ -53,6 +53,24 @@ creates it while it moves the data, `docs/operations.md`, «Moving to PostgreSQL
 docker volume create supabase_db_data_pg17
 ```
 
+## `the service schemas differ: PostgreSQL 15 has '… 45 …', 17 has '… 91 …'`
+
+A self-hosted update to PostgreSQL 17 by the installer of 0.10.66 stopped on a slow
+server. The move let GoTrue, Storage and Realtime update their schemas and took
+them as done after 15 s without a change; Realtime pauses for longer than that
+before its tenant migrations (`realtime.schema_migrations`), so PostgreSQL 15 was
+measured with 45 of them and the empty PostgreSQL 17 with all 91. Nothing was
+lost: the PostgreSQL 15 volume is untouched.
+
+Newer installers wait until each service reports its schema up to date. Update to
+such a release directly (`install.sh update --version vX.Y.Z`): the move archives
+the unfinished PostgreSQL 17 volume of the failed attempt and starts over.
+
+If a later update reached 0.10.66 after such a failure (for example through
+0.10.65), its `pre-update-*` set may hold the unfinished PostgreSQL 17 copy instead
+of the PostgreSQL 15 data: before a `rollback` on 0.10.66, check the set as
+described in «Backup sets», `docs/self-hosting.md`.
+
 ## `Warning: Keycloak realm drift detected`
 
 The realm currently on the server does not match the managed JSON (the deploy

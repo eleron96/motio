@@ -29,6 +29,11 @@ export interface Task {
   updatedAt?: string;
 }
 
+/** Search-only context; never persisted in the task cache. */
+export interface TaskSearchHit extends Task {
+  matchedSubtaskTitle?: string | null;
+}
+
 export interface TaskSubtask {
   id: string;
   taskId: string;

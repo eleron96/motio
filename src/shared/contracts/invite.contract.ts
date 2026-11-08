@@ -54,4 +54,7 @@ export const inviteBaseResponseSchema = z.object({
   inviteEmail: z.string().optional(),
   inviteStatus: z.string().optional(),
   workspaceId: z.string().optional(),
+  delivery: z.enum(['email', 'in_app']).optional(),
+  inviteToken: z.string().optional(),
+  alreadyMember: z.boolean().optional(),
 }).passthrough();

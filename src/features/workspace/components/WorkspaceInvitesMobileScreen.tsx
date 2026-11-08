@@ -11,6 +11,10 @@ import { cn } from '@/shared/lib/classNames';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import { MobilePickerScreen, type MobilePickerOption } from '@/shared/ui/mobile-picker-screen';
+import { Link2 } from 'lucide-react';
+import type { InviteOutcome } from '@/features/workspace/lib/inviteOutcome';
+import { InviteResultNotice } from '@/features/workspace/components/InviteResultNotice';
+import { useCopyInviteLink } from '@/features/workspace/hooks/useCopyInviteLink';
 
 const NO_GROUP = 'none';
 
@@ -21,7 +25,11 @@ interface WorkspaceInvitesMobileScreenProps {
   groups: AccessGroup[];
   invites: SentInvite[];
   invitesLoading: boolean;
-  onInvite: (email: string, role: WorkspaceRole, groupId: string | null) => Promise<{ error?: string } | void>;
+  onInvite: (
+    email: string,
+    role: WorkspaceRole,
+    groupId: string | null,
+  ) => Promise<{ error?: string; outcome?: InviteOutcome } | void>;
   onRevoke: (token: string) => void;
 }
 
@@ -57,6 +65,8 @@ export const WorkspaceInvitesMobileScreen: React.FC<WorkspaceInvitesMobileScreen
   const [groupPickerOpen, setGroupPickerOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [lastOutcome, setLastOutcome] = useState<InviteOutcome | null>(null);
+  const copyInviteLink = useCopyInviteLink();
 
   useEffect(() => {
     if (formOpen) return;
@@ -98,6 +108,7 @@ export const WorkspaceInvitesMobileScreen: React.FC<WorkspaceInvitesMobileScreen
       setFormError(result.error);
       return;
     }
+    setLastOutcome(result && result.outcome ? result.outcome : null);
     setFormOpen(false);
   };
 
@@ -109,6 +120,10 @@ export const WorkspaceInvitesMobileScreen: React.FC<WorkspaceInvitesMobileScreen
             <Button className="h-12 w-full" onClick={() => setFormOpen(true)}>
               {t`Add member`}
             </Button>
+          )}
+
+          {lastOutcome && (
+            <InviteResultNotice result={lastOutcome} onCopyLink={(token) => void copyInviteLink(token)} />
           )}
 
           {!isAdmin && (
@@ -138,15 +153,27 @@ export const WorkspaceInvitesMobileScreen: React.FC<WorkspaceInvitesMobileScreen
                     </Badge>
                   )}
                   right={isAdmin ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9"
-                      onClick={() => onRevoke(invite.token)}
-                    >
-                      {t`Revoke`}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        aria-label={t`Copy link`}
+                        onClick={() => void copyInviteLink(invite.token)}
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9"
+                        onClick={() => onRevoke(invite.token)}
+                      >
+                        {t`Revoke`}
+                      </Button>
+                    </div>
                   ) : undefined}
                 />
               ))

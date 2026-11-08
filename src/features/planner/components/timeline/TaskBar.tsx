@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
-import { selectSearchQueryForTitle, useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
+import { selectSearchQueryForTask, useTaskSearchStore } from '@/features/planner/store/taskSearchStore';
 import { splitTitleAtMatch } from '@/shared/domain/taskSearch';
 import { Task, TaskPriority } from '@/features/planner/types/planner';
 import { RepeatTaskScopeDialog } from '@/features/planner/components/RepeatTaskScopeDialog';
@@ -58,7 +58,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   // highlighted state flips, not on every selection change across the board.
   const isSelected = usePlannerStore((state) => state.selectedTaskId === task.id);
   const isHighlighted = usePlannerStore((state) => state.highlightedTaskId === task.id);
-  const searchQuerySelector = useMemo(() => selectSearchQueryForTitle(task.title), [task.title]);
+  const searchQuerySelector = useMemo(() => selectSearchQueryForTask(task.id, task.title), [task.id, task.title]);
   const searchQuery = useTaskSearchStore(searchQuerySelector);
   const isSearchFocused = useTaskSearchStore((state) => state.open && state.focusedId === task.id);
   const titleParts = searchQuery ? splitTitleAtMatch(task.title, searchQuery) : null;
@@ -175,7 +175,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
             isResizing && 'z-50',
             isSelected && 'ring-2 ring-primary ring-offset-1',
             isHighlighted && 'task-highlight z-40',
-            titleParts && 'task-search-match',
+            searchQuery && 'task-search-match',
             isSearchFocused && 'task-search-focus',
             appearance.isCancelled && 'opacity-60 saturate-50'
           )}

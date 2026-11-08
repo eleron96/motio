@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  collectTaskSearchHits,
+  collectTaskSearchResults,
   findTitleMatch,
   isSearchableQuery,
   layoutTaskSearchStrip,
@@ -29,13 +29,15 @@ describe('matching titles', () => {
     expect(splitTitleAtMatch('Проверить смету подрядчика', 'смет')).toEqual(['Проверить ', 'смет', 'у подрядчика']);
   });
 
-  it('needs at least two letters', () => {
+  it('needs at least two Unicode characters, matching the server', () => {
     expect(isSearchableQuery(' с ')).toBe(false);
     expect(isSearchableQuery('см')).toBe(true);
+    expect(isSearchableQuery('📐')).toBe(false);
+    expect(isSearchableQuery('📐с')).toBe(true);
   });
 });
 
-describe('collectTaskSearchHits', () => {
+describe('collectTaskSearchResults', () => {
   it('merges sources by id and keeps one occurrence per series, nearest to today', () => {
     const local = [task('a', 'Смета фасад', '2026-10-28', '2026-11-04'), task('s1', 'Смета: сверка', '2026-10-01', '2026-10-01', 'r')];
     const server = [
@@ -43,8 +45,30 @@ describe('collectTaskSearchHits', () => {
       task('s2', 'Смета: сверка', '2026-11-05', '2026-11-05', 'r'),
       task('b', 'Обмеры', '2026-10-30'),
     ];
-    const hits = collectTaskSearchHits([local, server], 'смет', '2026-10-31');
+    const { hits, matchedTaskIds } = collectTaskSearchResults([local, server], 'смет', '2026-10-31');
     expect(hits.map((hit) => hit.id)).toEqual(['a', 's2']);
+    expect([...matchedTaskIds]).toEqual(['a', 's1', 's2']);
+  });
+
+  it('keeps a subtask-only match and prefers current local task fields', () => {
+    const local = task('a', 'Обмеры', '2026-11-06');
+    const server = { ...local, startDate: '2026-10-01', matchedSubtaskTitle: 'Проверить смету' };
+    const { hits } = collectTaskSearchResults([[local], [server]], 'СМЕТ', '2026-11-06');
+    expect(hits).toEqual([{ ...local, matchedSubtaskTitle: 'Проверить смету' }]);
+    expect(local).not.toHaveProperty('matchedSubtaskTitle');
+  });
+
+  it('does not resurrect an outdated title match after a local rename', () => {
+    const local = task('a', 'Обмеры', '2026-11-06');
+    const stale = { ...local, title: 'Смета' };
+    expect(collectTaskSearchResults([[local], [stale]], 'смет', '2026-11-06').hits).toEqual([]);
+  });
+
+  it('deduplicates a task matching both titles and ignores unrelated subtask context', () => {
+    const parent = { ...task('a', 'Смета', '2026-11-06'), matchedSubtaskTitle: 'Проверить смету' };
+    const unrelated = { ...task('b', 'Обмеры', '2026-11-07'), matchedSubtaskTitle: 'Позвонить' };
+    expect(collectTaskSearchResults([[parent], [parent, unrelated]], 'смет', '2026-11-06').hits).toEqual([parent]);
+    expect(collectTaskSearchResults([[parent]], 'с', '2026-11-06').hits).toEqual([]);
   });
 });
 

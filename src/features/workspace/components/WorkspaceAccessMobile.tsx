@@ -145,7 +145,7 @@ export const WorkspaceAccessMobile: React.FC = () => {
             return {};
           }
           const result = await access.invite(email, role, groupId);
-          return 'error' in result ? { error: result.error } : {};
+          return 'error' in result ? { error: result.error } : { outcome: result.outcome };
         }}
         onRevoke={(token) => void access.revokeInvite(token)}
       />
