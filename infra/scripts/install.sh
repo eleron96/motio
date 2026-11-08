@@ -379,7 +379,10 @@ sys.exit(1 if any(volume.get("external") for volume in volumes.values()) else 0)
   "${compose[@]}" up -d db
   local started
   started="$(date +%s)"
-  until "${compose[@]}" exec -T db pg_isready -U "$postgres_user" -d "$postgres_db" >/dev/null 2>&1; do
+  # Over TCP: on a new volume the image first sets the database up on a server
+  # that answers on the socket only, then stops it ("the database system is
+  # shutting down") and starts the real one.
+  until "${compose[@]}" exec -T db pg_isready -h 127.0.0.1 -U "$postgres_user" -d "$postgres_db" >/dev/null 2>&1; do
     (( $(date +%s) - started > 300 )) && fail "the database did not become ready."
     sleep 2
   done
