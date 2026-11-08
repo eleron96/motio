@@ -348,6 +348,7 @@ bring_up() {
   service_key="$(get_env_value SERVICE_ROLE_KEY)"
 
   infra/scripts/check-prod-secrets.sh "$env_file"
+  own_backups_dir || true  # the move to PostgreSQL 17 and backup sets say so if it is still needed
 
   log "Checking the compose configuration"
   local config_json
@@ -539,6 +540,21 @@ archive_to_volume() {
           --file "/backup/$1" -C /volume' sh "$archive_name"
 }
 
+# infra/backups is also the folder the backup service mounts. When Docker creates
+# it for that mount, it belongs to root, and an install run by a user of the
+# docker group could not put its backup sets (or the move to PostgreSQL 17 its
+# dumps) there: "mkdir: cannot create directory 'infra/backups/install':
+# Permission denied". Create it first, or hand it to the user who runs this.
+own_backups_dir() {
+  mkdir -p infra/backups 2>/dev/null || true
+  [[ -w infra/backups ]] && return 0
+  echo "  infra/backups belongs to another user; handing it to $(id -un)"
+  docker run --rm -v "$root_dir/infra/backups:/backups" --entrypoint chown "$archive_image" \
+    "$(id -u):$(id -g)" /backups >/dev/null && [[ -w infra/backups ]] && return 0
+  warn "infra/backups is not writable for $(id -un): sudo chown $(id -u):$(id -g) infra/backups"
+  return 1
+}
+
 # Copies the volumes of the stopped stack into a new set. $1 kind (manual,
 # pre-update, pre-restore), $2 the .env to keep with it, $3 the git commit the
 # install runs. Sets backup_set_dir; on failure returns non-zero and leaves
@@ -546,6 +562,7 @@ archive_to_volume() {
 create_backup_set() {
   local kind="$1" env_source="$2" ref="$3"
   local name partial
+  own_backups_dir || return 1
   name="${kind}-$(date +%Y%m%d-%H%M%S)"
   partial="$backup_sets_dir/$name.partial"
   if ! write_backup_set "$partial" "$kind" "$env_source" "$ref"; then

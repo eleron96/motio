@@ -18,6 +18,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 
 ### Fixed
+- For your own servers: updates and the move to PostgreSQL 17 no longer stop with “Permission denied” when Motio is installed as a user other than root: the installer takes over the backups folder Docker created.
 - For your own servers: a first install on a clean server no longer stops with “the database system is shutting down”: the installer waits until the database has really started.
 - For your own servers: restore and rollback check a backup set before stopping anything and refuse one its Motio release could not start on, leaving the data untouched. If Motio does not start after a restore, the installer says how to go back.
 - For your own servers: the move to PostgreSQL 17 no longer stops on a slow server with “the service schemas differ … 45 … 91”. You can update from any release straight to the newest, without the ones in between.
