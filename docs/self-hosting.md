@@ -176,7 +176,11 @@ You can go from any release straight to the newest: `update` runs the migrations
 of every release in between, so there is no need to step through them. Only
 published releases have a tag (the list: GitHub Releases, or `git tag` after
 `git fetch --tags`); version numbers in between, such as 0.10.63 and 0.10.64, were
-never published and have no tag to update to.
+never published and have no tag to update to. Every week, and whenever the
+installer changes, the repository does this on a clean machine: it installs
+v0.10.61, v0.10.65 and the newest release, updates them, rolls back, updates again,
+backs up and restores, and checks the data after every step
+([Self-hosted upgrade](../.github/workflows/selfhost-upgrade.yml)).
 
 The update runs in three steps:
 

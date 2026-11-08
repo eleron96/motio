@@ -191,6 +191,46 @@ vulnerabilities with a fix upstream in every image Motio runs. The table is on t
 run page (and an artifact). It never fails; upgrades go through a release
 (`docs/self-hosting.md`, «Security updates»).
 
+#### Self-hosted upgrade test
+
+`.github/workflows/selfhost-upgrade.yml` runs `infra/scripts/selfhost-upgrade-test.sh`
+every Sunday, on demand (one release or all) and when the installer, the move to
+PostgreSQL 17, the Keycloak ensure scripts or the compose files change. It is not
+part of CI: each release takes 20–40 minutes. For each of v0.10.61 (on a Realtime
+limited to 0.1 CPU, where the move to 17 once stopped with «45 vs 91»), v0.10.65
+and the newest tag, with the real `install.sh` at every step:
+
+1. Install that release (proxy mode, loopback ports), add a workspace with 300
+   tasks, a file in storage and a Realtime client.
+2. `update` to the commit under test. Then everything runs: containers, gateway,
+   GoTrue, storage, Keycloak, web, the sign-in redirect to the public Keycloak
+   address, a Realtime join. Row counts and the file are the same. From PostgreSQL
+   15, the move reports identical data and the default privileges in `public` are
+   those of 15 (17 would grant `anon` on new objects).
+3. A task written, then `rollback`: the old release runs again on its old
+   PostgreSQL, `public` and `storage` are byte for byte as before the update, the
+   task is gone.
+4. `update` again (from 15: the move starts over).
+5. From 15: a backup set with a PostgreSQL 17 copy under a PostgreSQL 15 release
+   must be refused before anything stops.
+6. `backup`, a task written, `restore`: the data is back as at the backup.
+
+On failure the run page has the step and the logs (artifact). The same script runs
+on any machine with Docker, for example the testing server in its own folder and
+instance (AGENTS.md §5.6 p.8). It removes everything it created afterwards (`--keep`
+leaves it), only for an instance it created itself:
+
+```bash
+infra/scripts/selfhost-upgrade-test.sh --from v0.10.61 --slow-realtime --work /opt/motio-upgrade-test/work
+```
+
+The fast checks of the same area are part of `npm run test`:
+`src/test/smoke/pgUpgradeHelpers.test.ts` (the helpers of the move: dump lists,
+roles, extensions, the catalog comparison) and
+`src/test/smoke/keycloakEnsureScripts.test.ts` (every `keycloak-ensure-*.sh` runs
+in `prod-compose.sh`, `test-compose.sh` and `install.sh`; `realm-smtp` in
+`install.sh` only).
+
 #### Upgrading a bundled image
 
 1. Pick the version (a stable line where there is one) and scan it first:
