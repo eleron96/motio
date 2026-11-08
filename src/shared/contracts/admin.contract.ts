@@ -62,6 +62,23 @@ const adminWorkspacesAddMemberRequestSchema = z.object({
   role: z.enum(INVITE_ROLE_VALUES),
 }).strict();
 
+// Keycloak group → workspace mappings (self-hosted, KEYCLOAK_WORKSPACES_FROM_GROUPS).
+const adminGroupWorkspacesListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_LIST),
+}).strict();
+
+const adminGroupWorkspacesCreateRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE),
+  groupPath: z.string().trim().min(1).max(255),
+  workspaceId: z.string().min(1),
+  role: z.enum(INVITE_ROLE_VALUES),
+}).strict();
+
+const adminGroupWorkspacesDeleteRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_DELETE),
+  id: z.string().min(1),
+}).strict();
+
 const adminSuperAdminsListRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.SUPER_ADMINS_LIST),
 }).strict();
@@ -225,6 +242,9 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminWorkspacesUpdateRequestSchema,
   adminWorkspacesDeleteRequestSchema,
   adminWorkspacesAddMemberRequestSchema,
+  adminGroupWorkspacesListRequestSchema,
+  adminGroupWorkspacesCreateRequestSchema,
+  adminGroupWorkspacesDeleteRequestSchema,
   adminSuperAdminsListRequestSchema,
   adminSuperAdminsCreateRequestSchema,
   adminSuperAdminsDeleteRequestSchema,

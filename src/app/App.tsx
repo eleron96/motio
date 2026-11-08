@@ -37,6 +37,7 @@ const AdminLayout = lazyDefault(() => import("@/features/admin/components/AdminL
 const AdminOverviewPage = lazyDefault(() => import("@/features/admin/pages/AdminOverviewPage"), "AdminOverviewPage");
 const AdminUsersPage = lazyDefault(() => import("@/features/admin/pages/AdminUsersPage"), "AdminUsersPage");
 const AdminWorkspacesPage = lazyDefault(() => import("@/features/admin/pages/AdminWorkspacesPage"), "AdminWorkspacesPage");
+const AdminGroupWorkspacesPage = lazyDefault(() => import("@/features/admin/pages/AdminGroupWorkspacesPage"), "AdminGroupWorkspacesPage");
 const AdminEasterEggsPage = lazyDefault(() => import("@/features/admin/pages/AdminEasterEggsPage"), "AdminEasterEggsPage");
 const AdminBackupsPage = lazyDefault(() => import("@/features/admin/pages/AdminBackupsPage"), "AdminBackupsPage");
 const AdminSystemPage = lazyDefault(() => import("@/features/admin/pages/AdminSystemPage"), "AdminSystemPage");
@@ -95,6 +96,7 @@ const App = () => {
                     <Route path="/app/admin" element={<AdminOverviewPage />} />
                     <Route path="/app/admin/users" element={<AdminUsersPage />} />
                     <Route path="/app/admin/workspaces" element={<AdminWorkspacesPage />} />
+                    <Route path="/app/admin/group-access" element={<AdminGroupWorkspacesPage />} />
                     <Route path="/app/admin/easter-eggs" element={<AdminEasterEggsPage />} />
                     <Route path="/app/admin/broadcast" element={<AdminBroadcastPage />} />
                     <Route path="/app/admin/backups" element={<AdminBackupsPage />} />

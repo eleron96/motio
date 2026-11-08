@@ -285,6 +285,7 @@ likely to touch:
 | `VITE_START_PAGE` — `app` opens sign-in and the app at your address instead of the public start page | `landing` |
 | `VITE_FEATURE_PUSH` | on |
 | `VITE_FEATURE_KANBAN` (board view, beta), `VITE_FEATURE_ACCOUNT_DELETION`, `VITE_FEATURE_WORKSPACE_API` ([API](api.md)), `VITE_FEATURE_TASK_LIVE_DRAFTS` (teammates' live drafts in a task) | off |
+| `KEYCLOAK_WORKSPACES_FROM_GROUPS` — Keycloak groups put people into workspaces ([Workspaces from groups](#workspaces-from-groups)); `KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE` — leaving the group also takes that access away | `false`, `false` |
 | `GOTRUE_SMTP_*` | empty — no email |
 | `VITE_PLAUSIBLE_*`, `GLITCHTIP_DSN`, `S3_*` | empty — no analytics, error tracking or off-site backups |
 
@@ -341,6 +342,34 @@ OIDC provider (*identity brokering*) — no change to Motio is needed.
 
 The sign-in page then shows "Sign in with <your provider>". Keycloak stays as the
 layer in between.
+
+### Workspaces from groups
+
+Instead of inviting people one by one, let a group decide who is in which
+workspace: everyone in the group *Design* joins the workspace *Design* as an
+editor, say. Motio reads the groups from Keycloak, so they can come from your
+provider: in the provider's **Mappers** in Keycloak, a mapper of type *Advanced
+Claim to Group* puts people into a Keycloak group by a claim your provider sends,
+such as `groups` from Authentik (one mapper per group).
+
+1. Set `KEYCLOAK_WORKSPACES_FROM_GROUPS=true` in `.env` and run `install.sh up`.
+2. As a super admin, open **Admin → Group access**, pick the Keycloak group (its
+   path, such as `/Design`), the workspace and the role.
+3. Everyone in the group joins the next time they open Motio, before Motio would
+   create a first workspace of their own.
+
+- A mapping also covers the subgroups of its group (`/Company` covers
+  `/Company/Design`). Several groups for one workspace: the highest role counts.
+- Only access is added. Someone already in the workspace keeps their role, and the
+  workspace owner is never touched.
+- One account can be in at most five workspaces; a mapping beyond that is skipped
+  (the functions log says so).
+- Leaving the group does not take the access away, unless
+  `KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE=true`: then the access the group gave is
+  taken away at the person's next visit, once no mapped group gives it any more.
+  Access given by hand or by an invitation always stays. A workspace admin who
+  removes someone the group put in sees them come back at their next visit: change
+  the group instead.
 
 ## Reverse proxy examples
 

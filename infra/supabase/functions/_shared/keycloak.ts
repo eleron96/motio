@@ -58,7 +58,7 @@ const splitDisplayName = (displayName?: string | null) => {
   };
 };
 
-const parseKeycloakError = async (response: Response) => {
+export const parseKeycloakError = async (response: Response) => {
   const fallback = `Keycloak request failed: ${response.status} ${response.statusText}`;
   const text = await response.text().catch(() => "");
   if (!text) return fallback;
@@ -174,7 +174,7 @@ const requestWithToken = async (
   }
 };
 
-const keycloakRequest = async (
+export const keycloakRequest = async (
   config: KeycloakConfig,
   path: string,
   init: RequestInit = {},

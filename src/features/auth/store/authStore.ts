@@ -48,6 +48,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   superAdminLoading: false,
   superAdminCheckFailed: false,
   superAdminSessionExpired: false,
+  groupWorkspacesEnabled: false,
   setSession: (session) => {
     const user = session?.user ?? null;
     set({
@@ -63,6 +64,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profileStatus: 'ACTIVE',
       profilePurgeAfter: null,
       isSuperAdmin: false,
+      groupWorkspacesEnabled: false,
       superAdminLoading: Boolean(user),
       superAdminCheckFailed: false,
       superAdminSessionExpired: false,
@@ -87,7 +89,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // container is enough. Retry briefly, and when it still will not answer,
       // record that the check failed instead of pretending the role is absent.
       for (let attempt = 0; attempt < SUPER_ADMIN_PROBE_ATTEMPTS; attempt += 1) {
-        const { data, error, status } = await invokeAdminFunction<{ isSuperAdmin?: boolean }>({
+        const { data, error, status } = await invokeAdminFunction<{
+          isSuperAdmin?: boolean;
+          groupWorkspaces?: boolean;
+          workspacesChanged?: boolean;
+        }>({
           action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
         });
         if (status === 401) {
@@ -102,7 +108,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // intact — no reset here. The workspace-less service account is
           // steered to the admin console by the pages' redirect instead.
           const isSuperAdmin = Boolean(data?.isSuperAdmin);
-          set({ isSuperAdmin, superAdminLoading: false, superAdminCheckFailed: false });
+          set({
+            isSuperAdmin,
+            superAdminLoading: false,
+            superAdminCheckFailed: false,
+            groupWorkspacesEnabled: Boolean(data?.groupWorkspaces),
+          });
+          // Workspaces from Keycloak groups: whoami has just put the person
+          // into (or out of) workspaces. Reload the list; the load that ran
+          // alongside whoami is older and gives way (fetchWorkspaces).
+          if (data?.workspacesChanged) {
+            void get().fetchWorkspaces().catch(() => undefined);
+          }
           return isSuperAdmin;
         }
         if (attempt < SUPER_ADMIN_PROBE_ATTEMPTS - 1) {
@@ -198,6 +215,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       profileLocale: null,
       profilePreferences: null,
       isSuperAdmin: false,
+      groupWorkspacesEnabled: false,
       superAdminLoading: false,
       signOutRedirectInProgress: true,
     });

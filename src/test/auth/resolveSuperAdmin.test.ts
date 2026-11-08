@@ -115,4 +115,44 @@ describe('resolveSuperAdmin via superAdmins.whoami', () => {
     expect(useAuthStore.getState().superAdminSessionExpired).toBe(true);
     expect(useAuthStore.getState().superAdminCheckFailed).toBe(false);
   });
+
+  describe('workspaces from Keycloak groups (self-hosted setting)', () => {
+    it('shows nothing new while whoami does not mention the setting', async () => {
+      const fetchWorkspaces = vi.fn().mockResolvedValue(undefined);
+      useAuthStore.setState({ fetchWorkspaces, groupWorkspacesEnabled: false });
+      functionsInvoke.mockResolvedValue({ data: { isSuperAdmin: true }, error: null });
+
+      await useAuthStore.getState().resolveSuperAdmin(asUser);
+
+      expect(useAuthStore.getState().groupWorkspacesEnabled).toBe(false);
+      expect(fetchWorkspaces).not.toHaveBeenCalled();
+    });
+
+    it('opens the admin section and reloads the workspaces whoami changed', async () => {
+      const fetchWorkspaces = vi.fn().mockResolvedValue(undefined);
+      useAuthStore.setState({ fetchWorkspaces });
+      functionsInvoke.mockResolvedValue({
+        data: { isSuperAdmin: false, groupWorkspaces: true, workspacesChanged: true },
+        error: null,
+      });
+
+      await useAuthStore.getState().resolveSuperAdmin(asUser);
+
+      expect(useAuthStore.getState().groupWorkspacesEnabled).toBe(true);
+      expect(fetchWorkspaces).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reload when the sync changed nothing', async () => {
+      const fetchWorkspaces = vi.fn().mockResolvedValue(undefined);
+      useAuthStore.setState({ fetchWorkspaces });
+      functionsInvoke.mockResolvedValue({
+        data: { isSuperAdmin: false, groupWorkspaces: true, workspacesChanged: false },
+        error: null,
+      });
+
+      await useAuthStore.getState().resolveSuperAdmin(asUser);
+
+      expect(fetchWorkspaces).not.toHaveBeenCalled();
+    });
+  });
 });

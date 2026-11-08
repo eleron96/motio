@@ -36,6 +36,29 @@ describe('contracts', () => {
     }).success).toBe(false);
   });
 
+  it('validates the group access requests of the admin console', () => {
+    expect(adminRequestSchema.safeParse({ action: ADMIN_ACTIONS.GROUP_WORKSPACES_LIST }).success).toBe(true);
+    expect(adminRequestSchema.safeParse({
+      action: ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE,
+      groupPath: '/Design',
+      workspaceId: 'ws-1',
+      role: 'viewer',
+    }).success).toBe(true);
+    expect(adminRequestSchema.safeParse({
+      action: ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE,
+      groupPath: '   ',
+      workspaceId: 'ws-1',
+      role: 'viewer',
+    }).success).toBe(false);
+    expect(adminRequestSchema.safeParse({
+      action: ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE,
+      groupPath: '/Design',
+      workspaceId: 'ws-1',
+      role: 'owner',
+    }).success).toBe(false);
+    expect(adminRequestSchema.safeParse({ action: ADMIN_ACTIONS.GROUP_WORKSPACES_DELETE, id: 'map-1' }).success).toBe(true);
+  });
+
   it('validates invite requests by action contract', () => {
     const valid = inviteRequestSchema.safeParse({
       action: INVITE_ACTIONS.CREATE,
