@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.69] - 2026-11-08
 ### Added
 - For your own servers: Keycloak groups — for example from Authentik — can put people into workspaces. A super admin maps a group to a workspace and a role in the admin console (“Group access”), and the person joins the next time they open Motio. Turned on with KEYCLOAK_WORKSPACES_FROM_GROUPS, off by default; taking access away when someone leaves the group is a separate setting.
 - A super admin can add someone to a workspace right away, without an invitation: “Admin → Workspaces → Add member”.
