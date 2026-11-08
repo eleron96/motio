@@ -143,6 +143,8 @@ export const useWorkspaceInvites = ({
       return;
     }
 
+    // The notice of this invitation would still offer its link.
+    setInviteResult((current) => (current?.token === token ? null : current));
     await loadSentInvites();
     setCancelingToken(null);
   }, [cancelSentInvite, isAdmin, loadSentInvites, setError]);
