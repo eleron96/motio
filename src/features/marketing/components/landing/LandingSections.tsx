@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
+import { BookOpen } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { Button } from '@/shared/ui/button';
-import { selfHostingGuideUrl } from '@/shared/lib/docsLinks';
+import { selfHostingGuideUrl, userGuideUrl } from '@/shared/lib/docsLinks';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import heatmapImage from '@/features/marketing/assets/heatmap.webp';
 
@@ -70,6 +71,31 @@ export const LandingHeatmap = () => {
   );
 };
 
+// The user guide: everything the landing page only hints at, explained screen by screen.
+export const LandingGuide = () => {
+  const locale = useLocaleStore((state) => state.locale);
+  return (
+    <section className="mx-auto w-full max-w-[900px] px-4 pt-24 sm:px-6 lg:px-10">
+      <div className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:flex-row sm:items-center sm:px-10">
+        <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <BookOpen className="h-6 w-6" aria-hidden="true" />
+        </span>
+        <div className="flex-1">
+          <h2 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl" style={{ letterSpacing: '-0.3px' }}>
+            {t`Every screen, explained`}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            {t`A detailed guide walks through every part of Motio with screenshots: the timeline, tasks, projects, the dashboard, working from a phone. In English and Russian.`}
+          </p>
+        </div>
+        <Button asChild variant="outline" className="shrink-0">
+          <a href={userGuideUrl(locale)} target="_blank" rel="noopener">{t`Open the guide →`}</a>
+        </Button>
+      </div>
+    </section>
+  );
+};
+
 // Own infrastructure is an option for those who need it, not the main promise: the main path stays "sign up and work".
 export const LandingSelfHosted = () => {
   const locale = useLocaleStore((state) => state.locale);
@@ -124,7 +150,7 @@ export const LandingStory = () => {
       </h2>
       <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-slate-600 sm:text-base">
         <p>
-          {t`I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem.`}
+          {t`I'm Niko Gamsakhurdiya (Niko G.). For years I've managed teams and projects around BIM, where I kept running into the same problem.`}
         </p>
         <p>
           {t`Most tools show what people are doing. Almost none let you quickly see when they're busy, when they're free, and how the work is spread across the week.`}

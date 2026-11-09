@@ -333,6 +333,10 @@ msgstr "404 - Page not found | Motio"
 msgid "A circle on the day; split when several people are away."
 msgstr "A circle on the day; split when several people are away."
 
+#: src/features/marketing/components/landing/LandingSections.tsx
+msgid "A detailed guide walks through every part of Motio with screenshots: the timeline, tasks, projects, the dashboard, working from a phone. In English and Russian."
+msgstr "A detailed guide walks through every part of Motio with screenshots: the timeline, tasks, projects, the dashboard, working from a phone. In English and Russian."
+
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 msgid "A future date schedules it."
 msgstr "A future date schedules it."
@@ -377,6 +381,10 @@ msgstr "A workspace can have at most 10 active tokens. Revoke one you no longer 
 #: src/features/projects/hooks/useProjectsLists.ts
 msgid "A-Z"
 msgstr "A-Z"
+
+#: src/features/marketing/components/landing/LandingFooter.tsx
+msgid "About"
+msgstr "About"
 
 #: src/features/auth/components/InboxPanel.tsx
 msgid "Accept"
@@ -705,6 +713,10 @@ msgstr "All contacts"
 #: src/features/admin/pages/AdminBackupsPage.tsx
 msgid "All current data will be lost."
 msgstr "All current data will be lost."
+
+#: src/features/marketing/components/landing/LandingFooter.tsx
+msgid "All documentation"
+msgstr "All documentation"
 
 #: src/features/planner/components/board/BoardQuickFilters.tsx
 msgid "All groups"
@@ -2646,6 +2658,10 @@ msgstr "Every 4 weeks recurring"
 msgid "Every active account, including people who join later."
 msgstr "Every active account, including people who join later."
 
+#: src/features/marketing/components/landing/LandingSections.tsx
+msgid "Every screen, explained"
+msgstr "Every screen, explained"
+
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
@@ -3245,8 +3261,8 @@ msgid "I'm mentioned in a comment"
 msgstr "I'm mentioned in a comment"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
-msgid "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
-msgstr "I'm Niko G. For years I've managed teams and projects around BIM, where I kept running into the same problem."
+msgid "I'm Niko Gamsakhurdiya (Niko G.). For years I've managed teams and projects around BIM, where I kept running into the same problem."
+msgstr "I'm Niko Gamsakhurdiya (Niko G.). For years I've managed teams and projects around BIM, where I kept running into the same problem."
 
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "If the question \"who's working on what this week\" keeps coming up in your team, it's time to try Motio."
@@ -4855,6 +4871,10 @@ msgstr "Open source under AGPL-3.0"
 msgid "Open task"
 msgstr "Open task"
 
+#: src/features/marketing/components/landing/LandingSections.tsx
+msgid "Open the guide →"
+msgstr "Open the guide →"
+
 #: src/features/marketing/components/HeroClip.tsx
 msgid "Open the live demo"
 msgstr "Open the live demo"
@@ -5156,6 +5176,10 @@ msgstr "Privacy Policy"
 #: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
 msgid "Private house"
 msgstr "Private house"
+
+#: src/features/marketing/components/landing/LandingFooter.tsx
+msgid "Product"
+msgstr "Product"
 
 #: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "Product news by email"
@@ -6036,6 +6060,10 @@ msgstr "Select value"
 msgid "Select workspace"
 msgstr "Select workspace"
 
+#: src/features/marketing/components/landing/LandingFooter.tsx
+msgid "Self-hosting"
+msgstr "Self-hosting"
+
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "Self-hosting guide →"
 msgstr "Self-hosting guide →"
@@ -6231,6 +6259,7 @@ msgstr "Show until"
 msgid "Showing archived"
 msgstr "Showing archived"
 
+#: src/features/marketing/components/landing/LandingFooter.tsx
 #: src/features/marketing/components/landing/LandingHeader.tsx
 msgid "Sign in"
 msgstr "Sign in"
@@ -7141,6 +7170,7 @@ msgstr "Try again"
 msgid "Try again from Account settings."
 msgstr "Try again from Account settings."
 
+#: src/features/marketing/components/landing/LandingFooter.tsx
 #: src/features/marketing/components/landing/LandingHeader.tsx
 msgid "Try demo"
 msgstr "Try demo"
@@ -7430,6 +7460,10 @@ msgstr "Use the Widget button to add your first widget."
 msgid "User"
 msgstr "User"
 
+#: src/features/marketing/components/landing/LandingFooter.tsx
+msgid "User guide"
+msgstr "User guide"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "User UUID"
 msgstr "User UUID"
@@ -7610,6 +7644,7 @@ msgid "What the planner shows"
 msgstr "What the planner shows"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
+#: src/features/marketing/components/landing/LandingFooter.tsx
 msgid "What's new"
 msgstr "What's new"
 
