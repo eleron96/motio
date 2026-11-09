@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.70] - 2026-11-09
 ### Added
 - New: Help — a detailed guide to Motio in English and Russian. You'll find it in account settings and in the phone menu, and the home page links to the documentation.
 
